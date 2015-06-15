@@ -1,0 +1,83 @@
+{
+    "LogSettings": {
+        "ConsoleEnable": false,
+        "ConsoleLevel": "DEBUG",
+        "FileEnable": true,
+        "FileLevel": "INFO",
+        "FileFormat": "",
+        "FileLocation": ""
+    },
+    "ServiceSettings": {
+        "SiteName": "XXXXXXMustBeFilledIn",
+        "Domain": "xxxxxxmustbefilledin.com",
+        "Mode" : "dev",
+		"AllowTesting" : false,
+        "UseSSL": false,
+        "Port": "8065",
+        "Version": "developer",
+        "Shards": {
+        },
+        "InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6",
+        "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
+        "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
+        "AnalyticsUrl": ""
+    },
+    "SqlSettings": {
+        "DriverName": "mysql",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test",
+        "DataSourceReplicas": ["mmuser:mostest@tcp(dockerhost:3306)/mattermost_test"],
+        "MaxIdleConns": 10,
+        "MaxOpenConns": 10,
+        "Trace": false,
+        "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
+    },
+    "RedisSettings": {
+        "DataSource": "dockerhost:6379",
+        "MaxOpenConns": 1000
+    },
+    "AWSSettings": {
+        "S3AccessKeyId": "",
+        "S3SecretAccessKey": "",
+        "S3Bucket": "",
+        "S3Region": "",
+        "Route53AccessKeyId": "",
+        "Route53SecretAccessKey": "",
+        "Route53ZoneId": "",
+        "Route53Region": ""
+    },
+    "ImageSettings": {
+        "ThumbnailWidth": 200,
+        "ThumbnailHeight": 0,
+        "PreviewWidth": 1024,
+        "PreviewHeight": 0,
+        "ProfileWidth": 128,
+        "ProfileHeight": 128
+    },
+    "EmailSettings": {
+        "SMTPUsername": "",
+        "SMTPPassword": "",
+        "SMTPServer": "",
+        "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
+        "FeedbackName": "",
+        "ApplePushServer": "",
+        "ApplePushCertPublic": "",
+        "ApplePushCertPrivate": ""
+    },
+    "PrivacySettings": {
+        "ShowEmailAddress": true,
+        "ShowPhoneNumber": true,
+        "ShowSkypeId": true,
+        "ShowFullName": true
+    },
+    "TeamSettings": {
+        "MaxUsersPerTeam": 150,
+        "AllowPublicLink": true,
+        "TermsLink": "/static/help/configure_links.html",
+        "PrivacyLink": "/static/help/configure_links.html",
+        "AboutLink": "/static/help/configure_links.html",
+        "HelpLink": "/static/help/configure_links.html",
+        "ReportProblemLink": "/static/help/configure_links.html",
+        "TourLink": "/static/help/configure_links.html",
+        "DefaultThemeColor": "#2389D7"
+    }
+}

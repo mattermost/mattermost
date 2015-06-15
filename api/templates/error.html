@@ -1,0 +1,26 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<title>{{ .SiteName }} - Error</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+	<link href='https://fonts.googleapis.com/css?family=Lato:400,700,900' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="white error">
+	<div class="container-fluid">
+		<div class="error__container">
+			<div class="error__icon"><i class="fa fa-exclamation-triangle"></i></div>
+			<h2>{{ .SiteName }} needs your help:</h2>
+			<p>{{.Message}}</p>
+		</div>
+	</div>
+</body>
+<script>
+	var details = "{{ .Details }}";
+	if (details.length > 0) {
+		console.log("error details: " + details);
+	}
+</script>
+</html>

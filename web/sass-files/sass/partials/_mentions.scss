@@ -1,0 +1,55 @@
+.mention {
+	color: #fff;
+	background: $primary-color;
+	position: relative;
+	z-index: 10;
+	padding-bottom: 1px;
+	@include border-radius(3px);
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.mentions--top {
+	position: absolute;
+    z-index:99999;
+	.mentions-box {
+		position:absolute;
+		background-color:#fff;
+		border:1px solid #ddd;
+        overflow:scroll;
+        bottom:0;
+	}
+}
+
+.mentions-name {
+	position:relative;
+	width:100%;
+	background-color:#fff;
+	height:37px;
+	padding:2px;
+	z-index:101;
+}
+
+.mentions-name:hover {
+	background-color:#e8eaed;
+}
+
+.mentions-text {
+	font-color:black;
+}
+
+.mention-img {
+	margin-right:10px;
+	height:32px;
+	width:32px;
+	border-radius: 10%;
+}
+
+.mention-highlight {
+	background-color:#fff2bb;
+}
+
+.mention-link {
+	color:$primary-color;
+}

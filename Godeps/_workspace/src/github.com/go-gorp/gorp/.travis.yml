@@ -1,0 +1,23 @@
+language: go
+go:
+  - 1.2
+  - 1.3
+  - 1.4
+  - tip
+
+services:
+ - mysql
+ - postgres
+ - sqlite3
+
+before_script:
+ - mysql -e "CREATE DATABASE gorptest;"
+ - mysql -u root -e "GRANT ALL ON gorptest.* TO gorptest@localhost IDENTIFIED BY 'gorptest'"
+ - psql -c "CREATE DATABASE gorptest;" -U postgres
+ - psql -c "CREATE USER "gorptest" WITH SUPERUSER PASSWORD 'gorptest';" -U postgres
+ - go get github.com/lib/pq
+ - go get github.com/mattn/go-sqlite3
+ - go get github.com/ziutek/mymysql/godrv
+ - go get github.com/go-sql-driver/mysql
+
+script: ./test_all.sh

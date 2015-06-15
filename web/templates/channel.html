@@ -1,0 +1,50 @@
+{{define "channel"}}
+<html>
+{{template "head" . }}
+<body>
+  <div id="error_bar"></div>
+  <div class="container-fluid">
+    <div class="sidebar--right" id="sidebar-right"></div>
+    <div class="sidebar--menu" id="sidebar-menu"></div>
+    <div class="sidebar--left" id="sidebar-left"></div>
+    <div class="inner__wrap channel__wrap">
+        <div class="row header">
+            <div id="navbar"></div>
+        </div>
+        <div class="row main">
+          <div id="app-content" class="app__content">
+            <div id="channel-header"></div>
+            <div id="post-list"></div>
+            <div class="post-create__container" id="post-create"></div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div id="channel_loader"></div>
+  <div id="post_mention_tab"></div>
+  <div id="reply_mention_tab"></div>
+  <div id="edit_mention_tab"></div>
+  <div id="get_link_modal"></div>
+  <div id="user_settings_modal"></div>
+  <div id="invite_member_modal"></div>
+  <div id="edit_channel_modal"></div>
+  <div id="delete_channel_modal"></div>
+  <div id="rename_channel_modal"></div>
+  <div id="rename_team_modal"></div>
+  <div id="edit_post_modal"></div>
+  <div id="delete_post_modal"></div>
+  <div id="more_channels_modal"></div>
+  <div id="new_channel_modal"></div>
+  <div id="post_deleted_modal"></div>
+  <div id="channel_notifications_modal"></div>
+  <div id="channel_members_modal"></div>
+  <div id="channel_invite_modal"></div>
+  <div id="team_members_modal"></div>
+  <div id="direct_channel_modal"></div>
+  <div id="channel_info_modal"></div>
+<script>
+window.setup_channel_page('{{ .Props.TeamName }}', '{{ .Props.TeamType }}', '{{ .Props.ChannelName }}', '{{ .Props.ChannelId }}');
+</script>
+</body>
+</html>
+{{end}}

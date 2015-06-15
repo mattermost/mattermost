@@ -1,0 +1,156 @@
+{
+	"ImportPath": "github.com/mattermost/platform",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/draw2d/draw2d",
+			"Comment": "release-20",
+			"Rev": "eaeb833648eee1b7c20e77ffc8180646c0395298"
+		},
+		{
+			"ImportPath": "code.google.com/p/freetype-go/freetype/raster",
+			"Comment": "release-85",
+			"Rev": "46c3056cafbb4da11c4087a892c7d2bfa4224a8f"
+		},
+		{
+			"ImportPath": "code.google.com/p/freetype-go/freetype/truetype",
+			"Comment": "release-85",
+			"Rev": "46c3056cafbb4da11c4087a892c7d2bfa4224a8f"
+		},
+		{
+			"ImportPath": "code.google.com/p/go-uuid/uuid",
+			"Comment": "null-15",
+			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/bcrypt",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
+			"ImportPath": "code.google.com/p/log4go",
+			"Comment": "go.weekly.2012-02-22-1",
+			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
+		},
+		{
+			"ImportPath": "github.com/anachronistic/apns",
+			"Rev": "f90152b7e0ae845938ce1258d90072fd116131ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/query",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/rest",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/restxml",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/service/route53",
+			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
+		},
+		{
+			"ImportPath": "github.com/braintree/manners",
+			"Comment": "0.3.1-2-g5280e25",
+			"Rev": "5280e250f2795914acbeb2bf3b55dd5a2d1fba52"
+		},
+		{
+			"ImportPath": "github.com/go-gorp/gorp",
+			"Comment": "v1.7-65-g3c15f67",
+			"Rev": "3c15f6739b94dc357e2797a7297a2853ec79f4fa"
+		},
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.2-97-g0cc29e9",
+			"Rev": "0cc29e9fe8e25c2c58cf47bcab566e029bbaa88b"
+		},
+		{
+			"ImportPath": "github.com/goamz/goamz/aws",
+			"Rev": "ad637a587dd8314770a1084481dd7b5d4fa1232f"
+		},
+		{
+			"ImportPath": "github.com/goamz/goamz/s3",
+			"Rev": "ad637a587dd8314770a1084481dd7b5d4fa1232f"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "6fd0f867fef40c540fa05c59f86396de10a632a6"
+		},
+		{
+			"ImportPath": "github.com/huandu/facebook",
+			"Comment": "v1.5.2",
+			"Rev": "7c46d89211b9a3f01087f47f6a399b815801ade4"
+		},
+		{
+			"ImportPath": "github.com/mssola/user_agent",
+			"Comment": "v0.4.1-2-g35c7f18",
+			"Rev": "35c7f18f5261cc18c698a461053c119aebaf8542"
+		},
+		{
+			"ImportPath": "github.com/nfnt/resize",
+			"Rev": "f2d1b73023c55bdfb4fa2ed385d2bec95bce3692"
+		},
+		{
+			"ImportPath": "github.com/stretchr/objx",
+			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/mock",
+			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "74f810a0152f4c50a16195f6b9ff44afc35594e8"
+		},
+		{
+			"ImportPath": "gopkg.in/bufio.v1",
+			"Comment": "v1",
+			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
+		},
+		{
+			"ImportPath": "gopkg.in/fsnotify.v1",
+			"Comment": "v1.2.0",
+			"Rev": "96c060f6a6b7e0d6f75fddd10efeaca3e5d1bcb0"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v2",
+			"Comment": "v2.3.2",
+			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
+		}
+	]
+}

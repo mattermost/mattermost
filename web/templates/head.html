@@ -1,0 +1,84 @@
+{{define "head"}}
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+
+    <title>{{ .Title }}</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/jasny-bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://fb.me/react-with-addons-0.13.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+    <link id="favicon" rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,700,900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <script src="/static/js/min/perfect-scrollbar.min.js"></script>
+    <script src="/static/js/bundle.js"></script>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['annotationchart']}]}"></script>
+
+    <script type="text/javascript" src="https://cloudfront.loggly.com/js/loggly.tracker.js" async></script>
+    <script id="config" type="text/javascript" src="/static/config/config.js"></script>
+    <script>
+        if (config == null) {
+            config = {};
+        }
+        config.SiteName = '{{ .SiteName }}';
+    </script>
+    <script>
+        if (config.LogglyWriteKey != null && config.LogglyWriteKey !== "") {
+            var _LTracker = _LTracker || [];
+            window._LTracker = _LTracker;
+            _LTracker.push({'logglyKey': config.LogglyWriteKey, 'sendConsoleErrors' : config.LogglyConsoleErrors });
+        } else {
+            console.warn("config.js missing LogglyWriteKey, Loggly analytics is not reporting");
+        }
+    </script>
+    <script type="text/javascript">
+        if (config.SegmentWriteKey != null && config.SegmentWriteKey !== "") {
+            !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
+            analytics.load(config.SegmentWriteKey);
+            var user = window.UserStore.getCurrentUser(true);
+            if (user) {
+              analytics.identify(user.id, {
+                  name: user.full_name,
+                  email: user.email,
+                  createdAt: user.create_at,
+                  username: user.username,
+                  team_id: user.team_id,
+                  team_domain: window.getSubDomain(),
+                  id: user.id
+              });
+            }
+            analytics.page();
+            }}();
+        } else {
+            console.warn("config.js missing SegmentWriteKey, SegmentIO analytics is not tracking");
+        }
+    </script>
+    <!-- Snowplow starts plowing -->
+    <script type="text/javascript">
+        ;(function(p,l,o,w,i,n,g){if(!p[i]){p.GlobalSnowplowNamespace=p.GlobalSnowplowNamespace||[];
+        p.GlobalSnowplowNamespace.push(i);p[i]=function(){(p[i].q=p[i].q||[]).push(arguments)
+        };p[i].q=p[i].q||[];n=l.createElement(o);g=l.getElementsByTagName(o)[0];n.async=1;
+        n.src=w;g.parentNode.insertBefore(n,g)}}(window,document,"script","//d1fc8wv8zag5ca.cloudfront.net/2.4.2/sp.js","snowplow"));
+
+        window.snowplow('newTracker', 'cf', '{{ .Props.AnalyticsUrl }}', {
+          appId: '{{ .SiteName }}'
+        });
+
+        var user = window.UserStore.getCurrentUser(true);
+        if (user) {
+            window.snowplow('setUserId', user.id);
+        }
+
+        window.snowplow('trackPageView');
+    </script>
+    <!-- Snowplow stops plowing -->
+</head>
+{{end}}

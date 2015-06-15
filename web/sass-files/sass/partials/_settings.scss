@@ -1,0 +1,222 @@
+.user-settings {
+    background: #fff;
+    min-height:300px;
+}
+
+.settings-modal {
+    width:800px;
+    max-width: 100%;
+    .modal-back {
+        width: 8px;
+        height: 13px;
+        background: url("../images/arrow-left.png");
+        @include background-size(100% 100%);
+        margin-right: 10px;
+        display: inline-block;
+        cursor: pointer;
+    }
+    .modal-body {
+        padding: 0;
+    }
+    li {
+        list-style: none;
+    }
+    .settings-table {
+        display: table;
+        width: 100%;
+        > div {
+            display: table-cell;
+            vertical-align: top;
+        }
+        .settings-links {
+            width: 180px;
+            background: #FAFAFA;
+            border-right: 1px solid #DDD;
+        }
+        .settings-content {
+            padding: 0px 20px 30px;
+            .modal-header {
+                display: none;
+            }
+            .section-min {
+                padding: 1em 0;
+                margin-bottom: 0;
+                @include clearfix;
+            }
+
+            .section-max {
+                background: #f2f2f2;
+                padding: 1em 0;
+                margin-bottom: 0;
+                @include clearfix;
+                .section-title {
+                    margin-bottom: 10px;
+                }
+            }
+
+            .section-title {
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+
+            .section-edit {
+                text-align: right;
+                margin-bottom: 5px;
+            }
+
+            .section-describe {
+                color:grey;
+            }
+
+            .divider-dark {
+                border-bottom:1px solid #aaaaaa;
+            }
+
+            .divider-light {
+                border-bottom:1px solid lightgrey;
+            }
+
+            .setting-list {
+                padding: 0;
+                list-style-type:none;
+            }
+
+            .mentions-input {
+                margin-top: 10px;
+            }
+
+            .setting-list-item {
+                margin-top:7px;
+                .has-error {
+                    color: #a94442;
+                }
+                .control-label {
+                    color: #555;
+                }
+                hr {
+                    border-color: #ccc;
+                }
+            }
+
+
+        }
+    }
+    .nav-pills {
+        > li {
+            margin: 0;
+            a {
+                border-radius: 0;
+                color: #777;
+            }
+            .glyphicon {
+                width: 25px;
+                top: 2px;
+            }
+            &:hover {
+                a {
+                    background: #E6F2FA;
+                }
+            }
+            &.active {
+                a {
+                    color: #111;
+                    background-color: #E1E1E1;
+                }
+            }
+        }
+    }
+    h3 {
+        font-size: em(20px);
+    }
+}
+
+#user_settings {
+    padding: 0 0.5em;
+    border-right: 1px solid #ddd;
+    max-width: 800px;
+}
+
+.channel-settings {
+    padding: 0 10px;
+}
+
+.tab-header {
+    margin-bottom:1em;
+}
+
+.setting-name {
+    color:grey;
+    font-weight:500;
+}
+
+.profile-img {
+    width:158px;
+    max-height:128px;
+}
+
+.sel-btn {
+    margin-right:5px;
+}
+
+.member-list-holder {
+    background-color:#fff;
+}
+
+.member-div {
+    border-bottom:1px solid lightgrey;
+    position:relative;
+    padding:2px;
+    margin: 0;
+    width:100%;
+    &:first-child {
+        border-top:1px solid lightgrey;
+    }
+    .post-profile-img {
+        @include border-radius(3px);
+        margin-right: 8px;
+    }
+    .member-name {
+        font-weight:500;
+        display: block;
+    }
+
+    .member-email {
+        color:darkgrey;
+        display: block;
+    }
+
+    .member-role, .member-drop {
+        position:absolute;
+        right:15px;
+        top:13px;
+        color:#414142;
+    }
+}
+
+.member-invite {
+    position:absolute;
+    right:10px;
+    top:7px;
+}
+
+.member-menu {
+    right:0px;
+    left:auto;
+}
+
+.member-list {
+    width:100%;
+    overflow-x:visible;
+}
+
+.member-page {
+    padding-top:50px;
+}
+
+.active-border {
+    border:1px solid red;
+}
+
+.color-btn {
+    margin:4px;
+}
