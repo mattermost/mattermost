@@ -13,7 +13,7 @@ module.exports.trackPage = function() {
 };
 
 function handleError(method_name, xhr, status, err) {
-    var _LTracker = global.window._LTracker;
+    var _LTracker = global.window._LTracker | [];
 
     var e = null;
     try {
