@@ -1127,7 +1127,7 @@ module.exports = React.createClass({
                 </div>
             );
 
-        /* Temporarily removing sessoions and activity_log tabs
+        /* Temporarily removing sessions and activity_log tabs
 
         } else if (this.props.activeTab === 'sessions') {
             return (
