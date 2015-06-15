@@ -55,11 +55,14 @@ module.exports = React.createClass({
 
             }.bind(this),
             function(err) {
-                var state = {}
+                var state = {};
                 state.server_error = err.message;
-                this.setState(state);
+
                 if (err.message === "Invalid RootId parameter") {
                     if ($('#post_deleted').length > 0) $('#post_deleted').modal('show');
+                }
+                else {
+                    this.setState(state);
                 }
             }.bind(this)
         );

@@ -114,7 +114,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fileUrl := c.TeamUrl + "/api/v1/files/get/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + files[i].Filename
+		fileUrl := c.TeamUrl + "/api/v1/files/get/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + url.QueryEscape(files[i].Filename)
 		resStruct.Filenames = append(resStruct.Filenames, fileUrl)
 	}
 

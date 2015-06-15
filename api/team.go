@@ -157,9 +157,11 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		CreateValet(c, rteam)
-		if c.Err != nil {
-			return
+		if utils.Cfg.TeamSettings.AllowValet {
+			CreateValet(c, rteam)
+			if c.Err != nil {
+				return
+			}
 		}
 
 		InviteMembers(rteam, ruser, teamSignup.Invites)
