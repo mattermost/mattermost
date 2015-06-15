@@ -1126,6 +1126,9 @@ module.exports = React.createClass({
                     <NotificationsTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
                 </div>
             );
+
+        /* Temporarily removing sessions and activity_log tabs
+
         } else if (this.props.activeTab === 'sessions') {
             return (
                 <div>
@@ -1138,6 +1141,8 @@ module.exports = React.createClass({
                     <AuditTab activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
                 </div>
             );
+        */
+
         } else if (this.props.activeTab === 'appearance') {
             return (
                 <div>

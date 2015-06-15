@@ -165,7 +165,7 @@ module.exports = React.createClass({
                                                 <span className="text"> | </span>
                                             </div>
                                         : "" }
-                                        <a href={this.props.filenames[id]} download={name} className="text">Download</a>
+                                        <a href={this.props.filenames[id]} download={decodeURIComponent(name)} className="text">Download</a>
                                     </div>
                                 </div>
                                 {loading}

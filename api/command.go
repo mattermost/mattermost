@@ -19,12 +19,16 @@ var commands = []commandHandler{
 	logoutCommand,
 	joinCommand,
 	loadTestCommand,
-	echoCommand,
 }
 
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
+
+	if utils.Cfg.TeamSettings.AllowValet {
+		commands = append(commands, echoCommand)
+	}
+
 	hub.Start()
 }
 

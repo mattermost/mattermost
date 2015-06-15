@@ -23,7 +23,7 @@ module.exports = React.createClass({
                             <p>Someone deleted the message on which you tried to post a comment.</p>
                         </div>
                         <div className="modal-footer">
-                          <button type="button" className="btn btn-primary" data-dismiss="modal">Agree</button>
+                          <button type="button" className="btn btn-primary" data-dismiss="modal">Okay</button>
                         </div>
                       </div>
                    </div>
