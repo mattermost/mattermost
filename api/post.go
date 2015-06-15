@@ -61,6 +61,7 @@ func createValetPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !utils.Cfg.TeamSettings.AllowValet {
 		c.Err = model.NewAppError("createValetPost", "The valet feature is currently turned off. Please contact your system administrator for details.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
+		return
 	}
 
 	post := model.PostFromJson(r.Body)
