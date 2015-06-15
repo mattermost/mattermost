@@ -209,7 +209,6 @@ func TestCreateValetPost(t *testing.T) {
 		post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
 		_, err := Client.CreateValetPost(post1)
 		if err.StatusCode != http.StatusNotImplemented {
-			t.Fatal(err)
 			t.Fatal("Should have failed with 501 - Not Implemented")
 		}
 	}
