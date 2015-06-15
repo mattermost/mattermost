@@ -1,0 +1,37 @@
+{
+  "name": "mattermost",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "flux": "^2.0.0",
+    "keymirror": "~0.1.0",
+    "object-assign": "^1.0.0",
+    "react": "^0.12.0",
+    "autolinker": "^0.15.2",
+    "linkify-it": "^1.1.0",
+    "react-zeroclipboard-mixin": "^0.1.0"
+  },
+  "devDependencies": {
+    "browserify": "^6.2.0",
+    "envify": "^3.0.0",
+    "jest-cli": "~0.1.17",
+    "reactify": "^0.15.2",
+    "uglify-js": "~2.4.15",
+    "watchify": "^2.1.1"
+  },
+  "scripts": {
+    "start": "watchify --extension=jsx -o ../static/js/bundle.js -v -d ./**/*.jsx",
+    "build": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs  > ../static/js/bundle.min.js",
+    "build_old": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs -cm > ../static/js/bundle.min.js",
+    "test": "jest"
+  },
+  "browserify": {
+    "transform": [
+      "reactify",
+      "envify"
+    ]
+  },
+  "jest": {
+    "rootDir": "."
+  }
+}

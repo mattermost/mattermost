@@ -1,0 +1,57 @@
+{{define "post_body"}}
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 20px; line-height: 1.7; color: #555;">
+    <tr>
+        <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 660px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; background: #FFF;">
+                <tr>
+                    <td style="border: 1px solid #ddd;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 20px 30px 10px; text-align:left;">
+                                    <img src="{{.TeamUrl}}/static/images/{{.SiteName}}-logodark.png" width="130px" style="opacity: 0.5" alt="">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
+                                        <tr>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
+                                                <h2 style="font-weight: normal; margin-top: 10px;">You were mentioned</h2>
+                                                <p>CHANNEL: {{.Props.ChannelName}}<br>{{.Props.SenderName}} - {{.Props.Hour}}:{{.Props.Minute}} GMT, {{.Props.Month}} {{.Props.Day}}<br><pre style="text-align:left;font-family: 'Lato', sans-serif;">{{.Props.PostMessage}}</pre></p>
+                                                <p style="margin: 20px 0 15px">
+                                                    <a href="{{.Props.TeamLink}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">Go To Channel</a>
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999; padding-top: 20px; line-height: 25px; font-size: 13px;">
+                                                Any questions at all, mail us any time: <a href="mailto:{{.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.FeedbackEmail}}</a>.<br>
+                                                Best wishes,<br>
+                                                The {{.SiteName}} Team<br>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;color: #AAA; font-size: 13px; padding-bottom: 10px;">
+                                    <p style="margin: 25px 0;">
+                                        <img width="65" src="{{.TeamUrl}}/static/images/circles.png" alt="">
+                                    </p>
+                                    <p style="padding: 0 50px;">
+                                        (c) 2015 SpinPunch, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>
+                                        If you no longer wish to receive these emails, click on the following link: <a href="mailto:{{.FeedbackEmail}}?subject=Unsubscribe&body=Unsubscribe" style="text-decoration: none; color:#2389D7;">Unsubscribe</a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+{{end}}
+

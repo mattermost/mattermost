@@ -1,0 +1,28 @@
+{{define "signup_team"}}
+<html>
+{{template "head" . }}
+<body class="white">
+    <div class="container-fluid">
+        <div class="inner__wrap">
+            <div class="row content">
+                <div class="col-sm-12">
+                    <div class="signup-team__container">
+                        <img class="signup-team-logo" src="/static/images/logo.png" />
+                        <h4>{{ .SiteName }} is free for an unlimited time, for unlimited users. </h4>
+                        <div id="signup-team"></div>
+                        <a class="signup-team-login" href="/login">or Sign In</a>
+                    </div>
+                </div>
+                <div class="footer-push"></div>
+            </div>
+            <div class="row footer">
+                {{template "footer" . }}
+            </div>
+        </div>
+    </div>
+    <script>
+    window.setup_signup_team_page();
+    </script>
+</body>
+</html>
+{{end}}

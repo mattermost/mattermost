@@ -1,0 +1,24 @@
+{{define "signup_team_confirm"}}
+<html>
+{{template "head" . }}
+<body class="white">
+    <div class="container-fluid">
+        <div class="inner__wrap">
+            <div class="row content">
+                <div class="col-sm-12">
+                    <div class="signup-team__container">
+                        <p>Did you mean to sign-in rather than sign up? Sign in <a href="/login">here</a>. </p>
+                        <h3>Sign up Complete</h3>
+                        <p>Please check your email: {{ .Props.Email }}<br>
+                        You email contains a link to set up your team</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row footer">
+                {{template "footer" . }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

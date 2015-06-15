@@ -1,0 +1,23 @@
+.footer-pane {
+	background: #eee;
+    padding-bottom: 1em;
+    .footer-link {
+        padding: 0 1.5em;
+        &.copyright {
+            color: #999;
+            padding-right: 0;
+        }
+    }
+    .footer-site-name {
+        padding: 1.5em 0 1em;
+        font-size:14px;
+        font-weight:bold;
+        text-transform:uppercase;
+    }
+}
+
+.footer, .footer-pane, .footer-push {
+  height: 89px;
+}
+
+

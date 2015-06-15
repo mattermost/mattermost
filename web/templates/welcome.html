@@ -1,0 +1,36 @@
+{{define "welcome"}}
+<html>
+{{template "head" . }}
+<body>
+  <div class="container-fluid">
+    <div class="inner__wrap">
+        <div class="row header">
+          <div id="navbar"></div>
+        </div>
+        <div class="row main">
+          <div class="app__content">
+            <div class="welcome-info">
+              <h1>Welcome to {{ .SiteName }}!</h1>
+              <p>
+                  You do not appear to be part of any teams. Please contact your
+                  administrator to have him send you an invitation to a private team.
+                  Or you can start a new private team.
+              </p>
+              <div class="alert alert-warning">
+                  If you where invited to a team that you do not see you must
+                  confirm your email address first before gaining access to the
+                  team.
+              </div>
+              <div id="new_channel">
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <script>
+  window.setup_welcome_page();
+  </script>
+</body>
+</html>
+{{end}}

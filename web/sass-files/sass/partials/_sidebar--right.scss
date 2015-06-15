@@ -1,0 +1,83 @@
+.sidebar--right {
+    position: absolute;
+    width: 400px;
+    height: 100%;
+    right: 0px;
+    padding: 0 0 2em 0;
+    background: #fff;
+    @include single-transition(transform, 0.5s, ease);
+    right: -320px;
+    &.move--left {
+        right: 0;
+    }
+    .sidebar-right__body {
+        border-left: $border-gray;
+        border-top: $border-gray;
+    }
+    .post {
+        .post-header {
+            .post-header-col {
+                &.post-header__reply {
+                    text-align: right;
+                    float: right;
+                }
+            }
+        }
+    }
+    .post-create__container {
+        .post-create-footer {
+            padding-top: 10px;
+        }
+    }
+    .sidebar__overlay {
+        width: 100%;
+        height: 100%;
+        background-color: yellow;
+        @include opacity(0.1);
+        position: absolute;
+        z-index: 5;
+        pointer-events: none;
+    }
+    .input-group {
+        word-break: break-word;
+    }
+    .sidebar--right__close {
+        margin: 11px 0 0 0;
+        width: 22px;
+        height: 22px;
+        background: url("../images/closeSidebar.png");
+        @include background-size(100% 100%);
+        opacity: 0.5;
+        float: right;
+        outline: none;
+        border: none;
+        @include single-transition(all, 0.2s, ease-in);
+        &:hover, &:active {
+            opacity: 0.8;
+        }
+    }
+    .sidebar--right__header {
+        font-size: 1em;
+        text-transform: uppercase;
+        color: #444;
+        height: 44px;
+        padding: 0 1em;
+        line-height: 44px;
+        background: #F5F5F5;
+        border-bottom: $border-gray;
+    }
+    .sidebar--right__subheader {
+        font-size: 1em;
+        text-transform: uppercase;
+        color: #999;
+        font-weight: 400;
+        color: #888;
+        height: 44px;
+        line-height: 44px;
+        padding: 0 1em;
+    }
+}
+
+.sidebar-right-container {
+    height: 100%;
+}

@@ -1,0 +1,248 @@
+.modal {
+	&.image_modal {
+		.modal-backdrop.in {
+			@include opacity(0.7);
+		}
+	}
+	.remove__member {
+		float: right;
+	}
+	.modal-dialog {
+		max-width: 95%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.modal-body {
+		max-height: 75%;
+		overflow: auto;
+	}
+	.modal-push-down {
+		margin-top: 5%;
+	}
+	.modal-next-bar {
+		position:absolute;
+		top:0px;
+		right:0;
+		height:100%;
+	}
+	.modal-header {
+		border-radius: 0;
+		background: $primary-color;
+		color: #FFF;
+	  	padding: 15px 15px 11px;
+		border: none;
+		min-height: 56px;
+		@include clearfix;
+		.modal-title {
+			float: left;
+		}
+		.modal-action {
+			padding: 0;
+			margin: 0;
+		}
+		button.close {
+			margin-top: 0;
+			color: #fff;
+			@include opacity(1);
+			z-index: 5;
+			position: relative;
+		}
+		.btn {
+			margin-right: 10px;
+			&.btn-primary {
+				float: right;
+				margin-top: -4px;
+				position: relative;
+				i {
+					margin-right: 5px;
+				}
+			}
+		}
+	}
+	.no-channel-message {
+		text-align: center;
+		padding: 2em 1em;
+		.primary-message {
+			font-size: 1.2em;
+		}
+		.secondary-message {
+			font-size: 1.25em;
+			color: #888;
+			margin: 1em 0 0;
+		}
+	}
+	.modal-content {
+		border-radius: 0;
+		box-shadow: none;
+	}
+	.modal-chevron-icon {
+		top:50%;
+		font-size:120%;
+	}
+	.modal-prev-bar {
+		position:absolute;
+		top:0px;
+		left:0;
+		height:100%;
+	}
+	&#more_channels {
+		.modal-body {
+			padding: 5px 10px;
+		}
+	}
+	.more-channel-table {
+		margin: 0;
+		table-layout: fixed;
+		p {
+			font-size: 0.9em;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			color: #999;
+			margin: 5px 0;
+		}
+		.more-channel-name {
+			color: #444;
+			font-weight: bold;
+			font-size: 0.95em;
+		}
+		tbody {
+			> tr {
+				&:first-child {
+					td {
+						border: none;
+					}
+				}
+				td {
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					&.td--action {
+						width: 70px;
+						vertical-align: middle;
+					}
+				}
+			}
+		}
+	}
+	.modal-image {
+		position:relative;
+		width:100%;
+		margin: 0 auto;
+		.image-wrapper {
+			padding: 4px;
+			background: #FFF;
+			position: relative;
+			max-width: 80%;
+			min-height: 280px;
+			min-width: 280px;
+			@include border-radius(4px);
+			display: table;
+			margin: 0 auto;
+			&:hover .modal-close {
+				@include opacity(1);
+			}
+			&.default {
+				width: 100%;
+				height: 80%;
+			}
+			.modal-close {
+				background: url("../images/close.png") no-repeat;
+				@include background-size(100% 100%);
+				width: 37px;
+				height: 37px;
+				position: absolute;
+				right: -13px;
+				top: -13px;
+				@include opacity(0);
+				cursor: pointer;
+				z-index: 9999;
+			}
+			> a {
+				display: table-cell;
+				vertical-align: middle;
+			}
+			img {
+				max-width: 100%;
+				max-height: 100%;
+			}
+		}
+		.image-content {
+			box-shadow: none;
+			background: rgba(0, 0, 0, 0);
+			width: 100%;
+			height: 100%;
+			padding: 0;
+			border: none;
+			display: table;
+		}
+		.image-body {
+			vertical-align: middle;
+			display: table-cell;
+			text-align: center;
+			height: 100%;
+			padding: 0;
+			position: relative;
+			overflow: visible;
+		}
+		.image-control {
+			width: 50px;
+			height: 45px;
+			float: left;
+			background: url(../images/prev.png) left no-repeat;
+			top: 50%;
+			position: relative;
+			margin-top: -23px;
+			&.image-next {
+				float: right;
+				background: url(../images/next.png) left no-repeat;
+			}
+		}
+		.loader-image {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			margin: auto;
+		}
+		.loader-percent {
+			position: absolute;
+			top: 55px;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			margin: auto;
+			color:grey;
+			height:20px;
+		}
+		.modal-button-bar {
+			position:absolute;
+			bottom:0px;
+			left:0px;
+			right:0px;
+			background-color:rgba(0, 0, 0, 0.8);
+			@include opacity(0);
+			-webkit-transition: opacity 0.6s;
+			-moz-transition: opacity 0.6s;
+			-o-transition: opacity 0.6s;
+			transition: opacity 0.6s;
+			line-height: 40px;
+			padding: 0 10px;
+			margin: 4px;
+			&.footer--show {
+				@include opacity(1);
+			}
+			.image-links {
+				a, span {
+					float: right;
+				}
+			}
+			.text {
+				vertical-align:middle;
+				bottom:0;
+				color:white;
+				margin-left:5px;
+			}
+		}
+	}
+}

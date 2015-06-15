@@ -1,0 +1,144 @@
+.preview-container {
+  position: relative;
+  width: 100%;
+  max-height: 110px;
+  height: 110px;
+  white-space: nowrap;
+  overflow: auto;
+  .preview-div {
+    display: inline-block;
+    width: 120px;
+    height: 100px;
+    margin: 7px 10px 0 0;
+    vertical-align: top;
+    position: relative;
+    border: 1px solid #DDD;
+    &.custom-file {
+      width: 85px;
+      height: 100px;
+    }
+    &:hover .remove-preview:after {
+      @include opacity(1);
+    }
+    .spinner {
+      position:absolute;
+      top:50%;
+      left:50%;
+      margin-left: -16px;
+      margin-top: -16px;
+      width:32px;
+      height:32px;
+    }
+  }
+  .preview-img {
+    width:100%;
+    height:100%;
+  }
+  .remove-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    &:after {
+      background: rgba(0, 0, 0, 0.4);
+      content: '';
+      height: 100%;
+      left: 0;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      @include opacity(0);
+    }
+    i {
+      top: 5px;
+      right: 5px;
+      position: absolute;
+      color: #fff;
+      cursor: pointer;
+      z-index: 5;
+      opacity: inherit;
+    }
+  }
+}
+
+.image-comment {
+  background-position:left top;
+  background-repeat:no-repeat;
+  width:300px;
+  height:300px;
+}
+.file-icon {
+  width: 100%;
+  height: 100%;
+  &.audio {
+    background: url("../images/icons/audio.png");
+    @include background-size(100% 100%);
+  }
+  &.video {
+    background: url("../images/icons/video.png");
+    @include background-size(100% 100%);
+  }
+  &.ppt {
+    background: url("../images/icons/ppt.png");
+    @include background-size(100% 100%);
+  }
+  &.generic {
+    background: url("../images/icons/generic.png");
+    @include background-size(100% 100%);
+  }
+  &.code {
+    background: url("../images/icons/code.png");
+    @include background-size(100% 100%);
+  }
+  &.excel {
+    background: url("../images/icons/excel.png");
+    @include background-size(100% 100%);
+  }
+  &.word {
+    background: url("../images/icons/word.png");
+    @include background-size(100% 100%);
+  }
+  &.pdf {
+    background: url("../images/icons/pdf.png");
+    @include background-size(100% 100%);
+  }
+  &.patch {
+    background: url("../images/icons/patch.png");
+    @include background-size(100% 100%);
+  }
+  &.image {
+    background: url("../images/icons/image.png");
+    @include background-size(100% 100%);
+  }
+}
+.post-image__column {
+  position: relative;
+  width: 120px;
+  height: 100px;
+  float: left;
+  margin: 0 1em 1em 0;
+  &.custom-file {
+    width: 85px;
+    height: 100px;
+  }
+  .post__load {
+    height: 100%;
+    width: 100%;
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  .post__image {
+    height: 100%;
+    width: 100%;
+    border: 1px solid #E2E2E2;
+    background-color: #FFF;
+    background-repeat: no-repeat;
+  }
+  a {
+    text-decoration: none;
+    color: grey;
+  }
+}

@@ -1,0 +1,101 @@
+#navbar{
+	input {
+		margin: 0px 5px 0px 2px;
+	}
+	.navbar-default {
+		position: absolute;
+		border: none;
+		min-height: 50px;
+		background: $primary-color;
+		.navbar-nav {
+			> li {
+				> a {
+					height: 50px;
+					padding: 0 1.3em;
+					i {
+						line-height: 50px;
+					}
+				}
+			}
+		}
+		.navbar-toggle {
+			float: left;
+			border-color: transparent;
+			border-radius: 0;
+			margin: 0;
+			padding: 0 10px;
+			line-height: 50px;
+			height: 50px;
+			z-index: 5;
+			.icon-bar {
+				background: #fff;
+				width: 21px;
+			}
+			&:hover, &:active, &:focus {
+				background: inherit;
+			}
+		}
+		.navbar-brand {
+			padding: 0 0.5em;
+			height: 50px;
+			line-height: 50px;
+			float: none;
+			font-size: 16px;
+			.heading {
+				margin-right: 3px;
+				color: #fff;
+			}
+			.header-dropdown__icon {
+				top: 1px;
+			}
+			.dropdown-toggle {
+				color: #fff;
+			}
+			.description {
+				display: inline-block;
+				margin-right: 0.5em;
+				color: #fff;
+				&.info-popover {
+					width: 19px;
+					height: 19px;
+					background: url("../images/info__icon.png");
+					@include background-size(100% 100%);
+					vertical-align: middle;
+					top: -1px;
+					position: relative;
+					cursor: pointer;
+				}
+			}
+		}
+	}
+	.sidebar-channel {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		span {
+			white-space: nowrap;
+			margin-left: 2px;
+		}
+	}
+	.channel-create-btn {
+		margin-right: 15px;
+	}
+	.more-channel-table {
+		width: 100%;
+		border: 1px solid #dbdbdc;
+		td {
+			padding: 7px;
+		}
+		button {
+			width: 110px;
+		}
+	}
+}
+
+.badge-notify {
+	background:red;
+	position: absolute;
+	right: -5px;
+	top: -5px;
+	z-index: 100;
+}

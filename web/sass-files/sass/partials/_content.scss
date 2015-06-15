@@ -1,0 +1,63 @@
+.inner__wrap {
+	@include single-transition(transform, 0.5s, ease);
+	&.move--left {
+		margin-right: 400px;
+		.search-bar__container {
+			display: none;
+		}
+	}
+	&.move--right {
+		.search-bar__container {
+			display: none;
+		}
+	}
+}
+.app__content {
+	height: 100%;
+	padding-top: 50px;
+	margin-left: 220px;
+	position: relative;
+	background: #fff;
+	.channel__wrap & {
+		padding-top: 0;
+	}
+}
+#post-create {
+	background: #fff;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+}
+.post-list {
+	.new-messages-hr {
+		margin-top: 5px;
+		margin-bottom: 0px;
+		border: 0;
+		border-top: 1px solid #FF8800;
+	}
+
+	.new-messages-text {
+		margin-top: 2px;
+		margin-bottom: 5px;
+		color: #FF8800;
+		text-align: center;
+	}
+}
+.new-messages-hr {
+	margin-top: 5px;
+	margin-bottom: 0px;
+	border: 0;
+	border-top: 1px solid #FF8800;
+}
+
+.new-messages-text {
+	margin-top: 2px;
+	margin-bottom: 5px;
+	color: #FF8800;
+	text-align: center;
+}
+
+.delete-message-text {
+	margin-top: 10px;
+}

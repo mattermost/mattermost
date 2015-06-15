@@ -1,0 +1,15 @@
+{{define "verify"}}
+<html>
+{{template "head" . }}
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div id="verify"></div>
+        </div>
+    </div>
+    <script>
+        window.setup_verify_page('{{ .Props.IsVerified }}');
+    </script>
+</body>
+</html>
+{{end}}

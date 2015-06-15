@@ -1,0 +1,95 @@
+.sidebar--left {
+    position: absolute;
+    width: 220px;
+    left: 0;
+    height: 100%;
+    border-right: $border-gray;
+    padding: 0 0 2em 0;
+    background: #fafafa;
+    &.sidebar--padded {
+        padding-top: 44px;
+    }
+    .search__form {
+        margin: 0;
+        padding: 1em 1em 0;
+        display: none;
+    }
+    > div {
+        height: 100%;
+        position: absolute;
+        padding-bottom: 70px;
+        width: 100%;
+    }
+    .badge {
+        background-color: $primary-color;
+    }
+    .status {
+        position:relative;
+        top:1px;
+        margin-right: 3px;
+        .online--icon {
+            fill: #7DBE00;
+        }
+    }
+    .nav-pills__container {
+        height: 100%;
+        position: relative;
+        overflow: auto;
+    }
+    .nav {
+        &.nav-stacked {
+            > li+li {
+                margin: 0;
+            }
+        }
+        li {
+            > h4 {
+                font-size: 1em;
+                text-transform: uppercase;
+                margin: 1.1em 0 0.5em;
+                font-weight: 400;
+                color: #AAA;
+                letter-spacing: -0.3px;
+                padding: 0 10px 0 15px;
+            }
+            > a {
+                padding: 3px 10px 3px 25px;
+                line-height: 1.5;
+                border-radius: 0;
+                color: #999;
+                &.unread-title {
+                    color: #333;
+                    font-weight: bold;
+                }
+                &:hover, &:focus {
+                    background: #e6f2fa;
+                }
+            }
+            &.active {
+                a, a:hover, a:focus {
+                    color: #111;
+                    background-color: #e1e1e1;
+                    border-radius: 0;
+                }
+            }
+        }
+    }
+    .modal-title {
+        line-height: 2em;
+    }
+
+    .add-channel-btn {
+        float: right;
+        outline: none;
+        margin: -2px 0 0 0;
+        color: #AAA;
+        padding: 0 5px;
+        text-decoration: none;
+        font-size: 22px;
+        line-height: 18px;
+        font-weight: 700;
+        &:hover {
+            color: #666;
+        }
+    }
+}

@@ -1,0 +1,115 @@
+.signup-header {
+    width:100%;
+    line-height: 33px;
+    padding: 0 1em 0.2em;
+    background: #EEE;
+}
+.signup-team__container {
+    padding: 100px 0px 50px 0px;
+    max-width: 340px;
+    margin: 0 auto;
+    font-size: 1.1em;
+    position: relative;
+    h1, h2, h3, h4, h5, h6, p {
+        line-height: 1.3;
+    }
+    h2 {
+        font-weight: 600;
+        margin-bottom: 0.5em;
+        letter-spacing: -0.5px;
+        font-size: em(30px);
+    }
+    h3 {
+    	font-weight: 600;
+        margin: 0 0 1.3em 0;
+        font-size: 1.4em;
+    }
+    h4 {
+        font-size: em(18px);
+        font-weight: 600;
+        margin-bottom: 1em;
+    }
+    p {
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 1em;
+        .black, &.black {
+            color: #000;
+        }
+    }
+    form {
+        margin-bottom: 0.8em;
+    }
+    .external-link {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+    }
+    .signup-team__name {
+        font-size: 2.2em;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .signup-team__subdomain {
+        font-size: 1.5em;
+        padding-left: 1em;
+    }
+    .form-control {
+        height: em(38px);
+    }
+    .btn {
+        padding: em(7px) em(15px);
+        font-weight: 600;
+        font-size: em(13px);
+        &.btn-default {
+            color: #444;
+        }
+        .glyphicon {
+            &.glyphicon-ok, &.glyphicon-refresh {
+                margin-right: 0.3em;
+                left: -5px;
+                font-size: 0.9em;
+            }
+            &.glyphicon-chevron-right {
+                margin-left: 0.3em;
+                font-size: 0.8em;
+                right: -2px;
+                top: 0px;
+            }
+            &.glyphicon-chevron-left {
+                margin-right: 0.3em;
+                font-size: 0.8em;
+                left: -2px;
+                top: 0px;
+            }
+        }
+    }
+    .has-error {
+        .control-label {
+            margin-top: 5px;
+        }
+    }
+    .reset-form {
+        @include border-radius(3px);
+        position: relative;
+        font-size: 0.95em;
+        p {
+            color: inherit;
+        }
+    }
+}
+
+.signup-team-confirm__container {
+    padding: 100px 0px 100px 0px;
+}
+
+.signup-team-logo {
+    display: none;
+    width: 210px;
+    margin: 0 0 2em 0;
+}
+
+.signup-team-login {
+	padding-bottom: 10px;
+	font-weight: 700;
+}
