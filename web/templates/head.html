@@ -36,6 +36,7 @@
             window._LTracker = _LTracker;
             _LTracker.push({'logglyKey': config.LogglyWriteKey, 'sendConsoleErrors' : config.LogglyConsoleErrors });
         } else {
+            window._LTracker = [];
             console.warn("config.js missing LogglyWriteKey, Loggly analytics is not reporting");
         }
     </script>
@@ -58,26 +59,34 @@
             analytics.page();
             }}();
         } else {
+            analytics = {};
+            analytics.page = function(){};
+            analytics.track = function(){};
             console.warn("config.js missing SegmentWriteKey, SegmentIO analytics is not tracking");
         }
     </script>
     <!-- Snowplow starts plowing -->
     <script type="text/javascript">
-        ;(function(p,l,o,w,i,n,g){if(!p[i]){p.GlobalSnowplowNamespace=p.GlobalSnowplowNamespace||[];
-        p.GlobalSnowplowNamespace.push(i);p[i]=function(){(p[i].q=p[i].q||[]).push(arguments)
-        };p[i].q=p[i].q||[];n=l.createElement(o);g=l.getElementsByTagName(o)[0];n.async=1;
-        n.src=w;g.parentNode.insertBefore(n,g)}}(window,document,"script","//d1fc8wv8zag5ca.cloudfront.net/2.4.2/sp.js","snowplow"));
+        if ('{{ .Props.AnalyticsUrl }}'.trim() !== '') {
+            ;(function(p,l,o,w,i,n,g){if(!p[i]){p.GlobalSnowplowNamespace=p.GlobalSnowplowNamespace||[];
+            p.GlobalSnowplowNamespace.push(i);p[i]=function(){(p[i].q=p[i].q||[]).push(arguments)
+            };p[i].q=p[i].q||[];n=l.createElement(o);g=l.getElementsByTagName(o)[0];n.async=1;
+            n.src=w;g.parentNode.insertBefore(n,g)}}(window,document,"script","//d1fc8wv8zag5ca.cloudfront.net/2.4.2/sp.js","snowplow"));
 
-        window.snowplow('newTracker', 'cf', '{{ .Props.AnalyticsUrl }}', {
-          appId: '{{ .SiteName }}'
-        });
+            window.snowplow('newTracker', 'cf', '{{ .Props.AnalyticsUrl }}', {
+              appId: '{{ .SiteName }}'
+            });
 
-        var user = window.UserStore.getCurrentUser(true);
-        if (user) {
-            window.snowplow('setUserId', user.id);
+            var user = window.UserStore.getCurrentUser(true);
+            if (user) {
+                window.snowplow('setUserId', user.id);
+            }
+
+            window.snowplow('trackPageView');
+        } else {
+            window.snowplow = function(){};
+            console.warn("config.json missing AnalyticsUrl, Snowplow analytics is not tracking");
         }
-
-        window.snowplow('trackPageView');
     </script>
     <!-- Snowplow stops plowing -->
 </head>
