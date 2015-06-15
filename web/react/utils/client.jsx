@@ -4,16 +4,16 @@
 
 module.exports.track = function(category, action, label, prop, val) {
     global.window.snowplow('trackStructEvent', category, action, label, prop, val);
-    if (global.window.analytics != null) global.window.analytics.track(action, {category: category, label: label, property: prop, value: val});
+    global.window.analytics.track(action, {category: category, label: label, property: prop, value: val});
 };
 
 module.exports.trackPage = function() {
     global.window.snowplow('trackPageView');
-    if (global.window.analytics != null) global.window.analytics.page();
+    global.window.analytics.page();
 };
 
 function handleError(method_name, xhr, status, err) {
-    var _LTracker = global.window._LTracker || [];
+    var _LTracker = global.window._LTracker;
 
     var e = null;
     try {
