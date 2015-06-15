@@ -79,6 +79,7 @@ type EmailSettings struct {
 	SMTPUsername         string
 	SMTPPassword         string
 	SMTPServer           string
+	UseTLS               bool
 	FeedbackEmail        string
 	FeedbackName         string
 	ApplePushServer      string
