@@ -147,62 +147,71 @@ func TestCreateValetPost(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
-	rpost1, err := Client.CreateValetPost(post1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	if utils.Cfg.TeamSettings.AllowValet {
+		post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
+		rpost1, err := Client.CreateValetPost(post1)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if rpost1.Data.(*model.Post).Message != post1.Message {
-		t.Fatal("message didn't match")
-	}
+		if rpost1.Data.(*model.Post).Message != post1.Message {
+			t.Fatal("message didn't match")
+		}
 
-	if rpost1.Data.(*model.Post).Hashtags != "#hashtag" {
-		t.Fatal("hashtag didn't match")
-	}
+		if rpost1.Data.(*model.Post).Hashtags != "#hashtag" {
+			t.Fatal("hashtag didn't match")
+		}
 
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
-	rpost2, err := Client.CreateValetPost(post2)
-	if err != nil {
-		t.Fatal(err)
-	}
+		post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+		rpost2, err := Client.CreateValetPost(post2)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id, ParentId: rpost2.Data.(*model.Post).Id}
-	_, err = Client.CreateValetPost(post3)
-	if err != nil {
-		t.Fatal(err)
-	}
+		post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id, ParentId: rpost2.Data.(*model.Post).Id}
+		_, err = Client.CreateValetPost(post3)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	post4 := &model.Post{ChannelId: "junk", Message: "a" + model.NewId() + "a"}
-	_, err = Client.CreateValetPost(post4)
-	if err.StatusCode != http.StatusForbidden {
-		t.Fatal("Should have been forbidden")
-	}
+		post4 := &model.Post{ChannelId: "junk", Message: "a" + model.NewId() + "a"}
+		_, err = Client.CreateValetPost(post4)
+		if err.StatusCode != http.StatusForbidden {
+			t.Fatal("Should have been forbidden")
+		}
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
-	post5 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	_, err = Client.CreateValetPost(post5)
-	if err != nil {
-		t.Fatal(err)
-	}
+		Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+		post5 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+		_, err = Client.CreateValetPost(post5)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
-	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user3.Id)
+		user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+		user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+		Srv.Store.User().VerifyEmail(user3.Id)
 
-	Client.LoginByEmail(team2.Domain, user3.Email, "pwd")
+		Client.LoginByEmail(team2.Domain, user3.Email, "pwd")
 
-	channel3 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
-	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
+		channel3 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
+		channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
 
-	post6 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	_, err = Client.CreateValetPost(post6)
-	if err.StatusCode != http.StatusForbidden {
-		t.Fatal("Should have been forbidden")
-	}
+		post6 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+		_, err = Client.CreateValetPost(post6)
+		if err.StatusCode != http.StatusForbidden {
+			t.Fatal("Should have been forbidden")
+		}
 
-	if _, err = Client.DoPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
-		t.Fatal("should have been an error")
+		if _, err = Client.DoPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
+			t.Fatal("should have been an error")
+		}
+	} else {
+		post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
+		_, err := Client.CreateValetPost(post1)
+		if err.StatusCode != http.StatusNotImplemented {
+			t.Fatal(err)
+			t.Fatal("Should have failed with 501 - Not Implemented")
+		}
 	}
 }
 
