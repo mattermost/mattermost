@@ -658,8 +658,7 @@ var SecurityTab = React.createClass({
             );
         } else {
             var d = new Date(this.props.user.last_password_update);
-            var hour = d.getHours() > 12 ? String(d.getHours() - 12) : String(d.getHours());
-            hour = hour === "0" ? "12" : hour;
+            var hour = d.getHours() % 12 ? String(d.getHours() % 12) : "12";
             var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
             var timeOfDay = d.getHours() >= 12 ? " pm" : " am";
             var dateStr = "Last updated " + Constants.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " at " + hour + ":" + min + timeOfDay;
