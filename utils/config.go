@@ -217,6 +217,11 @@ func LoadConfig(fileName string) {
 		panic("Error decoding configuration " + err.Error())
 	}
 
+	// Grabs the domain from enviroment variable if not in configuration
+	if config.ServiceSettings.Domain == "" {
+		config.ServiceSettings.Domain = os.Getenv("MATTERMOST_DOMAIN")
+	}
+
 	configureLog(config.LogSettings)
 
 	Cfg = &config
