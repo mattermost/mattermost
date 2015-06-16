@@ -1,5 +1,3 @@
-XXXXXX TODO: Test install procedures 
-
 Mattermost (Preview)<br>
 Team Communication Service<br>
 Version 0.40
@@ -62,3 +60,5 @@ MATTERMOST SETUP
 11. Provided the test runs fine, you now have a complete build environment. Use `make run` to run your code
 
 Any issues? Please let us know on our forums at: http://bit.ly/1MY1kul
+
+XXXXXX TODO: Test install procedures 
