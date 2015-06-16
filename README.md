@@ -38,7 +38,7 @@ GO SETUP
 
 NODE.JS SETUP 
 
-1. Install homebrew from brew.sh 
+1. Install homebrew from http://brew.sh 
 2. `brew install node`
 
 COMPASS SETUP 
