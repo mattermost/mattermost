@@ -737,8 +737,8 @@ module.exports.getHomeLink = function() {
 	}
 	var parts = window.location.host.split(".");
 	if (parts.length <= 1) {
-		return window.location.host;
+		return window.location.protocol + "//" + window.location.host;
 	}
 	parts[0] = "www";
-	return parts.join(".");
+	return window.location.protocol + "//" + parts.join(".");
 }
