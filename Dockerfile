@@ -8,6 +8,9 @@ RUN apt-get install -y nodejs
 RUN apt-get install -y ruby-full
 RUN gem install compass
 
+# Postfix
+RUN apt-get install -y postfix
+
 #
 # Install GO
 #
@@ -79,6 +82,8 @@ RUN wget http://download.redis.io/redis-stable.tar.gz; \
 # Copy over files
 ADD . /go/src/github.com/mattermost/platform
 
+# Insert postfix config
+ADD ./config/main.cf /etc/postfix/
 
 RUN go get github.com/tools/godep
 RUN cd /go/src/github.com/mattermost/platform; godep restore 
@@ -89,4 +94,4 @@ RUN chmod +x /go/src/github.com/mattermost/platform/docker-entry.sh
 ENTRYPOINT /go/src/github.com/mattermost/platform/docker-entry.sh
 
 # Ports
-EXPOSE 8065
+EXPOSE 80
