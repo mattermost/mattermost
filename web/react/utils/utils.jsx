@@ -730,3 +730,15 @@ Image.prototype.load = function(url, progressCallback) {
 };
 
 Image.prototype.completedPercentage = 0;
+
+module.exports.getHomeLink = function() {
+	if (config.HomeLink != "") {
+		return config.HomeLink;
+	}
+	var parts = window.location.host.split(".");
+	if (parts.length <= 1) {
+		return window.location.host;
+	}
+	parts[0] = "www";
+	return parts.join(".");
+}
