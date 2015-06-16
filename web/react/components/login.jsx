@@ -74,7 +74,7 @@ var FindTeamDomain = React.createClass({
                     <br/>
                     <br/>
                     <div>
-                        <span>{"Want to create your own " + strings.Team + "?"} <a href="/" className="signup-team-login">Sign up now</a></span>
+                        <span>{"Want to create your own " + strings.Team + "?"} <a href={config.HomeLink} className="signup-team-login">Sign up now</a></span>
                     </div>
                 </form>
             </div>
