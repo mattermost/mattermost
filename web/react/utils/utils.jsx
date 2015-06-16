@@ -425,7 +425,7 @@ module.exports.textToJsx = function(text, options) {
             } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
-                var mClass = trimWord in implicitKeywords ? mentionClass : "";
+                var mClass = trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords ? mentionClass : "";
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
@@ -433,7 +433,7 @@ module.exports.textToJsx = function(text, options) {
 
                 inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
-            } else if (trimWord in implicitKeywords) {
+            } else if (trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
 
