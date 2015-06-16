@@ -2,6 +2,9 @@
 
 mkdir -p web/static/js
 
+echo "127.0.0.1 dockerhost" >> /etc/hosts
+/etc/init.d/networking restart
+
 echo configuring mysql
 
 # SQL!!!
@@ -111,7 +114,7 @@ echo starting react processor
 cd /go/src/github.com/mattermost/platform/web/react && npm start &
 
 echo starting go web server
-cd /go/src/github.com/mattermost/platform/; go run mattermost.go -config=config_docker.json &
+cd /go/src/github.com/mattermost/platform/; go run mattermost.go -config=config.json &
 
 echo starting compass watch
 cd /go/src/github.com/mattermost/platform/web/sass-files && compass watch
