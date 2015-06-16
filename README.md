@@ -1,12 +1,12 @@
-Mattermost (Preview)<br>
-Team Communication Service<br>
-Version 0.40
+**Mattermost (Preview)<br>**
+**Team Communication Service<br>**
+**Version 0.40**
 
 What matters most to your team?
 ===============================
 
 Words have power.<br>
-We built Mattermost for teams who use words to shape the future.<br>
+Mattermost serves teams who use words to shape the future.<br>
 The words you choose are up to you.
 
 *- SpinPunch*
@@ -61,4 +61,4 @@ MATTERMOST SETUP
 
 Any issues? Please let us know on our forums at: http://bit.ly/1MY1kul
 
-XXXXXX TODO: Test install procedures 
+**XXXXXX TODO: Test install procedures**
