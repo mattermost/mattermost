@@ -467,7 +467,8 @@ UsernamePage = React.createClass({
                 </div>
                 { name_error }
                 </div>
-                <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others"}</p>
+                <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others."}</p>
+                <p>It can be made of lowercase letters and numbers.</p>
                 <button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
                 <button className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
             </div>
