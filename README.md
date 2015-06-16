@@ -4,9 +4,11 @@ Mattermost (Preview)<br>
 Team Communication Service<br>
 Version 0.40
 
-**What matters most to your team?**
+What matters most to your team?
+===============================
 
-Words have power. We built Mattermost for teams who use words to shape the future.<br>
+Words have power.<br>
+We built Mattermost for teams who use words to shape the future.<br>
 The words you choose are up to you.
 
 *- SpinPunch*
