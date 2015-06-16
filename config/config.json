@@ -57,6 +57,7 @@
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
+		"UseTLS": true,
         "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
         "FeedbackName": "",
         "ApplePushServer": "",
