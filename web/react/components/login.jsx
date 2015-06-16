@@ -74,7 +74,7 @@ var FindTeamDomain = React.createClass({
                     <br/>
                     <br/>
                     <div>
-                        <span>{"Want to create your own " + strings.Team + "?"} <a href={config.HomeLink} className="signup-team-login">Sign up now</a></span>
+                        <span>{"Want to create your own " + strings.Team + "?"} <a href={utils.getHomeLink()} className="signup-team-login">Sign up now</a></span>
                     </div>
                 </form>
             </div>
@@ -188,7 +188,7 @@ module.exports = React.createClass({
                         <a href="/reset_password">I forgot my password</a>
                     </div>
                     <div className="external-link">
-                        <span>{"Want to create your own " + strings.Team + "?"} <a href={config.HomeLink} className="signup-team-login">Sign up now</a></span>
+                        <span>{"Want to create your own " + strings.Team + "?"} <a href={utils.getHomeLink()} className="signup-team-login">Sign up now</a></span>
                     </div>
                 </form>
             </div>
