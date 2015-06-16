@@ -14,7 +14,7 @@ The words you choose are up to you.
 Installing the Mattermost Preview 
 =================================
 
-You're installing "Mattermost Preview", a pre-released version intended for an early look at what we're building. While SpinPunch runs this codebase internally, because your use will differ from ours this version is not recommended for production deployments.
+You're installing "Mattermost Preview", a pre-released 0.40 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0 version release. 
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://bit.ly/1MY1kul
 
