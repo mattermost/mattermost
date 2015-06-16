@@ -111,7 +111,7 @@ func TestTeamStoreGetByDomain(t *testing.T) {
 	o1.Type = model.TEAM_OPEN
 
 	if err := (<-store.Team().Save(&o1)).Err; err != nil {
-		t.Fatal(rrr)
+		t.Fatal(err)
 	}
 
 	if r1 := <-store.Team().GetByDomain(o1.Domain); r1.Err != nil {
