@@ -1,13 +1,12 @@
 XXXXXX TODO: Test install procedures 
 
-Mattermost (Preview)
-Team Communication Service
-Version 0.40 
+Mattermost (Preview)<br>
+Team Communication Service<br>
+Version 0.40
 
-What matters most to your team?
-===============================
+**What matters most to your team?**
 
-Words have power. We built Mattermost for teams who use words to shape the future. 
+Words have power. We built Mattermost for teams who use words to shape the future.<br>
 The words you choose are up to you.
 
 *- SpinPunch*
@@ -17,7 +16,7 @@ Installing the Mattermost Preview
 
 You're installing "Mattermost Preview", a pre-released version intended for an early look at what we're building. While SpinPunch runs this codebase internally, because your use will differ from ours this version is not recommended for production deployments.
 
-That said, any issues at all, please let us know on our forum at: http://bit.ly/1MY1kul
+That said, any issues at all, please let us know on the Mattermost forum at: http://bit.ly/1MY1kul
 
 Developer Machine Setup (Mac)
 -----------------------------
