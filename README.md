@@ -25,7 +25,7 @@ DOCKER
 
 1. Follow the instructions at http://docs.docker.com/installation/mac/ Use the Boot2Docker command-line utility 
 If you do command-line setup use: `boot2docker init eval “$(boot2docker shellinit)”`
-2. Get your Docker ip address with `boot2docker ip`
+2. Get your Docker IP address with `boot2docker ip`
 3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost` 
 4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash_profile 
 
