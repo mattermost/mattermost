@@ -101,6 +101,9 @@ sleep 5
 
 # ------------------------
 
+echo starting postfix
+/etc/init.d/postfix restart
+
 echo starting redis
 redis-server &
 
