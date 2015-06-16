@@ -61,4 +61,8 @@ MATTERMOST SETUP
 
 Any issues? Please let us know on our forums at: http://bit.ly/1MY1kul
 
+License
+-------
+
+Mattermost uses the Apache 2.0 open source license: http://bit.ly/1Lc25Sv
 **XXXXXX TODO: Test install procedures**
