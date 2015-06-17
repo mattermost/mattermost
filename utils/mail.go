@@ -40,15 +40,26 @@ func SendMail(to, subject, body string) *model.AppError {
 
 	auth := smtp.PlainAuth("", Cfg.EmailSettings.SMTPUsername, Cfg.EmailSettings.SMTPPassword, host)
 
-	tlsconfig := &tls.Config{
-		InsecureSkipVerify: true,
-		ServerName:         host,
+	var conn net.Conn
+	var err error
+
+	if Cfg.EmailSettings.UseTLS {
+		tlsconfig := &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         host,
+		}
+
+		conn, err = tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
+		if err != nil {
+			return model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+		}
+	} else {
+		conn, err = net.Dial("tcp", Cfg.EmailSettings.SMTPServer)
+		if err != nil {
+			return model.NewAppError("SendMail", "Failed to open connection", err.Error())
+		}
 	}
 
-	conn, err := tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
-	if err != nil {
-		return model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
-	}
 	defer conn.Close()
 
 	c, err := smtp.NewClient(conn, host)
@@ -59,8 +70,12 @@ func SendMail(to, subject, body string) *model.AppError {
 	defer c.Quit()
 	defer c.Close()
 
-	if err = c.Auth(auth); err != nil {
-		return model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+	// GO does not support plain auth over a non encrypted connection.
+	// so if not tls then no auth
+	if Cfg.EmailSettings.UseTLS {
+		if err = c.Auth(auth); err != nil {
+			return model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+		}
 	}
 
 	if err = c.Mail(fromMail.Address); err != nil {
