@@ -1,3 +1,5 @@
+# Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+# See License.txt for license information.
 FROM ubuntu:14.04
 
 # Install Dependancies
@@ -83,15 +85,15 @@ RUN wget http://download.redis.io/redis-stable.tar.gz; \
 ADD . /go/src/github.com/mattermost/platform
 
 # Insert postfix config
-ADD ./config/main.cf /etc/postfix/
+ADD ./docker/main.cf /etc/postfix/
 
 RUN go get github.com/tools/godep
 RUN cd /go/src/github.com/mattermost/platform; godep restore 
 RUN go install github.com/mattermost/platform
 RUN cd /go/src/github.com/mattermost/platform/web/react; npm install 
 
-RUN chmod +x /go/src/github.com/mattermost/platform/docker-entry.sh
-ENTRYPOINT /go/src/github.com/mattermost/platform/docker-entry.sh
+RUN chmod +x /go/src/github.com/mattermost/platform/docker/docker-entry.sh
+ENTRYPOINT /go/src/github.com/mattermost/platform/docker/docker-entry.sh
 
 # Ports
 EXPOSE 80

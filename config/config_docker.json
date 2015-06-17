@@ -9,11 +9,11 @@
     },
     "ServiceSettings": {
         "SiteName": "Mattermost Preview",
-        "Domain": "xxxxxxmustbefilledin.com",
-        "Mode" : "dev",
+        "Domain": "",
+        "Mode" : "prod",
 		"AllowTesting" : false,
         "UseSSL": false,
-        "Port": "8065",
+        "Port": "80",
         "Version": "developer",
         "Shards": {
         },
@@ -24,15 +24,15 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test",
-        "DataSourceReplicas": ["mmuser:mostest@tcp(dockerhost:3306)/mattermost_test"],
+        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test",
+        "DataSourceReplicas": ["mmuser:mostest@tcp(localhost:3306)/mattermost_test"],
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
         "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
     },
     "RedisSettings": {
-        "DataSource": "dockerhost:6379",
+        "DataSource": "localhost:6379",
         "MaxOpenConns": 1000
     },
     "AWSSettings": {
@@ -56,7 +56,7 @@
     "EmailSettings": {
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "",
+        "SMTPServer": "localhost:25",
 		"UseTLS": false,
         "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
         "FeedbackName": "",

@@ -4,7 +4,7 @@
 package utils
 
 import (
-	//"os"
+	"os"
 	"testing"
 )
 
@@ -12,7 +12,6 @@ func TestConfig(t *testing.T) {
 	LoadConfig("config.json")
 }
 
-/*
 func TestEnvOverride(t *testing.T) {
 	os.Setenv("MATTERMOST_DOMAIN", "testdomain.com")
 
@@ -26,4 +25,3 @@ func TestEnvOverride(t *testing.T) {
 		t.Fail()
 	}
 }
-*/
