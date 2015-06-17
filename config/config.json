@@ -8,12 +8,12 @@
         "FileLocation": ""
     },
     "ServiceSettings": {
-        "SiteName": "XXXXXXMustBeFilledIn",
-        "Domain": "xxxxxxmustbefilledin.com",
-        "Mode" : "dev",
+        "SiteName": "Mattermost Preview",
+        "Domain": "",
+        "Mode" : "prod",
 		"AllowTesting" : false,
         "UseSSL": false,
-        "Port": "8065",
+        "Port": "80",
         "Version": "developer",
         "Shards": {
         },
@@ -56,8 +56,8 @@
     "EmailSettings": {
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "",
-		"UseTLS": true,
+        "SMTPServer": "localhost:25",
+		"UseTLS": false,
         "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
         "FeedbackName": "",
         "ApplePushServer": "",
