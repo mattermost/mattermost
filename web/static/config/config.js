@@ -24,7 +24,7 @@ var config = {
     AboutLink: "/static/help/configure_links.html",
     HelpLink: "/static/help/configure_links.html",
     ReportProblemLink: "/static/help/configure_links.html",
-    HomeLink: "http://localhost:8065",
+    HomeLink: "",
 
     ThemeColors: ["#2389d7", "#008a17", "#dc4fad", "#ac193d", "#0072c6", "#d24726", "#ff8f32", "#82ba00", "#03b3b2", "#008299", "#4617b4", "#8c0095", "#004b8b", "#004b8b", "#570000", "#380000", "#585858", "#000000"]
 };
