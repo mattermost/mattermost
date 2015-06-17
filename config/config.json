@@ -13,7 +13,7 @@
         "Mode" : "prod",
 		"AllowTesting" : false,
         "UseSSL": false,
-        "Port": "80",
+        "Port": "8065",
         "Version": "developer",
         "Shards": {
         },
