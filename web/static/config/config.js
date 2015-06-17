@@ -34,5 +34,5 @@ var strings = {
     Team: "team",
     TeamPlural: "teams",
     Company: "company",
-    CompanyPlural: "companies",
+    CompanyPlural: "companies"
 };
