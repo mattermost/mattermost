@@ -79,6 +79,7 @@ type EmailSettings struct {
 	SMTPUsername         string
 	SMTPPassword         string
 	SMTPServer           string
+	UseTLS               bool
 	FeedbackEmail        string
 	FeedbackName         string
 	ApplePushServer      string
@@ -214,6 +215,11 @@ func LoadConfig(fileName string) {
 	err = decoder.Decode(&config)
 	if err != nil {
 		panic("Error decoding configuration " + err.Error())
+	}
+
+	// Grabs the domain from enviroment variable if not in configuration
+	if config.ServiceSettings.Domain == "" {
+		config.ServiceSettings.Domain = os.Getenv("MATTERMOST_DOMAIN")
 	}
 
 	configureLog(config.LogSettings)
