@@ -301,7 +301,7 @@ module.exports = React.createClass({
                                     <span className="glyphicon glyphicon-chevron-down header-dropdown__icon"></span>
                                 </a>
                                 <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_dropdown">
-                                    <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_invite" href="#">Invite Members</a></li>
+                                    <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_invite" href="#">Add Members</a></li>
                                     { isAdmin ?
                                         <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_members" href="#">Manage Members</a></li>
                                         : ""
