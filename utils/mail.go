@@ -13,6 +13,69 @@ import (
 	"net/smtp"
 )
 
+func CheckMailSettings() *model.AppError {
+	if len(Cfg.EmailSettings.SMTPServer) == 0 {
+		return model.NewAppError("CheckMailSettings", "No email settings present, mail will not be sent", "")
+	}
+	conn, err := connectToSMTPServer()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	c, err2 := newSMTPClient(conn)
+	if err2 != nil {
+		return err
+	}
+	defer c.Quit()
+	defer c.Close()
+
+	return nil
+}
+
+func connectToSMTPServer() (net.Conn, *model.AppError) {
+	host, _, _ := net.SplitHostPort(Cfg.EmailSettings.SMTPServer)
+
+	var conn net.Conn
+	var err error
+
+	if Cfg.EmailSettings.UseTLS {
+		tlsconfig := &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         host,
+		}
+
+		conn, err = tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
+		if err != nil {
+			return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+		}
+	} else {
+		conn, err = net.Dial("tcp", Cfg.EmailSettings.SMTPServer)
+		if err != nil {
+			return nil, model.NewAppError("SendMail", "Failed to open connection", err.Error())
+		}
+	}
+
+	return conn, nil
+}
+
+func newSMTPClient(conn net.Conn) (*smtp.Client, *model.AppError) {
+	host, _, _ := net.SplitHostPort(Cfg.EmailSettings.SMTPServer)
+	c, err := smtp.NewClient(conn, host)
+	if err != nil {
+		l4g.Error("Failed to open a connection to SMTP server %v", err)
+		return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+	}
+	// GO does not support plain auth over a non encrypted connection.
+	// so if not tls then no auth
+	auth := smtp.PlainAuth("", Cfg.EmailSettings.SMTPUsername, Cfg.EmailSettings.SMTPPassword, host)
+	if Cfg.EmailSettings.UseTLS {
+		if err = c.Auth(auth); err != nil {
+			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+		}
+	}
+	return c, nil
+}
+
 func SendMail(to, subject, body string) *model.AppError {
 
 	fromMail := mail.Address{"", Cfg.EmailSettings.FeedbackEmail}
@@ -36,53 +99,24 @@ func SendMail(to, subject, body string) *model.AppError {
 		return nil
 	}
 
-	host, _, _ := net.SplitHostPort(Cfg.EmailSettings.SMTPServer)
-
-	auth := smtp.PlainAuth("", Cfg.EmailSettings.SMTPUsername, Cfg.EmailSettings.SMTPPassword, host)
-
-	var conn net.Conn
-	var err error
-
-	if Cfg.EmailSettings.UseTLS {
-		tlsconfig := &tls.Config{
-			InsecureSkipVerify: true,
-			ServerName:         host,
-		}
-
-		conn, err = tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
-		if err != nil {
-			return model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
-		}
-	} else {
-		conn, err = net.Dial("tcp", Cfg.EmailSettings.SMTPServer)
-		if err != nil {
-			return model.NewAppError("SendMail", "Failed to open connection", err.Error())
-		}
+	conn, err1 := connectToSMTPServer()
+	if err1 != nil {
+		return err1
 	}
-
 	defer conn.Close()
 
-	c, err := smtp.NewClient(conn, host)
-	if err != nil {
-		l4g.Error("Failed to open a connection to SMTP server %v", err)
-		return model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+	c, err2 := newSMTPClient(conn)
+	if err2 != nil {
+		return err2
 	}
 	defer c.Quit()
 	defer c.Close()
 
-	// GO does not support plain auth over a non encrypted connection.
-	// so if not tls then no auth
-	if Cfg.EmailSettings.UseTLS {
-		if err = c.Auth(auth); err != nil {
-			return model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
-		}
-	}
-
-	if err = c.Mail(fromMail.Address); err != nil {
+	if err := c.Mail(fromMail.Address); err != nil {
 		return model.NewAppError("SendMail", "Failed to add from email address", err.Error())
 	}
 
-	if err = c.Rcpt(toMail.Address); err != nil {
+	if err := c.Rcpt(toMail.Address); err != nil {
 		return model.NewAppError("SendMail", "Failed to add to email address", err.Error())
 	}
 
