@@ -222,6 +222,11 @@ func LoadConfig(fileName string) {
 		config.ServiceSettings.Domain = os.Getenv("MATTERMOST_DOMAIN")
 	}
 
+	// Validates our mail settings
+	if err := CheckMailSettings(); err != nil {
+		l4g.Error("Email settings are not valid err=%v", err)
+	}
+
 	configureLog(config.LogSettings)
 
 	Cfg = &config
