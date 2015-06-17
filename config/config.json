@@ -56,7 +56,6 @@
     "EmailSettings": {
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "localhost:25",
 		"UseTLS": false,
         "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
         "FeedbackName": "",
