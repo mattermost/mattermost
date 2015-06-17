@@ -120,6 +120,7 @@ module.exports = React.createClass({
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h4>Welcome to { config.SiteName }</h4>
                 <p>{"Choose your username and password for the " + this.props.team_name + " " + strings.Team +"."}</p>
+                <p>Your username can be made of lowercase letters and numbers.</p>
                 <label className="control-label">Username</label>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" />

@@ -109,7 +109,10 @@ func TestTeamStoreGetByDomain(t *testing.T) {
 	o1.Domain = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	<-store.Team().Save(&o1)
+
+	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-store.Team().GetByDomain(o1.Domain); r1.Err != nil {
 		t.Fatal(r1.Err)
