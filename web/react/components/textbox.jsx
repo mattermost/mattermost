@@ -78,6 +78,8 @@ module.exports = React.createClass({
             var re = new RegExp('( |^)@' + m + '( |$|\n)', 'm');
             html = html.replace(re, '$1<span class="mention">@'+m+'</span>$2');
         }
+        var re2 = new RegExp('(^$)(?![.\n])', 'gm');
+        html = html.replace(re2, '<br/><br/>');
         $(this.refs.textdiv.getDOMNode()).html(html);
     },
     handleChange: function() {
@@ -262,6 +264,8 @@ module.exports = React.createClass({
             $(d).css({'height':'auto','overflow-y':'scroll'}).height(167);
             $(w).css({'height':'auto'}).height(167);
         }
+
+        $(d).scrollTop($(e).scrollTop());
     },
     handleFocus: function() {
         var elm = this.refs.message.getDOMNode();

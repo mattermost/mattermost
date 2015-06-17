@@ -14,7 +14,7 @@ module.exports = React.createClass({
         PostStore.addMentionDataChangeListener(this._onChange);
 
         var self = this;
-        $('#'+this.props.id).on('keypress.mentionlist',
+        $('body').on('keypress.mentionlist', '#'+this.props.id,
             function(e) {
                 if (!self.isEmpty() && self.state.mentionText != '-1' && e.which === 13) {
                     e.stopPropagation();
@@ -26,7 +26,7 @@ module.exports = React.createClass({
     },
     componentWillUnmount: function() {
         PostStore.removeMentionDataChangeListener(this._onChange);
-        $('#'+this.props.id).off('keypress.mentionlist');
+        $('body').off('keypress.mentionlist', '#'+this.props.id);
     },
     _onChange: function(id, mentionText, excludeList) {
         if (id !== this.props.id) return;
