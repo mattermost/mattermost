@@ -33,8 +33,6 @@ var config = {
 var strings = {
     Team: "team",
     TeamPlural: "teams",
-    TeamPossessive: "team's",
     Company: "company",
     CompanyPlural: "companies",
-    CompanyPossessive: "company's"
 };

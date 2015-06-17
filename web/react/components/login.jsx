@@ -52,7 +52,7 @@ var FindTeamDomain = React.createClass({
                 <div>
                     <span className="signup-team__name">{ config.SiteName }</span>
                     <br/>
-                    <span className="signup-team__subdomain">Enter your {strings.TeamPossessive} domain.</span>
+                    <span className="signup-team__subdomain">Enter your {strings.Team}'s domain.</span>
                     <br/>
                     <br/>
                 </div>
@@ -65,7 +65,7 @@ var FindTeamDomain = React.createClass({
                         <button type="submit" className="btn btn-primary">Continue</button>
                     </div>
                     <div>
-                        <span>Don't remember your {strings.TeamPossessive} domain? <a href="/find_team">Find it here</a></span>
+                        <span>Don't remember your {strings.Team}'s domain? <a href="/find_team">Find it here</a></span>
                     </div>
                     <br/>
                     <br/>
