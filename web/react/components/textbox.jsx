@@ -204,7 +204,7 @@ module.exports = React.createClass({
 
         // If there is a space after the last @, nothing to do.
         if (lastSpace > atIndex || lastCharSpace > atIndex) {
-            this.setState({ mentionText: '-1' });
+            this.updateMentionTab('-1', null);
             return;
         }
 
