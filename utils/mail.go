@@ -40,23 +40,27 @@ func SendMail(to, subject, body string) *model.AppError {
 
 	auth := smtp.PlainAuth("", Cfg.EmailSettings.SMTPUsername, Cfg.EmailSettings.SMTPPassword, host)
 
+	var conn net.Conn
+	var err error
+
 	if Cfg.EmailSettings.UseTLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: true,
 			ServerName:         host,
 		}
 
-		conn, err := tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
+		conn, err = tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
 		if err != nil {
 			return model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
 		}
-		defer conn.Close()
+	} else {
+		conn, err = net.Dial("tcp", Cfg.EmailSettings.SMTPServer)
+		if err != nil {
+			return model.NewAppError("SendMail", "Failed to open connection", err.Error())
+		}
 	}
 
-	conn, err := net.Dial("tcp", Cfg.EmailSettings.SMTPServer)
-	if err != nil {
-		return model.NewAppError("SendMail", "Failed to open connection", err.Error())
-	}
+	defer conn.Close()
 
 	c, err := smtp.NewClient(conn, host)
 	if err != nil {

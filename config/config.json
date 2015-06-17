@@ -10,7 +10,7 @@
     "ServiceSettings": {
         "SiteName": "Mattermost Preview",
         "Domain": "",
-        "Mode" : "prod",
+        "Mode" : "dev",
 		"AllowTesting" : false,
         "UseSSL": false,
         "Port": "8065",
