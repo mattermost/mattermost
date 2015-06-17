@@ -25,9 +25,7 @@ func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
 
-	if utils.Cfg.TeamSettings.AllowValet {
-		commands = append(commands, echoCommand)
-	}
+	commands = append(commands, echoCommand)
 
 	hub.Start()
 }
@@ -59,6 +57,8 @@ func checkCommand(c *Context, command *model.Command) bool {
 		return false
 	}
 
+	tchan := Srv.Store.Team().Get(c.Session.TeamId)
+
 	if len(command.ChannelId) > 0 {
 		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, command.ChannelId, c.Session.UserId)
 
@@ -67,7 +67,21 @@ func checkCommand(c *Context, command *model.Command) bool {
 		}
 	}
 
+	allowValet := false
+	if tResult := <-tchan; tResult.Err != nil {
+		c.Err = model.NewAppError("checkCommand", "Could not find the team for this session, team_id="+c.Session.TeamId, "")
+		return false
+	} else {
+		allowValet = tResult.Data.(*model.Team).AllowValet
+	}
+
+	var ec commandHandler
+	ec = echoCommand
 	for _, v := range commands {
+		if !allowValet && &v == &ec {
+			continue
+		}
+
 		if v(c, command) {
 			return true
 		} else if c.Err != nil {

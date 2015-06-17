@@ -58,11 +58,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createValetPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.TeamSettings.AllowValet {
-		c.Err = model.NewAppError("createValetPost", "The valet feature is currently turned off. Please contact your system administrator for details.", "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
+	tchan := Srv.Store.Team().Get(c.Session.TeamId)
 
 	post := model.PostFromJson(r.Body)
 	if post == nil {
@@ -70,11 +66,23 @@ func createValetPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Any one with access to the team can post as valet to any open channel
 	cchan := Srv.Store.Channel().CheckOpenChannelPermissions(c.Session.TeamId, post.ChannelId)
 
+	// Any one with access to the team can post as valet to any open channel
 	if !c.HasPermissionsToChannel(cchan, "createValetPost") {
 		return
+	}
+
+	// Make sure this team has the valet feature enabled
+	if tResult := <-tchan; tResult.Err != nil {
+		c.Err = model.NewAppError("createValetPost", "Could not find the team for this session, team_id="+c.Session.TeamId, "")
+		return
+	} else {
+		if !tResult.Data.(*model.Team).AllowValet {
+			c.Err = model.NewAppError("createValetPost", "The valet feature is currently turned off. Please contact your team administrator for details.", "")
+			c.Err.StatusCode = http.StatusNotImplemented
+			return
+		}
 	}
 
 	if rp, err := CreateValetPost(c, post); err != nil {

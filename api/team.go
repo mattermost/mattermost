@@ -136,6 +136,8 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	teamSignup.Team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
+
 	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -157,7 +159,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if utils.Cfg.TeamSettings.AllowValet {
+		if teamSignup.Team.AllowValet {
 			CreateValet(c, rteam)
 			if c.Err != nil {
 				return
@@ -198,6 +200,13 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
 			c.Err = err
 			return
+		}
+
+		if rteam.AllowValet {
+			CreateValet(c, rteam)
+			if c.Err != nil {
+				return
+			}
 		}
 
 		w.Write([]byte(rteam.ToJson()))
