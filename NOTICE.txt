@@ -1,6 +1,8 @@
 Mattermost Platform Preview 
 © 2015 Spinpunch, Inc.  All Rights Reserved.  See LICENSE.txt for license information.
 
+NOTICES: 
+
 This product contains a modified portion of 'draw2d', a Go library to draw 2d geometrical forms on images by Laurent Le Goff
 
 * LICENSE: 
