@@ -1056,7 +1056,7 @@ var AppearanceTab = React.createClass({
 
                 themeSection = (
                     <SettingItemMax
-                        title="Theme"
+                        title="Theme Color"
                         inputs={inputs}
                         submit={this.submitTheme}
                         server_error={server_error}
@@ -1066,7 +1066,7 @@ var AppearanceTab = React.createClass({
             } else {
                 themeSection = (
                     <SettingItemMin
-                        title="Theme"
+                        title="Theme Color"
                         describe={this.state.theme}
                         updateSection={function(){self.props.updateSection("theme");}}
                     />
