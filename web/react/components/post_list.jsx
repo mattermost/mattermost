@@ -447,12 +447,10 @@ module.exports = React.createClass({
                     <div className="new-seperator">
                         <hr id="new_message" className="new-seperator__hr" />
                         <div className="new-seperator__text">New Messages</div>
-                        {postCtl}
                     </div>
                 );
-            } else {
-                postCtls.push(postCtl);
             }
+            postCtls.push(postCtl);
             previousPostDay = utils.getDateForUnixTicks(post.create_at);
         }
 
