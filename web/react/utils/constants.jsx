@@ -61,6 +61,7 @@ module.exports = {
     "channel",
     "internal",
     "localhost",
+    "dockerhost",
     "stag",
     "post",
     "cluster",

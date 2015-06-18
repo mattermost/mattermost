@@ -1,7 +1,7 @@
 {
     "LogSettings": {
-        "ConsoleEnable": false,
-        "ConsoleLevel": "DEBUG",
+        "ConsoleEnable": true,
+        "ConsoleLevel": "INFO",
         "FileEnable": true,
         "FileLevel": "INFO",
         "FileFormat": "",
