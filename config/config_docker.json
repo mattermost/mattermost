@@ -58,7 +58,7 @@
         "SMTPPassword": "",
         "SMTPServer": "localhost:25",
 		"UseTLS": false,
-        "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
+        "FeedbackEmail": "",
         "FeedbackName": "",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",

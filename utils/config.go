@@ -6,6 +6,7 @@ package utils
 import (
 	l4g "code.google.com/p/log4go"
 	"encoding/json"
+	"net/mail"
 	"os"
 	"path/filepath"
 )
@@ -222,15 +223,20 @@ func LoadConfig(fileName string) {
 		config.ServiceSettings.Domain = os.Getenv("MATTERMOST_DOMAIN")
 	}
 
-	// Validates our mail settings
-	if err := CheckMailSettings(); err != nil {
-		l4g.Error("Email settings are not valid err=%v", err)
+	// Check for a valid email for feedback, if not then do feedback@domain
+	if _, err := mail.ParseAddress(config.EmailSettings.FeedbackEmail); err != nil {
+		config.EmailSettings.FeedbackEmail = "feedback@" + config.ServiceSettings.Domain
 	}
 
 	configureLog(config.LogSettings)
 
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions()
+
+	// Validates our mail settings
+	if err := CheckMailSettings(); err != nil {
+		l4g.Error("Email settings are not valid err=%v", err)
+	}
 }
 
 func getSanitizeOptions() map[string]bool {
