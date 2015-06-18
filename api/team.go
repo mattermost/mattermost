@@ -30,6 +30,7 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 	sr.Handle("/update_name", ApiUserRequired(updateTeamName)).Methods("POST")
 	sr.Handle("/update_valet_feature", ApiUserRequired(updateValetFeature)).Methods("POST")
+	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -601,4 +602,23 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapToJson(props)))
+}
+
+func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if len(c.Session.TeamId) == 0 {
+		return
+	}
+
+	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.Team).Etag(), w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.Team).Etag())
+		w.Header().Set("Expires", "-1")
+		w.Write([]byte(result.Data.(*model.Team).ToJson()))
+		return
+	}
 }

@@ -27,6 +27,9 @@ module.exports = {
     RECIEVED_STATUSES: null,
 
     RECIEVED_MSG: null,
+
+    CLICK_TEAM: null,
+    RECIEVED_TEAM: null,
   }),
 
   PayloadSources: keyMirror({

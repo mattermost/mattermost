@@ -94,7 +94,8 @@ var NavbarDropdown = React.createClass({
                         <i className="dropdown__icon"></i>
                     </a>
                     <ul className="dropdown-menu" role="menu">
-                        <li><a href="#" data-toggle="modal" data-target="#settings_modal">Account Settings</a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#user_settings1">Account Settings</a></li>
+                        { isAdmin ? <li><a href="#" data-toggle="modal" data-target="#team_settings">Team Settings</a></li> : "" }
                         { invite_link }
                         { team_link }
                         { manage_link }

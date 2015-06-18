@@ -355,3 +355,25 @@ module.exports.getStatuses = function() {
         }
     );
 }
+
+module.exports.getMyTeam = function() {
+    if (isCallInProgress("getMyTeam")) return;
+
+    callTracker["getMyTeam"] = utils.getTimestamp();
+    client.getMyTeam(
+        function(data, textStatus, xhr) {
+            callTracker["getMyTeam"] = 0;
+
+            if (xhr.status === 304 || !data) return;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_TEAM,
+                team: data
+            });
+        },
+        function(err) {
+            callTracker["getMyTeam"] = 0;
+            dispatchError(err, "getMyTeam");
+        }
+    );
+}
