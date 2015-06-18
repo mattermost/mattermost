@@ -85,20 +85,22 @@ module.exports = React.createClass({
         var postFiles = [];
         var images = [];
         if (filenames) {
-            for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
+            for (var i = 0; i < filenames.length; i++) {
                 var fileInfo = utils.splitFileLocation(filenames[i]);
                 if (Object.keys(fileInfo).length === 0) continue;
 
                 var type = utils.getFileType(fileInfo.ext);
 
                 if (type === "image") {
-                    postFiles.push(
-                        <div className="post-image__column" key={filenames[i]}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={filenames[i]} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}></div></a>
-                        </div>
-                    );
+                    if (i < Constants.MAX_DISPLAY_FILES) {
+                        postFiles.push(
+                            <div className="post-image__column" key={filenames[i]}>
+                                <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={filenames[i]} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}></div></a>
+                            </div>
+                        );
+                    }
                     images.push(filenames[i]);
-                } else {
+                } else if (i < Constants.MAX_DISPLAY_FILES) {
                     postFiles.push(
                         <div className="post-image__column custom-file" key={fileInfo.name}>
                             <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
