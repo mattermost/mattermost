@@ -716,7 +716,7 @@ Image.prototype.load = function(url, progressCallback) {
             m = h.match( /^Content-Type\:\s*(.*?)$/mi ),
             mimeType = m[ 1 ] || 'image/png';
 
-        var blob = new Blob([this.response.buffer], { type: mimeType });
+        var blob = new Blob([this.response], { type: mimeType });
         thisImg.src = window.URL.createObjectURL(blob);
     };
     xmlHTTP.onprogress = function(e) {
