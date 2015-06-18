@@ -491,6 +491,7 @@ PasswordPage = React.createClass({
             return;
         }
 
+        this.setState({name_error: ""});
         $('#finish-button').button('loading');
         var teamSignup = JSON.parse(JSON.stringify(this.props.state));
         teamSignup.user.password = password;
