@@ -33,6 +33,16 @@ var FeatureTab = React.createClass({
         this.setState({ allow_valet: val });
         this.refs.wrapper.getDOMNode().focus();
     },
+    componentWillReceiveProps: function(newProps) {
+        var team = newProps.team;
+
+        var allow_valet = "false";
+        if (team && team.allow_valet) {
+            allow_valet = "true";
+        }
+
+        this.setState({ allow_valet: allow_valet });
+    },
     getInitialState: function() {
         var team = this.props.team;
 

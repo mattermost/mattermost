@@ -22,35 +22,20 @@ var TeamStore = assign({}, EventEmitter.prototype, {
     this.removeListener(CHANGE_EVENT, callback);
   },
   get: function(id) {
-    var current = null;
     var c = this._getTeams();
-
-    c.some(function(team) {
-      if (team.id == id) {
-        current = team;
-        return true;
-      }
-      return false;
-    });
-
-    return current;
+    return c[id];
   },
   getByName: function(name) {
     var current = null;
-    var c = this._getTeams();
+    var t = this._getTeams();
 
-    c.some(function(team) {
-      if (team.name == name) {
-        current = team;
-        return true;
-      }
+    for (id in t) {
+        if (t[id].name == name) {
+            return t[id];
+        }
+    }
 
-      return false;
-
-    });
-
-    return current;
-
+    return null;
   },
   getAll: function() {
     return this._getTeams();
@@ -78,12 +63,13 @@ var TeamStore = assign({}, EventEmitter.prototype, {
     this._storeTeams(teams);
   },
   _storeTeams: function(teams) {
-    sessionStorage.setItem("teams", JSON.stringify(teams));
+    sessionStorage.setItem("user_teams", JSON.stringify(teams));
   },
   _getTeams: function() {
-    var teams = [];
+    var teams = {};
+
     try {
-        teams = JSON.parse(sessionStorage.teams);
+        teams = JSON.parse(sessionStorage.user_teams);
     }
     catch (err) {
     }

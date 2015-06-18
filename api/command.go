@@ -9,6 +9,8 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -19,13 +21,12 @@ var commands = []commandHandler{
 	logoutCommand,
 	joinCommand,
 	loadTestCommand,
+	echoCommand,
 }
 
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
-
-	commands = append(commands, echoCommand)
 
 	hub.Start()
 }
@@ -75,10 +76,10 @@ func checkCommand(c *Context, command *model.Command) bool {
 		allowValet = tResult.Data.(*model.Team).AllowValet
 	}
 
-	var ec commandHandler
-	ec = echoCommand
+	ec := runtime.FuncForPC(reflect.ValueOf(echoCommand).Pointer()).Name()
+
 	for _, v := range commands {
-		if !allowValet && &v == &ec {
+		if !allowValet && ec == runtime.FuncForPC(reflect.ValueOf(v).Pointer()).Name() {
 			continue
 		}
 
