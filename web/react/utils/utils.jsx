@@ -28,6 +28,9 @@ module.exports.isTestDomain = function() {
     if ((/^localhost/).test(window.location.hostname))
         return true;
 
+    if ((/^dockerhost/).test(window.location.hostname))
+        return true;
+
     if ((/^test/).test(window.location.hostname))
         return true;
 
@@ -75,8 +78,14 @@ module.exports.getDomainWithOutSub = function() {
 
   var parts = window.location.host.split(".");
 
-  if (parts.length == 1)
-    return "localhost:8065";
+  if (parts.length == 1) {
+    if (parts[0].indexOf("dockerhost") > -1) {
+        return "dockerhost:8065";
+    }
+    else {
+        return "localhost:8065";
+    }
+  }
 
   return parts[1] + "." +  parts[2];
 }

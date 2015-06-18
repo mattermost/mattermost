@@ -303,6 +303,10 @@ func IsTestDomain(r *http.Request) bool {
 		return true
 	}
 
+	if strings.Index(r.Host, "dockerhost") == 0 {
+		return true
+	}
+
 	if strings.Index(r.Host, "test") == 0 {
 		return true
 	}
