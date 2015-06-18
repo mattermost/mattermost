@@ -90,10 +90,12 @@ module.exports = React.createClass({
         this.setState({ invite_ids: invite_ids, id_count: count });
     },
     removeInviteFields: function(index) {
+        var count = this.state.id_count;
         var invite_ids = this.state.invite_ids;
         var i = invite_ids.indexOf(index);
-        if (index > -1) invite_ids.splice(i, 1);
-        this.setState({ invite_ids: invite_ids });
+        if (i > -1) invite_ids.splice(i, 1);
+        if (!invite_ids.length) invite_ids.push(++count);
+        this.setState({ invite_ids: invite_ids, id_count: count });
     },
     getInitialState: function() {
         return {
@@ -119,7 +121,7 @@ module.exports = React.createClass({
 
                 invite_sections[index] = (
                     <div key={"key" + index}>
-                    { i ?
+                    { true ?
                     <div>
                         <button type="button" className="btn remove__member" onClick={function(){self.removeInviteFields(index);}}>×</button>
                     </div>
