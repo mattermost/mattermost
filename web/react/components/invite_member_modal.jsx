@@ -28,20 +28,7 @@ module.exports = React.createClass({
 
             if (config.AllowInviteNames) {
                 invite.first_name = this.refs["first_name"+index].getDOMNode().value.trim();
-                if (!invite.first_name ) {
-                    first_name_errors[index] = "This is a required field";
-                    valid = false;
-                } else {
-                    first_name_errors[index] = "";
-                }
-
                 invite.last_name = this.refs["last_name"+index].getDOMNode().value.trim();
-                if (!invite.last_name ) {
-                    last_name_errors[index] = "This is a required field";
-                    valid = false;
-                } else {
-                    last_name_errors[index] = "";
-                }
             }
 
             invites.push(invite);
@@ -114,8 +101,6 @@ module.exports = React.createClass({
             for (var i = 0; i < invite_ids.length; i++) {
                 var index = invite_ids[i];
                 var email_error = this.state.email_errors[index] ? <label className='control-label'>{ this.state.email_errors[index] }</label> : null;
-                var first_name_error = this.state.first_name_errors[index] ? <label className='control-label'>{ this.state.first_name_errors[index] }</label> : null;
-                var last_name_error = this.state.last_name_errors[index] ? <label className='control-label'>{ this.state.last_name_errors[index] }</label> : null;
 
                 invite_sections[index] = (
                     <div key={"key" + index}>
@@ -129,15 +114,13 @@ module.exports = React.createClass({
                         { email_error }
                     </div>
                     { config.AllowInviteNames ?
-                    <div className={ first_name_error ? "form-group invite has-error" : "form-group invite" }>
+                    <div className={ "form-group invite" }>
                         <input type="text" className="form-control" ref={"first_name"+index} placeholder="First name" maxLength="64" />
-                        { first_name_error }
                     </div>
                     : "" }
                     { config.AllowInviteNames ?
-                    <div className={ last_name_error ? "form-group invite has-error" : "form-group invite" }>
+                    <div className={ "form-group invite" }>
                         <input type="text" className="form-control" ref={"last_name"+index} placeholder="Last name" maxLength="64" />
-                        { last_name_error }
                     </div>
                     : "" }
                     </div>
