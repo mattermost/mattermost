@@ -31,9 +31,7 @@ module.exports = React.createClass({
 
         post.message = this.state.messageText;
 
-        var repRegex = new RegExp("<br>", "g");
-        if (post.message.replace(repRegex, " ").trim().length === 0
-                && this.state.previews.length === 0) {
+        if (post.message.trim().length === 0 && this.state.previews.length === 0) {
             return;
         }
 

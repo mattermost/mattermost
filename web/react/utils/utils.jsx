@@ -366,9 +366,6 @@ module.exports.textToJsx = function(text, options) {
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
         text = text.replace(repRegex, " ");
-    } else {
-        var repRegex = new RegExp("\n", "g");
-        text = text.replace(repRegex, "<br>");
     }
 
     var searchTerm = ""
@@ -392,7 +389,7 @@ module.exports.textToJsx = function(text, options) {
         implicitKeywords[keywordArray[i]] = true;
     }
 
-    var lines = text.split("<br>");
+    var lines = text.split("\n");
     var urlMatcher = new LinkifyIt();
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
