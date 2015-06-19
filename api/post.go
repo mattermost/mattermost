@@ -302,7 +302,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 
 				// Build a map as a list of unique user_ids that are mentioned in this post
 				splitF := func(c rune) bool {
-					return c == ',' || c == ' ' || c == '.' || c == '!' || c == '?' || c == ':' || c == '<' || c == '>'
+					return model.SplitRunes[c]
 				}
 				splitMessage := strings.FieldsFunc(strings.Replace(post.Message, "<br>", " ", -1), splitF)
 				for _, word := range splitMessage {
