@@ -312,7 +312,7 @@ EmailItem = React.createClass({
     getValue: function() {
         return this.refs.email.getDOMNode().value.trim()
     },
-    validate: function() {
+    validate: function(teamEmail) {
         var email = this.refs.email.getDOMNode().value.trim().toLowerCase();
 
         if (!email) {
@@ -321,6 +321,11 @@ EmailItem = React.createClass({
 
         if (!utils.isEmail(email)) {
             this.state.email_error = "Please enter a valid email address";
+            this.setState(this.state);
+            return false;
+        }
+        else if (email === teamEmail) {
+            this.state.email_error = "Please use an a different email than the one used at signup";
             this.setState(this.state);
             return false;
         }
@@ -363,7 +368,7 @@ SendInivtesPage = React.createClass({
         var emails = [];
 
         for (var i = 0; i < this.props.state.invites.length; i++) {
-            if (!this.refs['email_' + i].validate()) {
+            if (!this.refs['email_' + i].validate(this.props.state.team.email)) {
                 valid = false;
             } else {
                 emails.push(this.refs['email_' + i].getValue());
