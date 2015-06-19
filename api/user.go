@@ -567,7 +567,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createProfileImage(username string, userId string) *image.RGBA {
+func createProfileImage(username string, userId string) ([]byte, *model.AppError) {
 
 	colors := []color.NRGBA{
 		{197, 8, 126, 255},
@@ -634,16 +634,17 @@ func createProfileImage(username string, userId string) *image.RGBA {
 	gc.Translate(width, height)
 	gc.SetFillColor(image.White)
 	gc.FillString(initials)
-	return i
+
+	buf := new(bytes.Buffer)
+
+	if imgErr := png.Encode(buf, i); imgErr != nil {
+		return nil, model.NewAppError("getProfileImage", "Could not encode default profile image", imgErr.Error())
+	} else {
+		return buf.Bytes(), nil
+	}
 }
 
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsS3Configured() {
-		c.Err = model.NewAppError("getProfileImage", "Unable to get image. Amazon S3 not configured. ", "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -651,36 +652,41 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
-
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
-
-		path := "teams/" + c.Session.TeamId + "/users/" + id + "/profile.png"
-
 		var img []byte
+		var err *model.AppError
 
-		if data, getErr := bucket.Get(path); getErr != nil {
-			rawImg := createProfileImage(result.Data.(*model.User).Username, id)
-			buf := new(bytes.Buffer)
-
-			if imgErr := png.Encode(buf, rawImg); imgErr != nil {
-				c.Err = model.NewAppError("getProfileImage", "Could not encode default profile image", imgErr.Error())
-				return
-			} else {
-				img = buf.Bytes()
-			}
-
-			options := s3.Options{}
-			if err := bucket.Put(path, buf.Bytes(), "image", s3.Private, options); err != nil {
-				c.Err = model.NewAppError("getImage", "Couldn't upload default profile image", err.Error())
+		if !utils.IsS3Configured() {
+			img, err = createProfileImage(result.Data.(*model.User).Username, id)
+			if err != nil {
+				c.Err = err
 				return
 			}
-
 		} else {
-			img = data
+			var auth aws.Auth
+			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
+			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+
+			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
+			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+
+			path := "teams/" + c.Session.TeamId + "/users/" + id + "/profile.png"
+
+			if data, getErr := bucket.Get(path); getErr != nil {
+				img, err = createProfileImage(result.Data.(*model.User).Username, id)
+				if err != nil {
+					c.Err = err
+					return
+				}
+
+				options := s3.Options{}
+				if err := bucket.Put(path, img, "image", s3.Private, options); err != nil {
+					c.Err = model.NewAppError("getImage", "Couldn't upload default profile image", err.Error())
+					return
+				}
+
+			} else {
+				img = data
+			}
 		}
 
 		if c.Session.UserId == id {
