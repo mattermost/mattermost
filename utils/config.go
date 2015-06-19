@@ -221,6 +221,10 @@ func LoadConfig(fileName string) {
 	// Grabs the domain from enviroment variable if not in configuration
 	if config.ServiceSettings.Domain == "" {
 		config.ServiceSettings.Domain = os.Getenv("MATTERMOST_DOMAIN")
+		// If the enviroment variable is not set, use a default
+		if config.ServiceSettings.Domain == "" {
+			config.ServiceSettings.Domain = "localhost"
+		}
 	}
 
 	// Check for a valid email for feedback, if not then do feedback@domain
