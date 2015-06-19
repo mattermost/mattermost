@@ -306,7 +306,6 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 				}
 				splitMessage := strings.FieldsFunc(strings.Replace(post.Message, "<br>", " ", -1), splitF)
 				for _, word := range splitMessage {
-					l4g.Debug(word)
 
 					// Non-case-sensitive check for regular keys
 					userIds1, keyMatch := keywordMap[strings.ToLower(word)]
