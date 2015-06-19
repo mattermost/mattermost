@@ -56,6 +56,22 @@ module.exports = React.createClass({
 
         this.setState({ mentionText: '-1' });
     },
+    handleKeyDown: function(e) {
+        var selectedMention = this.state.selectedMention ? this.state.selectedMention : 1;
+
+        // Need to be able to know number of mentions, use in conditionals & still
+        // need to figure out how to highlight the mention I want every time.
+        // Remember separate Mention Ref within for, second if statement in render
+        // Maybe have the call there instead? Ehhh maybe not but need that to be able
+        // to "select" it maybe...
+        if (e.key === "ArrowUp") {
+            selectedMention = selectedMention === ? 1 : selectedMention++;
+        } 
+        else if (e.key === "ArrowDown") {
+            selectedMention = selectedMention === 1 ? : selectedMention--;
+        }
+        this.setState({selectedMention: selectedMention});
+    }
     addFirstMention: function() {
         if (!this.refs.mention0) return;
         this.refs.mention0.handleClick();
@@ -144,7 +160,7 @@ module.exports = React.createClass({
 
         return (
             <div className="mentions--top" style={style}>
-                <div ref="mentionlist" className="mentions-box">
+                <div ref="mentionlist" className="mentions-box" onKeyDown={this.handleKeyDown}>
                     { mentions }
                 </div>
             </div>
