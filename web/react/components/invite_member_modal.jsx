@@ -123,7 +123,7 @@ module.exports = React.createClass({
                     <div key={"key" + index}>
                     { true ?
                     <div>
-                        <button type="button" className="btn remove__member" onClick={function(){self.removeInviteFields(index);}}>×</button>
+                        <button type="button" className="btn remove__member" onClick={this.removeInviteFields.bind(this, index)}>×</button>
                     </div>
                     : ""}
                     <div className={ email_error ? "form-group invite has-error" : "form-group invite" }>
