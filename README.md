@@ -24,17 +24,43 @@ You're installing "Mattermost Preview", a pre-released 0.40 version intended for
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://bit.ly/1MY1kul
 
-Developer Machine Setup (Docker/Mac)
-------------------------------------
+Local Machine Setup (Docker)
+-----------------------------
+
+### Mac OSX ###
 
 1. Follow the instructions at http://docs.docker.com/installation/mac/  
     1. Use the Boot2Docker command-line utility  
     2. If you do command-line setup use: `boot2docker init eval “$(boot2docker shellinit)”`  
 2. Get your Docker IP address with `boot2docker ip`
 3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost`
-4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash_profile
+4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash\_profile
 5. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
 6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser
+
+### Ubuntu ###
+1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summery below.
+`sudo apt-get update`
+`sudo apt-get install wget`
+`wget -qO- https://get.docker.com/ | sh`
+`sudo usermod -aG docker <username>`
+`sudo service docker start`
+`newgrp docker`
+2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+3. When docker is done fetching the image, open http://localhost:8065/ in your browser
+
+### Arch ###
+1. Install docker using the following commands
+`pacman -S docker`
+`systemctl enable docker.service`
+`systemctl start docker.service`
+`gpasswd -a <username> docker`
+`newgrp docker`
+2. docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+3. When docker is done fetching the image, open http://localhost:8065/ in your browser
+
+### Notes ###
+If your ISP blocks port 25 then you may install locally but email will not be sent.
 
 If you want to work with the latest bits in the repo you can run the cmd  
 `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:latest`
@@ -45,6 +71,7 @@ You can update to the latest bits by running
 If you wish to remove mattermost-dev use the following commands  
 1. `docker stop mattermost-dev`
 2. `docker rm -v mattermost-dev`
+
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
