@@ -46,8 +46,8 @@ Local Machine Setup (Docker)
 `sudo usermod -aG docker <username>`
 `sudo service docker start`
 `newgrp docker`
-2. Run `docker run --name mattermost-dev -d --publish 8086:80 mattermost/platform:helium
-3. When docker is done fetching the image, open http://localhost:8086/ in your browser
+2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Arch ###
 1. Install docker using the following commands
@@ -56,8 +56,8 @@ Local Machine Setup (Docker)
 `systemctl start docker.service`
 `gpasswd -a <username> docker`
 `newgrp docker`
-2. docker run --name mattermost-dev -d --publish 8086:80 mattermost/platform:helium
-3. When docker is done fetching the image, open http://localhost:8086/ in your browser
+2. docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Notes ###
 If your ISP blocks port 25 then you may install locally but email will not be sent.
