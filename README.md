@@ -2,6 +2,13 @@
 **Team Communication Service**  
 **Version 0.40**
 
+
+About Mattermost
+================
+
+Mattermost is an open source team communication service. It brings messaging and files shared by your team into one place accessible across PCs and phones, with archiving and search.
+
+<br>
 WHAT MATTERS MOST TO YOUR TEAM? 
 
 Words have power.  
@@ -9,12 +16,6 @@ Mattermost serves teams who use words to shape the future.
 The words you choose are up to you.
 
 *- SpinPunch*
-
-
-About Mattermost
-================
-
-Mattermost is an open source team communication service. It brings messaging and files shared by your team into one place accessible across PCs and phones, with archiving and search.
 
 
 Installing the Mattermost Preview 
