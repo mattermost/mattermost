@@ -71,7 +71,7 @@ module.exports = React.createClass({
             selectedMention = selectedMention === 1 ? : selectedMention--;
         }
         this.setState({selectedMention: selectedMention});
-    }
+    },
     addFirstMention: function() {
         if (!this.refs.mention0) return;
         this.refs.mention0.handleClick();
