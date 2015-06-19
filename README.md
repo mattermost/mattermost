@@ -8,14 +8,7 @@ About Mattermost
 
 Mattermost is an open source team communication service. It brings messaging and files shared by your team into one place accessible across PCs and phones, with archiving and search.
 
-<br>
-WHAT MATTERS MOST TO YOUR TEAM? 
-
-Words have power.  
-Mattermost serves teams who use words to shape the future.  
-The words you choose are up to you.
-
-*- SpinPunch*
+We built Mattermost to help teams focus on what matters most to them. It works for us, we hope it works for you too.
 
 
 Installing the Mattermost Preview 
