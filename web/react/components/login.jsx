@@ -52,20 +52,20 @@ var FindTeamDomain = React.createClass({
                 <div>
                     <span className="signup-team__name">{ config.SiteName }</span>
                     <br/>
-                    <span className="signup-team__subdomain">Enter your {strings.TeamPlural} domain.</span>
+                    <span className="signup-team__subdomain">Enter your {strings.Team}'s domain.</span>
                     <br/>
                     <br/>
                 </div>
                 <form onSubmit={this.handleSubmit}>
                     <div className={server_error ? 'form-group has-error' : 'form-group'}>
                         { server_error }
-                        <input type="text" className="form-control" name="domain" ref="domain" placeholder="teamdomain" />
+                        <input type="text" className="form-control" name="domain" ref="domain" placeholder="team domain" />
                     </div>
                     <div className="form-group">
                         <button type="submit" className="btn btn-primary">Continue</button>
                     </div>
                     <div>
-                        <span>Don't remember your {strings.TeamPlural} domain? <a href="/find_team">Find it here</a></span>
+                        <span>Don't remember your {strings.Team}'s domain? <a href="/find_team">Find it here</a></span>
                     </div>
                     <br/>
                     <br/>
@@ -74,7 +74,7 @@ var FindTeamDomain = React.createClass({
                     <br/>
                     <br/>
                     <div>
-                        <span>{"Want to create your own " + strings.Team + "?"} <a href="/" className="signup-team-login">Sign up now</a></span>
+                        <span>{"Want to create your own " + strings.Team + "?"} <a href={utils.getHomeLink()} className="signup-team-login">Sign up now</a></span>
                     </div>
                 </form>
             </div>
@@ -188,7 +188,7 @@ module.exports = React.createClass({
                         <a href="/reset_password">I forgot my password</a>
                     </div>
                     <div className="external-link">
-                        <span>{"Want to create your own " + strings.Team + "?"} <a href={config.HomeLink} className="signup-team-login">Sign up now</a></span>
+                        <span>{"Want to create your own " + strings.Team + "?"} <a href={utils.getHomeLink()} className="signup-team-login">Sign up now</a></span>
                     </div>
                 </form>
             </div>

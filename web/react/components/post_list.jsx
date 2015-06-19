@@ -444,17 +444,13 @@ module.exports = React.createClass({
             if (post.create_at > last_viewed && !rendered_last_viewed) {
                 rendered_last_viewed = true;
                 postCtls.push(
-                    <div>
-                        <div className="new-seperator">
-                            <hr id="new_message" className="new-seperator__hr" />
-                            <div className="new-seperator__text">New Messages</div>
-                         </div>
-                         {postCtl}
-                     </div>
+                    <div className="new-seperator">
+                        <hr id="new_message" className="new-seperator__hr" />
+                        <div className="new-seperator__text">New Messages</div>
+                    </div>
                 );
-            } else {
-                postCtls.push(postCtl);
             }
+            postCtls.push(postCtl);
             previousPostDay = utils.getDateForUnixTicks(post.create_at);
         }
 
