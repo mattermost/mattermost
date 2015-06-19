@@ -10,6 +10,7 @@ import (
 	"github.com/goamz/goamz/s3"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"image"
 	"image/color"
 	"io"
 	"mime/multipart"
@@ -324,14 +325,20 @@ func TestGetAudits(t *testing.T) {
 func TestUserCreateImage(t *testing.T) {
 	Setup()
 
-	i := createProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
-	if i == nil {
-		t.Fatal("Failed to gen image")
+	b, err := createProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rdr := bytes.NewReader(b)
+	img, _, err2 := image.Decode(rdr)
+	if err2 != nil {
+		t.Fatal(err)
 	}
 
 	colorful := color.RGBA{116, 49, 196, 255}
 
-	if i.RGBAAt(1, 1) != colorful {
+	if img.At(1, 1) != colorful {
 		t.Fatal("Failed to create correct color")
 	}
 
