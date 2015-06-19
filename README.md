@@ -88,7 +88,7 @@ AWS Elastic Beanstalk Setup (Docker)
 3. Name the application and press next
 4. Select "Create a web server" environment.
 5. If asked, select create and AIM role and instance profile and press next.
-6. For predefined configuration select docker. Environment type may be left at default.
+6. For predefined configuration select docker. For environment type select single instance. 
 7. For application source, select upload your own and upload Dockerrun.aws.json from docker/Dockerrun.aws.json. Everything else may be left at default.
 8. Select an environment name, this is how you will refer to your environment. Make sure the URL is available then press next.
 9. The options on the additional resources page may be left at default unless you wish to change them. Press Next.
