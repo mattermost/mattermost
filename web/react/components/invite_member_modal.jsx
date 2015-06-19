@@ -4,8 +4,37 @@
 var utils = require('../utils/utils.jsx');
 var Client =require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var ConfirmModal = require('./confirm_modal.jsx');
 
 module.exports = React.createClass({
+    componentDidMount: function() {
+        var self = this;
+        $('#invite_member').on('hide.bs.modal', function(e) {
+            if ($('#invite_member').attr('data-confirm') === 'true') {
+                $('#invite_member').attr('data-confirm', 'false');
+                return;
+            }
+
+            var not_empty = false;
+            for (var i = 0; i < self.state.invite_ids.length; i++) {
+                var index = self.state.invite_ids[i];
+                if (self.refs["email"+index].getDOMNode().value.trim() !== '') {
+                    not_empty = true;
+                    break;
+                }
+            }
+
+            if (not_empty) {
+                $('#confirm_invite_modal').modal('show');
+                e.preventDefault();
+            }
+
+        });
+
+        $('#invite_member').on('hidden.bs.modal', function() {
+            self.clearFields();
+        });
+    },
     handleSubmit: function(e) {
         var invite_ids = this.state.invite_ids;
         var count = invite_ids.length;
@@ -56,22 +85,8 @@ module.exports = React.createClass({
 
         Client.inviteMembers(data,
             function() {
+                $(this.refs.modal.getDOMNode()).attr('data-confirm', 'true');
                 $(this.refs.modal.getDOMNode()).modal('hide');
-                for (var i = 0; i < invite_ids.length; i++) {
-                    var index = invite_ids[i];
-                    this.refs["email"+index].getDOMNode().value = "";
-                    if (config.AllowInviteNames) {
-                        this.refs["first_name"+index].getDOMNode().value = "";
-                        this.refs["last_name"+index].getDOMNode().value = "";
-                    }
-                }
-                this.setState({
-                    invite_ids: [0],
-                    id_count: 0,
-                    email_errors: {},
-                    first_name_errors: {},
-                    last_name_errors: {}
-                });
             }.bind(this),
             function(err) {
                 this.setState({ server_error: err });
@@ -88,6 +103,26 @@ module.exports = React.createClass({
         var invite_ids = this.state.invite_ids;
         invite_ids.push(count);
         this.setState({ invite_ids: invite_ids, id_count: count });
+    },
+    clearFields: function() {
+        var invite_ids = this.state.invite_ids;
+
+        for (var i = 0; i < invite_ids.length; i++) {
+            var index = invite_ids[i];
+            this.refs["email"+index].getDOMNode().value = "";
+            if (config.AllowInviteNames) {
+                this.refs["first_name"+index].getDOMNode().value = "";
+                this.refs["last_name"+index].getDOMNode().value = "";
+            }
+        }
+
+        this.setState({
+            invite_ids: [0],
+            id_count: 0,
+            email_errors: {},
+            first_name_errors: {},
+            last_name_errors: {}
+        });
     },
     removeInviteFields: function(index) {
         var invite_ids = this.state.invite_ids;
@@ -147,29 +182,38 @@ module.exports = React.createClass({
             var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
 
             return (
-                <div className="modal fade" ref="modal" id="invite_member" tabIndex="-1" role="dialog" aria-hidden="true">
-                   <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                        <button type="button" className="close" data-dismiss="modal" aria-label="Close" data-reactid=".5.0.0.0.0"><span aria-hidden="true" data-reactid=".5.0.0.0.0.0">×</span></button>
-                          <h4 className="modal-title" id="myModalLabel">Invite New Member</h4>
-                        </div>
-                        <div ref="modalBody" className="modal-body">
-                            <form role="form">
-                                { invite_sections }
-                            </form>
-                            { server_error }
-                            <button type="button" className="btn btn-default" onClick={this.addInviteFields}>Add another</button>
-                            <br/>
-                            <br/>
-                            <label className='control-label'>People invited automatically join Town Square channel.</label>
-                        </div>
-                        <div className="modal-footer">
-                          <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
-                          <button onClick={this.handleSubmit} type="button" className="btn btn-primary">Send Invitations</button>
-                        </div>
-                      </div>
-                   </div>
+                <div>
+                    <div className="modal fade" ref="modal" id="invite_member" tabIndex="-1" role="dialog" aria-hidden="true">
+                       <div className="modal-dialog">
+                          <div className="modal-content">
+                            <div className="modal-header">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close" data-reactid=".5.0.0.0.0"><span aria-hidden="true" data-reactid=".5.0.0.0.0.0">×</span></button>
+                              <h4 className="modal-title" id="myModalLabel">Invite New Member</h4>
+                            </div>
+                            <div ref="modalBody" className="modal-body">
+                                <form role="form">
+                                    { invite_sections }
+                                </form>
+                                { server_error }
+                                <button type="button" className="btn btn-default" onClick={this.addInviteFields}>Add another</button>
+                                <br/>
+                                <br/>
+                                <label className='control-label'>People invited automatically join Town Square channel.</label>
+                            </div>
+                            <div className="modal-footer">
+                              <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                              <button onClick={this.handleSubmit} type="button" className="btn btn-primary">Send Invitations</button>
+                            </div>
+                          </div>
+                       </div>
+                    </div>
+                    <ConfirmModal
+                        id="confirm_invite_modal"
+                        parent_id="invite_member"
+                        title="Discard Invitations?"
+                        message="You have unsent invitations, are you sure you want to discard them?"
+                        confirm_button="Yes, Discard"
+                    />
                 </div>
             );
         } else {
