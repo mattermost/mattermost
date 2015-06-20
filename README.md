@@ -114,7 +114,6 @@ AWS Elastic Beanstalk Setup (Docker)
 License
 -------
 
-This software uses the Apache 2.0 open source license. For more details see: http://bit.ly/1Lc25Sv  
-
+Please see LICENSE.txt for open source licensing information. 
 
 **XXXXXX TODO: Test install procedures**
