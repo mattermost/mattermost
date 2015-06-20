@@ -1,12 +1,13 @@
-Mattermost Platform Preview 
+Mattermost Platform Preview<br>
 © 2015 Spinpunch, Inc.  All Rights Reserved.  See LICENSE.txt for license information.
 
 NOTICES: 
+--------
 
 This product contains a modified portion of 'perfect-scrollbar', a scrollbar plugin by Hyunje Alex Jun and other contributors. 
 
 * HOMEPAGE: 
-  * https://github.com/noraesae/perfect-scrollbar/blob/master/README.md
+  * https://github.com/noraesae/perfect-scrollbar
   
 * LICENSE: 
 
