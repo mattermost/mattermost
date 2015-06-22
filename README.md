@@ -76,6 +76,7 @@ You can update to the latest bits by running
 `docker pull mattermost/platform:latest`
 
 If you wish to remove mattermost-dev use the following commands  
+
 1. `docker stop mattermost-dev`
 2. `docker rm -v mattermost-dev`
 
