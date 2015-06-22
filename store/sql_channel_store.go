@@ -37,6 +37,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("ChannelMembers", "LastUpdateAt", "NotifyLevel", "bigint(20)", "0")
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
@@ -273,6 +274,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
+		member.PreSave()
 		if result.Err = member.IsValid(); result.Err != nil {
 			storeChannel <- result
 			return
@@ -484,7 +486,8 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			SET
 			    ChannelMembers.MentionCount = 0,
 			    ChannelMembers.MsgCount = Channels.TotalMsgCount,
-			    ChannelMembers.LastViewedAt = Channels.LastPostAt
+			    ChannelMembers.LastViewedAt = Channels.LastPostAt,
+                ChannelMembers.LastUpdateAt = Channels.LastPostAt
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = ?
@@ -533,15 +536,18 @@ func (s SqlChannelStore) UpdateNotifyLevel(channelId, userId, notifyLevel string
 	go func() {
 		result := StoreResult{}
 
+		updateAt := model.GetMillis()
+
 		_, err := s.GetMaster().Exec(
 			`UPDATE
 				ChannelMembers
 			SET
-				NotifyLevel = ?
+				NotifyLevel = ?,
+                LastUpdateAt = ?
 			WHERE
 				UserId = ?
 					AND ChannelId = ?`,
-			notifyLevel, userId, channelId)
+			notifyLevel, updateAt, userId, channelId)
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateNotifyLevel", "We couldn't update the notify level", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}

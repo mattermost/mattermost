@@ -53,6 +53,12 @@ func (o *ChannelList) Etag() string {
 				t = member.LastViewedAt
 				id = v.Id
 			}
+
+			if member.LastUpdateAt > t {
+				t = member.LastUpdateAt
+				id = v.Id
+			}
+
 		}
 	}
 
