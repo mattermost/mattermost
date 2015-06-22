@@ -5,7 +5,6 @@ package api
 
 import (
 	"bytes"
-	"code.google.com/p/draw2d/draw2d"
 	l4g "code.google.com/p/log4go"
 	"fmt"
 	"github.com/goamz/goamz/aws"
@@ -19,6 +18,7 @@ import (
 	"hash/fnv"
 	"image"
 	"image/color"
+	"image/draw"
 	_ "image/gif"
 	_ "image/jpeg"
 	"image/png"
@@ -602,42 +602,13 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	h.Write([]byte(userId))
 	seed := h.Sum32()
 
-	initials := ""
-	parts := strings.Split(username, " ")
-
-	for _, v := range parts {
-
-		if len(v) > 0 {
-			initials += string(strings.ToUpper(v)[0])
-		}
-	}
-
-	if len(initials) == 0 {
-		initials = "^"
-	}
-
-	if len(initials) > 2 {
-		initials = initials[0:2]
-	}
-
-	draw2d.SetFontFolder(utils.FindDir("web/static/fonts"))
-	i := image.NewRGBA(image.Rect(0, 0, 128, 128))
-	gc := draw2d.NewGraphicContext(i)
-	draw2d.Rect(gc, 0, 0, 128, 128)
-	gc.SetFillColor(colors[int(seed)%len(colors)])
-	gc.Fill()
-	gc.SetFontSize(50)
-	gc.SetFontData(draw2d.FontData{"luxi", draw2d.FontFamilyMono, draw2d.FontStyleBold | draw2d.FontStyleItalic})
-	left, top, right, bottom := gc.GetStringBounds("CH")
-	width := (128 - (right - left + 10)) / 2
-	height := (128 - (top - bottom + 6)) / 2
-	gc.Translate(width, height)
-	gc.SetFillColor(image.White)
-	gc.FillString(initials)
+	color := colors[int(seed)%len(colors)]
+	img := image.NewRGBA(image.Rect(0, 0, 640, 480))
+	draw.Draw(img, img.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
 
 	buf := new(bytes.Buffer)
 
-	if imgErr := png.Encode(buf, i); imgErr != nil {
+	if imgErr := png.Encode(buf, img); imgErr != nil {
 		return nil, model.NewAppError("getProfileImage", "Could not encode default profile image", imgErr.Error())
 	} else {
 		return buf.Bytes(), nil
