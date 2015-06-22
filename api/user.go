@@ -603,7 +603,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	seed := h.Sum32()
 
 	color := colors[int(seed)%len(colors)]
-	img := image.NewRGBA(image.Rect(0, 0, 640, 480))
+	img := image.NewRGBA(image.Rect(0, 0, int(utils.Cfg.ImageSettings.ProfileWidth), int(utils.Cfg.ImageSettings.ProfileHeight)))
 	draw.Draw(img, img.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
 
 	buf := new(bytes.Buffer)
