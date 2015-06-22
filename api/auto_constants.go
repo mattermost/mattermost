@@ -32,5 +32,5 @@ var (
 	POST_MESSAGE_LEN         = utils.Range{100, 400}
 	POST_HASHTAGS_NUM        = utils.Range{5, 10}
 	POST_MENTIONS_NUM        = utils.Range{0, 3}
-	TEST_IMAGE_FILENAMES     = []string{"test.png", "salamander.jpg", "toothless.gif"}
+	TEST_IMAGE_FILENAMES     = []string{"test.png", "testjpg.jpg", "testgif.gif"}
 )
