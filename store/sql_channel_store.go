@@ -543,7 +543,7 @@ func (s SqlChannelStore) UpdateNotifyLevel(channelId, userId, notifyLevel string
 				ChannelMembers
 			SET
 				NotifyLevel = ?,
-                LastUpdateAt = ?
+				LastUpdateAt = ?
 			WHERE
 				UserId = ?
 					AND ChannelId = ?`,
