@@ -258,12 +258,12 @@
             .settings-table {
                 display: block;
                 .settings-content {
-                 &.minimize-settings {
-                    display: block;
-                    .section-edit {
-                        text-align: left;
+                    &.minimize-settings {
+                        display: block;
+                        .section-edit {
+                            text-align: left;
+                        }
                     }
-                }
                 }
                 .settings-links {
                     display: none;
@@ -286,13 +286,13 @@
         }
         .settings-table {
             .settings-content {
-             &.minimize-settings {
-                padding: 0;
-                display: none;
-                .user-settings {
-                    padding: 70px 20px 30px;
+                &.minimize-settings {
+                    padding: 0;
+                    display: none;
+                    .user-settings {
+                        padding: 70px 20px 30px;
+                    }
                 }
-            }
             }
             .settings-links {
                 background: #fff;
