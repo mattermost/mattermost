@@ -1,5 +1,9 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
-// See License.txt for license information.
+// This files was copied/modified from https://github.com/hashicorp/golang-lru
+// which was (see below)
+
+// This package provides a simple LRU cache. It is based on the
+// LRU implementation in groupcache:
+// https://github.com/golang/groupcache/tree/master/lru
 
 package utils
 
