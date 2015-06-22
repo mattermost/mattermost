@@ -3,21 +3,6 @@
 	"GoVersion": "go1.4",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/draw2d/draw2d",
-			"Comment": "release-20",
-			"Rev": "eaeb833648eee1b7c20e77ffc8180646c0395298"
-		},
-		{
-			"ImportPath": "code.google.com/p/freetype-go/freetype/raster",
-			"Comment": "release-85",
-			"Rev": "46c3056cafbb4da11c4087a892c7d2bfa4224a8f"
-		},
-		{
-			"ImportPath": "code.google.com/p/freetype-go/freetype/truetype",
-			"Comment": "release-85",
-			"Rev": "46c3056cafbb4da11c4087a892c7d2bfa4224a8f"
-		},
-		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
 			"Comment": "null-15",
 			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
