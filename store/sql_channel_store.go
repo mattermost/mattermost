@@ -487,7 +487,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			    ChannelMembers.MentionCount = 0,
 			    ChannelMembers.MsgCount = Channels.TotalMsgCount,
 			    ChannelMembers.LastViewedAt = Channels.LastPostAt,
-                ChannelMembers.LastUpdateAt = Channels.LastPostAt
+			    ChannelMembers.LastUpdateAt = Channels.LastPostAt
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = ?
