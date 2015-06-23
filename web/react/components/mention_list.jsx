@@ -56,8 +56,8 @@ module.exports = React.createClass({
 
         this.setState({ mentionText: '-1' });
     },
-    handleKeyDown: function(e) {
-        var selectedMention = this.state.selectedMention ? this.state.selectedMention : 1;
+    handleKeyDown: function(e, numMentions) {
+        var selectedMention = this.state.selectedMention <= nunMentions ? this.state.selectedMention : 1;
 
         // Need to be able to know number of mentions, use in conditionals & still
         // need to figure out how to highlight the mention I want every time.
@@ -65,10 +65,10 @@ module.exports = React.createClass({
         // Maybe have the call there instead? Ehhh maybe not but need that to be able
         // to "select" it maybe...
         if (e.key === "ArrowUp") {
-            selectedMention = selectedMention === ? 1 : selectedMention++;
+            selectedMention = selectedMention === numMentions ? 1 : selectedMention++;
         } 
         else if (e.key === "ArrowDown") {
-            selectedMention = selectedMention === 1 ? : selectedMention--;
+            selectedMention = selectedMention === 1 ? numMentions : selectedMention--;
         }
         this.setState({selectedMention: selectedMention});
     },
@@ -89,7 +89,7 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1" };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 1 };
     },
     render: function() {
         var mentionText = this.state.mentionText;
@@ -158,9 +158,11 @@ module.exports = React.createClass({
             left:   $mention_tab.offset().left
         };
 
+        //mentions[this.state.selectedMention].focus();
+
         return (
             <div className="mentions--top" style={style}>
-                <div ref="mentionlist" className="mentions-box" onKeyDown={this.handleKeyDown}>
+                <div ref="mentionlist" className="mentions-box" onKeyDown={this.handleKeyDown.bind(this, numMentions)}>
                     { mentions }
                 </div>
             </div>
