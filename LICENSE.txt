@@ -24,7 +24,7 @@ Mattermost server and you’re only linking directly to or changing Admin Tools 
 are released under an Apache 2.0 license, and copyleft free. 
 
 We promise that we will not enforce the copyleft provisions in AGPL v3.0 against you if your application (a) does 
-not link to the Mattermost server directly, but exclusively uses the Mattermost Admin Tools and Configuration files, 
+not link to the Mattermost server directly, but exclusively uses the Mattermost Admin Tools and Configuration Files, 
 and (b) you have not modified, added to or adapted the source code of Mattermost in a way that results in the creation 
 of a “modified version” or “work based on” Mattermost as these terms are defined in the AGPL v3.0 license. 
 
