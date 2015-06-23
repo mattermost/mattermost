@@ -20,7 +20,7 @@ while allowing for non-enhanced use in proprietary applications.
 Therefore, the Mattermost server is free to use, modify and redistribute in open source applications via the 
 copyleft AGPL license. For proprietary applications (systems that don’t share source back to the community), 
 Mattermost is free to use and redistribute so long as you’re not withholding proprietary enhancements to the 
-Mattermost server and you’re only linking directly to Admin Tools and Configuration Files (defined above), which 
+Mattermost server and you’re only linking directly to or changing Admin Tools and Configuration Files (defined above), which 
 are released under an Apache 2.0 license, and copyleft free. 
 
 We promise that we will not enforce the copyleft provisions in AGPL v3.0 against you if your application (a) does 
