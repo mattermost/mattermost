@@ -1,6 +1,6 @@
 **Mattermost Preview**  
 **Team Communication Service**  
-**Version 0.40**
+**Version 0.50**
 
 
 About Mattermost
@@ -11,10 +11,10 @@ Mattermost is a team communication service. It brings team messaging and file sh
 We built Mattermost to help teams focus on what matters most to them. It works for us, we hope it works for you too.
 
 
-Installing the Mattermost Preview 
-=================================
+Installing the Mattermost
+=========================
 
-You're installing "Mattermost Preview", a pre-released 0.40 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0 version release. 
+You're installing "Mattermost Preview", a pre-released 0.50 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0 version release. 
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://bit.ly/1MY1kul
 
