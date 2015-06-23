@@ -7,20 +7,32 @@ Mattermost server is made available under two separate licensing options:
 - Free Software Foundation’s GNU AGPL v.3.0, subject to the exceptions outlined in this policy; or 
 - Commercial licenses available from SpinPunch, Inc. by contacting commercial@mattermost.com 
 
-Admin Tools and Configuration Files (model/, web/static/, web/templates/, web/react/utils/, api/templates/ and all subdirectories thereof) are made available under: 
+Admin Tools and Configuration Files (model/, web/static/, web/templates/, web/react/utils/, api/templates/ and all 
+subdirectories thereof) are made available under: 
 
 - Apache License v2.0 
 
 LICENSING POLICY 
 
-The objective of the server license is to require enhancements to Mattermost server be shared with the community while allowing for non-enhanced use in proprietary applications. 
+The objective of the server license is to require enhancements to Mattermost server be shared with the community 
+while allowing for non-enhanced use in proprietary applications. 
 
-Therefore, the Mattermost server is free to use, modify and redistribute in open source applications via the copyleft AGPL license. For proprietary applications (systems that don’t share source back to the community), Mattermost is free to use and redistribute so long as you’re not withholding proprietary enhancements to the Mattermost server and you’re only linking directly to Admin Tools and Configuration Files (defined above), which are released under an Apache 2.0 license, and copyleft free. 
+Therefore, the Mattermost server is free to use, modify and redistribute in open source applications via the 
+copyleft AGPL license. For proprietary applications (systems that don’t share source back to the community), 
+Mattermost is free to use and redistribute so long as you’re not withholding proprietary enhancements to the 
+Mattermost server and you’re only linking directly to Admin Tools and Configuration Files (defined above), which 
+are released under an Apache 2.0 license, and copyleft free. 
 
-We promise that we will not enforce the copyleft provisions in AGPL v3.0 against you if your application (a) does not link to the Mattermost server directly, but exclusively uses the Mattermost Admin Tools and Configuration files, and (b) you have not modified, added to or adapted the source code of Mattermost in a way that results in the creation of a “modified version” or “work based on” Mattermost as these terms are defined in the AGPL v3.0 license. 
+We promise that we will not enforce the copyleft provisions in AGPL v3.0 against you if your application (a) does 
+not link to the Mattermost server directly, but exclusively uses the Mattermost Admin Tools and Configuration files, 
+and (b) you have not modified, added to or adapted the source code of Mattermost in a way that results in the creation 
+of a “modified version” or “work based on” Mattermost as these terms are defined in the AGPL v3.0 license. 
 
-If the above is not enough to satisfy your organization’s legal department (some will not approve GPL in any form), commercial licenses are available from commercial@mattermost.com.
+If the above is not enough to satisfy your organization’s legal department (some will not approve GPL in any form), 
+commercial licenses are available from commercial@mattermost.com.
 
 MATTERMOST TRADEMARK GUIDELINES
 
-Your use of the mark Mattermost is subject to SpinPunch’s prior written approval and our organization’s Trademark Standards of Use at http://www.mattermost.org/trademark-standards-of-use/. For trademark approval or any questions you have about using these trademarks, please email trademark@mattermost.com 
+Your use of the mark Mattermost is subject to SpinPunch’s prior written approval and our organization’s Trademark 
+Standards of Use at http://www.mattermost.org/trademark-standards-of-use/. For trademark approval or any questions 
+you have about using these trademarks, please email trademark@mattermost.com 
