@@ -17,7 +17,7 @@
         font-weight: 600;
         margin-bottom: 0.5em;
         letter-spacing: -0.5px;
-        font-size: em(30px);
+        font-size: em(28px);
     }
     h3 {
     	font-weight: 600;
@@ -28,6 +28,10 @@
         font-size: em(18px);
         font-weight: 600;
         margin-bottom: 1em;
+        &.text--light {
+            font-weight: 300;
+            color: #999;
+        }
     }
     p {
         color: #555;
