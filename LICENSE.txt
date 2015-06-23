@@ -14,7 +14,7 @@ subdirectories thereof) are made available under:
 
 LICENSING POLICY 
 
-The objective of the server license is to require enhancements to Mattermost server be shared with the community 
+The objective of the Mattermost server license is to require enhancements to Mattermost server be shared with the community 
 while allowing for non-enhanced use in proprietary applications. 
 
 Therefore, the Mattermost server is free to use, modify and redistribute in open source applications via the 
