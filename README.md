@@ -122,4 +122,7 @@ AWS Elastic Beanstalk Setup (Docker)
 License
 -------
 
-Please see LICENSE.txt for licensing information
+Most Mattermost source files are made available under the terms of the GNU Affero General Public License (AGPL). See individual files for details.
+
+As an exception, Admin Tools and Configuration Files are are made available under the terms of the Apache License, version 2.0. See LICENSE.txt for more information.
+
