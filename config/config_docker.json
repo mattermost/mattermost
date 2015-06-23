@@ -8,7 +8,7 @@
         "FileLocation": ""
     },
     "ServiceSettings": {
-        "SiteName": "Mattermost Preview",
+        "SiteName": "Mattermost",
         "Domain": "",
         "Mode" : "prod",
 		"AllowTesting" : false,
