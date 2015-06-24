@@ -33,7 +33,7 @@ Local Machine Setup (Docker)
 6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser
 
 ### Ubuntu ###
-1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summery below.
+1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summary below.
 
 `sudo apt-get update`
 
@@ -125,4 +125,3 @@ License
 Most Mattermost source files are made available under the terms of the GNU Affero General Public License (AGPL). See individual files for details.
 
 As an exception, Admin Tools and Configuration Files are are made available under the terms of the Apache License, version 2.0. See LICENSE.txt for more information.
-
