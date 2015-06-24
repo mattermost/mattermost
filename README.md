@@ -33,7 +33,7 @@ Local Machine Setup (Docker)
 6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser
 
 ### Ubuntu ###
-1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summery below.
+1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summary below.
 
 	``` bash
 	sudo apt-get update
@@ -107,7 +107,7 @@ AWS Elastic Beanstalk Setup (Docker)
 	18. Modify an existing CNAME record set or create a new one with the name * and the value of the domain you copied in step 1.13.
 	19. Save the record set
 
-3. Set the enviroment variable "MATTERMOST\_DOMAIN" to the domain you mapped above (example.com not www.example.com)
+3. Set the environment variable "MATTERMOST\_DOMAIN" to the domain you mapped above (example.com not www.example.com)
 	20. Return the Elastic Beanstalk from the AWS console.
 	21. Select the environment you created.
 	22. Select configuration from the sidebar.
