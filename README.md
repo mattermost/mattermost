@@ -35,36 +35,32 @@ Local Machine Setup (Docker)
 ### Ubuntu ###
 1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summery below.
 
-`sudo apt-get update`
+``` bash
+sudo apt-get update
+sudo apt-get install wget
+wget -qO- https://get.docker.com/ | sh
+sudo usermod -aG docker <username>
+sudo service docker start
+newgrp docker
+```
 
-`sudo apt-get install wget`
-
-`wget -qO- https://get.docker.com/ | sh`
-
-`sudo usermod -aG docker <username>`
-
-`sudo service docker start`
-
-`newgrp docker`
-
-2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Arch ###
-1. Install docker using the following commands
-
-`pacman -S docker`
-
-`systemctl enable docker.service`
-
-`systemctl start docker.service`
-
-`gpasswd -a <username> docker`
-
-`newgrp docker`
-
-2. docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
-3. When docker is done fetching the image, open http://localhost:8065/ in your browser
+1. Install docker using the following commands:
+``` bash
+pacman -S docker
+systemctl enable docker.service
+systemctl start docker.service
+gpasswd -a <username> docker
+newgrp docker
+```
+2. Start docker container:
+``` bash
+docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+```
+3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
 
 ### Notes ###
 If your ISP blocks port 25 then you may install locally but email will not be sent.
