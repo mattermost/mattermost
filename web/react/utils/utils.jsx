@@ -418,7 +418,7 @@ module.exports.textToJsx = function(text, options) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function() {module.exports.searchForTerm(name);}}>@{name}</a>{suffix} </span>);
+                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (urlMatcher.test(word)) {
                 var match = urlMatcher.match(word)[0];
                 var link = match.url;
