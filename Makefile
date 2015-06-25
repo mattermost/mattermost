@@ -1,4 +1,4 @@
-.PHONY: all test clean build install run stop cover dist dist-battlehouse cleandb
+.PHONY: all test clean build install run stop cover dist cleandb travis
 
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
@@ -15,7 +15,11 @@ DIST_RESULTS=$(DIST_ROOT)/results
 BENCH=.
 TESTS=.
 
-all: build
+all: travis
+
+travis:
+	@echo building for travis
+	@go build $(GOFLAGS) ./...
 
 build:
 	@go build $(GOFLAGS) ./...

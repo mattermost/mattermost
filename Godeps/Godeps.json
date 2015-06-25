@@ -89,11 +89,6 @@
 			"Rev": "6fd0f867fef40c540fa05c59f86396de10a632a6"
 		},
 		{
-			"ImportPath": "github.com/huandu/facebook",
-			"Comment": "v1.5.2",
-			"Rev": "7c46d89211b9a3f01087f47f6a399b815801ade4"
-		},
-		{
 			"ImportPath": "github.com/mssola/user_agent",
 			"Comment": "v0.4.1-2-g35c7f18",
 			"Rev": "35c7f18f5261cc18c698a461053c119aebaf8542"
@@ -123,6 +118,10 @@
 			"Rev": "74f810a0152f4c50a16195f6b9ff44afc35594e8"
 		},
 		{
+			"ImportPath": "golang.org/x/image/bmp",
+			"Rev": "eb11b45157c1b71f30b3cec66306f1cd779a689e"
+		},
+		{
 			"ImportPath": "gopkg.in/bufio.v1",
 			"Comment": "v1",
 			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
@@ -136,10 +135,6 @@
 			"ImportPath": "gopkg.in/redis.v2",
 			"Comment": "v2.3.2",
 			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
-		},
-		{
-			"ImportPath": "golang.org/x/image/bmp",
-			"Rev": "eb11b45157c1b71f30b3cec66306f1cd779a689e"
 		}
 	]
 }
