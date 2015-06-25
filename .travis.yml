@@ -13,3 +13,7 @@ before_script:
 
 services:
   - redis-server
+
+addons:
+  hosts:
+    - 127.0.0.1 dockerhost
