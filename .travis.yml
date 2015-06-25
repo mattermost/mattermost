@@ -8,7 +8,7 @@ before_install:
 
 before_script:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS mattermost_test ;'
-  - mysql -e 'GRANT ALL ON mattermost_test.* TO travis@% ;'
+  - mysql -e 'GRANT ALL ON mattermost_test.* TO \'travis\'@\'%\' ;'
 
 services:
   - redis-server
