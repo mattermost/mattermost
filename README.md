@@ -16,7 +16,7 @@ Installing the Mattermost
 
 You're installing "Mattermost Preview", a pre-released 0.50 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0 version release. 
 
-That said, any issues at all, please let us know on the Mattermost forum at: http://bit.ly/1MY1kul
+That said, any issues at all, please let us know on the Mattermost forum at: http://discourse.mattermost.org 
 
 Local Machine Setup (Docker)
 -----------------------------
@@ -80,17 +80,8 @@ If you wish to remove mattermost-dev use the following commands
 1. `docker stop mattermost-dev`
 2. `docker rm -v mattermost-dev`
 
-If you wish to gain access to the container use the folowwing commands
+If you wish to gain access to the container use the following commands
 1. `docker exec -ti mattermost-dev /bin/bash`
-
-We've updated the config file to skip email verification.  You can pull the latest docker container or run the following to skip email verification
-1. `docker exec -ti mattermost-dev /bin/bash`
-2. `cd src/github.com/mattermost/platform/config`
-3. `vi config_docker.json`
-4. `Edit "Mode" : "prod", -> "Mode" : "dev"`
-5. `docker stop mattermost-dev`
-6. `docker start mattermost-dev`
-
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
