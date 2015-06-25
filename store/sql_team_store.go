@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"strings"
 )
 
@@ -29,6 +30,11 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 }
 
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
+	defaultValue := "0"
+	if utils.Cfg.TeamSettings.AllowValetDefault {
+		defaultValue = "1"
+	}
+	s.CreateColumnIfNotExists("Teams", "AllowValet", "AllowedDomains", "tinyint(1)", defaultValue)
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {

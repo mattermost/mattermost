@@ -286,3 +286,106 @@ func TestFuzzyTeamCreate(t *testing.T) {
 		}
 	}
 }
+
+func TestGetMyTeam(t *testing.T) {
+	Setup()
+
+	team := model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	ruser, _ := Client.CreateUser(&user, "")
+	Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id)
+
+	Client.LoginByEmail(team.Domain, user.Email, user.Password)
+
+	if result, err := Client.GetMyTeam(""); err != nil {
+		t.Fatal("Failed to get user")
+	} else {
+		if result.Data.(*model.Team).Name != team.Name {
+			t.Fatal("team names did not match")
+		}
+		if result.Data.(*model.Team).Domain != team.Domain {
+			t.Fatal("team domains did not match")
+		}
+		if result.Data.(*model.Team).Type != team.Type {
+			t.Fatal("team types did not match")
+		}
+	}
+}
+
+func TestUpdateValetFeature(t *testing.T) {
+	Setup()
+
+	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", FullName: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	Srv.Store.User().VerifyEmail(user.Id)
+
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	Srv.Store.User().VerifyEmail(user2.Id)
+
+	team2 := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
+
+	user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+	Srv.Store.User().VerifyEmail(user3.Id)
+
+	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+
+	data := make(map[string]string)
+	data["allow_valet"] = "true"
+	if _, err := Client.UpdateValetFeature(data); err == nil {
+		t.Fatal("Should have errored, not admin")
+	}
+
+	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+
+	data["allow_valet"] = ""
+	if _, err := Client.UpdateValetFeature(data); err == nil {
+		t.Fatal("Should have errored, empty allow_valet field")
+	}
+
+	data["allow_valet"] = "true"
+	if _, err := Client.UpdateValetFeature(data); err != nil {
+		t.Fatal(err)
+	}
+
+	rteam := Client.Must(Client.GetMyTeam("")).Data.(*model.Team)
+	if rteam.AllowValet != true {
+		t.Fatal("Should have errored - allow valet property not updated")
+	}
+
+	data["team_id"] = "junk"
+	if _, err := Client.UpdateValetFeature(data); err == nil {
+		t.Fatal("Should have errored, junk team id")
+	}
+
+	data["team_id"] = "12345678901234567890123456"
+	if _, err := Client.UpdateValetFeature(data); err == nil {
+		t.Fatal("Should have errored, bad team id")
+	}
+
+	data["team_id"] = team.Id
+	data["allow_valet"] = "false"
+	if _, err := Client.UpdateValetFeature(data); err != nil {
+		t.Fatal(err)
+	}
+
+	rteam = Client.Must(Client.GetMyTeam("")).Data.(*model.Team)
+	if rteam.AllowValet != false {
+		t.Fatal("Should have errored - allow valet property not updated")
+	}
+
+	Client.LoginByEmail(team2.Domain, user3.Email, "pwd")
+
+	data["team_id"] = team.Id
+	data["allow_valet"] = "true"
+	if _, err := Client.UpdateValetFeature(data); err == nil {
+		t.Fatal("Should have errored, not part of team")
+	}
+}

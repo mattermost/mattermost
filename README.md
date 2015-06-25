@@ -80,6 +80,17 @@ If you wish to remove mattermost-dev use the following commands
 1. `docker stop mattermost-dev`
 2. `docker rm -v mattermost-dev`
 
+If you wish to gain access to the container use the folowwing commands
+1. `docker exec -ti mattermost-dev /bin/bash`
+
+We've updated the config file to skip email verification.  You can pull the latest docker container or run the following to skip email verification
+1. `docker exec -ti mattermost-dev /bin/bash`
+2. `cd src/github.com/mattermost/platform/config`
+3. `vi config_docker.json`
+4. `Edit "Mode" : "prod", -> "Mode" : "dev"`
+5. `docker stop mattermost-dev`
+6. `docker start mattermost-dev`
+
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
@@ -119,10 +130,16 @@ AWS Elastic Beanstalk Setup (Docker)
 	26. Return to the dashboard on the sidebar and wait for beanstalk update the environment.
 	27. Try it out by entering the domain you mapped into your browser.
 
+Contributing 
+------------ 
+ 
+To contribute to this open source project please review the Mattermost Contribution Guidelines at http://www.mattermost.org/contribute-to-mattermost/. 
+
 License
 -------
 
 Most Mattermost source files are made available under the terms of the GNU Affero General Public License (AGPL). See individual files for details.
 
 As an exception, Admin Tools and Configuration Files are are made available under the terms of the Apache License, version 2.0. See LICENSE.txt for more information.
+
 

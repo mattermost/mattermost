@@ -147,7 +147,7 @@ func TestCreateValetPost(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	if utils.Cfg.TeamSettings.AllowValet {
+	if utils.Cfg.TeamSettings.AllowValetDefault {
 		post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
 		rpost1, err := Client.CreateValetPost(post1)
 		if err != nil {

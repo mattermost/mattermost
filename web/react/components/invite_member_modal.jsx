@@ -57,7 +57,7 @@ module.exports = React.createClass({
 
             if (config.AllowInviteNames) {
                 invite.first_name = this.refs["first_name"+index].getDOMNode().value.trim();
-                if (!invite.first_name ) {
+                if (!invite.first_name && config.RequireInviteNames) {
                     first_name_errors[index] = "This is a required field";
                     valid = false;
                 } else {
@@ -65,7 +65,7 @@ module.exports = React.createClass({
                 }
 
                 invite.last_name = this.refs["last_name"+index].getDOMNode().value.trim();
-                if (!invite.last_name ) {
+                if (!invite.last_name && config.RequireInviteNames) {
                     last_name_errors[index] = "This is a required field";
                     valid = false;
                 } else {
@@ -125,10 +125,12 @@ module.exports = React.createClass({
         });
     },
     removeInviteFields: function(index) {
+        var count = this.state.id_count;
         var invite_ids = this.state.invite_ids;
         var i = invite_ids.indexOf(index);
-        if (index > -1) invite_ids.splice(i, 1);
-        this.setState({ invite_ids: invite_ids });
+        if (i > -1) invite_ids.splice(i, 1);
+        if (!invite_ids.length) invite_ids.push(++count);
+        this.setState({ invite_ids: invite_ids, id_count: count });
     },
     getInitialState: function() {
         return {
@@ -154,11 +156,9 @@ module.exports = React.createClass({
 
                 invite_sections[index] = (
                     <div key={"key" + index}>
-                    { i ?
                     <div>
-                        <button type="button" className="btn remove__member" onClick={function(){self.removeInviteFields(index);}}>×</button>
+                        <button type="button" className="btn remove__member" onClick={this.removeInviteFields.bind(this, index)}>×</button>
                     </div>
-                    : ""}
                     <div className={ email_error ? "form-group invite has-error" : "form-group invite" }>
                         <input onKeyUp={this.displayNameKeyUp} type="text" ref={"email"+index} className="form-control" placeholder="email@domain.com" maxLength="64" />
                         { email_error }

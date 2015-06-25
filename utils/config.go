@@ -98,7 +98,7 @@ type PrivacySettings struct {
 type TeamSettings struct {
 	MaxUsersPerTeam   int
 	AllowPublicLink   bool
-	AllowValet        bool
+	AllowValetDefault bool
 	TermsLink         string
 	PrivacyLink       string
 	AboutLink         string

@@ -9,6 +9,10 @@ var constants = require('../utils/constants.jsx')
 
 WelcomePage = React.createClass({
     submitNext: function (e) {
+        if (!utils.isLocalStorageSupported()) {
+            this.setState({ storage_error: "This service requires local storage to be enabled. Please enable it or exit private browsing."} );
+            return;
+        }
         e.preventDefault();
         this.props.state.wizard = "team_name";
         this.props.updateParent(this.props.state);
@@ -26,6 +30,12 @@ WelcomePage = React.createClass({
         if (!email || !utils.isEmail(email)) {
             state.email_error = "Please enter a valid email address";
             this.setState(state);
+            return;
+        }
+        else if (!utils.isLocalStorageSupported()) {
+            state.email_error = "This service requires local storage to be enabled. Please enable it or exit private browsing.";
+            this.setState(state);
+            return;
         }
         else {
             state.email_error = "";
@@ -50,6 +60,7 @@ WelcomePage = React.createClass({
 
         client.track('signup', 'signup_team_01_welcome');
 
+        var storage_error = this.state.storage_error ? <label className="control-label">{ this.state.storage_error }</label> : null;
         var email_error = this.state.email_error ? <label className="control-label">{ this.state.email_error }</label> : null;
         var server_error = this.state.server_error ? <div className={ "form-group has-error" }><label className="control-label">{ this.state.server_error }</label></div> : null;
 
@@ -66,6 +77,7 @@ WelcomePage = React.createClass({
                 </p>
                 <div className="form-group">
                     <button className="btn-primary btn form-group" onClick={this.submitNext}><i className="glyphicon glyphicon-ok"></i>Yes, this address is correct</button>
+                    { storage_error }
                 </div>
                 <hr />
                 <p>If this is not correct, you can switch to a different email. We'll send you a new invite right away.</p>
@@ -312,7 +324,7 @@ EmailItem = React.createClass({
     getValue: function() {
         return this.refs.email.getDOMNode().value.trim()
     },
-    validate: function() {
+    validate: function(teamEmail) {
         var email = this.refs.email.getDOMNode().value.trim().toLowerCase();
 
         if (!email) {
@@ -321,6 +333,11 @@ EmailItem = React.createClass({
 
         if (!utils.isEmail(email)) {
             this.state.email_error = "Please enter a valid email address";
+            this.setState(this.state);
+            return false;
+        }
+        else if (email === teamEmail) {
+            this.state.email_error = "Please use an a different email than the one used at signup";
             this.setState(this.state);
             return false;
         }
@@ -363,7 +380,7 @@ SendInivtesPage = React.createClass({
         var emails = [];
 
         for (var i = 0; i < this.props.state.invites.length; i++) {
-            if (!this.refs['email_' + i].validate()) {
+            if (!this.refs['email_' + i].validate(this.props.state.team.email)) {
                 valid = false;
             } else {
                 emails.push(this.refs['email_' + i].getValue());
@@ -491,6 +508,7 @@ PasswordPage = React.createClass({
             return;
         }
 
+        this.setState({name_error: ""});
         $('#finish-button').button('loading');
         var teamSignup = JSON.parse(JSON.stringify(this.props.state));
         teamSignup.user.password = password;
