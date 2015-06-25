@@ -19,7 +19,14 @@ all: travis
 
 travis:
 	@echo building for travis
+	
+	@cd web/react/ && npm install
+
 	@go build $(GOFLAGS) ./...
+
+	@mkdir -p logs
+
+	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
 
 build:
 	@go build $(GOFLAGS) ./...
