@@ -57,7 +57,7 @@ module.exports = React.createClass({
 
             if (config.AllowInviteNames) {
                 invite.first_name = this.refs["first_name"+index].getDOMNode().value.trim();
-                if (!invite.first_name ) {
+                if (!invite.first_name && config.RequireInviteNames) {
                     first_name_errors[index] = "This is a required field";
                     valid = false;
                 } else {
@@ -65,7 +65,7 @@ module.exports = React.createClass({
                 }
 
                 invite.last_name = this.refs["last_name"+index].getDOMNode().value.trim();
-                if (!invite.last_name ) {
+                if (!invite.last_name && config.RequireInviteNames) {
                     last_name_errors[index] = "This is a required field";
                     valid = false;
                 } else {
