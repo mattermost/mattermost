@@ -47,7 +47,7 @@ Local Machine Setup (Docker)
 
 `newgrp docker`
 
-2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Arch ###
@@ -63,7 +63,7 @@ Local Machine Setup (Docker)
 
 `newgrp docker`
 
-2. docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Notes ###
