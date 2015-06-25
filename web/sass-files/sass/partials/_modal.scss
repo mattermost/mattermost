@@ -129,15 +129,16 @@
 		width:100%;
 		margin: 0 auto;
 		.image-wrapper {
-			padding: 4px;
 			background: #FFF;
 			position: relative;
 			max-width: 80%;
-			min-height: 280px;
 			min-width: 280px;
-			@include border-radius(4px);
+			@include border-radius(3px);
 			display: table;
 			margin: 0 auto;
+			&:hover {
+				@include border-radius(3px 3px 0 0);
+			}
 			&:hover .modal-close {
 				@include opacity(1);
 			}
@@ -217,10 +218,11 @@
 		}
 		.modal-button-bar {
 			position:absolute;
-			bottom:0px;
+			bottom:-40px;
 			left:0px;
 			right:0px;
-			background-color:rgba(0, 0, 0, 0.8);
+			background-color: #222;
+			@include border-radius(0 0 3px 3px);
 			@include opacity(0);
 			-webkit-transition: opacity 0.6s;
 			-moz-transition: opacity 0.6s;
@@ -228,7 +230,6 @@
 			transition: opacity 0.6s;
 			line-height: 40px;
 			padding: 0 10px;
-			margin: 4px;
 			&.footer--show {
 				@include opacity(1);
 			}
