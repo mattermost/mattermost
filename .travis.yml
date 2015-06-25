@@ -7,8 +7,9 @@ before_install:
   - gem install compass
 
 before_script:
-  - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;"
-  - mysql -e "GRANT ALL ON mattermost_test.* TO 'travis'@'%' ;"
+  - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
+  - mysql -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mostest' ;"  -uroot
+  - mysql -e "GRANT ALL ON mattermost_test.* TO 'mmuser'@'%' ;" -uroot
 
 services:
   - redis-server
