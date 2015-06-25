@@ -145,10 +145,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateValet(c *Context, team *model.Team) *model.User {
-	if !utils.Cfg.TeamSettings.AllowValet {
-		return &model.User{}
-	}
-
 	valet := &model.User{}
 	valet.TeamId = team.Id
 	valet.Email = utils.Cfg.EmailSettings.FeedbackEmail

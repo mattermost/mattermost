@@ -26,6 +26,7 @@
   <div id="edit_mention_tab"></div>
   <div id="get_link_modal"></div>
   <div id="user_settings_modal"></div>
+  <div id="team_settings_modal"></div>
   <div id="invite_member_modal"></div>
   <div id="edit_channel_modal"></div>
   <div id="delete_channel_modal"></div>
@@ -43,7 +44,7 @@
   <div id="direct_channel_modal"></div>
   <div id="channel_info_modal"></div>
 <script>
-window.setup_channel_page('{{ .Props.TeamName }}', '{{ .Props.TeamType }}', '{{ .Props.ChannelName }}', '{{ .Props.ChannelId }}');
+window.setup_channel_page('{{ .Props.TeamName }}', '{{ .Props.TeamType }}', '{{ .Props.TeamId }}', '{{ .Props.ChannelName }}', '{{ .Props.ChannelId }}');
 </script>
 </body>
 </html>

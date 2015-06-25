@@ -319,6 +319,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Title = name + " - " + team.Name + " " + page.SiteName
 	page.Props["TeamName"] = team.Name
 	page.Props["TeamType"] = team.Type
+	page.Props["TeamId"] = team.Id
 	page.Props["ChannelName"] = name
 	page.Props["ChannelId"] = channelId
 	page.Props["UserId"] = c.Session.UserId

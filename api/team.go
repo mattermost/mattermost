@@ -29,6 +29,8 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/email_teams", ApiAppHandler(emailTeams)).Methods("POST")
 	sr.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 	sr.Handle("/update_name", ApiUserRequired(updateTeamName)).Methods("POST")
+	sr.Handle("/update_valet_feature", ApiUserRequired(updateValetFeature)).Methods("POST")
+	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -136,6 +138,8 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	teamSignup.Team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
+
 	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -157,7 +161,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if utils.Cfg.TeamSettings.AllowValet {
+		if teamSignup.Team.AllowValet {
 			CreateValet(c, rteam)
 			if c.Err != nil {
 				return
@@ -198,6 +202,13 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
 			c.Err = err
 			return
+		}
+
+		if rteam.AllowValet {
+			CreateValet(c, rteam)
+			if c.Err != nil {
+				return
+			}
 		}
 
 		w.Write([]byte(rteam.ToJson()))
@@ -541,4 +552,73 @@ func updateTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapToJson(props)))
+}
+
+func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	props := model.MapFromJson(r.Body)
+
+	allowValetStr := props["allow_valet"]
+	if len(allowValetStr) == 0 {
+		c.SetInvalidParam("updateValetFeature", "allow_valet")
+		return
+	}
+
+	allowValet := allowValetStr == "true"
+
+	teamId := props["team_id"]
+	if len(teamId) > 0 && len(teamId) != 26 {
+		c.SetInvalidParam("updateValetFeature", "team_id")
+		return
+	} else if len(teamId) == 0 {
+		teamId = c.Session.TeamId
+	}
+
+	tchan := Srv.Store.Team().Get(teamId)
+
+	if !c.HasPermissionsToTeam(teamId, "updateValetFeature") {
+		return
+	}
+
+	if !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
+		c.Err = model.NewAppError("updateValetFeature", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	var team *model.Team
+	if tResult := <-tchan; tResult.Err != nil {
+		c.Err = tResult.Err
+		return
+	} else {
+		team = tResult.Data.(*model.Team)
+	}
+
+	team.AllowValet = allowValet
+
+	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	w.Write([]byte(model.MapToJson(props)))
+}
+
+func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if len(c.Session.TeamId) == 0 {
+		return
+	}
+
+	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else if HandleEtag(result.Data.(*model.Team).Etag(), w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.Team).Etag())
+		w.Header().Set("Expires", "-1")
+		w.Write([]byte(result.Data.(*model.Team).ToJson()))
+		return
+	}
 }
