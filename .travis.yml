@@ -2,3 +2,13 @@ language: go
 
 go:
   - 1.4.2
+
+before_install:
+  - gem install compass
+
+before_script:
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS mattermost_test ;'
+  - mysql -e 'GRANT ALL ON mattermost_test.* TO travis@% ;'
+
+services:
+  - redis-server
