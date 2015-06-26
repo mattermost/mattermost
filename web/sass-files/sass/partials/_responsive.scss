@@ -231,16 +231,13 @@
         }
     }
     .modal {
+        .info__label {
+            text-align: left;
+            padding-bottom: 5px;
+        }
         .modal-header {
-            padding-left: 20px;
-            padding-right: 20px;
             .modal-action {
                 margin-top: 10px;
-            }
-            button.close {
-                width: 35px;
-                height: 32px;
-                margin: -5px -10px 0;
             }
             .modal-title {
                 float: none;

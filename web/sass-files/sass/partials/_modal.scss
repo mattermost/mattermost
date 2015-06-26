@@ -1,8 +1,16 @@
+.modal-body {
+	padding: 20px 15px;
+}
 .modal {
 	&.image_modal {
 		.modal-backdrop.in {
 			@include opacity(0.7);
 		}
+	}
+	.info__label {
+		font-weight: bold;
+		text-align: right;
+		padding-right: 0;
 	}
 	.remove__member {
 		float: right;
@@ -29,7 +37,7 @@
 		border-radius: 0;
 		background: $primary-color;
 		color: #FFF;
-	  	padding: 15px 15px 11px;
+		padding: 15px 15px 11px;
 		border: none;
 		min-height: 56px;
 		@include clearfix;
@@ -41,11 +49,22 @@
 			margin: 0;
 		}
 		button.close {
-			margin-top: 0;
+			margin: -2px -2px 0 0;
 			color: #fff;
 			@include opacity(1);
 			z-index: 5;
+			width: 30px;
+			height: 30px;
+			line-height: 30px;
+			@include single-transition(all, 0.25s, ease-in);
 			position: relative;
+			&:hover {
+				background: rgba(0, 0, 0, 0.1);
+			}
+			span {
+				position: relative;
+				top: -1px;
+			}
 		}
 		.btn {
 			margin-right: 10px;
