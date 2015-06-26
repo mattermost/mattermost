@@ -96,6 +96,21 @@ module.exports.getCookie = function(name) {
   if (parts.length == 2) return parts.pop().split(";").shift();
 }
 
+module.exports.isLocalStorageSupported = function() {
+    try {
+        sessionStorage.setItem("testSession", '1');
+        sessionStorage.removeItem("testSession");
+
+        localStorage.setItem("testLocal", '1');
+        localStorage.removeItem("testLocal", '1');
+
+        return true;
+    } 
+    catch (e) {
+        return false;
+    }
+}
+
 module.exports.notifyMe = function(title, body, channel) {
   if ("Notification" in window && Notification.permission !== 'denied') {
     Notification.requestPermission(function (permission) {
@@ -418,7 +433,7 @@ module.exports.textToJsx = function(text, options) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function() {module.exports.searchForTerm(name);}}>@{name}</a>{suffix} </span>);
+                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (urlMatcher.test(word)) {
                 var match = urlMatcher.match(word)[0];
                 var link = match.url;
@@ -431,7 +446,7 @@ module.exports.textToJsx = function(text, options) {
             } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
-                var mClass = trimWord in implicitKeywords ? mentionClass : "";
+                var mClass = trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords ? mentionClass : "";
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
@@ -439,7 +454,7 @@ module.exports.textToJsx = function(text, options) {
 
                 inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
-            } else if (trimWord in implicitKeywords) {
+            } else if (trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
 

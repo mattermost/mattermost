@@ -22,7 +22,8 @@ var MoreChannelsModal = require('../components/more_channels.jsx');
 var NewChannelModal = require('../components/new_channel.jsx');
 var PostDeletedModal = require('../components/post_deleted_modal.jsx');
 var ChannelNotificationsModal = require('../components/channel_notifications.jsx');
-var UserSettingsModal = require('../components/settings_modal.jsx');
+var UserSettingsModal = require('../components/user_settings_modal.jsx');
+var TeamSettingsModal = require('../components/team_settings_modal.jsx');
 var ChannelMembersModal = require('../components/channel_members.jsx');
 var ChannelInviteModal = require('../components/channel_invite_modal.jsx');
 var TeamMembersModal = require('../components/team_members.jsx');
@@ -36,12 +37,17 @@ var ChannelInfoModal = require('../components/channel_info_modal.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-global.window.setup_channel_page = function(team_name, team_type, channel_name, channel_id) {
+global.window.setup_channel_page = function(team_name, team_type, team_id, channel_name, channel_id) {
 
     AppDispatcher.handleViewAction({
       type: ActionTypes.CLICK_CHANNEL,
       name: channel_name,
       id: channel_id
+    });
+
+    AppDispatcher.handleViewAction({
+      type: ActionTypes.CLICK_TEAM,
+      id: team_id
     });
 
     React.render(
@@ -77,6 +83,11 @@ global.window.setup_channel_page = function(team_name, team_type, channel_name, 
     React.render(
         <UserSettingsModal />,
         document.getElementById('user_settings_modal')
+    );
+
+    React.render(
+        <TeamSettingsModal />,
+        document.getElementById('team_settings_modal')
     );
 
     React.render(

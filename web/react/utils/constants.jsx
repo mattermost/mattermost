@@ -27,6 +27,9 @@ module.exports = {
     RECIEVED_STATUSES: null,
 
     RECIEVED_MSG: null,
+
+    CLICK_TEAM: null,
+    RECIEVED_TEAM: null,
   }),
 
   PayloadSources: keyMirror({
@@ -45,6 +48,7 @@ module.exports = {
   PATCH_TYPES: ['patch'],
   ICON_FROM_TYPE: {'audio': 'audio', 'video': 'video', 'spreadsheet': 'ppt', 'pdf': 'pdf', 'code': 'code' , 'word': 'word' , 'excel': 'excel' , 'patch': 'patch', 'other': 'generic'},
   MAX_DISPLAY_FILES: 5,
+  MAX_UPLOAD_FILES: 5,
   MAX_FILE_SIZE: 50000000, // 50 MB
   DEFAULT_CHANNEL: 'town-square',
   POST_CHUNK_SIZE: 60,

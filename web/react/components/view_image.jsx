@@ -124,7 +124,7 @@ module.exports = React.createClass({
                 <div key={name+"_loading"}>
                     <img ref="placeholder" className="loader-image" src="/static/images/load.gif" />
                     { percentage > 0 ?
-                    <span className="loader-percent" >{"Downloading " + percentage + "%"}</span>
+                    <span className="loader-percent" >{"Previewing " + percentage + "%"}</span>
                     : ""}
                 </div>
             );

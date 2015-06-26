@@ -24,6 +24,7 @@ type Team struct {
 	Type           string `json:"type"`
 	CompanyName    string `json:"company_name"`
 	AllowedDomains string `json:"allowed_domains"`
+	AllowValet     bool   `json:"allow_valet"`
 }
 
 type Invites struct {

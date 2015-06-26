@@ -21,6 +21,12 @@ var FindTeamDomain = React.createClass({
             return;
         }
 
+        if (!utils.isLocalStorageSupported()) {
+            state.server_error = "This service requires local storage to be enabled. Please enable it or exit private browsing.";
+            this.setState(state);
+            return;
+        }
+
         state.server_error = "";
         this.setState(state);
 
@@ -94,7 +100,7 @@ module.exports = React.createClass({
             return;
         }
 
-       var email = this.refs.email.getDOMNode().value.trim();
+        var email = this.refs.email.getDOMNode().value.trim();
         if (!email) {
             state.server_error = "An email is required"
             this.setState(state);
@@ -104,6 +110,12 @@ module.exports = React.createClass({
         var password = this.refs.password.getDOMNode().value.trim();
         if (!password) {
             state.server_error = "A password is required"
+            this.setState(state);
+            return;
+        }
+
+        if (!utils.isLocalStorageSupported()) {
+            state.server_error = "This service requires local storage to be enabled. Please enable it or exit private browsing.";
             this.setState(state);
             return;
         }

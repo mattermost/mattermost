@@ -15,6 +15,8 @@ var ActionTypes = Constants.ActionTypes;
 var callTracker = {};
 
 var dispatchError = function(err, method) {
+    if (err.message === "There appears to be a problem with your internet connection") return;
+
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECIEVED_ERROR,
         err: err,
@@ -352,6 +354,28 @@ module.exports.getStatuses = function() {
         function(err) {
             callTracker["getStatuses"] = 0;
             dispatchError(err, "getStatuses");
+        }
+    );
+}
+
+module.exports.getMyTeam = function() {
+    if (isCallInProgress("getMyTeam")) return;
+
+    callTracker["getMyTeam"] = utils.getTimestamp();
+    client.getMyTeam(
+        function(data, textStatus, xhr) {
+            callTracker["getMyTeam"] = 0;
+
+            if (xhr.status === 304 || !data) return;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_TEAM,
+                team: data
+            });
+        },
+        function(err) {
+            callTracker["getMyTeam"] = 0;
+            dispatchError(err, "getMyTeam");
         }
     );
 }
