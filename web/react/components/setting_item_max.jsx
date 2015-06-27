@@ -13,7 +13,7 @@ module.exports = React.createClass({
                 <li className="col-sm-12 section-title">{this.props.title}</li>
                 <li className="col-sm-9 col-sm-offset-3">
                     <ul className="setting-list">
-                        <li className="row setting-list-item form-group">
+                        <li className="setting-list-item">
                             {inputs}
                         </li>
                         <li className="setting-list-item">
