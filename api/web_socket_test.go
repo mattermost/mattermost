@@ -119,7 +119,7 @@ func TestSocket(t *testing.T) {
 
 }
 
-func TestZZWebScoketTearDown(t *testing.T) {
+func TestZZWebSocketTearDown(t *testing.T) {
 	// *IMPORTANT* - Kind of hacky
 	// This should be the last function in any test file
 	// that calls Setup()
