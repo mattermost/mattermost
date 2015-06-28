@@ -44,8 +44,13 @@ var ExtraMembers = React.createClass({
         var count = this.props.members.length == 0 ? "-" : this.props.members.length;
         count = this.props.members.length > 19 ? "20+" : count;
         var data_content = "";
+        var sortedMembers = this.state.extra_info.members
 
-        this.props.members.forEach(function(m) {
+        sortedMembers.sort(function(a,b) {
+            return a.username.localeCompare(b.username)
+        })
+
+        sortedMembers.forEach(function(m) {
             data_content += "<div style='white-space: nowrap'>" + m.username + "</div>";
         });
 
