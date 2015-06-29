@@ -488,12 +488,21 @@ func InviteMembers(team *model.Team, user *model.User, invites []string) {
 			} else {
 				sender = user.FullName
 			}
+
+			senderRole := ""
+			if strings.Contains(user.Roles, model.ROLE_ADMIN) || strings.Contains(user.Roles, model.ROLE_SYSTEM_ADMIN) {
+				senderRole = "administrator"
+			} else {
+				senderRole = "member"
+			}
+
 			subjectPage := NewServerTemplatePage("invite_subject", teamUrl)
 			subjectPage.Props["SenderName"] = sender
 			subjectPage.Props["TeamName"] = team.Name
 			bodyPage := NewServerTemplatePage("invite_body", teamUrl)
 			bodyPage.Props["TeamName"] = team.Name
 			bodyPage.Props["SenderName"] = sender
+			bodyPage.Props["SenderStatus"] = senderRole
 
 			bodyPage.Props["Email"] = invite
 
