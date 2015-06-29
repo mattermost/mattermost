@@ -9,7 +9,7 @@ module.exports = React.createClass({
         return (
             <div className="mentions-name" onClick={this.handleClick}>
                 <img className="mention-img" src={"/api/v1/users/" + this.props.id + "/image"}/>
-                <span>@{this.props.username}</span><span className="mention-fullname">{this.props.name}</span>
+                <span>@{this.props.username}</span><span className="mention-fullname">{this.props.secondary_text}</span>
             </div>
         );
     }
