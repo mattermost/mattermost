@@ -37,7 +37,7 @@ var FindTeamDomain = React.createClass({
                     window.location.href = window.location.protocol + "//" + domain + "." + utils.getDomainWithOutSub();
                 }
                 else {
-                    this.state.server_error = "We couldn't find your " + strings.TeamPlural + ".";
+                    this.state.server_error = "We couldn't find your " + strings.Team + ".";
                     this.setState(this.state);
                 }
             }.bind(this),
