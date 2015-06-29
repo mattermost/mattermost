@@ -273,7 +273,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 
 			} else {
 
-				// Find out who is a member of the channel only keep those profiles
+				// Find out who is a member of the channel, only keep those profiles
 				if eResult := <-echan; eResult.Err != nil {
 					l4g.Error("Failed to get channel members channel_id=%v err=%v", post.ChannelId, eResult.Err.Message)
 					return
@@ -306,13 +306,23 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 							}
 						}
 					}
+
+					// Add @all to keywords if user has them turned on
+					if profile.NotifyProps["all"] == "true" {
+						keywordMap["@all"] = append(keywordMap["@all"], profile.Id)
+					}
+
+					// Add @channel to keywords if user has them turned on
+					if profile.NotifyProps["channel"] == "true" {
+						keywordMap["@channel"] = append(keywordMap["@channel"], profile.Id)
+					}
 				}
 
 				// Build a map as a list of unique user_ids that are mentioned in this post
 				splitF := func(c rune) bool {
 					return model.SplitRunes[c]
 				}
-				splitMessage := strings.FieldsFunc(strings.Replace(post.Message, "<br>", " ", -1), splitF)
+				splitMessage := strings.FieldsFunc(post.Message, splitF)
 				for _, word := range splitMessage {
 
 					// Non-case-sensitive check for regular keys
