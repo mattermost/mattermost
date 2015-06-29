@@ -356,6 +356,7 @@ module.exports = React.createClass({
                 var ui_name = channel.display_name
                 var members = ChannelStore.getCurrentExtraInfo().members;
                 var creator_name = "";
+                var userStyle = { color: UserStore.getCurrentUser().props.theme }
 
                 for (var i = 0; i < members.length; i++) {
                     if (members[i].roles.indexOf('admin') > -1) {
@@ -382,8 +383,18 @@ module.exports = React.createClass({
                             </p>
                         </div>
                     );
+                } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
+                    more_messages = (
+                        <div className="channel-intro">
+                            <h4 className="channel-intro-title">Welcome</h4>
+                            <p>
+                                {"This is the start of " + ui_name + ", a channel for conversations you’d prefer out of more focused channels."}
+                                <br/>
+                                <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={ui_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
+                            </p>
+                        </div>
+                    );
                 } else {
-                    var userStyle = { color: UserStore.getCurrentUser().props.theme }
                     var ui_type = channel.type === 'P' ? "private group" : "channel";
                     more_messages = (
                         <div className="channel-intro">
