@@ -78,7 +78,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			createdTeam := result.Data.(*model.Team)
 
 			channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
-			if _, err := api.CreateChannel(c, channel, r.URL.Path, false); err != nil {
+			if _, err := api.CreateChannel(c, channel, false); err != nil {
 				c.Err = err
 				return
 			}

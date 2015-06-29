@@ -146,12 +146,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rteam := result.Data.(*model.Team)
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: rteam.Id}
-
-		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
-			c.Err = err
-			return
-		}
+		CreateDefaultChannels(c, rteam.Id)
 
 		teamSignup.User.TeamId = rteam.Id
 		teamSignup.User.EmailVerified = true
@@ -197,12 +192,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rteam := result.Data.(*model.Team)
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: rteam.Id}
-
-		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
-			c.Err = err
-			return
-		}
+		CreateDefaultChannels(c, rteam.Id)
 
 		if rteam.AllowValet {
 			CreateValet(c, rteam)

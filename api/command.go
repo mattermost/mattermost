@@ -197,7 +197,7 @@ func joinCommand(c *Context, command *model.Command) bool {
 						return false
 					}
 
-					JoinChannel(c, v.Id, "/command")
+					JoinChannel(c, v.Id)
 
 					if c.Err != nil {
 						return false
