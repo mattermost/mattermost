@@ -18,6 +18,7 @@ module.exports = React.createClass({
         AsyncClient.getChannelExtraInfo(true);
         AsyncClient.findTeams();
         AsyncClient.getStatuses();
+        AsyncClient.getMyTeam();
         /* End of async loads */
 
 

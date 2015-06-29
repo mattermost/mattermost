@@ -186,6 +186,15 @@ func (c *Client) UpdateTeamName(data map[string]string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) UpdateValetFeature(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoPost("/teams/update_valet_feature", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	if r, err := c.DoPost("/users/create", user.ToJson()); err != nil {
 		return nil, err
@@ -644,6 +653,15 @@ func (c *Client) GetStatuses() (*Result, *AppError) {
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
+	if r, err := c.DoGet("/teams/me", "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
 	}
 }
 

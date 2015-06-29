@@ -13,16 +13,16 @@ module.exports = React.createClass({
 
         this.state.user.username = this.refs.name.getDOMNode().value.trim();
         if (!this.state.user.username) {
-            this.setState({name_error: "This field is required", email_error: "", password_error: ""});
+            this.setState({name_error: "This field is required", email_error: "", password_error: "", server_error: ""});
             return;
         }
 
         var username_error = utils.isValidUsername(this.state.user.username)
         if (username_error === "Cannot use a reserved word as a username.") {
-            this.setState({name_error: "This username is reserved, please choose a new one." });
+            this.setState({name_error: "This username is reserved, please choose a new one.", email_error: "", password_error: "", server_error: ""});
             return;
         } else if (username_error) {
-            this.setState({name_error: "Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'." });
+            this.setState({name_error: "Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'.", email_error: "", password_error: "", server_error: ""});
             return;
         }
 
@@ -34,9 +34,11 @@ module.exports = React.createClass({
 
         this.state.user.password = this.refs.password.getDOMNode().value.trim();
         if (!this.state.user.password  || this.state.user.password .length < 5) {
-            this.setState({name_error: "", email_error: "", password_error: "Please enter at least 5 characters"});
+            this.setState({name_error: "", email_error: "", password_error: "Please enter at least 5 characters", server_error: ""});
             return;
         }
+
+        this.setState({name_error: "", email_error: "", password_error: "", server_error: ""});
 
         this.state.user.allow_marketing = this.refs.email_service.getDOMNode().checked;
 

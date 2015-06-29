@@ -8,8 +8,8 @@ module.exports = React.createClass({
     render: function() {
         return (
             <div className="mentions-name" onClick={this.handleClick}>
-                <img className="pull-left mention-img" src={"/api/v1/users/" + this.props.id + "/image"}/>
-                <span>@{this.props.username}</span><span style={{'color':'grey', 'marginLeft':'10px'}}>{this.props.name}</span>
+                <img className="mention-img" src={"/api/v1/users/" + this.props.id + "/image"}/>
+                <span>@{this.props.username}</span><span className="mention-fullname">{this.props.name}</span>
             </div>
         );
     }

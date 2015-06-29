@@ -15,6 +15,7 @@ import (
 	"github.com/nfnt/resize"
 	"image"
 	_ "image/gif"
+	_ "golang.org/x/image/bmp"
 	"image/jpeg"
 	"io"
 	"net/http"

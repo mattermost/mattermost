@@ -13,6 +13,7 @@ var config = {
     // Feature switches
     AllowPublicLink: true,
     AllowInviteNames: true,
+    RequireInviteNames: false,
     AllowSignupDomainsWizard: false,
 
     // Privacy switches

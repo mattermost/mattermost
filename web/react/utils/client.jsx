@@ -811,3 +811,34 @@ module.exports.getStatuses = function(success, error) {
         }
     });
 };
+
+module.exports.getMyTeam = function(success, error) {
+    $.ajax({
+        url: "/api/v1/teams/me",
+        dataType: 'json',
+        type: 'GET',
+        success: success,
+        ifModified: true,
+        error: function(xhr, status, err) {
+            e = handleError("getMyTeam", xhr, status, err);
+            error(e);
+        }
+    });
+};
+
+module.exports.updateValetFeature = function(data, success, error) {
+    $.ajax({
+        url: "/api/v1/teams/update_valet_feature",
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success: success,
+        error: function(xhr, status, err) {
+            e = handleError("updateValetFeature", xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_teams_update_valet_feature');
+};

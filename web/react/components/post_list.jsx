@@ -125,12 +125,12 @@ module.exports = React.createClass({
 
         $('body').on('mouseenter mouseleave', '.post', function(ev){
             if(ev.type === 'mouseenter'){
-                $(this).parent('div').prev('.date-seperator').addClass('hovered--after');
-                $(this).parent('div').next('.date-seperator').addClass('hovered--before');
+                $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--after');
+                $(this).parent('div').next('.date-separator, .new-separator').addClass('hovered--before');
             }
             else {
-                $(this).parent('div').prev('.date-seperator').removeClass('hovered--after');
-                $(this).parent('div').next('.date-seperator').removeClass('hovered--before');
+                $(this).parent('div').prev('.date-separator, .new-separator').removeClass('hovered--after');
+                $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--before');
             }
         });
 
@@ -389,7 +389,7 @@ module.exports = React.createClass({
                         <div className="channel-intro">
                             <h4 className="channel-intro-title">Welcome</h4>
                             <p>
-                                { creator_name != "" ? "This is the start of the " + ui_name + " " + ui_type + ", created by " + creator_name + " on " + utils.displayDate(channel.create_at) + "." 
+                                { creator_name != "" ? "This is the start of the " + ui_name + " " + ui_type + ", created by " + creator_name + " on " + utils.displayDate(channel.create_at) + "."
                                 : "This is the start of the " + ui_name + " " + ui_type + ", created on "+ utils.displayDate(channel.create_at) + "." }
                                 { channel.type === 'P' ? " Only invited members can see this private group." : " Any member can join and read this channel." }
                                 <br/>
@@ -434,9 +434,9 @@ module.exports = React.createClass({
             currentPostDay = utils.getDateForUnixTicks(post.create_at);
             if(currentPostDay.getDate() !== previousPostDay.getDate() || currentPostDay.getMonth() !== previousPostDay.getMonth() || currentPostDay.getFullYear() !== previousPostDay.getFullYear()) {
                 postCtls.push(
-                    <div className="date-seperator">
-                        <hr className="date-seperator__hr" />
-                        <div className="date-seperator__text">{currentPostDay.toDateString()}</div>
+                    <div className="date-separator">
+                        <hr className="separator__hr" />
+                        <div className="separator__text">{currentPostDay.toDateString()}</div>
                     </div>
                 );
             }
@@ -444,17 +444,13 @@ module.exports = React.createClass({
             if (post.create_at > last_viewed && !rendered_last_viewed) {
                 rendered_last_viewed = true;
                 postCtls.push(
-                    <div>
-                        <div className="new-seperator">
-                            <hr id="new_message" className="new-seperator__hr" />
-                            <div className="new-seperator__text">New Messages</div>
-                         </div>
-                         {postCtl}
-                     </div>
+                    <div className="new-separator">
+                        <hr id="new_message" className="separator__hr" />
+                        <div className="separator__text">New Messages</div>
+                    </div>
                 );
-            } else {
-                postCtls.push(postCtl);
             }
+            postCtls.push(postCtl);
             previousPostDay = utils.getDateForUnixTicks(post.create_at);
         }
 

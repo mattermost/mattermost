@@ -51,7 +51,7 @@ module.exports = React.createClass({
                 false,
                 function(data) {
                     PostStore.storeDraft(data.channel_id, user_id, null);
-                    this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null });
+                    this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
 
                     if (data.goto_location.length > 0) {
                         window.location.href = data.goto_location;
@@ -71,7 +71,7 @@ module.exports = React.createClass({
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
                     PostStore.storeDraft(data.channel_id, data.user_id, null);
-                    this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null });
+                    this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
                     this.resizePostHolder();
                     AsyncClient.getPosts(true);
 
@@ -207,21 +207,36 @@ module.exports = React.createClass({
         return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: 0, previews: previews, submitting: false, initialText: messageText };
     },
     setUploads: function(val) {
-        var num = this.state.uploadsInProgress + val;
+        var oldInProgress = this.state.uploadsInProgress
+        var newInProgress = oldInProgress + val;
+
+        if (newInProgress + this.state.previews.length > Constants.MAX_UPLOAD_FILES) {
+            newInProgress = Constants.MAX_UPLOAD_FILES - this.state.previews.length;
+            this.setState({limit_error: "Uploads limited to " + Constants.MAX_UPLOAD_FILES + " files maximum. Please use additional posts for more files."});
+        } else {
+            this.setState({limit_error: null});
+        }
+
+        var numToUpload = newInProgress - oldInProgress;
+        if (numToUpload <= 0) return 0;
+
         var draft = PostStore.getCurrentDraft();
         if (!draft) {
             draft = {}
             draft['message'] = '';
             draft['previews'] = [];
         }
-        draft['uploadsInProgress'] = num;
+        draft['uploadsInProgress'] = newInProgress;
         PostStore.storeCurrentDraft(draft);
-        this.setState({uploadsInProgress: num});
+        this.setState({uploadsInProgress: newInProgress});
+
+        return numToUpload;
     },
     render: function() {
 
         var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;
+        var limit_error = this.state.limit_error ? <div className='has-error'><label className='control-label'>{this.state.limit_error}</label></div> : null;
 
         var preview = <div/>;
         if (this.state.previews.length > 0 || this.state.uploadsInProgress > 0) {
@@ -231,13 +246,6 @@ module.exports = React.createClass({
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress} />
             );
-        }
-        var limit_previews = ""
-        if (this.state.previews.length > 5) {
-            limit_previews = <div className='has-error'><label className='control-label'>{ "Note: While all files will be available, only first five will show thumbnails." }</label></div>
-        }
-        if (this.state.previews.length > 20) {
-            limit_previews = <div className='has-error'><label className='control-label'>{ "Note: Uploads limited to 20 files maximum. Please use additional posts for more files." }</label></div>
         }
 
         return (
@@ -260,7 +268,7 @@ module.exports = React.createClass({
                     <div className={post_error ? 'post-create-footer has-error' : 'post-create-footer'}>
                         { post_error }
                         { server_error }
-                        { limit_previews }
+                        { limit_error }
                         { preview }
                         <MsgTyping channelId={this.state.channel_id} parentId=""/>
                     </div>
