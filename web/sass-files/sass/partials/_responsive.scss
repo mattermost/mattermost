@@ -258,9 +258,11 @@
             .settings-table {
                 display: block;
                 .settings-content {
-                    display: block;
-                    .section-edit {
-                        text-align: left;
+                    &.minimize-settings {
+                        display: block;
+                        .section-edit {
+                            text-align: left;
+                        }
                     }
                 }
                 .settings-links {
@@ -284,10 +286,12 @@
         }
         .settings-table {
             .settings-content {
-                padding: 0;
-                display: none;
-                .user-settings {
-                    padding: 70px 20px 30px;
+                &.minimize-settings {
+                    padding: 0;
+                    display: none;
+                    .user-settings {
+                        padding: 70px 20px 30px;
+                    }
                 }
             }
             .settings-links {

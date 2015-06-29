@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ETAG_ROOT_VERSION = "10"
+	ETAG_ROOT_VERSION = "11"
 )
 
 type StringMap map[string]string
