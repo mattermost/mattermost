@@ -35,8 +35,15 @@ func TestCreateChannel(t *testing.T) {
 	}
 
 	rget := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
-	if rget.Channels[0].Name != channel.Name {
-		t.Fatal("full name didn't match")
+	nameMatch := false
+	for _, c := range rget.Channels {
+		if c.Name == channel.Name {
+			nameMatch = true
+		}
+	}
+
+	if !nameMatch {
+		t.Fatal("Did not create channel with correct name")
 	}
 
 	if _, err := Client.CreateChannel(rchannel.Data.(*model.Channel)); err == nil {
