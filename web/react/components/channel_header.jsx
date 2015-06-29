@@ -44,10 +44,10 @@ var ExtraMembers = React.createClass({
         var count = this.props.members.length == 0 ? "-" : this.props.members.length;
         count = this.props.members.length > 19 ? "20+" : count;
         var data_content = "";
-        var sortedMembers = this.state.extra_info.members
+        var sortedMembers = this.state.extra_info.members;
 
         sortedMembers.sort(function(a,b) {
-            return a.username.localeCompare(b.username)
+            return a.username.localeCompare(b.username);
         })
 
         sortedMembers.forEach(function(m) {
