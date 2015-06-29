@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"html"
 )
 
 func CheckMailSettings() *model.AppError {
@@ -84,7 +85,7 @@ func SendMail(to, subject, body string) *model.AppError {
 	headers := make(map[string]string)
 	headers["From"] = fromMail.String()
 	headers["To"] = toMail.String()
-	headers["Subject"] = subject
+	headers["Subject"] = html.UnescapeString(subject)
 	headers["MIME-version"] = "1.0"
 	headers["Content-Type"] = "text/html"
 
