@@ -1,8 +1,16 @@
+.modal-body {
+	padding: 20px 15px;
+}
 .modal {
 	&.image_modal {
 		.modal-backdrop.in {
 			@include opacity(0.7);
 		}
+	}
+	.info__label {
+		font-weight: bold;
+		text-align: right;
+		padding-right: 0;
 	}
 	.remove__member {
 		float: right;
@@ -29,7 +37,7 @@
 		border-radius: 0;
 		background: $primary-color;
 		color: #FFF;
-	  	padding: 15px 15px 11px;
+		padding: 15px 15px 11px;
 		border: none;
 		min-height: 56px;
 		@include clearfix;
@@ -41,11 +49,21 @@
 			margin: 0;
 		}
 		button.close {
-			margin-top: 0;
+			margin: -2px -2px 0 0;
 			color: #fff;
 			@include opacity(1);
 			z-index: 5;
+			width: 30px;
+			height: 30px;
+			line-height: 30px;
+			@include single-transition(all, 0.25s, ease-in);
 			position: relative;
+			&:hover {
+				background: rgba(0, 0, 0, 0.1);
+			}
+			span {
+				line-height: 10px;
+			}
 		}
 		.btn {
 			margin-right: 10px;
@@ -129,15 +147,16 @@
 		width:100%;
 		margin: 0 auto;
 		.image-wrapper {
-			padding: 4px;
 			background: #FFF;
 			position: relative;
 			max-width: 80%;
-			min-height: 280px;
 			min-width: 280px;
-			@include border-radius(4px);
+			@include border-radius(3px);
 			display: table;
 			margin: 0 auto;
+			&:hover {
+				@include border-radius(3px 3px 0 0);
+			}
 			&:hover .modal-close {
 				@include opacity(1);
 			}
@@ -217,10 +236,11 @@
 		}
 		.modal-button-bar {
 			position:absolute;
-			bottom:0px;
+			bottom:-40px;
 			left:0px;
 			right:0px;
-			background-color:rgba(0, 0, 0, 0.8);
+			background-color: #222;
+			@include border-radius(0 0 3px 3px);
 			@include opacity(0);
 			-webkit-transition: opacity 0.6s;
 			-moz-transition: opacity 0.6s;
@@ -228,7 +248,6 @@
 			transition: opacity 0.6s;
 			line-height: 40px;
 			padding: 0 10px;
-			margin: 4px;
 			&.footer--show {
 				@include opacity(1);
 			}
