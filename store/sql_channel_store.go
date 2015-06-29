@@ -37,7 +37,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("ChannelMembers", "LastUpdateAt", "NotifyLevel", "bigint(20)", "0")
+	s.CreateColumnIfNotExists("ChannelMembers", "LastUpdateAt", "NotifyLevel", "bigint(20)", "0") // Remove after 6/7/2015 prod push
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {

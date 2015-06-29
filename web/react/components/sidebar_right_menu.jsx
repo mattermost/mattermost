@@ -60,6 +60,7 @@ module.exports = React.createClass({
                 <div className="nav-pills__container">
                     <ul className="nav nav-pills nav-stacked">
                         <li><a href="#" data-toggle="modal" data-target="#user_settings1"><i className="glyphicon glyphicon-cog"></i>Account Settings</a></li>
+                        { isAdmin ? <li><a href="#" data-toggle="modal" data-target="#team_settings"><i className="glyphicon glyphicon-globe"></i>Team Settings</a></li> : "" }
                         { invite_link }
                         { team_link }
                         { manage_link }

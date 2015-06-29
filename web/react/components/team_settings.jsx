@@ -113,7 +113,7 @@ var FeatureTab = React.createClass({
             <div>
                 <div className="modal-header">
                     <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title" ref="title"><i className="modal-back"></i>General Settings</h4>
+                    <h4 className="modal-title" ref="title"><i className="modal-back"></i>Feature Settings</h4>
                 </div>
                 <div ref="wrapper" className="user-settings">
                     <h3 className="tab-header">Feature Settings</h3>
