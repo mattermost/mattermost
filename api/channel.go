@@ -320,7 +320,7 @@ func joinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelId := params["id"]
 
-	JoinChannel(c, channelId)
+	JoinChannel(c, channelId, "")
 
 	if c.Err != nil {
 		return
@@ -331,7 +331,7 @@ func joinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(result)))
 }
 
-func JoinChannel(c *Context, channelId string) {
+func JoinChannel(c *Context, channelId string, role string) {
 
 	sc := Srv.Store.Channel().Get(channelId)
 	uc := Srv.Store.User().Get(c.Session.UserId)
@@ -357,7 +357,7 @@ func JoinChannel(c *Context, channelId string) {
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: role}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				c.Err = cmresult.Err
@@ -378,6 +378,32 @@ func JoinChannel(c *Context, channelId string) {
 			return
 		}
 	}
+}
+
+func JoinDefaultChannels(c *Context, user *model.User, channelRole string) *model.AppError {
+	// We don't call JoinChannel here since c.Session is not populated on user creation
+
+	var err *model.AppError = nil
+
+	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "town-square"); result.Err != nil {
+		err = result.Err
+	} else {
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+			err = cmResult.Err
+		}
+	}
+
+	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "off-topic"); result.Err != nil {
+		err = result.Err
+	} else {
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+			err = cmResult.Err
+		}
+	}
+
+	return err
 }
 
 func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
