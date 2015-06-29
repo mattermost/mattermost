@@ -8,9 +8,9 @@
         "FileLocation": ""
     },
     "ServiceSettings": {
-        "SiteName": "Mattermost",
-        "Domain": "xxxxxxmustbefilledin.com",
-        "Mode" : "dev",
+        "SiteName": "Battlehouse",
+        "Domain": "battlehouse.com",
+        "Mode" : "prod",
 		"AllowTesting" : false,
         "UseSSL": false,
         "Port": "8065",
