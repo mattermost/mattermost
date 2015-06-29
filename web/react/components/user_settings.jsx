@@ -155,7 +155,7 @@ var NotificationsTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="radio">
                         <label>
                             <input type="radio" checked={notifyActive[0]} onClick={function(){self.handleNotifyRadio("all")}}>For all activity</input>
@@ -216,7 +216,7 @@ var NotificationsTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="btn-group" data-toggle="buttons-radio">
                         <button className={"btn btn-default "+soundActive[0]} onClick={function(){self.handleSoundRadio("true")}}>On</button>
                         <button className={"btn btn-default "+soundActive[1]} onClick={function(){self.handleSoundRadio("false")}}>Off</button>
@@ -262,7 +262,7 @@ var NotificationsTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="btn-group" data-toggle="buttons-radio">
                         <button className={"btn btn-default "+emailActive[0]} onClick={function(){self.handleEmailRadio("true")}}>On</button>
                         <button className={"btn btn-default "+emailActive[1]} onClick={function(){self.handleEmailRadio("false")}}>Off</button>
@@ -309,7 +309,7 @@ var NotificationsTab = React.createClass({
 
             if (first_name != "") {
                 inputs.push(
-                    <div className="col-sm-12">
+                    <div>
                         <div className="checkbox">
                             <label>
                                 <input type="checkbox" checked={this.state.first_name_key} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + first_name + '"'}</input>
@@ -320,7 +320,7 @@ var NotificationsTab = React.createClass({
             }
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="checkbox">
                         <label>
                             <input type="checkbox" checked={this.state.username_key} onChange={function(e){self.updateUsernameKey(e.target.checked);}}>{'Your non-case sensitive username "' + user.username + '"'}</input>
@@ -330,7 +330,7 @@ var NotificationsTab = React.createClass({
             );
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="checkbox">
                         <label>
                             <input type="checkbox" checked={this.state.mention_key} onChange={function(e){self.updateMentionKey(e.target.checked);}}>{'Your username mentioned "@' + user.username + '"'}</input>
@@ -340,7 +340,7 @@ var NotificationsTab = React.createClass({
             );
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="checkbox">
                         <label>
                             <input ref="customcheck" type="checkbox" checked={this.state.custom_keys_checked} onChange={this.updateCustomMentionKeys}>{'Other non-case sensitive words, separated by commas:'}</input>
@@ -622,7 +622,7 @@ var SecurityTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Current Password</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
@@ -630,7 +630,7 @@ var SecurityTab = React.createClass({
                 </div>
             );
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">New Password</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
@@ -638,7 +638,7 @@ var SecurityTab = React.createClass({
                 </div>
             );
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Retype New Password</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
@@ -837,7 +837,7 @@ var GeneralTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">First Name</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateFirstName} value={this.state.first_name}/>
@@ -846,7 +846,7 @@ var GeneralTab = React.createClass({
             );
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Last Name</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateLastName} value={this.state.last_name}/>
@@ -879,7 +879,7 @@ var GeneralTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">{utils.isMobile() ? "": "Username"}</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateUsername} value={this.state.username}/>
@@ -911,7 +911,7 @@ var GeneralTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Primary Email</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateEmail} value={this.state.email}/>
@@ -1048,7 +1048,7 @@ var AppearanceTab = React.createClass({
                 var inputs = [];
 
                 inputs.push(
-                    <li className="row setting-list-item form-group">
+                    <li className="setting-list-item">
                         <div className="btn-group" data-toggle="buttons-radio">
                             { theme_buttons }
                         </div>

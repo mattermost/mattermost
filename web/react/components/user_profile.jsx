@@ -10,8 +10,7 @@ function getStateFromStores(userId) {
 
     if (profile == null) {
         return { profile: { id: "0", username: "..."} };
-    }
-    else {
+    } else {
         return { profile: profile };
     }
 }
@@ -54,12 +53,11 @@ module.exports = React.createClass({
         var name = this.props.overwriteName ? this.props.overwriteName : this.state.profile.username;
 
 
-        var data_content = ""
-        data_content += "<img style='margin: 10px' src='/api/v1/users/" + this.state.profile.id + "/image' height='128' width='128' />"
+        var data_content = "<img style='margin: 10px' src='/api/v1/users/" + this.state.profile.id + "/image' height='128' width='128' />";
         if (!config.ShowEmail) {
-            data_content += "<div><span style='white-space:nowrap;'>Email not shared</span></div>";
+            data_content += "<div class='text-nowrap'>Email not shared</div>";
         } else {
-            data_content += "<div><a href='mailto:'" + this.state.profile.email + "'' style='white-space:nowrap;text-transform:lowercase;'>" + this.state.profile.email + "</a></div>";
+            data_content += "<div><a href='mailto:" + this.state.profile.email + "' class='text-nowrap text-lowercase'>" + this.state.profile.email + "</a></div>";
         }
 
         return (
