@@ -25,7 +25,7 @@ module.exports.cleanUpUrlable = function(input) {
 
 module.exports.isTestDomain = function() {
 
-    /*if ((/^localhost/).test(window.location.hostname))
+    if ((/^localhost/).test(window.location.hostname))
         return true;
 
     if ((/^dockerhost/).test(window.location.hostname))
@@ -44,7 +44,7 @@ module.exports.isTestDomain = function() {
         return true;
 
     if ((/^176./).test(window.location.hostname))
-        return true;*/
+        return true;
 
     return false;
 };
