@@ -153,7 +153,7 @@ module.exports = React.createClass({
         var mentions = [];
         for (var i = 0; i < matches.length; i++) {
             var m = matches[i].substring(1,matches[i].length).trim();
-            if (m in profileMap && mentions.indexOf(m) === -1) {
+            if ((m in profileMap && mentions.indexOf(m) === -1) || Constants.SPECIAL_MENTIONS.indexOf(m) !== -1) {
                 mentions.push(m);
             }
         }

@@ -74,6 +74,18 @@ module.exports = React.createClass({
             users.push(profiles[id]);
         }
 
+        var all = {};
+        all.username = "all";
+        all.full_name = "";
+        all.secondary_text = "Notifies everyone in the team";
+        users.push(all);
+
+        var channel = {};
+        channel.username = "channel";
+        channel.full_name = "";
+        channel.secondary_text = "Notifies everyone in the channel";
+        users.push(channel);
+
         users.sort(function(a,b) {
             if (a.username < b.username) return -1;
             if (a.username > b.username) return 1;
@@ -91,6 +103,7 @@ module.exports = React.createClass({
                 var splitName = users[i].full_name.split(' ');
                 firstName = splitName[0].toLowerCase();
                 lastName = splitName.length > 1 ? splitName[splitName.length-1].toLowerCase() : "";
+                users[i].secondary_text = users[i].full_name;
             }
 
             if (firstName.lastIndexOf(mentionText,0) === 0
@@ -99,7 +112,7 @@ module.exports = React.createClass({
                     <Mention
                         ref={'mention' + index}
                         username={users[i].username}
-                        name={users[i].full_name}
+                        secondary_text={users[i].secondary_text}
                         id={users[i].id}
                         handleClick={this.handleClick} />
                 );

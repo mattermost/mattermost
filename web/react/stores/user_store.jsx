@@ -240,6 +240,9 @@ var UserStore = assign({}, EventEmitter.prototype, {
         if (first.length > 0) keys.push(first);
       }
 
+      if (user.notify_props.all === "true") keys.push('@all');
+      if (user.notify_props.channel === "true") keys.push('@channel');
+
       return keys;
     } else {
       return [];

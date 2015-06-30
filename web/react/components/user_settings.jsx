@@ -20,11 +20,10 @@ function getNotificationsStateFromStores() {
     var mention_key = false;
     var custom_keys = "";
     var first_name_key = false;
+    var all_key = false;
+    var channel_key = false;
 
-    if (!user.notify_props) {
-        mention_keys = user.username;
-        if (user.full_name.length > 0) mention_keys += ","+ user.full_name.split(" ")[0];
-    } else {
+    if (user.notify_props) {
         if (user.notify_props.mention_keys !== undefined) {
             var keys = user.notify_props.mention_keys.split(',');
 
@@ -48,9 +47,17 @@ function getNotificationsStateFromStores() {
         if (user.notify_props.first_name !== undefined) {
             first_name_key = user.notify_props.first_name === "true";
         }
+
+        if (user.notify_props.all !== undefined) {
+            all_key = user.notify_props.all === "true";
+        }
+
+        if (user.notify_props.channel !== undefined) {
+            channel_key = user.notify_props.channel === "true";
+        }
     }
 
-    return { notify_level: desktop, enable_email: email, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key };
+    return { notify_level: desktop, enable_email: email, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key, all_key: all_key, channel_key: channel_key };
 }
 
 
@@ -73,6 +80,8 @@ var NotificationsTab = React.createClass({
 
         data["mention_keys"] = string_keys;
         data["first_name"] = this.state.first_name_key ? "true" : "false";
+        data["all"] = this.state.all_key ? "true" : "false";
+        data["channel"] = this.state.channel_key ? "true" : "false";
 
         client.updateUserNotifyProps(data,
             function(data) {
@@ -119,6 +128,12 @@ var NotificationsTab = React.createClass({
     },
     updateFirstNameKey: function(val) {
         this.setState({ first_name_key: val });
+    },
+    updateAllKey: function(val) {
+        this.setState({ all_key: val });
+    },
+    updateChannelKey: function(val) {
+        this.setState({ channel_key: val });
     },
     updateCustomMentionKeys: function() {
         var checked = this.refs.customcheck.getDOMNode().checked;
@@ -343,6 +358,26 @@ var NotificationsTab = React.createClass({
                 <div>
                     <div className="checkbox">
                         <label>
+                            <input type="checkbox" checked={this.state.all_key} onChange={function(e){self.updateAllKey(e.target.checked);}}>{'Team-wide mentions "@all"'}</input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            inputs.push(
+                <div>
+                    <div className="checkbox">
+                        <label>
+                            <input type="checkbox" checked={this.state.channel_key} onChange={function(e){self.updateChannelKey(e.target.checked);}}>{'Channel-wide mentions "@channel"'}</input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            inputs.push(
+                <div>
+                    <div className="checkbox">
+                        <label>
                             <input ref="customcheck" type="checkbox" checked={this.state.custom_keys_checked} onChange={this.updateCustomMentionKeys}>{'Other non-case sensitive words, separated by commas:'}</input>
                         </label>
                     </div>
@@ -369,6 +404,8 @@ var NotificationsTab = React.createClass({
             }
             if (this.state.username_key) keys.push(this.props.user.username);
             if (this.state.mention_key) keys.push('@'+this.props.user.username);
+            if (this.state.all_key) keys.push('@all');
+            if (this.state.channel_key) keys.push('@channel');
             if (this.state.custom_keys.length > 0) keys = keys.concat(this.state.custom_keys.split(','));
 
             var describe = "";
