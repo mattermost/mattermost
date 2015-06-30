@@ -421,10 +421,13 @@ module.exports.textToJsx = function(text, options) {
                 highlightSearchClass = " search-highlight";
             }
 
-            if (explicitMention && UserStore.getProfileByUsername(explicitMention[1])) {
+            if (explicitMention &&
+                (UserStore.getProfileByUsername(explicitMention[1]) ||
+                Constants.SPECIAL_MENTIONS.indexOf(explicitMention[1]) !== -1))
+            {
                 var name = explicitMention[1];
                 // do both a non-case sensitive and case senstive check
-                var mClass = (name.toLowerCase() in implicitKeywords || name in implicitKeywords) ? mentionClass : "";
+                var mClass = (('@'+name.toLowerCase()) in implicitKeywords || ('@'+name) in implicitKeywords) ? mentionClass : "";
 
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
