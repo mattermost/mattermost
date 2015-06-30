@@ -146,10 +146,8 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rteam := result.Data.(*model.Team)
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: rteam.Id}
-
-		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
-			c.Err = err
+		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
+			c.Err = nil
 			return
 		}
 
@@ -197,10 +195,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rteam := result.Data.(*model.Team)
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: rteam.Id}
-
-		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
-			c.Err = err
+		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
+			c.Err = nil
 			return
 		}
 

@@ -285,7 +285,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				otherUserId = ids[0]
 			}
 
-			if sc, err := api.CreateDirectChannel(c, otherUserId, r.URL.Path); err != nil {
+			if sc, err := api.CreateDirectChannel(c, otherUserId); err != nil {
 				api.Handle404(w, r)
 				return
 			} else {

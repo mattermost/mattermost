@@ -57,7 +57,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sc, err := CreateChannel(c, channel, r.URL.Path, true); err != nil {
+	if sc, err := CreateChannel(c, channel, true); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -65,7 +65,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateChannel(c *Context, channel *model.Channel, path string, addMember bool) (*model.Channel, *model.AppError) {
+func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	if result := <-Srv.Store.Channel().Save(channel); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -100,7 +100,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sc, err := CreateDirectChannel(c, userId, r.URL.Path); err != nil {
+	if sc, err := CreateDirectChannel(c, userId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -108,7 +108,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateDirectChannel(c *Context, otherUserId string, path string) (*model.Channel, *model.AppError) {
+func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model.AppError) {
 	if len(otherUserId) != 26 {
 		return nil, model.NewAppError("CreateDirectChannel", "Invalid other user id ", otherUserId)
 	}
@@ -132,7 +132,7 @@ func CreateDirectChannel(c *Context, otherUserId string, path string) (*model.Ch
 		return nil, model.NewAppError("CreateDirectChannel", "Invalid other user id ", otherUserId)
 	}
 
-	if sc, err := CreateChannel(c, channel, path, true); err != nil {
+	if sc, err := CreateChannel(c, channel, true); err != nil {
 		return nil, err
 	} else {
 		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId,
@@ -144,6 +144,23 @@ func CreateDirectChannel(c *Context, otherUserId string, path string) (*model.Ch
 
 		return sc, nil
 	}
+}
+
+func CreateDefaultChannels(c *Context, teamId string) ([]*model.Channel, *model.AppError) {
+	townSquare := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: teamId}
+
+	if _, err := CreateChannel(c, townSquare, false); err != nil {
+		return nil, err
+	}
+
+	offTopic := &model.Channel{DisplayName: "Off-Topic", Name: "off-topic", Type: model.CHANNEL_OPEN, TeamId: teamId}
+
+	if _, err := CreateChannel(c, offTopic, false); err != nil {
+		return nil, err
+	}
+
+	channels := []*model.Channel{townSquare, offTopic}
+	return channels, nil
 }
 
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -303,7 +320,7 @@ func joinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelId := params["id"]
 
-	JoinChannel(c, channelId, r.URL.Path)
+	JoinChannel(c, channelId, "")
 
 	if c.Err != nil {
 		return
@@ -314,7 +331,7 @@ func joinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(result)))
 }
 
-func JoinChannel(c *Context, channelId string, path string) {
+func JoinChannel(c *Context, channelId string, role string) {
 
 	sc := Srv.Store.Channel().Get(channelId)
 	uc := Srv.Store.User().Get(c.Session.UserId)
@@ -340,7 +357,7 @@ func JoinChannel(c *Context, channelId string, path string) {
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: role}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				c.Err = cmresult.Err
@@ -361,6 +378,32 @@ func JoinChannel(c *Context, channelId string, path string) {
 			return
 		}
 	}
+}
+
+func JoinDefaultChannels(c *Context, user *model.User, channelRole string) *model.AppError {
+	// We don't call JoinChannel here since c.Session is not populated on user creation
+
+	var err *model.AppError = nil
+
+	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "town-square"); result.Err != nil {
+		err = result.Err
+	} else {
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+			err = cmResult.Err
+		}
+	}
+
+	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "off-topic"); result.Err != nil {
+		err = result.Err
+	} else {
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+			err = cmResult.Err
+		}
+	}
+
+	return err
 }
 
 func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {

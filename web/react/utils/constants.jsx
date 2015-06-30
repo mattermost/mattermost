@@ -51,6 +51,7 @@ module.exports = {
   MAX_UPLOAD_FILES: 5,
   MAX_FILE_SIZE: 50000000, // 50 MB
   DEFAULT_CHANNEL: 'town-square',
+  OFFTOPIC_CHANNEL: 'off-topic',
   POST_CHUNK_SIZE: 60,
   RESERVED_DOMAINS: [
     "www",

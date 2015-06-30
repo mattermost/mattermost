@@ -55,6 +55,11 @@ func TestCreateFromSignupTeam(t *testing.T) {
 		}
 	}
 
+	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
+	if len(c1.Channels) != 2 {
+		t.Fatal("default channels not created")
+	}
+
 	ts.Data = "garbage"
 	_, err = Client.CreateTeamFromSignup(&ts)
 	if err == nil {
@@ -69,6 +74,17 @@ func TestCreateTeam(t *testing.T) {
 	rteam, err := Client.CreateTeam(&team)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	user := &model.User{TeamId: rteam.Data.(*model.Team).Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	Srv.Store.User().VerifyEmail(user.Id)
+
+	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+
+	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
+	if len(c1.Channels) != 2 {
+		t.Fatal("default channels not created")
 	}
 
 	if rteam.Data.(*model.Team).Name != team.Name {
