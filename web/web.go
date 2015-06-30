@@ -4,18 +4,19 @@
 package web
 
 import (
-	l4g "code.google.com/p/log4go"
 	"fmt"
+	"html/template"
+	"net/http"
+	"strconv"
+	"strings"
+
+	l4g "code.google.com/p/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 	"gopkg.in/fsnotify.v1"
-	"html/template"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 var Templates *template.Template
@@ -155,7 +156,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		teamDomain = "beta"
 	} else {
 		teamDomain, siteDomain = model.GetSubDomain(c.TeamUrl)
-		siteDomain = "." + siteDomain + ".com"
+		siteDomain = "." + siteDomain
 
 		if tResult := <-api.Srv.Store.Team().GetByDomain(teamDomain); tResult.Err != nil {
 			l4g.Error("Couldn't find team teamDomain=%v, siteDomain=%v, teamUrl=%v, err=%v", teamDomain, siteDomain, c.TeamUrl, tResult.Err.Message)

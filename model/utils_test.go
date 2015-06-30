@@ -116,3 +116,25 @@ func TestEtag(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+var tDomains = []struct {
+	value             string
+	expectedSubdomain string
+	expectDomain      string
+}{
+	{"www.mydomain", "", ""},
+	{"beta.mydomain", "", ""},
+	{"ci.mydomain", "", ""},
+	{"mysubdomain.mydomain", "mysubdomain", "mydomain"},
+	{"sub.mysubdomain.mydomain", "sub", "mysubdomain.mydomain"},
+	{"nosubdomain", "", ""},
+}
+
+func TestGetSubDomains(t *testing.T) {
+	for _, v := range tDomains {
+		exsub, exdom := GetSubDomain(v.value)
+		if v.expectedSubdomain != exsub || v.expectDomain != exdom {
+			t.Errorf("Expected %v %v, but got %v %v", v.expectedSubdomain, v.expectDomain, exsub, exdom)
+		}
+	}
+}
