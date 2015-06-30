@@ -398,11 +398,7 @@ module.exports.textToJsx = function(text, options) {
     // Function specific regexes
     var hashRegex = /^href="#[^"]+"|(#[A-Za-z]+[A-Za-z0-9_]*[A-Za-z0-9])$/g;
 
-    var implicitKeywords = {};
-    var keywordArray = UserStore.getCurrentMentionKeys();
-    for (var i = 0; i < keywordArray.length; i++) {
-        implicitKeywords[keywordArray[i]] = true;
-    }
+    var implicitKeywords = UserStore.getCurrentMentionKeys();
 
     var lines = text.split("\n");
     var urlMatcher = new LinkifyIt();
@@ -427,7 +423,7 @@ module.exports.textToJsx = function(text, options) {
             {
                 var name = explicitMention[1];
                 // do both a non-case sensitive and case senstive check
-                var mClass = (('@'+name.toLowerCase()) in implicitKeywords || ('@'+name) in implicitKeywords) ? mentionClass : "";
+                var mClass = implicitKeywords.indexOf('@'+name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@'+name) !== -1 ? mentionClass : "";
 
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
@@ -449,7 +445,7 @@ module.exports.textToJsx = function(text, options) {
             } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
-                var mClass = trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords ? mentionClass : "";
+                var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
@@ -457,7 +453,7 @@ module.exports.textToJsx = function(text, options) {
 
                 inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
-            } else if (trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords) {
+            } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
 
