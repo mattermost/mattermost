@@ -337,7 +337,7 @@ EmailItem = React.createClass({
             return false;
         }
         else if (email === teamEmail) {
-            this.state.email_error = "Please use an a different email than the one used at signup";
+            this.state.email_error = "Please use a different email than the one used at signup";
             this.setState(this.state);
             return false;
         }
