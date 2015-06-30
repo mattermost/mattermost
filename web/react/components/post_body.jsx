@@ -89,6 +89,7 @@ module.exports = React.createClass({
                 var fileInfo = utils.splitFileLocation(filenames[i]);
                 if (Object.keys(fileInfo).length === 0) continue;
 
+
                 var type = utils.getFileType(fileInfo.ext);
 
                 if (type === "image") {
@@ -102,7 +103,7 @@ module.exports = React.createClass({
                     images.push(filenames[i]);
                 } else if (i < Constants.MAX_DISPLAY_FILES) {
                     postFiles.push(
-                        <div className="post-image__column custom-file" key={fileInfo.name}>
+                        <div className="post-image__column custom-file" key={fileInfo.name+fileInfo.ext}>
                             <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
                                 <div className={"file-icon "+utils.getIconClassName(type)}/>
                             </a>
