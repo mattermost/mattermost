@@ -44,10 +44,17 @@ var ExtraMembers = React.createClass({
         var count = this.props.members.length == 0 ? "-" : this.props.members.length;
         count = this.props.members.length > 19 ? "20+" : count;
         var data_content = "";
+        var sortedMembers = this.props.members;
 
-        this.props.members.forEach(function(m) {
-            data_content += "<div style='white-space: nowrap'>" + m.username + "</div>";
-        });
+        if(sortedMembers) {
+            sortedMembers.sort(function(a,b) {
+                return a.username.localeCompare(b.username);
+            })
+
+            sortedMembers.forEach(function(m) {
+                data_content += "<div style='white-space: nowrap'>" + m.username + "</div>";
+            });
+        }
 
         return (
             <div style={{"cursor" : "pointer"}} id="member_popover" data-toggle="popover" data-content={data_content} data-original-title="Members" >
