@@ -398,11 +398,7 @@ module.exports.textToJsx = function(text, options) {
     // Function specific regexes
     var hashRegex = /^href="#[^"]+"|(#[A-Za-z]+[A-Za-z0-9_]*[A-Za-z0-9])$/g;
 
-    var implicitKeywords = [];
-    var keywordArray = UserStore.getCurrentMentionKeys();
-    for (var i = 0; i < keywordArray.length; i++) {
-        implicitKeywords[i] = keywordArray[i];
-    }
+    var implicitKeywords = UserStore.getCurrentMentionKeys();
 
     var lines = text.split("\n");
     var urlMatcher = new LinkifyIt();
