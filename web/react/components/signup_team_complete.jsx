@@ -164,7 +164,9 @@ TeamUrlPage = React.createClass({
         }
 
         var cleaned_name = utils.cleanUpUrlable(name);
-        if (cleaned_name != name) {
+
+        var urlRegex = /^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
+        if (cleaned_name != name || !urlRegex.test(name)) {
             this.setState({name_error: "Must be lowercase alphanumeric characters"});
             return;
         }
