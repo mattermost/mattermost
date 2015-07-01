@@ -49,7 +49,7 @@ module.exports = React.createClass({
                                 <span aria-hidden="true">&times;</span>
                                 <span className="sr-only">Close</span>
                             </button>
-                            <h4 className="modal-title">More Direct Messages</h4>
+                            <h4 className="modal-title">More Private Messages</h4>
                         </div>
                         <div className="modal-body">
                             <ul className="nav nav-pills nav-stacked">

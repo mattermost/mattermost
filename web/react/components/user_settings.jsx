@@ -179,7 +179,7 @@ var NotificationsTab = React.createClass({
                     </div>
                     <div className="radio">
                         <label>
-                            <input type="radio" checked={notifyActive[1]} onClick={function(){self.handleNotifyRadio("mention")}}>Only for mentions and direct messages</input>
+                            <input type="radio" checked={notifyActive[1]} onClick={function(){self.handleNotifyRadio("mention")}}>Only for mentions and private messages</input>
                         </label>
                         <br/>
                     </div>
@@ -203,7 +203,7 @@ var NotificationsTab = React.createClass({
         } else {
             var describe = "";
             if (this.state.notify_level === "mention") {
-                describe = "Only for mentions and direct messages";
+                describe = "Only for mentions and private messages";
             } else if (this.state.notify_level === "none") {
                 describe = "Never";
             } else {
@@ -282,7 +282,7 @@ var NotificationsTab = React.createClass({
                         <button className={"btn btn-default "+emailActive[0]} onClick={function(){self.handleEmailRadio("true")}}>On</button>
                         <button className={"btn btn-default "+emailActive[1]} onClick={function(){self.handleEmailRadio("false")}}>Off</button>
                     </div>
-                    <div><br/>{"Email notifications are sent for mentions and direct messages after you have been away from " + config.SiteName + " for 5 minutes."}</div>
+                    <div><br/>{"Email notifications are sent for mentions and private messages after you have been away from " + config.SiteName + " for 5 minutes."}</div>
                 </div>
             );
 
