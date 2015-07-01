@@ -24,9 +24,8 @@ module.exports = React.createClass({
             }
         );
         $(document).click(function() {
-            if ($(document.activeElement).get(0) != $('#'+this.props.id).get(0)) {
-            this.setState({ mentionText: '-1'})
-            console.log(this.state)
+            if($('#'+self.props.id).length && $('#'+self.props.id).get(0) !== $(':focus').get(0)) {
+                self.setState({mentionText: "-1"})
             }
         });
     },
