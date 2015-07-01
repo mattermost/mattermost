@@ -23,6 +23,12 @@ module.exports = React.createClass({
                 }
             }
         );
+        $(document).click(function() {
+            if ($(document.activeElement).get(0) != $('#'+this.props.id).get(0)) {
+            this.setState({ mentionText: '-1'})
+            console.log(this.state)
+            }
+        });
     },
     componentWillUnmount: function() {
         PostStore.removeMentionDataChangeListener(this._onChange);
@@ -131,7 +137,7 @@ module.exports = React.createClass({
 
         return (
             <div className="mentions--top" style={{height: height, width: width, bottom: bottom, left: left}}>
-                <div ref="mentionlist" className="mentions-box" style={{maxHeight: max_height, height: height, width: width}}>
+                <div ref="mentionlist" id="mentionlist" className="mentions-box" style={{maxHeight: max_height, height: height, width: width}}>
                     { mentions }
                 </div>
             </div>
