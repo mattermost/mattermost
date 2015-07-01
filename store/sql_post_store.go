@@ -356,9 +356,14 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 
 	go func() {
 		result := StoreResult{}
+		termMap := map[string]bool{}
+
 		searchType := "Message"
 		if isHashtagSearch {
 			searchType = "Hashtags"
+			for _,term := range strings.Split(terms, " ") {
+				termMap[term] = true;
+			}
 		}
 
 		// @ has a speical meaning in INNODB FULLTEXT indexes and
@@ -394,6 +399,17 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
 
 			for _, p := range posts {
+				if searchType == "Hashtags" {
+					exactMatch := false
+					for _, tag := range strings.Split(p.Hashtags, " ") {
+						if termMap[tag] {
+							exactMatch = true
+						}
+					}
+					if !exactMatch {
+						continue
+					}
+				}
 				list.AddPost(p)
 				list.AddOrder(p.Id)
 			}

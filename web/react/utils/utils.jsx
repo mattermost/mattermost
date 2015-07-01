@@ -395,8 +395,8 @@ module.exports.textToJsx = function(text, options) {
 
     var inner = [];
 
-    // Function specific regexes
-    var hashRegex = /^href="#[^"]+"|(#[A-Za-z]+[A-Za-z0-9_]*[A-Za-z0-9])$/g;
+    // Function specific regex
+    var hashRegex = /^href="#[^"]+"|(#[A-Za-z]+[A-Za-z0-9_\-]*[A-Za-z0-9])$/g;
 
     var implicitKeywords = UserStore.getCurrentMentionKeys();
 
