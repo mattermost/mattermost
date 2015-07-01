@@ -287,7 +287,7 @@ module.exports.getMeSynchronous = function(success, error) {
             if (success) success(data, textStatus, xhr);
         },
         error: function(xhr, status, err) {
-            if (error) {
+            if (xhr.status != 200 && error) {
                 e = handleError("getMeSynchronous", xhr, status, err);
                 error(e);
             };
