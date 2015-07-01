@@ -280,6 +280,7 @@ module.exports.getMeSynchronous = function(success, error) {
         url: "/api/v1/users/me",
         dataType: 'json',
         contentType: 'application/json',
+        cache: false,
         type: 'GET',
         success: function(data, textStatus, xhr) {
             current_user = data;
