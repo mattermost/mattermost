@@ -17,8 +17,11 @@ body {
       margin-bottom: -89px;
     }
   }
-  .inner__wrap, .row.main {
+  .inner__wrap {
     height: 100%;
+    > .row.main {
+      height: 100%;
+    }
   }
   > .container-fluid {
     @include clearfix;
