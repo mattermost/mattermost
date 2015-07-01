@@ -10,11 +10,11 @@ body {
   height: 100%;
   &.white {
     background: #fff;
-    .row.content {
-      min-height: 100%;
-      height: auto !important;
-      height: 100%;
-      margin-bottom: -89px;
+    .inner__wrap {
+      > .row.content {
+        min-height: 100%;
+        margin-bottom: -89px;
+      }
     }
   }
   .inner__wrap {
