@@ -10,9 +10,6 @@ body {
   height: 100%;
   &.white {
     background: #fff;
-    .inner__wrap {
-      height: 100%;
-    }
     .row.content {
       min-height: 100%;
       height: auto !important;
@@ -20,8 +17,12 @@ body {
       margin-bottom: -89px;
     }
   }
+  .inner__wrap, .row.main {
+    height: 100%;
+  }
   > .container-fluid {
     @include clearfix;
+    height: 100%;
     position: relative;
   }
 }
