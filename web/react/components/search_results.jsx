@@ -79,7 +79,7 @@ SearchItem = React.createClass({
 
         if (channel) {
             if (channel.type === 'D') {
-                channelName = "Direct Message";
+                channelName = "Private Message";
             } else {
                 channelName = channel.display_name;
             }

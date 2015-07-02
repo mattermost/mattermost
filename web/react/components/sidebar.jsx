@@ -409,7 +409,7 @@ var SidebarLoggedIn = React.createClass({
                         {privateChannelItems}
                     </ul>
                     <ul className="nav nav-pills nav-stacked">
-                        <li><h4>Direct Messages</h4></li>
+                        <li><h4>Private Messages</h4></li>
                         {directMessageItems}
                         { this.state.hideDirectChannels.length > 0 ?
                             <li><a href="#" data-toggle="modal" className="nav-more" data-target="#more_direct_channels" data-channels={JSON.stringify(this.state.hideDirectChannels)}>{"More ("+this.state.hideDirectChannels.length+")"}</a></li>

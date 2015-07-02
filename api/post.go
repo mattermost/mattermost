@@ -227,7 +227,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 			channel = result.Data.(*model.Channel)
 			if channel.Type == model.CHANNEL_DIRECT {
 				bodyText = "You have one new message."
-				subjectText = "New Direct Message"
+				subjectText = "New Private Message"
 			} else {
 				bodyText = "You have one new mention."
 				subjectText = "New Mention"

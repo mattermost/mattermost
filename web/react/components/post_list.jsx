@@ -336,13 +336,13 @@ module.exports = React.createClass({
                             <div className="channel-intro-profile">
                                 <strong><UserProfile userId={teammate.id} /></strong>
                             </div>
-                            <p className="channel-intro-text">{"This is the start of your direct message history with " + teammate_name + "." }<br/>{"Direct messages and files shared here are not shown to people outside this area."}</p>
+                            <p className="channel-intro-text">{"This is the start of your private message history with " + teammate_name + "." }<br/>{"Private messages and files shared here are not shown to people outside this area."}</p>
                         </div>
                     );
                 } else {
                     more_messages = (
                         <div className="channel-intro">
-                            <p className="channel-intro-text">{"This is the start of your direct message history with this " + strings.Team + "mate. Direct messages and files shared here are not shown to people outside this area."}</p>
+                            <p className="channel-intro-text">{"This is the start of your private message history with this " + strings.Team + "mate. Private messages and files shared here are not shown to people outside this area."}</p>
                         </div>
                     );
                 }
