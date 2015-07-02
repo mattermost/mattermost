@@ -324,13 +324,7 @@ module.exports = React.createClass({
             if (order.length > 0 && order.length % Constants.POST_CHUNK_SIZE === 0) {
                 more_messages = <a ref="loadmore" className="more-messages-text theme" href="#" onClick={this.getMorePosts}>Load more messages</a>;
             } else if (channel.type === 'D') {
-                var userIds = channel.name.split('__');
-                var teammate;
-                if (userIds.length === 2 && userIds[0] === user_id) {
-                    teammate = UserStore.getProfile(userIds[1]);
-                } else if (userIds.length === 2 && userIds[1] === user_id) {
-                    teammate = UserStore.getProfile(userIds[0]);
-                }
+                var teammate = utils.getDirectTeammate(channel.id)
 
                 if (teammate) {
                     var teammate_name = teammate.full_name.length > 0 ? teammate.full_name : teammate.username;

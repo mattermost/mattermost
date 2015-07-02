@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+var ChannelStore = require('../stores/channel_store.jsx')
 var UserStore = require('../stores/user_store.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -724,6 +725,23 @@ module.exports.isComment = function(post) {
         return post.root_id != "";
     }
     return false;
+}
+
+module.exports.getDirectTeammate = function(channel_id) {
+  var userIds = ChannelStore.get(channel_id).name.split('__');
+
+  if(userIds.length != 2) {
+    return;
+  }
+
+  var curUser = UserStore.getCurrentId();
+
+  for(var idx in userIds) {
+    if(userIds[idx] === curUser)
+      delete userIds[idx];
+  }
+
+  return UserStore.getProfile(userIds[0])
 }
 
 Image.prototype.load = function(url, progressCallback) {
