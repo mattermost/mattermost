@@ -809,6 +809,11 @@ var GeneralTab = React.createClass({
 
         if(!this.submitActive) return;
 
+        if(this.state.picture.type !== "image/jpeg") {
+            this.setState({client_error: "Only JPG images may be used for profile pictures"});
+            return;
+        }
+
         formData = new FormData();
         formData.append('image', this.state.picture, this.state.picture.name);
 
@@ -839,11 +844,13 @@ var GeneralTab = React.createClass({
     updatePicture: function(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({ picture: e.target.files[0] });
+
+            this.submitActive = true;
+            this.setState({client_error:null})
+
         } else {
             this.setState({ picture: null });
         }
-
-        this.submitActive = true
     },
     updateSection: function(section) {
         this.setState({client_error:""})
@@ -984,7 +991,7 @@ var GeneralTab = React.createClass({
                     submit={this.submitPicture}
                     src={"/api/v1/users/" + user.id + "/image"}
                     server_error={server_error}
-                    client_error={email_error}
+                    client_error={client_error}
                     updateSection={function(e){self.updateSection("");e.preventDefault();}}
                     picture={this.state.picture}
                     pictureChange={this.updatePicture}
