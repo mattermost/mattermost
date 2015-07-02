@@ -295,7 +295,7 @@ module.exports = React.createClass({
     },
     render: function() {
         var order = [];
-        var posts = {};
+        var posts;
 
         var last_viewed = Number.MAX_VALUE;
 
@@ -408,7 +408,7 @@ module.exports = React.createClass({
         }
 
         var postCtls = [];
-        var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
+        var previousPostDay = posts && posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
         var currentPostDay = new Date();
 
         for (var i = order.length-1; i >= 0; i--) {
@@ -457,6 +457,19 @@ module.exports = React.createClass({
             }
             postCtls.push(postCtl);
             previousPostDay = utils.getDateForUnixTicks(post.create_at);
+        }
+
+        if (posts == undefined) {
+            postCtls.push(
+                <div ref="loadingscreen" className="loading-screen">
+                    <div className="loading__content">
+                    <h3>Loading</h3>
+                        <div id="round_1" className="round"></div>
+                        <div id="round_2" className="round"></div>
+                        <div id="round_3" className="round"></div>
+                    </div>
+                </div>
+            );
         }
 
         return (

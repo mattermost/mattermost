@@ -56,7 +56,7 @@
 
             .section-title {
                 margin-bottom: 5px;
-                font-weight: bold;
+                font-weight: 600;
             }
 
             .section-edit {
@@ -172,7 +172,7 @@
         border-top:1px solid lightgrey;
     }
     .post-profile-img {
-        @include border-radius(3px);
+        @include border-radius(50px);
         margin-right: 8px;
     }
     .member-name {

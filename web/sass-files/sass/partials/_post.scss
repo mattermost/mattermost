@@ -86,10 +86,11 @@ body.ios {
 			background: #FFF;
 			display: inline-block;
 			padding: 0 1em;
-			font-weight: 900;
+			font-weight: 700;
 			@include border-radius(50px);
 			position: relative;
 			z-index: 5;
+			font-size: 13px;
 		}
 	}
 	.new-separator {
@@ -212,6 +213,12 @@ body.ios {
 			}
 		}
 	}
+	&.current--user {
+		.post-body {
+			@include border-radius(4px);
+			background: #f5f5f5;
+		}
+	}
 	&.same--root {
 		.comment-icon__container {
 			@include opacity(0);
@@ -269,7 +276,7 @@ body.ios {
 			float: left;
 			.post-profile-img {
 				margin-right: 10px;
-				@include border-radius(3px);
+				@include border-radius(50px);
 			}
 		}
 		&.post__content {
@@ -290,6 +297,8 @@ body.ios {
 		width: 600px;
 		float: left;
 		word-wrap: break-word;
+		padding: 0.3em 0 0.1em;
+		margin: -0.3em 0 0;
 		.post-link {
 			@include clearfix;
 			text-overflow: ellipsis;
@@ -359,7 +368,7 @@ body.ios {
 		.embed-title {
 			margin: 3px 0 1px;
 			color: #555;
-			font-weight: bold;
+			font-weight: 600;
 			white-space: nowrap;
 			text-overflow: ellipsis;
 			overflow: hidden;
