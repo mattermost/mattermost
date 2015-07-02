@@ -11,17 +11,21 @@ body {
   &.white {
     background: #fff;
     .inner__wrap {
-      height: 100%;
+      > .row.content {
+        min-height: 100%;
+        margin-bottom: -89px;
+      }
     }
-    .row.content {
-      min-height: 100%;
-      height: auto !important;
+  }
+  .inner__wrap {
+    height: 100%;
+    > .row.main {
       height: 100%;
-      margin-bottom: -89px;
     }
   }
   > .container-fluid {
     @include clearfix;
+    height: 100%;
     position: relative;
   }
 }
