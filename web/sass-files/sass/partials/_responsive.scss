@@ -22,10 +22,15 @@
                         width: 825px;
                     }
                     .post-body {
-                        padding-left: 0;
+                        width: 736px;
                         border: none;
                         margin: 0;
                     }
+                }
+                .post-body {
+                    float: none;
+                    width: 750px;
+                    margin: 0;
                 }
                 .post__content {
                     width: 920px;
@@ -63,10 +68,6 @@
                         }
                     }
                 }
-                .post-body {
-                    float: none;
-                    width: 750px;
-                }
             }
         }
     }
@@ -89,6 +90,7 @@
             margin-left: 60px;
             padding-left: 10px;
             border-left: 4px solid #EEE;
+            margin-bottom: 10px;
             div.post-profile-img__container {
                 .post-profile-img {
                     display: none;
@@ -98,7 +100,7 @@
                 width: 825px;
             }
             .post-body {
-                padding-left: 0;
+                width: 736px;
                 border: none;
                 margin: 0;
             }
@@ -135,6 +137,7 @@
             }
         }
         .post-body {
+            margin: 0;
             float: none;
             width: 750px;
         }

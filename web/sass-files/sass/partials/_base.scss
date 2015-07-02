@@ -3,7 +3,7 @@ html, body {
 }
 
 body {
-  font-family: 'Lato', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   background: #e9e9e9;
   position: relative;
@@ -28,6 +28,10 @@ body {
     height: 100%;
     position: relative;
   }
+}
+
+b, strong {
+  font-weight: 600;
 }
 
 a {
@@ -146,7 +150,7 @@ div.theme {
     top: 0;
     color: #FFF;
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: none;
     padding: 0 10px;
   }
