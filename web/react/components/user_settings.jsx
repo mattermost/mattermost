@@ -5,6 +5,8 @@ var UserStore = require('../stores/user_store.jsx');
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 var SettingPicture = require('./setting_picture.jsx');
+var AccessHistoryModal = require('./access_history_modal.jsx');
+var ActivityLogModal = require('./activity_log_modal.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
@@ -637,6 +639,15 @@ var SecurityTab = React.createClass({
     updateConfirmPassword: function(e) {
         this.setState({ confirm_password: e.target.value });
     },
+    handleHistoryOpen: function() {
+        React.render(
+            <AccessHistoryModal />,
+            document.getElementById('access_history_modal')
+        );
+    },
+    handleDevicesOpen: function() {
+
+    },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };
     },
@@ -711,6 +722,9 @@ var SecurityTab = React.createClass({
                     <div className="divider-dark first"/>
                     { passwordSection }
                     <div className="divider-dark"/>
+                    <br></br>
+                    <a data-toggle="modal" data-target="#access_history_modal" href="#" onClick={this.handleHistoryOpen}>View Access History</a>
+                    <a data-toggle="modal" data-target="#activity_log_modal" href="#" onClick={this.handleDevicesOpen}>View and Logout of Active Devices</a>
                 </div>
             </div>
         );
@@ -1226,7 +1240,7 @@ module.exports = React.createClass({
                 </div>
             );
 
-        /* Temporarily removing sessions and activity_log tabs
+        /* Temporarily removing sessions and activity_log tabs*/
 
         } else if (this.props.activeTab === 'sessions') {
             return (
@@ -1240,7 +1254,7 @@ module.exports = React.createClass({
                     <AuditTab activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
                 </div>
             );
-        */
+        /**/
 
         } else if (this.props.activeTab === 'appearance') {
             return (
