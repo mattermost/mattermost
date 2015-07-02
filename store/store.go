@@ -103,3 +103,10 @@ type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
 	Get(user_id string, limit int) StoreChannel
 }
+
+type AppStore interface {
+	Save(user *model.App) StoreChannel
+	Update(user *model.App) StoreChannel
+	Get(id string) StoreChannel
+	GetByUser(userId string) StoreChannel
+}
