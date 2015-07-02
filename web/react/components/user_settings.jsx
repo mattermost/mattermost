@@ -844,11 +844,13 @@ var GeneralTab = React.createClass({
     updatePicture: function(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({ picture: e.target.files[0] });
+
+            this.submitActive = true;
+            this.setState({client_error:null})
+
         } else {
             this.setState({ picture: null });
         }
-
-        this.submitActive = true
     },
     updateSection: function(section) {
         this.setState({client_error:""})
