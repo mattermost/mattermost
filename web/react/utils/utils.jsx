@@ -736,7 +736,7 @@ module.exports.getDirectTeammate = function(channel_id) {
         return teammate;
     }
 
-    for (var idx = 0; idx < userIds.length; idx++) {
+    for (var idx in userIds) {
         if(userIds[idx] !== curUserId) {
             teammate = UserStore.getProfile(userIds[idx]);
             break;
