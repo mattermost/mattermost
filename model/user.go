@@ -16,7 +16,7 @@ const (
 	ROLE_SYSTEM_ADMIN    = "system_admin"
 	ROLE_SYSTEM_SUPPORT  = "system_support"
 	USER_AWAY_TIMEOUT    = 5 * 60 * 1000 // 5 minutes
-	USER_OFFLINE_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+	USER_OFFLINE_TIMEOUT = 1 * 60 * 1000 // 1 minute
 	USER_OFFLINE         = "offline"
 	USER_AWAY            = "away"
 	USER_ONLINE          = "online"
