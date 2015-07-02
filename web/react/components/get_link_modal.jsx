@@ -42,7 +42,7 @@ module.exports = React.createClass({
                         </div>
                         <div className="modal-footer">
                           <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
-                          <button data-copy-btn type="button" className="btn btn-primary" data-clipboard-text={this.state.value}>Copy Link</button>
+                          <button data-copy-btn type="button" className="btn btn-primary pull-left" data-clipboard-text={this.state.value}>Copy Link</button>
                         </div>
                       </div>
                    </div>
