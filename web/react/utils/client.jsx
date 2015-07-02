@@ -280,14 +280,14 @@ module.exports.getMeSynchronous = function(success, error) {
         url: "/api/v1/users/me",
         dataType: 'json',
         contentType: 'application/json',
-        cache: false,
+        //cache: false,
         type: 'GET',
         success: function(data, textStatus, xhr) {
             current_user = data;
             if (success) success(data, textStatus, xhr);
         },
         error: function(xhr, status, err) {
-            if (xhr.status != 200 && error) {
+            if (/*xhr.status != 200 && */error) {
                 e = handleError("getMeSynchronous", xhr, status, err);
                 error(e);
             };
