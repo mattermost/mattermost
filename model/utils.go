@@ -5,7 +5,6 @@ package model
 
 import (
 	"bytes"
-	"code.google.com/p/go-uuid/uuid"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
@@ -14,6 +13,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"code.google.com/p/go-uuid/uuid"
 )
 
 const (
@@ -215,9 +216,9 @@ func GetSubDomain(s string) (string, string) {
 		return "", ""
 	}
 
-	parts := strings.Split(s, ".")
+	parts := strings.SplitN(s, ".", 2)
 
-	if len(parts) != 3 {
+	if len(parts) != 2 {
 		return "", ""
 	}
 
@@ -237,7 +238,7 @@ func IsValidChannelIdentifier(s string) bool {
 	return true
 }
 
-var validAlphaNum = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
+var validAlphaNum = regexp.MustCompile(`^[a-z0-9]+([\.a-z\-0-9]+|(__)?)[a-z0-9]+$`)
 
 func IsValidAlphaNum(s string) bool {
 	match := validAlphaNum.MatchString(s)

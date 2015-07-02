@@ -66,8 +66,6 @@ var getSubDomain = function() {
 
   var parts = window.location.hostname.split(".");
 
-  if (parts.length != 3)
-    return "";
 
   return parts[0];
 }
@@ -88,7 +86,9 @@ module.exports.getDomainWithOutSub = function() {
     }
   }
 
-  return parts[1] + "." +  parts[2];
+  parts.shift();
+  
+  return parts.join('.');
 }
 
 module.exports.getCookie = function(name) {
@@ -106,7 +106,7 @@ module.exports.isLocalStorageSupported = function() {
         localStorage.removeItem("testLocal", '1');
 
         return true;
-    } 
+    }
     catch (e) {
         return false;
     }
@@ -224,7 +224,7 @@ module.exports.extractLinks = function(text) {
     }
 
     return { "links": links, "text": text };
-} 
+}
 
 module.exports.escapeRegExp = function(string) {
     return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
@@ -671,13 +671,13 @@ module.exports.isValidUsername = function (name) {
         error = "First character must be a letter.";
     }
 
-    else 
+    else
     {
         var lowerName = name.toLowerCase().trim();
 
-        for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) 
+        for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++)
         {
-            if (lowerName === Constants.RESERVED_USERNAMES[i]) 
+            if (lowerName === Constants.RESERVED_USERNAMES[i])
             {
                 error = "Cannot use a reserved word as a username.";
                 break;
