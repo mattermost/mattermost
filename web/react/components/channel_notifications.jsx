@@ -16,12 +16,12 @@ module.exports = React.createClass({
         var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
             var button = e.relatedTarget;
-            var channel_id = button.dataset.channelid;
+            var channel_id = button.getAttribute('data-channelid');
 
             var notifyLevel = ChannelStore.getMember(channel_id).notify_level;
             var quietMode = false;
             if (notifyLevel === "quiet") quietMode = true;
-            self.setState({ notify_level: notifyLevel, quiet_mode: quietMode, title: button.dataset.title, channel_id: channel_id });
+            self.setState({ notify_level: notifyLevel, quiet_mode: quietMode, title: button.getAttribute('data-channelid'), channel_id: channel_id });
         });
     },
     componentWillUnmount: function() {
