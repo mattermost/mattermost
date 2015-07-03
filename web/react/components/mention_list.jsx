@@ -23,6 +23,11 @@ module.exports = React.createClass({
                 }
             }
         );
+        $(document).click(function() {
+            if($('#'+self.props.id).length && $('#'+self.props.id).get(0) !== $(':focus').get(0)) {
+                self.setState({mentionText: "-1"})
+            }
+        });
     },
     componentWillUnmount: function() {
         PostStore.removeMentionDataChangeListener(this._onChange);
