@@ -295,7 +295,7 @@ module.exports = React.createClass({
     },
     render: function() {
         var order = [];
-        var posts = {};
+        var posts;
 
         var last_viewed = Number.MAX_VALUE;
 
@@ -408,55 +408,70 @@ module.exports = React.createClass({
         }
 
         var postCtls = [];
-        var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
-        var currentPostDay = new Date();
 
-        for (var i = order.length-1; i >= 0; i--) {
-            var post = posts[order[i]];
-            var parentPost;
+        if (posts != undefined) {
+            var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
+            var currentPostDay = new Date();
 
-            if (post.parent_id) {
-                parentPost = posts[post.parent_id];
-            } else {
-                parentPost = null;
+            for (var i = order.length-1; i >= 0; i--) {
+                var post = posts[order[i]];
+                var parentPost;
+
+                if (post.parent_id) {
+                    parentPost = posts[post.parent_id];
+                } else {
+                    parentPost = null;
+                }
+
+                var sameUser = i < order.length-1 && posts[order[i+1]].user_id === post.user_id  && post.create_at - posts[order[i+1]].create_at <= 1000*60*5 ? "same--user" : "";
+                var sameRoot = i < order.length-1 && post.root_id != "" && (posts[order[i+1]].id === post.root_id || posts[order[i+1]].root_id === post.root_id) ? true : false;
+
+                // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
+                var hideProfilePic = i < order.length-1 && posts[order[i+1]].user_id === post.user_id && posts[order[i+1]].root_id === '' && post.root_id === '';
+
+                // check if it's the last comment in a consecutive string of comments on the same post
+                var isLastComment = false;
+                if (utils.isComment(post)) {
+                    // it is the last comment if it is last post in the channel or the next post has a different root post
+                    isLastComment = (i === 0 || posts[order[i-1]].root_id != post.root_id);
+                }
+
+                var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+
+                currentPostDay = utils.getDateForUnixTicks(post.create_at);
+                if(currentPostDay.getDate() !== previousPostDay.getDate() || currentPostDay.getMonth() !== previousPostDay.getMonth() || currentPostDay.getFullYear() !== previousPostDay.getFullYear()) {
+                    postCtls.push(
+                        <div className="date-separator">
+                            <hr className="separator__hr" />
+                            <div className="separator__text">{currentPostDay.toDateString()}</div>
+                        </div>
+                    );
+                }
+
+                if (post.create_at > last_viewed && !rendered_last_viewed) {
+                    rendered_last_viewed = true;
+                    postCtls.push(
+                        <div className="new-separator">
+                            <hr id="new_message" className="separator__hr" />
+                            <div className="separator__text">New Messages</div>
+                        </div>
+                    );
+                }
+                postCtls.push(postCtl);
+                previousPostDay = utils.getDateForUnixTicks(post.create_at);
             }
-
-            var sameUser = i < order.length-1 && posts[order[i+1]].user_id === post.user_id  && post.create_at - posts[order[i+1]].create_at <= 1000*60*5 ? "same--user" : "";
-            var sameRoot = i < order.length-1 && post.root_id != "" && (posts[order[i+1]].id === post.root_id || posts[order[i+1]].root_id === post.root_id) ? true : false;
-
-            // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
-            var hideProfilePic = i < order.length-1 && posts[order[i+1]].user_id === post.user_id && posts[order[i+1]].root_id === '' && post.root_id === '';
-
-            // check if it's the last comment in a consecutive string of comments on the same post
-            var isLastComment = false;
-            if (utils.isComment(post)) {
-                // it is the last comment if it is last post in the channel or the next post has a different root post
-                isLastComment = (i === 0 || posts[order[i-1]].root_id != post.root_id);
-            }
-
-            var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
-
-            currentPostDay = utils.getDateForUnixTicks(post.create_at);
-            if(currentPostDay.getDate() !== previousPostDay.getDate() || currentPostDay.getMonth() !== previousPostDay.getMonth() || currentPostDay.getFullYear() !== previousPostDay.getFullYear()) {
-                postCtls.push(
-                    <div className="date-separator">
-                        <hr className="separator__hr" />
-                        <div className="separator__text">{currentPostDay.toDateString()}</div>
+        }
+        else {
+            postCtls.push(
+                <div ref="loadingscreen" className="loading-screen">
+                    <div className="loading__content">
+                    <h3>Loading</h3>
+                        <div id="round_1" className="round"></div>
+                        <div id="round_2" className="round"></div>
+                        <div id="round_3" className="round"></div>
                     </div>
-                );
-            }
-
-            if (post.create_at > last_viewed && !rendered_last_viewed) {
-                rendered_last_viewed = true;
-                postCtls.push(
-                    <div className="new-separator">
-                        <hr id="new_message" className="separator__hr" />
-                        <div className="separator__text">New Messages</div>
-                    </div>
-                );
-            }
-            postCtls.push(postCtl);
-            previousPostDay = utils.getDateForUnixTicks(post.create_at);
+                </div>
+            );
         }
 
         return (
