@@ -10,13 +10,21 @@ Mattermost is a team communication service. It brings team messaging and file sh
 
 We built Mattermost to help teams focus on what matters most to them. It works for us, we hope it works for you too.
 
+Learn More
+==========
+<ul>
+<li/>Ask the core team anything at: http://forum.mattermost.org</li>
+<li/>Share feature requests and upvotes: http://www.mattermost.org/feature-requests/</li>
+<li/>File bugs: http://www.mattermost.org/filing-issues/</li>
+<li/>Make a pull request: http://www.mattermost.org/contribute-to-mattermost/</li>
+</ul>
 
 Installing the Mattermost
 =========================
 
 You're installing "Mattermost Preview", a pre-released 0.50 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0 version release. 
 
-That said, any issues at all, please let us know on the Mattermost forum at: http://discourse.mattermost.org 
+That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org 
 
 Local Machine Setup (Docker)
 -----------------------------
