@@ -4,6 +4,7 @@
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
+var SocketStore = require('../stores/socket_store.jsx')
 var UserProfile = require( './user_profile.jsx' );
 var NavbarSearchBox =require('./search_bar.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
@@ -82,6 +83,7 @@ module.exports = React.createClass({
         ChannelStore.addExtraInfoChangeListener(this._onChange);
         PostStore.addSearchChangeListener(this._onChange);
         UserStore.addChangeListener(this._onChange);
+        SocketStore.addChangeListener(this._onSocketChange);
     },
     componentWillUnmount: function() {
         ChannelStore.removeChangeListener(this._onChange);
@@ -95,6 +97,11 @@ module.exports = React.createClass({
             this.setState(newState);
         }
         $(".channel-header__info .description").popover({placement : 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
+    },
+    _onSocketChange: function(msg) {
+        if(msg.action === "new_user") {
+            AsyncClient.getChannelExtraInfo(true);
+        }
     },
     getInitialState: function() {
         return getStateFromStores();
