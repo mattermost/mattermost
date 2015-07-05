@@ -55,7 +55,10 @@ func TestChannelStoreUpdate(t *testing.T) {
 	o1.DisplayName = "Name"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+
+	if err := (<-store.Channel().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
 
 	if err := (<-store.Channel().Update(&o1)).Err; err != nil {
 		t.Fatal(err)
