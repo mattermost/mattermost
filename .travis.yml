@@ -5,6 +5,7 @@ go:
 
 before_install:
   - gem install compass
+  - sudo apt-get update
 
 before_script:
   - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
