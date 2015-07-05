@@ -470,6 +470,8 @@ func TestUserUpdate(t *testing.T) {
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
+	time.Sleep(100 * time.Millisecond)
+
 	time2 := model.GetMillis()
 
 	user.FullName = "Jim Jimmy"

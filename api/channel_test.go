@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -687,6 +688,7 @@ func TestUpdateNotifyLevel(t *testing.T) {
 	data["notify_level"] = model.CHANNEL_NOTIFY_MENTION
 
 	timeBeforeUpdate := model.GetMillis()
+	time.Sleep(100 * time.Millisecond)
 
 	if _, err := Client.UpdateNotifyLevel(data); err != nil {
 		t.Fatal(err)
