@@ -462,7 +462,7 @@ func TestUserUpdate(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd", LastActivityAt: time1, LastPingAt: time1, Roles: ""}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	<-<-Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	if _, err := Client.UpdateUser(user); err == nil {
 		t.Fatal("Should have errored")

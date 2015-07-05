@@ -20,7 +20,7 @@ func TestCreateChannel(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	<-<-Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
