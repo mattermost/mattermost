@@ -22,8 +22,6 @@ func TestTeamStoreSave(t *testing.T) {
 		t.Fatal("couldn't save item", err)
 	}
 
-	time.Sleep(100 * time.Millisecond)
-
 	if err := (<-store.Team().Save(&o1)).Err; err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
@@ -45,6 +43,8 @@ func TestTeamStoreUpdate(t *testing.T) {
 	if err := (<-store.Team().Save(&o1)).Err; err != nil {
 		t.Fatal(err)
 	}
+
+	time.Sleep(100 * time.Millisecond)
 
 	if err := (<-store.Team().Update(&o1)).Err; err != nil {
 		t.Fatal(err)
