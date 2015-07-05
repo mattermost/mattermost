@@ -6,6 +6,7 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"testing"
+	"time"
 )
 
 func TestChannelStoreSave(t *testing.T) {
@@ -59,6 +60,8 @@ func TestChannelStoreUpdate(t *testing.T) {
 	if err := (<-store.Channel().Save(&o1)).Err; err != nil {
 		t.Fatal(err)
 	}
+
+	time.Sleep(100 * time.Millisecond)
 
 	if err := (<-store.Channel().Update(&o1)).Err; err != nil {
 		t.Fatal(err)
