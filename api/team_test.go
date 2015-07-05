@@ -78,7 +78,7 @@ func TestCreateTeam(t *testing.T) {
 
 	user := &model.User{TeamId: rteam.Data.(*model.Team).Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -115,7 +115,7 @@ func TestFindTeamByEmail(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	if r1, err := Client.FindTeams(user.Email); err != nil {
 		t.Fatal(err)
@@ -143,7 +143,7 @@ func TestFindTeamByDomain(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	if r1, err := Client.FindTeamByDomain(team.Domain, false); err != nil {
 		t.Fatal(err)
@@ -183,7 +183,7 @@ func TestFindTeamByEmailSend(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	if _, err := Client.FindTeamsSendEmail(user.Email); err != nil {
 		t.Fatal(err)
@@ -207,7 +207,7 @@ func TestInviteMembers(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -236,11 +236,11 @@ func TestUpdateTeamName(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 
@@ -338,18 +338,18 @@ func TestUpdateValetFeature(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	team2 := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
 	user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user3.Id)
+	<-Srv.Store.User().VerifyEmail(user3.Id)
 
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 

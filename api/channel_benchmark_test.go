@@ -139,7 +139,7 @@ func BenchmarkJoinChannel(b *testing.B) {
 	// Secondary test user to join channels created by primary test user
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "random@test.com", FullName: "That Guy", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
 	// Benchmark Start

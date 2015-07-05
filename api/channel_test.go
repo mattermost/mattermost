@@ -20,7 +20,7 @@ func TestCreateChannel(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -88,11 +88,11 @@ func TestCreateDirectChannel(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -214,7 +214,7 @@ func TestUpdateChannelDesc(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -257,7 +257,7 @@ func TestUpdateChannelDesc(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 
@@ -276,7 +276,7 @@ func TestGetChannel(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -318,7 +318,7 @@ func TestGetMoreChannel(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	<-Srv.Store.User().VerifyEmail(user1.Id)
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -330,7 +330,7 @@ func TestGetMoreChannel(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 
@@ -362,7 +362,7 @@ func TestJoinChannel(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	<-Srv.Store.User().VerifyEmail(user1.Id)
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -374,7 +374,7 @@ func TestJoinChannel(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 
@@ -406,7 +406,7 @@ func TestLeaveChannel(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	<-Srv.Store.User().VerifyEmail(user1.Id)
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -418,7 +418,7 @@ func TestLeaveChannel(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 
@@ -525,7 +525,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -546,7 +546,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	<-Srv.Store.User().VerifyEmail(user1.Id)
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -555,7 +555,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	<-Srv.Store.User().VerifyEmail(user2.Id)
 
 	if _, err := Client.AddChannelMember(channel1.Id, user2.Id); err != nil {
 		t.Fatal(err)
@@ -674,7 +674,7 @@ func TestUpdateNotifyLevel(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
@@ -755,7 +755,7 @@ func TestFuzzyChannel(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	<-Srv.Store.User().VerifyEmail(user.Id)
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
