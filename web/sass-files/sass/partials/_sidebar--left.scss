@@ -59,7 +59,7 @@
                 color: #999;
                 &.unread-title {
                     color: #333;
-                    font-weight: bold;
+                    font-weight: 600;
                 }
                 &:hover, &:focus {
                     background: #e6f2fa;
@@ -70,6 +70,7 @@
                     color: #111;
                     background-color: #e1e1e1;
                     border-radius: 0;
+                    font-weight: 400;
                 }
             }
         }

@@ -35,9 +35,18 @@ module.exports = React.createClass({
                       <h4 className="modal-title" id="myModalLabel">{channel.display_name}</h4>
                     </div>
                     <div className="modal-body">
-                      <p><strong>Channel Name: </strong>{channel.display_name}</p>
-                      <p><strong>Channel Handle: </strong>{channel.name}</p>
-                      <p><strong>Channel ID: </strong>{channel.id}</p>
+                      <div className="row form-group">
+                        <div className="col-sm-3 info__label">Channel Name: </div>
+                        <div className="col-sm-9">{channel.display_name}</div>
+                      </div>
+                      <div className="row form-group">
+                        <div className="col-sm-3 info__label">Channel Handle:</div>
+                        <div className="col-sm-9">{channel.name}</div>
+                      </div>
+                      <div className="row">
+                        <div className="col-sm-3 info__label">Channel ID:</div>
+                        <div className="col-sm-9">{channel.id}</div>
+                      </div>
                     </div>
                     <div className="modal-footer">
                       <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>

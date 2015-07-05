@@ -6,13 +6,14 @@ var PostBody = require('./post_body.jsx');
 var PostInfo = require('./post_info.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
+var UserStore = require('../stores/user_store.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 module.exports = React.createClass({
     componentDidMount: function() {
-        $('.edit-modal').on('show.bs.modal', function () {
-            $('.edit-modal .edit-modal-body').css('overflow-y', 'auto');
-            $('.edit-modal .edit-modal-body').css('max-height', $(window).height() * 0.7);
+        $('.modal').on('show.bs.modal', function () {
+            $('.modal-body').css('overflow-y', 'auto');
+            $('.modal-body').css('max-height', $(window).height() * 0.7);
         });
     },
     handleCommentClick: function(e) {
@@ -56,7 +57,7 @@ module.exports = React.createClass({
 
         var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
 
-        if(this.props.sameRoot){
+        if (this.props.sameRoot){
             rootUser = "same--root";
         }
         else {
@@ -64,13 +65,18 @@ module.exports = React.createClass({
         }
 
         var postType = "";
-        if(type != "Post"){
+        if (type != "Post"){
             postType = "post--comment";
+        }
+
+        var currentUserCss = "";
+        if (UserStore.getCurrentId() === post.user_id) {
+            currentUserCss = "current--user";
         }
 
         return (
             <div>
-                <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType}>
+                <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType + " " + currentUserCss}>
                     { !this.props.hideProfilePic ?
                     <div className="post-profile-img__container">
                         <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image"} height="36" width="36" />

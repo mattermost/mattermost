@@ -15,17 +15,8 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-function getExtraInfoStateFromStores() {
-  return {
-    extra_info: ChannelStore.getCurrentExtraInfo()
-  };
-}
-
 var ExtraMembers = React.createClass({
     componentDidMount: function() {
-        ChannelStore.addExtraInfoChangeListener(this._onChange);
-        ChannelStore.addChangeListener(this._onChange);
-
         var originalLeave = $.fn.popover.Constructor.prototype.leave;
         $.fn.popover.Constructor.prototype.leave = function(obj) {
             var self = obj instanceof this.constructor ? obj : $(obj.currentTarget)[this.type](this.getDelegateOptions()).data('bs.' + this.type);
@@ -49,27 +40,21 @@ var ExtraMembers = React.createClass({
         });
 
     },
-    componentWillUnmount: function() {
-        ChannelStore.removeExtraInfoChangeListener(this._onChange);
-        ChannelStore.removeChangeListener(this._onChange);
-    },
-    _onChange: function() {
-        var newState = getExtraInfoStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
-            this.setState(newState);
-        }
-    },
-    getInitialState: function() {
-        return getExtraInfoStateFromStores();
-    },
     render: function() {
-        var count = this.state.extra_info.members.length == 0 ? "-" : this.state.extra_info.members.length;
-        count = this.state.extra_info.members.length > 19 ? "20+" : count;
+        var count = this.props.members.length == 0 ? "-" : this.props.members.length;
+        count = this.props.members.length > 19 ? "20+" : count;
         var data_content = "";
+        var sortedMembers = this.props.members;
 
-        this.state.extra_info.members.forEach(function(m) {
-            data_content += "<div style='white-space: nowrap'>" + m.username + "</div>";
-        });
+        if(sortedMembers) {
+            sortedMembers.sort(function(a,b) {
+                return a.username.localeCompare(b.username);
+            })
+
+            sortedMembers.forEach(function(m) {
+                data_content += "<div style='white-space: nowrap'>" + m.username + "</div>";
+            });
+        }
 
         return (
             <div style={{"cursor" : "pointer"}} id="member_popover" data-toggle="popover" data-content={data_content} data-original-title="Members" >
@@ -228,7 +213,7 @@ module.exports = React.createClass({
                         <a href="#"><strong className="heading">{channelTitle}</strong></a>
                     }
                     </th>
-                    <th><ExtraMembers channelId={this.state.channel.id} /></th>
+                    <th><ExtraMembers members={this.state.users} channelId={this.state.channel.id} /></th>
                     { searchForm }
                     <th>
                         <div className="dropdown" style={{"marginLeft":"5px", "marginRight":"10px"}}>

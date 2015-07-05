@@ -35,8 +35,15 @@ func TestCreateChannel(t *testing.T) {
 	}
 
 	rget := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
-	if rget.Channels[0].Name != channel.Name {
-		t.Fatal("full name didn't match")
+	nameMatch := false
+	for _, c := range rget.Channels {
+		if c.Name == channel.Name {
+			nameMatch = true
+		}
+	}
+
+	if !nameMatch {
+		t.Fatal("Did not create channel with correct name")
 	}
 
 	if _, err := Client.CreateChannel(rchannel.Data.(*model.Channel)); err == nil {
@@ -679,6 +686,8 @@ func TestUpdateNotifyLevel(t *testing.T) {
 	data["user_id"] = user.Id
 	data["notify_level"] = model.CHANNEL_NOTIFY_MENTION
 
+	timeBeforeUpdate := model.GetMillis()
+
 	if _, err := Client.UpdateNotifyLevel(data); err != nil {
 		t.Fatal(err)
 	}
@@ -687,6 +696,10 @@ func TestUpdateNotifyLevel(t *testing.T) {
 	rdata := rget.Data.(*model.ChannelList)
 	if len(rdata.Members) == 0 || rdata.Members[channel1.Id].NotifyLevel != data["notify_level"] {
 		t.Fatal("NotifyLevel did not update properly")
+	}
+
+	if rdata.Members[channel1.Id].LastUpdateAt <= timeBeforeUpdate {
+		t.Fatal("LastUpdateAt did not update")
 	}
 
 	data["user_id"] = "junk"
@@ -735,7 +748,7 @@ func TestUpdateNotifyLevel(t *testing.T) {
 }
 
 func TestFuzzyChannel(t *testing.T) {
-	Setup();
+	Setup()
 
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
@@ -747,9 +760,9 @@ func TestFuzzyChannel(t *testing.T) {
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 
 	// Strings that should pass as acceptable channel names
-	var fuzzyStringsPass = []string { 
+	var fuzzyStringsPass = []string{
 		"*", "?", ".", "}{][)(><", "{}[]()<>",
-		
+
 		"qahwah ( قهوة)",
 		"שָׁלוֹם עֲלֵיכֶם",
 		"Ramen チャーシュー chāshū",

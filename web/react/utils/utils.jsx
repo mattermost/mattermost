@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+var ChannelStore = require('../stores/channel_store.jsx')
 var UserStore = require('../stores/user_store.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -395,14 +396,10 @@ module.exports.textToJsx = function(text, options) {
 
     var inner = [];
 
-    // Function specific regexes
-    var hashRegex = /^href="#[^"]+"|(#[A-Za-z]+[A-Za-z0-9_]*[A-Za-z0-9])$/g;
+    // Function specific regex
+    var hashRegex = /^href="#[^"]+"|(#[A-Za-z]+[A-Za-z0-9_\-]*[A-Za-z0-9])$/g;
 
-    var implicitKeywords = {};
-    var keywordArray = UserStore.getCurrentMentionKeys();
-    for (var i = 0; i < keywordArray.length; i++) {
-        implicitKeywords[keywordArray[i]] = true;
-    }
+    var implicitKeywords = UserStore.getCurrentMentionKeys();
 
     var lines = text.split("\n");
     var urlMatcher = new LinkifyIt();
@@ -421,10 +418,13 @@ module.exports.textToJsx = function(text, options) {
                 highlightSearchClass = " search-highlight";
             }
 
-            if (explicitMention && UserStore.getProfileByUsername(explicitMention[1])) {
+            if (explicitMention &&
+                (UserStore.getProfileByUsername(explicitMention[1]) ||
+                Constants.SPECIAL_MENTIONS.indexOf(explicitMention[1]) !== -1))
+            {
                 var name = explicitMention[1];
                 // do both a non-case sensitive and case senstive check
-                var mClass = (name.toLowerCase() in implicitKeywords || name in implicitKeywords) ? mentionClass : "";
+                var mClass = implicitKeywords.indexOf('@'+name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@'+name) !== -1 ? mentionClass : "";
 
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
@@ -446,7 +446,7 @@ module.exports.textToJsx = function(text, options) {
             } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
-                var mClass = trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords ? mentionClass : "";
+                var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
@@ -454,7 +454,7 @@ module.exports.textToJsx = function(text, options) {
 
                 inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
-            } else if (trimWord in implicitKeywords || trimWord.toLowerCase() in implicitKeywords) {
+            } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
 
@@ -725,6 +725,25 @@ module.exports.isComment = function(post) {
         return post.root_id != "";
     }
     return false;
+}
+
+module.exports.getDirectTeammate = function(channel_id) {
+    var userIds = ChannelStore.get(channel_id).name.split('__');
+    var curUserId = UserStore.getCurrentId();
+    var teammate = {};
+
+    if(userIds.length != 2 || userIds.indexOf(curUserId) === -1) {
+        return teammate;
+    }
+
+    for (var idx in userIds) {
+        if(userIds[idx] !== curUserId) {
+            teammate = UserStore.getProfile(userIds[idx]);
+            break;
+        }
+    }
+
+    return teammate;
 }
 
 Image.prototype.load = function(url, progressCallback) {

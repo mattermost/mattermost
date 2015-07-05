@@ -12,18 +12,18 @@ module.exports = React.createClass({
 
         this.props.onUploadError(null);
 
-        //This looks redundant, but must be done this way due to
-        //setState being an asynchronous call
+        // This looks redundant, but must be done this way due to
+        // setState being an asynchronous call
         var numFiles = 0;
-        for(var i = 0; i < files.length && i <= 20 ; i++) {
+        for(var i = 0; i < files.length && i < Constants.MAX_UPLOAD_FILES; i++) {
             if (files[i].size <= Constants.MAX_FILE_SIZE) {
                 numFiles++;
             }
         }
 
-        this.props.setUploads(numFiles);
+        var numToUpload = this.props.setUploads(numFiles);
 
-        for (var i = 0; i < files.length && i <= 20; i++) {
+        for (var i = 0; i < files.length && i < numToUpload; i++) {
             if (files[i].size > Constants.MAX_FILE_SIZE) {
                 this.props.onUploadError("Files must be no more than " + Constants.MAX_FILE_SIZE/1000000 + " MB");
                 continue;
@@ -70,8 +70,8 @@ module.exports = React.createClass({
 
             self.props.onUploadError(null);
 
-            //This looks redundant, but must be done this way due to
-            //setState being an asynchronous call
+            // This looks redundant, but must be done this way due to
+            // setState being an asynchronous call
             var items = e.clipboardData.items;
             var numItems = 0;
             if (items) {
@@ -87,9 +87,9 @@ module.exports = React.createClass({
                     }
                 }
 
-                self.props.setUploads(numItems);
+                var numToUpload = self.props.setUploads(numItems);
 
-                for (var i = 0; i < items.length; i++) {
+                for (var i = 0; i < items.length && i < numToUpload; i++) {
                     if (items[i].type.indexOf("image") !== -1) {
                         var file = items[i].getAsFile();
 

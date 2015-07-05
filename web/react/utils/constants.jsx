@@ -36,6 +36,7 @@ module.exports = {
     SERVER_ACTION: null,
     VIEW_ACTION: null
   }),
+  SPECIAL_MENTIONS: ['all', 'channel'],
   CHARACTER_LIMIT: 4000,
   IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png'],
   AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac'],
@@ -48,8 +49,10 @@ module.exports = {
   PATCH_TYPES: ['patch'],
   ICON_FROM_TYPE: {'audio': 'audio', 'video': 'video', 'spreadsheet': 'ppt', 'pdf': 'pdf', 'code': 'code' , 'word': 'word' , 'excel': 'excel' , 'patch': 'patch', 'other': 'generic'},
   MAX_DISPLAY_FILES: 5,
+  MAX_UPLOAD_FILES: 5,
   MAX_FILE_SIZE: 50000000, // 50 MB
   DEFAULT_CHANNEL: 'town-square',
+  OFFTOPIC_CHANNEL: 'off-topic',
   POST_CHUNK_SIZE: 60,
   RESERVED_DOMAINS: [
     "www",

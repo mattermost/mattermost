@@ -7,6 +7,9 @@ import (
 	l4g "code.google.com/p/log4go"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
+	"crypto/sha256"
+	"crypto/sha512"
 	crand "crypto/rand"
 	dbsql "database/sql"
 	"encoding/base64"
@@ -327,20 +330,26 @@ func encrypt(key []byte, text string) (string, error) {
 	}
 
 	plaintext := []byte(text)
+	skey := sha512.Sum512(key)
+	ekey, akey := skey[:32], skey[32:]
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(ekey)
 	if err != nil {
 		return "", err
 	}
 
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	macfn := hmac.New(sha256.New, akey)
+	ciphertext := make([]byte, aes.BlockSize+macfn.Size()+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(crand.Reader, iv); err != nil {
 		return "", err
 	}
 
 	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+	stream.XORKeyStream(ciphertext[aes.BlockSize+macfn.Size():], plaintext)
+	macfn.Write(ciphertext[aes.BlockSize+macfn.Size():])
+	mac := macfn.Sum(nil)
+	copy(ciphertext[aes.BlockSize:aes.BlockSize+macfn.Size()], mac)
 
 	return base64.URLEncoding.EncodeToString(ciphertext), nil
 }
@@ -351,9 +360,26 @@ func decrypt(key []byte, cryptoText string) (string, error) {
 		return "{}", nil
 	}
 
-	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
+	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
+	if err != nil {
+	       return "", err
+	}
 
-	block, err := aes.NewCipher(key)
+	skey := sha512.Sum512(key)
+	ekey, akey := skey[:32], skey[32:]
+	macfn := hmac.New(sha256.New, akey)
+	if len(ciphertext) < aes.BlockSize+macfn.Size() {
+	       return "", errors.New("short ciphertext")
+	}
+
+	macfn.Write(ciphertext[aes.BlockSize+macfn.Size():])
+	expectedMac := macfn.Sum(nil)
+	mac := ciphertext[aes.BlockSize:aes.BlockSize+macfn.Size()]
+	if hmac.Equal(expectedMac, mac) != true {
+	       return "", errors.New("Incorrect MAC for the given ciphertext")
+	}
+
+	block, err := aes.NewCipher(ekey)
 	if err != nil {
 		return "", err
 	}
@@ -362,7 +388,7 @@ func decrypt(key []byte, cryptoText string) (string, error) {
 		return "", errors.New("ciphertext too short")
 	}
 	iv := ciphertext[:aes.BlockSize]
-	ciphertext = ciphertext[aes.BlockSize:]
+	ciphertext = ciphertext[aes.BlockSize+macfn.Size():]
 
 	stream := cipher.NewCFBDecrypter(block, iv)
 

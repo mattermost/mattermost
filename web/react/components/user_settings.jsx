@@ -20,11 +20,10 @@ function getNotificationsStateFromStores() {
     var mention_key = false;
     var custom_keys = "";
     var first_name_key = false;
+    var all_key = false;
+    var channel_key = false;
 
-    if (!user.notify_props) {
-        mention_keys = user.username;
-        if (user.full_name.length > 0) mention_keys += ","+ user.full_name.split(" ")[0];
-    } else {
+    if (user.notify_props) {
         if (user.notify_props.mention_keys !== undefined) {
             var keys = user.notify_props.mention_keys.split(',');
 
@@ -48,9 +47,17 @@ function getNotificationsStateFromStores() {
         if (user.notify_props.first_name !== undefined) {
             first_name_key = user.notify_props.first_name === "true";
         }
+
+        if (user.notify_props.all !== undefined) {
+            all_key = user.notify_props.all === "true";
+        }
+
+        if (user.notify_props.channel !== undefined) {
+            channel_key = user.notify_props.channel === "true";
+        }
     }
 
-    return { notify_level: desktop, enable_email: email, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key };
+    return { notify_level: desktop, enable_email: email, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key, all_key: all_key, channel_key: channel_key };
 }
 
 
@@ -73,6 +80,8 @@ var NotificationsTab = React.createClass({
 
         data["mention_keys"] = string_keys;
         data["first_name"] = this.state.first_name_key ? "true" : "false";
+        data["all"] = this.state.all_key ? "true" : "false";
+        data["channel"] = this.state.channel_key ? "true" : "false";
 
         client.updateUserNotifyProps(data,
             function(data) {
@@ -120,6 +129,12 @@ var NotificationsTab = React.createClass({
     updateFirstNameKey: function(val) {
         this.setState({ first_name_key: val });
     },
+    updateAllKey: function(val) {
+        this.setState({ all_key: val });
+    },
+    updateChannelKey: function(val) {
+        this.setState({ channel_key: val });
+    },
     updateCustomMentionKeys: function() {
         var checked = this.refs.customcheck.getDOMNode().checked;
 
@@ -155,7 +170,7 @@ var NotificationsTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="radio">
                         <label>
                             <input type="radio" checked={notifyActive[0]} onClick={function(){self.handleNotifyRadio("all")}}>For all activity</input>
@@ -164,7 +179,7 @@ var NotificationsTab = React.createClass({
                     </div>
                     <div className="radio">
                         <label>
-                            <input type="radio" checked={notifyActive[1]} onClick={function(){self.handleNotifyRadio("mention")}}>Only for mentions and direct messages</input>
+                            <input type="radio" checked={notifyActive[1]} onClick={function(){self.handleNotifyRadio("mention")}}>Only for mentions and private messages</input>
                         </label>
                         <br/>
                     </div>
@@ -188,7 +203,7 @@ var NotificationsTab = React.createClass({
         } else {
             var describe = "";
             if (this.state.notify_level === "mention") {
-                describe = "Only for mentions and direct messages";
+                describe = "Only for mentions and private messages";
             } else if (this.state.notify_level === "none") {
                 describe = "Never";
             } else {
@@ -216,7 +231,7 @@ var NotificationsTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="btn-group" data-toggle="buttons-radio">
                         <button className={"btn btn-default "+soundActive[0]} onClick={function(){self.handleSoundRadio("true")}}>On</button>
                         <button className={"btn btn-default "+soundActive[1]} onClick={function(){self.handleSoundRadio("false")}}>Off</button>
@@ -262,12 +277,12 @@ var NotificationsTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="btn-group" data-toggle="buttons-radio">
                         <button className={"btn btn-default "+emailActive[0]} onClick={function(){self.handleEmailRadio("true")}}>On</button>
                         <button className={"btn btn-default "+emailActive[1]} onClick={function(){self.handleEmailRadio("false")}}>Off</button>
                     </div>
-                    <div><br/>{"Email notifications are sent for mentions and direct messages after you have been away from " + config.SiteName + " for 5 minutes."}</div>
+                    <div><br/>{"Email notifications are sent for mentions and private messages after you have been away from " + config.SiteName + " for 5 minutes."}</div>
                 </div>
             );
 
@@ -309,7 +324,7 @@ var NotificationsTab = React.createClass({
 
             if (first_name != "") {
                 inputs.push(
-                    <div className="col-sm-12">
+                    <div>
                         <div className="checkbox">
                             <label>
                                 <input type="checkbox" checked={this.state.first_name_key} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + first_name + '"'}</input>
@@ -320,7 +335,7 @@ var NotificationsTab = React.createClass({
             }
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="checkbox">
                         <label>
                             <input type="checkbox" checked={this.state.username_key} onChange={function(e){self.updateUsernameKey(e.target.checked);}}>{'Your non-case sensitive username "' + user.username + '"'}</input>
@@ -330,7 +345,7 @@ var NotificationsTab = React.createClass({
             );
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="checkbox">
                         <label>
                             <input type="checkbox" checked={this.state.mention_key} onChange={function(e){self.updateMentionKey(e.target.checked);}}>{'Your username mentioned "@' + user.username + '"'}</input>
@@ -340,7 +355,27 @@ var NotificationsTab = React.createClass({
             );
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
+                    <div className="checkbox">
+                        <label>
+                            <input type="checkbox" checked={this.state.all_key} onChange={function(e){self.updateAllKey(e.target.checked);}}>{'Team-wide mentions "@all"'}</input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            inputs.push(
+                <div>
+                    <div className="checkbox">
+                        <label>
+                            <input type="checkbox" checked={this.state.channel_key} onChange={function(e){self.updateChannelKey(e.target.checked);}}>{'Channel-wide mentions "@channel"'}</input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            inputs.push(
+                <div>
                     <div className="checkbox">
                         <label>
                             <input ref="customcheck" type="checkbox" checked={this.state.custom_keys_checked} onChange={this.updateCustomMentionKeys}>{'Other non-case sensitive words, separated by commas:'}</input>
@@ -369,6 +404,8 @@ var NotificationsTab = React.createClass({
             }
             if (this.state.username_key) keys.push(this.props.user.username);
             if (this.state.mention_key) keys.push('@'+this.props.user.username);
+            if (this.state.all_key) keys.push('@all');
+            if (this.state.channel_key) keys.push('@channel');
             if (this.state.custom_keys.length > 0) keys = keys.concat(this.state.custom_keys.split(','));
 
             var describe = "";
@@ -622,7 +659,7 @@ var SecurityTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Current Password</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
@@ -630,7 +667,7 @@ var SecurityTab = React.createClass({
                 </div>
             );
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">New Password</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
@@ -638,7 +675,7 @@ var SecurityTab = React.createClass({
                 </div>
             );
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Retype New Password</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
@@ -772,6 +809,11 @@ var GeneralTab = React.createClass({
 
         if(!this.submitActive) return;
 
+        if(this.state.picture.type !== "image/jpeg") {
+            this.setState({client_error: "Only JPG images may be used for profile pictures"});
+            return;
+        }
+
         formData = new FormData();
         formData.append('image', this.state.picture, this.state.picture.name);
 
@@ -802,11 +844,13 @@ var GeneralTab = React.createClass({
     updatePicture: function(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({ picture: e.target.files[0] });
+
+            this.submitActive = true;
+            this.setState({client_error:null})
+
         } else {
             this.setState({ picture: null });
         }
-
-        this.submitActive = true
     },
     updateSection: function(section) {
         this.setState({client_error:""})
@@ -837,7 +881,7 @@ var GeneralTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">First Name</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateFirstName} value={this.state.first_name}/>
@@ -846,7 +890,7 @@ var GeneralTab = React.createClass({
             );
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Last Name</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateLastName} value={this.state.last_name}/>
@@ -879,7 +923,7 @@ var GeneralTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">{utils.isMobile() ? "": "Username"}</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateUsername} value={this.state.username}/>
@@ -911,7 +955,7 @@ var GeneralTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div className="form-group">
                     <label className="col-sm-5 control-label">Primary Email</label>
                     <div className="col-sm-7">
                         <input className="form-control" type="text" onChange={this.updateEmail} value={this.state.email}/>
@@ -947,7 +991,7 @@ var GeneralTab = React.createClass({
                     submit={this.submitPicture}
                     src={"/api/v1/users/" + user.id + "/image"}
                     server_error={server_error}
-                    client_error={email_error}
+                    client_error={client_error}
                     updateSection={function(e){self.updateSection("");e.preventDefault();}}
                     picture={this.state.picture}
                     pictureChange={this.updatePicture}
@@ -1048,7 +1092,7 @@ var AppearanceTab = React.createClass({
                 var inputs = [];
 
                 inputs.push(
-                    <li className="row setting-list-item form-group">
+                    <li className="setting-list-item">
                         <div className="btn-group" data-toggle="buttons-radio">
                             { theme_buttons }
                         </div>

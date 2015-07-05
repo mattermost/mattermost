@@ -176,21 +176,16 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	} else {
 		ruser := result.Data.(*model.User)
 
-		// Do not error if user cannot be added to the town-square channel
-		if cresult := <-Srv.Store.Channel().GetByName(team.Id, "town-square"); cresult.Err != nil {
-			l4g.Error("Failed to get town-square err=%v", cresult.Err)
-		} else {
-			cm := &model.ChannelMember{ChannelId: cresult.Data.(*model.Channel).Id, UserId: ruser.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
-			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
-				l4g.Error("Failed to add member town-square err=%v", cmresult.Err)
-			}
+		// Soft error if there is an issue joining the default channels
+		if err := JoinDefaultChannels(c, ruser, channelRole); err != nil {
+			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
 		//fireAndForgetWelcomeEmail(strings.Split(ruser.FullName, " ")[0], ruser.Email, team.Name, c.TeamUrl+"/channels/town-square")
 
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-				l4g.Error("Failed to get town-square err=%v", cresult.Err)
+				l4g.Error("Failed to set email verified err=%v", cresult.Err)
 			}
 		} else {
 			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, strings.Split(ruser.FullName, " ")[0], ruser.Email, team.Name, c.TeamUrl)
@@ -198,7 +193,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 		ruser.Sanitize(map[string]bool{})
 
-		//This message goes to every channel, so the channelId is irrelevant
+		// This message goes to every channel, so the channelId is irrelevant
 		message := model.NewMessage(team.Id, "", ruser.Id, model.ACTION_NEW_USER)
 
 		store.PublishAndForget(message)

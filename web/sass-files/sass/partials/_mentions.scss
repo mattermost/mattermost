@@ -3,21 +3,19 @@
 	background: $primary-color;
 	position: relative;
 	z-index: 10;
-	padding-bottom: 1px;
+	padding-bottom: 2px;
 	@include border-radius(3px);
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
 }
 
 .mentions--top {
 	position: absolute;
-    z-index:99999;
+	z-index: 1060;
 	.mentions-box {
 		position:absolute;
 		background-color:#fff;
-		border:1px solid #ddd;
-        overflow:scroll;
+		border: $border-gray;
+        overflow-x: hidden;
+        overflow-y: scroll;
         bottom:0;
 	}
 }
@@ -29,10 +27,10 @@
 	height:37px;
 	padding:2px;
 	z-index:101;
-}
-
-.mentions-name:hover {
-	background-color:#e8eaed;
+    cursor: pointer;
+    &:hover {
+        background-color:#e8eaed;
+    }
 }
 
 .mentions-text {
@@ -46,10 +44,20 @@
 	border-radius: 10%;
 }
 
+.mention-fullname {
+    color: grey;
+    padding-left: 10px;
+}
+
 .mention-highlight {
 	background-color:#fff2bb;
 }
 
 .mention-link {
 	color:$primary-color;
+}
+
+.mention-align {
+	position:relative;
+	top:5px;
 }

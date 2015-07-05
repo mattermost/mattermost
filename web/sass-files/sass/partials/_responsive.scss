@@ -5,7 +5,7 @@
                 &.post--comment {
                     &.other--root {
                         .post-comment {
-                            margin-left: 0;
+                            margin-left: -7px;
                         }
                     }
                 }
@@ -22,10 +22,15 @@
                         width: 825px;
                     }
                     .post-body {
-                        padding-left: 0;
+                        width: 736px;
                         border: none;
                         margin: 0;
                     }
+                }
+                .post-body {
+                    float: none;
+                    width: 750px;
+                    margin: 0;
                 }
                 .post__content {
                     width: 920px;
@@ -63,10 +68,6 @@
                         }
                     }
                 }
-                .post-body {
-                    float: none;
-                    width: 750px;
-                }
             }
         }
     }
@@ -81,7 +82,7 @@
         &.post--comment {
             &.other--root {
                 .post-comment {
-                    margin-left: 0;
+                    margin-left: -7px;
                 }
             }
         }
@@ -89,6 +90,7 @@
             margin-left: 60px;
             padding-left: 10px;
             border-left: 4px solid #EEE;
+            margin-bottom: 10px;
             div.post-profile-img__container {
                 .post-profile-img {
                     display: none;
@@ -98,7 +100,7 @@
                 width: 825px;
             }
             .post-body {
-                padding-left: 0;
+                width: 736px;
                 border: none;
                 margin: 0;
             }
@@ -135,6 +137,7 @@
             }
         }
         .post-body {
+            margin: 0;
             float: none;
             width: 750px;
         }
@@ -231,16 +234,13 @@
         }
     }
     .modal {
+        .info__label {
+            text-align: left;
+            padding-bottom: 5px;
+        }
         .modal-header {
-            padding-left: 20px;
-            padding-right: 20px;
             .modal-action {
                 margin-top: 10px;
-            }
-            button.close {
-                width: 35px;
-                height: 32px;
-                margin: -5px -10px 0;
             }
             .modal-title {
                 float: none;
@@ -261,9 +261,11 @@
             .settings-table {
                 display: block;
                 .settings-content {
-                    display: block;
-                    .section-edit {
-                        text-align: left;
+                    &.minimize-settings {
+                        display: block;
+                        .section-edit {
+                            text-align: left;
+                        }
                     }
                 }
                 .settings-links {
@@ -287,10 +289,12 @@
         }
         .settings-table {
             .settings-content {
-                padding: 0;
-                display: none;
-                .user-settings {
-                    padding: 70px 20px 30px;
+                &.minimize-settings {
+                    padding: 0;
+                    display: none;
+                    .user-settings {
+                        padding: 70px 20px 30px;
+                    }
                 }
             }
             .settings-links {
@@ -538,7 +542,6 @@
     .modal {
         .modal-image {
             .image-wrapper {
-                padding-bottom: 40px;
                 .modal-close {
                     @include opacity(1);
                 }
@@ -575,7 +578,7 @@
         &.post--comment {
             &.other--root {
                 .post-comment {
-                    margin-left: 11px;
+                    margin-left: 4px;
                 }
             }
         }

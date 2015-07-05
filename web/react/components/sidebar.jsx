@@ -269,13 +269,8 @@ var SidebarLoggedIn = React.createClass({
         var channel = ChannelStore.getCurrent();
         if (channel) {
             if (channel.type === 'D') {
-                userIds = channel.name.split('__');
-                if (userIds.length < 2) return;
-                if (userIds[0] == UserStore.getCurrentId() && UserStore.getProfile(userIds[1])) {
-                    document.title = UserStore.getProfile(userIds[1]).username + " " + document.title.substring(document.title.lastIndexOf("-"));
-                } else if (userIds[1] == UserStore.getCurrentId() && UserStore.getProfile(userIds[0])) {
-                    document.title = UserStore.getProfile(userIds[0]).username + " " + document.title.substring(document.title.lastIndexOf("-"));
-                }
+                var teammate_username = utils.getDirectTeammate(channel.id).username
+                document.title = teammate_username + " " + document.title.substring(document.title.lastIndexOf("-"));
             } else {
                 document.title = channel.display_name + " " + document.title.substring(document.title.lastIndexOf("-"))
             }
@@ -414,7 +409,7 @@ var SidebarLoggedIn = React.createClass({
                         {privateChannelItems}
                     </ul>
                     <ul className="nav nav-pills nav-stacked">
-                        <li><h4>Direct Messages</h4></li>
+                        <li><h4>Private Messages</h4></li>
                         {directMessageItems}
                         { this.state.hideDirectChannels.length > 0 ?
                             <li><a href="#" data-toggle="modal" className="nav-more" data-target="#more_direct_channels" data-channels={JSON.stringify(this.state.hideDirectChannels)}>{"More ("+this.state.hideDirectChannels.length+")"}</a></li>

@@ -164,7 +164,9 @@ TeamUrlPage = React.createClass({
         }
 
         var cleaned_name = utils.cleanUpUrlable(name);
-        if (cleaned_name != name) {
+
+        var urlRegex = /^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
+        if (cleaned_name != name || !urlRegex.test(name)) {
             this.setState({name_error: "Must be lowercase alphanumeric characters"});
             return;
         }
@@ -337,7 +339,7 @@ EmailItem = React.createClass({
             return false;
         }
         else if (email === teamEmail) {
-            this.state.email_error = "Please use an a different email than the one used at signup";
+            this.state.email_error = "Please use a different email than the one used at signup";
             this.setState(this.state);
             return false;
         }

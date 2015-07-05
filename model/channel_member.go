@@ -25,6 +25,7 @@ type ChannelMember struct {
 	MsgCount     int64  `json:"msg_count"`
 	MentionCount int64  `json:"mention_count"`
 	NotifyLevel  string `json:"notify_level"`
+	LastUpdateAt int64  `json:"last_update_at"`
 }
 
 func (o *ChannelMember) ToJson() string {
@@ -68,6 +69,10 @@ func (o *ChannelMember) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (o *ChannelMember) PreSave() {
+	o.LastUpdateAt = GetMillis()
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {

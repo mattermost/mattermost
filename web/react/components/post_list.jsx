@@ -295,7 +295,7 @@ module.exports = React.createClass({
     },
     render: function() {
         var order = [];
-        var posts = {};
+        var posts;
 
         var last_viewed = Number.MAX_VALUE;
 
@@ -324,13 +324,7 @@ module.exports = React.createClass({
             if (order.length > 0 && order.length % Constants.POST_CHUNK_SIZE === 0) {
                 more_messages = <a ref="loadmore" className="more-messages-text theme" href="#" onClick={this.getMorePosts}>Load more messages</a>;
             } else if (channel.type === 'D') {
-                var userIds = channel.name.split('__');
-                var teammate;
-                if (userIds.length === 2 && userIds[0] === user_id) {
-                    teammate = UserStore.getProfile(userIds[1]);
-                } else if (userIds.length === 2 && userIds[1] === user_id) {
-                    teammate = UserStore.getProfile(userIds[0]);
-                }
+                var teammate = utils.getDirectTeammate(channel.id)
 
                 if (teammate) {
                     var teammate_name = teammate.full_name.length > 0 ? teammate.full_name : teammate.username;
@@ -342,13 +336,13 @@ module.exports = React.createClass({
                             <div className="channel-intro-profile">
                                 <strong><UserProfile userId={teammate.id} /></strong>
                             </div>
-                            <p className="channel-intro-text">{"This is the start of your direct message history with " + teammate_name + "." }<br/>{"Direct messages and files shared here are not shown to people outside this area."}</p>
+                            <p className="channel-intro-text">{"This is the start of your private message history with " + teammate_name + "." }<br/>{"Private messages and files shared here are not shown to people outside this area."}</p>
                         </div>
                     );
                 } else {
                     more_messages = (
                         <div className="channel-intro">
-                            <p className="channel-intro-text">{"This is the start of your direct message history with this " + strings.Team + "mate. Direct messages and files shared here are not shown to people outside this area."}</p>
+                            <p className="channel-intro-text">{"This is the start of your private message history with this " + strings.Team + "mate. Private messages and files shared here are not shown to people outside this area."}</p>
                         </div>
                     );
                 }
@@ -356,6 +350,7 @@ module.exports = React.createClass({
                 var ui_name = channel.display_name
                 var members = ChannelStore.getCurrentExtraInfo().members;
                 var creator_name = "";
+                var userStyle = { color: UserStore.getCurrentUser().props.theme }
 
                 for (var i = 0; i < members.length; i++) {
                     if (members[i].roles.indexOf('admin') > -1) {
@@ -382,8 +377,18 @@ module.exports = React.createClass({
                             </p>
                         </div>
                     );
+                } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
+                    more_messages = (
+                        <div className="channel-intro">
+                            <h4 className="channel-intro-title">Welcome</h4>
+                            <p>
+                                {"This is the start of " + ui_name + ", a channel for conversations you’d prefer out of more focused channels."}
+                                <br/>
+                                <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={ui_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
+                            </p>
+                        </div>
+                    );
                 } else {
-                    var userStyle = { color: UserStore.getCurrentUser().props.theme }
                     var ui_type = channel.type === 'P' ? "private group" : "channel";
                     more_messages = (
                         <div className="channel-intro">
@@ -403,55 +408,70 @@ module.exports = React.createClass({
         }
 
         var postCtls = [];
-        var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
-        var currentPostDay = new Date();
 
-        for (var i = order.length-1; i >= 0; i--) {
-            var post = posts[order[i]];
-            var parentPost;
+        if (posts != undefined) {
+            var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
+            var currentPostDay = new Date();
 
-            if (post.parent_id) {
-                parentPost = posts[post.parent_id];
-            } else {
-                parentPost = null;
+            for (var i = order.length-1; i >= 0; i--) {
+                var post = posts[order[i]];
+                var parentPost;
+
+                if (post.parent_id) {
+                    parentPost = posts[post.parent_id];
+                } else {
+                    parentPost = null;
+                }
+
+                var sameUser = i < order.length-1 && posts[order[i+1]].user_id === post.user_id  && post.create_at - posts[order[i+1]].create_at <= 1000*60*5 ? "same--user" : "";
+                var sameRoot = i < order.length-1 && post.root_id != "" && (posts[order[i+1]].id === post.root_id || posts[order[i+1]].root_id === post.root_id) ? true : false;
+
+                // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
+                var hideProfilePic = i < order.length-1 && posts[order[i+1]].user_id === post.user_id && posts[order[i+1]].root_id === '' && post.root_id === '';
+
+                // check if it's the last comment in a consecutive string of comments on the same post
+                var isLastComment = false;
+                if (utils.isComment(post)) {
+                    // it is the last comment if it is last post in the channel or the next post has a different root post
+                    isLastComment = (i === 0 || posts[order[i-1]].root_id != post.root_id);
+                }
+
+                var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+
+                currentPostDay = utils.getDateForUnixTicks(post.create_at);
+                if(currentPostDay.getDate() !== previousPostDay.getDate() || currentPostDay.getMonth() !== previousPostDay.getMonth() || currentPostDay.getFullYear() !== previousPostDay.getFullYear()) {
+                    postCtls.push(
+                        <div className="date-separator">
+                            <hr className="separator__hr" />
+                            <div className="separator__text">{currentPostDay.toDateString()}</div>
+                        </div>
+                    );
+                }
+
+                if (post.create_at > last_viewed && !rendered_last_viewed) {
+                    rendered_last_viewed = true;
+                    postCtls.push(
+                        <div className="new-separator">
+                            <hr id="new_message" className="separator__hr" />
+                            <div className="separator__text">New Messages</div>
+                        </div>
+                    );
+                }
+                postCtls.push(postCtl);
+                previousPostDay = utils.getDateForUnixTicks(post.create_at);
             }
-
-            var sameUser = i < order.length-1 && posts[order[i+1]].user_id === post.user_id  && post.create_at - posts[order[i+1]].create_at <= 1000*60*5 ? "same--user" : "";
-            var sameRoot = i < order.length-1 && post.root_id != "" && (posts[order[i+1]].id === post.root_id || posts[order[i+1]].root_id === post.root_id) ? true : false;
-
-            // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
-            var hideProfilePic = i < order.length-1 && posts[order[i+1]].user_id === post.user_id && posts[order[i+1]].root_id === '' && post.root_id === '';
-
-            // check if it's the last comment in a consecutive string of comments on the same post
-            var isLastComment = false;
-            if (utils.isComment(post)) {
-                // it is the last comment if it is last post in the channel or the next post has a different root post
-                isLastComment = (i === 0 || posts[order[i-1]].root_id != post.root_id);
-            }
-
-            var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
-
-            currentPostDay = utils.getDateForUnixTicks(post.create_at);
-            if(currentPostDay.getDate() !== previousPostDay.getDate() || currentPostDay.getMonth() !== previousPostDay.getMonth() || currentPostDay.getFullYear() !== previousPostDay.getFullYear()) {
-                postCtls.push(
-                    <div className="date-separator">
-                        <hr className="separator__hr" />
-                        <div className="separator__text">{currentPostDay.toDateString()}</div>
+        }
+        else {
+            postCtls.push(
+                <div ref="loadingscreen" className="loading-screen">
+                    <div className="loading__content">
+                    <h3>Loading</h3>
+                        <div id="round_1" className="round"></div>
+                        <div id="round_2" className="round"></div>
+                        <div id="round_3" className="round"></div>
                     </div>
-                );
-            }
-
-            if (post.create_at > last_viewed && !rendered_last_viewed) {
-                rendered_last_viewed = true;
-                postCtls.push(
-                    <div className="new-separator">
-                        <hr id="new_message" className="separator__hr" />
-                        <div className="separator__text">New Messages</div>
-                    </div>
-                );
-            }
-            postCtls.push(postCtl);
-            previousPostDay = utils.getDateForUnixTicks(post.create_at);
+                </div>
+            );
         }
 
         return (

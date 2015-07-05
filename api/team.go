@@ -146,10 +146,8 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rteam := result.Data.(*model.Team)
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: rteam.Id}
-
-		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
-			c.Err = err
+		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
+			c.Err = nil
 			return
 		}
 
@@ -197,10 +195,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rteam := result.Data.(*model.Team)
 
-		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: rteam.Id}
-
-		if _, err := CreateChannel(c, channel, r.URL.Path, false); err != nil {
-			c.Err = err
+		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
+			c.Err = nil
 			return
 		}
 
@@ -488,12 +484,21 @@ func InviteMembers(team *model.Team, user *model.User, invites []string) {
 			} else {
 				sender = user.FullName
 			}
+
+			senderRole := ""
+			if strings.Contains(user.Roles, model.ROLE_ADMIN) || strings.Contains(user.Roles, model.ROLE_SYSTEM_ADMIN) {
+				senderRole = "administrator"
+			} else {
+				senderRole = "member"
+			}
+
 			subjectPage := NewServerTemplatePage("invite_subject", teamUrl)
 			subjectPage.Props["SenderName"] = sender
 			subjectPage.Props["TeamName"] = team.Name
 			bodyPage := NewServerTemplatePage("invite_body", teamUrl)
 			bodyPage.Props["TeamName"] = team.Name
 			bodyPage.Props["SenderName"] = sender
+			bodyPage.Props["SenderStatus"] = senderRole
 
 			bodyPage.Props["Email"] = invite
 

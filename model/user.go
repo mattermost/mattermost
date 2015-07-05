@@ -16,7 +16,7 @@ const (
 	ROLE_SYSTEM_ADMIN    = "system_admin"
 	ROLE_SYSTEM_SUPPORT  = "system_support"
 	USER_AWAY_TIMEOUT    = 5 * 60 * 1000 // 5 minutes
-	USER_OFFLINE_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+	USER_OFFLINE_TIMEOUT = 1 * 60 * 1000 // 1 minute
 	USER_OFFLINE         = "offline"
 	USER_AWAY            = "away"
 	USER_ONLINE          = "online"
@@ -147,10 +147,13 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps["email"] = "true"
 	u.NotifyProps["desktop"] = USER_NOTIFY_ALL
 	u.NotifyProps["desktop_sound"] = "true"
-	u.NotifyProps["mention_keys"] = u.Username
-	u.NotifyProps["first_name"] = "true"
+	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
+	u.NotifyProps["first_name"] = "false"
+	u.NotifyProps["all"] = "true"
+	u.NotifyProps["channel"] = "true"
 	splitName := strings.Split(u.FullName, " ")
 	if len(splitName) > 0 && splitName[0] != "" {
+		u.NotifyProps["first_name"] = "true"
 		u.NotifyProps["mention_keys"] += "," + splitName[0]
 	}
 }
@@ -277,17 +280,17 @@ func ComparePassword(hash string, password string) bool {
 
 func IsUsernameValid(username string) bool {
 
-	var restrictedUsernames = []string {
+	var restrictedUsernames = []string{
 		BOT_USERNAME,
 		"all",
 		"channel",
 	}
 
-	for _,restrictedUsername := range restrictedUsernames {
+	for _, restrictedUsername := range restrictedUsernames {
 		if username == restrictedUsername {
 			return false
 		}
-	}	
+	}
 
 	return true
 }

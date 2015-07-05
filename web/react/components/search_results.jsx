@@ -43,6 +43,7 @@ SearchItem = React.createClass({
         e.preventDefault();
 
         var self = this;
+
         client.getPost(
             this.props.post.channel_id,
             this.props.post.id,
@@ -64,6 +65,11 @@ SearchItem = React.createClass({
                 dispatchError(err, "getPost");
             }
         );
+
+    var postChannel = ChannelStore.get(this.props.post.channel_id);
+    var teammate = postChannel.type === 'D' ? utils.getDirectTeammate(this.props.post.channel_id).username : "";
+
+    utils.switchChannel(postChannel,teammate);
     },
     render: function() {
 
@@ -73,7 +79,7 @@ SearchItem = React.createClass({
 
         if (channel) {
             if (channel.type === 'D') {
-                channelName = "Direct Message";
+                channelName = "Private Message";
             } else {
                 channelName = channel.display_name;
             }

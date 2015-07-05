@@ -112,13 +112,28 @@ module.exports = React.createClass({
         return { messageText: '', uploadsInProgress: 0, previews: [], submitting: false };
     },
     setUploads: function(val) {
-        var num = this.state.uploadsInProgress + val;
-        this.setState({uploadsInProgress: num});
+        var oldInProgress = this.state.uploadsInProgress
+        var newInProgress = oldInProgress + val;
+
+        if (newInProgress + this.state.previews.length > Constants.MAX_UPLOAD_FILES) {
+            newInProgress = Constants.MAX_UPLOAD_FILES - this.state.previews.length;
+            this.setState({limit_error: "Uploads limited to " + Constants.MAX_UPLOAD_FILES + " files maximum. Please use additional comments for more files."});
+        } else {
+            this.setState({limit_error: null});
+        }
+
+        var numToUpload = newInProgress - oldInProgress;
+        if (numToUpload <= 0) return 0;
+
+        this.setState({uploadsInProgress: newInProgress});
+
+        return numToUpload;
     },
     render: function() {
 
         var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;
+        var limit_error = this.state.limit_error ? <div className='has-error'><label className='control-label'>{this.state.limit_error}</label></div> : null;
 
         var preview = <div/>;
         if (this.state.previews.length > 0 || this.state.uploadsInProgress > 0) {
@@ -128,13 +143,6 @@ module.exports = React.createClass({
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress} />
             );
-        }
-        var limit_previews = ""
-        if (this.state.previews.length > 5) {
-            limit_previews = <div className='has-error'><label className='control-label'>{ "Note: While all files will be available, only first five will show thumbnails." }</label></div>
-        }
-        if (this.state.previews.length > 20) {
-            limit_previews = <div className='has-error'><label className='control-label'>{ "Note: Uploads limited to 20 files maximum. Please use additional posts for more files." }</label></div>
         }
 
         return (
@@ -159,7 +167,7 @@ module.exports = React.createClass({
                         <input type="button" className="btn btn-primary comment-btn pull-right" value="Add Comment" onClick={this.handleSubmit} />
                         { post_error }
                         { server_error }
-                        { limit_previews }
+                        { limit_error }
                     </div>
                 </div>
                 { preview }

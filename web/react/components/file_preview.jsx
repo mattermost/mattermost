@@ -10,7 +10,7 @@ var Constants = require('../utils/constants.jsx');
 module.exports = React.createClass({
     handleRemove: function(e) {
         var previewDiv = e.target.parentNode.parentNode;
-        this.props.onRemove(previewDiv.dataset.filename);
+        this.props.onRemove(previewDiv.getAttribute('data-filename'));
     },
     render: function() {
         var previews = [];
