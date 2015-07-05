@@ -5,7 +5,8 @@ go:
 
 before_install:
   - gem install compass
-  - sudo apt-get update
+  - sudo apt-get update -qq
+  - "sudo apt-get install mysql-server-5.6"
 
 before_script:
   - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
@@ -18,6 +19,3 @@ services:
 addons:
   hosts:
     - 127.0.0.1 dockerhost
-
-install:
-  - "sudo apt-get install mysql-server-5.6"
