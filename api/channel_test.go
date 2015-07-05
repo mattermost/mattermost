@@ -151,7 +151,7 @@ func TestUpdateChannel(t *testing.T) {
 
 	userStd := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	userStd = Client.Must(Client.CreateUser(userStd, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(userStd.Id)
+	<-Srv.Store.User().VerifyEmail(userStd.Id)
 	userStd.Roles = ""
 
 	Client.LoginByEmail(team.Domain, userChannelAdmin.Email, "pwd")
@@ -491,7 +491,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	userStd := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	userStd = Client.Must(Client.CreateUser(userStd, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(userStd.Id)
+	<-Srv.Store.User().VerifyEmail(userStd.Id)
 
 	Client.LoginByEmail(team.Domain, userStd.Email, "pwd")
 
@@ -604,7 +604,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	userTeamAdmin := &model.User{TeamId: team.Id, Email: team.Email, FullName: "Corey Hulen", Password: "pwd"}
 	userTeamAdmin = Client.Must(Client.CreateUser(userTeamAdmin, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(userTeamAdmin.Id)
+	<-Srv.Store.User().VerifyEmail(userTeamAdmin.Id)
 
 	userChannelAdmin := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	userChannelAdmin = Client.Must(Client.CreateUser(userChannelAdmin, "")).Data.(*model.User)
@@ -624,7 +624,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	userStd := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	userStd = Client.Must(Client.CreateUser(userStd, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(userStd.Id)
+	<-Srv.Store.User().VerifyEmail(userStd.Id)
 
 	Client.Must(Client.AddChannelMember(channel1.Id, userStd.Id))
 
