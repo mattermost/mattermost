@@ -6,6 +6,7 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"testing"
+	"time"
 )
 
 func TestSqlAuditStore(t *testing.T) {
@@ -13,10 +14,16 @@ func TestSqlAuditStore(t *testing.T) {
 
 	audit := &model.Audit{UserId: model.NewId(), IpAddress: "ipaddress", Action: "Action"}
 	<-store.Audit().Save(audit)
+	time.Sleep(100 * time.Millisecond)
 	<-store.Audit().Save(audit)
+	time.Sleep(100 * time.Millisecond)
 	<-store.Audit().Save(audit)
+	time.Sleep(100 * time.Millisecond)
 	audit.ExtraInfo = "extra"
+	time.Sleep(100 * time.Millisecond)
 	<-store.Audit().Save(audit)
+
+	time.Sleep(100 * time.Millisecond)
 
 	c := store.Audit().Get(audit.UserId, 100)
 	result := <-c
