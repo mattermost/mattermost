@@ -12,7 +12,6 @@ var ActionTypes = Constants.ActionTypes;
 var CHANGE_EVENT = 'change';
 var MORE_CHANGE_EVENT = 'change';
 var EXTRA_INFO_EVENT = 'extra_info';
-var DIFF_CHANNEL_EVENT = 'change_channel';
 
 var ChannelStore = assign({}, EventEmitter.prototype, {
   emitChange: function() {
@@ -23,15 +22,6 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   },
   removeChangeListener: function(callback) {
     this.removeListener(CHANGE_EVENT, callback);
-  },
-  emitDiffChannelChange: function() {
-    this.emit(DIFF_CHANNEL_EVENT);
-  },
-  addDiffChannelChangeListener: function(callback) {
-    this.on(DIFF_CHANNEL_EVENT,callback);
-  },
-  removeDiffChannelChangeListener: function(callback) {
-    this.removeListener(DIFF_CHANNEL_EVENT,callback);
   },
   emitMoreChange: function() {
     this.emit(MORE_CHANGE_EVENT);
@@ -235,7 +225,6 @@ ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {
       ChannelStore.setCurrentId(action.id);
       ChannelStore.setLastVisitedName(action.name);
       ChannelStore.resetCounts(action.id);
-      ChannelStore.emitDiffChannelChange();
       ChannelStore.emitChange();
       break;
 

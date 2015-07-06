@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ChannelStore = require('../stores/channel_store.jsx');
+
 var SocketStore = require('../stores/socket_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 
@@ -9,17 +9,17 @@ module.exports = React.createClass({
     timer: null,
     lastTime: 0,
     componentDidMount: function() {
-        ChannelStore.addDiffChannelChangeListener(this._onChange);
-        SocketStore.addChangeListener(this._onSocketChange);
+        SocketStore.addChangeListener(this._onChange);
+    },
+    componentWillReceiveProps: function(newProps) {
+        if(this.props.channelId !== newProps.channelId) {
+            this.setState({text:""});
+        }
     },
     componentWillUnmount: function() {
-        ChannelStore.removeDiffChannelChangeListener(this._onChange);
-        SocketStore.removeChangeListener(this._onSocketChange);
+        SocketStore.removeChangeListener(this._onChange);
     },
-    _onChange: function() {
-        this.setState({text:""})
-    },
-    _onSocketChange: function(msg) {
+    _onChange: function(msg) {
         if (msg.action == "typing" && 
             this.props.channelId == msg.channel_id &&
             this.props.parentId == msg.props.parent_id) {
