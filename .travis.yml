@@ -1,0 +1,33 @@
+language: go
+
+go:
+  - 1.4.2
+
+before_install:
+  - gem install compass
+  - "sudo apt-get update -qq"
+
+  - "sudo apt-get remove mysql-common mysql-server-5.5 mysql-server-core-5.5 mysql-client-5.5 mysql-client-core-5.5"
+  - "sudo apt-get autoremove"
+  - "sudo apt-get install libaio1"
+  - "wget -O mysql-5.6.17.deb http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.17-debian6.0-x86_64.deb"
+  - "sudo dpkg -i mysql-5.6.17.deb"
+  - "sudo cp /opt/mysql/server-5.6/support-files/mysql.server /etc/init.d/mysql.server"
+  - "sudo ln -s /opt/mysql/server-5.6/bin/* /usr/bin/"
+  # some config values were changed since 5.5
+  - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
+  - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
+  - "sudo sed -i'' 's/basedir[^=]\\+=.*$/basedir = \\/opt\\/mysql\\/server-5.6/' /etc/mysql/my.cnf"
+  - "sudo /etc/init.d/mysql.server start"
+
+before_script:
+  - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
+  - mysql -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mostest' ;"  -uroot
+  - mysql -e "GRANT ALL ON mattermost_test.* TO 'mmuser'@'%' ;" -uroot
+
+services:
+  - redis-server
+
+addons:
+  hosts:
+    - 127.0.0.1 dockerhost

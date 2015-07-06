@@ -5,6 +5,7 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
 	"testing"
@@ -22,11 +23,11 @@ func TestCreatePost(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -104,7 +105,7 @@ func TestCreatePost(t *testing.T) {
 
 	user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user3.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 
 	Client.LoginByEmail(team2.Domain, user3.Email, "pwd")
 
@@ -133,11 +134,11 @@ func TestCreateValetPost(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -189,7 +190,7 @@ func TestCreateValetPost(t *testing.T) {
 
 		user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 		user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
-		Srv.Store.User().VerifyEmail(user3.Id)
+		store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 
 		Client.LoginByEmail(team2.Domain, user3.Email, "pwd")
 
@@ -225,11 +226,11 @@ func TestUpdatePost(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -293,7 +294,7 @@ func TestGetPosts(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -358,7 +359,7 @@ func TestSearchPosts(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -404,7 +405,7 @@ func TestSearchHashtagPosts(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -435,7 +436,7 @@ func TestGetPostsCache(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -484,7 +485,7 @@ func TestDeletePosts(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -532,7 +533,7 @@ func TestEmailMention(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: "corey@test.com", FullName: "Bob Bobby", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -554,7 +555,7 @@ func TestFuzzyPosts(t *testing.T) {
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 

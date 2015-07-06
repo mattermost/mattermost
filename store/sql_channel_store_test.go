@@ -6,6 +6,7 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"testing"
+	"time"
 )
 
 func TestChannelStoreSave(t *testing.T) {
@@ -55,7 +56,12 @@ func TestChannelStoreUpdate(t *testing.T) {
 	o1.DisplayName = "Name"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+
+	if err := (<-store.Channel().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(100 * time.Millisecond)
 
 	if err := (<-store.Channel().Update(&o1)).Err; err != nil {
 		t.Fatal(err)
@@ -80,7 +86,7 @@ func TestChannelStoreGet(t *testing.T) {
 	o1.DisplayName = "Name"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	if r1 := <-store.Channel().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -103,40 +109,40 @@ func TestChannelStoreDelete(t *testing.T) {
 	o1.DisplayName = "Channel1"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	o2 := model.Channel{}
 	o2.TeamId = o1.TeamId
 	o2.DisplayName = "Channel2"
 	o2.Name = "a" + model.NewId() + "b"
 	o2.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o2)
+	Must(store.Channel().Save(&o2))
 
 	o3 := model.Channel{}
 	o3.TeamId = o1.TeamId
 	o3.DisplayName = "Channel3"
 	o3.Name = "a" + model.NewId() + "b"
 	o3.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o3)
+	Must(store.Channel().Save(&o3))
 
 	o4 := model.Channel{}
 	o4.TeamId = o1.TeamId
 	o4.DisplayName = "Channel4"
 	o4.Name = "a" + model.NewId() + "b"
 	o4.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o4)
+	Must(store.Channel().Save(&o4))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o2.Id
 	m2.UserId = m1.UserId
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m2)
+	Must(store.Channel().SaveMember(&m2))
 
 	if r := <-store.Channel().Delete(o1.Id, model.GetMillis()); r.Err != nil {
 		t.Fatal(r.Err)
@@ -173,7 +179,7 @@ func TestChannelStoreGetByName(t *testing.T) {
 	o1.DisplayName = "Name"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	if r1 := <-store.Channel().GetByName(o1.TeamId, o1.Name); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -195,32 +201,32 @@ func TestChannelMemberStore(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.FullName = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	u2 := model.User{}
 	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
 	u2.FullName = model.NewId()
-	<-store.User().Save(&u2)
+	Must(store.User().Save(&u2))
 
 	o1 := model.ChannelMember{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = u1.Id
 	o1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&o1)
+	Must(store.Channel().SaveMember(&o1))
 
 	o2 := model.ChannelMember{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = u2.Id
 	o2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&o2)
+	Must(store.Channel().SaveMember(&o2))
 
 	members := (<-store.Channel().GetMembers(o1.ChannelId)).Data.([]model.ChannelMember)
 	if len(members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
-	<-store.Channel().RemoveMember(o2.ChannelId, o2.UserId)
+	Must(store.Channel().RemoveMember(o2.ChannelId, o2.UserId))
 
 	members = (<-store.Channel().GetMembers(o1.ChannelId)).Data.([]model.ChannelMember)
 	if len(members) != 1 {
@@ -250,13 +256,13 @@ func TestChannelStorePermissionsTo(t *testing.T) {
 	o1.DisplayName = "Channel1"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	count := (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, m1.UserId)).Data.(int64)
 	if count != 1 {
@@ -297,7 +303,7 @@ func TestChannelStoreOpenChannelPermissionsTo(t *testing.T) {
 	o1.DisplayName = "Channel1"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	count := (<-store.Channel().CheckOpenChannelPermissions(o1.TeamId, o1.Id)).Data.(int64)
 	if count != 1 {
@@ -323,32 +329,32 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	o2.DisplayName = "Channel2"
 	o2.Name = "a" + model.NewId() + "b"
 	o2.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o2)
+	Must(store.Channel().Save(&o2))
 
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o1.Id
 	m2.UserId = model.NewId()
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m2)
+	Must(store.Channel().SaveMember(&m2))
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o2.Id
 	m3.UserId = model.NewId()
 	m3.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m3)
+	Must(store.Channel().SaveMember(&m3))
 
 	cresult := <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
@@ -366,53 +372,53 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	o1.DisplayName = "Channel1"
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Channel2"
 	o2.Name = "a" + model.NewId() + "b"
 	o2.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o2)
+	Must(store.Channel().Save(&o2))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o1.Id
 	m2.UserId = model.NewId()
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m2)
+	Must(store.Channel().SaveMember(&m2))
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o2.Id
 	m3.UserId = model.NewId()
 	m3.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m3)
+	Must(store.Channel().SaveMember(&m3))
 
 	o3 := model.Channel{}
 	o3.TeamId = o1.TeamId
 	o3.DisplayName = "ChannelA"
 	o3.Name = "a" + model.NewId() + "b"
 	o3.Type = model.CHANNEL_OPEN
-	<-store.Channel().Save(&o3)
+	Must(store.Channel().Save(&o3))
 
 	o4 := model.Channel{}
 	o4.TeamId = o1.TeamId
 	o4.DisplayName = "ChannelB"
 	o4.Name = "a" + model.NewId() + "b"
 	o4.Type = model.CHANNEL_PRIVATE
-	<-store.Channel().Save(&o4)
+	Must(store.Channel().Save(&o4))
 
 	o5 := model.Channel{}
 	o5.TeamId = o1.TeamId
 	o5.DisplayName = "ChannelC"
 	o5.Name = "a" + model.NewId() + "b"
 	o5.Type = model.CHANNEL_PRIVATE
-	<-store.Channel().Save(&o5)
+	Must(store.Channel().Save(&o5))
 
 	cresult := <-store.Channel().GetMoreChannels(o1.TeamId, m1.UserId)
 	list := cresult.Data.(*model.ChannelList)
@@ -435,13 +441,13 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	o1.TotalMsgCount = 25
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	err := (<-store.Channel().UpdateLastViewedAt(m1.ChannelId, m1.UserId)).Err
 	if err != nil {
@@ -463,13 +469,13 @@ func TestChannelStoreIncrementMentionCount(t *testing.T) {
 	o1.Name = "a" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	o1.TotalMsgCount = 25
-	<-store.Channel().Save(&o1)
+	Must(store.Channel().Save(&o1))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	err := (<-store.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)).Err
 	if err != nil {

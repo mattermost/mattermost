@@ -9,6 +9,7 @@ import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"io"
 	"mime/multipart"
@@ -28,7 +29,7 @@ func TestUploadFile(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -115,7 +116,7 @@ func TestGetFile(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
@@ -177,7 +178,7 @@ func TestGetFile(t *testing.T) {
 
 		user2 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 		user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-		Srv.Store.User().VerifyEmail(user2.Id)
+		store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 		newProps := make(map[string]string)
 		newProps["filename"] = filenames[0]
@@ -262,11 +263,11 @@ func TestGetPublicLink(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 

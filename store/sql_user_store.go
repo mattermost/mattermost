@@ -137,7 +137,7 @@ func (us SqlUserStore) Update(user *model.User, allowRoleActiveUpdate bool) Stor
 			if count, err := us.GetMaster().Update(user); err != nil {
 				result.Err = model.NewAppError("SqlUserStore.Update", "We encounted an error updating the account", "user_id="+user.Id+", "+err.Error())
 			} else if count != 1 {
-				result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't update the account", "user_id="+user.Id)
+				result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't update the account", fmt.Sprintf("user_id=%v, count=%v", user.Id, count))
 			} else {
 				result.Data = [2]*model.User{user, oldUser}
 			}

@@ -1,4 +1,4 @@
-.PHONY: all test clean build install run stop cover dist dist-battlehouse cleandb
+.PHONY: all test clean build install run stop cover dist cleandb travis
 
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
@@ -15,7 +15,25 @@ DIST_RESULTS=$(DIST_ROOT)/results
 BENCH=.
 TESTS=.
 
-all: build
+all: travis
+
+travis:
+	@echo building for travis
+
+	rm -Rf $(DIST_ROOT)
+	@go clean $(GOFLAGS) -i ./...
+	
+	@cd web/react/ && npm install
+
+	@go build $(GOFLAGS) ./...
+
+	@mkdir -p logs
+
+	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
+	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
+	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
+	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
+	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 
 build:
 	@go build $(GOFLAGS) ./...

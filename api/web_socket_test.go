@@ -6,6 +6,7 @@ package api
 import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
 	"testing"
@@ -21,7 +22,7 @@ func TestSocket(t *testing.T) {
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user1.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test Web Scoket 1", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -40,7 +41,7 @@ func TestSocket(t *testing.T) {
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	Srv.Store.User().VerifyEmail(user2.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
 
 	header2 := http.Header{}

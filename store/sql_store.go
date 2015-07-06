@@ -8,9 +8,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
+	crand "crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
-	crand "crypto/rand"
 	dbsql "database/sql"
 	"encoding/base64"
 	"encoding/json"
@@ -362,21 +362,21 @@ func decrypt(key []byte, cryptoText string) (string, error) {
 
 	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
 	if err != nil {
-	       return "", err
+		return "", err
 	}
 
 	skey := sha512.Sum512(key)
 	ekey, akey := skey[:32], skey[32:]
 	macfn := hmac.New(sha256.New, akey)
 	if len(ciphertext) < aes.BlockSize+macfn.Size() {
-	       return "", errors.New("short ciphertext")
+		return "", errors.New("short ciphertext")
 	}
 
 	macfn.Write(ciphertext[aes.BlockSize+macfn.Size():])
 	expectedMac := macfn.Sum(nil)
-	mac := ciphertext[aes.BlockSize:aes.BlockSize+macfn.Size()]
+	mac := ciphertext[aes.BlockSize : aes.BlockSize+macfn.Size()]
 	if hmac.Equal(expectedMac, mac) != true {
-	       return "", errors.New("Incorrect MAC for the given ciphertext")
+		return "", errors.New("Incorrect MAC for the given ciphertext")
 	}
 
 	block, err := aes.NewCipher(ekey)
