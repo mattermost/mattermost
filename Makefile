@@ -43,7 +43,7 @@ install:
 
 	@if [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
 		echo restoring go libs using godep; \
-		../../../../bin/godep restore; \
+		$(GOPATH)/bin/godep restore; \
 		echo starting mattermost-mysql; \
 		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
     	-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql > /dev/null; \
