@@ -2,6 +2,7 @@
 	padding: 20px 15px;
 }
 .modal {
+	width: 100%;
 	&.image_modal {
 		.modal-backdrop.in {
 			@include opacity(0.7);
@@ -148,7 +149,7 @@
 		.image-wrapper {
 			background: #FFF;
 			position: relative;
-			max-width: 80%;
+			max-width: 90%;
 			min-width: 280px;
 			@include border-radius(3px);
 			display: table;
@@ -260,6 +261,9 @@
 				bottom:0;
 				color:white;
 				margin-left:5px;
+			}
+			.public-link {
+				margin-right: 5px;
 			}
 		}
 	}
