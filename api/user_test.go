@@ -296,11 +296,13 @@ func TestGetAudits(t *testing.T) {
 
 	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
-	Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id)
+	<-Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id)
+
+	time.Sleep(100 * time.Millisecond)
 
 	Client.LoginByEmail(team.Domain, user.Email, user.Password)
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	if result, err := Client.GetAudits(ruser.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
