@@ -26,18 +26,18 @@ func TestSessionGet(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	<-store.Session().Save(&s1)
+	Must(store.Session().Save(&s1))
 
 	s2 := model.Session{}
 	s2.UserId = s1.UserId
 	s2.TeamId = s1.TeamId
-	<-store.Session().Save(&s2)
+	Must(store.Session().Save(&s2))
 
 	s3 := model.Session{}
 	s3.UserId = s1.UserId
 	s3.TeamId = s1.TeamId
 	s3.ExpiresAt = 1
-	<-store.Session().Save(&s3)
+	Must(store.Session().Save(&s3))
 
 	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -63,7 +63,7 @@ func TestSessionRemove(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	<-store.Session().Save(&s1)
+	Must(store.Session().Save(&s1))
 
 	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -73,7 +73,7 @@ func TestSessionRemove(t *testing.T) {
 		}
 	}
 
-	<-store.Session().Remove(s1.Id)
+	Must(store.Session().Remove(s1.Id))
 
 	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")
@@ -86,7 +86,7 @@ func TestSessionRemoveAlt(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	<-store.Session().Save(&s1)
+	Must(store.Session().Save(&s1))
 
 	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -96,7 +96,7 @@ func TestSessionRemoveAlt(t *testing.T) {
 		}
 	}
 
-	<-store.Session().Remove(s1.AltId)
+	Must(store.Session().Remove(s1.AltId))
 
 	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")
@@ -117,7 +117,7 @@ func TestSessionStoreUpdateLastActivityAt(t *testing.T) {
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.TeamId = model.NewId()
-	<-store.Session().Save(&s1)
+	Must(store.Session().Save(&s1))
 
 	if err := (<-store.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)

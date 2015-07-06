@@ -64,7 +64,7 @@ func TestUserStoreUpdate(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if err := (<-store.User().Update(&u1, false)).Err; err != nil {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func TestUserStoreUpdateLastPingAt(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if err := (<-store.User().UpdateLastPingAt(u1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestUserStoreUpdateLastActivityAt(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if err := (<-store.User().UpdateLastActivityAt(u1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -131,12 +131,12 @@ func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	s1 := model.Session{}
 	s1.UserId = u1.Id
 	s1.TeamId = u1.TeamId
-	<-store.Session().Save(&s1)
+	Must(store.Session().Save(&s1))
 
 	if err := (<-store.User().UpdateUserAndSessionActivity(u1.Id, s1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -166,7 +166,7 @@ func TestUserStoreGet(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -187,12 +187,12 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	u2 := model.User{}
 	u2.TeamId = u1.TeamId
 	u2.Email = model.NewId()
-	<-store.User().Save(&u2)
+	Must(store.User().Save(&u2))
 
 	if r1 := <-store.User().GetProfiles(u1.TeamId); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -222,7 +222,7 @@ func TestUserStoreGetByEmail(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if err := (<-store.User().GetByEmail(u1.TeamId, u1.Email)).Err; err != nil {
 		t.Fatal(err)
@@ -240,7 +240,7 @@ func TestUserStoreGetByUsername(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if err := (<-store.User().GetByUsername(u1.TeamId, u1.Username)).Err; err != nil {
 		t.Fatal(err)
@@ -257,7 +257,7 @@ func TestUserStoreUpdatePassword(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	hashedPassword := model.HashPassword("newpwd")
 

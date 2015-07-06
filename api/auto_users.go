@@ -5,6 +5,7 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -45,7 +46,7 @@ func CreateBasicUser(client *model.Client) *model.AppError {
 		if err != nil {
 			return err
 		}
-		Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+		store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id))
 	}
 	return nil
 }
@@ -72,7 +73,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 		return nil, false
 	}
 	// We need to cheat to verify the user's email
-	Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+	store.Must(Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id))
 	return result.Data.(*model.User), true
 }
 

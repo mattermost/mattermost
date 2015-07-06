@@ -280,7 +280,7 @@ func TestPostStoreGetWithChildren(t *testing.T) {
 		}
 	}
 
-	<-store.Post().Delete(o3.Id, model.GetMillis())
+	Must(store.Post().Delete(o3.Id, model.GetMillis()))
 
 	if r2 := <-store.Post().Get(o1.Id); r2.Err != nil {
 		t.Fatal(r2.Err)
@@ -291,7 +291,7 @@ func TestPostStoreGetWithChildren(t *testing.T) {
 		}
 	}
 
-	<-store.Post().Delete(o2.Id, model.GetMillis())
+	Must(store.Post().Delete(o2.Id, model.GetMillis()))
 
 	if r3 := <-store.Post().Get(o1.Id); r3.Err != nil {
 		t.Fatal(r3.Err)
@@ -399,7 +399,7 @@ func TestPostStoreSearch(t *testing.T) {
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	<-store.Channel().SaveMember(&m1)
+	Must(store.Channel().SaveMember(&m1))
 
 	c2 := &model.Channel{}
 	c2.TeamId = teamId

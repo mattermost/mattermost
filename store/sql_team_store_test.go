@@ -91,7 +91,7 @@ func TestTeamStoreGet(t *testing.T) {
 	o1.Domain = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	<-store.Team().Save(&o1)
+	Must(store.Team().Save(&o1))
 
 	if r1 := <-store.Team().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -140,12 +140,12 @@ func TestTeamStoreGetForEmail(t *testing.T) {
 	o1.Domain = "a" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	<-store.Team().Save(&o1)
+	Must(store.Team().Save(&o1))
 
 	u1 := model.User{}
 	u1.TeamId = o1.Id
 	u1.Email = model.NewId()
-	<-store.User().Save(&u1)
+	Must(store.User().Save(&u1))
 
 	if r1 := <-store.Team().GetTeamsForEmail(u1.Email); r1.Err != nil {
 		t.Fatal(r1.Err)

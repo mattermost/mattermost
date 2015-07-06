@@ -5,6 +5,7 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -27,7 +28,7 @@ func SetupBenchmark() (*model.Team, *model.User, *model.Channel) {
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "benchmark@test.com", FullName: "Mr. Benchmarker", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	<-Srv.Store.User().VerifyEmail(user.Id)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 	Client.LoginByEmail(team.Domain, user.Email, "pwd")
 	channel := &model.Channel{DisplayName: "Benchmark Channel", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel = Client.Must(Client.CreateChannel(channel)).Data.(*model.Channel)

@@ -13,15 +13,15 @@ func TestSqlAuditStore(t *testing.T) {
 	Setup()
 
 	audit := &model.Audit{UserId: model.NewId(), IpAddress: "ipaddress", Action: "Action"}
-	<-store.Audit().Save(audit)
+	Must(store.Audit().Save(audit))
 	time.Sleep(100 * time.Millisecond)
-	<-store.Audit().Save(audit)
+	Must(store.Audit().Save(audit))
 	time.Sleep(100 * time.Millisecond)
-	<-store.Audit().Save(audit)
+	Must(store.Audit().Save(audit))
 	time.Sleep(100 * time.Millisecond)
 	audit.ExtraInfo = "extra"
 	time.Sleep(100 * time.Millisecond)
-	<-store.Audit().Save(audit)
+	Must(store.Audit().Save(audit))
 
 	time.Sleep(100 * time.Millisecond)
 

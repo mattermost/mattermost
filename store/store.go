@@ -14,6 +14,15 @@ type StoreResult struct {
 
 type StoreChannel chan StoreResult
 
+func Must(sc StoreChannel) interface{} {
+	r := <-sc
+	if r.Err != nil {
+		panic(r.Err)
+	}
+
+	return r.Data
+}
+
 type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
