@@ -235,12 +235,6 @@
             &.other--root {
                 &:hover {
                     background: none;
-                    .post-body {
-                        background: none;
-                        .post-comment {
-                            background: #f5f5f5;
-                        }
-                    }
                 }
             }
         }
@@ -598,7 +592,7 @@
         &.post--comment {
             &.other--root {
                 .post-comment {
-                    margin-left: 4px;
+                    margin-left: 11px;
                 }
             }
         }

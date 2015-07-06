@@ -220,9 +220,15 @@ body.ios {
 			.post-comment {
 				border-left: 4px solid #EEE;
 				padding: 4px 0 6px 10px;
-				background: #F5F5F5;
 				margin: 0 0 0 30px;
 				@include border-radius(0 4px 4px 0);
+			}
+			&.current--user {
+				&:hover {
+					.post-comment {
+						background: #fff;
+					}
+				}
 			}
 			.post-body {
 				background: transparent;
@@ -231,9 +237,6 @@ body.ios {
 			}
 			&:hover {
 				background: #f5f5f5;
-				.post-comment {
-					background: #fff;
-				}
 			}
 		}
 	}
