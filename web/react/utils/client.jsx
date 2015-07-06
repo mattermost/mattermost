@@ -286,9 +286,12 @@ module.exports.getMeSynchronous = function(success, error) {
             if (success) success(data, textStatus, xhr);
         },
         error: function(xhr, status, err) {
-            if (error) {
-                e = handleError("getMeSynchronous", xhr, status, err);
-                error(e);
+            var ieChecker = window.navigator.userAgent; // This and the condition below is used to check specifically for browsers IE10 & 11 to suppress a 200 'OK' error from appearing on login
+            if (xhr.status != 200 || !(ieChecker.indexOf("Trident/7.0") > 0 || ieChecker.indexOf("Trident/6.0") > 0)) {
+                if (error) {
+                    e = handleError("getMeSynchronous", xhr, status, err);
+                    error(e);
+                };
             };
         }
     });
