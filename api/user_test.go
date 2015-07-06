@@ -474,6 +474,8 @@ func TestUserUpdate(t *testing.T) {
 
 	time2 := model.GetMillis()
 
+	time.Sleep(100 * time.Millisecond)
+
 	user.FullName = "Jim Jimmy"
 	user.TeamId = "12345678901234567890123456"
 	user.LastActivityAt = time2
@@ -490,13 +492,12 @@ func TestUserUpdate(t *testing.T) {
 		if result.Data.(*model.User).TeamId != team.Id {
 			t.Fatal("TeamId should not have updated")
 		}
-		// BAD TESTS BECAUSE OF RACE CONDITION
-		// if result.Data.(*model.User).LastActivityAt != time1 {
-		// 	t.Fatal("LastActivityAt should not have updated")
-		// }
-		// if result.Data.(*model.User).LastPingAt != time1 {
-		// 	t.Fatal("LastPingAt should not have updated")
-		// }
+		if result.Data.(*model.User).LastActivityAt == time2 {
+			t.Fatal("LastActivityAt should not have updated")
+		}
+		if result.Data.(*model.User).LastPingAt == time2 {
+			t.Fatal("LastPingAt should not have updated")
+		}
 		if result.Data.(*model.User).Roles != "" {
 			t.Fatal("Roles should not have updated")
 		}
