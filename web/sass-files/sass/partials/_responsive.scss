@@ -210,10 +210,14 @@
     #post-list {
         .date-seperator, .new-separator {
             &.hovered--after {
-                background: none;
+                &:before {
+                    background: none;
+                }
             }
             &.hovered--before {
-                background: none;
+                &:after {
+                    background: none;
+                }
             }
         }
     }
