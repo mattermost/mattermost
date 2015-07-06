@@ -228,8 +228,6 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
 
 ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {
   var action = payload.action;
-  //console.log(payload);
-  //console.log(action.type + " " + (action.msg ? action.msg.action : ""))
 
   switch(action.type) {
 
