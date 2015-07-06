@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestUserStoreSave(t *testing.T) {
@@ -65,6 +66,8 @@ func TestUserStoreUpdate(t *testing.T) {
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
 	Must(store.User().Save(&u1))
+
+	time.Sleep(100 * time.Millisecond)
 
 	if err := (<-store.User().Update(&u1, false)).Err; err != nil {
 		t.Fatal(err)
