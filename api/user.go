@@ -289,7 +289,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.ComparePassword(user.Password, props["password"]) {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = model.NewAppError("login", "Login failed because of invalid password", extraInfo)
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
@@ -417,7 +417,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	if !c.HasPermissionsToUser(id, "getAudits") {
+	if !c.HasPermissionsToUser(id, "getSessions") {
 		return
 	}
 
@@ -740,7 +740,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.HasPermissionsToUser(user.Id, "updateUsers") {
+	if !c.HasPermissionsToUser(user.Id, "updateUser") {
 		return
 	}
 
@@ -813,12 +813,13 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !model.ComparePassword(user.Password, currentPassword) {
 		c.Err = model.NewAppError("updatePassword", "Update password failed because of invalid password", "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if uresult := <-Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
-		c.Err = uresult.Err
+		c.Err = model.NewAppError("updatePassword", "Update password failed", uresult.Err.Error())
+		c.Err.StatusCode = http.StatusForbidden
 		return
 	} else {
 		c.LogAudit("completed")
