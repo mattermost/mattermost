@@ -11,7 +11,8 @@
 
 	.post {
 		&.post--root {
-			padding: 1em;
+			padding: 1em 1em 0;
+			margin: 1em 0;
 			hr {
 				border-color: #DDD;
 				margin: 1em 0 0 0;
@@ -20,6 +21,7 @@
 	}
 
 	.post-create__container {
+		margin-top: 1em;
 		.custom-textarea {
 			min-height: 100px;
 		}

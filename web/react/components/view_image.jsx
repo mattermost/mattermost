@@ -161,7 +161,7 @@ module.exports = React.createClass({
                                     <div className="image-links">
                                         { config.AllowPublicLink ?
                                             <div>
-                                                <a href="#" className="text" data-title="Public Image" onClick={this.getPublicLink}>Get Public Link</a>
+                                                <a href="#" className="public-link text" data-title="Public Image" onClick={this.getPublicLink}>Get Public Link</a>
                                                 <span className="text"> | </span>
                                             </div>
                                         : "" }
