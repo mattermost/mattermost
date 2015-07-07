@@ -79,7 +79,13 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 
 		if err := s.GetMaster().Insert(channel); err != nil {
 			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
-				result.Err = model.NewAppError("SqlChannelStore.Save", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
+				dupChannel := model.Channel{}
+				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId=? AND Name=? AND DeleteAt > 0", channel.TeamId, channel.Name)
+				if (dupChannel.DeleteAt > 0) {
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
+				} else {
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
+				}			
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "We couldn't save the channel", "id="+channel.Id+", "+err.Error())
 			}
@@ -111,7 +117,13 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 
 		if count, err := s.GetMaster().Update(channel); err != nil {
 			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
-				result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
+				dupChannel := model.Channel{}
+				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId=? AND Name=? AND DeleteAt > 0", channel.TeamId, channel.Name)
+				if (dupChannel.DeleteAt > 0) {
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
+				} else {
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
+				}
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Update", "We encounted an error updating the channel", "id="+channel.Id+", "+err.Error())
 			}
