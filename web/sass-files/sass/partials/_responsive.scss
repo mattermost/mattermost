@@ -228,13 +228,6 @@
         &:hover {
             background: none;
         }
-        &.current--user {
-            &:hover {
-                .post-body {
-                    background: #f5f5f5;
-                }
-            }
-        }
         &.post--comment {
             &.other--root {
                 &:hover {
