@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	POST_DEFAULT = ""
+	POST_DEFAULT    = ""
+	POST_JOIN_LEAVE = "join_leave"
 )
 
 type Post struct {
@@ -100,7 +101,7 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "Invalid hashtags", "id="+o.Id)
 	}
 
-	if !(o.Type == POST_DEFAULT) {
+	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE) {
 		return NewAppError("Post.IsValid", "Invalid type", "id="+o.Type)
 	}
 
