@@ -15,13 +15,6 @@ var ActionTypes = Constants.ActionTypes;
 var callTracker = {};
 
 var dispatchError = function(err, method) {
-    if (err.message === "There appears to be a problem with your internet connection") {
-
-        //Need to communicate this fact to textbox and cause it to change color
-
-        return;
-    }
-
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECIEVED_ERROR,
         err: err,
