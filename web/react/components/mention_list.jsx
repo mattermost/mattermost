@@ -23,8 +23,9 @@ module.exports = React.createClass({
                 }
             }
         );
-        $(document).click(function() {
-            if($('#'+self.props.id).length && $('#'+self.props.id).get(0) !== $(':focus').get(0)) {
+        $(document).click(function(e) {
+            if (!($('#'+self.props.id).is(e.target) || $('#'+self.props.id).has(e.target).length ||
+                ('mentionlist' in self.refs && $(self.refs['mentionlist'].getDOMNode()).has(e.target).length))) {
                 self.setState({mentionText: "-1"})
             }
         });
