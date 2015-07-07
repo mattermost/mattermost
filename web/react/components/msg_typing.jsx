@@ -11,6 +11,11 @@ module.exports = React.createClass({
     componentDidMount: function() {
         SocketStore.addChangeListener(this._onChange);
     },
+    componentWillReceiveProps: function(newProps) {
+        if(this.props.channelId !== newProps.channelId) {
+            this.setState({text:""});
+        }
+    },
     componentWillUnmount: function() {
         SocketStore.removeChangeListener(this._onChange);
     },
@@ -36,6 +41,9 @@ module.exports = React.createClass({
                     } 
                 }, 3000);
             }
+        }
+        else if (msg.action == "posted" && msg.channel_id === this.props.channelId) {
+            this.setState({text:""})
         }
     },
     getInitialState: function() {
