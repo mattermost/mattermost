@@ -210,10 +210,14 @@
     #post-list {
         .date-seperator, .new-separator {
             &.hovered--after {
-                background: none;
+                &:before {
+                    background: none;
+                }
             }
             &.hovered--before {
-                background: none;
+                &:after {
+                    background: none;
+                }
             }
         }
     }
@@ -224,23 +228,10 @@
         &:hover {
             background: none;
         }
-        &.current--user {
-            &:hover {
-                .post-body {
-                    background: #f5f5f5;
-                }
-            }
-        }
         &.post--comment {
             &.other--root {
                 &:hover {
                     background: none;
-                    .post-body {
-                        background: none;
-                        .post-comment {
-                            background: #f5f5f5;
-                        }
-                    }
                 }
             }
         }
@@ -598,7 +589,7 @@
         &.post--comment {
             &.other--root {
                 .post-comment {
-                    margin-left: 4px;
+                    margin-left: 11px;
                 }
             }
         }

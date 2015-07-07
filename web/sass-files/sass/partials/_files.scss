@@ -13,6 +13,7 @@
     vertical-align: top;
     position: relative;
     border: 1px solid #DDD;
+    @include clearfix;
     &.custom-file {
       width: 85px;
       height: 100px;
@@ -31,8 +32,8 @@
     }
   }
   .preview-img {
-    width:100%;
-    height:100%;
+      height: auto;
+      max-width: 100%;
   }
   .remove-preview {
     position: absolute;
@@ -136,6 +137,7 @@
     border: 1px solid #E2E2E2;
     background-color: #FFF;
     background-repeat: no-repeat;
+    background-position: left center;
   }
   a {
     text-decoration: none;
