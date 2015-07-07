@@ -5,13 +5,17 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 
 module.exports = React.createClass({
-    handleInvite: function() {
+    displayName: 'MemberListItem',
+    handleInvite: function(e) {
+        e.preventDefault();
         this.props.handleInvite(this.props.member.id);
     },
-    handleRemove: function() {
+    handleRemove: function(e) {
+        e.preventDefault();
         this.props.handleRemove(this.props.member.id);
     },
-    handleMakeAdmin: function() {
+    handleMakeAdmin: function(e) {
+        e.preventDefault();
         this.props.handleMakeAdmin(this.props.member.id);
     },
     render: function() {
@@ -19,12 +23,6 @@ module.exports = React.createClass({
         var member = this.props.member;
         var isAdmin = this.props.isAdmin;
         var isMemberAdmin = member.roles.indexOf("admin") > -1;
-
-        if (member.roles === '') {
-            member.roles = 'Member';
-        } else {
-            member.roles = member.roles.charAt(0).toUpperCase() + member.roles.slice(1);
-        }
 
         var invite;
         if (member.invited && this.props.handleInvite) {
@@ -36,30 +34,28 @@ module.exports = React.createClass({
             invite = (
                         <div className="dropdown member-drop">
                             <a href="#" className="dropdown-toggle theme" type="button" id="channel_header_dropdown" data-toggle="dropdown" aria-expanded="true">
-                            <span>{member.roles}  </span>
+                                <span className="text-capitalize">{member.roles || 'Member'}  </span>
                                 <span className="caret"></span>
                             </a>
                             <ul className="dropdown-menu member-menu" role="menu" aria-labelledby="channel_header_dropdown">
                                 { this.props.handleMakeAdmin ?
-                                <li role="presentation"><a role="menuitem" onClick={self.handleMakeAdmin}>Make Admin</a></li>
-                                : "" }
+                                <li role="presentation"><a href="" role="menuitem" onClick={self.handleMakeAdmin}>Make Admin</a></li>
+                                : null }
                                 { this.props.handleRemove ?
-                                <li role="presentation"><a role="menuitem" onClick={self.handleRemove}>Remove Member</a></li>
-                                : "" }
+                                <li role="presentation"><a href="" role="menuitem" onClick={self.handleRemove}>Remove Member</a></li>
+                                : null }
                             </ul>
                         </div>
                     );
         } else {
-            invite = <div className="member-drop"><span>{member.roles} </span><span className="caret invisible"></span></div>;
+            invite = <div className="member-role text-capitalize" style={{marginRight: 15}}>{member.roles || 'Member'}</div>;
         }
-
-        var email = member.email.length > 0 ? member.email : "";
 
         return (
             <div className="row member-div">
                 <img className="post-profile-img pull-left" src={"/api/v1/users/" + member.id + "/image"} height="36" width="36" />
                 <span className="member-name">{member.username}</span>
-                <span className="member-email">{email}</span>
+                <span className="member-email">{member.email}</span>
                 { invite }
             </div>
         );
