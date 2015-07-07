@@ -366,7 +366,7 @@ func JoinChannel(c *Context, channelId string, role string) {
 
 			post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
 				`User %v has joined this channel.`,
-				user.Username)}
+				user.Username), Type: model.POST_JOIN_LEAVE}
 			if _, err := CreatePost(c, post, false); err != nil {
 				l4g.Error("Failed to post join message %v", err)
 				c.Err = model.NewAppError("joinChannel", "Failed to send join request", "")
@@ -453,7 +453,7 @@ func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
 			`%v has left the channel.`,
-			user.Username)}
+			user.Username), Type: model.POST_JOIN_LEAVE}
 		if _, err := CreatePost(c, post, false); err != nil {
 			l4g.Error("Failed to post leave message %v", err)
 			c.Err = model.NewAppError("leaveChannel", "Failed to send leave message", "")
@@ -646,7 +646,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			post := &model.Post{ChannelId: id, Message: fmt.Sprintf(
 				`%v added to the channel by %v`,
-				nUser.Username, oUser.Username)}
+				nUser.Username, oUser.Username), Type: model.POST_JOIN_LEAVE}
 			if _, err := CreatePost(c, post, false); err != nil {
 				l4g.Error("Failed to post add message %v", err)
 				c.Err = model.NewAppError("addChannelMember", "Failed to add member to channel", "")
