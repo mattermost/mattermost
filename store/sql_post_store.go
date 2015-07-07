@@ -72,7 +72,13 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 			result.Err = model.NewAppError("SqlPostStore.Save", "We couldn't save the Post", "id="+post.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = ?, TotalMsgCount = TotalMsgCount + 1  WHERE Id = ?", time, post.ChannelId)
+
+			if post.Type != model.POST_JOIN_LEAVE {
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = ?, TotalMsgCount = TotalMsgCount + 1 WHERE Id = ?", time, post.ChannelId)
+			} else {
+				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = ? WHERE Id = ?", time, post.ChannelId)
+			}
 
 			if len(post.RootId) > 0 {
 				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", time, post.RootId)
@@ -361,8 +367,8 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 		searchType := "Message"
 		if isHashtagSearch {
 			searchType = "Hashtags"
-			for _,term := range strings.Split(terms, " ") {
-				termMap[term] = true;
+			for _, term := range strings.Split(terms, " ") {
+				termMap[term] = true
 			}
 		}
 
