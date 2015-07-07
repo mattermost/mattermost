@@ -83,7 +83,7 @@ module.exports = React.createClass({
                                 (moreChannels.length ?
                                     <table className="more-channel-table table">
                                         <tbody>
-                                            {this.state.channels.map(function(channel) {
+                                            {moreChannels.map(function(channel) {
                                                 return (
                                                     <tr key={channel.id}>
                                                         <td>
@@ -108,7 +108,7 @@ module.exports = React.createClass({
                                             <div id="round_3" className="round"></div>
                                         </div>
                                     </div>}
-                                { server_error }
+                            { server_error }
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
