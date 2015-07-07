@@ -53,6 +53,7 @@ div.theme {
 
 .form-control {
   @include border-radius(2px);
+  resize: none;
 }
 
 .form-group {
