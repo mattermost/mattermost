@@ -43,7 +43,7 @@ module.exports = React.createClass({
                     <h4 className="modal-title" ref="title">Edit {this.state.title} Description</h4>
                   </div>
                   <div className="modal-body">
-                    <textarea className="form-control" rows="6" ref="channelDesc" maxLength="1024" value={this.state.description} onChange={this.handleUserInput}></textarea>
+                    <textarea className="form-control" style={{resize: "none"}} rows="6" ref="channelDesc" maxLength="1024" value={this.state.description} onChange={this.handleUserInput}></textarea>
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
