@@ -8,7 +8,7 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
-var LinkifyIt = require('linkify-it');
+var Autolinker = require('autolinker');
 
 module.exports.isEmail = function(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -211,16 +211,31 @@ module.exports.getTimestamp = function() {
     return Date.now();
 }
 
+var testUrlMatch = function(text) {
+    var urlMatcher = new Autolinker.matchParser.MatchParser;
+    var result = [];
+    var replaceFn = function(match) {
+      var linkData = {};
+      var matchText = match.getMatchedText();
+
+      linkData.text = matchText;
+      linkData.link = matchText.trim().indexOf("http") !== 0 ? "http://" + matchText : matchText;
+
+      result.push(linkData);
+    }
+    urlMatcher.replace(text,replaceFn,this);
+    return result;
+}
+
 module.exports.extractLinks = function(text) {
     var repRegex = new RegExp("<br>", "g");
-    var linkMatcher = new LinkifyIt();
-    var matches = linkMatcher.match(text.replace(repRegex, "\n"));
+    var matches = testUrlMatch(text.replace(repRegex, "\n"));
 
     if (!matches) return { "links": null, "text": text };
 
     var links = []
     for (var i = 0; i < matches.length; i++) {
-        links.push(matches[i].url)
+        links.push(matches[i].link)
     }
 
     return { "links": links, "text": text };
@@ -402,7 +417,6 @@ module.exports.textToJsx = function(text, options) {
     var implicitKeywords = UserStore.getCurrentMentionKeys();
 
     var lines = text.split("\n");
-    var urlMatcher = new LinkifyIt();
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         var words = line.split(" ");
@@ -434,14 +448,14 @@ module.exports.textToJsx = function(text, options) {
                 }
 
                 inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
-            } else if (urlMatcher.test(word)) {
-                var match = urlMatcher.match(word)[0];
-                var link = match.url;
+            } else if (testUrlMatch(word).length) {
+                var match = testUrlMatch(word)[0];
+                var link = match.link
 
-                var prefix = word.substring(0,word.indexOf(match.raw))
-                var suffix = word.substring(word.indexOf(match.raw)+match.raw.length);
+                var prefix = word.substring(0,word.indexOf(match.text))
+                var suffix = word.substring(word.indexOf(match.text)+match.text.length);
 
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.raw}</a>{suffix} </span>);
+                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
 
             } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
