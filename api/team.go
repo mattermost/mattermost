@@ -4,6 +4,7 @@
 package api
 
 import (
+	"bytes"
 	l4g "code.google.com/p/log4go"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -13,6 +14,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func InitTeam(r *mux.Router) {
@@ -29,6 +31,7 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/update_name", ApiUserRequired(updateTeamDisplayName)).Methods("POST")
 	sr.Handle("/update_valet_feature", ApiUserRequired(updateValetFeature)).Methods("POST")
 	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
+	sr.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -488,4 +491,72 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(result.Data.(*model.Team).ToJson()))
 		return
 	}
+}
+
+func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") {
+		c.Err = model.NewAppError("importTeam", "Only a team admin can import data.", "userId="+c.Session.UserId)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if err := r.ParseMultipartForm(10000000); err != nil {
+		c.Err = model.NewAppError("importTeam", "Could not parse multipart form", err.Error())
+		return
+	}
+
+	importFromArray, ok := r.MultipartForm.Value["importFrom"]
+	importFrom := importFromArray[0]
+
+	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
+	if !ok {
+		c.Err = model.NewAppError("importTeam", "Filesize unavilable", "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileSize, err := strconv.ParseInt(fileSizeStr[0], 10, 64)
+	if err != nil {
+		c.Err = model.NewAppError("importTeam", "Filesize not an integer", "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileInfoArray, ok := r.MultipartForm.File["file"]
+	if !ok {
+		c.Err = model.NewAppError("importTeam", "No file under 'file' in request", "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(fileInfoArray) <= 0 {
+		c.Err = model.NewAppError("importTeam", "Empty array under 'file' in request", "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileInfo := fileInfoArray[0]
+
+	fileData, err := fileInfo.Open()
+	defer fileData.Close()
+	if err != nil {
+		c.Err = model.NewAppError("importTeam", "Could not open file", err.Error())
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	var log *bytes.Buffer
+	switch importFrom {
+	case "slack":
+		var err *model.AppError
+		if err, log = SlackImport(fileData, fileSize, c.Session.TeamId); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusBadRequest
+		}
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
+	w.Header().Set("Content-Type", "application/octet-stream")
+	http.ServeContent(w, r, "MattermostImportLog.txt", time.Now(), bytes.NewReader(log.Bytes()))
 }
