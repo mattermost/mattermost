@@ -965,3 +965,12 @@ module.exports.generateId = function() {
 module.exports.isBrowserFirefox = function() {
     return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 }
+
+module.exports.importSlack = function(file, success, error) {
+	formData = new FormData();
+	formData.append('file', file, file.name);
+	formData.append('filesize', file.size);
+    formData.append('importFrom', 'slack');
+
+	client.importSlack(formData, success, error);
+}

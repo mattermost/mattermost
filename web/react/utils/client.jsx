@@ -845,6 +845,22 @@ module.exports.uploadProfileImage = function(imageData, success, error) {
     });
 };
 
+module.exports.importSlack = function(fileData, success, error) {
+    $.ajax({
+		url: "/api/v1/teams/import_team",
+        type: 'POST',
+        data: fileData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: success,
+        error: function(xhr, status, err) {
+            e = handleError("importTeam", xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 module.exports.getStatuses = function(success, error) {
     $.ajax({
         url: "/api/v1/users/status",
