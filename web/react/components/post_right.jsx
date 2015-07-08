@@ -282,7 +282,6 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addSelectedPostChangeListener(this._onChange);
         PostStore.addChangeListener(this._onChangeAll);
-        $(".post-right__scroll").perfectScrollbar();
         this.resize();
         var self = this;
         $(window).resize(function(){
@@ -341,7 +340,7 @@ module.exports = React.createClass({
         var height = $(window).height() - $('#error_bar').outerHeight() - 100;
         $(".post-right__scroll").css("height", height + "px");
         $(".post-right__scroll").scrollTop(100000);
-        $(".post-right__scroll").perfectScrollbar('update');
+        $(".post-right__scroll").perfectScrollbar();
     },
     render: function() {
 
