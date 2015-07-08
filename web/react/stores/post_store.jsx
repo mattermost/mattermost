@@ -7,6 +7,7 @@ var assign = require('object-assign');
 
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var BrowserStore = require('../stores/browser_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -105,12 +106,12 @@ var PostStore = assign({}, EventEmitter.prototype, {
     this.emitChange();
   },
   _storePosts: function(channelId, posts) {
-    sessionStorage.setItem("posts_" + channelId, JSON.stringify(posts));
+    BrowserStore.setItem("posts_" + channelId, JSON.stringify(posts));
   },
   getPosts: function(channelId) {
     var posts = null;
     try {
-        posts = JSON.parse(sessionStorage.getItem("posts_" + channelId));
+        posts = JSON.parse(BrowserStore.getItem("posts_" + channelId));
     }
     catch (err) {
     }
@@ -118,14 +119,14 @@ var PostStore = assign({}, EventEmitter.prototype, {
     return posts;
   },
   storeSearchResults: function(results, is_mention_search) {
-    sessionStorage.setItem("search_results", JSON.stringify(results));
+    BrowserStore.setItem("search_results", JSON.stringify(results));
     is_mention_search = is_mention_search ? true : false; // force to bool
-    sessionStorage.setItem("is_mention_search", JSON.stringify(is_mention_search));
+    BrowserStore.setItem("is_mention_search", JSON.stringify(is_mention_search));
   },
   getSearchResults: function() {
     var results = null;
     try {
-        results = JSON.parse(sessionStorage.getItem("search_results"));
+        results = JSON.parse(BrowserStore.getItem("search_results"));
     }
     catch (err) {
     }
@@ -135,7 +136,7 @@ var PostStore = assign({}, EventEmitter.prototype, {
   getIsMentionSearch: function() {
     var result = false;
     try {
-        result = JSON.parse(sessionStorage.getItem("is_mention_search"));
+        result = JSON.parse(BrowserStore.getItem("is_mention_search"));
     }
     catch (err) {
     }
@@ -143,12 +144,12 @@ var PostStore = assign({}, EventEmitter.prototype, {
     return result;
   },
   storeSelectedPost: function(post_list) {
-    sessionStorage.setItem("select_post", JSON.stringify(post_list));
+    BrowserStore.setItem("select_post", JSON.stringify(post_list));
   },
   getSelectedPost: function() {
     var post_list = null;
     try {
-        post_list = JSON.parse(sessionStorage.getItem("select_post"));
+        post_list = JSON.parse(BrowserStore.getItem("select_post"));
     }
     catch (err) {
     }
@@ -156,37 +157,35 @@ var PostStore = assign({}, EventEmitter.prototype, {
     return post_list;
   },
   storeSearchTerm: function(term) {
-    sessionStorage.setItem("search_term", term);
+    BrowserStore.setItem("search_term", term);
   },
   getSearchTerm: function() {
-    return sessionStorage.getItem("search_term");
+    return BrowserStore.getItem("search_term");
   },
   storeCurrentDraft: function(draft) {
     var channel_id = ChannelStore.getCurrentId();
     var user_id = UserStore.getCurrentId();
-    localStorage.setItem("draft_" + channel_id + "_" + user_id, JSON.stringify(draft));
+    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, JSON.stringify(draft));
   },
   getCurrentDraft: function() {
     var channel_id = ChannelStore.getCurrentId();
     var user_id = UserStore.getCurrentId();
-    return JSON.parse(localStorage.getItem("draft_" + channel_id + "_" + user_id));
+    return JSON.parse(BrowserStore.getItem("draft_" + channel_id + "_" + user_id));
   },
   storeDraft: function(channel_id, user_id, draft) {
-    localStorage.setItem("draft_" + channel_id + "_" + user_id, JSON.stringify(draft));
+    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, JSON.stringify(draft));
   },
   getDraft: function(channel_id, user_id) {
-    return JSON.parse(localStorage.getItem("draft_" + channel_id + "_" + user_id));
+    return JSON.parse(BrowserStore.getItem("draft_" + channel_id + "_" + user_id));
   },
   clearDraftUploads: function() {
-    for (key in localStorage) {
-        if (key.substring(0,6) === "draft_") {
-            var d = JSON.parse(localStorage.getItem(key));
-            if (d) {
-                d['uploadsInProgress'] = 0;
-                localStorage.setItem(key, JSON.stringify(d));
-            }
-        }
-    }
+	BrowserStore.actionOnItemsWithPrefix("draft_", function (key, value) {
+	  var d = JSON.parse(value);
+	  if (d) {
+		d['uploadsInProgress'] = 0;
+		BrowserStore.setItem(key, JSON.stringify(d));
+	  }
+	});
   }
 });
 

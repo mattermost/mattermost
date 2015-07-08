@@ -3,6 +3,7 @@
 
 var Client = require('../utils/client.jsx');
 var PostStore = require('../stores/post_store.jsx');
+var BrowserStore = require('../stores/browser_store.jsx');
 var utils = require('../utils/utils.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
@@ -54,9 +55,9 @@ module.exports = React.createClass({
         var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
             var newState = {};
-            if(sessionStorage.getItem('edit_state_transfer')) {
-                newState = JSON.parse(sessionStorage.getItem('edit_state_transfer'));
-                sessionStorage.removeItem('edit_state_transfer');
+            if(BrowserStore.getItem('edit_state_transfer')) {
+                newState = JSON.parse(BrowserStore.getItem('edit_state_transfer'));
+                BrowserStore.removeItem('edit_state_transfer');
             } else {
                 var button = e.relatedTarget;
                 newState = { title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments') };

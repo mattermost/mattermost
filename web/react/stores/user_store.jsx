@@ -8,6 +8,7 @@ var client = require('../utils/client.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
+var BrowserStore = require('../stores/browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
 var CHANGE_EVENT_SESSIONS = 'change_sessions';
@@ -64,12 +65,12 @@ var UserStore = assign({}, EventEmitter.prototype, {
   },
   setCurrentId: function(id) {
     if (id == null)
-      sessionStorage.removeItem("current_user_id");
+      localStorage.removeItem("current_user_id");
     else
-      sessionStorage.setItem("current_user_id", id);
+      localStorage.setItem("current_user_id", id);
   },
   getCurrentId: function(skipFetch) {
-    var current_id =  sessionStorage.current_user_id;
+    var current_id = localStorage.getItem("current_user_id");
 
     // this is a speical case to force fetch the
     // current user if it's missing
@@ -96,16 +97,24 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this.setCurrentId(user.id);
   },
   getLastDomain: function() {
-    return localStorage.last_domain;
+	var last_domain = BrowserStore.getItem("last_domain");
+	if (last_domain == null) {
+		last_domain = "";
+	}
+	return last_domain;
   },
   setLastDomain: function(domain) {
-    localStorage.setItem("last_domain", domain);
+    BrowserStore.setItem("last_domain", domain);
   },
   getLastEmail: function() {
-    return localStorage.last_email;
+	var last_email = BrowserStore.getItem("last_email");
+	if (last_email == null) {
+		last_email = "";
+	}
+	return last_email;
   },
   setLastEmail: function(email) {
-    localStorage.setItem("last_email", email);
+    BrowserStore.setItem("last_email", email);
   },
   removeCurrentUser: function() {
     this.setCurrentId(null);
@@ -144,89 +153,89 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this._storeProfiles(ps);
   },
   _storeProfiles: function(profiles) {
-    sessionStorage.setItem("profiles", JSON.stringify(profiles));
+    localStorage.setItem("profiles", JSON.stringify(profiles));
     var profileUsernameMap = {};
     for (var id in profiles) {
         profileUsernameMap[profiles[id].username] = profiles[id];
     }
-    sessionStorage.setItem("profileUsernameMap", JSON.stringify(profileUsernameMap));
+    localStorage.setItem("profileUsernameMap", JSON.stringify(profileUsernameMap));
   },
   _getProfiles: function() {
     var profiles = {};
     try {
-        profiles = JSON.parse(sessionStorage.getItem("profiles"));
-
-        if (profiles == null) {
-            profiles = {};
-        }
+        profiles = JSON.parse(localStorage.getItem("profiles"));
     }
     catch (err) {
     }
+
+	if (profiles == null) {
+		profiles = {};
+	}
 
     return profiles;
   },
   _getProfilesUsernameMap: function() {
     var profileUsernameMap = {};
     try {
-        profileUsernameMap = JSON.parse(sessionStorage.getItem("profileUsernameMap"));
-
-        if (profileUsernameMap == null) {
-            profileUsernameMap = {};
-        }
+        profileUsernameMap = JSON.parse(localStorage.getItem("profileUsernameMap"));
     }
     catch (err) {
     }
+
+	if (profileUsernameMap == null) {
+		profileUsernameMap = {};
+	}
 
     return profileUsernameMap;
   },
   setSessions: function(sessions) {
-    sessionStorage.setItem("sessions", JSON.stringify(sessions));
+    BrowserStore.setItem("sessions", JSON.stringify(sessions));
   },
   getSessions: function() {
     var sessions = [];
     try {
-        sessions = JSON.parse(sessionStorage.getItem("sessions"));
-
-        if (sessions == null) {
-            sessions = [];
-        }
+        sessions = JSON.parse(BrowserStore.getItem("sessions"));
     }
     catch (err) {
-    }
+	}
+	if (sessions == null) {
+		sessions = [];
+	}
 
     return sessions;
   },
   setAudits: function(audits) {
-    sessionStorage.setItem("audits", JSON.stringify(audits));
+    BrowserStore.setItem("audits", JSON.stringify(audits));
   },
   getAudits: function() {
     var audits = [];
     try {
-        audits = JSON.parse(sessionStorage.getItem("audits"));
-
-        if (audits == null) {
-            audits = [];
-        }
+        audits = JSON.parse(BrowserStore.getItem("audits"));
     }
     catch (err) {
-    }
+	}
+
+	if (audits == null) {
+		audits = [];
+	}
 
     return audits;
   },
   setTeams: function(teams) {
-    sessionStorage.setItem("teams", JSON.stringify(teams));
+    BrowserStore.setItem("teams", JSON.stringify(teams));
   },
   getTeams: function() {
     var teams = [];
     try {
-        teams = JSON.parse(sessionStorage.getItem("teams"));
+        teams = JSON.parse(BrowserStore.getItem("teams"));
 
-        if (teams == null) {
-            teams = [];
-        }
     }
     catch (err) {
-    }
+	}
+
+	if (teams == null) {
+		teams = [];
+	}
 
     return teams;
   },
@@ -249,17 +258,21 @@ var UserStore = assign({}, EventEmitter.prototype, {
     }
   },
   getLastVersion: function() {
-    return sessionStorage.last_version;
+    var last_version = BrowserStore.getItem("last_version");
+	if (last_version == null) {
+		last_version = "";
+	}
+	return last_version;
   },
   setLastVersion: function(version) {
-    sessionStorage.setItem("last_version", version);
+    BrowserStore.setItem("last_version", version);
   },
   setStatuses: function(statuses) {
     this._setStatuses(statuses);
     this.emitStatusesChange();
   },
   _setStatuses: function(statuses) {
-    sessionStorage.setItem("statuses", JSON.stringify(statuses));
+    BrowserStore.setItem("statuses", JSON.stringify(statuses));
   },
   setStatus: function(user_id, status) {
     var statuses = this.getStatuses();
@@ -270,14 +283,14 @@ var UserStore = assign({}, EventEmitter.prototype, {
   getStatuses: function() {
     var statuses = {};
     try {
-        statuses = JSON.parse(sessionStorage.getItem("statuses"));
-
-        if (statuses == null) {
-            statuses = {};
-        }
+        statuses = JSON.parse(BrowserStore.getItem("statuses"));
     }
     catch (err) {
     }
+
+	if (statuses == null) {
+		statuses = {};
+	}
 
     return statuses;
   },
