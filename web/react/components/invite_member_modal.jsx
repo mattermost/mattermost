@@ -43,7 +43,6 @@ module.exports = React.createClass({
         var first_name_errors = this.state.first_name_errors;
         var last_name_errors = this.state.last_name_errors;
         var valid = true;
-        var profiles = UserStore.getProfiles();
 
         for (var i = 0; i < count; i++) {
             var index = invite_ids[i];
@@ -53,13 +52,6 @@ module.exports = React.createClass({
                 email_errors[index] = "Please enter a valid email address";
                 valid = false;
             } else {
-                for (var email in profiles) {
-                    if (email === invite.email) {
-                        email_errors[index] = "This person is already on your team";
-                        valid = false;
-                    }
-                }
-
                 email_errors[index] = "";
             }
 
@@ -151,8 +143,7 @@ module.exports = React.createClass({
             id_count: 0,
             email_errors: {},
             first_name_errors: {},
-            last_name_errors: {},
-            server_errors: {}
+            last_name_errors: {}
         };
     },
     render: function() {
