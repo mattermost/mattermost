@@ -17,6 +17,7 @@ type App struct {
 	Name         string `json:"name"`
 	Description  string `json:"description"`
 	CallbackUrl  string `json:"callback_url"`
+	Homepage     string `json:"homepage"`
 }
 
 // IsValid validates the app and returns an error if it isn't configured
@@ -51,6 +52,10 @@ func (a *App) IsValid() *AppError {
 		return NewAppError("App.IsValid", "CallbackUrl must be set", "app_id="+a.Id)
 	}
 
+	if len(a.Homepage) == 0 {
+		return NewAppError("App.IsValid", "Homepage must be set", "app_id="+a.Id)
+	}
+
 	return nil
 }
 
@@ -67,6 +72,10 @@ func (a *App) PreSave() {
 
 	a.CreateAt = GetMillis()
 	a.UpdateAt = a.CreateAt
+
+	if len(a.ClientSecret) > 0 {
+		a.ClientSecret = HashPassword(a.ClientSecret)
+	}
 }
 
 // PreUpdate should be run before updating the app in the db.

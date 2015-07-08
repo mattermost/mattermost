@@ -30,6 +30,7 @@ type ServiceSettings struct {
 	AnalyticsUrl     string
 	UseLocalStorage  bool
 	StorageDirectory string
+	AesKey           string
 }
 
 type SSOSetting struct {

@@ -21,7 +21,8 @@
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
         "AnalyticsUrl": "",
         "UseLocalStorage": true,
-        "StorageDirectory": "./data/"
+        "StorageDirectory": "./data/",
+        "AesKey": "jYmASyfjaiY2P92KsnsSfc1dg0asfK3z"
     },
     "SSOSettings": {
         "gitlab": {

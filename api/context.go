@@ -15,6 +15,8 @@ import (
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
+var authCodeCache *utils.Cache = utils.NewLru(model.AUTHCODE_CACHE_SIZE)
+var accessTokenCache *utils.Cache = utils.NewLru(model.ACCESS_TOKEN_CACHE_SIZE)
 
 type Context struct {
 	Session      model.Session
@@ -81,6 +83,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 
+	token := r.URL.Query().Get("access_token")
+
 	protocol := "http"
 
 	// if the request came from the ELB then assume this is produciton
@@ -109,41 +113,91 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := ""
 
-	// attempt to parse the session token from the header
-	if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
-		if len(ah) > 6 && strings.ToUpper(ah[0:6]) == "BEARER" {
-			sessionId = ah[7:]
-		}
-	}
-
-	// attempt to parse the session token from the cookie
-	if sessionId == "" {
-		if cookie, err := r.Cookie(model.SESSION_TOKEN); err == nil {
-			sessionId = cookie.Value
-		}
-	}
-
-	if sessionId != "" {
-
-		var session *model.Session
-		if ts, ok := sessionCache.Get(sessionId); ok {
-			session = ts.(*model.Session)
-		}
-
-		if session == nil {
-			if sessionResult := <-Srv.Store.Session().Get(sessionId); sessionResult.Err != nil {
-				c.LogError(model.NewAppError("ServeHTTP", "Invalid session", "id="+sessionId+", err="+sessionResult.Err.DetailedError))
-			} else {
-				session = sessionResult.Data.(*model.Session)
+	if len(token) == 0 {
+		// attempt to parse the session token from the header
+		if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
+			if len(ah) > 6 && strings.ToUpper(ah[0:6]) == "BEARER" {
+				sessionId = ah[7:]
 			}
 		}
 
-		if session == nil || session.IsExpired() {
-			c.RemoveSessionCookie(w)
-			c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "id="+sessionId)
+		// attempt to parse the session token from the cookie
+		if sessionId == "" {
+			if cookie, err := r.Cookie(model.SESSION_TOKEN); err == nil {
+				sessionId = cookie.Value
+			}
+		}
+
+		if sessionId != "" {
+
+			var session *model.Session
+			if ts, ok := sessionCache.Get(sessionId); ok {
+				session = ts.(*model.Session)
+			}
+
+			if session == nil {
+				if sessionResult := <-Srv.Store.Session().Get(sessionId); sessionResult.Err != nil {
+					c.LogError(model.NewAppError("ServeHTTP", "Invalid session", "id="+sessionId+", err="+sessionResult.Err.DetailedError))
+				} else {
+					session = sessionResult.Data.(*model.Session)
+				}
+			}
+
+			if session == nil || session.IsExpired() {
+				c.RemoveSessionCookie(w)
+				c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "id="+sessionId)
+				c.Err.StatusCode = http.StatusUnauthorized
+			} else {
+				c.Session = *session
+			}
+		}
+	} else {
+		var accessData *model.AccessData
+		if td, ok := accessTokenCache.Get(token); ok {
+			accessData = td.(*model.AccessData)
+		}
+
+		if accessData == nil {
+			if result := <-Srv.Store.AccessData().Get(token); result.Err != nil {
+				c.LogError(model.NewAppError("ServeHTTP", "Invalid access token", "err="+result.Err.DetailedError))
+			} else {
+				accessData = result.Data.(*model.AccessData)
+			}
+		}
+
+		if accessData == nil {
+			c.Err = model.NewAppError("ServeHTTP", "Invalid access token", "")
+			c.Err.StatusCode = http.StatusUnauthorized
+		} else if accessData.IsExpired() {
+			// TODO - remove access token, related auth code from DB as well as from cache
+			c.Err = model.NewAppError("ServeHTTP", "Access token has expired", "")
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
-			c.Session = *session
+			var session *model.Session
+			if ts, ok := sessionCache.Get(token); ok {
+				session = ts.(*model.Session)
+			}
+
+			if session == nil {
+				if result := <-Srv.Store.Session().GetByAccessToken(token); result.Err != nil {
+					c.LogError(model.NewAppError("ServeHTTP", "Invalid session", "id="+sessionId+", err="+result.Err.DetailedError))
+				} else if result.Data == nil {
+					session = nil
+				} else {
+					session = result.Data.(*model.Session)
+				}
+			}
+
+			if session == nil {
+				session, err := CreateOAuthSession(token)
+				if err != nil {
+					c.Err = model.NewAppError("ServeHTTP", "Unable to create oauth2 session", "")
+					c.Err.StatusCode = http.StatusUnauthorized
+				}
+				c.Session = *session
+			} else {
+				c.Session = *session
+			}
 		}
 	}
 
@@ -441,4 +495,37 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	err.StatusCode = http.StatusNotFound
 	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
 	RenderWebError(err, w, r)
+}
+
+func CreateOAuthSession(token string) (*model.Session, *model.AppError) {
+	accessData := GetAccessData(token)
+
+	if accessData == nil {
+		return nil, model.NewAppError("CreateOAuthSession", "Could not find access token", "")
+	}
+
+	if accessData.IsExpired() {
+		// TODO - remove access token and related authorization code from DB
+		return nil, model.NewAppError("CreateOAuthSession", "Access token is expired", "")
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().Get(accessData.UserId); result.Err != nil {
+		return nil, model.NewAppError("CreateOAuthSession", "Could not get the user associated with the access token", "")
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, AccessToken: accessData.Token}
+	session.SetExpireInDays(model.SESSION_TIME_OAUTH_IN_DAYS)
+
+	if result := <-Srv.Store.Session().Save(session); result.Err != nil {
+		return nil, model.NewAppError("CreateOAuthSession", "Could not save created session", "")
+	} else {
+		session = result.Data.(*model.Session)
+		sessionCache.Add(token, session)
+		accessTokenCache.Add(token, accessData)
+	}
+
+	return session, nil
 }

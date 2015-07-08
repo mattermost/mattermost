@@ -6,7 +6,10 @@ package model
 import (
 	"bytes"
 	"code.google.com/p/go-uuid/uuid"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/base32"
+	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -66,6 +69,46 @@ func NewAppError(where string, message string, details string) *AppError {
 	ap.DetailedError = details
 	ap.StatusCode = 500
 	return ap
+}
+
+var commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+
+// AesEncrypt uses the AES encryption algorithm to take a string and return the base64 encrypted string
+func AesEncrypt(key string, val string) (string, *AppError) {
+	plaintext := []byte(val)
+
+	c, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", NewAppError("AesEncrypt", "Encountered an error creating AES cipher", "err="+err.Error())
+	}
+
+	cfb := cipher.NewCFBEncrypter(c, commonIV)
+	ciphertext := make([]byte, len(plaintext))
+	cfb.XORKeyStream(ciphertext, plaintext)
+
+	ciphertext64 := b64.StdEncoding.EncodeToString(ciphertext)
+
+	return ciphertext64, nil
+}
+
+// AesDecrypt uses the AES encryption algorithm to take a base64 encoded string and return the decrypted string
+func AesDecrypt(key string, val string) (string, *AppError) {
+	ciphertext := make([]byte, b64.StdEncoding.DecodedLen(len(val)))
+	_, err64 := b64.StdEncoding.Decode(ciphertext, []byte(val))
+	if err64 != nil {
+		return "", NewAppError("AesDecrypt", "Encountered an error decoding base64 string", "err="+err64.Error())
+	}
+
+	c, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", NewAppError("AesDecrypt", "Encountered an error creating AES cipher", "err="+err.Error())
+	}
+
+	cfbdec := cipher.NewCFBDecrypter(c, commonIV)
+	plaintext := make([]byte, len(ciphertext))
+	cfbdec.XORKeyStream(plaintext, ciphertext)
+
+	return string(plaintext), nil
 }
 
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")

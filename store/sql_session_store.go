@@ -6,6 +6,8 @@ package store
 import (
 	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
+	"strings"
 )
 
 type SqlSessionStore struct {
@@ -24,17 +26,20 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 		table.ColMap("DeviceId").SetMaxSize(128)
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(1000)
+		table.ColMap("AccessToken").SetMaxSize(128)
 	}
 
 	return us
 }
 
 func (me SqlSessionStore) UpgradeSchemaIfNeeded() {
+	me.CreateColumnIfNotExists("Sessions", "AccessToken", "Props", "varchar(128)", "")
 }
 
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
 	me.CreateIndexIfNotExists("idx_sessions_alt_id", "Sessions", "AltId")
+	me.CreateIndexIfNotExists("idx_sessions_access_token", "Sessions", "AccessToken")
 }
 
 func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
@@ -171,6 +176,38 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) Sto
 
 		storeChannel <- result
 		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (me SqlSessionStore) GetByAccessToken(token string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
+		if err != nil {
+			result.Err = model.NewAppError("SqlSessionStore.GetByAccessToken", "We encountered an error encrypting the session", err.Error())
+		}
+
+		session := model.Session{}
+
+		if err := me.GetReplica().SelectOne(&session, "SELECT * FROM Sessions WHERE AccessToken = :Token", map[string]interface{}{"Token": encryptedToken}); err != nil {
+			if strings.Contains(err.Error(), "no rows") {
+				result.Data = nil
+			} else {
+				result.Err = model.NewAppError("SqlSessionStore.GetByAccessToken", "We encountered an error finding the session", err.Error())
+			}
+		} else {
+			result.Data = session
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+
 	}()
 
 	return storeChannel

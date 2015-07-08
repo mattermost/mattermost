@@ -56,6 +56,7 @@ func InitWeb() {
 	// Bug in gorilla.mux pervents us from using regex here.
 	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")
 	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(loginCompleteOAuth)).Methods("GET")
+	mainrouter.Handle("/login/oauth2/authorize", api.UserRequired(authorizeOAuth2)).Methods("GET")
 
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
@@ -636,4 +637,47 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 			root(c, w, r)
 		}
 	}
+}
+
+func authorizeOAuth2(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	if !CheckBrowserCompatability(c, r) {
+		return
+	}
+
+	responseType := r.URL.Query().Get("response_type")
+	clientId := r.URL.Query().Get("client_id")
+	redirect := r.URL.Query().Get("redirect_uri")
+	scope := r.URL.Query().Get("scope")
+	state := r.URL.Query().Get("state")
+
+	if len(responseType) == 0 || len(clientId) == 0 || len(redirect) == 0 || len(state) == 0 {
+		c.Err = model.NewAppError("authorizeOAuth2", "Missing one or more of response_type, client_id, redirect_uri, or state", "")
+		return
+	}
+
+	var app *model.App
+	if result := <-api.Srv.Store.App().Get(clientId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		app = result.Data.(*model.App)
+	}
+
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	page := NewHtmlTemplatePage("authorize", "Authorize Application")
+	page.Props["TeamName"] = team.Name
+	page.Props["AppName"] = app.Name
+	page.Props["ResponseType"] = responseType
+	page.Props["ClientId"] = clientId
+	page.Props["RedirectUri"] = redirect
+	page.Props["Scope"] = scope
+	page.Props["State"] = state
+	page.Render(c, w)
 }
