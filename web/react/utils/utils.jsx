@@ -235,7 +235,7 @@ module.exports.extractLinks = function(text) {
 
     var links = []
     for (var i = 0; i < matches.length; i++) {
-        links.push(matches[i].link)
+        links.push(matches[i].link);
     }
 
     return { "links": links, "text": text };
@@ -450,9 +450,9 @@ module.exports.textToJsx = function(text, options) {
                 inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
-                var link = match.link
+                var link = match.link;
 
-                var prefix = word.substring(0,word.indexOf(match.text))
+                var prefix = word.substring(0,word.indexOf(match.text));
                 var suffix = word.substring(word.indexOf(match.text)+match.text.length);
 
                 inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
