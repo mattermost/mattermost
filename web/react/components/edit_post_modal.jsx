@@ -13,7 +13,7 @@ module.exports = React.createClass({
         if (updatedPost.message.length === 0) {
             var tempState = this.state;
             delete tempState.editText;
-            sessionStorage.setItem('edit_state_transfer', JSON.stringify(tempState));
+            BrowserStore.setItem('edit_state_transfer', JSON.stringify(tempState));
             $("#edit_post").modal('hide');
             $("#delete_post").modal('show');
             return;

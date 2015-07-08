@@ -5,12 +5,16 @@
     to the server on page load. This is to prevent other React controls from spamming
     AsyncClient with requests. */
 
+var BrowserStore = require('../stores/browser_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
     componentDidMount: function() {
+		// Initalize stores
+		BrowserStore.initalize();
+
         /* Start initial aysnc loads */
         AsyncClient.getMe();
         AsyncClient.getPosts(true);

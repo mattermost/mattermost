@@ -5,7 +5,7 @@
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
-
+var BrowserStore = require('../stores/browser_store.jsx');
 
 module.exports = React.createClass({
     handleSubmit: function(e) {
@@ -53,7 +53,7 @@ module.exports = React.createClass({
                             UserStore.setLastEmail(this.state.user.email);
                             UserStore.setCurrentUser(data);
                             if (this.props.hash > 0)
-                                localStorage.setItem(this.props.hash, JSON.stringify({wizard: "finished"}));
+                                BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: "finished"}));
                             window.location.href = '/channels/town-square';
                         }.bind(this),
                         function(err) {
@@ -75,7 +75,7 @@ module.exports = React.createClass({
     getInitialState: function() {
         var props = null;
         try {
-            props = JSON.parse(localStorage.getItem(this.props.hash));
+            props = JSON.parse(BrowserStore.getGlobalItem(this.props.hash));
         }
         catch(parse_error) {
         }
