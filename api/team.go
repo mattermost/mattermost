@@ -456,6 +456,15 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
+	var invNum int64 = 0
+	for _, invite := range invites.Invites {
+		if result := <-Srv.Store.User().GetByEmail(c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Message != "We couldn't find the existing account" {
+			c.Err = model.NewAppError("invite_members", "This person is already on your team", strconv.FormatInt(invNum, 10))
+			return
+		}
+		invNum++;
+	}
+
 	ia := make([]string, len(invites.Invites))
 	for _, invite := range invites.Invites {
 		ia = append(ia, invite["email"])
