@@ -9,6 +9,7 @@ var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
 var Autolinker = require('autolinker');
+var Marked = require('marked');
 
 module.exports.isEmail = function(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -391,6 +392,8 @@ var puncEndRegex = /(\W)+$/g;
 
 module.exports.textToJsx = function(text, options) {
 
+    text = Marked(text, {sanitize: true})
+
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
         text = text.replace(repRegex, " ");
@@ -406,10 +409,10 @@ module.exports.textToJsx = function(text, options) {
         mentionClass = "";
     }
 
-    if (text.indexOf("<p>") === 0) {
+    /*if (text.indexOf("<p>") === 0) {
         text = text.slice(3);
-        text = text.slice(0, text.length - 3);
-    }
+        text = text.slice(0, text.length - 5);
+    }*/
 
     var inner = [];
 
@@ -486,7 +489,7 @@ module.exports.textToJsx = function(text, options) {
             } else if (word === "") {
                 // if word is empty dont include a span
             } else {
-                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} /></span>);
+                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} /> </span>);
             }
             highlightSearchClass = "";
         }
