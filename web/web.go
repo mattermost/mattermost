@@ -301,7 +301,10 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			api.Handle404(w, r)
+			//api.Handle404(w, r)
+			//Bad channel urls just redirect to the town-square for now
+			
+			http.Redirect(w,r,"/channels/town-square", http.StatusFound)
 			return
 		}
 	}
