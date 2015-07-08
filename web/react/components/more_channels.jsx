@@ -79,7 +79,7 @@ module.exports = React.createClass({
                             <button data-toggle="modal" data-target="#new_channel" data-channeltype={this.state.channel_type} type="button" className="btn btn-primary channel-create-btn" onClick={this.handleNewChannel}>Create New Channel</button>
                         </div>
                         <div className="modal-body">
-                            {moreChannels ? 
+                            {moreChannels ?
                                 (moreChannels.length ?
                                     <table className="more-channel-table table">
                                         <tbody>
@@ -100,14 +100,15 @@ module.exports = React.createClass({
                                             <p className="primary-message">No more channels to join</p>
                                             <p className="secondary-message">Click 'Create New Channel' to make a new one</p>
                                         </div>)
-                                :   <div ref="loadingscreen" className="channel-loading-message">
+                                :   <div ref="loadingscreen" className="loading-screen loading-screen--channel">
                                         <div className="loading__content">
                                         <h3>Loading</h3>
                                             <div id="round_1" className="round"></div>
                                             <div id="round_2" className="round"></div>
                                             <div id="round_3" className="round"></div>
                                         </div>
-                                    </div>}
+                                    </div>
+                                }
                             { server_error }
                         </div>
                         <div className="modal-footer">

@@ -5,10 +5,15 @@
 	position: absolute;
 	@include box-sizing(border-box);
 	text-align: center;
+	&.loading-screen--channel {
+		position: relative;
+		padding: 4em 0 3.5em;
+	}
 	.loading__content {
 		display: table-cell;
 		vertical-align: middle;
 		h3 {
+			font-size: 16px;
 			font-weight: 400;
 			margin: 0 0.2em 0;
 			display: inline-block;
@@ -23,64 +28,7 @@
 			width: 4px;
 			height: 4px;
 			display: inline-block;
-			margin: 0 1px;
-			opacity: 0.1;
-			@include border-radius(10px);
-			-moz-animation: move 0.75s infinite linear;
-			-webkit-animation: move 0.75s infinite linear;
-		}
-
-		#round_1 {
-			-moz-animation-delay: .2s;
-			-webkit-animation-delay: .2s;
-		}
-
-		#round_2 {
-			-moz-animation-delay: .4s;
-			-webkit-animation-delay: .4s;
-		}
-
-		#round_3 {
-			-moz-animation-delay: .6s;
-			-webkit-animation-delay: .6s;
-		}
-
-		@-moz-keyframes move {
-			0% {
-				opacity: 1;
-			}
-
-			100% {
-				opacity: 0.1;
-			};
-		}
-
-		@-webkit-keyframes move {
-			0% {
-				opacity: 1;
-			}
-
-			100% {
-				opacity: 0.1;
-			};
-		}
-	}
-}
-
-.channel-loading-screen {
-	position: absolute;
-	text-align: center;
-	padding: 2em 1em;
-}
-
-.channel-loading-message {
-	.loading__content {
-		.round {
-			background-color: #444;
-			width: 4px;
-			height: 4px;
-			display: inline-block;
-			margin: 0 1px;
+			margin: 0;
 			opacity: 0.1;
 			@include border-radius(10px);
 			-moz-animation: move 0.75s infinite linear;

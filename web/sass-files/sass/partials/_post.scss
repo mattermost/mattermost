@@ -306,7 +306,7 @@ body.ios {
 	}
 	.post-image__columns {
 		@include legacy-pie-clearfix;
-		margin-top: 1em;
+		padding-bottom: 5px;
 	}
 	.post-info--hidden {
 		display: none;
