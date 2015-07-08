@@ -84,6 +84,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if forwardProto == "http" {
 			l4g.Info("redirecting http request to https for %v", r.URL.Path)
 			http.Redirect(w, r, "https://"+r.Host, http.StatusTemporaryRedirect)
+			return
 		} else {
 			protocol = "https"
 		}

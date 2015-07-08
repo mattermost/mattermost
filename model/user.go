@@ -198,7 +198,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	if len(options) != 0 && !options["phonenumber"] {
 		// TODO - fill in when PhoneNumber is added to user model
 	}
-	if len(options) != 0 && !options["passwordupadte"] {
+	if len(options) != 0 && !options["passwordupdate"] {
 		u.LastPasswordUpdate = 0
 	}
 }

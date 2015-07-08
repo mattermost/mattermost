@@ -95,7 +95,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Update(user *model.User, allowRoleActiveUpdate bool) StoreChannel {
+func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -125,7 +125,7 @@ func (us SqlUserStore) Update(user *model.User, allowRoleActiveUpdate bool) Stor
 			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
 
-			if !allowRoleActiveUpdate {
+			if !allowActiveUpdate {
 				user.Roles = oldUser.Roles
 				user.DeleteAt = oldUser.DeleteAt
 			}
