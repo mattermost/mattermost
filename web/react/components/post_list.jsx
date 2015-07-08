@@ -197,7 +197,10 @@ module.exports = React.createClass({
                 var post = post_list.posts[msg.props.post_id];
                 post.message = msg.props.message;
 
+                post.lastEditDate = Date.now();
+
                 post_list.posts[post.id] = post;
+
                 this.setState({ post_list: post_list });
 
                 PostStore.storePosts(msg.channel_id, post_list);
@@ -430,8 +433,12 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
+                var postKey = post.id;
+                if (post.lastEditDate != undefined)
+                    postKey += post.lastEditDate;
+
                 var postCtl = (
-                    <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id}
+                    <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={postKey}
                         posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment}
                     />
                 );

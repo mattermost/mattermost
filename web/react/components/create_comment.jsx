@@ -184,6 +184,7 @@ module.exports = React.createClass({
                 </div>
             );
         }
+        var allowTextFormatting = config.AllowTextFormatting;
 
         var postError = null;
         if (this.state.postError) {
@@ -203,6 +204,10 @@ module.exports = React.createClass({
         var postFooterClassName = 'post-create-footer';
         if (postError) {
             postFooterClassName += ' has-error';
+        }
+        var extraInfo = <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId} />;
+        if (this.state.messageText.split(' ').length > 1 && allowTextFormatting) {
+            extraInfo = <span className='msg-format-help'>_<em>italics</em>_ *<strong>bold</strong>* `<code className='code-info'>code</code>`</span>;
         }
 
         return (
@@ -224,7 +229,7 @@ module.exports = React.createClass({
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError} />
                     </div>
-                    <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId}  />
+                    {extraInfo}
                     <div className={postFooterClassName}>
                         <input type='button' className='btn btn-primary comment-btn pull-right' value='Add Comment' onClick={this.handleSubmit} />
                         {postError}

@@ -156,7 +156,7 @@ module.exports = React.createClass({
         }
 
         var channel = this.state.channel;
-        var description = utils.textToJsx(channel.description, {singleline: true, noMentionHighlight: true});
+        var description = utils.textToJsx(channel.description, {singleline: true, noMentionHighlight: true, noTextFormatting: true});
         var popoverContent = React.renderToString(<MessageWrapper message={channel.description}/>);
         var channelTitle = channel.display_name;
         var currentId = UserStore.getCurrentId();

@@ -33,6 +33,19 @@
 			float: left;
 			padding-top: 17px;
 		}
+		.msg-format-help {
+			min-height: 20px;
+			line-height: 18px;
+			display: inline-block;
+			font-size: 13px;
+			color: #555;
+			float: left;
+			padding-top: 17px;
+			.code-info {
+				padding-left: 1px;
+				padding-right: 1px;
+			}
+		}
 		.post-create-footer {
 			padding-top: 10px;
 		}
