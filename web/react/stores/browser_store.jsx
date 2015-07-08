@@ -2,6 +2,8 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
+
+// Also change model/utils.go ETAG_ROOT_VERSION
 var BROWSER_STORE_VERSION = '.1';
 
 module.exports.initalize = function() {
