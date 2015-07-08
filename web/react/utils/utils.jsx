@@ -406,6 +406,11 @@ module.exports.textToJsx = function(text, options) {
         mentionClass = "";
     }
 
+    if (text.indexOf("<p>") === 0) {
+        text = text.slice(3);
+        text = text.slice(0, text.length - 3);
+    }
+
     var inner = [];
 
     // Function specific regex
@@ -481,7 +486,7 @@ module.exports.textToJsx = function(text, options) {
             } else if (word === "") {
                 // if word is empty dont include a span
             } else {
-                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} /> </span>);
+                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} /></span>);
             }
             highlightSearchClass = "";
         }
