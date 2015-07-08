@@ -101,13 +101,13 @@ module.exports = React.createClass({
 
     getDefaultProps: function() {
         return {
-            teamName: config.SiteName
+            teamDisplayName: config.SiteName
         };
     },
 
     render: function() {
-        var teamDisplayName = this.props.teamDisplayName ? this.props.teamDisplayName : config.SiteName;
-        var me = UserStore.getCurrentUser()
+        var me = UserStore.getCurrentUser();
+
         if (!me) {
             return null;
         }
@@ -118,11 +118,11 @@ module.exports = React.createClass({
                     { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                     :
-                    <div />
+                    null
                     }
                     <div className="header__info">
                         <div className="user__name">{ '@' + me.username}</div>
-                        <div className="team__name">{ teamDisplayName }</div>
+                        <div className="team__name">{ this.props.teamDisplayName }</div>
                     </div>
                 </a>
                 <NavbarDropdown teamType={this.props.teamType} />

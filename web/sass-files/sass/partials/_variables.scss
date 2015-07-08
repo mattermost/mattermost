@@ -8,3 +8,7 @@ $primary-color--hover: darken(#2389D7, 5%);
 $body-bg: #e9e9e9;
 $header-bg: #f9f9f9;
 $border-gray: 1px solid #ddd;
+
+%popover-box-shadow {
+	@include box-shadow(rgba(black, 0.175) 1px -3px 12px);
+}

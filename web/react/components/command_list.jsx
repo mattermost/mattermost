@@ -20,12 +20,7 @@ module.exports = React.createClass({
     },
     getSuggestedCommands: function(cmd) {
 
-        if (cmd == "") {
-            this.setState({ suggestions: [ ], cmd: "" });
-            return;
-        }
-
-        if (cmd.indexOf("/") != 0) {
+        if (!cmd || cmd.charAt(0) != '/') {
             this.setState({ suggestions: [ ], cmd: "" });
             return;
         }
@@ -35,17 +30,19 @@ module.exports = React.createClass({
             cmd,
             true,
             function(data) {
-                if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) data.suggestions = [];
+                if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
+                    data.suggestions = [];
+                }
                 this.setState({ suggestions: data.suggestions, cmd: cmd  });
             }.bind(this),
             function(err){
-            }.bind(this)
+            }
         );
     },
     render: function() {
         if (this.state.suggestions.length == 0) return (<div/>);
 
-        var suggestions = []
+        var suggestions = [];
 
         for (var i = 0; i < this.state.suggestions.length; i++) {
             if (this.state.suggestions[i].suggestion != this.state.cmd) {
@@ -59,7 +56,7 @@ module.exports = React.createClass({
         }
 
         return (
-            <div ref="mentionlist" className="command-box" style={{height:(this.state.suggestions*37)+2}}>
+            <div ref="mentionlist" className="command-box" style={{height:(this.state.suggestions.length*37)+2}}>
                 { suggestions }
             </div>
         );

@@ -183,6 +183,9 @@ var UserStore = assign({}, EventEmitter.prototype, {
 
     var keys = [];
 
+    if (!user)
+        return keys;
+
     if (user.notify_props && user.notify_props.mention_keys) keys = keys.concat(user.notify_props.mention_keys.split(','));
     if (user.first_name && user.notify_props.first_name === "true") keys.push(user.first_name);
     if (user.notify_props.all === "true") keys.push('@all');
@@ -258,4 +261,3 @@ UserStore.dispatchToken = AppDispatcher.register(function(payload) {
 UserStore.setMaxListeners(0);
 global.window.UserStore = UserStore;
 module.exports = UserStore;
-
