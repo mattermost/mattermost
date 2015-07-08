@@ -38,7 +38,7 @@ module.exports = React.createClass({
                         <div className="modal-body">
                           <p>{"The link below is used for open " + strings.TeamPlural + " or if you allowed your " + strings.Team + " members to sign up using their " + strings.Company + " email addresses."}
                           </p>
-                          <textarea className="form-control" readOnly="true" value={this.state.value}></textarea>
+                          <textarea className="form-control" style={{resize: "none"}} readOnly="true" value={this.state.value}></textarea>
                         </div>
                         <div className="modal-footer">
                           <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
