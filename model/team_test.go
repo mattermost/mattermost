@@ -9,7 +9,7 @@ import (
 )
 
 func TestTeamJson(t *testing.T) {
-	o := Team{Id: NewId(), Name: NewId()}
+	o := Team{Id: NewId(), DisplayName: NewId()}
 	json := o.ToJson()
 	ro := TeamFromJson(strings.NewReader(json))
 
@@ -46,18 +46,18 @@ func TestTeamIsValid(t *testing.T) {
 	}
 
 	o.Email = "corey@hulen.com"
-	o.Name = strings.Repeat("01234567890", 20)
+	o.DisplayName = strings.Repeat("01234567890", 20)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.Name = "1234"
-	o.Domain = "ZZZZZZZ"
+	o.DisplayName = "1234"
+	o.Name = "ZZZZZZZ"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.Domain = "zzzzz"
+	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
@@ -65,12 +65,12 @@ func TestTeamIsValid(t *testing.T) {
 }
 
 func TestTeamPreSave(t *testing.T) {
-	o := Team{Name: "test"}
+	o := Team{DisplayName: "test"}
 	o.PreSave()
 	o.Etag()
 }
 
 func TestTeamPreUpdate(t *testing.T) {
-	o := Team{Name: "test"}
+	o := Team{DisplayName: "test"}
 	o.PreUpdate()
 }

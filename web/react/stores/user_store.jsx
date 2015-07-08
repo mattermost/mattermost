@@ -67,9 +67,18 @@ var UserStore = assign({}, EventEmitter.prototype, {
   },
   setCurrentId: function(id) {
      this._current_id = id;
+     if (id == null) {
+         BrowserStore.removeGlobalItem("current_user_id");
+     } else {
+         BrowserStore.setGlobalItem("current_user_id", id);
+     }
   },
   getCurrentId: function(skipFetch) {
-      var current_id = this._current_id;
+    var current_id = this._current_id;
+
+    if (current_id == null) {
+        current_id = BrowserStore.getGlobalItem("current_user_id");
+    }
 
     // this is a speical case to force fetch the
     // current user if it's missing
@@ -92,17 +101,11 @@ var UserStore = assign({}, EventEmitter.prototype, {
     return this._getProfiles()[this.getCurrentId()];
   },
   setCurrentUser: function(user) {
-    this.saveProfile(user);
     this.setCurrentId(user.id);
-  },
-  getLastDomain: function() {
-	return BrowserStore.getItem("last_domain", '');
-  },
-  setLastDomain: function(domain) {
-    BrowserStore.setItem("last_domain", domain);
+    this.saveProfile(user);
   },
   getLastEmail: function() {
-	return BrowserStore.getItem("last_email", '');
+      return BrowserStore.getItem("last_email", '');
   },
   setLastEmail: function(email) {
     BrowserStore.setItem("last_email", email);
@@ -144,18 +147,18 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this._storeProfiles(ps);
   },
   _storeProfiles: function(profiles) {
-    BrowserStore.setGlobalItem("profiles", profiles);
+    BrowserStore.setItem("profiles", profiles);
     var profileUsernameMap = {};
     for (var id in profiles) {
         profileUsernameMap[profiles[id].username] = profiles[id];
     }
-    BrowserStore.setGlobalItem("profileUsernameMap", profileUsernameMap);
+    BrowserStore.setItem("profileUsernameMap", profileUsernameMap);
   },
   _getProfiles: function() {
-    return BrowserStore.getGlobalItem("profiles", {});
+    return BrowserStore.getItem("profiles", {});
   },
   _getProfilesUsernameMap: function() {
-    return BrowserStore.getGlobalItem("profileUsernameMap", {});
+    return BrowserStore.getItem("profileUsernameMap", {});
   },
   setSessions: function(sessions) {
     BrowserStore.setItem("sessions", sessions);

@@ -151,12 +151,12 @@ var PostStore = assign({}, EventEmitter.prototype, {
     return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
   },
   clearDraftUploads: function() {
-	BrowserStore.actionOnItemsWithPrefix("draft_", function (key, value) {
-	  if (value) {
-		value.uploadsInProgress = 0;
-		BrowserStore.setItem(key, value);
-	  }
-	});
+      BrowserStore.actionOnItemsWithPrefix("draft_", function (key, value) {
+          if (value) {
+              value.uploadsInProgress = 0;
+              BrowserStore.setItem(key, value);
+          }
+      });
   }
 });
 

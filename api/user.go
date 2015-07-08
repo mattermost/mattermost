@@ -181,14 +181,13 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		//fireAndForgetWelcomeEmail(ruser.FirstName, ruser.Email, team.Name, c.TeamUrl+"/channels/town-square")
-
+		//fireAndForgetWelcomeEmail(ruser.FirstName, ruser.Email, team.Name, c.TeamURL+"/channels/town-square")
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
 			}
 		} else {
-			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.FirstName, ruser.Email, team.Name, c.TeamUrl)
+			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.FirstName, ruser.Email, team.DisplayName, c.GetTeamURLFromTeam(team))
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -202,13 +201,13 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func fireAndForgetWelcomeEmail(name, email, teamName, link string) {
+func fireAndForgetWelcomeEmail(name, email, teamDisplayName, link string) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject", link)
 		bodyPage := NewServerTemplatePage("welcome_body", link)
 		bodyPage.Props["Nickname"] = name
-		bodyPage.Props["TeamName"] = teamName
+		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["FeedbackName"] = utils.Cfg.EmailSettings.FeedbackName
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
@@ -218,16 +217,16 @@ func fireAndForgetWelcomeEmail(name, email, teamName, link string) {
 	}()
 }
 
-func FireAndForgetVerifyEmail(userId, name, email, teamName, teamUrl string) {
+func FireAndForgetVerifyEmail(userId, name, email, teamDisplayName, teamURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/verify?uid=%s&hid=%s", teamUrl, userId, model.HashPassword(userId))
+		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s", teamURL, userId, model.HashPassword(userId))
 
-		subjectPage := NewServerTemplatePage("verify_subject", teamUrl)
-		subjectPage.Props["TeamName"] = teamName
-		bodyPage := NewServerTemplatePage("verify_body", teamUrl)
+		subjectPage := NewServerTemplatePage("verify_subject", teamURL)
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage := NewServerTemplatePage("verify_body", teamURL)
 		bodyPage.Props["Nickname"] = name
-		bodyPage.Props["TeamName"] = teamName
+		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["VerifyUrl"] = link
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
@@ -251,10 +250,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var team *model.Team
-	if result.Data == nil && len(props["email"]) != 0 && len(props["domain"]) != 0 {
-		extraInfo = props["email"] + " in " + props["domain"]
+	if result.Data == nil && len(props["email"]) != 0 && len(props["name"]) != 0 {
+		extraInfo = props["email"] + " in " + props["name"]
 
-		if nr := <-Srv.Store.Team().GetByDomain(props["domain"]); nr.Err != nil {
+		if nr := <-Srv.Store.Team().GetByName(props["name"]); nr.Err != nil {
 			c.Err = nr.Err
 			return
 		} else {
@@ -517,7 +516,6 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-		w.Header().Set("Cache-Control", "max-age=120, public") // 2 mins
 		w.Write([]byte(model.UserMapToJson(profiles)))
 		return
 	}
@@ -758,7 +756,8 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			if tresult := <-Srv.Store.Team().Get(rusers[1].TeamId); tresult.Err != nil {
 				l4g.Error(tresult.Err.Message)
 			} else {
-				fireAndForgetEmailChangeEmail(rusers[1].Email, tresult.Data.(*model.Team).Name, c.TeamUrl)
+				team := tresult.Data.(*model.Team)
+				fireAndForgetEmailChangeEmail(rusers[1].Email, team.DisplayName, c.GetTeamURLFromTeam(team))
 			}
 		}
 
@@ -829,7 +828,8 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		if tresult := <-tchan; tresult.Err != nil {
 			l4g.Error(tresult.Err.Message)
 		} else {
-			fireAndForgetPasswordChangeEmail(user.Email, tresult.Data.(*model.Team).Name, c.TeamUrl, "using the settings menu")
+			team := tresult.Data.(*model.Team)
+			fireAndForgetPasswordChangeEmail(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), "using the settings menu")
 		}
 
 		data := make(map[string]string)
@@ -988,14 +988,14 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domain := props["domain"]
-	if len(domain) == 0 {
-		c.SetInvalidParam("sendPasswordReset", "domain")
+	name := props["name"]
+	if len(name) == 0 {
+		c.SetInvalidParam("sendPasswordReset", "name")
 		return
 	}
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().GetByDomain(domain); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1017,10 +1017,10 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.ResetSalt))
 
-	link := fmt.Sprintf("%s/reset_password?d=%s&h=%s", c.TeamUrl, url.QueryEscape(data), url.QueryEscape(hash))
+	link := fmt.Sprintf("%s/reset_password?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
 
-	subjectPage := NewServerTemplatePage("reset_subject", c.TeamUrl)
-	bodyPage := NewServerTemplatePage("reset_body", c.TeamUrl)
+	subjectPage := NewServerTemplatePage("reset_subject", c.GetTeamURLFromTeam(team))
+	bodyPage := NewServerTemplatePage("reset_body", c.GetTeamURLFromTeam(team))
 	bodyPage.Props["ResetUrl"] = link
 
 	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
@@ -1062,16 +1062,16 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domain := props["domain"]
-	if len(domain) == 0 {
-		c.SetInvalidParam("resetPassword", "domain")
+	name := props["name"]
+	if len(name) == 0 {
+		c.SetInvalidParam("resetPassword", "name")
 		return
 	}
 
 	c.LogAuditWithUserId(userId, "attempt")
 
 	var team *model.Team
-	if result := <-Srv.Store.Team().GetByDomain(domain); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1110,19 +1110,19 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(userId, "success")
 	}
 
-	fireAndForgetPasswordChangeEmail(user.Email, team.Name, c.TeamUrl, "using a reset password link")
+	fireAndForgetPasswordChangeEmail(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), "using a reset password link")
 
 	props["new_password"] = ""
 	w.Write([]byte(model.MapToJson(props)))
 }
 
-func fireAndForgetPasswordChangeEmail(email, teamName, teamUrl, method string) {
+func fireAndForgetPasswordChangeEmail(email, teamDisplayName, teamURL, method string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("password_change_subject", teamUrl)
-		subjectPage.Props["TeamName"] = teamName
-		bodyPage := NewServerTemplatePage("password_change_body", teamUrl)
-		bodyPage.Props["TeamName"] = teamName
+		subjectPage := NewServerTemplatePage("password_change_subject", teamURL)
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage := NewServerTemplatePage("password_change_body", teamURL)
+		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["Method"] = method
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
@@ -1132,13 +1132,13 @@ func fireAndForgetPasswordChangeEmail(email, teamName, teamUrl, method string) {
 	}()
 }
 
-func fireAndForgetEmailChangeEmail(email, teamName, teamUrl string) {
+func fireAndForgetEmailChangeEmail(email, teamDisplayName, teamURL string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("email_change_subject", teamUrl)
-		subjectPage.Props["TeamName"] = teamName
-		bodyPage := NewServerTemplatePage("email_change_body", teamUrl)
-		bodyPage.Props["TeamName"] = teamName
+		subjectPage := NewServerTemplatePage("email_change_subject", teamURL)
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage := NewServerTemplatePage("email_change_body", teamURL)
+		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error("Failed to send update password email successfully err=%v", err)

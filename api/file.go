@@ -13,9 +13,9 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/nfnt/resize"
+	_ "golang.org/x/image/bmp"
 	"image"
 	_ "image/gif"
-	_ "golang.org/x/image/bmp"
 	"image/jpeg"
 	"io"
 	"net/http"
@@ -115,7 +115,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fileUrl := c.TeamUrl + "/api/v1/files/get/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + url.QueryEscape(files[i].Filename)
+		fileUrl := c.GetSiteURL() + "/api/v1/files/get/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + url.QueryEscape(files[i].Filename)
 		resStruct.Filenames = append(resStruct.Filenames, fileUrl)
 	}
 
@@ -363,7 +363,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt))
 
-	url := fmt.Sprintf("%s/api/v1/files/%s/%s/%s/%s?d=%s&h=%s&t=%s", c.TeamUrl, getType, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
+	url := fmt.Sprintf("%s/api/v1/files/%s/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL(), getType, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
 
 	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
 		return

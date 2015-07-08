@@ -7,6 +7,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 
 var UserProfile = require('./user_profile.jsx');
 var MessageWrapper = require('./message_wrapper.jsx');
@@ -61,93 +62,6 @@ var NotifyCounts =  React.createClass({
     }
 });
 
-var NavbarLoginForm = React.createClass({
-    handleSubmit: function(e) {
-        e.preventDefault();
-        var state = { };
-
-        var domain = this.refs.domain.getDOMNode().value.trim();
-        if (!domain) {
-            state.server_error = "A domain is required";
-            this.setState(state);
-            return;
-        }
-
-       var email = this.refs.email.getDOMNode().value.trim();
-        if (!email) {
-            state.server_error = "An email is required";
-            this.setState(state);
-            return;
-        }
-
-        var password = this.refs.password.getDOMNode().value.trim();
-        if (!password) {
-            state.server_error = "A password is required";
-            this.setState(state);
-            return;
-        }
-
-        state.server_error = "";
-        this.setState(state);
-
-        client.loginByEmail(domain, email, password,
-            function(data) {
-                UserStore.setLastDomain(domain);
-                UserStore.setLastEmail(email);
-                UserStore.setCurrentUser(data);
-
-                var redirect = utils.getUrlParameter("redirect");
-                if (redirect) {
-                    window.location.href = decodeURI(redirect);
-                } else {
-                    window.location.href = '/channels/town-square';
-                }
-
-            },
-            function(err) {
-                if (err.message == "Login failed because email address has not been verified") {
-                    window.location.href = '/verify?domain=' + encodeURIComponent(domain) + '&email=' + encodeURIComponent(email);
-                    return;
-                }
-                state.server_error = err.message;
-                this.valid = false;
-                this.setState(state);
-            }.bind(this)
-        );
-    },
-    getInitialState: function() {
-        return { };
-    },
-    render: function() {
-        var server_error = this.state.server_error ? <label className="control-label">{this.state.server_error}</label> : null;
-
-        var subDomain = utils.getSubDomain();
-        var subDomainClass = "form-control hidden";
-
-        if (subDomain == "") {
-            subDomain = UserStore.getLastDomain();
-            subDomainClass = "form-control";
-        }
-
-        return (
-            <form className="navbar-form navbar-right" onSubmit={this.handleSubmit}>
-                <a href="/find_team">Find your team</a>
-                <div className={server_error ? 'form-group has-error' : 'form-group'}>
-                    { server_error }
-                    <input type="text" className={subDomainClass} name="domain" defaultValue={subDomain} ref="domain" placeholder="Domain" />
-                </div>
-                <div className={server_error ? 'form-group has-error' : 'form-group'}>
-                    <input type="text" className="form-control" name="email" defaultValue={UserStore.getLastEmail()}  ref="email" placeholder="Email" />
-                </div>
-                <div className={server_error ? 'form-group has-error' : 'form-group'}>
-                    <input type="password" className="form-control" name="password" ref="password" placeholder="Password" />
-                </div>
-                <button type="submit" className="btn btn-default">Login</button>
-            </form>
-        );
-    }
-});
-
 function getStateFromStores() {
   return {
     channel: ChannelStore.getCurrent(),
@@ -180,10 +94,10 @@ module.exports = React.createClass({
     },
     handleLeave: function(e) {
         client.leaveChannel(this.state.channel.id,
-            function() {
+            function(data, text, req) {
                 AsyncClient.getChannels(true);
-                window.location.href = '/channels/town-square';
-            },
+                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+            }.bind(this),
             function(err) {
                 AsyncClient.dispatchError(err, "handleLeave");
             }
@@ -229,7 +143,7 @@ module.exports = React.createClass({
 
         var currentId = UserStore.getCurrentId();
         var popoverContent = "";
-        var channelTitle = this.props.teamName;
+        var channelTitle = this.props.teamDisplayName;
         var isAdmin = false;
         var isDirect = false;
         var description = ""
@@ -333,14 +247,8 @@ module.exports = React.createClass({
                             <div className="navbar-brand">
                                 <a href="/" className="heading">{ channelTitle }</a>
                             </div>
-                        : null }
+                        : "" }
                     </div>
-                    { !currentId ?
-                        <div className="collapse navbar-collapse" id="navbar-collapse-1">
-                            <NavbarLoginForm />
-                        </div>
-                        : null
-                    }
                 </div>
             </nav>
         );

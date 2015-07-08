@@ -20,8 +20,8 @@ module.exports = React.createClass({
             state.email_error = "";
         }
 
-        team.name = this.refs.name.getDOMNode().value.trim();
-        if (!team.name) {
+        team.display_name = this.refs.name.getDOMNode().value.trim();
+        if (!team.display_name) {
             state.name_error = "This field is required";
             state.inValid = true;
         }
@@ -34,7 +34,7 @@ module.exports = React.createClass({
             return;
         }
 
-        client.signupTeam(team.email, team.name,
+        client.signupTeam(team.email, team.display_name,
             function(data) {
                 if (data["follow_link"]) {
                     window.location.href = data["follow_link"];
@@ -61,7 +61,7 @@ module.exports = React.createClass({
         return (
             <form role="form" onSubmit={this.handleSubmit}>
                 <div className={ email_error ? "form-group has-error" : "form-group" }>
-                    <input type="email" ref="email" className="form-control" placeholder="Email Address" maxLength="128" />
+                    <input autoFocus={true} type="email" ref="email" className="form-control" placeholder="Email Address" maxLength="128" />
                     { email_error }
                 </div>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
@@ -70,6 +70,9 @@ module.exports = React.createClass({
                 </div>
                 { server_error }
                 <button className="btn btn-md btn-primary" type="submit">Sign up for Free</button>
+                <div className="form-group form-group--small">
+                    <span><a href="/find_team">{"Find my " + strings.Team}</a></span>
+                </div>
             </form>
         );
     }
