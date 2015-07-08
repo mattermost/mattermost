@@ -97,20 +97,6 @@ module.exports.getCookie = function(name) {
   if (parts.length == 2) return parts.pop().split(";").shift();
 }
 
-module.exports.isLocalStorageSupported = function() {
-    try {
-        sessionStorage.setItem("testSession", '1');
-        sessionStorage.removeItem("testSession");
-
-        localStorage.setItem("testLocal", '1');
-        localStorage.removeItem("testLocal", '1');
-
-        return true;
-    } 
-    catch (e) {
-        return false;
-    }
-}
 
 module.exports.notifyMe = function(title, body, channel) {
   if ("Notification" in window && Notification.permission !== 'denied') {

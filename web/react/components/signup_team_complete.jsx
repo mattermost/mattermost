@@ -5,11 +5,12 @@
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
-var constants = require('../utils/constants.jsx')
+var BrowserStore = require('../stores/browser_store.jsx');
+var constants = require('../utils/constants.jsx');
 
 WelcomePage = React.createClass({
     submitNext: function (e) {
-        if (!utils.isLocalStorageSupported()) {
+        if (!BrowserStore.isLocalStorageSupported()) {
             this.setState({ storage_error: "This service requires local storage to be enabled. Please enable it or exit private browsing."} );
             return;
         }
@@ -32,7 +33,7 @@ WelcomePage = React.createClass({
             this.setState(state);
             return;
         }
-        else if (!utils.isLocalStorageSupported()) {
+        else if (!BrowserStore.isLocalStorageSupported()) {
             state.email_error = "This service requires local storage to be enabled. Please enable it or exit private browsing.";
             this.setState(state);
             return;
@@ -595,7 +596,7 @@ PasswordPage = React.createClass({
 
 module.exports = React.createClass({
     updateParent: function(state, skipSet) {
-        localStorage.setItem(this.props.hash, JSON.stringify(state));
+        BrowserStore.setGlobalItem(this.props.hash, JSON.stringify(state));
 
         if (!skipSet) {
             this.setState(state);
@@ -604,7 +605,7 @@ module.exports = React.createClass({
     getInitialState: function() {
         var props = null;
         try {
-            props = JSON.parse(localStorage.getItem(this.props.hash));
+            props = JSON.parse(BrowserStore.getGlobalItem(this.props.hash));
         }
         catch(parse_error) {
         }

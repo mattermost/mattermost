@@ -28,6 +28,18 @@ module.exports.removeItem = function(name) {
 	localStorage.removeItem(user_id + "_" + name);
 };
 
+module.exports.setGlobalItem = function(name, value) {
+	localStorage.setItem(name, value);
+};
+
+module.exports.getGlobalItem = function(name) {
+	return localStorage.getItem(name);
+};
+
+module.exports.removeGlobalItem = function(name) {
+	localStorage.removeItem(name);
+};
+
 module.exports.clear = function() {
 	localStorage.clear();
 	sessionStorage.clear();
@@ -46,3 +58,18 @@ module.exports.actionOnItemsWithPrefix = function (prefix, action) {
         }
     }
 };
+
+module.exports.isLocalStorageSupported = function() {
+    try {
+        sessionStorage.setItem("testSession", '1');
+        sessionStorage.removeItem("testSession");
+
+        localStorage.setItem("testLocal", '1');
+        localStorage.removeItem("testLocal", '1');
+
+        return true;
+    } 
+    catch (e) {
+        return false;
+    }
+}

@@ -65,12 +65,12 @@ var UserStore = assign({}, EventEmitter.prototype, {
   },
   setCurrentId: function(id) {
     if (id == null)
-      localStorage.removeItem("current_user_id");
+      BrowserStore.removeGlobalItem("current_user_id");
     else
-      localStorage.setItem("current_user_id", id);
+      BrowserStore.setGlobalItem("current_user_id", id);
   },
   getCurrentId: function(skipFetch) {
-    var current_id = localStorage.getItem("current_user_id");
+    var current_id = BrowserStore.getGlobalItem("current_user_id");
 
     // this is a speical case to force fetch the
     // current user if it's missing
@@ -153,17 +153,17 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this._storeProfiles(ps);
   },
   _storeProfiles: function(profiles) {
-    localStorage.setItem("profiles", JSON.stringify(profiles));
+    BrowserStore.setGlobalItem("profiles", JSON.stringify(profiles));
     var profileUsernameMap = {};
     for (var id in profiles) {
         profileUsernameMap[profiles[id].username] = profiles[id];
     }
-    localStorage.setItem("profileUsernameMap", JSON.stringify(profileUsernameMap));
+    BrowserStore.setGlobalItem("profileUsernameMap", JSON.stringify(profileUsernameMap));
   },
   _getProfiles: function() {
     var profiles = {};
     try {
-        profiles = JSON.parse(localStorage.getItem("profiles"));
+        profiles = JSON.parse(BrowserStore.getGlobalItem("profiles"));
     }
     catch (err) {
     }
@@ -177,7 +177,7 @@ var UserStore = assign({}, EventEmitter.prototype, {
   _getProfilesUsernameMap: function() {
     var profileUsernameMap = {};
     try {
-        profileUsernameMap = JSON.parse(localStorage.getItem("profileUsernameMap"));
+        profileUsernameMap = JSON.parse(BrowserStore.getGlobalItem("profileUsernameMap"));
     }
     catch (err) {
     }
