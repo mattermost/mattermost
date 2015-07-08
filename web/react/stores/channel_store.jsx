@@ -192,7 +192,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     sessionStorage.setItem("more_channels", JSON.stringify(channels));
   },
   _getMoreChannels: function() {
-    var channels = [];
+    var channels;
     try {
         channels = JSON.parse(sessionStorage.more_channels);
     }

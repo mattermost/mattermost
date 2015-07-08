@@ -104,7 +104,7 @@ module.exports.updateLastViewedAt = function() {
 module.exports.getMoreChannels = function(force) {
     if (isCallInProgress("getMoreChannels")) return;
 
-    if (ChannelStore.getMoreAll().length == 0 || force) {
+    if (!ChannelStore.getMoreAll() || force) {
 
         callTracker["getMoreChannels"] = utils.getTimestamp();
         client.getMoreChannels(
