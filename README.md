@@ -1,6 +1,6 @@
 **Mattermost Preview**  
 **Team Communication Service**  
-**Version 0.50**
+**Version 0.5.0**
 
 
 About Mattermost
@@ -22,7 +22,7 @@ Learn More
 Installing the Mattermost
 =========================
 
-You're installing "Mattermost Preview", a pre-released 0.50 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0 version release. 
+You're installing "Mattermost Preview", a pre-released 0.5.0 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0.0 version release. 
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org 
 
@@ -37,7 +37,7 @@ Local Machine Setup (Docker)
 2. Get your Docker IP address with `boot2docker ip`
 3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost`
 4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash\_profile
-5. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
+5. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`. 
 6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser
 
 ### Ubuntu ###
