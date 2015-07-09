@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	AUTHCODE_EXPIRE_TIME = 60 * 10 // 10 minutes
-	AUTHCODE_CACHE_SIZE  = 10000
+	AUTHCODE_EXPIRE_TIME   = 60 * 10 // 10 minutes
+	AUTHCODE_CACHE_SIZE    = 10000
+	AUTHCODE_RESPONSE_TYPE = "code"
 )
 
 type AuthData struct {

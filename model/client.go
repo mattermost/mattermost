@@ -22,6 +22,7 @@ const (
 	HEADER_FORWARDED       = "X-Forwarded-For"
 	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
 	HEADER_TOKEN           = "token"
+	HEADER_BEARER          = "BEARER"
 	HEADER_AUTH            = "Authorization"
 )
 
@@ -35,19 +36,20 @@ type Client struct {
 	Url        string       // The location of the server like "http://localhost/api/v1"
 	HttpClient *http.Client // The http client
 	AuthToken  string
+	AuthType   string
 }
 
 // NewClient constructs a new client with convienence methods for talking to
 // the server.
 func NewClient(url string) *Client {
-	return &Client{url, &http.Client{}, ""}
+	return &Client{url, &http.Client{}, "", ""}
 }
 
 func (c *Client) DoPost(url string, data string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest("POST", c.Url+url, strings.NewReader(data))
 
 	if len(c.AuthToken) > 0 {
-		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
@@ -271,6 +273,7 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 		return nil, err
 	} else {
 		c.AuthToken = r.Header.Get(HEADER_TOKEN)
+		c.AuthType = HEADER_BEARER
 		sessionId := getCookie(SESSION_TOKEN, r)
 
 		if c.AuthToken != sessionId.Value {
@@ -291,6 +294,11 @@ func (c *Client) Logout() (*Result, *AppError) {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
+}
+
+func (c *Client) SetOAuthToken(token string) {
+	c.AuthToken = token
+	c.AuthType = HEADER_TOKEN
 }
 
 func (c *Client) RevokeSession(sessionAltId string) (*Result, *AppError) {
@@ -664,6 +672,33 @@ func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) RegisterApp(app *App) (*Result, *AppError) {
+	if r, err := c.DoPost("/apps/oauth2/register", app.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), AppFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*Result, *AppError) {
+	if r, err := c.DoGet("/apps/oauth2/allow?response_type="+rspType+"&client_id="+clientId+"&redirect_uri="+url.QueryEscape(redirect)+"&scope="+scope+"&state="+url.QueryEscape(state), "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetAccessToken(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoPost("/apps/oauth2/access_token", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), AccessResponseFromJson(r.Body)}, nil
 	}
 }
 

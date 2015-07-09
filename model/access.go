@@ -142,3 +142,14 @@ func (ar *AccessResponse) ToJson() string {
 		return string(b)
 	}
 }
+
+func AccessResponseFromJson(data io.Reader) *AccessResponse {
+	decoder := json.NewDecoder(data)
+	var ar AccessResponse
+	err := decoder.Decode(&ar)
+	if err == nil {
+		return &ar
+	} else {
+		return nil
+	}
+}

@@ -89,7 +89,7 @@ func (as SqlAccessDataStore) Get(token string) StoreChannel {
 		if obj, err := as.GetReplica().Get(model.AccessData{}, encryptedToken); err != nil {
 			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We encounted an error finding the access token", err.Error())
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We couldn't find the existing access token", err.Error())
+			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We couldn't find the existing access token", "")
 		} else {
 			result.Data = obj.(*model.AccessData)
 		}
@@ -119,7 +119,7 @@ func (as SqlAccessDataStore) GetByAuthCode(authCode string) StoreChannel {
 				result.Err = model.NewAppError("SqlAccessDataStore.GetByAuthCode", "We encountered an error finding the access token", err.Error())
 			}
 		} else {
-			result.Data = accessData
+			result.Data = &accessData
 		}
 
 		storeChannel <- result

@@ -85,6 +85,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token := r.URL.Query().Get("access_token")
 
+	// If no token provided in query, attempt to parse it out of the header
+	if len(token) == 0 {
+		if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
+			if len(ah) > 5 && strings.ToUpper(ah[0:5]) == model.HEADER_TOKEN {
+				token = ah[6:]
+			}
+		}
+	}
+
 	protocol := "http"
 
 	// if the request came from the ELB then assume this is produciton
@@ -116,7 +125,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(token) == 0 {
 		// attempt to parse the session token from the header
 		if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
-			if len(ah) > 6 && strings.ToUpper(ah[0:6]) == "BEARER" {
+			if len(ah) > 6 && strings.ToUpper(ah[0:6]) == model.HEADER_BEARER {
 				sessionId = ah[7:]
 			}
 		}
@@ -222,7 +231,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SystemAdminRequired()
 	}
 
-	if c.Err == nil && h.isUserActivity && sessionId != "" && len(c.Session.UserId) > 0 {
+	if c.Err == nil && h.isUserActivity && (sessionId != "" || token != "") && len(c.Session.UserId) > 0 {
 		go func() {
 			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, sessionId, model.GetMillis())).Err; err != nil {
 				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, sessionId, err)

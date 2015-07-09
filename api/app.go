@@ -101,7 +101,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		callback = redirectUri
 	}
 
-	if responseType != "code" {
+	if responseType != model.AUTHCODE_RESPONSE_TYPE {
 		responseData["redirect"] = callback + "?error=unsupported_response_type&state=" + state
 		w.Write([]byte(model.MapToJson(responseData)))
 		return
