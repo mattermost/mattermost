@@ -12,6 +12,7 @@
 	.loading__content {
 		display: table-cell;
 		vertical-align: middle;
+		font-size: 0;
 		h3 {
 			font-size: 16px;
 			font-weight: 400;
@@ -28,7 +29,7 @@
 			width: 4px;
 			height: 4px;
 			display: inline-block;
-			margin: 0;
+			margin: 0 2px;
 			opacity: 0.1;
 			@include border-radius(10px);
 			-moz-animation: move 0.75s infinite linear;
