@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"net/http"
 	"net/url"
 )
@@ -211,7 +212,14 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	} else if result.Data != nil {
-		// TODO - revoke access tokens that were given using this authorization code
+		accessData := result.Data.(*model.AccessData)
+		token, _ := model.AesDecrypt(utils.Cfg.ServiceSettings.AesKey, accessData.Token)
+
+		// Revoke access token, related auth code, and session from DB as well as from cache
+		if err := RevokeAccessToken(token); err != nil {
+			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
+		}
+
 		c.Err = model.NewAppError("getAccessToken", "invalid_grant", "Authorization code already exchanged for an access token")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
@@ -259,4 +267,34 @@ func GetAccessData(token string) *model.AccessData {
 	}
 
 	return accessData
+}
+
+func RevokeAccessToken(token string) *model.AppError {
+	accessData := GetAccessData(token)
+
+	if accessData == nil {
+		return model.NewAppError("RevokeAccessToken", "Could not find token to revoke", "")
+	}
+
+	tchan := Srv.Store.AccessData().Remove(token)
+	cchan := Srv.Store.AuthData().Remove(accessData.AuthCode)
+	schan := Srv.Store.Session().RemoveByAccessToken(token)
+
+	accessTokenCache.Remove(token)
+	sessionCache.Remove(token)
+	authCodeCache.Remove(accessData.AuthCode)
+
+	if result := <-tchan; result.Err != nil {
+		return model.NewAppError("RevokeAccessToken", "Error deleting access token from DB", "")
+	}
+
+	if result := <-cchan; result.Err != nil {
+		return model.NewAppError("RevokeAccessToken", "Error deleting authorization code from DB", "")
+	}
+
+	if result := <-schan; result.Err != nil {
+		return model.NewAppError("RevokeAccessToken", "Error deleting session from DB", "")
+	}
+
+	return nil
 }

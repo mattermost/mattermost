@@ -212,3 +212,25 @@ func (me SqlSessionStore) GetByAccessToken(token string) StoreChannel {
 
 	return storeChannel
 }
+
+func (me SqlSessionStore) RemoveByAccessToken(token string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
+		if err != nil {
+			result.Err = model.NewAppError("SqlSessionStore.RemoveByAccessToken", "We encountered an error encrypting the session", err.Error())
+		}
+
+		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE AccessToken = ?", encryptedToken); err != nil {
+			result.Err = model.NewAppError("SqlSessionStore.RemoveByAccessToken", "We couldn't remove the session", "err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

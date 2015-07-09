@@ -129,3 +129,29 @@ func (as SqlAccessDataStore) GetByAuthCode(authCode string) StoreChannel {
 
 	return storeChannel
 }
+
+func (as SqlAccessDataStore) Remove(token string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
+		if err != nil {
+
+			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We encounted an error encrypting the token", err.Error())
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if _, err := as.GetMaster().Exec("DELETE FROM AccessData WHERE Token = ?", encryptedToken); err != nil {
+			result.Err = model.NewAppError("SqlAccessDataStore.Remove", "We couldn't remove the access token", "err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

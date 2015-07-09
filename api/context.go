@@ -169,7 +169,11 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("ServeHTTP", "Invalid access token", "")
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else if accessData.IsExpired() {
-			// TODO - remove access token, related auth code from DB as well as from cache
+			// Remove access token, related auth code from DB as well as from cache
+			if err := RevokeAccessToken(token); err != nil {
+				l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
+			}
+
 			c.Err = model.NewAppError("ServeHTTP", "Access token has expired", "")
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {

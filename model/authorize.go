@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	AUTHCODE_EXPIRE_TIME = 60 * 100 //60 * 10 // 10 minutes
+	AUTHCODE_EXPIRE_TIME = 60 * 10 // 10 minutes
 	AUTHCODE_CACHE_SIZE  = 10000
 )
 

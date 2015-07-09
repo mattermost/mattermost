@@ -83,3 +83,21 @@ func (as SqlAuthDataStore) Get(code string) StoreChannel {
 
 	return storeChannel
 }
+
+func (as SqlAuthDataStore) Remove(code string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := as.GetMaster().Exec("DELETE FROM AuthData WHERE Code = ?", code)
+		if err != nil {
+			result.Err = model.NewAppError("SqlAuthDataStore.Remove", "We couldn't remove the authorization code", "err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
