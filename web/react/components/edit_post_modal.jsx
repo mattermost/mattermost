@@ -14,7 +14,12 @@ module.exports = React.createClass({
 
         /*var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
-        var customMarkedRenderer = new Marked.Renderer();
+        if (useMarkdown) {
+            //<div id="markdown"><span dangerouslySetInnerHTML={{__html: updatedPost.message}} /></div>;
+            //updatedPost.message = $("#markdown span").text();
+        }
+
+        /*var customMarkedRenderer = new Marked.Renderer();
 
         customMarkedRenderer.heading = function(text, level) {
             var hashText = "";

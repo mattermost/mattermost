@@ -14,6 +14,7 @@ module.exports = React.createClass({
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() == post.user_id;
         var isAdmin = UserStore.getCurrentUser().roles.indexOf("admin") > -1
+        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
         var type = "Post"
         if (post.root_id.length > 0) {
@@ -35,7 +36,7 @@ module.exports = React.createClass({
                             <div>
                                 <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
-                                    { isOwner ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Edit</a></li>
+                                    { /*!useMarkdown && */isOwner ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Edit</a></li>
                                     : "" }
                                     { isOwner || isAdmin ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Delete</a></li>
                                     : "" }

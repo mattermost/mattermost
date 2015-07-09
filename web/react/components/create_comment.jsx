@@ -225,8 +225,8 @@ module.exports = React.createClass({
                     </div>
                     <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId}  />
                     { this.state.messageText.split(" ").length > 1 && useMarkdown ?
-                        <div className={"comment-markdown-info"}>_italics_ **bold** **bold and _italic_ words** <a href="https://help.github.com/articles/markdown-basics/">Click here for more...</a></div>
-                        : <div></div>
+                        <div className={"comment-markdown-info"}>_<em>italics</em>_ **<strong>bold</strong>** <a href="https://help.github.com/articles/markdown-basics/">Click here for more...</a></div>
+                        : ""
                     }
                     <div className={post_error ? 'has-error' : 'post-create-footer'}>
                         <input type="button" className="btn btn-primary comment-btn pull-right" value="Add Comment" onClick={this.handleSubmit} />

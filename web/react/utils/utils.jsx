@@ -391,7 +391,7 @@ var puncStartRegex = /^((?![@#])\W)+/g;
 var puncEndRegex = /(\W)+$/g;
 
 module.exports.textToJsx = function(text, options) {
-    var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+    var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false && !options.searchTerm;
 
     if (useMarkdown) {
         var customMarkedRenderer = new Marked.Renderer();
@@ -402,14 +402,14 @@ module.exports.textToJsx = function(text, options) {
 
             return hashText + text;
         };
-        customMarkedRenderer.blockquote = function(quote) {
+        /*customMarkedRenderer.blockquote = function(quote) {
             return ">" + quote;
-        };
+        };*/
         /*customMarkedRenderer.html = function(html) {
             return html;
         };*/
         customMarkedRenderer.link = function(href, title, text) {
-            return " " + href + " ";
+            return " " + text + " ";
         };
         /*customMarkedRenderer.paragraph = function(text) {
             return text;
@@ -476,6 +476,9 @@ module.exports.textToJsx = function(text, options) {
                     highlightSearchClass = " search-highlight";
                 }
 
+                /*if (useMarkdown)
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(name)}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
+                else*/
                 inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
@@ -507,13 +510,19 @@ module.exports.textToJsx = function(text, options) {
                     }
                     inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
                 } else {
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
+                    if (useMarkdown)
+                        inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} />{suffix} </span>);
+                    else
+                        inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
                 }
 
             } else if (word === "") {
                 // if word is empty dont include a span
             } else {
-                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} /> </span>);
+                if (useMarkdown)
+                    inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} /> </span>);
+                else
+                    inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span> </span>);
             }
             highlightSearchClass = "";
         }
