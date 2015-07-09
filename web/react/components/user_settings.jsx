@@ -1078,6 +1078,28 @@ var AppearanceTab = React.createClass({
         this.setState({server_error: null});
         this.props.updateTab('general');
     },
+    handleMarkdownRadio: function(enableMarkdown) {
+        this.setState({ enable_markdown: enableMarkdown });
+        this.refs.wrapper.getDOMNode().focus();
+    },
+    submitMarkdown: function(e) {
+        e.preventDefault();
+        var user = UserStore.getCurrentUser();
+        if (!user.props) user.props = {};
+        user.props.enable_markdown = this.state.enable_markdown;
+
+        client.updateUser(user,
+            function(data) {
+                this.props.updateSection("");
+                window.location.reload();
+            }.bind(this),
+            function(err) {
+                state = this.getInitialState();
+                state.server_error = err;
+                this.setState(state);
+            }.bind(this)
+        );
+    },
     componentDidMount: function() {
         if (this.props.activeSection === "theme") {
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
@@ -1100,7 +1122,7 @@ var AppearanceTab = React.createClass({
         if (user.props && user.props.theme) {
             theme = user.props.theme;
         }
-        return { theme: theme.toLowerCase() };
+        return { theme: theme.toLowerCase(), enable_markdown: user.props.enable_markdown };
     },
     render: function() {
         var server_error = this.state.server_error ? this.state.server_error : null;
@@ -1147,16 +1169,60 @@ var AppearanceTab = React.createClass({
             }
         }
 
+        //Need to discuss first & would need to add to user.go api so that if disabled default is false, if enabled then true or false
+        //if (config.markdownEnabled)
+        if (this.props.activeSection === 'markdown') {
+            var markdownActive = ["",""];
+            if (this.state.enable_markdown === "false") {
+                markdownActive[1] = "active";
+            } else {
+                markdownActive[0] = "active";
+            }
+
+            var inputs = [];
+
+            inputs.push(
+                <div>
+                    <div className="btn-group" data-toggle="buttons-radio">
+                        <button className={"btn btn-default "+markdownActive[0]} onClick={function(){self.handleMarkdownRadio("true")}}>On</button>
+                        <button className={"btn btn-default "+markdownActive[1]} onClick={function(){self.handleMarkdownRadio("false")}}>Off</button>
+                    </div>
+                    <div><br/>{"WARNING PREVIEW FEATURE: When enabled, any posts you or others post will be formatted using markdown guidelines, allowing for things like bolded or italicized words in posts.  To learn more please go "}<a href="https://help.github.com/articles/markdown-basics/">here</a></div>
+                </div>
+            );
+
+            markdownSection = (
+                <SettingItemMax
+                    title="Markdown Settings"
+                    inputs={inputs}
+                    submit={this.submitMarkdown}
+                    server_error={server_error}
+                    updateSection={function(e){self.props.updateSection("");e.preventDefault;}}
+                />
+            );
+        } else {
+            markdownSection = (
+                <SettingItemMin
+                    title="Markdown Settings"
+                    describe="Enable Markdown-style text parsing"
+                    updateSection={function(){self.props.updateSection("markdown");}}
+                />
+            );
+        }
+
+
         return (
             <div>
                 <div className="modal-header">
                     <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 className="modal-title" ref="title"><i className="modal-back"></i>Appearance Settings</h4>
                 </div>
-                <div className="user-settings">
+                <div ref="wrapper" className="user-settings">
                     <h3 className="tab-header">Appearance Settings</h3>
                     <div className="divider-dark first"/>
                     {themeSection}
+                    <div className="divider-light"/>
+                    {markdownSection}
                     <div className="divider-dark"/>
                 </div>
             </div>

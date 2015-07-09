@@ -190,6 +190,7 @@ module.exports = React.createClass({
         return numToUpload;
     },
     render: function() {
+        var useMarkdown = UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;;
 
         var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;
@@ -223,6 +224,10 @@ module.exports = React.createClass({
                             onUploadError={this.handleUploadError} />
                     </div>
                     <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId}  />
+                    { this.state.messageText.split(" ").length > 1 && useMarkdown ?
+                        <div className={"comment-markdown-info"}>_italics_ **bold** **bold and _italic_ words** <a href="https://help.github.com/articles/markdown-basics/">Click here for more...</a></div>
+                        : <div></div>
+                    }
                     <div className={post_error ? 'has-error' : 'post-create-footer'}>
                         <input type="button" className="btn btn-primary comment-btn pull-right" value="Add Comment" onClick={this.handleSubmit} />
                         { post_error }

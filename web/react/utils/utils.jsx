@@ -391,7 +391,7 @@ var puncStartRegex = /^((?![@#])\W)+/g;
 var puncEndRegex = /(\W)+$/g;
 
 module.exports.textToJsx = function(text, options) {
-    var useMarkdown = true;
+    var useMarkdown = UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;;
 
     if (useMarkdown && (text.trim().indexOf("#") !== 0 || text.trim().length === 1)) {
         text = Marked(text, {sanitize: true});
