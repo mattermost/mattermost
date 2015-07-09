@@ -16,10 +16,15 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addSearchChangeListener(this._onSearchChange);
         PostStore.addSelectedPostChangeListener(this._onSelectedChange);
+        UserStore.addStatusesChangeListener(this._onChange);
     },
     componentWillUnmount: function() {
         PostStore.removeSearchChangeListener(this._onSearchChange);
         PostStore.removeSelectedPostChangeListener(this._onSelectedChange);
+        UserStore.removeStatusesChangeListener(this._onChange);
+    },
+    _onChange: function() {
+        this.forceUpdate();
     },
     _onSelectedChange: function(from_search) {
         if (this.isMounted()) {
