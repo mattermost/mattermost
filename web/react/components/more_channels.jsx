@@ -66,11 +66,6 @@ module.exports = React.createClass({
         if (this.state.channels != null)
             moreChannels = this.state.channels;
 
-        console.log("Check: " + moreChannels)
-
-        if (moreChannels)
-            console.log("Length: " + moreChannels.length)
-
         return (
             <div className="modal fade" id="more_channels" ref="modal" tabIndex="-1" role="dialog" aria-hidden="true">
                 <div className="modal-dialog">
