@@ -85,8 +85,8 @@ var MemberListTeamItem = React.createClass({
         return (
             <div className="row member-div">
                 <img className="post-profile-img pull-left" src={"/api/v1/users/" + user.id + "/image?time=" + timestamp} height="36" width="36" />
-                <span className="member-name">{user.full_name.trim() ? user.full_name : user.username}</span>
-                <span className="member-email">{user.full_name.trim() ? user.username : email}</span>
+                <span className="member-name">{user.nickname.trim() ? user.nickname : user.username}</span>
+                <span className="member-email">{user.nickname.trim() ? user.username : email}</span>
                 <div className="dropdown member-drop">
                     <a href="#" className="dropdown-toggle theme" type="button" id="channel_header_dropdown" data-toggle="dropdown" aria-expanded="true">
                         <span>{currentRoles}  </span>

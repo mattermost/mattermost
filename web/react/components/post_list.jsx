@@ -305,7 +305,7 @@ module.exports = React.createClass({
                 var teammate = utils.getDirectTeammate(channel.id)
 
                 if (teammate) {
-                    var teammate_name = teammate.full_name.length > 0 ? teammate.full_name : teammate.username;
+                    var teammate_name = teammate.nickname.length > 0 ? teammate.nickname : teammate.username;
                     more_messages = (
                         <div className="channel-intro">
                             <div className="post-profile-img__container channel-intro-img">

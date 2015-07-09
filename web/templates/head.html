@@ -59,7 +59,7 @@
             var user = window.UserStore.getCurrentUser(true);
             if (user) {
               analytics.identify(user.id, {
-                  name: user.full_name,
+                  name: user.nickname,
                   email: user.email,
                   createdAt: user.create_at,
                   username: user.username,

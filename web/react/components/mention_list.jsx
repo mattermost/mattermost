@@ -165,14 +165,14 @@ module.exports = React.createClass({
 
         var all = {};
         all.username = "all";
-        all.full_name = "";
+        all.nickname = "";
         all.secondary_text = "Notifies everyone in the team";
         all.id = "allmention";
         users.push(all);
 
         var channel = {};
         channel.username = "channel";
-        channel.full_name = "";
+        channel.nickname = "";
         channel.secondary_text = "Notifies everyone in the channel";
         channel.id = "channelmention";
         users.push(channel);
@@ -189,11 +189,11 @@ module.exports = React.createClass({
             if (this.alreadyMentioned(users[i].username)) continue;
 
             var firstName = "", lastName = "";
-            if (users[i].full_name.length > 0) {
-                var splitName = users[i].full_name.split(' ');
+            if (users[i].nickname.length > 0) {
+                var splitName = users[i].nickname.split(' ');
                 firstName = splitName[0].toLowerCase();
                 lastName = splitName.length > 1 ? splitName[splitName.length-1].toLowerCase() : "";
-                users[i].secondary_text = users[i].full_name;
+                users[i].secondary_text = users[i].nickname;
             }
 
             if (firstName.lastIndexOf(mentionText,0) === 0

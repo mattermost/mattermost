@@ -316,8 +316,8 @@ var NotificationsTab = React.createClass({
         if (this.props.activeSection === 'keys') {
             var user = this.props.user;
             var first_name = "";
-            if (user.full_name.length > 0) {
-                first_name = user.full_name.split(' ')[0];
+            if (user.nickname.length > 0) {
+                first_name = user.nickname.split(' ')[0];
             }
 
             var inputs = [];
@@ -399,7 +399,7 @@ var NotificationsTab = React.createClass({
             if (this.state.first_name_key) {
                 var first_name = "";
                 var user = this.props.user;
-                if (user.full_name.length > 0) first_name = user.full_name.split(' ')[0];
+                if (user.nickname.length > 0) first_name = user.nickname.split(' ')[0];
                 if (first_name != "") keys.push(first_name);
             }
             if (this.state.username_key) keys.push(this.props.user.username);
@@ -761,12 +761,12 @@ var GeneralTab = React.createClass({
 
         var fullName = firstName + ' ' + lastName;
 
-        if (user.full_name === fullName) {
+        if (user.nickname === fullName) {
             this.setState({client_error: "You must submit a new name"})
             return;
         }
 
-        user.full_name = fullName;
+        user.nickname = fullName;
 
         this.submitUser(user);
     },
@@ -861,7 +861,7 @@ var GeneralTab = React.createClass({
     getInitialState: function() {
         var user = this.props.user;
 
-        var splitStr = user.full_name.split(' ');
+        var splitStr = user.nickname.split(' ');
         var firstName = splitStr.shift();
         var lastName = splitStr.join(' ');
 
@@ -913,7 +913,7 @@ var GeneralTab = React.createClass({
             nameSection = (
                 <SettingItemMin
                     title="Name"
-                    describe={UserStore.getCurrentUser().full_name}
+                    describe={UserStore.getCurrentUser().nickname}
                     updateSection={function(){self.updateSection("name");}}
                 />
             );

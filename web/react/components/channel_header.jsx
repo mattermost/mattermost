@@ -153,7 +153,7 @@ module.exports = React.createClass({
         if (isDirect) {
             if (this.state.users.length > 1) {
                 var contact = this.state.users[((this.state.users[0].id === currentId) ? 1 : 0)];
-                channelTitle = <UserProfile userId={contact.id} overwriteName={contact.full_name || contact.username} />;
+                channelTitle = <UserProfile userId={contact.id} overwriteName={contact.nickname || contact.username} />;
             }
         }
 

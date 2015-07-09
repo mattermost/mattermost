@@ -180,8 +180,8 @@ var UserStore = assign({}, EventEmitter.prototype, {
     if (user && user.notify_props && user.notify_props.mention_keys) {
       var keys = user.notify_props.mention_keys.split(',');
 
-      if (user.full_name.length > 0 && user.notify_props.first_name === "true") {
-        var first = user.full_name.split(' ')[0];
+      if (user.nickname.length > 0 && user.notify_props.first_name === "true") {
+        var first = user.nickname.split(' ')[0];
         if (first.length > 0) keys.push(first);
       }
 
