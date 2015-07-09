@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	// Also change web/react/stores/browser_store.jsx BROWSER_STORE_VERSION
 	ETAG_ROOT_VERSION = "11"
 )
 

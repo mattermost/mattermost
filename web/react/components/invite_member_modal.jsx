@@ -89,7 +89,12 @@ module.exports = React.createClass({
                 $(this.refs.modal.getDOMNode()).modal('hide');
             }.bind(this),
             function(err) {
-                this.setState({ server_error: err });
+                if (err.message === "This person is already on your team") {
+                    email_errors[err.detailed_error] = err.message;
+                    this.setState({ email_errors: email_errors });
+                }
+                else
+                    this.setState({ server_error: err.message});
             }.bind(this)
         );
 

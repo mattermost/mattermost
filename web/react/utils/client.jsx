@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var BrowserStore = require('../stores/browser_store.jsx');
 
 module.exports.track = function(category, action, label, prop, val) {
     global.window.snowplow('trackStructEvent', category, action, label, prop, val);
@@ -204,7 +205,7 @@ module.exports.resetPassword = function(data, success, error) {
 
 module.exports.logout = function() {
     module.exports.track('api', 'api_users_logout');
-    sessionStorage.clear();
+	BrowserStore.clear();
     window.location.href = "/logout";
 };
 

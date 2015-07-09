@@ -7,7 +7,7 @@ var assign = require('object-assign');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
-
+var BrowserStore = require('../stores/browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
 
@@ -42,12 +42,12 @@ var TeamStore = assign({}, EventEmitter.prototype, {
   },
   setCurrentId: function(id) {
     if (id == null)
-      sessionStorage.removeItem("current_team_id");
+      BrowserStore.removeItem("current_team_id");
     else
-      sessionStorage.setItem("current_team_id", id);
+      BrowserStore.setItem("current_team_id", id);
   },
   getCurrentId: function() {
-    return sessionStorage.getItem("current_team_id");
+    return BrowserStore.getItem("current_team_id");
   },
   getCurrent: function() {
     var currentId = TeamStore.getCurrentId();
@@ -63,16 +63,20 @@ var TeamStore = assign({}, EventEmitter.prototype, {
     this._storeTeams(teams);
   },
   _storeTeams: function(teams) {
-    sessionStorage.setItem("user_teams", JSON.stringify(teams));
+    BrowserStore.setItem("user_teams", JSON.stringify(teams));
   },
   _getTeams: function() {
     var teams = {};
 
     try {
-        teams = JSON.parse(sessionStorage.user_teams);
+        teams = JSON.parse(BrowserStore.getItem("user_teams"));
     }
     catch (err) {
     }
+
+	if (teams == null) {
+		teams = {};
+	}
 
     return teams;
   }

@@ -8,6 +8,8 @@ var assign = require('object-assign');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
+var BrowserStore = require('../stores/browser_store.jsx');
+
 
 var CHANGE_EVENT = 'change';
 var MORE_CHANGE_EVENT = 'change';
@@ -87,18 +89,18 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   },
   setCurrentId: function(id) {
     if (id == null)
-      sessionStorage.removeItem("current_channel_id");
+      BrowserStore.removeItem("current_channel_id");
     else
-      sessionStorage.setItem("current_channel_id", id);
+      BrowserStore.setItem("current_channel_id", id);
   },
   setLastVisitedName: function(name) {
     if (name == null)
-      localStorage.removeItem("last_visited_name");
+      BrowserStore.removeItem("last_visited_name");
     else
-      localStorage.setItem("last_visited_name", name);
+      BrowserStore.setItem("last_visited_name", name);
   },
   getLastVisitedName: function() {
-    return localStorage.getItem("last_visited_name");
+    return BrowserStore.getItem("last_visited_name");
   },
   resetCounts: function(id) {
       var cm = this._getChannelMembers();
@@ -115,7 +117,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
       this._storeChannelMembers(cm);
   },
   getCurrentId: function() {
-    return sessionStorage.getItem("current_channel_id");
+    return BrowserStore.getItem("current_channel_id");
   },
   getCurrent: function() {
     var currentId = ChannelStore.getCurrentId();
@@ -163,54 +165,70 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     return extra;
   },
   _storeChannels: function(channels) {
-    sessionStorage.setItem("channels", JSON.stringify(channels));
+    BrowserStore.setItem("channels", JSON.stringify(channels));
   },
   _getChannels: function() {
     var channels = [];
     try {
-        channels = JSON.parse(sessionStorage.channels);
+        channels = JSON.parse(BrowserStore.getItem("channels"));
     }
     catch (err) {
     }
+
+	if (channels == null) {
+		channels = [];
+	}
 
     return channels;
   },
   _storeChannelMembers: function(channelMembers) {
-    sessionStorage.setItem("channel_members", JSON.stringify(channelMembers));
+    BrowserStore.setItem("channel_members", JSON.stringify(channelMembers));
   },
   _getChannelMembers: function() {
     var members = {};
     try {
-        members = JSON.parse(sessionStorage.channel_members);
+        members = JSON.parse(BrowserStore.getItem("channel_members"));
     }
     catch (err) {
     }
+
+	if (members  == null) {
+		members = {};
+	}
 
     return members;
   },
   _storeMoreChannels: function(channels) {
-    sessionStorage.setItem("more_channels", JSON.stringify(channels));
+    BrowserStore.setItem("more_channels", JSON.stringify(channels));
   },
   _getMoreChannels: function() {
     var channels;
     try {
-        channels = JSON.parse(sessionStorage.more_channels);
+        channels = JSON.parse(BrowserStore.getItem("more_channels"));
     }
     catch (err) {
-    }
+	}
+
+	if (channels == null) {
+		channels = [];
+	}
 
     return channels;
   },
   _storeExtraInfos: function(extraInfos) {
-    sessionStorage.setItem("extra_infos", JSON.stringify(extraInfos));
+    BrowserStore.setItem("extra_infos", JSON.stringify(extraInfos));
   },
   _getExtraInfos: function() {
     var members = {};
     try {
-        members = JSON.parse(sessionStorage.extra_infos);
+        members = JSON.parse(BrowserStore.getItem("extra_infos"));
     }
     catch (err) {
-    }
+	}
+
+	if (members  == null) {
+		members = {};
+	}
 
     return members;
   }

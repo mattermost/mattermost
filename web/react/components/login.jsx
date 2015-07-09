@@ -7,6 +7,7 @@
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var BrowserStore = require('../stores/browser_store.jsx');
 
 
 var FindTeamDomain = React.createClass({
@@ -21,7 +22,7 @@ var FindTeamDomain = React.createClass({
             return;
         }
 
-        if (!utils.isLocalStorageSupported()) {
+        if (!BrowserStore.isLocalStorageSupported()) {
             state.server_error = "This service requires local storage to be enabled. Please enable it or exit private browsing.";
             this.setState(state);
             return;
@@ -114,7 +115,7 @@ module.exports = React.createClass({
             return;
         }
 
-        if (!utils.isLocalStorageSupported()) {
+        if (!BrowserStore.isLocalStorageSupported()) {
             state.server_error = "This service requires local storage to be enabled. Please enable it or exit private browsing.";
             this.setState(state);
             return;

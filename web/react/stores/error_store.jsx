@@ -8,6 +8,8 @@ var assign = require('object-assign');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
+var BrowserStore = require('../stores/browser_store.jsx');
+
 var CHANGE_EVENT = 'change';
 
 var ErrorStore = assign({}, EventEmitter.prototype, {
@@ -24,12 +26,12 @@ var ErrorStore = assign({}, EventEmitter.prototype, {
     this.removeListener(CHANGE_EVENT, callback);
   },
   handledError: function() {
-    sessionStorage.removeItem("last_error");
+    BrowserStore.removeItem("last_error");
   },
   getLastError: function() {
     var error = null;
     try {
-        error = JSON.parse(sessionStorage.last_error);
+        error = JSON.parse(BrowserStore.last_error);
     }
     catch (err) {
     }
@@ -38,7 +40,7 @@ var ErrorStore = assign({}, EventEmitter.prototype, {
   },
 
   _storeLastError: function(error) {
-    sessionStorage.setItem("last_error", JSON.stringify(error));
+    BrowserStore.setItem("last_error", JSON.stringify(error));
   },
 });
 

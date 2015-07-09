@@ -10,6 +10,8 @@ var client = require('../utils/client.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
+var BrowserStore = require('../stores/browser_store.jsx');
+
 var CHANGE_EVENT = 'change';
 
 var conn;
