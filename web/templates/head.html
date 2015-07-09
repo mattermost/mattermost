@@ -4,6 +4,19 @@
     <meta name="robots" content="noindex, nofollow">
 
     <title>{{ .Title }}</title>
+    
+    <!-- iOS add to homescreen -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="{{ .Title }}">
+    <meta name="application-name" content="{{ .Title }}">
+    <meta name="format-detection" content="telephone=no">
+    <!-- iOS add to homescreen -->
+
+    <!-- Android add to homescreen -->
+    <link rel="manifest" href="/static/config/manifest.json">
+    <!-- Android add to homescreen -->
 
     <link rel="stylesheet" href="/static/css/bootstrap-3.3.1.min.css">
     <link rel="stylesheet" href="/static/css/jasny-bootstrap.min.css" rel="stylesheet">
