@@ -24,6 +24,7 @@ import (
 	sqltrace "log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -81,7 +82,14 @@ func NewSqlStore() Store {
 
 func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {
 
-	db, err := dbsql.Open(driver, dataSource)
+	charset := ""
+	if strings.Index(dataSource, "?") > -1 {
+		charset = "&charset=utf8mb4,utf8"
+	} else {
+		charset = "?charset=utf8mb4,utf8"
+	}
+
+	db, err := dbsql.Open(driver, dataSource+charset)
 	if err != nil {
 		l4g.Critical("Failed to open sql connection to '%v' err:%v", dataSource, err)
 		time.Sleep(time.Second)
@@ -104,7 +112,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	if driver == "sqlite3" {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}}
 	} else if driver == "mysql" {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
+		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}}
 	} else {
 		l4g.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
