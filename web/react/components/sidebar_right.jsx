@@ -24,6 +24,7 @@ module.exports = React.createClass({
         UserStore.removeStatusesChangeListener(this._onChange);
     },
     _onChange: function() {
+        // Updates the timestamp on each post
         this.forceUpdate();
     },
     _onSelectedChange: function(from_search) {

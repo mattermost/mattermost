@@ -196,6 +196,7 @@ module.exports = React.createClass({
             }
             this.setState(newState);
         } else {
+            // Updates the timestamp on each post
             this.forceUpdate()
         }
     },
