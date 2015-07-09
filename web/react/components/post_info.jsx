@@ -5,6 +5,15 @@ var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
+    componentDidMount: function() {
+        UserStore.addStatusesChangeListener(this._onChange);
+    },
+    componentWillUnmount: function() {
+        UserStore.removeStatusesChangeListener(this._onChange);
+    },
+    _onChange: function() {
+        this.forceUpdate();
+    },
     getInitialState: function() {
         return { };
     },
