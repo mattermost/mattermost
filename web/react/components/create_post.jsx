@@ -235,7 +235,7 @@ module.exports = React.createClass({
         return numToUpload;
     },
     render: function() {
-        var useMarkdown = UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
         var server_error = this.state.server_error ? <div className='has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;

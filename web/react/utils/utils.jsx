@@ -391,20 +391,32 @@ var puncStartRegex = /^((?![@#])\W)+/g;
 var puncEndRegex = /(\W)+$/g;
 
 module.exports.textToJsx = function(text, options) {
-    var useMarkdown = UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;;
+    var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
-    if (useMarkdown && (text.trim().indexOf("#") !== 0 || text.trim().length === 1)) {
-        text = Marked(text, {sanitize: true});
-    }
-    /*else if (useMarkdown && text.trim().indexOf("#") === 0) {
-        //Deals with case of the first string being a #word
-        text = " !" + text;
-        text = Marked(text, {sanitize: true});
-        text = text.slice(0, text.indexOf("!")) + text.slice(text.indexOf("!") + 1);
-    }
-    else {
+    if (useMarkdown) {
+        var customMarkedRenderer = new Marked.Renderer();
+        customMarkedRenderer.heading = function(text, level) {
+            var hashText = "";
+            for (var i = 0; i < level; i++)
+                hashText += "#";
 
-    }*/
+            return hashText + text;
+        };
+        customMarkedRenderer.blockquote = function(quote) {
+            return ">" + quote;
+        };
+        /*customMarkedRenderer.html = function(html) {
+            return html;
+        };*/
+        customMarkedRenderer.link = function(href, title, text) {
+            return " " + href + " ";
+        };
+        /*customMarkedRenderer.paragraph = function(text) {
+            return text;
+        };*/
+
+        text = Marked(text, {sanitize: true, gfm: true, tables: false, renderer: customMarkedRenderer});
+    }
 
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
@@ -505,7 +517,7 @@ module.exports.textToJsx = function(text, options) {
             }
             highlightSearchClass = "";
         }
-        if (i != lines.length-1)
+        if (!useMarkdown && i != lines.length-1)
             inner.push(<br key={"br_"+i+z}/>);
     }
 

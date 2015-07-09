@@ -3,6 +3,7 @@
 
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var UserStore = require('../stores/user_store.jsx');
 var Textbox = require('./textbox.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 
@@ -10,6 +11,23 @@ module.exports = React.createClass({
     handleEdit: function(e) {
         var updatedPost = {};
         updatedPost.message = this.state.editText.trim();
+
+        /*var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+
+        var customMarkedRenderer = new Marked.Renderer();
+
+        customMarkedRenderer.heading = function(text, level) {
+            var hashText = "";
+
+            for (var i = 0; i < level; i++)
+                hashText += "#";
+
+            return hashText + text;
+        };
+
+        updatedPost.message = Marked(updatedPost.message);*/
+
+
 
         if (updatedPost.message.length === 0) {
             var tempState = this.state;

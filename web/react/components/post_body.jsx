@@ -19,6 +19,7 @@ module.exports = React.createClass({
         var filenames = this.props.post.filenames;
         var parentPost = this.props.parentPost;
         var inner = utils.textToJsx(this.state.message);
+        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
         var comment = "";
         var reply = "";
