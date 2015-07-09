@@ -596,19 +596,14 @@ PasswordPage = React.createClass({
 
 module.exports = React.createClass({
     updateParent: function(state, skipSet) {
-        BrowserStore.setGlobalItem(this.props.hash, JSON.stringify(state));
+        BrowserStore.setGlobalItem(this.props.hash, state);
 
         if (!skipSet) {
             this.setState(state);
         }
     },
     getInitialState: function() {
-        var props = null;
-        try {
-            props = JSON.parse(BrowserStore.getGlobalItem(this.props.hash));
-        }
-        catch(parse_error) {
-        }
+        var props = BrowserStore.getGlobalItem(this.props.hash);
 
         if (!props) {
             props = {};
@@ -628,7 +623,7 @@ module.exports = React.createClass({
             props.data = this.props.data;
         }
 
-        return props ;
+        return props;
     },
     render: function() {
         if (this.state.wizard == "welcome") {
