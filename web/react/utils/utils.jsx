@@ -391,8 +391,20 @@ var puncStartRegex = /^((?![@#])\W)+/g;
 var puncEndRegex = /(\W)+$/g;
 
 module.exports.textToJsx = function(text, options) {
+    var useMarkdown = true;
 
-    text = Marked(text, {sanitize: true})
+    if (useMarkdown && (text.trim().indexOf("#") !== 0 || text.trim().length === 1)) {
+        text = Marked(text, {sanitize: true});
+    }
+    /*else if (useMarkdown && text.trim().indexOf("#") === 0) {
+        //Deals with case of the first string being a #word
+        text = " !" + text;
+        text = Marked(text, {sanitize: true});
+        text = text.slice(0, text.indexOf("!")) + text.slice(text.indexOf("!") + 1);
+    }
+    else {
+
+    }*/
 
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
