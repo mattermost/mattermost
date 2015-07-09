@@ -123,7 +123,7 @@ module.exports = React.createClass({
         $('.post-list__content div .post').removeClass('post--last');
         $('.post-list__content div:last-child .post').addClass('post--last');
 
-        $('body').on('mouseenter mouseleave', '.post:not(.post--comment.same--root)', function(ev){
+        $('body').on('mouseenter mouseleave', '.post', function(ev){
             if(ev.type === 'mouseenter'){
                 $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--after');
                 $(this).parent('div').next('.date-separator, .new-separator').addClass('hovered--before');
@@ -131,6 +131,17 @@ module.exports = React.createClass({
             else {
                 $(this).parent('div').prev('.date-separator, .new-separator').removeClass('hovered--after');
                 $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--before');
+            }
+        });
+
+        $('body').on('mouseenter mouseleave', '.post.post--comment.same--root', function(ev){
+            if(ev.type === 'mouseenter'){
+                $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--comment');
+                $(this).parent('div').next('.date-separator, .new-separator').addClass('hovered--comment');
+            }
+            else {
+                $(this).parent('div').prev('.date-separator, .new-separator').removeClass('hovered--comment');
+                $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--comment');
             }
         });
 

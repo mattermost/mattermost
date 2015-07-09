@@ -202,7 +202,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     BrowserStore.setItem("more_channels", JSON.stringify(channels));
   },
   _getMoreChannels: function() {
-    var channels = [];
+    var channels;
     try {
         channels = JSON.parse(BrowserStore.getItem("more_channels"));
     }
