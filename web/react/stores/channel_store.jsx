@@ -209,10 +209,6 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     catch (err) {
 	}
 
-	if (channels == null) {
-		channels = [];
-	}
-
     return channels;
   },
   _storeExtraInfos: function(extraInfos) {
