@@ -276,6 +276,11 @@
             }
         }
     }
+    .row--invite {
+        .col-sm-6 {
+            padding: 0;
+        }
+    }
     .settings-modal {
         &.display--content {
             .modal-header {

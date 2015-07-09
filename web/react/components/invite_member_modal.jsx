@@ -162,24 +162,30 @@ module.exports = React.createClass({
                 invite_sections[index] = (
                     <div key={"key" + index}>
                     <div>
-                        <button type="button" className="btn remove__member" onClick={this.removeInviteFields.bind(this, index)}>×</button>
+                        <button type="button" className="btn btn-link remove__member" onClick={this.removeInviteFields.bind(this, index)}><span className="fa fa-trash"></span></button>
                     </div>
                     <div className={ email_error ? "form-group invite has-error" : "form-group invite" }>
                         <input onKeyUp={this.displayNameKeyUp} type="text" ref={"email"+index} className="form-control" placeholder="email@domain.com" maxLength="64" />
                         { email_error }
                     </div>
+                    <div className="row--invite">
                     { config.AllowInviteNames ?
-                    <div className={ first_name_error ? "form-group invite has-error" : "form-group invite" }>
-                        <input type="text" className="form-control" ref={"first_name"+index} placeholder="First name" maxLength="64" />
-                        { first_name_error }
+                    <div className="col-sm-6">
+                        <div className={ first_name_error ? "form-group has-error" : "form-group" }>
+                            <input type="text" className="form-control" ref={"first_name"+index} placeholder="First name" maxLength="64" />
+                            { first_name_error }
+                        </div>
                     </div>
                     : "" }
                     { config.AllowInviteNames ?
-                    <div className={ last_name_error ? "form-group invite has-error" : "form-group invite" }>
-                        <input type="text" className="form-control" ref={"last_name"+index} placeholder="Last name" maxLength="64" />
-                        { last_name_error }
+                    <div className="col-sm-6">
+                        <div className={ last_name_error ? "form-group has-error" : "form-group" }>
+                            <input type="text" className="form-control" ref={"last_name"+index} placeholder="Last name" maxLength="64" />
+                            { last_name_error }
+                        </div>
                     </div>
                     : "" }
+                    </div>
                     </div>
                 );
             }
@@ -203,7 +209,7 @@ module.exports = React.createClass({
                                 <button type="button" className="btn btn-default" onClick={this.addInviteFields}>Add another</button>
                                 <br/>
                                 <br/>
-                                <label className='control-label'>People invited automatically join Town Square channel.</label>
+                                <span>People invited automatically join Town Square channel.</span>
                             </div>
                             <div className="modal-footer">
                               <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
