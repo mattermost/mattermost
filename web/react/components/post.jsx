@@ -74,12 +74,14 @@ module.exports = React.createClass({
             currentUserCss = "current--user";
         }
 
+        var timestamp = UserStore.getCurrentUser().update_at;
+
         return (
             <div>
                 <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType + " " + currentUserCss}>
                     { !this.props.hideProfilePic ?
                     <div className="post-profile-img__container">
-                        <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image"} height="36" width="36" />
+                        <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                     </div>
                     : "" }
                     <div className="post__content">

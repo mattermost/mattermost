@@ -67,6 +67,7 @@ RootPost = React.createClass({
         var message = utils.textToJsx(this.props.post.message);
         var filenames = this.props.post.filenames;
         var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
+        var timestamp = UserStore.getProfile(this.props.post.user_id).update_at;
 
         var type = "Post";
         if (this.props.post.root_id.length > 0) {
@@ -118,7 +119,7 @@ RootPost = React.createClass({
         return (
             <div className={"post post--root " + currentUserCss}>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
