@@ -264,8 +264,9 @@ var SidebarLoggedIn = React.createClass({
                 AsyncClient.getChannels(true);
             }
         } else if (msg.action == "user_added") {
-            if (UserStore.getCurrentId() === msg.user_id)
+            if (UserStore.getCurrentId() === msg.user_id) {
                 AsyncClient.getChannels(true);
+            }
         }
     },
     updateTitle: function() {
