@@ -752,6 +752,21 @@ var GeneralTab = React.createClass({
 
         this.submitUser(user);
     },
+    submitNickname: function(e) {
+        e.preventDefault();
+
+        var user = UserStore.getCurrentUser();
+        var nickname = this.state.nickname.trim();
+
+        if (user.nickname === nickname) {
+            this.setState({client_error: "You must submit a new nickname"})
+            return;
+        }
+
+        user.nickname = nickname;
+
+        this.submitUser(user);
+    },
     submitName: function(e) {
         e.preventDefault();
 
@@ -839,6 +854,9 @@ var GeneralTab = React.createClass({
     updateLastName: function(e) {
         this.setState({ last_name: e.target.value});
     },
+    updateNickname: function(e) {
+        this.setState({nickname: e.target.value});
+    },
     updateEmail: function(e) {
         this.setState({ email: e.target.value});
     },
@@ -865,7 +883,7 @@ var GeneralTab = React.createClass({
         var firstName = splitStr.shift();
         var lastName = splitStr.join(' ');
 
-        return { username: user.username, first_name: firstName, last_name: lastName,
+        return { username: user.username, first_name: firstName, last_name: lastName, nickname: user.nickname,
                  email: user.email, picture: null };
     },
     render: function() {
@@ -915,6 +933,39 @@ var GeneralTab = React.createClass({
                     title="Name"
                     describe={UserStore.getCurrentUser().nickname}
                     updateSection={function(){self.updateSection("name");}}
+                />
+            );
+        }
+
+        var nicknameSection;
+        if (this.props.activeSection === 'nickname') {
+            var inputs = [];
+
+            inputs.push(
+                <div className="form-group">
+                    <label className="col-sm-5 control-label">{utils.isMobile() ? "": "Nickname"}</label>
+                    <div className="col-sm-7">
+                        <input className="form-control" type="text" onChange={this.updateNickname} value={this.state.nickname}/>
+                    </div>
+                </div>
+            );
+
+            nicknameSection = (
+                <SettingItemMax
+                    title="Nickname"
+                    inputs={inputs}
+                    submit={this.submitNickname}
+                    server_error={server_error}
+                    client_error={client_error}
+                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                />
+            );
+        } else {
+            nicknameSection = (
+                <SettingItemMin
+                    title="Nickname"
+                    describe={UserStore.getCurrentUser().nickname}
+                    updateSection={function(){self.updateSection("nickname");}}
                 />
             );
         }
@@ -1025,6 +1076,8 @@ var GeneralTab = React.createClass({
                     {nameSection}
                     <div className="divider-light"/>
                     {usernameSection}
+                    <div className="divider-light"/>
+                    {nicknameSection}
                     <div className="divider-light"/>
                     {emailSection}
                     <div className="divider-light"/>
