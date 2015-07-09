@@ -1,6 +1,13 @@
 @media screen and (max-width: 1800px) {
     .inner__wrap {
         &.move--left {
+            .date-separator, .new-separator {
+                &.hovered--comment {
+                    &:before, &:after {
+                        background: none;
+                    }
+                }
+            }
             .post {
                 &.same--root {
                     margin-left: 60px;
@@ -80,6 +87,13 @@
     .post-create__container {
         .post-create-body {
             max-width: 810px;
+        }
+    }
+    .date-separator, .new-separator {
+        &.hovered--comment {
+            &:before, &:after {
+                background: none;
+            }
         }
     }
     .post {
@@ -207,17 +221,15 @@
 }
 
 @media screen and (max-width: 768px) {
-    #post-list {
-        .date-seperator, .new-separator {
-            &.hovered--after {
-                &:before {
-                    background: none;
-                }
+    .date-separator, .new-separator {
+        &.hovered--after {
+            &:before {
+                background: none;
             }
-            &.hovered--before {
-                &:after {
-                    background: none;
-                }
+        }
+        &.hovered--before {
+            &:after {
+                background: none;
             }
         }
     }

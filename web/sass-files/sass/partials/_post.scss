@@ -41,67 +41,68 @@ body.ios {
 	min-height:37px;
 }
 
-#post-list {
-	.date-separator, .new-separator {
-		text-align: center;
-		height: 2em;
+.date-separator, .new-separator {
+	text-align: center;
+	height: 2em;
+	margin: 0;
+	position: relative;
+	&:before, &:after {
+		content: "";
+		height: 1em;
+		position: absolute;
+		left: 0;
+		width: 100%;
+		display: none;
+	}
+	&:before {
+		bottom: 0;
+	}
+	&:after {
+		top: 0;
+	}
+	&.hovered--after {
+		&:before {
+			background: #f5f5f5;
+			display: block;
+		}
+	}
+	&.hovered--before {
+		&:after {
+			background: #f5f5f5;
+			display: block;
+		}
+	}
+	.separator__hr {
+		border-color: #ccc;
 		margin: 0;
 		position: relative;
-		&:before, &:after {
-			content: "";
-			height: 1em;
-			position: absolute;
-			left: 0;
-			width: 100%;
-			display: none;
-		}
-		&:before {
-			bottom: 0;
-		}
-		&:after {
-			top: 0;
-		}
-		&.hovered--after {
-			&:before {
-				background: #f5f5f5;
-				display: block;
-			}
-		}
-		&.hovered--before {
-			&:after {
-				background: #f5f5f5;
-				display: block;
-			}
-		}
-		.separator__hr {
-			border-color: #ccc;
-			margin: 0;
-			position: relative;
-			z-index: 5;
-			top: 1em;
-		}
-		.separator__text {
-			line-height: 2em;
-			color: #555;
-			background: #FFF;
-			display: inline-block;
-			padding: 0 1em;
-			font-weight: 700;
-			@include border-radius(50px);
-			position: relative;
-			z-index: 5;
-			font-size: 13px;
-		}
+		z-index: 5;
+		top: 1em;
 	}
-	.new-separator {
-		.separator__hr {
-			border-color: #FFAF53;
-		}
-		.separator__text {
-			color: #F80;
-			font-weight: normal;
-		}
+	.separator__text {
+		line-height: 2em;
+		color: #555;
+		background: #FFF;
+		display: inline-block;
+		padding: 0 1em;
+		font-weight: 700;
+		@include border-radius(50px);
+		position: relative;
+		z-index: 5;
+		font-size: 13px;
 	}
+}
+.new-separator {
+	.separator__hr {
+		border-color: #FFAF53;
+	}
+	.separator__text {
+		color: #F80;
+		font-weight: normal;
+	}
+}
+
+#post-list {
 	.post-list-holder-by-time {
 		background: #fff;
 		overflow-y: scroll;
@@ -135,6 +136,7 @@ body.ios {
 		color: grey;
 	}
 }
+
 .post-create__container {
 	form {
 		width: 100%;
@@ -347,7 +349,7 @@ body.ios {
 		}
 		&.post-info {
 			.post-profile-time {
-				width: 100px;
+				width: 150px;
 				display: inline-block;
 				margin-left: 50px;
 			}
