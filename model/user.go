@@ -38,6 +38,8 @@ type User struct {
 	Email              string    `json:"email"`
 	EmailVerified      bool      `json:"email_verified"`
 	Nickname           string    `json:"nickname"`
+	FirstName          string    `json:"first_name"`
+	LastName           string    `json:"last_name"`
 	Roles              string    `json:"roles"`
 	LastActivityAt     int64     `json:"last_activity_at"`
 	LastPingAt         int64     `json:"last_ping_at"`
@@ -84,6 +86,14 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Nickname) > 64 {
 		return NewAppError("User.IsValid", "Invalid nickname", "user_id="+u.Id)
+	}
+
+	if len(u.FirstName) > 64 {
+		return NewAppError("User.IsValid", "Invalid first name", "user_id="+u.Id)
+	}
+
+	if len(u.LastName) > 64 {
+		return NewAppError("User.IsValid", "Invalid last name", "user_id="+u.Id)
 	}
 
 	return nil

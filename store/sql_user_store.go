@@ -26,6 +26,8 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("AuthData").SetMaxSize(128)
 		table.ColMap("Email").SetMaxSize(128)
 		table.ColMap("Nickname").SetMaxSize(64)
+		table.ColMap("FirstName").SetMaxSize(64)
+		table.ColMap("LastName").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
@@ -39,8 +41,18 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	us.CreateColumnIfNotExists("Users", "LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
 
-	// migrating the FullName column to Nickname for MM-825
-	us.RenameColumnIfExists("Users", "FullName", "Nickname", "varchar(64)")
+	// migrating the FullName column to Nickname and adding the FirstName and LastName columns for MM-825
+	if us.RenameColumnIfExists("Users", "FullName", "Nickname", "varchar(64)") {
+		us.CreateColumnIfNotExists("Users", "FirstName", "Nickname", "varchar(64)", "")
+		us.CreateColumnIfNotExists("Users", "LastName", "FirstName", "varchar(64)", "")
+
+		// infer values of first and last name by splitting the previous full name
+		if _, err := us.GetMaster().Exec("UPDATE Users SET " +
+			"FirstName = SUBSTRING_INDEX(SUBSTRING_INDEX(Nickname, ' ', 1), ' ', -1), " +
+			"LastName = SUBSTRING(Nickname, INSTR(Nickname, ' ') + 1)"); err != nil {
+			panic("Failed to set first and last name columns from nickname " + err.Error())
+		}
+	}
 }
 
 //func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
