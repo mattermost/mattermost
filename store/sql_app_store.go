@@ -22,6 +22,7 @@ func NewSqlAppStore(sqlStore *SqlStore) AppStore {
 		table.ColMap("Name").SetMaxSize(64)
 		table.ColMap("Description").SetMaxSize(512)
 		table.ColMap("CallbackUrl").SetMaxSize(256)
+		table.ColMap("Homepage").SetMaxSize(256)
 	}
 
 	return us

@@ -40,20 +40,24 @@ func (a *App) IsValid() *AppError {
 		return NewAppError("App.IsValid", "Invalid creator id", "app_id="+a.Id)
 	}
 
-	if len(a.ClientSecret) == 0 {
+	if len(a.ClientSecret) == 0 || len(a.ClientSecret) > 128 {
 		return NewAppError("App.IsValid", "Invalid client secret", "app_id="+a.Id)
 	}
 
-	if len(a.Name) == 0 {
-		return NewAppError("App.IsValid", "Name must be set", "app_id="+a.Id)
+	if len(a.Name) == 0 || len(a.Name) > 64 {
+		return NewAppError("App.IsValid", "Invalid name", "app_id="+a.Id)
 	}
 
-	if len(a.CallbackUrl) == 0 {
-		return NewAppError("App.IsValid", "CallbackUrl must be set", "app_id="+a.Id)
+	if len(a.CallbackUrl) == 0 || len(a.CallbackUrl) > 256 {
+		return NewAppError("App.IsValid", "Invalid callback url", "app_id="+a.Id)
 	}
 
-	if len(a.Homepage) == 0 {
-		return NewAppError("App.IsValid", "Homepage must be set", "app_id="+a.Id)
+	if len(a.Homepage) == 0 || len(a.Homepage) > 256 {
+		return NewAppError("App.IsValid", "Invalid homepage", "app_id="+a.Id)
+	}
+
+	if len(a.Description) > 512 {
+		return NewAppError("App.IsValid", "Invalid description", "app_id="+a.Id)
 	}
 
 	return nil

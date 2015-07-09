@@ -4,7 +4,6 @@
 package store
 
 import (
-	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"strings"
@@ -115,7 +114,6 @@ func (as SqlAccessDataStore) GetByAuthCode(authCode string) StoreChannel {
 			if strings.Contains(err.Error(), "no rows") {
 				result.Data = nil
 			} else {
-				l4g.Debug("hit2")
 				result.Err = model.NewAppError("SqlAccessDataStore.GetByAuthCode", "We encountered an error finding the access token", err.Error())
 			}
 		} else {
