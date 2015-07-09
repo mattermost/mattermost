@@ -655,6 +655,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			c.LogAudit("name=" + channel.Name + " user_id=" + userId)
 
+			message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_ADDED)
+
+			store.PublishAndForget(message)
+
 			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
 		}
