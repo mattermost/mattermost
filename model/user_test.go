@@ -80,12 +80,12 @@ func TestUserIsValid(t *testing.T) {
 	}
 
 	user.Email = "test@nowhere.com"
-	user.FullName = strings.Repeat("01234567890", 20)
+	user.Nickname = strings.Repeat("01234567890", 20)
 	if err := user.IsValid(); err == nil {
 		t.Fatal()
 	}
 
-	user.FullName = ""
+	user.Nickname = ""
 	if err := user.IsValid(); err != nil {
 		t.Fatal(err)
 	}

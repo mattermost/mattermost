@@ -488,10 +488,10 @@ func InviteMembers(team *model.Team, user *model.User, invites []string) {
 			}
 
 			sender := ""
-			if len(strings.TrimSpace(user.FullName)) == 0 {
+			if len(strings.TrimSpace(user.Nickname)) == 0 {
 				sender = user.Username
 			} else {
-				sender = user.FullName
+				sender = user.Nickname
 			}
 
 			senderRole := ""

@@ -90,7 +90,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			TeamId:   teamID,
 			Email:    utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
-			FullName: username[0],
+			Nickname: username[0],
 			Password: api.USER_PASSWORD}
 
 		result, err := client.CreateUser(user, "")

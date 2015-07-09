@@ -37,7 +37,7 @@ type User struct {
 	AuthData           string    `json:"auth_data"`
 	Email              string    `json:"email"`
 	EmailVerified      bool      `json:"email_verified"`
-	FullName           string    `json:"full_name"`
+	Nickname           string    `json:"nickname"`
 	Roles              string    `json:"roles"`
 	LastActivityAt     int64     `json:"last_activity_at"`
 	LastPingAt         int64     `json:"last_ping_at"`
@@ -82,8 +82,8 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "Invalid email", "user_id="+u.Id)
 	}
 
-	if len(u.FullName) > 64 {
-		return NewAppError("User.IsValid", "Invalid full name", "user_id="+u.Id)
+	if len(u.Nickname) > 64 {
+		return NewAppError("User.IsValid", "Invalid nickname", "user_id="+u.Id)
 	}
 
 	return nil
@@ -152,7 +152,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps["first_name"] = "false"
 	u.NotifyProps["all"] = "true"
 	u.NotifyProps["channel"] = "true"
-	splitName := strings.Split(u.FullName, " ")
+	splitName := strings.Split(u.Nickname, " ")
 	if len(splitName) > 0 && splitName[0] != "" {
 		u.NotifyProps["first_name"] = "true"
 		u.NotifyProps["mention_keys"] += "," + splitName[0]
@@ -191,7 +191,7 @@ func (u *User) Sanitize(options map[string]bool) {
 		u.Email = ""
 	}
 	if len(options) != 0 && !options["fullname"] {
-		u.FullName = ""
+		u.Nickname = ""
 	}
 	if len(options) != 0 && !options["skypeid"] {
 		// TODO - fill in when SkypeId is added to user model

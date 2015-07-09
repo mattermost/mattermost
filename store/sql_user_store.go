@@ -25,7 +25,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Password").SetMaxSize(128)
 		table.ColMap("AuthData").SetMaxSize(128)
 		table.ColMap("Email").SetMaxSize(128)
-		table.ColMap("FullName").SetMaxSize(64)
+		table.ColMap("Nickname").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
@@ -36,9 +36,14 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 	return us
 }
 
-func (s SqlUserStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("Users","LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
+func (us SqlUserStore) UpgradeSchemaIfNeeded() {
+	us.CreateColumnIfNotExists("Users", "LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
+
+	// migrating the FullName column to Nickname for MM-825
+	us.RenameColumnIfExists("Users", "FullName", "Nickname", "varchar(64)")
 }
+
+//func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_team_id", "Users", "TeamId")

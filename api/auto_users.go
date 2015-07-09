@@ -41,7 +41,7 @@ func CreateBasicUser(client *model.Client) *model.AppError {
 			return err
 		}
 		basicteam := result.Data.(*model.Team)
-		newuser := &model.User{TeamId: basicteam.Id, Email: BTEST_USER_EMAIL, FullName: BTEST_USER_NAME, Password: BTEST_USER_PASSWORD}
+		newuser := &model.User{TeamId: basicteam.Id, Email: BTEST_USER_EMAIL, Nickname: BTEST_USER_NAME, Password: BTEST_USER_PASSWORD}
 		result, err = client.CreateUser(newuser, "")
 		if err != nil {
 			return err
@@ -65,7 +65,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	user := &model.User{
 		TeamId:   cfg.teamID,
 		Email:    userEmail,
-		FullName: userName,
+		Nickname: userName,
 		Password: USER_PASSWORD}
 
 	result, err := cfg.client.CreateUser(user, "")

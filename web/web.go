@@ -303,8 +303,8 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 			//api.Handle404(w, r)
 			//Bad channel urls just redirect to the town-square for now
-			
-			http.Redirect(w,r,"/channels/town-square", http.StatusFound)
+
+			http.Redirect(w, r, "/channels/town-square", http.StatusFound)
 			return
 		}
 	}
@@ -351,7 +351,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			user := result.Data.(*model.User)
-			api.FireAndForgetVerifyEmail(user.Id, strings.Split(user.FullName, " ")[0], user.Email, domain, c.TeamUrl)
+			api.FireAndForgetVerifyEmail(user.Id, strings.Split(user.Nickname, " ")[0], user.Email, domain, c.TeamUrl)
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
