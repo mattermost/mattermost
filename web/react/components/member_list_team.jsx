@@ -92,10 +92,10 @@ var MemberListTeamItem = React.createClass({
                         <span className="caret"></span>
                     </a>
                     <ul className="dropdown-menu member-menu" role="menu" aria-labelledby="channel_header_dropdown">
-                        { showMakeAdmin ? <li role="presentation"><a role="menuitem" onClick={this.handleMakeAdmin}>Make Admin</a></li> : "" }
-                        { showMakeMember ? <li role="presentation"><a role="menuitem" onClick={this.handleMakeMember}>Make Member</a></li> : "" }
-                        { showMakeActive ? <li role="presentation"><a role="menuitem" onClick={this.handleMakeActive}>Make Active</a></li> : "" }
-                        { showMakeNotActive ? <li role="presentation"><a role="menuitem" onClick={this.handleMakeNotActive}>Make Inactive</a></li> : "" }
+                        { showMakeAdmin ? <li role="presentation"><a role="menuitem" href="#" onClick={this.handleMakeAdmin}>Make Admin</a></li> : "" }
+                        { showMakeMember ? <li role="presentation"><a role="menuitem" href="#" onClick={this.handleMakeMember}>Make Member</a></li> : "" }
+                        { showMakeActive ? <li role="presentation"><a role="menuitem" href="#" onClick={this.handleMakeActive}>Make Active</a></li> : "" }
+                        { showMakeNotActive ? <li role="presentation"><a role="menuitem" href="#" onClick={this.handleMakeNotActive}>Make Inactive</a></li> : "" }
                     </ul>
                 </div>
                 { server_error }
