@@ -61,6 +61,10 @@ module.exports = React.createClass({
     render: function() {
         var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var outter = this;
+        var moreChannels;
+
+        if (this.state.channels != null)
+            moreChannels = this.state.channels;
 
         return (
             <div className="modal fade" id="more_channels" ref="modal" tabIndex="-1" role="dialog" aria-hidden="true">
@@ -75,26 +79,36 @@ module.exports = React.createClass({
                             <button data-toggle="modal" data-target="#new_channel" data-channeltype={this.state.channel_type} type="button" className="btn btn-primary channel-create-btn" onClick={this.handleNewChannel}>Create New Channel</button>
                         </div>
                         <div className="modal-body">
-                            {this.state.channels.length ?
-                                <table className="more-channel-table table">
-                                    <tbody>
-                                        {this.state.channels.map(function(channel) {
-                                            return (
-                                                <tr key={channel.id}>
-                                                    <td>
-                                                        <p className="more-channel-name">{channel.display_name}</p>
-                                                        <p className="more-channel-description">{channel.description}</p>
-                                                    </td>
-                                                    <td className="td--action"><button onClick={outter.handleJoin.bind(outter, channel.id)} className="pull-right btn btn-primary">Join</button></td>
-                                                </tr>
-                                            )
-                                        })}
-                                    </tbody>
-                                </table>
-                                :   <div className="no-channel-message">
-                                        <p className="primary-message">No more channels to join</p>
-                                        <p className="secondary-message">Click 'Create New Channel' to make a new one</p>
-                                    </div>}
+                            {moreChannels ?
+                                (moreChannels.length ?
+                                    <table className="more-channel-table table">
+                                        <tbody>
+                                            {moreChannels.map(function(channel) {
+                                                return (
+                                                    <tr key={channel.id}>
+                                                        <td>
+                                                            <p className="more-channel-name">{channel.display_name}</p>
+                                                            <p className="more-channel-description">{channel.description}</p>
+                                                        </td>
+                                                        <td className="td--action"><button onClick={outter.handleJoin.bind(outter, channel.id)} className="pull-right btn btn-primary">Join</button></td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </table>
+                                    :   <div className="no-channel-message">
+                                            <p className="primary-message">No more channels to join</p>
+                                            <p className="secondary-message">Click 'Create New Channel' to make a new one</p>
+                                        </div>)
+                                :   <div ref="loadingscreen" className="loading-screen loading-screen--channel">
+                                        <div className="loading__content">
+                                        <h3>Loading</h3>
+                                            <div id="round_1" className="round"></div>
+                                            <div id="round_2" className="round"></div>
+                                            <div id="round_3" className="round"></div>
+                                        </div>
+                                    </div>
+                                }
                             { server_error }
                         </div>
                         <div className="modal-footer">
