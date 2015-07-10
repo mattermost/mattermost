@@ -71,11 +71,10 @@ module.exports = React.createClass({
                 type: ActionTypes.RECIEVED_ERROR,
                 err: null
             });
-            this.setState({ numPresses: 0 });
 
             AsyncClient.updateLastViewedAt();
         }
-        
+
         window.clearInterval(this.state.timerInterrupt);
         this.setState({ timerInterrupt: null });
     },
