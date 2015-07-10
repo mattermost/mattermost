@@ -35,6 +35,10 @@ func TestAppStoreGet(t *testing.T) {
 	if err := (<-store.App().Get(a1.Id)).Err; err != nil {
 		t.Fatal(err)
 	}
+
+	if err := (<-store.App().GetByUser(a1.CreatorId)).Err; err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestAppStoreUpdate(t *testing.T) {

@@ -140,13 +140,13 @@ func (as SqlAppStore) GetByUser(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		app := model.App{}
+		var apps []*model.App
 
-		if err := as.GetReplica().SelectOne(&app, "SELECT * FROM Apps WHERE CreatorId=?", userId); err != nil {
-			result.Err = model.NewAppError("SqlAppStore.GetByUser", "We couldn't find the existing app", "user_id="+userId+", "+err.Error())
+		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM Apps WHERE CreatorId=?", userId); err != nil {
+			result.Err = model.NewAppError("SqlAppStore.GetByUser", "We couldn't find any existing apps", "user_id="+userId+", "+err.Error())
 		}
 
-		result.Data = &app
+		result.Data = apps
 
 		storeChannel <- result
 		close(storeChannel)
