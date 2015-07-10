@@ -49,6 +49,11 @@ module.exports = React.createClass({
     _onError: function() {
         var errorState = getStateFromStores();
 
+        if (this.state.timerInterrupt != null) {
+            window.clearInterval(this.state.timerInterrupt);
+            this.setState({ timerInterrupt: null });
+        }
+
         if (errorState.message === "There appears to be a problem with your internet connection") {
             this.setState({ connection: " bad-connection" });
             var timerInterrupt = window.setInterval(this._onTimerInterrupt, 5000);
@@ -56,10 +61,6 @@ module.exports = React.createClass({
         }
         else {
             this.setState({ connection: "" });
-            if (this.state.timerInterrupt != null) {
-                window.clearInterval(this.state.timerInterrupt);
-                this.setState({ timerInterrupt: null });
-            }
         }
     },
     _onTimerInterrupt: function() {
