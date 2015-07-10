@@ -43,6 +43,8 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		app = result.Data.(*model.App)
 		app.ClientSecret = secret
 
+		c.LogAudit("client_id=" + app.Id)
+
 		w.Write([]byte(app.ToJson()))
 		return
 	}
@@ -50,6 +52,8 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.LogAudit("attempt")
+
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	responseData := map[string]string{}
 
@@ -112,6 +116,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	authCodeCache.Add(authData.Code, authData)
+	c.LogAudit("success")
 
 	responseData["redirect"] = callback + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State)
 
@@ -119,6 +124,8 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.LogAudit("attempt")
+
 	props := model.MapFromJson(r.Body)
 
 	grantType := props["grant_type"]
@@ -233,6 +240,8 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
+
+	c.LogAuditWithUserId(accessData.UserId, "success")
 
 	w.Write([]byte(accessRsp.ToJson()))
 }
