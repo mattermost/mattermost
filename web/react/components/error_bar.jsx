@@ -9,7 +9,7 @@ var ActionTypes = Constants.ActionTypes;
 
 function getStateFromStores() {
   var error = ErrorStore.getLastError();
-  if (error) {
+  if (error && error.message !== "There appears to be a problem with your internet connection") {
       return { message: error.message };
   } else {
      return { message: null };

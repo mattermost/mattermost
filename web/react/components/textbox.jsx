@@ -8,10 +8,22 @@ var SocketStore = require('../stores/socket_store.jsx');
 var MsgTyping = require('./msg_typing.jsx');
 var MentionList = require('./mention_list.jsx');
 var CommandList = require('./command_list.jsx');
+var ErrorStore = require('../stores/error_store.jsx');
+var AsyncClient = require('../utils/async_client.jsx');
 
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
+
+function getStateFromStores() {
+    var error = ErrorStore.getLastError();
+
+    if (error) {
+        return { message: error.message };
+    } else {
+        return { message: null };
+    }
+}
 
 module.exports = React.createClass({
     caret: -1,
@@ -20,6 +32,7 @@ module.exports = React.createClass({
     mentions: [],
     componentDidMount: function() {
         PostStore.addAddMentionListener(this._onChange);
+        ErrorStore.addChangeListener(this._onError);
 
         this.resize();
         this.processMentions();
@@ -27,10 +40,43 @@ module.exports = React.createClass({
     },
     componentWillUnmount: function() {
         PostStore.removeAddMentionListener(this._onChange);
+        ErrorStore.removeChangeListener(this._onError);
     },
     _onChange: function(id, username) {
         if (id !== this.props.id) return;
         this.addMention(username);
+    },
+    _onError: function() {
+        var errorState = getStateFromStores();
+
+        if (this.state.timerInterrupt != null) {
+            window.clearInterval(this.state.timerInterrupt);
+            this.setState({ timerInterrupt: null });
+        }
+
+        if (errorState.message === "There appears to be a problem with your internet connection") {
+            this.setState({ connection: "bad-connection" });
+            var timerInterrupt = window.setInterval(this._onTimerInterrupt, 5000);
+            this.setState({ timerInterrupt: timerInterrupt });
+        }
+        else {
+            this.setState({ connection: "" });
+        }
+    },
+    _onTimerInterrupt: function() {
+        //Since these should only happen when you have no connection and slightly briefly after any
+        //performance hit should not matter
+        if (this.state.connection === "bad-connection") {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_ERROR,
+                err: null
+            });
+
+            AsyncClient.updateLastViewedAt();
+        }
+
+        window.clearInterval(this.state.timerInterrupt);
+        this.setState({ timerInterrupt: null });
     },
     componentDidUpdate: function() {
         if (this.caret >= 0) {
@@ -57,7 +103,7 @@ module.exports = React.createClass({
         this.resize();
     },
     getInitialState: function() {
-        return { mentionText: '-1', mentions: [] };
+        return { mentionText: '-1', mentions: [], connection: "", timerInterrupt: null };
     },
     updateMentionTab: function(mentionText, excludeList) {
         var self = this;
@@ -287,7 +333,7 @@ module.exports = React.createClass({
             <div ref="wrapper" className="textarea-wrapper">
                 <CommandList ref='commands' addCommand={this.addCommand} channelId={this.props.channelId} />
                 <div className="form-control textarea-div" ref="textdiv"/>
-                <textarea id={this.props.id} ref="message" className="form-control custom-textarea" spellCheck="true" autoComplete="off" autoCorrect="off" rows="1" placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onScroll={this.scroll} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
+                <textarea id={this.props.id} ref="message" className={"form-control custom-textarea " + this.state.connection} spellCheck="true" autoComplete="off" autoCorrect="off" rows="1" placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onScroll={this.scroll} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
             </div>
         );
     }
