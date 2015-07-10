@@ -14,7 +14,7 @@ import (
 )
 
 func InitApp(r *mux.Router) {
-	l4g.Debug("Initializing user api routes")
+	l4g.Debug("Initializing app api routes")
 
 	sr := r.PathPrefix("/apps").Subrouter()
 
