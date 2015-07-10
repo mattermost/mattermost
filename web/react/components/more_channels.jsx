@@ -79,7 +79,7 @@ module.exports = React.createClass({
                             <button data-toggle="modal" data-target="#new_channel" data-channeltype={this.state.channel_type} type="button" className="btn btn-primary channel-create-btn" onClick={this.handleNewChannel}>Create New Channel</button>
                         </div>
                         <div className="modal-body">
-                            {moreChannels ?
+                            {!moreChannels.loading ?
                                 (moreChannels.length ?
                                     <table className="more-channel-table table">
                                         <tbody>
