@@ -51,9 +51,35 @@ module.exports = React.createClass({
 
         if (errorState.message === "There appears to be a problem with your internet connection") {
             this.setState({ connection: " bad-connection" });
+            var timerInterrupt = window.setInterval(this._onTimerInterrupt, 5000);
+            this.setState({ timerInterrupt: timerInterrupt });
         }
         else {
             this.setState({ connection: "" });
+            if (this.state.timerInterrupt != null) {
+                window.clearInterval(this.state.timerInterrupt);
+                this.setState({ timerInterrupt: null });
+            }
+        }
+    },
+    _onTimerInterrupt: function() {
+        //Since these should only happen when you have no connection and slightly briefly after any
+        //performance hit should not matter
+        if (this.state.connection === " bad-connection") {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_ERROR,
+                err: null
+            });
+            this.setState({ numPresses: 0 });
+
+
+            window.clearInterval(this.state.timerInterrupt);
+            this.setState({ timerInterrupt: null });
+            AsyncClient.updateLastViewedAt();
+        }
+        else {
+            window.clearInterval(this.state.timerInterrupt);
+            this.setState({ timerInterrupt: null });
         }
     },
     componentDidUpdate: function() {
@@ -81,7 +107,7 @@ module.exports = React.createClass({
         this.resize();
     },
     getInitialState: function() {
-        return { mentionText: '-1', mentions: [], connection: "", numPresses: 0 };
+        return { mentionText: '-1', mentions: [], connection: "", timerInterrupt: null };
     },
     updateMentionTab: function(mentionText, excludeList) {
         var self = this;
@@ -112,21 +138,6 @@ module.exports = React.createClass({
     },
     handleKeyPress: function(e) {
         var text = this.refs.message.getDOMNode().value;
-
-        //Since these should only happen when you have no connection and slightly briefly after any
-        //performance hit should not matter
-        if (this.state.connection === " bad-connection" && this.state.numPresses > 5) {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_ERROR,
-                err: null
-            });
-            this.setState({ numPresses: 0 });
-
-            AsyncClient.updateLastViewedAt();
-        }
-        else if (this.state.connection === " bad-connection") {
-            this.setState({ numPresses: this.state.numPresses + 1 });
-        }
 
         if (!this.refs.commands.isEmpty() && text.indexOf("/") == 0 && e.which==13) {
             this.refs.commands.addFirstCommand();
