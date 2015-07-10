@@ -55,7 +55,7 @@ module.exports.getChannels = function(force, updateLastViewed, checkVersion) {
                 if (checkVersion) {
                     var serverVersion = xhr.getResponseHeader("X-Version-ID");
 
-                    if (UserStore.getLastVersion() == undefined) {
+                    if (!UserStore.getLastVersion()) {
                         UserStore.setLastVersion(serverVersion);
                     }
 
