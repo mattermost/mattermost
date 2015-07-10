@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	ACCESS_TOKEN_EXPIRE_TIME = 60 * 60 * 24 // 24 hours
+	ACCESS_TOKEN_EXPIRE_TIME = -1 // forever
 	ACCESS_TOKEN_CACHE_SIZE  = 10000
 	ACCESS_TOKEN_GRANT_TYPE  = "authorization_code"
 	ACCESS_TOKEN_TYPE        = "bearer"
+	REFRESH_TOKEN_GRANT_TYPE = "refresh_token"
 )
 
 type AccessData struct {
@@ -104,6 +105,10 @@ func (ad *AccessData) ToJson() string {
 }
 
 func (ad *AccessData) IsExpired() bool {
+
+	if ad.ExpiresIn < 0 {
+		return false
+	}
 
 	if GetMillis() > ad.CreateAt+int64(ad.ExpiresIn*1000) {
 		return true

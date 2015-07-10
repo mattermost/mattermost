@@ -214,9 +214,8 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	accessToken := model.NewId()
-	refreshToken := model.NewId()
 
-	accessData := &model.AccessData{AuthCode: authData.Code, UserId: authData.UserId, Token: accessToken, RefreshToken: refreshToken, RedirectUri: callback, Scope: authData.Scope}
+	accessData := &model.AccessData{AuthCode: authData.Code, UserId: authData.UserId, Token: accessToken, RedirectUri: callback, Scope: authData.Scope}
 
 	var savedData *model.AccessData
 	if result := <-Srv.Store.AccessData().Save(accessData); result.Err != nil {
@@ -229,7 +228,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	accessTokenCache.Add(accessToken, accessData)
 
-	accessRsp := &model.AccessResponse{AccessToken: accessToken, TokenType: model.ACCESS_TOKEN_TYPE, ExpiresIn: savedData.ExpiresIn, Scope: savedData.Scope, RefreshToken: refreshToken}
+	accessRsp := &model.AccessResponse{AccessToken: accessToken, TokenType: model.ACCESS_TOKEN_TYPE, ExpiresIn: savedData.ExpiresIn, Scope: savedData.Scope}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")

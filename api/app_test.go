@@ -226,9 +226,6 @@ func TestGetAccessToken(t *testing.T) {
 		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
 			t.Fatal("access token type incorrect")
 		}
-		if len(rsp.RefreshToken) == 0 {
-			t.Fatal("refresh token not returned")
-		}
 	}
 
 	if result, err := Client.DoGet("/users/profiles?access_token="+token, "", ""); err != nil {
