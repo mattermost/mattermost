@@ -774,14 +774,13 @@ var GeneralTab = React.createClass({
         var firstName = this.state.first_name.trim();
         var lastName = this.state.last_name.trim();
 
-        var fullName = firstName + ' ' + lastName;
-
-        if (user.nickname === fullName) {
-            this.setState({client_error: "You must submit a new name"})
+        if (user.first_name === firstName && user.last_name === lastName) {
+            this.setState({client_error: "You must submit a new first or last name"})
             return;
         }
 
-        user.nickname = fullName;
+        user.first_name = firstName;
+        user.last_name = lastName;
 
         this.submitUser(user);
     },
@@ -879,11 +878,7 @@ var GeneralTab = React.createClass({
     getInitialState: function() {
         var user = this.props.user;
 
-        var splitStr = user.nickname.split(' ');
-        var firstName = splitStr.shift();
-        var lastName = splitStr.join(' ');
-
-        return { username: user.username, first_name: firstName, last_name: lastName, nickname: user.nickname,
+        return { username: user.username, first_name: user.first_name, last_name: user.last_name, nickname: user.nickname,
                  email: user.email, picture: null };
     },
     render: function() {
@@ -919,7 +914,7 @@ var GeneralTab = React.createClass({
 
             nameSection = (
                 <SettingItemMax
-                    title="Name"
+                    title="Full Name"
                     inputs={inputs}
                     submit={this.submitName}
                     server_error={server_error}
@@ -928,10 +923,20 @@ var GeneralTab = React.createClass({
                 />
             );
         } else {
+            var full_name = "";
+
+            if (user.first_name && user.last_name) {
+                full_name = user.first_name + " " + user.last_name;
+            } else if (user.first_name) {
+                full_name = user.first_name;
+            } else if (user.last_name) {
+                full_name = user.last_name;
+            }
+
             nameSection = (
                 <SettingItemMin
-                    title="Name"
-                    describe={UserStore.getCurrentUser().nickname}
+                    title="Full Name"
+                    describe={full_name}
                     updateSection={function(){self.updateSection("name");}}
                 />
             );

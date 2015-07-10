@@ -47,10 +47,14 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 		us.CreateColumnIfNotExists("Users", "LastName", "FirstName", "varchar(64)", "")
 
 		// infer values of first and last name by splitting the previous full name
-		if _, err := us.GetMaster().Exec("UPDATE Users SET " +
-			"FirstName = SUBSTRING_INDEX(SUBSTRING_INDEX(Nickname, ' ', 1), ' ', -1), " +
-			"LastName = SUBSTRING(Nickname, INSTR(Nickname, ' ') + 1)"); err != nil {
-			panic("Failed to set first and last name columns from nickname " + err.Error())
+		if _, err := us.GetMaster().Exec("UPDATE Users SET FirstName = SUBSTRING_INDEX(SUBSTRING_INDEX(Nickname, ' ', 1), ' ', -1)"); err != nil {
+			panic("Failed to set first name from nickname " + err.Error())
+		}
+
+		// only set the last name from full names that are comprised of multiple words (ie that have at least one space in them)
+		if _, err := us.GetMaster().Exec("Update Users SET LastName = SUBSTRING(Nickname, INSTR(Nickname, ' ') + 1) " +
+			"WHERE CHAR_LENGTH(REPLACE(Nickname, ' ', '')) < CHAR_LENGTH(Nickname)"); err != nil {
+			panic("Failed to set last name from nickname " + err.Error())
 		}
 	}
 }
