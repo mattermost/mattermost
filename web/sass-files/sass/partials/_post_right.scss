@@ -21,9 +21,20 @@
 	}
 
 	.post-create__container {
-		margin-top: 1em;
+		margin-top: 10px;
+		.textarea-wrapper {
+			min-height: 100px;
+		}
 		.custom-textarea {
 			min-height: 100px;
+		}
+		.msg-typing {
+			color: #555;
+			float: left;
+			padding-top: 17px;
+		}
+		.post-create-footer {
+			padding-top: 10px;
 		}
 	}
 
