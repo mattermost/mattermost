@@ -525,7 +525,9 @@ func CreateOAuthSession(token string) (*model.Session, *model.AppError) {
 	}
 
 	if accessData.IsExpired() {
-		// TODO - remove access token and related authorization code from DB
+		if err := RevokeAccessToken(token); err != nil {
+			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
+		}
 		return nil, model.NewAppError("CreateOAuthSession", "Access token is expired", "")
 	}
 
