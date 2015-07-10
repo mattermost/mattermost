@@ -18,6 +18,8 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addMentionDataChangeListener(this._onChange);
 
+        console.log("here!");
+
         var self = this;
         $('body').on('keypress.mentionlist', '#'+this.props.id,
             function(e) {
@@ -25,6 +27,16 @@ module.exports = React.createClass({
                     e.stopPropagation();
                     e.preventDefault();
                     self.addFirstMention();
+                }
+                if (!self.isEmpty() && self.state.mentionText != '-1' && e.which === 38) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    self.handleFocus(0);
+                }
+                if (!self.isEmpty() && self.state.mentionText != '-1' && e.which === 40) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    self.addFirstMention(UserStore.getActiveOnlyProfiles().length - 1);
                 }
             }
         );
@@ -56,21 +68,13 @@ module.exports = React.createClass({
 
         this.setState({ mentionText: '-1' });
     },
-    handleKeyDown: function(e, numMentions) {
-        var selectedMention = this.state.selectedMention <= nunMentions ? this.state.selectedMention : 1;
-
-        // Need to be able to know number of mentions, use in conditionals & still
-        // need to figure out how to highlight the mention I want every time.
-        // Remember separate Mention Ref within for, second if statement in render
-        // Maybe have the call there instead? Ehhh maybe not but need that to be able
-        // to "select" it maybe...
-        if (e.key === "ArrowUp") {
-            selectedMention = selectedMention === numMentions ? 1 : selectedMention++;
-        } 
-        else if (e.key === "ArrowDown") {
-            selectedMention = selectedMention === 1 ? numMentions : selectedMention--;
-        }
-        this.setState({selectedMention: selectedMention});
+    handleFocus: function(listId) {
+        console.log("here! 1");
+        var mention = this.refs['mention' + index];
+        if (!mention) return;
+        var mentionRef = mention.refs.mention;
+        mentionRef.getDOMNode().focus();
+        console.log("here! 2");
     },
     addFirstMention: function() {
         if (!this.refs.mention0) return;
@@ -140,6 +144,8 @@ module.exports = React.createClass({
                         username={users[i].username}
                         secondary_text={users[i].secondary_text}
                         id={users[i].id}
+                        listId={index}
+                        handleFocus={this.handleFocus}
                         handleClick={this.handleClick} />
                 );
                 index++;
@@ -162,7 +168,7 @@ module.exports = React.createClass({
 
         return (
             <div className="mentions--top" style={style}>
-                <div ref="mentionlist" className="mentions-box" onKeyDown={this.handleKeyDown.bind(this, numMentions)}>
+                <div ref="mentionlist" className="mentions-box">
                     { mentions }
                 </div>
             </div>
