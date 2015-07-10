@@ -55,28 +55,23 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	responseType := r.URL.Query().Get("response_type")
 	if len(responseType) == 0 {
-		c.SetInvalidParam("allowOAuth", "response_type")
+		c.Err = model.NewOAuthAppError("allowOAuth", "invalid_request", "Bad response_type")
 		return
 	}
 
 	clientId := r.URL.Query().Get("client_id")
 	if len(clientId) != 26 {
-		c.SetInvalidParam("allowOAuth", "client_id")
+		c.Err = model.NewOAuthAppError("allowOAuth", "invalid_request", "Bad client_id")
 		return
 	}
 
 	redirectUri := r.URL.Query().Get("redirect_uri")
 	scope := r.URL.Query().Get("scope")
-
 	state := r.URL.Query().Get("state")
-	if len(state) == 0 {
-		c.SetInvalidParam("allowOAuth", "state")
-		return
-	}
 
 	var app *model.App
 	if result := <-Srv.Store.App().Get(clientId); result.Err != nil {
-		c.Err = model.NewAppError("allowOAuth", "We encountered an error retrieving the app", "client_id="+clientId)
+		c.Err = model.NewOAuthAppError("allowOAuth", "server_error", "Error accessing the database")
 		return
 	} else {
 		app = result.Data.(*model.App)
@@ -89,12 +84,12 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectUrl, _ := url.Parse(redirectUri)
 
 		if redirectUrl.Scheme != "https" {
-			c.Err = model.NewAppError("allowOAuth", "Supplied redirect_uri must be https", "redirect_uri="+redirectUri+", client_id="+clientId)
+			c.Err = model.NewOAuthAppError("allowOAuth", "invalid_request", "Supplied redirect_uri must be https")
 			return
 		}
 
 		if registeredUrl.Host != redirectUrl.Host {
-			c.Err = model.NewAppError("allowOAuth", "Supplied redirect_uri host/port did not match registered callback_url", "redirect_uri="+redirectUri+", client_id="+clientId)
+			c.Err = model.NewOAuthAppError("allowOAuth", "invalid_request", "Supplied redirect_uri host/port did not match registered callback_url")
 			return
 		}
 
@@ -111,7 +106,8 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	authData.Code = model.HashPassword(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, c.Session.UserId))
 
 	if result := <-Srv.Store.AuthData().Save(authData); result.Err != nil {
-		c.Err = model.NewAppError("allowOAuth", "Couldn't save the authorization code.", "client_id="+clientId)
+		responseData["redirect"] = callback + "?error=server_error&state=" + state
+		w.Write([]byte(model.MapToJson(responseData)))
 		return
 	}
 
@@ -127,26 +123,25 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	grantType := props["grant_type"]
 	if grantType != model.ACCESS_TOKEN_GRANT_TYPE {
-		c.Err = model.NewAppError("getAccessToken", "invalid_request", "Bad grant_type")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_request", "Bad grant_type")
 		return
 	}
 
 	clientId := props["client_id"]
 	if len(clientId) != 26 {
-		c.SetInvalidParam("getAccessToken", "client_id")
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_request", "Bad client_id")
 		return
 	}
 
 	secret := props["client_secret"]
 	if len(secret) == 0 {
-		c.SetInvalidParam("getAccessToken", "client_secret")
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_request", "Missing client_secret")
 		return
 	}
 
 	code := props["code"]
 	if len(code) == 0 {
-		c.SetInvalidParam("getAccessToken", "code")
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_request", "Missing code")
 		return
 	}
 
@@ -162,8 +157,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if authData == nil {
 		if result := <-Srv.Store.AuthData().Get(code); result.Err != nil {
-			c.Err = model.NewAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
-			c.Err.StatusCode = http.StatusBadRequest
+			c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
 			return
 		} else {
 			authData = result.Data.(*model.AuthData)
@@ -171,34 +165,30 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if authData == nil || authData.IsExpired() {
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
 		return
 	}
 
 	if authData.RedirectUri != redirectUri {
-		c.Err = model.NewAppError("getAccessToken", "invalid_request", "Supplied redirect_uri does not match authorization code redirect_uri")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_request", "Supplied redirect_uri does not match authorization code redirect_uri")
 		return
 	}
 
 	if !model.ComparePassword(code, fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
 		return
 	}
 
 	var app *model.App
 	if result := <-achan; result.Err != nil {
-		c.Err = model.NewAppError("getAccessToken", "invalid_client", "Invalid client credentials")
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_client", "Invalid client credentials")
 		return
 	} else {
 		app = result.Data.(*model.App)
 	}
 
 	if !model.ComparePassword(app.ClientSecret, secret) {
-		c.Err = model.NewAppError("getAccessToken", "invalid_client", "Invalid client credentials")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_client", "Invalid client credentials")
 		return
 	}
 
@@ -208,8 +198,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-tchan; result.Err != nil {
-		c.Err = model.NewAppError("getAccessToken", "server_error", "Encountered internal server error while accessing database")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "server_error", "Encountered internal server error while accessing database")
 		return
 	} else if result.Data != nil {
 		accessData := result.Data.(*model.AccessData)
@@ -220,8 +209,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
 		}
 
-		c.Err = model.NewAppError("getAccessToken", "invalid_grant", "Authorization code already exchanged for an access token")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Authorization code already exchanged for an access token")
 		return
 	}
 
@@ -233,8 +221,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	var savedData *model.AccessData
 	if result := <-Srv.Store.AccessData().Save(accessData); result.Err != nil {
 		l4g.Error(result.Err)
-		c.Err = model.NewAppError("getAccessToken", "server_error", "Encountered internal server error while accessing database")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewOAuthAppError("getAccessToken", "server_error", "Encountered internal server error while accessing database")
 		return
 	} else {
 		savedData = result.Data.(*model.AccessData)

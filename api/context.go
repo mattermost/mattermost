@@ -248,7 +248,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.LogError(c.Err)
 		c.Err.Where = r.URL.Path
 
-		if h.isApi {
+		if c.Err.IsOAuth {
+			rsp := map[string]string{}
+			rsp["error"] = c.Err.Message
+			rsp["error_description"] = c.Err.DetailedError
+
+			w.WriteHeader(c.Err.StatusCode)
+			w.Write([]byte(model.MapToJson(rsp)))
+		} else if h.isApi {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
