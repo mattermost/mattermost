@@ -113,6 +113,8 @@ module.exports = React.createClass({
     handleKeyPress: function(e) {
         var text = this.refs.message.getDOMNode().value;
 
+        //Since these should only happen when you have no connection and slightly briefly after any
+        //performance hit should not matter
         if (this.state.connection === " bad-connection" && this.state.numPresses > 5) {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_ERROR,
