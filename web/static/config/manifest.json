@@ -1,0 +1,13 @@
+{
+  "name": "Mattermost",
+  "icons": [
+    {
+      "src": "../static/iamges/icon50x50.gif",
+      "sizes": "50x50",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}

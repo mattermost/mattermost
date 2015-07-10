@@ -12,8 +12,6 @@ var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
     componentDidMount: function() {
-		// Initalize stores
-		BrowserStore.initalize();
 
         /* Start initial aysnc loads */
         AsyncClient.getMe();
