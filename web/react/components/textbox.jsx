@@ -72,7 +72,6 @@ module.exports = React.createClass({
             });
             this.setState({ numPresses: 0 });
 
-
             window.clearInterval(this.state.timerInterrupt);
             this.setState({ timerInterrupt: null });
             AsyncClient.updateLastViewedAt();
