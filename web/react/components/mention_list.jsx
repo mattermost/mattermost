@@ -129,7 +129,7 @@ module.exports = React.createClass({
 
         if (numMentions < 1) return (<div/>);
 
-        var height = (numMentions*37) + 2;
+        var height = (numMentions*36) + 4;
         var width = $('#'+this.props.id).parent().width();
         var bottom = $(window).height() - $('#'+this.props.id).offset().top;
         var left = $('#'+this.props.id).offset().left;

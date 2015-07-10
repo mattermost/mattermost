@@ -3,7 +3,7 @@
   .ps-container.ps-active-x > .ps-scrollbar-x-rail, .ps-container.ps-active-y > .ps-scrollbar-y-rail {
     display: block; }
   .ps-container.ps-in-scrolling {
-    pointer-events: none; }
+     }
     .ps-container.ps-in-scrolling.ps-x > .ps-scrollbar-x-rail {
       background-color: #eee;
       opacity: 0.9;
@@ -85,7 +85,7 @@
       /* there must be 'right' for ps-scrollbar-y */
       width: 8px; }
   .ps-container:hover.ps-in-scrolling {
-    pointer-events: none; }
+     }
     .ps-container:hover.ps-in-scrolling.ps-x > .ps-scrollbar-x-rail {
       background-color: #eee;
       opacity: 0.9;

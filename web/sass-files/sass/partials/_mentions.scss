@@ -11,12 +11,13 @@
 	position: absolute;
 	z-index: 1060;
 	.mentions-box {
+		max-height: 303px;
 		position:absolute;
 		background-color:#fff;
 		border: $border-gray;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        bottom:0;
+		overflow-x: hidden;
+		overflow-y: scroll;
+		bottom:0;
 	}
 }
 
@@ -24,13 +25,15 @@
 	position:relative;
 	width:100%;
 	background-color:#fff;
-	height:37px;
+	height:36px;
 	padding:2px;
 	z-index:101;
-    cursor: pointer;
-    &:hover {
-        background-color:#e8eaed;
-    }
+	line-height: 36px;
+	font-size: 13px;
+	cursor: pointer;
+	&:hover {
+		background-color: #E6F2FA;
+	}
 }
 
 .mentions-text {
@@ -38,15 +41,20 @@
 }
 
 .mention-img {
-	margin-right:10px;
-	height:32px;
-	width:32px;
-	border-radius: 10%;
+	margin-right: 6px;
+	height: 32px;
+	width: 32px;
+	line-height: 36px;
+	display: block;
+	font-size: 20px;
+	text-align: center;
+	color: #555;
+	@include border-radius(3px);
 }
 
 .mention-fullname {
-    color: grey;
-    padding-left: 10px;
+	color: grey;
+	padding-left: 10px;
 }
 
 .mention-highlight {
@@ -55,9 +63,4 @@
 
 .mention-link {
 	color:$primary-color;
-}
-
-.mention-align {
-	position:relative;
-	top:5px;
 }

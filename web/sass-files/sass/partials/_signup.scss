@@ -20,7 +20,7 @@
         font-size: em(28px);
     }
     h3 {
-    	font-weight: 600;
+        font-weight: 600;
         margin: 0 0 1.3em 0;
         font-size: 1.4em;
     }
@@ -91,6 +91,8 @@
     .has-error {
         .control-label {
             margin-top: 5px;
+            font-size: 14px;
+            font-weight: 600;
         }
     }
     .reset-form {
@@ -114,6 +116,6 @@
 }
 
 .signup-team-login {
-	padding-bottom: 10px;
-	font-weight: 700;
+    padding-bottom: 10px;
+    font-weight: 700;
 }

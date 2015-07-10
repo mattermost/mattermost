@@ -130,7 +130,7 @@ module.exports = React.createClass({
                 </div>
                 { email }
                 <label className="control-label">Password</label>
-                <div className={ name_error ? "form-group has-error" : "form-group" }>
+                <div className={ password_error ? "form-group has-error" : "form-group" }>
                 <input type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
                 { password_error }
                 </div>

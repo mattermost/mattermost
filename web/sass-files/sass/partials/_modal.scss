@@ -15,6 +15,10 @@
 	}
 	.remove__member {
 		float: right;
+		color: #E56565;
+		font-size: 20px;
+		line-height: 0;
+		padding: 6px;
 	}
 	.modal-dialog {
 		max-width: 95%;
@@ -265,6 +269,22 @@
 			.public-link {
 				margin-right: 5px;
 			}
+		}
+	}
+}
+
+// Invite New Member
+.invite {
+	margin-right: 40px;
+}
+
+.row--invite {
+	margin-right: 40px;
+	@include clearfix;
+	.col-sm-6 {
+		padding: 0 0 0 15px;
+		&:first-child {
+			padding-left: 0;
 		}
 	}
 }
