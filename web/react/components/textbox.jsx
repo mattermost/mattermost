@@ -9,6 +9,7 @@ var MsgTyping = require('./msg_typing.jsx');
 var MentionList = require('./mention_list.jsx');
 var CommandList = require('./command_list.jsx');
 var ErrorStore = require('../stores/error_store.jsx');
+var AsyncClient = require('../utils/async_client.jsx');
 
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
@@ -32,7 +33,6 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addAddMentionListener(this._onChange);
         ErrorStore.addChangeListener(this._onError);
-        //SocketStore.addChangeListener(this._onSocketChange);
 
         this.resize();
         this.processMentions();
@@ -53,16 +53,9 @@ module.exports = React.createClass({
             this.setState({ connection: " bad-connection" });
         }
         else {
-            console.log("Logged the error correctly");
             this.setState({ connection: "" });
         }
     },
-    /*_onSocketChange: function() {
-        if (SocketStore.isSocketClosed())
-            this.setState({ connection: " bad-connection" });
-        else
-            this.setState({ connection: "" });
-    },*/
     componentDidUpdate: function() {
         if (this.caret >= 0) {
             utils.setCaretPosition(this.refs.message.getDOMNode(), this.caret)
@@ -88,7 +81,7 @@ module.exports = React.createClass({
         this.resize();
     },
     getInitialState: function() {
-        return { mentionText: '-1', mentions: [], connection: "" };
+        return { mentionText: '-1', mentions: [], connection: "", numPresses: 0 };
     },
     updateMentionTab: function(mentionText, excludeList) {
         var self = this;
@@ -119,6 +112,19 @@ module.exports = React.createClass({
     },
     handleKeyPress: function(e) {
         var text = this.refs.message.getDOMNode().value;
+
+        if (this.state.connection === " bad-connection" && this.state.numPresses > 5) {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_ERROR,
+                err: null
+            });
+            this.setState({ numPresses: 0 });
+
+            AsyncClient.updateLastViewedAt();
+        }
+        else if (this.state.connection === " bad-connection") {
+            this.setState({ numPresses: this.state.numPresses + 1 });
+        }
 
         if (!this.refs.commands.isEmpty() && text.indexOf("/") == 0 && e.which==13) {
             this.refs.commands.addFirstCommand();

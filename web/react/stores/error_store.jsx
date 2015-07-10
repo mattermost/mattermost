@@ -31,7 +31,7 @@ var ErrorStore = assign({}, EventEmitter.prototype, {
   getLastError: function() {
     var error = null;
     try {
-        error = JSON.parse(BrowserStore.last_error);
+        error = JSON.parse(BrowserStore.getItem("last_error"));
     }
     catch (err) {
     }
