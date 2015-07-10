@@ -78,7 +78,6 @@ module.exports = React.createClass({
 
         PostStore.addChangeListener(this._onChange);
         ChannelStore.addChangeListener(this._onChange);
-        UserStore.addStatusesChangeListener(this._onChange);
         SocketStore.addChangeListener(this._onSocketChange);
 
         $(".post-list-holder-by-time").perfectScrollbar();
@@ -158,7 +157,6 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeChangeListener(this._onChange);
         ChannelStore.removeChangeListener(this._onChange);
-        UserStore.removeStatusesChangeListener(this._onChange);
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
     },
@@ -195,9 +193,6 @@ module.exports = React.createClass({
                 this.scrolledToNew = false;
             }
             this.setState(newState);
-        } else {
-            // Updates the timestamp on each post
-            this.forceUpdate()
         }
     },
     _onSocketChange: function(msg) {
