@@ -201,7 +201,8 @@ func (u *User) Sanitize(options map[string]bool) {
 		u.Email = ""
 	}
 	if len(options) != 0 && !options["fullname"] {
-		u.Nickname = ""
+		u.FirstName = ""
+		u.LastName = ""
 	}
 	if len(options) != 0 && !options["skypeid"] {
 		// TODO - fill in when SkypeId is added to user model

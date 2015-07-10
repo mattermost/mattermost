@@ -20,9 +20,6 @@ func (o *ExtraMember) Sanitize(options map[string]bool) {
 	if len(options) == 0 || !options["email"] {
 		o.Email = ""
 	}
-	if len(options) == 0 || !options["fullname"] {
-		o.Nickname = ""
-	}
 }
 
 type ChannelExtra struct {
