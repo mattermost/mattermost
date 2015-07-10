@@ -55,7 +55,7 @@ module.exports = React.createClass({
         }
 
         if (errorState.message === "There appears to be a problem with your internet connection") {
-            this.setState({ connection: " bad-connection" });
+            this.setState({ connection: "bad-connection" });
             var timerInterrupt = window.setInterval(this._onTimerInterrupt, 5000);
             this.setState({ timerInterrupt: timerInterrupt });
         }
@@ -66,21 +66,18 @@ module.exports = React.createClass({
     _onTimerInterrupt: function() {
         //Since these should only happen when you have no connection and slightly briefly after any
         //performance hit should not matter
-        if (this.state.connection === " bad-connection") {
+        if (this.state.connection === "bad-connection") {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_ERROR,
                 err: null
             });
             this.setState({ numPresses: 0 });
 
-            window.clearInterval(this.state.timerInterrupt);
-            this.setState({ timerInterrupt: null });
             AsyncClient.updateLastViewedAt();
         }
-        else {
-            window.clearInterval(this.state.timerInterrupt);
-            this.setState({ timerInterrupt: null });
-        }
+        
+        window.clearInterval(this.state.timerInterrupt);
+        this.setState({ timerInterrupt: null });
     },
     componentDidUpdate: function() {
         if (this.caret >= 0) {
@@ -337,7 +334,7 @@ module.exports = React.createClass({
             <div ref="wrapper" className="textarea-wrapper">
                 <CommandList ref='commands' addCommand={this.addCommand} channelId={this.props.channelId} />
                 <div className="form-control textarea-div" ref="textdiv"/>
-                <textarea id={this.props.id} ref="message" className={"form-control custom-textarea" + this.state.connection} spellCheck="true" autoComplete="off" autoCorrect="off" rows="1" placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onScroll={this.scroll} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
+                <textarea id={this.props.id} ref="message" className={"form-control custom-textarea " + this.state.connection} spellCheck="true" autoComplete="off" autoCorrect="off" rows="1" placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onScroll={this.scroll} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
             </div>
         );
     }
