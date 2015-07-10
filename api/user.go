@@ -135,6 +135,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
+	user.EmailVerified = true
+
 	ruser := CreateUser(c, team, user)
 	if c.Err != nil {
 		return
@@ -728,6 +730,8 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("uploadProfileImage", "Couldn't upload profile image", "")
 		return
 	}
+
+	Srv.Store.User().UpdateUpdateAt(c.Session.UserId)
 
 	c.LogAudit("")
 }
