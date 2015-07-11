@@ -249,7 +249,7 @@ var SidebarLoggedIn = React.createClass({
 
                 var repRegex = new RegExp("<br>", "g");
                 var post = JSON.parse(msg.props.post);
-                var msg = post.message.replace(repRegex, "\n").replace("\n", "").replace("<mention>", "").replace("</mention>", "");
+                var msg = post.message.replace(repRegex, "\n").replace(/\n+/g, " ").replace("<mention>", "").replace("</mention>", "");
                 if (msg.length > 50) {
                     msg = msg.substring(0,49) + "...";
                 }
