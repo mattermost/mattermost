@@ -225,7 +225,7 @@ module.exports.extractLinks = function(text) {
     }
 
     return { "links": links, "text": text };
-} 
+}
 
 module.exports.escapeRegExp = function(string) {
     return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
@@ -671,13 +671,13 @@ module.exports.isValidUsername = function (name) {
         error = "First character must be a letter.";
     }
 
-    else 
+    else
     {
         var lowerName = name.toLowerCase().trim();
 
-        for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) 
+        for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++)
         {
-            if (lowerName === Constants.RESERVED_USERNAMES[i]) 
+            if (lowerName === Constants.RESERVED_USERNAMES[i])
             {
                 error = "Cannot use a reserved word as a username.";
                 break;
@@ -782,3 +782,34 @@ module.exports.getHomeLink = function() {
 	parts[0] = "www";
 	return window.location.protocol + "//" + parts.join(".");
 }
+
+
+module.exports.changeColor =function(col, amt) {
+
+    var usePound = false;
+
+    if (col[0] == "#") {
+        col = col.slice(1);
+        usePound = true;
+    }
+
+    var num = parseInt(col,16);
+
+    var r = (num >> 16) + amt;
+
+    if (r > 255) r = 255;
+    else if  (r < 0) r = 0;
+
+    var b = ((num >> 8) & 0x00FF) + amt;
+
+    if (b > 255) b = 255;
+    else if  (b < 0) b = 0;
+
+    var g = (num & 0x0000FF) + amt;
+
+    if (g > 255) g = 255;
+    else if (g < 0) g = 0;
+
+    return (usePound?"#":"") + String("000000" + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
+
+};

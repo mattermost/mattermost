@@ -7,6 +7,7 @@ var client = require('../utils/client.jsx');
 var asyncClient = require('../utils/async_client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var LoadingScreen = require('./loading_screen.jsx');
 
 function getStateFromStores() {
   return {
@@ -16,6 +17,8 @@ function getStateFromStores() {
 }
 
 module.exports = React.createClass({
+    displayName: "MoreChannelsModal",
+
     componentDidMount: function() {
         ChannelStore.addMoreChangeListener(this._onChange);
         $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function (e) {
@@ -90,7 +93,7 @@ module.exports = React.createClass({
                                                             <p className="more-channel-name">{channel.display_name}</p>
                                                             <p className="more-channel-description">{channel.description}</p>
                                                         </td>
-                                                        <td className="td--action"><button onClick={outter.handleJoin.bind(outter, channel.id)} className="pull-right btn btn-primary">Join</button></td>
+                                                        <td className="td--action"><button onClick={outter.handleJoin.bind(outter, channel.id)} className="btn btn-primary">Join</button></td>
                                                     </tr>
                                                 )
                                             })}
@@ -100,15 +103,7 @@ module.exports = React.createClass({
                                             <p className="primary-message">No more channels to join</p>
                                             <p className="secondary-message">Click 'Create New Channel' to make a new one</p>
                                         </div>)
-                                :   <div ref="loadingscreen" className="loading-screen loading-screen--channel">
-                                        <div className="loading__content">
-                                        <h3>Loading</h3>
-                                            <div id="round_1" className="round"></div>
-                                            <div id="round_2" className="round"></div>
-                                            <div id="round_3" className="round"></div>
-                                        </div>
-                                    </div>
-                                }
+                            :   <LoadingScreen /> }
                             { server_error }
                         </div>
                         <div className="modal-footer">
