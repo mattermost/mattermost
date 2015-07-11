@@ -18,43 +18,42 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addMentionDataChangeListener(this._onChange);
         var self = this;
-        $('body').on('keypress.mentionlist', '#'+this.props.id,
-            function(e) {
-                if (!self.isEmpty() && self.state.mentionText != '-1' && (e.which === 13 || e.which === 9)) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    self.addCurrentMention();
-                }
-            }
-        );
+
         $('body').on('keydown.mentionlist', '#'+this.props.id,
             function(e) {
-                console.log("here! top");
                 if (!self.isEmpty() && self.state.mentionText != '-1' && (e.which === 13 || e.which === 9)) {
                     e.stopPropagation();
                     e.preventDefault();
                     self.addCurrentMention();
                 }
-                if (!self.isEmpty() && self.state.mentionText != '-1' && e.which === 38) {
-                    console.log("here! 38");
+                else if (!self.isEmpty() && self.state.mentionText != '-1' && (e.which === 38 || e.which === 40)) {
                     e.stopPropagation();
                     e.preventDefault();
 
-                    if (self.handleSelection(self.state.selectedMention - 1))
-                        self.setState({ selectedMention: self.state.selectedMention - 1 });
-                    else {
-                        self.setState({ selectedMention: 0});
-                    }
-                }
-                if (!self.isEmpty() && self.state.mentionText != '-1' && e.which === 40) {
-                    console.log("here! 40");
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    if (self.handleSelection(self.state.selectedMention + 1))
-                        self.setState({ selectedMention: self.state.selectedMention + 1 });
-                    else
+                    if (!self.getSelection(self.state.selectedMention)) {
                         self.setState({ selectedMention: 0 });
+                        self.refs['mention' + self.state.selectedMention].deselect();
+                    }
+                    else {
+                        self.refs['mention' + self.state.selectedMention].deselect();
+                        if (e.which === 38) {    
+                            if (self.getSelection(self.state.selectedMention - 1))
+                                self.setState({ selectedMention: self.state.selectedMention - 1 });
+                            else {
+                                var tempSelectedMention = -1;
+                                while (self.getSelection(++tempSelectedMention))
+                                    ;
+                                self.setState({ selectedMention: tempSelectedMention - 1 });
+                            }
+                        }
+                        else {
+                            if (self.getSelection(self.state.selectedMention + 1))
+                                self.setState({ selectedMention: self.state.selectedMention + 1 });
+                            else
+                                self.setState({ selectedMention: 0 });
+                        }
+                    }
+                    self.refs['mention' + self.state.selectedMention].select();
                 }
             }
         );
@@ -86,8 +85,7 @@ module.exports = React.createClass({
 
         this.setState({ mentionText: '-1' });
     },
-    handleSelection: function(listId) {
-        console.log("here! 1");
+    getSelection: function(listId) {
         var mention = this.refs['mention' + listId];
         if (!mention) 
             return false;
@@ -95,7 +93,7 @@ module.exports = React.createClass({
             return true;
     },
     addCurrentMention: function() {
-        if (!this.refs['mention' + this.state.selectedMention]) return;
+        if (!this.refs['mention' + this.state.selectedMention]) this.addFirstMention();
         this.refs['mention' + this.state.selectedMention].handleClick();
     },
     addFirstMention: function() {
@@ -173,6 +171,7 @@ module.exports = React.createClass({
                 index++;
             }
         }
+
         var numMentions = Object.keys(mentions).length;
 
         if (numMentions < 1) return null;
