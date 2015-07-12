@@ -37,11 +37,14 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("ChannelMembers", "LastUpdateAt", "NotifyLevel", "bigint(20)", "0") // Remove after 6/7/2015 prod push
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_team_id", "Channels", "TeamId")
+	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
+	s.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")
+
+	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
+	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
@@ -65,7 +68,7 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 			return
 		}
 
-		if count, err := s.GetMaster().SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = ? AND DeleteAt = 0 AND (Type ='O' || Type ='P')", channel.TeamId); err != nil {
+		if count, err := s.GetMaster().SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "Failed to get current channel count", "teamId="+channel.TeamId+", "+err.Error())
 			storeChannel <- result
 			close(storeChannel)
@@ -155,7 +158,7 @@ func (s SqlChannelStore) Delete(channelId string, time int64) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("Update Channels SET DeleteAt = ?, UpdateAt = ? WHERE Id = ?", time, time, channelId)
+		_, err := s.GetMaster().Exec("Update Channels SET DeleteAt = "+s.GetMaster().Dialect.BindVar(0)+", UpdateAt = "+s.GetMaster().Dialect.BindVar(1)+" WHERE Id = "+s.GetMaster().Dialect.BindVar(2), time, time, channelId)
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Delete", "We couldn't delete the channel", "id="+channelId+", err="+err.Error())
 		}
@@ -179,7 +182,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 		result := StoreResult{}
 
 		var data []channelWithMember
-		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels, ChannelMembers WHERE Id = ChannelId AND TeamId = ? AND UserId = ? AND DeleteAt = 0 ORDER BY DisplayName", teamId, userId)
+		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels, ChannelMembers WHERE Id = ChannelId AND TeamId = :TeamId AND UserId = :UserId AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetChannels", "We couldn't get the channels", "teamId="+teamId+", userId="+userId+", err="+err.Error())
@@ -218,8 +221,8 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			FROM
 			    Channels
 			WHERE
-			    TeamId = ?
-					AND Type IN ("O")
+			    TeamId = :TeamId1
+					AND Type IN ('O')
 					AND DeleteAt = 0
 			        AND Id NOT IN (SELECT 
 			            Channels.Id
@@ -228,11 +231,11 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 			            ChannelMembers
 			        WHERE
 			            Id = ChannelId
-			                AND TeamId = ?
-			                AND UserId = ?
+			                AND TeamId = :TeamId2
+			                AND UserId = :UserId
 			                AND DeleteAt = 0)
 			ORDER BY DisplayName`,
-			teamId, teamId, userId)
+			map[string]interface{}{"TeamId1": teamId, "TeamId2": teamId, "UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMoreChannels", "We couldn't get the channels", "teamId="+teamId+", userId="+userId+", err="+err.Error())
@@ -255,7 +258,7 @@ func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
 
 		channel := model.Channel{}
 
-		if err := s.GetReplica().SelectOne(&channel, "SELECT * FROM Channels WHERE TeamId=? AND Name=? AND DeleteAt = 0", teamId, name); err != nil {
+		if err := s.GetReplica().SelectOne(&channel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetByName", "We couldn't find the existing channel", "teamId="+teamId+", "+"name="+name+", "+err.Error())
 		} else {
 			result.Data = &channel
@@ -304,7 +307,7 @@ func (s SqlChannelStore) GetMembers(channelId string) StoreChannel {
 		result := StoreResult{}
 
 		var members []model.ChannelMember
-		_, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = ?", channelId)
+		_, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMembers", "We couldn't get the channel members", "channel_id="+channelId+err.Error())
 		} else {
@@ -325,7 +328,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 		result := StoreResult{}
 
 		var member model.ChannelMember
-		err := s.GetReplica().SelectOne(&member, "SELECT * FROM ChannelMembers WHERE ChannelId = ? AND UserId = ?", channelId, userId)
+		err := s.GetReplica().SelectOne(&member, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMember", "We couldn't get the channel member", "channel_id="+channelId+"user_id="+userId+","+err.Error())
 		} else {
@@ -346,7 +349,7 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 		result := StoreResult{}
 
 		var members []model.ExtraMember
-		_, err := s.GetReplica().Select(&members, "SELECT Id, FullName, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = ? LIMIT ?", channelId, limit)
+		_, err := s.GetReplica().Select(&members, "SELECT Id, FullName, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = :ChannelId LIMIT :Limit", map[string]interface{}{"ChannelId": channelId, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetExtraMembers", "We couldn't get the extra info for channel members", "channel_id="+channelId+", "+err.Error())
 		} else {
@@ -369,7 +372,7 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = ? AND UserId = ?", channelId, userId)
+		_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
@@ -395,11 +398,11 @@ func (s SqlChannelStore) CheckPermissionsTo(teamId string, channelId string, use
 			    ChannelMembers
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
-			        AND Channels.TeamId = ?
+			        AND Channels.TeamId = :TeamId
 			        AND Channels.DeleteAt = 0
-			        AND ChannelMembers.ChannelId = ?
-			        AND ChannelMembers.UserId = ?`,
-			teamId, channelId, userId)
+			        AND ChannelMembers.ChannelId = :ChannelId
+			        AND ChannelMembers.UserId = :UserId`,
+			map[string]interface{}{"TeamId": teamId, "ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.CheckPermissionsTo", "We couldn't check the permissions", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		} else {
@@ -427,11 +430,11 @@ func (s SqlChannelStore) CheckPermissionsToByName(teamId string, channelName str
 			    ChannelMembers
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
-			        AND Channels.TeamId = ?
-			        AND Channels.Name = ?
+			        AND Channels.TeamId = :TeamId
+			        AND Channels.Name = :Name
 			        AND Channels.DeleteAt = 0
-			        AND ChannelMembers.UserId = ?`,
-			teamId, channelName, userId)
+			        AND ChannelMembers.UserId = :UserId`,
+			map[string]interface{}{"TeamId": teamId, "Name": channelName, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.CheckPermissionsToByName", "We couldn't check the permissions", "channel_id="+channelName+", user_id="+userId+", "+err.Error())
 		} else {
@@ -457,10 +460,10 @@ func (s SqlChannelStore) CheckOpenChannelPermissions(teamId string, channelId st
 			FROM
 			    Channels
 			WHERE
-			    Channels.Id = ?
-			        AND Channels.TeamId = ?
-			        AND Channels.Type = ?`,
-			channelId, teamId, model.CHANNEL_OPEN)
+			    Channels.Id = :ChannelId
+			        AND Channels.TeamId = :TeamId
+			        AND Channels.Type = :ChannelType`,
+			map[string]interface{}{"ChannelId": channelId, "TeamId": teamId, "ChannelType": model.CHANNEL_OPEN})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.CheckOpenChannelPermissions", "We couldn't check the permissions", "channel_id="+channelId+", "+err.Error())
 		} else {
@@ -482,17 +485,19 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 
 		_, err := s.GetMaster().Exec(
 			`UPDATE
-				ChannelMembers, Channels
+				ChannelMembers
 			SET
-			    ChannelMembers.MentionCount = 0,
-			    ChannelMembers.MsgCount = Channels.TotalMsgCount,
-			    ChannelMembers.LastViewedAt = Channels.LastPostAt,
-			    ChannelMembers.LastUpdateAt = Channels.LastPostAt
+			    MentionCount = 0,
+			    MsgCount = Channels.TotalMsgCount,
+			    LastViewedAt = Channels.LastPostAt,
+			    LastUpdateAt = Channels.LastPostAt
+			FROM
+				Channels
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
-			        AND UserId = ?
-			        AND ChannelId = ?`,
-			userId, channelId)
+			        AND UserId = :UserId
+			        AND ChannelId = :ChannelId`,
+			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "We couldn't update the last viewed at time", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
@@ -516,9 +521,9 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 			SET
 				MentionCount = MentionCount + 1
 			WHERE
-				UserId = ?
-					AND ChannelId = ?`,
-			userId, channelId)
+				UserId = :UserId
+					AND ChannelId = :ChannelId`,
+			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.IncrementMentionCount", "We couldn't increment the mention count", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
@@ -542,12 +547,12 @@ func (s SqlChannelStore) UpdateNotifyLevel(channelId, userId, notifyLevel string
 			`UPDATE
 				ChannelMembers
 			SET
-				NotifyLevel = ?,
-				LastUpdateAt = ?
+				NotifyLevel = :NotifyLevel,
+				LastUpdateAt = :LastUpdateAt
 			WHERE
-				UserId = ?
-					AND ChannelId = ?`,
-			notifyLevel, updateAt, userId, channelId)
+				UserId = :UserId
+					AND ChannelId = :ChannelId`,
+			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "NotifyLevel": notifyLevel, "LastUpdateAt": updateAt})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateNotifyLevel", "We couldn't update the notify level", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}

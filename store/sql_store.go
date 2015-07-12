@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"io"
@@ -105,6 +106,8 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}}
 	} else if driver == "mysql" {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8"}}
+	} else if driver == "postgres" {
+		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}}
 	} else {
 		l4g.Critical("Failed to create dialect specific driver")
 		time.Sleep(time.Second)
@@ -118,9 +121,31 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	return dbmap
 }
 
-func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
-	count, err := ss.GetMaster().SelectInt(
-		`SELECT 
+func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, colType string, defaultValue string) bool {
+
+	// SELECT column_name
+	// FROM information_schema.columns
+	// WHERE table_name='your_table' and column_name='your_column';
+
+	var count int64
+	var err error
+
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+
+		count, err = ss.GetMaster().SelectInt(
+			`SELECT 
+		    COUNT(0) AS column_exists
+		FROM
+		    information_schema.COLUMNS
+		WHERE
+		        TABLE_NAME = $1
+		        AND COLUMN_NAME = $2`,
+			tableName,
+			columnName,
+		)
+	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+		count, err = ss.GetMaster().SelectInt(
+			`SELECT
 		    COUNT(0) AS column_exists
 		FROM
 		    information_schema.COLUMNS
@@ -128,9 +153,11 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		    TABLE_SCHEMA = DATABASE()
 		        AND TABLE_NAME = ?
 		        AND COLUMN_NAME = ?`,
-		tableName,
-		columnName,
-	)
+			tableName,
+			columnName,
+		)
+	}
+
 	if err != nil {
 		l4g.Critical("Failed to check if column exists %v", err)
 		time.Sleep(time.Second)
@@ -141,7 +168,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		return false
 	}
 
-	_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + colType + " DEFAULT '" + defaultValue + "'" + " AFTER " + afterName)
+	_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + colType + " DEFAULT '" + defaultValue + "'")
 	if err != nil {
 		l4g.Critical("Failed to create column %v", err)
 		time.Sleep(time.Second)
@@ -193,27 +220,55 @@ func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName st
 }
 
 func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, fullText bool) {
-	count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
-	if err != nil {
-		l4g.Critical("Failed to check index", err)
+
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		_, err := ss.GetMaster().SelectStr("SELECT to_regclass($1)", indexName)
+		// It should fail if the index does not exist
+		if err == nil {
+			return
+		}
+
+		query := ""
+		if fullText {
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
+		} else {
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+		}
+
+		_, err = ss.GetMaster().Exec(query)
+		if err != nil {
+			l4g.Critical("Failed to create index %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to create index " + err.Error())
+		}
+	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		if err != nil {
+			l4g.Critical("Failed to check index %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to check index " + err.Error())
+		}
+
+		if count > 0 {
+			return
+		}
+
+		fullTextIndex := ""
+		if fullText {
+			fullTextIndex = " FULLTEXT "
+		}
+
+		_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
+		if err != nil {
+			l4g.Critical("Failed to create index %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to create index " + err.Error())
+		}
+	} else {
+		l4g.Critical("Failed to create index because of missing driver")
 		time.Sleep(time.Second)
-		panic("Failed to check index" + err.Error())
-	}
-
-	if count > 0 {
-		return
-	}
-
-	fullTextIndex := ""
-	if fullText {
-		fullTextIndex = " FULLTEXT "
-	}
-
-	_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
-	if err != nil {
-		l4g.Critical("Failed to create index", err)
-		time.Sleep(time.Second)
-		panic("Failed to create index " + err.Error())
+		panic("Failed to create index because of missing driver")
 	}
 }
 
