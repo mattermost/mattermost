@@ -40,7 +40,8 @@ func (s SqlUserStore) UpgradeSchemaIfNeeded() {
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
-	us.CreateIndexIfNotExists("idx_team_id", "Users", "TeamId")
+	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId")
+	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -64,7 +65,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 			return
 		}
 
-		if count, err := us.GetMaster().SelectInt("SELECT COUNT(0) FROM Users WHERE TeamId = ? AND DeleteAt = 0", user.TeamId); err != nil {
+		if count, err := us.GetMaster().SelectInt("SELECT COUNT(0) FROM Users WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": user.TeamId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.Save", "Failed to get current team member count", "teamId="+user.TeamId+", "+err.Error())
 			storeChannel <- result
 			close(storeChannel)
@@ -156,7 +157,7 @@ func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel 
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPingAt = ? WHERE Id = ?", time, userId); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPingAt = :LastPingAt WHERE Id = :UserId", map[string]interface{}{"LastPingAt": time, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateLastPingAt", "We couldn't update the last_ping_at", "user_id="+userId)
 		} else {
 			result.Data = userId
@@ -175,7 +176,7 @@ func (us SqlUserStore) UpdateLastActivityAt(userId string, time int64) StoreChan
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = ? WHERE Id = ?", time, userId); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :LastActivityAt WHERE Id = :UserId", map[string]interface{}{"LastActivityAt": time, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "user_id="+userId)
 		} else {
 			result.Data = userId
@@ -194,7 +195,7 @@ func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId str
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Sessions, Users SET Users.LastActivityAt = ?, Sessions.LastActivityAt = ? WHERE Users.Id = ? AND Sessions.Id = ?", time, time, userId, sessionId); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Sessions, Users SET Users.LastActivityAt = :UserLastActivityAt, Sessions.LastActivityAt = :SessionLastActivityAt WHERE Users.Id = :UserId AND Sessions.Id = :SessionId", map[string]interface{}{"UserLastActivityAt": time, "SessionLastActivityAt": time, "UserId": userId, "SessionId": sessionId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "user_id="+userId+" session_id="+sessionId+" err="+err.Error())
 		} else {
 			result.Data = userId
@@ -216,7 +217,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = ?, LastPasswordUpdate = ?, UpdateAt = ? WHERE Id = ?", hashedPassword, updateAt, updateAt, userId); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdatePassword", "We couldn't update the user password", "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
@@ -258,7 +259,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users WHERE TeamId = ? ORDER BY UpdateAt DESC LIMIT 1", teamId)
+		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users WHERE TeamId = :TeamId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.ETAG_ROOT_VERSION, model.GetMillis())
 		} else {
@@ -281,7 +282,7 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = ?", teamId); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "We encounted an error while finding user profiles", err.Error())
 		} else {
 
@@ -312,7 +313,7 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 
 		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId=? AND Email=?", teamId, email); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Email = :Email", map[string]interface{}{"TeamId": teamId, "Email": email}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByEmail", "We couldn't find the existing account", "teamId="+teamId+", email="+email+", "+err.Error())
 		}
 
@@ -334,7 +335,7 @@ func (us SqlUserStore) GetByUsername(teamId string, username string) StoreChanne
 
 		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId=? AND Username=?", teamId, username); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Username = :Username", map[string]interface{}{"TeamId": teamId, "Username": username}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByUsername", "We couldn't find the existing account", "teamId="+teamId+", username="+username+", "+err.Error())
 		}
 
@@ -353,7 +354,7 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = 1 WHERE Id = ?", userId); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = 1 WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", "Unable to update verify email field", "userId="+userId+", "+err.Error())
 		}
 
