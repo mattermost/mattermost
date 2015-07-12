@@ -32,7 +32,7 @@ module.exports = React.createClass({
 
                     if (!self.getSelection(self.state.selectedMention)) {
                         self.setState({ selectedMention: 0 });
-                        self.refs['mention' + self.state.selectedMention].deselect();
+                        //self.refs['mention' + self.state.selectedMention].deselect();
                     }
                     else {
                         self.refs['mention' + self.state.selectedMention].deselect();
@@ -54,6 +54,8 @@ module.exports = React.createClass({
                         }
                     }
                     self.refs['mention' + self.state.selectedMention].select();
+
+                    //self.checkIfInView('#'+self.props.id);
                 }
             }
         );
@@ -85,6 +87,13 @@ module.exports = React.createClass({
 
         this.setState({ mentionText: '-1' });
     },
+    handleMouseEnter: function(listId) {
+        if (this.getSelection(this.state.selectedMention)) {
+            this.refs['mention' + this.state.selectedMention].deselect();
+        }
+        this.setState({ selectedMention: listId });
+        this.refs['mention' + listId].select();
+    },
     getSelection: function(listId) {
         var mention = this.refs['mention' + listId];
         if (!mention) 
@@ -103,6 +112,15 @@ module.exports = React.createClass({
     isEmpty: function() {
         return (!this.refs.mention0);
     },
+    checkIfInView: function(element) {
+        var offset = element.offset().top - $(window).scrollTop();
+        if(offset > window.innerHeight){
+            // Not in view so scroll to it
+            $('body').animate({scrollTop: offset}, 1000);
+            return false;
+        }
+       return true;
+    },
     alreadyMentioned: function(username) {
         var excludeUsers = this.state.excludeUsers;
         for (var i = 0; i < excludeUsers.length; i++) {
@@ -113,7 +131,7 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1", selectedMention: 0 };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
     },
     render: function() {
         var mentionText = this.state.mentionText;
@@ -166,6 +184,7 @@ module.exports = React.createClass({
                         id={users[i].id}
                         listId={index}
                         isFocus={this.state.selectedMention === index ? true : false}
+                        handleMouseEnter={this.handleMouseEnter}
                         handleClick={this.handleClick} />
                 );
                 index++;
