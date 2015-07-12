@@ -70,6 +70,11 @@ module.exports = React.createClass({
         PostStore.removeMentionDataChangeListener(this._onChange);
         $('body').off('keypress.mentionlist', '#'+this.props.id);
     },
+    componentDidUpdate: function() {
+        if (this.state.mentionText != "-1" && !this.getSelection(this.state.selectedMention)) {
+            this.refs.mention0.select();
+        }
+    },
     _onChange: function(id, mentionText, excludeList) {
         if (id !== this.props.id) return;
 
