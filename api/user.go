@@ -135,8 +135,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
-	user.EmailVerified = true
-
 	ruser := CreateUser(c, team, user)
 	if c.Err != nil {
 		return
