@@ -6,7 +6,6 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
 )
 
 type SqlChannelStore struct {
@@ -81,7 +80,7 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(channel); err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
+			if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "We couldn't save the channel", "id="+channel.Id+", "+err.Error())
@@ -113,7 +112,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 		}
 
 		if count, err := s.GetMaster().Update(channel); err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
+			if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
 				result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Update", "We encounted an error updating the channel", "id="+channel.Id+", "+err.Error())
@@ -284,7 +283,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'ChannelId'") {
+			if IsUniqueConstraintError(err.Error(), "ChannelId", "channelmembers_pkey") {
 				result.Err = model.NewAppError("SqlChannelStore.SaveMember", "A channel member with that id already exists", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.SaveMember", "We couldn't save the channel member", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
