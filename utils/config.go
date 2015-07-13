@@ -77,6 +77,7 @@ type ImageSettings struct {
 }
 
 type EmailSettings struct {
+	ByPassEmail          bool
 	SMTPUsername         string
 	SMTPPassword         string
 	SMTPServer           string

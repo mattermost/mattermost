@@ -54,9 +54,10 @@
         "ProfileHeight": 128
     },
     "EmailSettings": {
+        "ByPassEmail" : true,
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "localhost:25",
+        "SMTPServer": "",
 		"UseTLS": false,
         "FeedbackEmail": "",
         "FeedbackName": "",
