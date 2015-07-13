@@ -298,11 +298,11 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						for _, k := range splitKeys {
 							keywordMap[k] = append(keywordMap[strings.ToLower(k)], profile.Id)
 						}
+					}
 
-						// If turned on, add the user's case sensitive first name
-						if profile.NotifyProps["first_name"] == "true" {
-							keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
-						}
+					// If turned on, add the user's case sensitive first name
+					if profile.NotifyProps["first_name"] == "true" {
+						keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
 					}
 
 					// Add @all to keywords if user has them turned on
