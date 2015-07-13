@@ -25,6 +25,7 @@ import (
 	sqltrace "log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -122,10 +123,6 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 }
 
 func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, colType string, defaultValue string) bool {
-
-	// SELECT column_name
-	// FROM information_schema.columns
-	// WHERE table_name='your_table' and column_name='your_column';
 
 	var count int64
 	var err error
@@ -270,6 +267,12 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		time.Sleep(time.Second)
 		panic("Failed to create index because of missing driver")
 	}
+}
+
+func IsUniqueConstraintError(err string, mysql string, postgres string) bool {
+	unique := strings.Contains(err, "unique constraint") || strings.Contains(err, "Duplicate entry")
+	field := strings.Contains(err, mysql) || strings.Contains(err, postgres)
+	return unique && field
 }
 
 func (ss SqlStore) GetMaster() *gorp.DbMap {

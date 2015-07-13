@@ -33,7 +33,8 @@ func (me SqlSessionStore) UpgradeSchemaIfNeeded() {
 }
 
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
-	me.CreateIndexIfNotExists("idx_user_id", "Sessions", "UserId")
+	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
+	me.CreateIndexIfNotExists("idx_sessions_alt_id", "Sessions", "AltId")
 }
 
 func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
@@ -105,7 +106,7 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 
 		var sessions []*model.Session
 
-		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = ? ORDER BY LastActivityAt DESC", userId); err != nil {
+		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.GetSessions", "We encounted an error while finding user sessions", err.Error())
 		} else {
 
@@ -125,7 +126,7 @@ func (me SqlSessionStore) Remove(sessionIdOrAlt string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = ? Or AltId = ?", sessionIdOrAlt, sessionIdOrAlt)
+		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or AltId = :AltId", map[string]interface{}{"Id": sessionIdOrAlt, "AltId": sessionIdOrAlt})
 		if err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "We couldn't remove the session", "id="+sessionIdOrAlt+", err="+err.Error())
 		}
@@ -143,7 +144,7 @@ func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = ? AND ExpiresAt != 0 AND ? > ExpiresAt", userId, model.GetMillis()); err != nil {
+		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt > ExpiresAt", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.CleanUpExpiredSessions", "We encounted an error while deleting expired user sessions", err.Error())
 		} else {
 			result.Data = userId
@@ -162,7 +163,7 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) Sto
 	go func() {
 		result := StoreResult{}
 
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = ? WHERE Id = ?", time, sessionId); err != nil {
+		if _, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "sessionId="+sessionId)
 		} else {
 			result.Data = sessionId

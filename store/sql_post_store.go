@@ -6,6 +6,7 @@ package store
 import (
 	"fmt"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"strconv"
 	"strings"
 )
@@ -38,13 +39,13 @@ func (s SqlPostStore) UpgradeSchemaIfNeeded() {
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_update_at", "Posts", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_create_at", "Posts", "CreateAt")
-	s.CreateIndexIfNotExists("idx_channel_id", "Posts", "ChannelId")
-	s.CreateIndexIfNotExists("idx_root_id", "Posts", "RootId")
+	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
+	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
+	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
+	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 
-	s.CreateFullTextIndexIfNotExists("idx_message_txt", "Posts", "Message")
-	s.CreateFullTextIndexIfNotExists("idx_hashtags_txt", "Posts", "Hashtags")
+	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
+	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
 func (s SqlPostStore) Save(post *model.Post) StoreChannel {
@@ -147,7 +148,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		pl := &model.PostList{}
 
 		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = ? AND DeleteAt = 0", id)
+		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "id="+id+err.Error())
 		}
@@ -170,7 +171,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		}
 
 		var posts []*model.Post
-		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = ? OR RootId = ?) AND DeleteAt = 0", rootId, rootId)
+		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "root_id="+rootId+err.Error())
 		} else {
@@ -200,7 +201,7 @@ func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 		result := StoreResult{}
 
 		var et etagPosts
-		err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = ? ORDER BY UpdateAt DESC LIMIT 1", channelId)
+		err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.0.%v", model.ETAG_ROOT_VERSION, model.GetMillis())
 		} else {
@@ -220,7 +221,7 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = ?, UpdateAt = ? WHERE Id = ? OR ParentId = ? OR RootId = ?", time, time, postId, postId, postId)
+		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "ParentId": postId, "RootId": postId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
 		}
@@ -300,7 +301,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 		result := StoreResult{}
 
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = ? AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT ?,?", channelId, offset, limit)
+		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC OFFSET :Offset LIMIT :Limit", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
 		} else {
@@ -335,15 +336,15 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			    FROM
 			        Posts
 			    WHERE
-			        ChannelId = ?
+			        ChannelId = :ChannelId1
 			            AND DeleteAt = 0
 			    ORDER BY CreateAt DESC
-			    LIMIT ?, ?) q3) q1 ON q1.RootId = q2.RootId
+			    OFFSET :Offset LIMIT :Limit) q3) q1 ON q1.RootId = q2.RootId
 			WHERE
-			    ChannelId = ?
+			    ChannelId = :ChannelId2
 			        AND DeleteAt = 0
 			ORDER BY CreateAt`,
-			channelId, offset, limit, channelId)
+			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the parent post for the channel", "channelId="+channelId+err.Error())
 		} else {
@@ -377,7 +378,37 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 		// cannot escape it so we replace it.
 		terms = strings.Replace(terms, "@", " ", -1)
 
-		searchQuery := fmt.Sprintf(`SELECT
+		var posts []*model.Post
+
+		if utils.Cfg.SqlSettings.DriverName == "postgres" {
+			searchQuery := fmt.Sprintf(`SELECT
+				    *
+				FROM
+				    Posts
+				WHERE
+				    DeleteAt = 0
+				    AND ChannelId IN (SELECT
+				            Id
+				        FROM
+				            Channels,
+				            ChannelMembers
+				        WHERE
+				            Id = ChannelId AND TeamId = $1
+				                AND UserId = $2
+				                AND DeleteAt = 0)
+				    AND %s @@  plainto_tsquery($3)
+				    ORDER BY CreateAt DESC
+				LIMIT 100`, searchType)
+
+			terms = strings.Join(strings.Fields(terms), " | ")
+
+			_, err := s.GetReplica().Select(&posts, searchQuery, teamId, userId, terms)
+			if err != nil {
+				result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
+
+			}
+		} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+			searchQuery := fmt.Sprintf(`SELECT
 				    *
 				FROM
 				    Posts
@@ -396,34 +427,35 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 				    ORDER BY CreateAt DESC
 				LIMIT 100`, searchType)
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, searchQuery, teamId, userId, terms)
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
-		} else {
+			_, err := s.GetReplica().Select(&posts, searchQuery, teamId, userId, terms)
+			if err != nil {
+				result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
 
-			list := &model.PostList{Order: make([]string, 0, len(posts))}
+			}
+		}
 
-			for _, p := range posts {
-				if searchType == "Hashtags" {
-					exactMatch := false
-					for _, tag := range strings.Split(p.Hashtags, " ") {
-						if termMap[tag] {
-							exactMatch = true
-						}
-					}
-					if !exactMatch {
-						continue
+		list := &model.PostList{Order: make([]string, 0, len(posts))}
+
+		for _, p := range posts {
+			if searchType == "Hashtags" {
+				exactMatch := false
+				for _, tag := range strings.Split(p.Hashtags, " ") {
+					if termMap[tag] {
+						exactMatch = true
 					}
 				}
-				list.AddPost(p)
-				list.AddOrder(p.Id)
+				if !exactMatch {
+					continue
+				}
 			}
-
-			list.MakeNonNil()
-
-			result.Data = list
+			list.AddPost(p)
+			list.AddOrder(p.Id)
 		}
+
+		list.MakeNonNil()
+
+		result.Data = list
+
 		storeChannel <- result
 		close(storeChannel)
 	}()

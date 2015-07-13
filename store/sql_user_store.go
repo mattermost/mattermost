@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
 )
 
 type SqlUserStore struct {
@@ -78,9 +77,9 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 		}
 
 		if err := us.GetMaster().Insert(user); err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Email'") {
+			if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
 				result.Err = model.NewAppError("SqlUserStore.Save", "An account with that email already exists.", "user_id="+user.Id+", "+err.Error())
-			} else if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Username'") {
+			} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
 				result.Err = model.NewAppError("SqlUserStore.Save", "An account with that username already exists.", "user_id="+user.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewAppError("SqlUserStore.Save", "We couldn't save the account.", "user_id="+user.Id+", "+err.Error())
@@ -195,8 +194,10 @@ func (us SqlUserStore) UpdateUserAndSessionActivity(userId string, sessionId str
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Sessions, Users SET Users.LastActivityAt = :UserLastActivityAt, Sessions.LastActivityAt = :SessionLastActivityAt WHERE Users.Id = :UserId AND Sessions.Id = :SessionId", map[string]interface{}{"UserLastActivityAt": time, "SessionLastActivityAt": time, "UserId": userId, "SessionId": sessionId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "user_id="+userId+" session_id="+sessionId+" err="+err.Error())
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastActivityAt = :UserLastActivityAt WHERE Id = :UserId", map[string]interface{}{"UserLastActivityAt": time, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "1 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
+		} else if _, err := us.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :SessionLastActivityAt WHERE Id = :SessionId", map[string]interface{}{"SessionLastActivityAt": time, "SessionId": sessionId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateLastActivityAt", "We couldn't update the last_activity_at", "2 user_id="+userId+" session_id="+sessionId+" err="+err.Error())
 		} else {
 			result.Data = userId
 		}
@@ -354,7 +355,7 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = 1 WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = '1' WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", "Unable to update verify email field", "userId="+userId+", "+err.Error())
 		}
 
