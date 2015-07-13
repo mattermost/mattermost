@@ -63,22 +63,10 @@ var TeamStore = assign({}, EventEmitter.prototype, {
     this._storeTeams(teams);
   },
   _storeTeams: function(teams) {
-    BrowserStore.setItem("user_teams", JSON.stringify(teams));
+    BrowserStore.setItem("user_teams", teams);
   },
   _getTeams: function() {
-    var teams = {};
-
-    try {
-        teams = JSON.parse(BrowserStore.getItem("user_teams"));
-    }
-    catch (err) {
-    }
-
-	if (teams == null) {
-		teams = {};
-	}
-
-    return teams;
+    return BrowserStore.getItem("user_teams", {});
   }
 });
 

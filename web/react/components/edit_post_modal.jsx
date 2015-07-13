@@ -4,6 +4,7 @@
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var Textbox = require('./textbox.jsx');
+var BrowserStore = require('../stores/browser_store.jsx');
 
 module.exports = React.createClass({
     handleEdit: function(e) {
@@ -13,14 +14,14 @@ module.exports = React.createClass({
         if (updatedPost.message.length === 0) {
             var tempState = this.state;
             delete tempState.editText;
-            BrowserStore.setItem('edit_state_transfer', JSON.stringify(tempState));
+            BrowserStore.setItem('edit_state_transfer', tempState);
             $("#edit_post").modal('hide');
             $("#delete_post").modal('show');
             return;
         }
 
-        updatedPost.id = this.state.post_id
-        updatedPost.channel_id = this.state.channel_id
+        updatedPost.id = this.state.post_id;
+        updatedPost.channel_id = this.state.channel_id;
 
         Client.updatePost(updatedPost,
             function(data) {
