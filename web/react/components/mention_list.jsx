@@ -55,7 +55,8 @@ module.exports = React.createClass({
                     }
                     self.refs['mention' + self.state.selectedMention].select();
 
-                    //self.checkIfInView('#'+self.props.id);
+                    self.checkIfInView($('#'+self.props.id));
+                    self.checkIfInView($('#'+self.refs['mention' + self.state.selectedMention].props.id));
                 }
             }
         );
@@ -118,10 +119,10 @@ module.exports = React.createClass({
         return (!this.refs.mention0);
     },
     checkIfInView: function(element) {
-        var offset = element.offset().top - $(window).scrollTop();
+        var offset = element.offset().top - $(window).scrollTop(); //$(this.props.id) ??
         if(offset > window.innerHeight){
             // Not in view so scroll to it
-            $('body').animate({scrollTop: offset}, 1000);
+            $('body').animate({scrollTop: offset}, 1000); //$(this.props.id) ??
             return false;
         }
        return true;
@@ -136,7 +137,7 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 0 };
     },
     render: function() {
         var mentionText = this.state.mentionText;
