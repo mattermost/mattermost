@@ -295,7 +295,7 @@ module.exports = React.createClass({
     componentDidUpdate: function() {
         if(!this.wasForced){
             this.resize();
-            wasForced = false
+            this.wasForced = false;
         }
     },
     componentWillUnmount: function() {
