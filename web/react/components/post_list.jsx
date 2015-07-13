@@ -35,7 +35,7 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
-    p: 0,
+    preForcePosision: 0,
     wasForced: false,
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
@@ -52,6 +52,7 @@ module.exports = React.createClass({
 
         PostStore.addChangeListener(this._onChange);
         ChannelStore.addChangeListener(this._onChange);
+        UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
 
         $(".post-list-holder-by-time").perfectScrollbar();
@@ -82,8 +83,7 @@ module.exports = React.createClass({
 
         $(post_holder).scroll(function(e){
             if (self.wasForced) {
-                console.log('hit');
-                $(post_holder).scrollTop(self.p);
+                $(post_holder).scrollTop(self.preForcePosision);
                 $(post_holder).perfectScrollbar('update');
                 self.wasForced = false;
             }
@@ -137,6 +137,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeChangeListener(this._onChange);
         ChannelStore.removeChangeListener(this._onChange);
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
     },
@@ -169,13 +170,7 @@ module.exports = React.createClass({
                 this.scrolledToNew = false;
             }
             this.setState(newState);
-        } else {
-            // Updates the timestamp on each post
-            this.wasForced = true;
-            this.p = $(".post-list-holder-by-time").scrollTop();
-            this.forceUpdate()
-            //this.refs.post0.refs.info.forceUpdate();
-        }
+        } 
     },
     _onSocketChange: function(msg) {
         if (msg.action == "posted") {
@@ -238,6 +233,11 @@ module.exports = React.createClass({
         } else if(msg.action == "new_user") {
             AsyncClient.getProfiles();
         }
+    },
+    _onTimeChange: function() {
+        this.wasForced = true;
+        this.preForcePosision = $(".post-list-holder-by-time").scrollTop();
+        this.forceUpdate()
     },
     getMorePosts: function(e) {
         e.preventDefault();
@@ -430,7 +430,7 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
-                var postCtl = <Post ref={"post"+(order.length-i-1)}sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+                var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {
