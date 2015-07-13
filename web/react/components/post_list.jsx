@@ -35,7 +35,11 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
+<<<<<<< HEAD
     preForcePosision: 0,
+=======
+    p: 0,
+>>>>>>> should fix scrolling on forceupdate
     wasForced: false,
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
@@ -174,7 +178,17 @@ module.exports = React.createClass({
                 this.scrolledToNew = false;
             }
             this.setState(newState);
+<<<<<<< HEAD
         } 
+=======
+        } else {
+            // Updates the timestamp on each post
+            this.wasForced = true;
+            this.p = $(".post-list-holder-by-time").scrollTop();
+            this.forceUpdate()
+            //this.refs.post0.refs.info.forceUpdate();
+        }
+>>>>>>> should fix scrolling on forceupdate
     },
     _onSocketChange: function(msg) {
 
@@ -439,7 +453,7 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
-                var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+                var postCtl = <Post ref={"post"+(order.length-i-1)}sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {
