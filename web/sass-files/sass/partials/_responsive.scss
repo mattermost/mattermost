@@ -436,10 +436,9 @@
             .form-control {
                 background: none;
                 color: #fff;
-                border-bottom: 1px solid #fff;
                 border-bottom: 1px solid rgba(#fff, 0.7);
                 border-radius: 0;
-                padding: 0 0 0 23px;
+                padding: 0 10px 0 23px;
             }
             ::-webkit-input-placeholder {
                 color: #fff;
@@ -533,6 +532,11 @@
         }
         .sidebar--right__close {
             display: none;
+        }
+        .search__form {
+            .glyphicon {
+                color: #fff;
+            }
         }
     }
     .inner__wrap {

@@ -297,7 +297,7 @@ module.exports = React.createClass({
                 },
                 function(err) {
                     $(self.refs.loadmore.getDOMNode()).text("Load more messages");
-                    dispatchError(err, "getPosts");
+                    AsyncClient.dispatchError(err, "getPosts");
                 }
             );
     },

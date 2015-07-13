@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
@@ -16,7 +17,7 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-var ExtraMembers = React.createClass({
+var PopoverListMembers = React.createClass({
     componentDidMount: function() {
         var originalLeave = $.fn.popover.Constructor.prototype.leave;
         $.fn.popover.Constructor.prototype.leave = function(obj) {
@@ -35,30 +36,29 @@ var ExtraMembers = React.createClass({
 
         $("#member_popover").popover({placement : 'bottom', trigger: 'click', html: true});
         $('body').on('click', function (e) {
-            if ($(e.target.parentNode.parentNode)[0] !== $("#member_popover")[0] && $(e.target).parents('.popover.in').length === 0) { 
+            if ($(e.target.parentNode.parentNode)[0] !== $("#member_popover")[0] && $(e.target).parents('.popover.in').length === 0) {
                 $("#member_popover").popover('hide');
             }
         });
-
     },
+
     render: function() {
-        var count = this.props.members.length == 0 ? "-" : this.props.members.length;
-        count = this.props.members.length > 19 ? "20+" : count;
-        var data_content = "";
-        var sortedMembers = this.props.members;
+        var popoverHtml = '';
+        var members = this.props.members;
+        var count = (members.length > 20) ? "20+" : (members.length || '-');
 
-        if(sortedMembers) {
-            sortedMembers.sort(function(a,b) {
+        if (members) {
+            members.sort(function(a,b) {
                 return a.username.localeCompare(b.username);
-            })
+            });
 
-            sortedMembers.forEach(function(m) {
-                data_content += "<div style='white-space: nowrap'>" + m.username + "</div>";
+            members.forEach(function(m) {
+                popoverHtml += "<div style='white-space: nowrap'>" + m.username + "</div>";
             });
         }
 
         return (
-            <div style={{"cursor" : "pointer"}} id="member_popover" data-toggle="popover" data-content={data_content} data-original-title="Members" >
+            <div style={{cursor : "pointer"}} id="member_popover" data-toggle="popover" data-content={popoverHtml} data-original-title="Members" >
                 <div id="member_tooltip" data-toggle="tooltip" title="View Channel Members">
                     {count} <span className="glyphicon glyphicon-user" aria-hidden="true"></span>
                 </div>
@@ -78,6 +78,7 @@ function getStateFromStores() {
 }
 
 module.exports = React.createClass({
+    displayName: 'ChannelHeader',
     componentDidMount: function() {
         ChannelStore.addChangeListener(this._onChange);
         ChannelStore.addExtraInfoChangeListener(this._onChange);
@@ -99,7 +100,7 @@ module.exports = React.createClass({
         $(".channel-header__info .description").popover({placement : 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
     },
     _onSocketChange: function(msg) {
-        if(msg.action === "new_user") {
+        if (msg.action === "new_user") {
             AsyncClient.getChannelExtraInfo(true);
         }
     },
@@ -107,15 +108,14 @@ module.exports = React.createClass({
         return getStateFromStores();
     },
     handleLeave: function(e) {
-        var self = this;
         Client.leaveChannel(this.state.channel.id,
             function(data) {
                 var townsquare = ChannelStore.getByName('town-square');
                 utils.switchChannel(townsquare);
-            }.bind(this),
+            },
             function(err) {
                 AsyncClient.dispatchError(err, "handleLeave");
-            }.bind(this)
+            }
         );
     },
     searchMentions: function(e) {
@@ -131,52 +131,29 @@ module.exports = React.createClass({
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECIEVED_SEARCH_TERM,
             term: terms,
-            do_search: false
+            do_search: true,
+            is_mention_search: true
         });
-
-        Client.search(
-            terms,
-            function(data) {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_SEARCH,
-                    results: data,
-                    is_mention_search: true
-                });
-            },
-            function(err) {
-                dispatchError(err, "search");
-            }
-        );
     },
+
     render: function() {
 
         if (this.state.channel == null) {
-            return (
-                <div></div>
-            );
+            return null;
         }
 
         var description = utils.textToJsx(this.state.channel.description, {"singleline": true, "noMentionHighlight": true});
         var popoverContent = React.renderToString(<MessageWrapper message={this.state.channel.description}/>);
-        var channelTitle = "";
+        var channelTitle = this.state.channel.display_name;
         var channelName = this.state.channel.name;
         var currentId = UserStore.getCurrentId();
         var isAdmin = this.state.memberChannel.roles.indexOf("admin") > -1 || this.state.memberTeam.roles.indexOf("admin") > -1;
-        var searchForm = <th className="search-bar__container"><NavbarSearchBox /></th>;
-        var isDirect = false;
+        var isDirect = (this.state.channel.type === 'D');
 
-        if (this.state.channel.type === 'O') {
-            channelTitle = this.state.channel.display_name;
-        } else if (this.state.channel.type === 'P') {
-            channelTitle = this.state.channel.display_name;
-        } else if (this.state.channel.type === 'D') {
-            isDirect = true;
+        if (isDirect) {
             if (this.state.users.length > 1) {
-                if (this.state.users[0].id === UserStore.getCurrentId()) {
-                    channelTitle = <UserProfile userId={this.state.users[1].id} overwriteName={this.state.users[1].full_name ? this.state.users[1].full_name : this.state.users[1].username} />;
-                } else {
-                    channelTitle = <UserProfile userId={this.state.users[0].id} overwriteName={this.state.users[0].full_name ? this.state.users[0].full_name : this.state.users[0].username} />;
-                }
+                var contact = this.state.users[((this.state.users[0].id === currentId) ? 1 : 0)];
+                channelTitle = <UserProfile userId={contact.id} overwriteName={contact.full_name || contact.username} />;
             }
         }
 
@@ -196,21 +173,21 @@ module.exports = React.createClass({
                                     <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_invite" href="#">Add Members</a></li>
                                     { isAdmin ?
                                         <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_members" href="#">Manage Members</a></li>
-                                        : ""
+                                        : null
                                     }
-                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#edit_channel" data-desc={this.state.channel.description} data-title={this.state.channel.display_name} data-channelid={this.state.channel.id}>Set Channel Description...</a></li>
-                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#channel_notifications" data-title={this.state.channel.display_name} data-channelid={this.state.channel.id}>Notification Preferences</a></li>
+                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#edit_channel" data-desc={this.state.channel.description} data-title={channelTitle} data-channelid={this.state.channel.id}>Set Channel Description...</a></li>
+                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#channel_notifications" data-title={channelTitle} data-channelid={this.state.channel.id}>Notification Preferences</a></li>
                                     { isAdmin && channelName != Constants.DEFAULT_CHANNEL ?
-                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#rename_channel" data-display={this.state.channel.display_name} data-name={this.state.channel.name} data-channelid={this.state.channel.id}>Rename Channel...</a></li>
-                                        : ""
+                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#rename_channel" data-display={channelTitle} data-name={this.state.channel.name} data-channelid={this.state.channel.id}>Rename Channel...</a></li>
+                                        : null
                                     }
                                     { isAdmin && channelName != Constants.DEFAULT_CHANNEL ?
-                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#delete_channel" data-title={this.state.channel.display_name} data-channelid={this.state.channel.id}>Delete Channel...</a></li>
-                                        : ""
+                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#delete_channel" data-title={channelTitle} data-channelid={this.state.channel.id}>Delete Channel...</a></li>
+                                        : null
                                     }
                                     { channelName != Constants.DEFAULT_CHANNEL ?
                                         <li role="presentation"><a role="menuitem" href="#" onClick={this.handleLeave}>Leave Channel</a></li>
-                                        : ""
+                                        : null
                                     }
                                 </ul>
                             </div>
@@ -220,14 +197,14 @@ module.exports = React.createClass({
                         <a href="#"><strong className="heading">{channelTitle}</strong></a>
                     }
                     </th>
-                    <th><ExtraMembers members={this.state.users} channelId={this.state.channel.id} /></th>
-                    { searchForm }
+                    <th><PopoverListMembers members={this.state.users} channelId={this.state.channel.id} /></th>
+                    <th className="search-bar__container"><NavbarSearchBox /></th>
                     <th>
-                        <div className="dropdown" style={{"marginLeft":"5px", "marginRight":"10px"}}>
+                        <div className="dropdown" style={{marginLeft:5, marginRight:10}}>
                             <a href="#" className="dropdown-toggle theme" type="button" id="channel_header_right_dropdown" data-toggle="dropdown" aria-expanded="true">
                                 <i className="fa fa-caret-down"></i>
                             </a>
-                            <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_right_dropdown" style={{"left": "-150px"}}>
+                            <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_right_dropdown" style={{left: "-150px"}}>
                                 <li role="presentation"><a role="menuitem" href="#" onClick={this.searchMentions}>Recent Mentions</a></li>
                             </ul>
                         </div>
@@ -237,5 +214,3 @@ module.exports = React.createClass({
         );
     }
 });
-
-
