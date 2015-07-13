@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -92,6 +93,7 @@ func getCookie(name string, resp *http.Response) *http.Cookie {
 
 func (c *Client) Must(result *Result, err *AppError) *Result {
 	if err != nil {
+		time.Sleep(time.Second)
 		panic(err)
 	}
 
