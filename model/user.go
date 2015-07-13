@@ -237,6 +237,14 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
+func (u *User) GetDisplayName() string {
+	if u.Nickname != "" {
+		return u.Nickname
+	} else {
+		return u.Username
+	}
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	decoder := json.NewDecoder(data)

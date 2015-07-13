@@ -107,3 +107,16 @@ func TestUserIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUserGetDisplayName(t *testing.T) {
+	user := User{FirstName: "first", LastName: "last", Username: "user"}
+
+	if displayName := user.GetDisplayName(); displayName != "user" {
+		t.Fatal("Display name should be username")
+	}
+
+	user.Nickname = "nickname"
+	if displayName := user.GetDisplayName(); displayName != "nickname" {
+		t.Fatal("Display name should be nickname")
+	}
+}

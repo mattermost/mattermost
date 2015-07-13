@@ -796,7 +796,6 @@ module.exports.getHomeLink = function() {
 	return window.location.protocol + "//" + parts.join(".");
 }
 
-
 module.exports.changeColor =function(col, amt) {
 
     var usePound = false;
@@ -824,5 +823,12 @@ module.exports.changeColor =function(col, amt) {
     else if (g < 0) g = 0;
 
     return (usePound?"#":"") + String("000000" + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
+};
 
+module.exports.getDisplayName = function(user) {
+    if (user.nickname && user.nickname.trim().length > 0) {
+        return user.nickname;
+    } else {
+        return user.username;
+    }
 };
