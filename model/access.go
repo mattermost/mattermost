@@ -59,7 +59,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewAppError("AccessData.IsValid", "Expires in must be set", "")
 	}
 
-	if ad.CreateAt == 0 {
+	if ad.CreateAt <= 0 {
 		return NewAppError("AccessData.IsValid", "Create at must be a valid time", "")
 	}
 

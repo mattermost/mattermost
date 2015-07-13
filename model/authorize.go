@@ -45,7 +45,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "Expires in must be set", "")
 	}
 
-	if ad.CreateAt == 0 {
+	if ad.CreateAt <= 0 {
 		return NewAppError("AuthData.IsValid", "Create at must be a valid time", "client_id="+ad.ClientId)
 	}
 
