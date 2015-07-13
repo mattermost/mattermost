@@ -50,7 +50,7 @@ module.exports = React.createClass({
                             else {
                                 var tempSelectedMention = -1;
                                 while (self.getSelection(++tempSelectedMention))
-                                    ;
+                                    ; //Need to find the top of the list
                                 self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
                             }
                         }
@@ -64,7 +64,10 @@ module.exports = React.createClass({
                     self.refs['mention' + self.state.selectedMention].select();
 
                     //self.checkIfInView($('#'+self.props.id));
-                    //self.checkIfInView($('#'+self.refs['mention' + self.state.selectedMention].props.id));
+                    self.checkIfInView();
+                    //console.log('#'+self.refs['mention' + self.state.selectedMention].props.id);
+                    //console.log($('#'+self.refs['mention' + self.state.selectedMention].props.id));
+                    //console.log($('#'+self.props.id));
                 }
             }
         );
@@ -85,9 +88,7 @@ module.exports = React.createClass({
         }
     },
     componentDidUpdate: function() {
-        /*if (this.state.mentionText != "-1" && !this.getSelection(this.state.selectedMention)) {
-        }*/
-        if (this.state.mentionText != "-1" /*&& this.getSelection(this.state.selectedMention)*/) {
+        if (this.state.mentionText != "-1") {
             if (this.state.selectedUsername !== "" && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
                 var tempSelectedMention = -1;
                 var foundMatch = false;
@@ -141,8 +142,10 @@ module.exports = React.createClass({
             return true;
     },
     addCurrentMention: function() {
-        if (!this.refs['mention' + this.state.selectedMention]) this.addFirstMention();
-        this.refs['mention' + this.state.selectedMention].handleClick();
+        if (!this.refs['mention' + this.state.selectedMention]) 
+            this.addFirstMention();
+        else
+            this.refs['mention' + this.state.selectedMention].handleClick();
     },
     addFirstMention: function() {
         if (!this.refs.mention0) return;
@@ -151,14 +154,20 @@ module.exports = React.createClass({
     isEmpty: function() {
         return (!this.refs.mention0);
     },
-    checkIfInView: function(element) {
-        var offset = element.offset().top - $(window).scrollTop(); //$(this.props.id) ??
-        if(offset > window.innerHeight){
+    checkIfInView: function() {
+        var element = $('#'+this.refs['mention' + this.state.selectedMention].props.id);
+        //var top = $('.mentions-box').position().bottom;
+        //$(".mentions-box").css("bottom", top+303);
+        //$("#"+this.props.id).scrollTop($("#"+this.props.id).scrollTop() + $("div.mentions-name.mentions-focused").position().top);
+        console.log(element.length);
+        console.log(element + " " + element.offset());
+        var offset = element.offset().bottom - $('#'+this.props.id).scrollTop(); //$(this.props.id) ??
+        if(offset > $('#'+this.props.id).innerHeight){
             // Not in view so scroll to it
             $('body').animate({scrollTop: offset}, 1000); //$(this.props.id) ??
             return false;
         }
-       return true;
+        return true;
     },
     alreadyMentioned: function(username) {
         var excludeUsers = this.state.excludeUsers;
