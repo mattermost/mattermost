@@ -180,11 +180,7 @@ var UserStore = assign({}, EventEmitter.prototype, {
     if (user && user.notify_props && user.notify_props.mention_keys) {
       var keys = user.notify_props.mention_keys.split(',');
 
-      if (user.nickname.length > 0 && user.notify_props.first_name === "true") {
-        var first = user.nickname.split(' ')[0];
-        if (first.length > 0) keys.push(first);
-      }
-
+      if (user.first_name && user.notify_props.first_name === "true") keys.push(user.first_name);
       if (user.notify_props.all === "true") keys.push('@all');
       if (user.notify_props.channel === "true") keys.push('@channel');
 

@@ -156,6 +156,8 @@ var NotificationsTab = React.createClass({
 
         var self = this;
 
+        var user = this.props.user;
+
         var desktopSection;
         if (this.props.activeSection === 'desktop') {
             var notifyActive = [false, false, false];
@@ -314,20 +316,14 @@ var NotificationsTab = React.createClass({
 
         var keysSection;
         if (this.props.activeSection === 'keys') {
-            var user = this.props.user;
-            var first_name = "";
-            if (user.nickname.length > 0) {
-                first_name = user.nickname.split(' ')[0];
-            }
-
             var inputs = [];
 
-            if (first_name != "") {
+            if (user.first_name) {
                 inputs.push(
                     <div>
                         <div className="checkbox">
                             <label>
-                                <input type="checkbox" checked={this.state.first_name_key} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + first_name + '"'}</input>
+                                <input type="checkbox" checked={this.state.first_name_key} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + user.first_name + '"'}</input>
                             </label>
                         </div>
                     </div>
@@ -396,14 +392,9 @@ var NotificationsTab = React.createClass({
             );
         } else {
             var keys = [];
-            if (this.state.first_name_key) {
-                var first_name = "";
-                var user = this.props.user;
-                if (user.nickname.length > 0) first_name = user.nickname.split(' ')[0];
-                if (first_name != "") keys.push(first_name);
-            }
-            if (this.state.username_key) keys.push(this.props.user.username);
-            if (this.state.mention_key) keys.push('@'+this.props.user.username);
+            if (this.state.first_name_key) keys.push(user.first_name);
+            if (this.state.username_key) keys.push(user.username);
+            if (this.state.mention_key) keys.push('@'+user.username);
             if (this.state.all_key) keys.push('@all');
             if (this.state.channel_key) keys.push('@channel');
             if (this.state.custom_keys.length > 0) keys = keys.concat(this.state.custom_keys.split(','));
