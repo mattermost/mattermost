@@ -121,9 +121,12 @@ module.exports = React.createClass({
     },
     render: function() {
         var teamName = this.props.teamName ? this.props.teamName : config.SiteName;
+        var me = UserStore.getCurrentUser()
 
         return (
             <div className="team__header theme">
+                <img className="profile-picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
+                <span className="user_name">{me.username}</span>
                 <a className="team__name" href="/channels/town-square">{ teamName }</a>
                 <NavbarDropdown teamType={this.props.teamType} />
             </div>
