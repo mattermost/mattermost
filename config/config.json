@@ -23,9 +23,9 @@
         "AnalyticsUrl": ""
     },
     "SqlSettings": {
-        "DriverName": "postgres",
-        "DataSource": "postgres://mmuser:password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10",
-        "DataSourceReplicas": ["postgres://mmuser:password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"],
+        "DriverName": "mysql",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test",
+        "DataSourceReplicas": ["mmuser:mostest@tcp(dockerhost:3306)/mattermost_test"],
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,

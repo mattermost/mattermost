@@ -295,7 +295,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 		result := StoreResult{}
 
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC OFFSET :Offset LIMIT :Limit", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
 		} else {
@@ -333,7 +333,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			        ChannelId = :ChannelId1
 			            AND DeleteAt = 0
 			    ORDER BY CreateAt DESC
-			    OFFSET :Offset LIMIT :Limit) q3) q1 ON q1.RootId = q2.RootId
+			    LIMIT :Limit OFFSET :Offset) q3) q1 ON q1.RootId = q2.RootId
 			WHERE
 			    ChannelId = :ChannelId2
 			        AND DeleteAt = 0

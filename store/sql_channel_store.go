@@ -482,8 +482,10 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec(
-			`UPDATE
+		var query string
+
+		if utils.Cfg.SqlSettings.DriverName == "postgres" {
+			query = `UPDATE
 				ChannelMembers
 			SET
 			    MentionCount = 0,
@@ -495,8 +497,22 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND ChannelId = :ChannelId`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+			        AND ChannelId = :ChannelId`
+		} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+			query = `UPDATE
+				ChannelMembers, Channels
+			SET
+			    ChannelMembers.MentionCount = 0,
+			    ChannelMembers.MsgCount = Channels.TotalMsgCount,
+			    ChannelMembers.LastViewedAt = Channels.LastPostAt,
+			    ChannelMembers.LastUpdateAt = Channels.LastPostAt
+			WHERE
+			    Channels.Id = ChannelMembers.ChannelId
+			        AND UserId = :UserId
+			        AND ChannelId = :ChannelId`
+		}
+
+		_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "We couldn't update the last viewed at time", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
