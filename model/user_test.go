@@ -89,4 +89,21 @@ func TestUserIsValid(t *testing.T) {
 	if err := user.IsValid(); err != nil {
 		t.Fatal(err)
 	}
+
+	user.FirstName = ""
+	user.LastName = ""
+	if err := user.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	user.FirstName = strings.Repeat("01234567890", 20)
+	if err := user.IsValid(); err == nil {
+		t.Fatal(err)
+	}
+
+	user.FirstName = ""
+	user.LastName = strings.Repeat("01234567890", 20)
+	if err := user.IsValid(); err == nil {
+		t.Fatal(err)
+	}
 }
