@@ -174,21 +174,14 @@ module.exports = React.createClass({
                 this.scrolledToNew = false;
             }
             this.setState(newState);
-<<<<<<< HEAD
-<<<<<<< HEAD
         } 
-=======
         } else {
             // Updates the timestamp on each post
             this.wasForced = true;
             this.p = $(".post-list-holder-by-time").scrollTop();
             this.forceUpdate()
             //this.refs.post0.refs.info.forceUpdate();
-        }
->>>>>>> should fix scrolling on forceupdate
-=======
         } 
->>>>>>> Added timestamp updates to right side and cleaned code
     },
     _onSocketChange: function(msg) {
 
