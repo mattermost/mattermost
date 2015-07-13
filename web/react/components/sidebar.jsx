@@ -197,6 +197,14 @@ module.exports = React.createClass({
             if (UserStore.getCurrentId() === msg.user_id) {
                 AsyncClient.getChannels(true);
             }
+        } else if(msg.action === "user_removed") {
+            if(msg.user_id === UserStore.getCurrentId()) {
+                AsyncClient.getChannels(true);
+
+                if(msg.props.channel_id === ChannelStore.getCurrentId()) {
+                    window.location.reload();
+                }
+            }
         }
     },
     updateTitle: function() {
