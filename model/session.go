@@ -74,6 +74,7 @@ func (me *Session) PreSave() {
 
 func (me *Session) Sanitize() {
 	me.Id = ""
+	me.AccessToken = ""
 }
 
 func (me *Session) IsExpired() bool {
