@@ -293,16 +293,26 @@ module.exports = React.createClass({
         });
     },
     componentDidUpdate: function() {
+<<<<<<< HEAD
         if(this.wasForced){
             this.wasForced = false
         } else {
             this.resize();
+=======
+        if(!this.wasForced){
+            this.resize();
+            wasForced = false
+>>>>>>> Added timestamp updates to right side and cleaned code
         }
     },
     componentWillUnmount: function() {
         PostStore.removeSelectedPostChangeListener(this._onChange);
         PostStore.removeChangeListener(this._onChangeAll);
+<<<<<<< HEAD
         UserStore.removeStatusesChangeListener(this._onTimeChange);
+=======
+        UserStore.removeStatusesChangeListener(this._onTimeChange)
+>>>>>>> Added timestamp updates to right side and cleaned code
     },
     _onChange: function() {
 

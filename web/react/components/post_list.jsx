@@ -35,11 +35,7 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
-<<<<<<< HEAD
     preForcePosision: 0,
-=======
-    p: 0,
->>>>>>> should fix scrolling on forceupdate
     wasForced: false,
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
@@ -179,6 +175,7 @@ module.exports = React.createClass({
             }
             this.setState(newState);
 <<<<<<< HEAD
+<<<<<<< HEAD
         } 
 =======
         } else {
@@ -189,6 +186,9 @@ module.exports = React.createClass({
             //this.refs.post0.refs.info.forceUpdate();
         }
 >>>>>>> should fix scrolling on forceupdate
+=======
+        } 
+>>>>>>> Added timestamp updates to right side and cleaned code
     },
     _onSocketChange: function(msg) {
 
@@ -260,7 +260,11 @@ module.exports = React.createClass({
     _onTimeChange: function() {
         this.wasForced = true;
         this.preForcePosision = $(".post-list-holder-by-time").scrollTop();
+<<<<<<< HEAD
         this.forceUpdate();
+=======
+        this.forceUpdate()
+>>>>>>> Added timestamp updates to right side and cleaned code
     },
     getMorePosts: function(e) {
         e.preventDefault();
@@ -453,7 +457,7 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
-                var postCtl = <Post ref={"post"+(order.length-i-1)}sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+                var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {
