@@ -31,32 +31,40 @@ module.exports = React.createClass({
                     e.preventDefault();
 
                     if (!self.getSelection(self.state.selectedMention)) {
-                        self.setState({ selectedMention: 0 });
+                        //self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
                         //self.refs['mention' + self.state.selectedMention].deselect();
+                        var tempSelectedMention = -1
+                        while (self.getSelection(++tempSelectedMention)) {
+                            if (self.state.selectedUsername === self.refs['mention' + tempSelectedMention].props.username) {
+                                this.refs['mention' + tempSelectedMention].select();
+                                this.setState({ selectedMention: tempSelectedMention });
+                                break;
+                            }
+                        }
                     }
                     else {
                         self.refs['mention' + self.state.selectedMention].deselect();
                         if (e.which === 38) {    
                             if (self.getSelection(self.state.selectedMention - 1))
-                                self.setState({ selectedMention: self.state.selectedMention - 1 });
+                                self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
                             else {
                                 var tempSelectedMention = -1;
                                 while (self.getSelection(++tempSelectedMention))
                                     ;
-                                self.setState({ selectedMention: tempSelectedMention - 1 });
+                                self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
                             }
                         }
                         else {
                             if (self.getSelection(self.state.selectedMention + 1))
-                                self.setState({ selectedMention: self.state.selectedMention + 1 });
+                                self.setState({ selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username });
                             else
-                                self.setState({ selectedMention: 0 });
+                                self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
                         }
                     }
                     self.refs['mention' + self.state.selectedMention].select();
 
-                    self.checkIfInView($('#'+self.props.id));
-                    self.checkIfInView($('#'+self.refs['mention' + self.state.selectedMention].props.id));
+                    //self.checkIfInView($('#'+self.props.id));
+                    //self.checkIfInView($('#'+self.refs['mention' + self.state.selectedMention].props.id));
                 }
             }
         );
@@ -69,11 +77,36 @@ module.exports = React.createClass({
     },
     componentWillUnmount: function() {
         PostStore.removeMentionDataChangeListener(this._onChange);
-        $('body').off('keypress.mentionlist', '#'+this.props.id);
+        $('body').off('keydown.mentionlist', '#'+this.props.id);
+    },
+    componentWillUpdate: function() {
+        if (this.state.mentionText != "-1" && this.getSelection(this.state.selectedMention)) {
+            this.refs['mention' + this.state.selectedMention].deselect();
+        }
     },
     componentDidUpdate: function() {
-        if (this.state.mentionText != "-1" && !this.getSelection(this.state.selectedMention)) {
-            this.refs.mention0.select();
+        /*if (this.state.mentionText != "-1" && !this.getSelection(this.state.selectedMention)) {
+        }*/
+        if (this.state.mentionText != "-1" /*&& this.getSelection(this.state.selectedMention)*/) {
+            if (this.state.selectedUsername !== "" && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
+                var tempSelectedMention = -1;
+                var foundMatch = false;
+                while (this.getSelection(++tempSelectedMention)) {
+                    if (this.state.selectedUsername === this.refs['mention' + tempSelectedMention].props.username) {
+                        this.refs['mention' + tempSelectedMention].select();
+                        this.setState({ selectedMention: tempSelectedMention });
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                if (!foundMatch) {
+                    this.refs.mention0.select();
+                    this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username });
+                }
+            }
+            else {
+                this.refs['mention' + this.state.selectedMention].select();
+            }
         }
     },
     _onChange: function(id, mentionText, excludeList) {
@@ -97,7 +130,7 @@ module.exports = React.createClass({
         if (this.getSelection(this.state.selectedMention)) {
             this.refs['mention' + this.state.selectedMention].deselect();
         }
-        this.setState({ selectedMention: listId });
+        this.setState({ selectedMention: listId, selectedUsername: this.refs['mention' + listId].props.username });
         this.refs['mention' + listId].select();
     },
     getSelection: function(listId) {
@@ -137,7 +170,7 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1", selectedMention: 0 };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
     },
     render: function() {
         var mentionText = this.state.mentionText;
