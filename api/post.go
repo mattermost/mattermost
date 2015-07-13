@@ -301,10 +301,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 
 						// If turned on, add the user's case sensitive first name
 						if profile.NotifyProps["first_name"] == "true" {
-							splitName := strings.Split(profile.Nickname, " ")
-							if len(splitName) > 0 && splitName[0] != "" {
-								keywordMap[splitName[0]] = append(keywordMap[splitName[0]], profile.Id)
-							}
+							keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
 						}
 					}
 
@@ -395,10 +392,8 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						continue
 					}
 
-					firstName := strings.Split(profileMap[id].Nickname, " ")[0]
-
 					bodyPage := NewServerTemplatePage("post_body", teamUrl)
-					bodyPage.Props["Nickname"] = firstName
+					bodyPage.Props["Nickname"] = profileMap[id].FirstName
 					bodyPage.Props["TeamName"] = teamName
 					bodyPage.Props["ChannelName"] = channelName
 					bodyPage.Props["BodyText"] = bodyText
