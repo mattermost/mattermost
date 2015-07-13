@@ -228,11 +228,12 @@ CommentPost = React.createClass({
         }
 
         var message = utils.textToJsx(this.props.post.message);
+        var timestamp = UserStore.getCurrentUser().update_at;
 
         return (
             <div className={commentClass + " " + currentUserCss}>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">

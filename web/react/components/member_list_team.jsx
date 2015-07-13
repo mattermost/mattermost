@@ -61,7 +61,8 @@ var MemberListTeamItem = React.createClass({
     render: function() {
         var server_error = this.state.server_error ? <div style={{ clear: "both" }} className="has-error"><label className='has-error control-label'>{this.state.server_error}</label></div> : null;
         var user = this.props.user;
-        var currentRoles = "Member"
+        var currentRoles = "Member";
+        var timestamp = UserStore.getCurrentUser().update_at;
 
         if (user.roles.length > 0) {
             currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
@@ -83,7 +84,7 @@ var MemberListTeamItem = React.createClass({
 
         return (
             <div className="row member-div">
-                <img className="post-profile-img pull-left" src={"/api/v1/users/" + user.id + "/image"} height="36" width="36" />
+                <img className="post-profile-img pull-left" src={"/api/v1/users/" + user.id + "/image?time=" + timestamp} height="36" width="36" />
                 <span className="member-name">{user.full_name.trim() ? user.full_name : user.username}</span>
                 <span className="member-email">{user.full_name.trim() ? user.username : email}</span>
                 <div className="dropdown member-drop">
