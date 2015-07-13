@@ -11,13 +11,14 @@
 	position: absolute;
 	z-index: 1060;
 	.mentions-box {
-		max-height: 303px;
-		position:absolute;
-		background-color:#fff;
+ 		width: 100%;
+ 		height: 100%;
+		position: absolute;
+		background-color: #fff;
 		border: $border-gray;
 		overflow-x: hidden;
 		overflow-y: scroll;
-		bottom:0;
+		bottom: 0;
 	}
 }
 

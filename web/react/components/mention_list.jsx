@@ -9,7 +9,12 @@ var Mention = require('./mention.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
+var MAX_HEIGHT_LIST = 292;
+var MAX_ITEMS_IN_LIST = 25;
+var ITEM_HEIGHT = 36;
+
 module.exports = React.createClass({
+    displayName: "MentionList",
     componentDidMount: function() {
         PostStore.addMentionDataChangeListener(this._onChange);
 
@@ -72,7 +77,7 @@ module.exports = React.createClass({
     },
     render: function() {
         var mentionText = this.state.mentionText;
-        if (mentionText === '-1') return (<div/>);
+        if (mentionText === '-1') return null;
 
         var profiles = UserStore.getActiveOnlyProfiles();
         var users = [];
@@ -100,8 +105,7 @@ module.exports = React.createClass({
         var mentions = {};
         var index = 0;
 
-        for (var i = 0; i < users.length; i++) {
-            if (Object.keys(mentions).length >= 25) break;
+        for (var i = 0; i < users.length && index < MAX_ITEMS_IN_LIST; i++) {
             if (this.alreadyMentioned(users[i].username)) continue;
 
             var firstName = "", lastName = "";
@@ -127,17 +131,20 @@ module.exports = React.createClass({
         }
         var numMentions = Object.keys(mentions).length;
 
-        if (numMentions < 1) return (<div/>);
+        if (numMentions < 1) return null;
 
-        var height = (numMentions*36) + 4;
-        var width = $('#'+this.props.id).parent().width();
-        var bottom = $(window).height() - $('#'+this.props.id).offset().top;
-        var left = $('#'+this.props.id).offset().left;
-        var max_height = $('#'+this.props.id).offset().top - 10;
+        var $mention_tab = $('#'+this.props.id);
+        var maxHeight = Math.min(MAX_HEIGHT_LIST, $mention_tab.offset().top - 10);
+        var style = {
+            height: Math.min(maxHeight, (numMentions*ITEM_HEIGHT) + 4),
+            width:  $mention_tab.parent().width(),
+            bottom: $(window).height() - $mention_tab.offset().top,
+            left:   $mention_tab.offset().left
+        };
 
         return (
-            <div className="mentions--top" style={{height: height, width: width, bottom: bottom, left: left}}>
-                <div ref="mentionlist" className="mentions-box" style={{height: height, width: width}}>
+            <div className="mentions--top" style={style}>
+                <div ref="mentionlist" className="mentions-box">
                     { mentions }
                 </div>
             </div>
