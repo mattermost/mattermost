@@ -150,6 +150,25 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 	return storeChannel
 }
 
+func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = ? WHERE Id = ?", model.GetMillis(), userId); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "We couldn't update the update_at", "user_id="+userId)
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) UpdateLastPingAt(userId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel)
 

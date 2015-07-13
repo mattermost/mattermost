@@ -342,7 +342,7 @@ module.exports = React.createClass({
                     more_messages = (
                         <div className="channel-intro">
                             <div className="post-profile-img__container channel-intro-img">
-                                <img className="post-profile-img" src={"/api/v1/users/" + teammate.id + "/image"} height="50" width="50" />
+                                <img className="post-profile-img" src={"/api/v1/users/" + teammate.id + "/image?time=" + teammate.update_at} height="50" width="50" />
                             </div>
                             <div className="channel-intro-profile">
                                 <strong><UserProfile userId={teammate.id} /></strong>

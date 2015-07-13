@@ -76,6 +76,7 @@ SearchItem = React.createClass({
         var message = utils.textToJsx(this.props.post.message, {searchTerm: this.props.term, noMentionHighlight: !this.props.isMentionSearch});
         var channelName = "";
         var channel = ChannelStore.get(this.props.post.channel_id)
+        var timestamp = UserStore.getCurrentUser().update_at;
 
         if (channel) {
             if (channel.type === 'D') {
@@ -89,7 +90,7 @@ SearchItem = React.createClass({
             <div className="search-item-container post" onClick={this.handleClick}>
                 <div className="search-channel__name">{ channelName }</div>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">

@@ -1,5 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
+var UserStore = require("../stores/user_store.jsx");
 
 module.exports = React.createClass({
     handleClick: function() {
@@ -7,8 +8,9 @@ module.exports = React.createClass({
     },
     render: function() {
         var icon;
+        var timestamp = UserStore.getCurrentUser().update_at;
         if (this.props.id != null) {
-            icon = <span><img className="mention-img" src={"/api/v1/users/" + this.props.id + "/image"}/></span>;
+            icon = <span><img className="mention-img" src={"/api/v1/users/" + this.props.id + "/image?time=" + timestamp}/></span>;
         } else {
             icon = <span><i className="mention-img fa fa-users fa-2x"></i></span>;
         }

@@ -729,6 +729,8 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	Srv.Store.User().UpdateUpdateAt(c.Session.UserId)
+
 	c.LogAudit("")
 }
 
