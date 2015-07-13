@@ -13,14 +13,14 @@ import (
 	"net/url"
 )
 
-func InitApp(r *mux.Router) {
-	l4g.Debug("Initializing app api routes")
+func InitOAuth(r *mux.Router) {
+	l4g.Debug("Initializing oauth api routes")
 
-	sr := r.PathPrefix("/apps").Subrouter()
+	sr := r.PathPrefix("/oauth2").Subrouter()
 
-	sr.Handle("/oauth2/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
-	sr.Handle("/oauth2/allow", ApiUserRequired(allowOAuth)).Methods("GET")
-	sr.Handle("/oauth2/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
+	sr.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
+	sr.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
+	sr.Handle("/access_token", ApiAppHandler(getAccessToken)).Methods("POST")
 }
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {

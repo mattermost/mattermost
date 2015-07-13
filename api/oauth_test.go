@@ -23,6 +23,8 @@ func TestRegisterApp(t *testing.T) {
 
 	app := &model.App{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrl: "https://nowhere.com"}
 
+	Client.Logout()
+
 	if _, err := Client.RegisterApp(app); err == nil {
 		t.Fatal("not logged in - should have failed")
 	}

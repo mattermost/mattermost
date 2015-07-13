@@ -856,7 +856,7 @@ module.exports.updateValetFeature = function(data, success, error) {
 
 module.exports.registerApp = function(app, success, error) {
     $.ajax({
-        url: "/api/v1/apps/oauth2/register",
+        url: "/api/v1/oauth2/register",
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
@@ -873,7 +873,7 @@ module.exports.registerApp = function(app, success, error) {
 
 module.exports.allowOAuth2 = function(response_type, client_id, redirect_uri, state, scope, success, error) {
     $.ajax({
-        url: "/api/v1/apps/oauth2/allow?response_type="+response_type+"&client_id="
+        url: "/api/v1/oauth2/allow?response_type="+response_type+"&client_id="
             +client_id+"&redirect_uri="+redirect_uri+"&scope="+scope+"&state="+state,
         dataType: 'json',
         contentType: 'application/json',

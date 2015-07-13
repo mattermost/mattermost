@@ -676,7 +676,7 @@ func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
 }
 
 func (c *Client) RegisterApp(app *App) (*Result, *AppError) {
-	if r, err := c.DoPost("/apps/oauth2/register", app.ToJson()); err != nil {
+	if r, err := c.DoPost("/oauth2/register", app.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -685,7 +685,7 @@ func (c *Client) RegisterApp(app *App) (*Result, *AppError) {
 }
 
 func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*Result, *AppError) {
-	if r, err := c.DoGet("/apps/oauth2/allow?response_type="+rspType+"&client_id="+clientId+"&redirect_uri="+url.QueryEscape(redirect)+"&scope="+scope+"&state="+url.QueryEscape(state), "", ""); err != nil {
+	if r, err := c.DoGet("/oauth2/allow?response_type="+rspType+"&client_id="+clientId+"&redirect_uri="+url.QueryEscape(redirect)+"&scope="+scope+"&state="+url.QueryEscape(state), "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -694,7 +694,7 @@ func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*
 }
 
 func (c *Client) GetAccessToken(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/apps/oauth2/access_token", MapToJson(data)); err != nil {
+	if r, err := c.DoPost("/oauth2/access_token", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
