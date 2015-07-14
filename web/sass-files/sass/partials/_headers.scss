@@ -75,14 +75,16 @@
 // Team Header in Sidebar
 .sidebar--left, .sidebar--menu {
 	.team__header {
-		padding: 0 15px 0 15px;
+		padding: 15px;
 		@include legacy-pie-clearfix;
 		a {
 			color: #fff;
 		}
 		.navbar-right {
 			font-size: 0.85em;
-			margin: 16px -5px 0;
+			position: absolute;
+			top: 24px;
+			right: 25px;
 			.dropdown-toggle {
 				padding: 0 10px;
 			}
@@ -100,16 +102,31 @@
 				display: inline-block;
 			}
 		}
-		.team__name {
+		.user__picture {
+			width: 36px;
+			height: 36px;
 			float: left;
-			line-height: 50px;
+			@include border-radius(36px);
+		}
+		.header__info {
+			padding-left: 42px;
+			color: #fff;
+		}
+		.team__name, .user__name {
+			display: block;
+			line-height: 18px;
 			font-weight: 600;
-			font-size: 1.2em;
+			font-size: 16px;
 			max-width: 80%;
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
 			text-decoration: none;
+		}
+		.user__name {
+			font-size: 14px;
+			font-weight: 400;
+			color: #eee;
 		}
 		> .nav {
 			> li {
