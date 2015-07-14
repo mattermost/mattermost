@@ -253,11 +253,7 @@ module.exports = React.createClass({
     _onTimeChange: function() {
         this.wasForced = true;
         this.preForcePosision = $(".post-list-holder-by-time").scrollTop();
-<<<<<<< HEAD
         this.forceUpdate();
-=======
-        this.forceUpdate()
->>>>>>> Added timestamp updates to right side and cleaned code
     },
     getMorePosts: function(e) {
         e.preventDefault();
