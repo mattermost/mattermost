@@ -108,11 +108,41 @@ func TestUserIsValid(t *testing.T) {
 	}
 }
 
+func TestUserGetFullName(t *testing.T) {
+	user := User{}
+
+	if fullName := user.GetFullName(); fullName != "" {
+		t.Fatal("Full name should be blank")
+	}
+
+	user.FirstName = "first"
+	if fullName := user.GetFullName(); fullName != "first" {
+		t.Fatal("Full name should be first name")
+	}
+
+	user.FirstName = ""
+	user.LastName = "last"
+	if fullName := user.GetFullName(); fullName != "last" {
+		t.Fatal("Full name should be last name")
+	}
+
+	user.FirstName = "first"
+	if fullName := user.GetFullName(); fullName != "first last" {
+		t.Fatal("Full name should be first name and last name")
+	}
+}
+
 func TestUserGetDisplayName(t *testing.T) {
-	user := User{FirstName: "first", LastName: "last", Username: "user"}
+	user := User{Username: "user"}
 
 	if displayName := user.GetDisplayName(); displayName != "user" {
 		t.Fatal("Display name should be username")
+	}
+
+	user.FirstName = "first"
+	user.LastName = "last"
+	if displayName := user.GetDisplayName(); displayName != "first last" {
+		t.Fatal("Display name should be full name")
 	}
 
 	user.Nickname = "nickname"

@@ -825,10 +825,28 @@ module.exports.changeColor =function(col, amt) {
     return (usePound?"#":"") + String("000000" + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
 };
 
+module.exports.getFullName = function(user) {
+    if (user.first_name && user.last_name) {
+        return user.first_name + " " + user.last_name;
+    } else if (user.first_name) {
+        return user.first_name;
+    } else if (user.last_name) {
+        return user.last_name;
+    } else {
+        return "";
+    }
+};
+
 module.exports.getDisplayName = function(user) {
     if (user.nickname && user.nickname.trim().length > 0) {
         return user.nickname;
     } else {
-        return user.username;
+        var fullName = module.exports.getFullName(user);
+
+        if (fullName) {
+            return fullName;
+        } else {
+            return user.username;
+        }
     }
 };

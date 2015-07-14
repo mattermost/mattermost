@@ -237,9 +237,23 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
+func (u *User) GetFullName() string {
+	if u.FirstName != "" && u.LastName != "" {
+		return u.FirstName + " " + u.LastName
+	} else if u.FirstName != "" {
+		return u.FirstName
+	} else if u.LastName != "" {
+		return u.LastName
+	} else {
+		return ""
+	}
+}
+
 func (u *User) GetDisplayName() string {
 	if u.Nickname != "" {
 		return u.Nickname
+	} else if fullName := u.GetFullName(); fullName != "" {
+		return fullName
 	} else {
 		return u.Username
 	}
