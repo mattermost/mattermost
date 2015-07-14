@@ -42,11 +42,6 @@ type SqlSettings struct {
 	AtRestEncryptKey   string
 }
 
-type RedisSettings struct {
-	DataSource   string
-	MaxOpenConns int
-}
-
 type LogSettings struct {
 	ConsoleEnable bool
 	ConsoleLevel  string
@@ -112,7 +107,6 @@ type Config struct {
 	LogSettings     LogSettings
 	ServiceSettings ServiceSettings
 	SqlSettings     SqlSettings
-	RedisSettings   RedisSettings
 	AWSSettings     AWSSettings
 	ImageSettings   ImageSettings
 	EmailSettings   EmailSettings

@@ -27,8 +27,6 @@ var commands = []commandHandler{
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
-
-	hub.Start()
 }
 
 func command(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -115,9 +115,6 @@ func TestSocket(t *testing.T) {
 	}()
 
 	time.Sleep(2 * time.Second)
-
-	hub.Stop(team.Id)
-
 }
 
 func TestZZWebSocketTearDown(t *testing.T) {

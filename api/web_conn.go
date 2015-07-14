@@ -70,7 +70,7 @@ func (c *WebConn) readPump() {
 		} else {
 			msg.TeamId = c.TeamId
 			msg.UserId = c.UserId
-			store.PublishAndForget(&msg)
+			PublishAndForget(&msg)
 		}
 	}
 }

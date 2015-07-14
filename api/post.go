@@ -11,10 +11,10 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-	"path/filepath"
 )
 
 func InitPost(r *mux.Router) {
@@ -455,7 +455,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 			message.Add("mentions", model.ArrayToJson(mentionedUsers))
 		}
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 	}()
 }
 
@@ -521,7 +521,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("channel_id", rpost.ChannelId)
 		message.Add("message", rpost.Message)
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 
 		w.Write([]byte(rpost.ToJson()))
 	}
@@ -670,7 +670,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("post_id", post.Id)
 		message.Add("channel_id", post.ChannelId)
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 
 		result := make(map[string]string)
 		result["id"] = postId
