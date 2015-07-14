@@ -640,13 +640,10 @@ var SecurityTab = React.createClass({
         this.setState({ confirm_password: e.target.value });
     },
     handleHistoryOpen: function() {
-        React.render(
-            <AccessHistoryModal />,
-            document.getElementById('access_history_modal')
-        );
+        $("#user_settings").modal('hide');
     },
     handleDevicesOpen: function() {
-
+        $("#user_settings").modal('hide');
     },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };
@@ -723,8 +720,8 @@ var SecurityTab = React.createClass({
                     { passwordSection }
                     <div className="divider-dark"/>
                     <br></br>
-                    <a data-toggle="modal" data-target="#access_history_modal" href="#" onClick={this.handleHistoryOpen}>View Access History</a>
-                    <a data-toggle="modal" data-target="#activity_log_modal" href="#" onClick={this.handleDevicesOpen}>View and Logout of Active Devices</a>
+                    <a data-toggle="modal" data-target="#access_history" href="#" onClick={this.handleHistoryOpen}>View Access History</a>
+                    <a data-toggle="modal" data-target="#activity_log" href="#" onClick={this.handleDevicesOpen}>View and Logout of Active Devices</a>
                 </div>
             </div>
         );
