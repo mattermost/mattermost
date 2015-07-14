@@ -120,7 +120,7 @@ module.exports = React.createClass({
         return (
             <div className="post-body">
                 { comment }
-                <p key={post.Id+"_message"} className={postClass}><span>{inner}</span></p>
+                <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
                 { filenames && filenames.length > 0 ?
                     <div className="post-image__columns">
                         { postFiles }
