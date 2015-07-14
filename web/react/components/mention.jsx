@@ -30,7 +30,7 @@ module.exports = React.createClass({
             icon = <span><i className="mention-img fa fa-users fa-2x"></i></span>;
         }
         return (
-            <div className={"mentions-name " + this.state.isFocused} onClick={this.handleClick} onMouseEnter={function(){self.props.handleMouseEnter(self.props.listId)}}>
+            <div className={"mentions-name " + this.state.isFocused} id={this.props.id + "_mentions"} onClick={this.handleClick} onMouseEnter={function(){self.props.handleMouseEnter(self.props.listId)}}>
                 <div className="pull-left">{icon}</div>
                 <div className="pull-left mention-align"><span>@{this.props.username}</span><span className="mention-fullname">{this.props.secondary_text}</span></div>
             </div>

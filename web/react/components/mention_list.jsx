@@ -30,6 +30,8 @@ module.exports = React.createClass({
                     e.stopPropagation();
                     e.preventDefault();
 
+                    var tempSelectedMention = -1
+
                     if (!self.getSelection(self.state.selectedMention)) {
                         //self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
                         //self.refs['mention' + self.state.selectedMention].deselect();
@@ -64,7 +66,7 @@ module.exports = React.createClass({
                     self.refs['mention' + self.state.selectedMention].select();
 
                     //self.checkIfInView($('#'+self.props.id));
-                    self.checkIfInView();
+                    self.checkIfInView(e.which, tempSelectedMention);
                     //console.log('#'+self.refs['mention' + self.state.selectedMention].props.id);
                     //console.log($('#'+self.refs['mention' + self.state.selectedMention].props.id));
                     //console.log($('#'+self.props.id));
@@ -154,20 +156,43 @@ module.exports = React.createClass({
     isEmpty: function() {
         return (!this.refs.mention0);
     },
-    checkIfInView: function() {
-        var element = $('#'+this.refs['mention' + this.state.selectedMention].props.id);
-        //var top = $('.mentions-box').position().bottom;
-        //$(".mentions-box").css("bottom", top+303);
-        //$("#"+this.props.id).scrollTop($("#"+this.props.id).scrollTop() + $("div.mentions-name.mentions-focused").position().top);
-        console.log(element.length);
-        console.log(element + " " + element.offset());
-        var offset = element.offset().bottom - $('#'+this.props.id).scrollTop(); //$(this.props.id) ??
-        if(offset > $('#'+this.props.id).innerHeight){
-            // Not in view so scroll to it
-            $('body').animate({scrollTop: offset}, 1000); //$(this.props.id) ??
-            return false;
+    checkIfInView: function(keyPressed, ifLoopUp) {
+        var element = $('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions");
+        var offset = element.offset().top - $("#mentionsbox").scrollTop();
+        var direction = keyPressed === 38 ? "up" : "down";
+        console.log("element offset top: " + $(element).offset().top + " box offset top: " + $("#mentionsbox").offset().top);
+        var scrollAmount;
+        if (direction === "up" && ifLoopUp !== -1) {
+            /*$("#mentionsbox").animate({
+                scrollTop: ("#mentionsbox").offset().top
+            }, 50);*/
+            scrollAmount = $("#mentionsbox").offset().top;
         }
-        return true;
+        else if (direction === "down" && !this.refs['mention' + this.state.selectedMention].props.listId) {
+            /*$("#mentionsbox").animate({
+                scrollTop: 0
+            }, 50);*/
+            scrollAmount = 0;
+        }
+        else if (direction === "up") {
+            /*$("#mentionsbox").animate({
+                scrollTop: '-=28'
+            }, 50);*/
+            scrollAmount = "-=28";
+        }
+        else if (direction === "down") {
+            /*$("#mentionsbox").animate({
+                scrollTop: '+=28'
+            }, 50);*/
+            scrollAmount = "+=28";
+        }
+        $("#mentionsbox").animate({
+            scrollTop: scrollAmount
+        }, 50);
+        /*$("#mentionsbox").animate({
+            scrollTop: $(element).offset().top - $("#mentionsbox").offset().top
+            //scrollTop: $(element).offset().top - $("#mentionsbox").offset().top
+        }, 50);*/
     },
     alreadyMentioned: function(username) {
         var excludeUsers = this.state.excludeUsers;
@@ -195,12 +220,14 @@ module.exports = React.createClass({
         all.username = "all";
         all.full_name = "";
         all.secondary_text = "Notifies everyone in the team";
+        all.id = "allmention";
         users.push(all);
 
         var channel = {};
         channel.username = "channel";
         channel.full_name = "";
         channel.secondary_text = "Notifies everyone in the channel";
+        channel.id = "channelmention";
         users.push(channel);
 
         users.sort(function(a,b) {
@@ -254,7 +281,7 @@ module.exports = React.createClass({
 
         return (
             <div className="mentions--top" style={style}>
-                <div ref="mentionlist" className="mentions-box">
+                <div ref="mentionlist" className="mentions-box" id="mentionsbox">
                     { mentions }
                 </div>
             </div>
