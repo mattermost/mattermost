@@ -198,6 +198,10 @@ module.exports = React.createClass({
                 post.message = msg.props.message;
 
                 post_list.posts[post.id] = post;
+
+                console.log(React.findDOMNode(this.refs["post"+post.id]));
+                console.log(React.unmountComponentAtNode(React.findDOMNode(this.refs["post"+post.id])));
+                //$(this.refs["post"+post.id].getDOMNode()).remove();
                 this.setState({ post_list: post_list });
 
                 PostStore.storePosts(msg.channel_id, post_list);
