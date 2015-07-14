@@ -249,11 +249,27 @@ var SidebarLoggedIn = React.createClass({
 
                 var repRegex = new RegExp("<br>", "g");
                 var post = JSON.parse(msg.props.post);
+                var msgProps = msg.props;
                 var msg = post.message.replace(repRegex, "\n").replace(/\n+/g, " ").replace("<mention>", "").replace("</mention>", "");
+                
                 if (msg.length > 50) {
                     msg = msg.substring(0,49) + "...";
                 }
-                utils.notifyMe(title, username + " wrote: " + msg, channel);
+
+                if (msg.length === 0) {
+                    if (msgProps.image) {
+                        utils.notifyMe(title, username + " uploaded an image", channel);
+                    }
+                    else if (msgProps.otherFile) {
+                        utils.notifyMe(title, username + " uploaded a file", channel);
+                    }
+                    else {
+                        utils.notifyMe(title, username + " did something new", channel);
+                    }
+                }
+                else {
+                    utils.notifyMe(title, username + " wrote: " + msg, channel);
+                }
                 if (!user.notify_props || user.notify_props.desktop_sound === "true") {
                     utils.ding();
                 }
