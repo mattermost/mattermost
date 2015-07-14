@@ -35,6 +35,8 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
+    preForcePosision: 0,
+    wasForced: false,
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
         if (user.props && user.props.theme) {
@@ -50,6 +52,7 @@ module.exports = React.createClass({
 
         PostStore.addChangeListener(this._onChange);
         ChannelStore.addChangeListener(this._onChange);
+        UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
 
         $(".post-list-holder-by-time").perfectScrollbar();
@@ -79,6 +82,11 @@ module.exports = React.createClass({
         });
 
         $(post_holder).scroll(function(e){
+            if (self.wasForced) {
+                $(post_holder).scrollTop(self.preForcePosision);
+                $(post_holder).perfectScrollbar('update');
+                self.wasForced = false;
+            }
             if (!self.preventScrollTrigger) {
                 self.scrollPosition = $(post_holder).scrollTop() + $(post_holder).innerHeight();
             }
@@ -129,6 +137,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeChangeListener(this._onChange);
         ChannelStore.removeChangeListener(this._onChange);
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
     },
@@ -161,7 +170,7 @@ module.exports = React.createClass({
                 this.scrolledToNew = false;
             }
             this.setState(newState);
-        }
+        } 
     },
     _onSocketChange: function(msg) {
         if (msg.action == "posted") {
@@ -224,6 +233,11 @@ module.exports = React.createClass({
         } else if(msg.action == "new_user") {
             AsyncClient.getProfiles();
         }
+    },
+    _onTimeChange: function() {
+        this.wasForced = true;
+        this.preForcePosision = $(".post-list-holder-by-time").scrollTop();
+        this.forceUpdate();
     },
     getMorePosts: function(e) {
         e.preventDefault();
