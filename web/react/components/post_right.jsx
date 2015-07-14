@@ -301,7 +301,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeSelectedPostChangeListener(this._onChange);
         PostStore.removeChangeListener(this._onChangeAll);
-        UserStore.removeStatusesChangeListener(this._onTimeChange)
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
     },
     _onChange: function() {
         if (this.isMounted()) {

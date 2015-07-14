@@ -237,7 +237,7 @@ module.exports = React.createClass({
     _onTimeChange: function() {
         this.wasForced = true;
         this.preForcePosision = $(".post-list-holder-by-time").scrollTop();
-        this.forceUpdate()
+        this.forceUpdate();
     },
     getMorePosts: function(e) {
         e.preventDefault();
