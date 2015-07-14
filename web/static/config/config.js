@@ -16,6 +16,10 @@ var config = {
     RequireInviteNames: false,
     AllowSignupDomainsWizard: false,
 
+    // Google Developer Key (for Youtube API links)
+    // Leave blank to disable
+    GoogleDeveloperKey: "",
+
     // Privacy switches
     ShowEmail: true,
 
