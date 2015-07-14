@@ -402,20 +402,29 @@ module.exports.textToJsx = function(text, options) {
 
             return hashText + text;
         };
-        /*customMarkedRenderer.blockquote = function(quote) {
-            return ">" + quote;
-        };*/
         /*customMarkedRenderer.html = function(html) {
             return html;
         };*/
-        customMarkedRenderer.link = function(href, title, text) {
-            return " " + text + " ";
+        /*customMarkedRenderer.codespan = function(code) {
+            return "<code>" + text + "</code>";
+        };*/
+        customMarkedRenderer.del = function(text) {
+            return "<s>" + text + "</s>";
         };
+        customMarkedRenderer.link = function(href, title, text) {
+            return " " + href + " ";
+        };
+        customMarkedRenderer.image = function(href, title, text) {
+            return " " + href + " ";
+        };
+        /*customMarkedRenderer.table = function(header, body) {
+            return header + " " + body;
+        }*/
         /*customMarkedRenderer.paragraph = function(text) {
             return text;
         };*/
 
-        text = Marked(text, {sanitize: true, gfm: true, tables: false, renderer: customMarkedRenderer});
+        text = Marked(text, {sanitize: true, gfm: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
     }
 
     if (options && options['singleline']) {
