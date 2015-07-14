@@ -75,7 +75,7 @@ module.exports = React.createClass({
             if(parentPost.message) {
                 message = utils.replaceHtmlEntities(parentPost.message)
             } else if (parentPost.filenames.length) {
-                message = <a parentPost.filenames[0].split('/').pop();
+                message = parentPost.filenames[0].split('/').pop();
 
                 if (parentPost.filenames.length === 2) {
                     message += " plus 1 other file";
