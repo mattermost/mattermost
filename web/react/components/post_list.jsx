@@ -6,7 +6,6 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var UserProfile = require( './user_profile.jsx' );
 var AsyncClient = require('../utils/async_client.jsx');
-var CreatePost = require('./create_post.jsx');
 var Post = require('./post.jsx');
 var LoadingScreen = require('./loading_screen.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
@@ -341,7 +340,7 @@ module.exports = React.createClass({
                     }
                 }
 
-                if (channel.name === Constants.DEFAULT_CHANNEL) {
+                if (ChannelStore.isDefault(channel)) {
                     more_messages = (
                         <div className="channel-intro">
                             <h4 className="channel-intro-title">Welcome</h4>

@@ -44,40 +44,24 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   removeExtraInfoChangeListener: function(callback) {
     this.removeListener(EXTRA_INFO_EVENT, callback);
   },
-  get: function(id) {
-    var current = null;
-    var c = this._getChannels();
-
-    c.some(function(channel) {
-      if (channel.id == id) {
-        current = channel;
-        return true;
+  findFirstBy: function(field, value) {
+    var channels = this._getChannels();
+    for (var i = 0; i < channels.length; i++) {
+      if (channels[i][field] == value) {
+        return channels[i];
       }
-      return false;
-    });
+    }
 
-    return current;
+    return null;
+  },
+  get: function(id) {
+    return this.findFirstBy('id', id);
   },
   getMember: function(id) {
-    var current = null;
     return this.getAllMembers()[id];
   },
   getByName: function(name) {
-    var current = null;
-    var c = this._getChannels();
-
-    c.some(function(channel) {
-      if (channel.name == name) {
-        current = channel;
-        return true;
-      }
-
-      return false;
-
-    });
-
-    return current;
-
+    return this.findFirstBy('name', name);
   },
   getAll: function() {
     return this._getChannels();
@@ -120,7 +104,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   getCurrent: function() {
     var currentId = this.getCurrentId();
 
-    if (currentId != null)
+    if (currentId)
       return this.get(currentId);
     else
       return null;
@@ -128,7 +112,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   getCurrentMember: function() {
     var currentId = ChannelStore.getCurrentId();
 
-    if (currentId != null)
+    if (currentId)
       return this.getAllMembers()[currentId];
     else
       return null;
@@ -143,7 +127,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     var currentId = ChannelStore.getCurrentId();
     var extra = null;
 
-    if (currentId != null)
+    if (currentId)
       extra = this._getExtraInfos()[currentId];
 
     if (extra == null)
@@ -154,7 +138,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   getExtraInfo: function(channel_id) {
     var extra = null;
 
-    if (channel_id != null)
+    if (channel_id)
       extra = this._getExtraInfos()[channel_id];
 
     if (extra == null)
@@ -192,7 +176,10 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   },
   _getExtraInfos: function() {
     return BrowserStore.getItem("extra_infos", {});
-  }
+  },
+  isDefault: function(channel) {
+    return channel.name == Constants.DEFAULT_CHANNEL;
+  }  
 });
 
 ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {
