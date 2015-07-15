@@ -31,40 +31,25 @@ module.exports = React.createClass({
                     e.preventDefault();
 
                     var tempSelectedMention = -1
-
-                    if (!self.getSelection(self.state.selectedMention)) {
-                        while (self.getSelection(++tempSelectedMention)) {
-                            if (self.state.selectedUsername === self.refs['mention' + tempSelectedMention].props.username) {
-                                this.refs['mention' + tempSelectedMention].select();
-                                this.setState({ selectedMention: tempSelectedMention });
-                                break;
-                            }
+                    self.refs['mention' + self.state.selectedMention].deselect();
+                    if (e.which === 38) {    
+                        if (self.getSelection(self.state.selectedMention - 1))
+                            self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
+                        else {
+                            while (self.getSelection(++tempSelectedMention))
+                                ; //Need to find the top of the list
+                            self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
                         }
                     }
                     else {
-                        self.refs['mention' + self.state.selectedMention].deselect();
-                        if (e.which === 38) {    
-                            if (self.getSelection(self.state.selectedMention - 1))
-                                self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
-                            else {
-                                while (self.getSelection(++tempSelectedMention))
-                                    ; //Need to find the top of the list
-                                self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
-                            }
-                        }
-                        else {
-                            if (self.getSelection(self.state.selectedMention + 1))
-                                self.setState({ selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username });
-                            else
-                                self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
-                        }
+                        if (self.getSelection(self.state.selectedMention + 1))
+                            self.setState({ selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username });
+                        else
+                            self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
                     }
-                    self.refs['mention' + self.state.selectedMention].select();
 
+                    self.refs['mention' + self.state.selectedMention].select();
                     self.scrollToMention(e.which, tempSelectedMention);
-                }
-                else if (e.which === 46 || e.which === 8) {
-                    self.setState({ lessText: true });
                 }
             }
         );
@@ -89,7 +74,7 @@ module.exports = React.createClass({
             if (this.state.selectedUsername !== "" && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
                 var tempSelectedMention = -1;
                 var foundMatch = false;
-                while (!this.state.lessText && this.getSelection(++tempSelectedMention)) {
+                while (tempSelectedMention < this.state.selectedMention && this.getSelection(++tempSelectedMention)) {
                     if (this.state.selectedUsername === this.refs['mention' + tempSelectedMention].props.username) {
                         this.refs['mention' + tempSelectedMention].select();
                         this.setState({ selectedMention: tempSelectedMention });
@@ -99,7 +84,7 @@ module.exports = React.createClass({
                 }
                 if (this.refs.mention0 != undefined && !foundMatch) {
                     this.refs.mention0.select();
-                    this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username, lessText: false });
+                    this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username });
                 }
             }
             else if (this.refs['mention' + this.state.selectedMention] != undefined) {
@@ -136,8 +121,7 @@ module.exports = React.createClass({
         this.refs['mention' + listId].select();
     },
     getSelection: function(listId) {
-        var mention = this.refs['mention' + listId];
-        if (!mention) 
+        if (!this.refs['mention' + listId]) 
             return false;
         else
             return true;
@@ -182,7 +166,7 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "", lessText: false };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
     },
     render: function() {
         var mentionText = this.state.mentionText;
