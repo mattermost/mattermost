@@ -721,6 +721,7 @@ var SecurityTab = React.createClass({
                     <div className="divider-dark"/>
                     <br></br>
                     <a data-toggle="modal" data-target="#access_history" href="#" onClick={this.handleHistoryOpen}>View Access History</a>
+                    <b>   </b>
                     <a data-toggle="modal" data-target="#activity_log" href="#" onClick={this.handleDevicesOpen}>View and Logout of Active Devices</a>
                 </div>
             </div>

@@ -19,30 +19,45 @@ function getStateFromStoresForSessions() {
 }
 
 module.exports = React.createClass({
+    submitRevoke: function(altId) {
+        var self = this;
+        client.revokeSession(altId,
+            function(data) {
+                AsyncClient.getSessions();
+            }.bind(this),
+            function(err) {
+                state = getStateFromStoresForSessions();
+                state.server_error = err;
+                this.setState(state);
+            }.bind(this)
+        );
+    },
     componentDidMount: function() {
-        UserStore.addAuditsChangeListener(this._onChange);
-        AsyncClient.getAudits();
+        UserStore.addSessionsChangeListener(this._onChange);
+        AsyncClient.getSessions();
     },
     componentWillUnmount: function() {
-        UserStore.removeAuditsChangeListener(this._onChange);
+        UserStore.removeSessionsChangeListener(this._onChange);
     },
     _onChange: function() {
-        this.setState(getStateFromStoresForAudits());
+        this.setState(getStateFromStoresForSessions());
     },
     getInitialState: function() {
-        return { audits: this.getStateFromStoresForAudits(), sessions: this.getStateFromStoresForSessions() };
+        return getStateFromStoresForSessions();
     },
     render: function() {
-        var accessList = [];
+        var activityList = [];
         var server_error = {};
+
+
 
         return (
             <div>
-                <div className="modal fade" ref="modal" id="access_history" tabIndex="-1" role="dialog" aria-hidden="true">
+                <div className="modal fade" ref="modal" id="activity_log" tabIndex="-1" role="dialog" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                            <h4 className="modal-title" id="myModalLabel">Access History</h4>
+                            <h4 className="modal-title" id="myModalLabel">Active Devices</h4>
                             </div>
                             <div ref="modalBody" className="modal-body">
                                 <form role="form">

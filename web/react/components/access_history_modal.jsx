@@ -19,34 +19,33 @@ function getStateFromStoresForAudits() {
 }
 /////////currentPostDay.toDateString()//////////////////
 module.exports = React.createClass({
-    submitRevoke: function(altId) {
-        client.revokeSession(altId,
-            function(data) {
-                AsyncClient.getSessions();
-            }.bind(this),
-            function(err) {
-                state = this.getStateFromStoresForSessions();
-                state.server_error = err;
-                this.setState(state);
-            }.bind(this)
-        );
-    },
     componentDidMount: function() {
-        UserStore.addSessionsChangeListener(this._onChange);
-        AsyncClient.getSessions();
+        UserStore.addAuditsChangeListener(this._onChange);
+        AsyncClient.getAudits();
     },
     componentWillUnmount: function() {
-        UserStore.removeSessionsChangeListener(this._onChange);
+        UserStore.removeAuditsChangeListener(this._onChange);
     },
     _onChange: function() {
-        this.setState(getStateFromStoresForSessions());
+        this.setState(getStateFromStoresForAudits());
     },
     getInitialState: function() {
-        return { sessions: this.getStateFromStoresForSessions(), audits: this.getStateFromStoresForAudits() };
+        return getStateFromStoresForAudits();
     },
     render: function() {
         var accessList = [];
         var server_error = this.state.server_error ? this.state.server_error : null;
+        var currentHistoryDate = null;
+
+        for (var i = 0; i < this.state.audits.length; i++) {
+            var currentAudit = this.state.audits[i];
+            var newHistoryDate = new Date(currentAudit.create_at);
+
+            if (!currentHistoryDate || currentHistoryDate.toLocaleDateString() !== newHistoryDate.toLocaleDateString()) {
+                currentHistoryDate = newHistoryDate;
+            }
+            
+        }
 
         return (
             <div>
@@ -58,6 +57,7 @@ module.exports = React.createClass({
                             </div>
                             <div ref="modalBody" className="modal-body">
                                 <form role="form">
+                                { accessList }
                                 </form>
                                 { server_error }
                             </div>
