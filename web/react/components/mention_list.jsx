@@ -41,7 +41,7 @@ module.exports = React.createClass({
                             self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
                         }
                     }
-                    else {
+                    else if (e.which === 40) {
                         if (self.getSelection(self.state.selectedMention + 1))
                             self.setState({ selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username });
                         else
@@ -82,12 +82,12 @@ module.exports = React.createClass({
                         break;
                     }
                 }
-                if (this.refs.mention0 != undefined && !foundMatch) {
+                if (this.getSelection(0) && !foundMatch) {
                     this.refs.mention0.select();
                     this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username });
                 }
             }
-            else if (this.refs['mention' + this.state.selectedMention] != undefined) {
+            else if (this.getSelection(this.state.selectedMention)) {
                 this.refs['mention' + this.state.selectedMention].select();
             }
         }
@@ -144,7 +144,7 @@ module.exports = React.createClass({
         var scrollAmount = 0;
 
         if (direction === "up" && ifLoopUp !== -1)
-            scrollAmount = $("#mentionsbox").innerHeight() + 10000000; //innerHeight is not the real height of the box in the RHS sometimes; this compensates as it should always go to the bottom anyway
+            scrollAmount = $("#mentionsbox").height() * 100; //Makes sure that it scrolls all the way to the bottom
         else if (direction === "down" && this.refs['mention' + this.state.selectedMention].props.listId === 0)
             scrollAmount = 0;
         else if (direction === "up") 
@@ -154,7 +154,7 @@ module.exports = React.createClass({
 
         $("#mentionsbox").animate({
             scrollTop: scrollAmount
-        }, 50);
+        }, 75);
     },
     alreadyMentioned: function(username) {
         var excludeUsers = this.state.excludeUsers;
