@@ -77,7 +77,7 @@ var NavbarDropdown = React.createClass({
             for (var i = 0; i < this.state.teams.length; i++) {
                 var domain = this.state.teams[i];
 
-                if (domain == utils.getSubDomain()) 
+                if (domain == utils.getSubDomain())
                     continue;
 
                 if (teams.length == 0)
@@ -121,10 +121,15 @@ module.exports = React.createClass({
     },
     render: function() {
         var teamName = this.props.teamName ? this.props.teamName : config.SiteName;
+        var me = UserStore.getCurrentUser()
 
         return (
             <div className="team__header theme">
-                <a className="team__name" href="/channels/town-square">{ teamName }</a>
+                <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
+                <div className="header__info">
+                    <div className="user__name">@{me.username}</div>
+                    <a className="team__name" href="/channels/town-square">{ teamName }</a>
+                </div>
                 <NavbarDropdown teamType={this.props.teamType} />
             </div>
         );

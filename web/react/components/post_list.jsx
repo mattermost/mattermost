@@ -8,6 +8,7 @@ var UserProfile = require( './user_profile.jsx' );
 var AsyncClient = require('../utils/async_client.jsx');
 var CreatePost = require('./create_post.jsx');
 var Post = require('./post.jsx');
+var LoadingScreen = require('./loading_screen.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var utils = require('../utils/utils.jsx');
 var Client = require('../utils/client.jsx');
@@ -26,37 +27,8 @@ function getStateFromStores() {
     };
 }
 
-function changeColor(col, amt) {
-
-    var usePound = false;
-
-    if (col[0] == "#") {
-        col = col.slice(1);
-        usePound = true;
-    }
-
-    var num = parseInt(col,16);
-
-    var r = (num >> 16) + amt;
-
-    if (r > 255) r = 255;
-    else if  (r < 0) r = 0;
-
-    var b = ((num >> 8) & 0x00FF) + amt;
-
-    if (b > 255) b = 255;
-    else if  (b < 0) b = 0;
-
-    var g = (num & 0x0000FF) + amt;
-
-    if (g > 255) g = 255;
-    else if (g < 0) g = 0;
-
-    return (usePound?"#":"") + String("000000" + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
-
-}
-
 module.exports = React.createClass({
+    displayName: "PostList",
     scrollPosition: 0,
     preventScrollTrigger: false,
     gotMorePosts: false,
@@ -69,7 +41,7 @@ module.exports = React.createClass({
             utils.changeCss('a.theme', 'color:'+user.props.theme+'; fill:'+user.props.theme+'!important;');
             utils.changeCss('div.theme', 'background-color:'+user.props.theme+';');
             utils.changeCss('.btn.btn-primary', 'background: ' + user.props.theme+';');
-            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + changeColor(user.props.theme, -10)  +';');
+            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, -10)  +';');
             utils.changeCss('.modal .modal-header', 'background: ' + user.props.theme+';');
             utils.changeCss('.mention', 'background: ' + user.props.theme+';');
             utils.changeCss('.mention-link', 'color: ' + user.props.theme+';');
@@ -161,24 +133,20 @@ module.exports = React.createClass({
         $('body').off('click.userpopover');
     },
     resize: function() {
+        var post_holder = $(".post-list-holder-by-time")[0];
+        this.preventScrollTrigger = true;
         if (this.gotMorePosts) {
             this.gotMorePosts = false;
-            var post_holder = $(".post-list-holder-by-time")[0];
-            this.preventScrollTrigger = true;
             $(post_holder).scrollTop($(post_holder).scrollTop() + (post_holder.scrollHeight-this.oldScrollHeight) );
-            $(post_holder).perfectScrollbar('update');
         } else {
-            var post_holder = $(".post-list-holder-by-time")[0];
-            this.preventScrollTrigger = true;
             if ($("#new_message")[0] && !this.scrolledToNew) {
                 $(post_holder).scrollTop($(post_holder).scrollTop() + $("#new_message").offset().top - 63);
-                $(post_holder).perfectScrollbar('update');
                 this.scrolledToNew = true;
             } else {
                 $(post_holder).scrollTop(post_holder.scrollHeight);
-                $(post_holder).perfectScrollbar('update');
             }
         }
+        $(post_holder).perfectScrollbar('update');
     },
     _onChange: function() {
         var newState = getStateFromStores();
@@ -342,12 +310,15 @@ module.exports = React.createClass({
                     more_messages = (
                         <div className="channel-intro">
                             <div className="post-profile-img__container channel-intro-img">
-                                <img className="post-profile-img" src={"/api/v1/users/" + teammate.id + "/image"} height="50" width="50" />
+                                <img className="post-profile-img" src={"/api/v1/users/" + teammate.id + "/image?time=" + teammate.update_at} height="50" width="50" />
                             </div>
                             <div className="channel-intro-profile">
                                 <strong><UserProfile userId={teammate.id} /></strong>
                             </div>
-                            <p className="channel-intro-text">{"This is the start of your private message history with " + teammate_name + "." }<br/>{"Private messages and files shared here are not shown to people outside this area."}</p>
+                            <p className="channel-intro-text">
+                                {"This is the start of your private message history with " + teammate_name + "." }<br/>
+                                {"Private messages and files shared here are not shown to people outside this area."}
+                            </p>
                         </div>
                     );
                 } else {
@@ -410,7 +381,7 @@ module.exports = React.createClass({
                                 { channel.type === 'P' ? " Only invited members can see this private group." : " Any member can join and read this channel." }
                                 <br/>
                                 <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
-                                <a className="intro-links" style={userStyle} data-toggle="modal" data-target="#channel_invite"><i className="fa fa-user-plus"></i>Invite others to this {ui_type}</a>
+                                <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#channel_invite"><i className="fa fa-user-plus"></i>Invite others to this {ui_type}</a>
                             </p>
                         </div>
                     );
@@ -420,37 +391,35 @@ module.exports = React.createClass({
 
         var postCtls = [];
 
-        if (posts != undefined) {
+        if (posts) {
             var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
-            var currentPostDay = new Date();
+            var currentPostDay;
 
             for (var i = order.length-1; i >= 0; i--) {
                 var post = posts[order[i]];
-                var parentPost;
+                var parentPost = post.parent_id ? posts[post.parent_id] : null;
 
-                if (post.parent_id) {
-                    parentPost = posts[post.parent_id];
-                } else {
-                    parentPost = null;
+                var sameUser = '';
+                var sameRoot = false;
+                var hideProfilePic = false;
+                var prevPost = (i < order.length - 1) ? posts[order[i + 1]] : null;
+
+                if (prevPost) {
+                    sameUser = (prevPost.user_id === post.user_id) && (post.create_at - prevPost.create_at <= 1000*60*5) ? "same--user" : "";
+                    sameRoot = utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
+
+                    // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
+                    hideProfilePic = (prevPost.user_id === post.user_id) && !utils.isComment(prevPost) && !utils.isComment(post);
                 }
-
-                var sameUser = i < order.length-1 && posts[order[i+1]].user_id === post.user_id  && post.create_at - posts[order[i+1]].create_at <= 1000*60*5 ? "same--user" : "";
-                var sameRoot = i < order.length-1 && post.root_id != "" && (posts[order[i+1]].id === post.root_id || posts[order[i+1]].root_id === post.root_id) ? true : false;
-
-                // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
-                var hideProfilePic = i < order.length-1 && posts[order[i+1]].user_id === post.user_id && posts[order[i+1]].root_id === '' && post.root_id === '';
 
                 // check if it's the last comment in a consecutive string of comments on the same post
-                var isLastComment = false;
-                if (utils.isComment(post)) {
-                    // it is the last comment if it is last post in the channel or the next post has a different root post
-                    isLastComment = (i === 0 || posts[order[i-1]].root_id != post.root_id);
-                }
+                // it is the last comment if it is last post in the channel or the next post has a different root post
+                var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
                 var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
-                if(currentPostDay.getDate() !== previousPostDay.getDate() || currentPostDay.getMonth() !== previousPostDay.getMonth() || currentPostDay.getFullYear() !== previousPostDay.getFullYear()) {
+                if (currentPostDay.toDateString() != previousPostDay.toDateString()) {
                     postCtls.push(
                         <div className="date-separator">
                             <hr className="separator__hr" />
@@ -469,20 +438,10 @@ module.exports = React.createClass({
                     );
                 }
                 postCtls.push(postCtl);
-                previousPostDay = utils.getDateForUnixTicks(post.create_at);
+                previousPostDay = currentPostDay;
             }
-        }
-        else {
-            postCtls.push(
-                <div ref="loadingscreen" className="loading-screen">
-                    <div className="loading__content">
-                    <h3>Loading</h3>
-                        <div id="round_1" className="round"></div>
-                        <div id="round_2" className="round"></div>
-                        <div id="round_3" className="round"></div>
-                    </div>
-                </div>
-            );
+        } else {
+            postCtls.push(<LoadingScreen position="absolute" />);
         }
 
         return (
@@ -497,5 +456,3 @@ module.exports = React.createClass({
         );
     }
 });
-
-

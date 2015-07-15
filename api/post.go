@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"path/filepath"
 )
 
 func InitPost(r *mux.Router) {
@@ -437,6 +438,19 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 
 		message := model.NewMessage(teamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
 		message.Add("post", post.ToJson())
+
+		if len(post.Filenames) != 0 {
+			message.Add("otherFile", "true")
+
+			for _, filename := range post.Filenames {
+				ext := filepath.Ext(filename)
+				if model.IsFileExtImage(ext) {
+					message.Add("image", "true")
+					break
+				}
+			}
+		}
+
 		if len(mentionedUsers) != 0 {
 			message.Add("mentions", model.ArrayToJson(mentionedUsers))
 		}

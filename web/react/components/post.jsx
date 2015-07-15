@@ -10,6 +10,7 @@ var UserStore = require('../stores/user_store.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 module.exports = React.createClass({
+    displayName: "Post",
     componentDidMount: function() {
         $('.modal').on('show.bs.modal', function () {
             $('.modal-body').css('overflow-y', 'auto');
@@ -19,7 +20,7 @@ module.exports = React.createClass({
     handleCommentClick: function(e) {
         e.preventDefault();
 
-        data = {};
+        var data = {};
         data.order = [this.props.post.id];
         data.posts = this.props.posts;
 
@@ -48,7 +49,6 @@ module.exports = React.createClass({
 
         var commentCount = 0;
         var commentRootId = parentPost ? post.root_id : post.id;
-        var rootUser = "";
         for (var postId in posts) {
             if (posts[postId].root_id == commentRootId) {
                 commentCount += 1;
@@ -57,12 +57,7 @@ module.exports = React.createClass({
 
         var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
 
-        if (this.props.sameRoot){
-            rootUser = "same--root";
-        }
-        else {
-            rootUser = "other--root";
-        }
+        var rootUser =  this.props.sameRoot ? "same--root" : "other--root";
 
         var postType = "";
         if (type != "Post"){
@@ -74,14 +69,16 @@ module.exports = React.createClass({
             currentUserCss = "current--user";
         }
 
+        var timestamp = UserStore.getCurrentUser().update_at;
+
         return (
             <div>
                 <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType + " " + currentUserCss}>
                     { !this.props.hideProfilePic ?
                     <div className="post-profile-img__container">
-                        <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image"} height="36" width="36" />
+                        <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                     </div>
-                    : "" }
+                    : null }
                     <div className="post__content">
                         <PostHeader post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
                         <PostBody post={post} sameRoot={this.props.sameRoot} parentPost={parentPost} posts={posts} handleCommentClick={this.handleCommentClick} />

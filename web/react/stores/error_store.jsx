@@ -29,18 +29,11 @@ var ErrorStore = assign({}, EventEmitter.prototype, {
     BrowserStore.removeItem("last_error");
   },
   getLastError: function() {
-    var error = null;
-    try {
-        error = JSON.parse(BrowserStore.getItem("last_error"));
-    }
-    catch (err) {
-    }
-
-    return error;
+    return BrowserStore.getItem('last_error');
   },
 
   _storeLastError: function(error) {
-    BrowserStore.setItem("last_error", JSON.stringify(error));
+    BrowserStore.setItem("last_error", error);
   },
 });
 

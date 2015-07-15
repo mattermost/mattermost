@@ -106,55 +106,27 @@ var PostStore = assign({}, EventEmitter.prototype, {
     this.emitChange();
   },
   _storePosts: function(channelId, posts) {
-    BrowserStore.setItem("posts_" + channelId, JSON.stringify(posts));
+    BrowserStore.setItem("posts_" + channelId, posts);
   },
   getPosts: function(channelId) {
-    var posts = null;
-    try {
-        posts = JSON.parse(BrowserStore.getItem("posts_" + channelId));
-    }
-    catch (err) {
-    }
-
-    return posts;
+    return BrowserStore.getItem("posts_" + channelId);
   },
   storeSearchResults: function(results, is_mention_search) {
-    BrowserStore.setItem("search_results", JSON.stringify(results));
+    BrowserStore.setItem("search_results", results);
     is_mention_search = is_mention_search ? true : false; // force to bool
-    BrowserStore.setItem("is_mention_search", JSON.stringify(is_mention_search));
+    BrowserStore.setItem("is_mention_search", is_mention_search);
   },
   getSearchResults: function() {
-    var results = null;
-    try {
-        results = JSON.parse(BrowserStore.getItem("search_results"));
-    }
-    catch (err) {
-    }
-
-    return results;
+    return BrowserStore.getItem("search_results");
   },
   getIsMentionSearch: function() {
-    var result = false;
-    try {
-        result = JSON.parse(BrowserStore.getItem("is_mention_search"));
-    }
-    catch (err) {
-    }
-
-    return result;
+    return BrowserStore.getItem("is_mention_search");
   },
   storeSelectedPost: function(post_list) {
-    BrowserStore.setItem("select_post", JSON.stringify(post_list));
+    BrowserStore.setItem("select_post", post_list);
   },
   getSelectedPost: function() {
-    var post_list = null;
-    try {
-        post_list = JSON.parse(BrowserStore.getItem("select_post"));
-    }
-    catch (err) {
-    }
-
-    return post_list;
+    return BrowserStore.getItem("select_post");
   },
   storeSearchTerm: function(term) {
     BrowserStore.setItem("search_term", term);
@@ -165,25 +137,24 @@ var PostStore = assign({}, EventEmitter.prototype, {
   storeCurrentDraft: function(draft) {
     var channel_id = ChannelStore.getCurrentId();
     var user_id = UserStore.getCurrentId();
-    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, JSON.stringify(draft));
+    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, draft);
   },
   getCurrentDraft: function() {
     var channel_id = ChannelStore.getCurrentId();
     var user_id = UserStore.getCurrentId();
-    return JSON.parse(BrowserStore.getItem("draft_" + channel_id + "_" + user_id));
+    return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
   },
   storeDraft: function(channel_id, user_id, draft) {
-    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, JSON.stringify(draft));
+    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, draft);
   },
   getDraft: function(channel_id, user_id) {
-    return JSON.parse(BrowserStore.getItem("draft_" + channel_id + "_" + user_id));
+    return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
   },
   clearDraftUploads: function() {
 	BrowserStore.actionOnItemsWithPrefix("draft_", function (key, value) {
-	  var d = JSON.parse(value);
-	  if (d) {
-		d['uploadsInProgress'] = 0;
-		BrowserStore.setItem(key, JSON.stringify(d));
+	  if (value) {
+		value.uploadsInProgress = 0;
+		BrowserStore.setItem(key, value);
 	  }
 	});
   }

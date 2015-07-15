@@ -1,85 +1,104 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
-var UserStore = require('../stores/user_store.jsx');
 
-// Also change model/utils.go ETAG_ROOT_VERSION
-var BROWSER_STORE_VERSION = '.1';
-
-var _initialized = false;
-
-function _initialize() {
-	var currentVersion = localStorage.getItem("local_storage_version");
-	if (currentVersion !== BROWSER_STORE_VERSION) {
-		localStorage.clear();
-		sessionStorage.clear();
-		localStorage.setItem("local_storage_version", BROWSER_STORE_VERSION);
-	}
-    _initialized = true;
+var UserStore;
+function getPrefix() {
+    if (!UserStore) UserStore = require('./user_store.jsx');
+    return UserStore.getCurrentId() + '_';
 }
 
-module.exports.setItem = function(name, value) {
-    if (!_initialized) _initialize();
-	var user_id = UserStore.getCurrentId();
-	localStorage.setItem(user_id + "_" + name, value);
-};
+// Also change model/utils.go ETAG_ROOT_VERSION
+var BROWSER_STORE_VERSION = '.3';
 
-module.exports.getItem = function(name) {
-    if (!_initialized) _initialize();
-	var user_id = UserStore.getCurrentId();
-	return localStorage.getItem(user_id + "_" + name);
-};
+module.exports = {
+    _initialized: false,
 
-module.exports.removeItem = function(name) {
-    if (!_initialized) _initialize();
-	var user_id = UserStore.getCurrentId();
-	localStorage.removeItem(user_id + "_" + name);
-};
-
-module.exports.setGlobalItem = function(name, value) {
-    if (!_initialized) _initialize();
-	localStorage.setItem(name, value);
-};
-
-module.exports.getGlobalItem = function(name) {
-    if (!_initialized) _initialize();
-	return localStorage.getItem(name);
-};
-
-module.exports.removeGlobalItem = function(name) {
-    if (!_initialized) _initialize();
-	localStorage.removeItem(name);
-};
-
-module.exports.clear = function() {
-	localStorage.clear();
-	sessionStorage.clear();
-};
-
-// Preforms the given action on each item that has the given prefix
-// Signiture for action is action(key, value)
-module.exports.actionOnItemsWithPrefix = function (prefix, action) {
-	var user_id = UserStore.getCurrentId();
-	var id_len = user_id.length;
-	var prefix_len = prefix.length;
-    for (var key in localStorage) {
-        if (key.substring(id_len, id_len + prefix_len) === prefix) {
-			var userkey = key.substring(id_len);
-			action(userkey, BrowserStore.getItem(key));
+    _initialize: function() {
+        var currentVersion = localStorage.getItem("local_storage_version");
+        if (currentVersion !== BROWSER_STORE_VERSION) {
+            this.clear();
+            localStorage.setItem("local_storage_version", BROWSER_STORE_VERSION);
         }
-    }
-};
+        this._initialized = true;
+    },
 
-module.exports.isLocalStorageSupported = function() {
-    try {
-        sessionStorage.setItem("testSession", '1');
-        sessionStorage.removeItem("testSession");
+    getItem: function(name, defaultValue) {
+        return this.getGlobalItem(getPrefix() + name, defaultValue);
+    },
 
-        localStorage.setItem("testLocal", '1');
-        localStorage.removeItem("testLocal", '1');
+    setItem: function(name, value) {
+        this.setGlobalItem(getPrefix() + name, value);
+    },
 
-        return true;
-    }
-    catch (e) {
-        return false;
+    removeItem: function(name) {
+        if (!this._initialized) this._initialize();
+
+        localStorage.removeItem(getPrefix() + name);
+    },
+
+    setGlobalItem: function(name, value) {
+        if (!this._initialized) this._initialize();
+
+        localStorage.setItem(name, JSON.stringify(value));
+    },
+
+    getGlobalItem: function(name, defaultValue) {
+        if (!this._initialized) this._initialize();
+
+        var result = null;
+        try {
+            result = JSON.parse(localStorage.getItem(name));
+        } catch (err) {}
+
+        if (result === null && typeof defaultValue !== 'undefined') {
+            result = defaultValue;
+        }
+
+        return result;
+    },
+
+    removeGlobalItem: function(name) {
+        if (!this._initialized) this._initialize();
+
+        localStorage.removeItem(name);
+    },
+
+    clear: function() {
+        localStorage.clear();
+        sessionStorage.clear();
+    },
+
+    /**
+     * Preforms the given action on each item that has the given prefix
+     * Signiture for action is action(key, value)
+     */
+    actionOnItemsWithPrefix: function (prefix, action) {
+        if (!this._initialized) this._initialize();
+
+        var globalPrefix = getPrefix();
+        var globalPrefixiLen = globalPrefix.length;
+        for (var key in localStorage) {
+            if (key.lastIndexOf(globalPrefix + prefix, 0) === 0) {
+                var userkey = key.substring(globalPrefixiLen);
+                action(userkey, this.getGlobalItem(key));
+            }
+        }
+    },
+
+    isLocalStorageSupported: function() {
+        try {
+            sessionStorage.setItem("testSession", '1');
+            sessionStorage.removeItem("testSession");
+
+            localStorage.setItem("testLocal", '1');
+            if (localStorage.getItem("testLocal") != '1') {
+                return false;
+            }
+            localStorage.removeItem("testLocal", '1');
+
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 };

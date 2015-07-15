@@ -17,7 +17,7 @@ module.exports = React.createClass({
             return;
         }
 
-        var username_error = utils.isValidUsername(this.state.user.username)
+        var username_error = utils.isValidUsername(this.state.user.username);
         if (username_error === "Cannot use a reserved word as a username.") {
             this.setState({name_error: "This username is reserved, please choose a new one.", email_error: "", password_error: "", server_error: ""});
             return;
@@ -72,12 +72,7 @@ module.exports = React.createClass({
         );
     },
     getInitialState: function() {
-        var props = null;
-        try {
-            props = JSON.parse(BrowserStore.getGlobalItem(this.props.hash));
-        }
-        catch(parse_error) {
-        }
+        var props = BrowserStore.getGlobalItem(this.props.hash);
 
         if (!props) {
             props = {};
@@ -90,7 +85,7 @@ module.exports = React.createClass({
             props.original_email = this.props.email;
         }
 
-        return props ;
+        return props;
     },
     render: function() {
 

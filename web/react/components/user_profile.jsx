@@ -53,7 +53,7 @@ module.exports = React.createClass({
         var name = this.props.overwriteName ? this.props.overwriteName : this.state.profile.username;
 
 
-        var data_content = "<img style='margin: 10px' src='/api/v1/users/" + this.state.profile.id + "/image' height='128' width='128' />";
+        var data_content = "<img style='margin: 10px' src='/api/v1/users/" + this.state.profile.id + "/image?time=" + this.state.profile.update_at + "' height='128' width='128' />";
         if (!config.ShowEmail) {
             data_content += "<div class='text-nowrap'>Email not shared</div>";
         } else {
