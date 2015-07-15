@@ -33,9 +33,6 @@ module.exports = React.createClass({
                     var tempSelectedMention = -1
 
                     if (!self.getSelection(self.state.selectedMention)) {
-                        //self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
-                        //self.refs['mention' + self.state.selectedMention].deselect();
-                        var tempSelectedMention = -1
                         while (self.getSelection(++tempSelectedMention)) {
                             if (self.state.selectedUsername === self.refs['mention' + tempSelectedMention].props.username) {
                                 this.refs['mention' + tempSelectedMention].select();
@@ -50,7 +47,6 @@ module.exports = React.createClass({
                             if (self.getSelection(self.state.selectedMention - 1))
                                 self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
                             else {
-                                var tempSelectedMention = -1;
                                 while (self.getSelection(++tempSelectedMention))
                                     ; //Need to find the top of the list
                                 self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
@@ -65,11 +61,10 @@ module.exports = React.createClass({
                     }
                     self.refs['mention' + self.state.selectedMention].select();
 
-                    //self.checkIfInView($('#'+self.props.id));
-                    self.checkIfInView(e.which, tempSelectedMention);
-                    //console.log('#'+self.refs['mention' + self.state.selectedMention].props.id);
-                    //console.log($('#'+self.refs['mention' + self.state.selectedMention].props.id));
-                    //console.log($('#'+self.props.id));
+                    self.scrollToMention(e.which, tempSelectedMention);
+                }
+                else if (e.which === 46 || e.which === 8) {
+                    self.setState({ lessText: true });
                 }
             }
         );
@@ -94,7 +89,7 @@ module.exports = React.createClass({
             if (this.state.selectedUsername !== "" && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
                 var tempSelectedMention = -1;
                 var foundMatch = false;
-                while (this.getSelection(++tempSelectedMention)) {
+                while (!this.state.lessText && this.getSelection(++tempSelectedMention)) {
                     if (this.state.selectedUsername === this.refs['mention' + tempSelectedMention].props.username) {
                         this.refs['mention' + tempSelectedMention].select();
                         this.setState({ selectedMention: tempSelectedMention });
@@ -102,14 +97,17 @@ module.exports = React.createClass({
                         break;
                     }
                 }
-                if (!foundMatch) {
+                if (this.refs.mention0 != undefined && !foundMatch) {
                     this.refs.mention0.select();
-                    this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username });
+                    this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username, lessText: false });
                 }
             }
-            else {
+            else if (this.refs['mention' + this.state.selectedMention] != undefined) {
                 this.refs['mention' + this.state.selectedMention].select();
             }
+        }
+        else if (this.state.selectedMention !== 0) {
+            this.setState({ selectedMention: 0, selectedUsername: "" });
         }
     },
     _onChange: function(id, mentionText, excludeList) {
@@ -118,6 +116,7 @@ module.exports = React.createClass({
         var newState = this.state;
         if (mentionText != null) newState.mentionText = mentionText;
         if (excludeList != null) newState.excludeUsers = excludeList;
+
         this.setState(newState);
     },
     handleClick: function(name) {
@@ -156,43 +155,22 @@ module.exports = React.createClass({
     isEmpty: function() {
         return (!this.refs.mention0);
     },
-    checkIfInView: function(keyPressed, ifLoopUp) {
-        var element = $('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions");
-        var offset = element.offset().top - $("#mentionsbox").scrollTop();
+    scrollToMention: function(keyPressed, ifLoopUp) {
         var direction = keyPressed === 38 ? "up" : "down";
-        console.log("element offset top: " + $(element).offset().top + " box offset top: " + $("#mentionsbox").offset().top);
-        var scrollAmount;
-        if (direction === "up" && ifLoopUp !== -1) {
-            /*$("#mentionsbox").animate({
-                scrollTop: ("#mentionsbox").offset().top
-            }, 50);*/
-            scrollAmount = $("#mentionsbox").offset().top;
-        }
-        else if (direction === "down" && !this.refs['mention' + this.state.selectedMention].props.listId) {
-            /*$("#mentionsbox").animate({
-                scrollTop: 0
-            }, 50);*/
+        var scrollAmount = 0;
+
+        if (direction === "up" && ifLoopUp !== -1)
+            scrollAmount = $("#mentionsbox").innerHeight() + 10000000; //innerHeight is not the real height of the box in the RHS sometimes; this compensates as it should always go to the bottom anyway
+        else if (direction === "down" && this.refs['mention' + this.state.selectedMention].props.listId === 0)
             scrollAmount = 0;
-        }
-        else if (direction === "up") {
-            /*$("#mentionsbox").animate({
-                scrollTop: '-=28'
-            }, 50);*/
-            scrollAmount = "-=28";
-        }
-        else if (direction === "down") {
-            /*$("#mentionsbox").animate({
-                scrollTop: '+=28'
-            }, 50);*/
-            scrollAmount = "+=28";
-        }
+        else if (direction === "up") 
+            scrollAmount = "-=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
+        else if (direction === "down")
+            scrollAmount = "+=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
+
         $("#mentionsbox").animate({
             scrollTop: scrollAmount
         }, 50);
-        /*$("#mentionsbox").animate({
-            scrollTop: $(element).offset().top - $("#mentionsbox").offset().top
-            //scrollTop: $(element).offset().top - $("#mentionsbox").offset().top
-        }, 50);*/
     },
     alreadyMentioned: function(username) {
         var excludeUsers = this.state.excludeUsers;
@@ -204,7 +182,7 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "", lessText: false };
     },
     render: function() {
         var mentionText = this.state.mentionText;
