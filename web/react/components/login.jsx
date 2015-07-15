@@ -113,6 +113,9 @@ module.exports = React.createClass({
                         <button type="submit" className="btn btn-primary">Sign in</button>
                     </div>
                     <div className="form-group form-group--small">
+                        <span><a href="#">{"Log in with GitLab"}</a></span>
+                    </div>
+                    <div className="form-group form-group--small">
                         <span><a href="/find_team">{"Find other " + strings.TeamPlural}</a></span>
                     </div>
                     <div className="form-group">
