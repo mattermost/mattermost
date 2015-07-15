@@ -7,7 +7,7 @@ module.exports = React.createClass({
         this.props.handleClick(this.props.username);
     },
     select: function() {
-        this.setState({ isFocused: "mentions-focus" })
+        this.setState({ isFocused: "mentions-focus" });
     },
     deselect: function() {
         this.setState({ isFocused: "" });

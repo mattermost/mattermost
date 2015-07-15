@@ -30,7 +30,7 @@ module.exports = React.createClass({
                     e.stopPropagation();
                     e.preventDefault();
 
-                    var tempSelectedMention = -1
+                    var tempSelectedMention = -1;
                     self.refs['mention' + self.state.selectedMention].deselect();
                     if (e.which === 38) {    
                         if (self.getSelection(self.state.selectedMention - 1))
