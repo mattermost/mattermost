@@ -75,7 +75,7 @@
 // Team Header in Sidebar
 .sidebar--left, .sidebar--menu {
 	.team__header {
-		padding: 15px;
+		padding: 10px;
 		@include legacy-pie-clearfix;
 		a {
 			color: #fff;
@@ -83,8 +83,8 @@
 		.navbar-right {
 			font-size: 0.85em;
 			position: absolute;
-			top: 24px;
-			right: 25px;
+			top: 20px;
+			right: 22px;
 			.dropdown-toggle {
 				padding: 0 10px;
 			}
