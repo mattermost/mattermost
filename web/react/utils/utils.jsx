@@ -396,18 +396,18 @@ module.exports.textToJsx = function(text, options) {
     if (useMarkdown) {
         var customMarkedRenderer = new Marked.Renderer();
         customMarkedRenderer.heading = function(text, level) {
-            var hashText = "";
+            var hashText = " ";
             for (var i = 0; i < level; i++)
                 hashText += "#";
 
-            return hashText + text;
+            return hashText + text + " ";
         };
         /*customMarkedRenderer.html = function(html) {
             return html;
         };*/
-        /*customMarkedRenderer.codespan = function(code) {
-            return "<code>" + text + "</code>";
-        };*/
+        customMarkedRenderer.codespan = function(code) {
+            return "<code>" + code + "</code>";
+        };
         customMarkedRenderer.del = function(text) {
             return "<s>" + text + "</s>";
         };
@@ -506,8 +506,13 @@ module.exports.textToJsx = function(text, options) {
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
                 }
-
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
+                /*if (trimWord.indexOf("p>") === 0) {
+                    trimWord = trimWord.slice(2);
+                }*/
+                console.log(trimWord);
+                //inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}  /> </span>);
+                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(trimWord)}} />{suffix} </span>);
+                //inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
             } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
                 var suffix = word.match(puncEndRegex);
