@@ -626,7 +626,7 @@ var SecurityTab = React.createClass({
 
         client.updatePassword(data,
             function(data) {
-                this.updateSection("");
+                this.props.updateSection("");
                 AsyncClient.getMe();
                 this.setState({ current_password: '', new_password: '', confirm_password: '' });
             }.bind(this),
