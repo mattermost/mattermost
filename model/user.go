@@ -8,22 +8,24 @@ import (
 	"encoding/json"
 	"io"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 const (
-	ROLE_ADMIN           = "admin"
-	ROLE_SYSTEM_ADMIN    = "system_admin"
-	ROLE_SYSTEM_SUPPORT  = "system_support"
-	USER_AWAY_TIMEOUT    = 5 * 60 * 1000 // 5 minutes
-	USER_OFFLINE_TIMEOUT = 1 * 60 * 1000 // 1 minute
-	USER_OFFLINE         = "offline"
-	USER_AWAY            = "away"
-	USER_ONLINE          = "online"
-	USER_NOTIFY_ALL      = "all"
-	USER_NOTIFY_MENTION  = "mention"
-	USER_NOTIFY_NONE     = "none"
-	BOT_USERNAME         = "valet"
+	ROLE_ADMIN               = "admin"
+	ROLE_SYSTEM_ADMIN        = "system_admin"
+	ROLE_SYSTEM_SUPPORT      = "system_support"
+	USER_AWAY_TIMEOUT        = 5 * 60 * 1000 // 5 minutes
+	USER_OFFLINE_TIMEOUT     = 1 * 60 * 1000 // 1 minute
+	USER_OFFLINE             = "offline"
+	USER_AWAY                = "away"
+	USER_ONLINE              = "online"
+	USER_NOTIFY_ALL          = "all"
+	USER_NOTIFY_MENTION      = "mention"
+	USER_NOTIFY_NONE         = "none"
+	BOT_USERNAME             = "valet"
+	USER_AUTH_SERVICE_GITLAB = "gitlab"
 )
 
 type User struct {
@@ -48,6 +50,14 @@ type User struct {
 	NotifyProps        StringMap `json:"notify_props"`
 	LastPasswordUpdate int64     `json:"last_password_update"`
 	LastPictureUpdate  int64     `json:"last_picture_update"`
+	AuthService        string    `json:"auth_service"`
+}
+
+type GitLabUser struct {
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -94,6 +104,22 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.LastName) > 64 {
 		return NewAppError("User.IsValid", "Invalid last name", "user_id="+u.Id)
+	}
+
+	if len(u.Password) > 128 {
+		return NewAppError("User.IsValid", "Invalid password", "user_id="+u.Id)
+	}
+
+	if len(u.AuthData) > 128 {
+		return NewAppError("User.IsValid", "Invalid auth data", "user_id="+u.Id)
+	}
+
+	if len(u.AuthData) > 0 && len(u.AuthService) == 0 {
+		return NewAppError("User.IsValid", "Invalid user, auth data must be set with auth type", "user_id="+u.Id)
+	}
+
+	if len(u.Password) > 0 && len(u.AuthData) > 0 {
+		return NewAppError("User.IsValid", "Invalid user, password and auth data cannot both be set", "user_id="+u.Id)
 	}
 
 	return nil
@@ -327,4 +353,35 @@ func IsUsernameValid(username string) bool {
 	}
 
 	return true
+}
+
+func UserFromGitLabUser(glu *GitLabUser) *User {
+	user := &User{}
+	user.Username = glu.Username
+	splitName := strings.Split(glu.Name, " ")
+	if len(splitName) == 2 {
+		user.FirstName = splitName[0]
+		user.LastName = splitName[1]
+	} else if len(splitName) >= 2 {
+		user.FirstName = splitName[0]
+		user.LastName = strings.Join(splitName[1:], " ")
+	} else {
+		user.FirstName = glu.Name
+	}
+	user.Email = glu.Email
+	user.AuthData = strconv.FormatInt(glu.Id, 10)
+	user.AuthService = USER_AUTH_SERVICE_GITLAB
+
+	return user
+}
+
+func GitLabUserFromJson(data io.Reader) *GitLabUser {
+	decoder := json.NewDecoder(data)
+	var glu GitLabUser
+	err := decoder.Decode(&glu)
+	if err == nil {
+		return &glu
+	} else {
+		return nil
+	}
 }

@@ -14,6 +14,7 @@ import (
 	"gopkg.in/fsnotify.v1"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -52,6 +53,10 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
+
+	mainrouter.Handle("/login/gitlab", api.AppHandlerIndependent(loginWithGitLab)).Methods("GET")
+	mainrouter.Handle("/login/gitlab/complete", api.AppHandlerIndependent(loginCompleteGitLab)).Methods("GET")
+
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
 	// Bug in gorilla.mux pervents us from using regex here.
@@ -61,6 +66,10 @@ func InitWeb() {
 	mainrouter.Handle("/signup_team_complete/", api.AppHandlerIndependent(signupTeamComplete)).Methods("GET")
 	mainrouter.Handle("/signup_user_complete/", api.AppHandlerIndependent(signupUserComplete)).Methods("GET")
 	mainrouter.Handle("/signup_team_confirm/", api.AppHandlerIndependent(signupTeamConfirm)).Methods("GET")
+
+	mainrouter.Handle("/signup/gitlab", api.AppHandlerIndependent(signupWithGitLab)).Methods("GET")
+	mainrouter.Handle("/signup/gitlab/complete", api.AppHandlerIndependent(signupCompleteGitLab)).Methods("GET")
+
 	mainrouter.Handle("/verify_email", api.AppHandlerIndependent(verifyEmail)).Methods("GET")
 	mainrouter.Handle("/find_team", api.AppHandlerIndependent(findTeam)).Methods("GET")
 	mainrouter.Handle("/signup_team", api.AppHandlerIndependent(signup)).Methods("GET")
@@ -438,4 +447,82 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["TeamName"] = teamName
 	page.Props["IsReset"] = strconv.FormatBool(isResetLink)
 	page.Render(c, w)
+}
+
+func signupWithGitLab(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	teamId := r.FormValue("id")
+
+	if len(teamId) != 26 {
+		c.Err = model.NewAppError("signupWithGitLab", "Invalid team id", "team_id="+teamId)
+		return
+	}
+
+	state := model.HashPassword(utils.Cfg.SSOSettings.GitLabId)
+
+	authUrl := utils.Cfg.SSOSettings.GitLabUrl + "/oauth/authorize"
+	authUrl += "?response_type=code&client_id=" + utils.Cfg.SSOSettings.GitLabId + "&redirect_uri=" + url.QueryEscape("http://localhost:8065/signup/gitlab/complete?id="+teamId) + "&state=" + url.QueryEscape(state)
+	http.Redirect(w, r, authUrl, http.StatusFound)
+}
+
+func signupCompleteGitLab(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+	teamId := r.FormValue("id")
+
+	uri := "http://localhost:8065/signup/gitlab/complete?id=" + teamId
+
+	if glu, err := api.AuthorizeGitLabUser(code, state, uri); err != nil {
+		c.Err = err
+		return
+	} else {
+		user := model.UserFromGitLabUser(glu)
+		user.TeamId = teamId
+
+		page := NewHtmlTemplatePage("signup_user_oauth", "Complete User Sign Up")
+		page.Props["User"] = user.ToJson()
+		page.Render(c, w)
+	}
+}
+
+func loginWithGitLab(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	teamId := r.FormValue("id")
+
+	if len(teamId) != 26 {
+		c.Err = model.NewAppError("signupWithGitLab", "Invalid team id", "team_id="+teamId)
+		return
+	}
+
+	state := model.HashPassword(utils.Cfg.SSOSettings.GitLabId)
+
+	authUrl := utils.Cfg.SSOSettings.GitLabUrl + "/oauth/authorize"
+	authUrl += "?response_type=code&client_id=" + utils.Cfg.SSOSettings.GitLabId + "&redirect_uri=" + url.QueryEscape("http://localhost:8065/login/gitlab/complete?id="+teamId) + "&state=" + url.QueryEscape(state)
+	http.Redirect(w, r, authUrl, http.StatusFound)
+}
+
+func loginCompleteGitLab(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+	teamId := r.FormValue("id")
+
+	uri := "http://localhost:8065/login/gitlab/complete?id=" + teamId
+
+	if glu, err := api.AuthorizeGitLabUser(code, state, uri); err != nil {
+		c.Err = err
+		return
+	} else {
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByAuth(teamId, strconv.FormatInt(glu.Id, 10), model.USER_AUTH_SERVICE_GITLAB); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			user = result.Data.(*model.User)
+			api.Login(c, w, r, user, "")
+
+			if c.Err != nil {
+				return
+			}
+
+			root(c, w, r)
+		}
+	}
 }

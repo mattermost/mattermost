@@ -23,6 +23,12 @@
         "UseLocalStorage": true,
         "StorageDirectory": "./data/"
     },
+    "SSOSettings": {
+        "AllowGitLabSSO": true,
+        "GitLabSecret" : "8526ada64f38a1a67cafe6650d54310f1484f8a5d06ad23abb9f8e4b8af1c429",
+        "GitLabId": "0af4138195d246d5d4e958a93100379066bb087fa9892cd323b0c97bbd696008",
+        "GitLabUrl": "http://dockerhost:8080"
+    },
     "SqlSettings": {
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test",

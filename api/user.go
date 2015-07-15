@@ -133,6 +133,10 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
+	if len(user.AuthData) > 0 && len(user.AuthService) > 0 {
+		user.EmailVerified = true
+	}
+
 	ruser := CreateUser(c, team, user)
 	if c.Err != nil {
 		return
@@ -233,80 +237,71 @@ func FireAndForgetVerifyEmail(userId, name, email, teamDisplayName, teamURL stri
 	}()
 }
 
-func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
-
-	extraInfo := ""
-	var result store.StoreResult
-
-	if len(props["id"]) != 0 {
-		extraInfo = props["id"]
-		if result = <-Srv.Store.User().Get(props["id"]); result.Err != nil {
-			c.Err = result.Err
-			return
-		}
-	}
-
-	var team *model.Team
-	if result.Data == nil && len(props["email"]) != 0 && len(props["name"]) != 0 {
-		extraInfo = props["email"] + " in " + props["name"]
-
-		if nr := <-Srv.Store.Team().GetByName(props["name"]); nr.Err != nil {
-			c.Err = nr.Err
-			return
-		} else {
-			team = nr.Data.(*model.Team)
-
-			if result = <-Srv.Store.User().GetByEmail(team.Id, props["email"]); result.Err != nil {
-				c.Err = result.Err
-				return
-			}
-		}
-	}
-
-	if result.Data == nil {
-		c.Err = model.NewAppError("login", "Login failed because we couldn't find a valid account", extraInfo)
-		c.Err.StatusCode = http.StatusBadRequest
+func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, deviceId string) {
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+		c.Err = result.Err
 		return
-	}
-
-	user := result.Data.(*model.User)
-
-	if team == nil {
-		if tResult := <-Srv.Store.Team().Get(user.TeamId); tResult.Err != nil {
-			c.Err = tResult.Err
-			return
-		} else {
-			team = tResult.Data.(*model.Team)
+	} else {
+		user := result.Data.(*model.User)
+		if checkUserPassword(c, user, password) {
+			Login(c, w, r, user, deviceId)
 		}
 	}
+}
 
+func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, deviceId string) {
+	var team *model.Team
+
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user := result.Data.(*model.User)
+
+		if checkUserPassword(c, user, password) {
+			Login(c, w, r, user, deviceId)
+		}
+	}
+}
+
+func checkUserPassword(c *Context, user *model.User, password string) bool {
+	if !model.ComparePassword(user.Password, password) {
+		c.LogAuditWithUserId(user.Id, "fail")
+		c.Err = model.NewAppError("checkUserPassword", "Login failed because of invalid password", "user_id="+user.Id)
+		c.Err.StatusCode = http.StatusForbidden
+		return false
+	}
+	return true
+}
+
+// User MUST be validated before calling Login
+func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 	c.LogAuditWithUserId(user.Id, "attempt")
 
-	if !model.ComparePassword(user.Password, props["password"]) {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = model.NewAppError("login", "Login failed because of invalid password", extraInfo)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
 	if !user.EmailVerified && !utils.Cfg.EmailSettings.ByPassEmail {
-		c.Err = model.NewAppError("login", "Login failed because email address has not been verified", extraInfo)
+		c.Err = model.NewAppError("Login", "Login failed because email address has not been verified", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if user.DeleteAt > 0 {
-		c.Err = model.NewAppError("login", "Login failed because your account has been set to inactive.  Please contact an administrator.", extraInfo)
+		c.Err = model.NewAppError("Login", "Login failed because your account has been set to inactive.  Please contact an administrator.", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
-	session := &model.Session{UserId: user.Id, TeamId: team.Id, Roles: user.Roles, DeviceId: props["device_id"]}
+	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, DeviceId: deviceId}
 
 	maxAge := model.SESSION_TIME_WEB_IN_SECS
 
-	if len(props["device_id"]) > 0 {
+	if len(deviceId) > 0 {
 		session.SetExpireInDays(model.SESSION_TIME_MOBILE_IN_DAYS)
 		maxAge = model.SESSION_TIME_MOBILE_IN_SECS
 	} else {
@@ -361,8 +356,22 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.Session = *session
 	c.LogAuditWithUserId(user.Id, "success")
+}
 
-	w.Write([]byte(result.Data.(*model.User).ToJson()))
+func login(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	if len(props["id"]) != 0 {
+		LoginById(c, w, r, props["id"], props["password"], props["device_id"])
+	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
+		LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+	}
+
+	if c.Err != nil {
+		return
+	}
+
+	w.Write([]byte("{}"))
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1211,4 +1220,53 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(statuses)))
 		return
 	}
+}
+
+func AuthorizeGitLabUser(code, state, uri string) (*model.GitLabUser, *model.AppError) {
+	if !model.ComparePassword(state, utils.Cfg.SSOSettings.GitLabId) {
+		return nil, model.NewAppError("AuthorizeGitLabUser", "Invalid state", "")
+	}
+
+	p := url.Values{}
+	p.Set("client_id", utils.Cfg.SSOSettings.GitLabId)
+	p.Set("client_secret", utils.Cfg.SSOSettings.GitLabSecret)
+	p.Set("code", code)
+	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
+	p.Set("redirect_uri", uri)
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings.GitLabUrl+"/oauth/token", strings.NewReader(p.Encode()))
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	var ar *model.AccessResponse
+	if resp, err := client.Do(req); err != nil {
+		return nil, model.NewAppError("AuthorizeGitLabUser", "Token request to GitLab failed", err.Error())
+	} else {
+		ar = model.AccessResponseFromJson(resp.Body)
+	}
+
+	if ar.TokenType != model.ACCESS_TOKEN_TYPE {
+		return nil, model.NewAppError("AuthorizeGitLabUser", "Bad token type", "token_type="+ar.TokenType)
+	}
+
+	if len(ar.AccessToken) == 0 {
+		return nil, model.NewAppError("AuthorizeGitLabUser", "Missing access token", "")
+	}
+
+	p = url.Values{}
+	p.Set("access_token", ar.AccessToken)
+	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings.GitLabUrl+"/api/v3/user", strings.NewReader(""))
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
+
+	if resp, err := client.Do(req); err != nil {
+		return nil, model.NewAppError("AuthorizeGitLabUser", "Token request to GitLab failed", err.Error())
+	} else {
+		return model.GitLabUserFromJson(resp.Body), nil
+	}
+
 }
