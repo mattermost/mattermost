@@ -160,6 +160,10 @@ module.exports = React.createClass({
     _onChange: function() {
         var newState = getStateFromStores();
 
+        // Restricts the special case of holding your place during a refresh
+        // to only when it's updating the timestamp
+        this.wasForced = false;
+
         if (!utils.areStatesEqual(newState, this.state)) {
             if (this.state.post_list && this.state.post_list.order) {
                 if (this.state.channel.id === newState.channel.id && this.state.post_list.order.length != newState.post_list.order.length && newState.post_list.order.length > Constants.POST_CHUNK_SIZE) {
@@ -173,6 +177,11 @@ module.exports = React.createClass({
         } 
     },
     _onSocketChange: function(msg) {
+
+        // Restricts the special case of holding your place during a refresh
+        // to only when it's updating the timestamp
+        this.wasForced = false;
+
         if (msg.action == "posted") {
             var post = JSON.parse(msg.props.post);
 

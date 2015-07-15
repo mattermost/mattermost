@@ -293,9 +293,10 @@ module.exports = React.createClass({
         });
     },
     componentDidUpdate: function() {
-        if(!this.wasForced){
+        if(this.wasForced){
+            this.wasForced = false
+        } else {
             this.resize();
-            this.wasForced = false;
         }
     },
     componentWillUnmount: function() {
@@ -304,6 +305,11 @@ module.exports = React.createClass({
         UserStore.removeStatusesChangeListener(this._onTimeChange);
     },
     _onChange: function() {
+
+        // Restricts the special case of holding your place during a refresh
+        // to only when it's updating the timestamp
+        this.wasForced = false;
+
         if (this.isMounted()) {
             var newState = getStateFromStores();
             if (!utils.areStatesEqual(newState, this.state)) {
@@ -312,6 +318,10 @@ module.exports = React.createClass({
         }
     },
     _onChangeAll: function() {
+
+        // Restricts the special case of holding your place during a refresh
+        // to only when it's updating the timestamp
+        this.wasForced = false;
 
         if (this.isMounted()) {
 
