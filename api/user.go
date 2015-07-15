@@ -293,7 +293,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !user.EmailVerified {
+	if !user.EmailVerified && !utils.Cfg.EmailSettings.ByPassEmail {
 		c.Err = model.NewAppError("login", "Login failed because email address has not been verified", extraInfo)
 		c.Err.StatusCode = http.StatusForbidden
 		return

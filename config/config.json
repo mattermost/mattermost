@@ -54,11 +54,12 @@
         "ProfileHeight": 128
     },
     "EmailSettings": {
+        "ByPassEmail" : true,
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
 		"UseTLS": false,
-        "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
+        "FeedbackEmail": "",
         "FeedbackName": "",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",

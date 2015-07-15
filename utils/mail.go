@@ -8,14 +8,14 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/mattermost/platform/model"
+	"html"
 	"net"
 	"net/mail"
 	"net/smtp"
-	"html"
 )
 
 func CheckMailSettings() *model.AppError {
-	if len(Cfg.EmailSettings.SMTPServer) == 0 {
+	if len(Cfg.EmailSettings.SMTPServer) == 0 || Cfg.EmailSettings.ByPassEmail {
 		return model.NewAppError("CheckMailSettings", "No email settings present, mail will not be sent", "")
 	}
 	conn, err := connectToSMTPServer()
@@ -79,6 +79,10 @@ func newSMTPClient(conn net.Conn) (*smtp.Client, *model.AppError) {
 
 func SendMail(to, subject, body string) *model.AppError {
 
+	if len(Cfg.EmailSettings.SMTPServer) == 0 || Cfg.EmailSettings.ByPassEmail {
+		return nil
+	}
+
 	fromMail := mail.Address{"", Cfg.EmailSettings.FeedbackEmail}
 	toMail := mail.Address{"", to}
 
@@ -94,11 +98,6 @@ func SendMail(to, subject, body string) *model.AppError {
 		message += fmt.Sprintf("%s: %s\r\n", k, v)
 	}
 	message += "\r\n<html><body>" + body + "</body></html>"
-
-	if len(Cfg.EmailSettings.SMTPServer) == 0 {
-		l4g.Warn("Skipping sending of email because EmailSettings are not configured")
-		return nil
-	}
 
 	conn, err1 := connectToSMTPServer()
 	if err1 != nil {

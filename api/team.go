@@ -68,7 +68,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if utils.Cfg.ServiceSettings.Mode == utils.MODE_DEV {
+	if utils.Cfg.ServiceSettings.Mode == utils.MODE_DEV || utils.Cfg.EmailSettings.ByPassEmail {
 		m["follow_link"] = bodyPage.Props["Link"]
 	}
 
