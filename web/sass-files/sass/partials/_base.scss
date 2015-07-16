@@ -126,6 +126,10 @@ div.theme {
   to { transform: scale(1) rotate(360deg);}
 }
 
+.glyphicon-refresh-animate {
+    @include animation(spin .7s infinite linear);
+}
+
 .black-bg {
   background-color: black !important;
 }
