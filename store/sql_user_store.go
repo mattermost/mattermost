@@ -37,6 +37,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (s SqlUserStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("Users","LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
