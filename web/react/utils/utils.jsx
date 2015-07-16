@@ -198,7 +198,13 @@ module.exports.getTimestamp = function() {
 }
 
 var testUrlMatch = function(text) {
-    var urlMatcher = new Autolinker.matchParser.MatchParser;
+    var urlMatcher = new Autolinker.matchParser.MatchParser({
+      urls: true,
+      emails: false,
+      twitter: false,
+      phone: false,
+      hashtag: false,
+    });
     var result = [];
     var replaceFn = function(match) {
       var linkData = {};
@@ -417,7 +423,6 @@ module.exports.textToJsx = function(text, options) {
 
                 highlightSearchClass = " search-highlight";
             }
-
             if (explicitMention &&
                 (UserStore.getProfileByUsername(explicitMention[1]) ||
                 Constants.SPECIAL_MENTIONS.indexOf(explicitMention[1]) !== -1))
