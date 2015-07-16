@@ -535,10 +535,6 @@ func TestDeletePosts(t *testing.T) {
 
 	Client.LoginByEmail(team.Domain, userAdmin.Email, "pwd")
 
-	fmt.Println(userAdmin.Email)
-	fmt.Println(team.Email)
-	fmt.Println(userAdmin.Roles)
-
 	Client.Must(Client.DeletePost(channel1.Id, post4.Id))
 }
 
