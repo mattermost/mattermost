@@ -35,7 +35,7 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
-    preForcePosision: 0,
+    preForcePosition: 0,
     wasForced: false,
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
@@ -83,7 +83,7 @@ module.exports = React.createClass({
 
         $(post_holder).scroll(function(e){
             if (self.wasForced) {
-                $(post_holder).scrollTop(self.preForcePosision);
+                $(post_holder).scrollTop(self.preForcePosition);
                 $(post_holder).perfectScrollbar('update');
                 self.wasForced = false;
             }
@@ -252,7 +252,7 @@ module.exports = React.createClass({
     },
     _onTimeChange: function() {
         this.wasForced = true;
-        this.preForcePosision = $(".post-list-holder-by-time").scrollTop();
+        this.preForcePosition = $(".post-list-holder-by-time").scrollTop();
         this.forceUpdate();
     },
     getMorePosts: function(e) {
