@@ -71,6 +71,11 @@ module.exports = React.createClass({
             post.root_id = this.state.rootId;
             post.parent_id = this.state.parentId;
 
+            // if this is a reply, trim off any carets from the beginning of a message
+            if (post.root_id && post.message.startsWith("^")) {
+                post.message = post.message.replace(/^\^+\s*/g, "");
+            }
+
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
                     PostStore.storeDraft(data.channel_id, data.user_id, null);
