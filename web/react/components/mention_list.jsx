@@ -31,7 +31,6 @@ module.exports = React.createClass({
                     e.preventDefault();
 
                     var tempSelectedMention = -1;
-                    self.refs['mention' + self.state.selectedMention].deselect();
                     if (e.which === 38) {    
                         if (self.getSelection(self.state.selectedMention - 1))
                             self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
@@ -48,7 +47,6 @@ module.exports = React.createClass({
                             self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
                     }
 
-                    self.refs['mention' + self.state.selectedMention].select();
                     self.scrollToMention(e.which, tempSelectedMention);
                 }
             }
@@ -64,11 +62,6 @@ module.exports = React.createClass({
         PostStore.removeMentionDataChangeListener(this._onChange);
         $('body').off('keydown.mentionlist', '#'+this.props.id);
     },
-    componentWillUpdate: function() {
-        if (this.state.mentionText != "-1" && this.getSelection(this.state.selectedMention)) {
-            this.refs['mention' + this.state.selectedMention].deselect();
-        }
-    },
     componentDidUpdate: function() {
         if (this.state.mentionText != "-1") {
             if (this.state.selectedUsername !== "" && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
@@ -76,19 +69,14 @@ module.exports = React.createClass({
                 var foundMatch = false;
                 while (tempSelectedMention < this.state.selectedMention && this.getSelection(++tempSelectedMention)) {
                     if (this.state.selectedUsername === this.refs['mention' + tempSelectedMention].props.username) {
-                        this.refs['mention' + tempSelectedMention].select();
                         this.setState({ selectedMention: tempSelectedMention });
                         foundMatch = true;
                         break;
                     }
                 }
                 if (this.getSelection(0) && !foundMatch) {
-                    this.refs.mention0.select();
                     this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username });
                 }
-            }
-            else if (this.getSelection(this.state.selectedMention)) {
-                this.refs['mention' + this.state.selectedMention].select();
             }
         }
         else if (this.state.selectedMention !== 0) {
@@ -114,11 +102,7 @@ module.exports = React.createClass({
         this.setState({ mentionText: '-1' });
     },
     handleMouseEnter: function(listId) {
-        if (this.getSelection(this.state.selectedMention)) {
-            this.refs['mention' + this.state.selectedMention].deselect();
-        }
         this.setState({ selectedMention: listId, selectedUsername: this.refs['mention' + listId].props.username });
-        this.refs['mention' + listId].select();
     },
     getSelection: function(listId) {
         if (!this.refs['mention' + listId]) 
@@ -127,7 +111,7 @@ module.exports = React.createClass({
             return true;
     },
     addCurrentMention: function() {
-        if (!this.refs['mention' + this.state.selectedMention]) 
+        if (!this.getSelection(this.state.selectedMention)) 
             this.addFirstMention();
         else
             this.refs['mention' + this.state.selectedMention].handleClick();
@@ -169,6 +153,7 @@ module.exports = React.createClass({
         return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
     },
     render: function() {
+        var self = this;
         var mentionText = this.state.mentionText;
         if (mentionText === '-1') return null;
 
@@ -220,8 +205,8 @@ module.exports = React.createClass({
                         secondary_text={users[i].secondary_text}
                         id={users[i].id}
                         listId={index}
-                        isFocus={this.state.selectedMention === index ? true : false}
-                        handleMouseEnter={this.handleMouseEnter}
+                        isFocused={this.state.selectedMention === index ? "mentions-focus" : ""}
+                        handleMouseEnter={function(value) { return function() { self.handleMouseEnter(value); } }(index)}
                         handleClick={this.handleClick} />
                 );
                 index++;

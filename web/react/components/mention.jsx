@@ -6,19 +6,8 @@ module.exports = React.createClass({
     handleClick: function() {
         this.props.handleClick(this.props.username);
     },
-    select: function() {
-        this.setState({ isFocused: "mentions-focus" });
-    },
-    deselect: function() {
-        this.setState({ isFocused: "" });
-    },
     getInitialState: function() {
-        if (this.props.isFocus) {
-            return { isFocused: "mentions-focus" };
-        }
-        else {
-            return { isFocused: "" };
-        }
+        return null;
     },
     render: function() {
         var self = this;
@@ -32,7 +21,7 @@ module.exports = React.createClass({
             icon = <span><i className="mention-img fa fa-users fa-2x"></i></span>;
         }
         return (
-            <div className={"mentions-name " + this.state.isFocused} id={this.props.id + "_mentions"} onClick={this.handleClick} onMouseEnter={function(){self.props.handleMouseEnter(self.props.listId)}}>
+            <div className={"mentions-name " + this.props.isFocused} id={this.props.id + "_mentions"} onClick={this.handleClick} onMouseEnter={this.props.handleMouseEnter}>
                 <div className="pull-left">{icon}</div>
                 <div className="pull-left mention-align"><span>@{this.props.username}</span><span className="mention-fullname">{this.props.secondary_text}</span></div>
             </div>
