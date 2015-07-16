@@ -77,7 +77,7 @@ type PostStore interface {
 type UserStore interface {
 	Save(user *model.User) StoreChannel
 	Update(user *model.User, allowRoleUpdate bool) StoreChannel
-	UpdateUpdateAt(userId string) StoreChannel
+	UpdateLastPictureUpdate(userId string) StoreChannel
 	UpdateLastPingAt(userId string, time int64) StoreChannel
 	UpdateLastActivityAt(userId string, time int64) StoreChannel
 	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel
