@@ -157,6 +157,7 @@
 	font-size: 14px;
 	line-height: 50px;
 	#member_popover {
+		margin-right: 5px;
 		width: 45px;
 		color: #999;
 		cursor: pointer;
@@ -232,11 +233,15 @@
 	vertical-align: top;
 	display: inline-block;
 	width: 15px;
-	margin: 9px 3px 3px 0;
+	margin: 9px 4px 3px 0;
 	&:hover {
 		svg {
 			fill: #888;
 		}
+	}
+	a {
+		height: 100%;
+		display: block;
 	}
 	svg {
 		vertical-align: top;

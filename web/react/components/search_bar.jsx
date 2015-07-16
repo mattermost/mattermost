@@ -92,7 +92,7 @@ module.exports = React.createClass({
     render: function() {
         return (
             <div>
-                <div className="sidebar__collapse" onClick={this.handleClose}></div>
+                <div className="sidebar__collapse" onClick={this.handleClose}>Cancel</div>
                 <span className="glyphicon glyphicon-search sidebar__search-icon"></span>
                 <form role="form" className="search__form relative-div" onSubmit={this.handleSubmit}>
                     <input
