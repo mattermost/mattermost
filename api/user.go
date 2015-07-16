@@ -7,8 +7,6 @@ import (
 	"bytes"
 	l4g "code.google.com/p/log4go"
 	"fmt"
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -598,7 +596,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	buf := new(bytes.Buffer)
 
 	if imgErr := png.Encode(buf, img); imgErr != nil {
-		return nil, model.NewAppError("getProfileImage", "Could not encode default profile image", imgErr.Error())
+		return nil, model.NewAppError("createProfileImage", "Could not encode default profile image", imgErr.Error())
 	} else {
 		return buf.Bytes(), nil
 	}
@@ -613,34 +611,25 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		var img []byte
-		var err *model.AppError
 
-		if !utils.IsS3Configured() {
-			img, err = createProfileImage(result.Data.(*model.User).Username, id)
-			if err != nil {
+		if !utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+			var err *model.AppError
+			if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 				c.Err = err
 				return
 			}
 		} else {
-			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
-
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
-
 			path := "teams/" + c.Session.TeamId + "/users/" + id + "/profile.png"
 
-			if data, getErr := bucket.Get(path); getErr != nil {
-				img, err = createProfileImage(result.Data.(*model.User).Username, id)
-				if err != nil {
+			if data, err := readFile(path); err != nil {
+
+				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 					c.Err = err
 					return
 				}
 
-				options := s3.Options{}
-				if err := bucket.Put(path, img, "image", s3.Private, options); err != nil {
-					c.Err = model.NewAppError("getImage", "Couldn't upload default profile image", err.Error())
+				if err := writeFile(img, path); err != nil {
+					c.Err = err
 					return
 				}
 
@@ -660,8 +649,8 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsS3Configured() {
-		c.Err = model.NewAppError("uploadProfileImage", "Unable to upload image. Amazon S3 not configured. ", "")
+	if !utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		c.Err = model.NewAppError("uploadProfileImage", "Unable to upload file. Amazon S3 not configured and local server storage turned off. ", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -670,13 +659,6 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("uploadProfileImage", "Could not parse multipart form", "")
 		return
 	}
-
-	var auth aws.Auth
-	auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-	auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
-
-	s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-	bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
 
 	m := r.MultipartForm
 
@@ -721,8 +703,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	path := "teams/" + c.Session.TeamId + "/users/" + c.Session.UserId + "/profile.png"
 
-	options := s3.Options{}
-	if err := bucket.Put(path, buf.Bytes(), "image", s3.Private, options); err != nil {
+	if err := writeFile(buf.Bytes(), path); err != nil {
 		c.Err = model.NewAppError("uploadProfileImage", "Couldn't upload profile image", "")
 		return
 	}
