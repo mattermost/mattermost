@@ -68,6 +68,9 @@ module.exports = React.createClass({
             post.channel_id = this.state.channel_id;
             post.filenames = this.state.previews;
 
+            post.root_id = this.state.rootId;
+            post.parent_id = this.state.parentId;
+
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
                     PostStore.storeDraft(data.channel_id, data.user_id, null);
@@ -92,6 +95,17 @@ module.exports = React.createClass({
         }
 
         $(".post-list-holder-by-time").perfectScrollbar('update');
+
+        if (this.state.rootId || this.state.parentId) {
+            this.setState({rootId: "", parentId: ""});
+
+            // clear the active thread since we've now sent our message
+            AppDispatcher.handleViewAction({
+                type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                root_id: "",
+                parent_id: ""
+            });
+        }
     },
     componentDidUpdate: function() {
         this.resizePostHolder();
@@ -112,6 +126,60 @@ module.exports = React.createClass({
     handleUserInput: function(messageText) {
         this.resizePostHolder();
         this.setState({messageText: messageText});
+
+        // look to see if the message begins with any carets to indicate that it's a reply
+        var replyMatch = messageText.match(/^\^+/g);
+        if (replyMatch) {
+            // the number of carets indicates how many message threads back we're replying to
+            var caretCount = replyMatch[0].length;
+
+            var posts = PostStore.getCurrentPosts();
+
+            var rootId = "";
+
+            // find the nth most recent post that isn't a comment on another (ie it has no parent) where n is caretCount
+            for (var i = 0; i < posts.order.length; i++) {
+                var postId = posts.order[i];
+
+                if (posts.posts[postId].parent_id === "") {
+                    if (caretCount == 1) {
+                        rootId = postId;
+                        break;
+                    } else {
+                        caretCount -= 1;
+                    }
+                }
+            }
+
+            if (rootId) {
+                // set the parent id to match the root id so that we're replying to the first post in the thread
+                var parentId = rootId;
+
+                // alert the post list so that it can display the active thread
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                    root_id: rootId,
+                    parent_id: parentId
+                });
+
+                // save these so that we don't need to recalculate them when we send this post
+                this.setState({rootId: rootId, parentId: parentId});
+            } else {
+                // we couldn't find a post to respond to
+                this.setState({rootId: "", parentId: ""});
+            }
+        } else {
+            if (this.state.rootId || this.state.parentId) {
+                this.setState({rootId: "", parentId: ""});
+
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                    root_id: "",
+                    parent_id: ""
+                });
+            }
+        }
+
         var draft = PostStore.getCurrentDraft();
         if (!draft) {
             draft = {}

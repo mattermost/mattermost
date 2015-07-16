@@ -322,6 +322,10 @@ body.ios {
 			max-width: 100%;
 			@include legacy-pie-clearfix;
 		}
+        &.active-thread__content {
+            // HARRISON remove me
+            color: blue;
+        }
 	}
 	.post-image__columns {
 		@include legacy-pie-clearfix;
