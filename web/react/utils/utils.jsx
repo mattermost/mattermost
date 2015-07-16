@@ -423,6 +423,7 @@ module.exports.textToJsx = function(text, options) {
 
                 highlightSearchClass = " search-highlight";
             }
+            
             if (explicitMention &&
                 (UserStore.getProfileByUsername(explicitMention[1]) ||
                 Constants.SPECIAL_MENTIONS.indexOf(explicitMention[1]) !== -1))
