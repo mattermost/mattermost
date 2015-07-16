@@ -35,8 +35,8 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
-    preForcePosition: 0,
-    wasForced: false,
+    preUpdatePosition: 0,
+    holdPosition: true,
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
         if (user.props && user.props.theme) {
@@ -82,10 +82,11 @@ module.exports = React.createClass({
         });
 
         $(post_holder).scroll(function(e){
-            if (self.wasForced) {
-                $(post_holder).scrollTop(self.preForcePosition);
+            if (self.holdPosition) {
+                $(post_holder).scrollTop(self.preUpdatePosition);
                 $(post_holder).perfectScrollbar('update');
-                self.wasForced = false;
+            } else {
+                self.holdPosition = true;
             }
             if (!self.preventScrollTrigger) {
                 self.scrollPosition = $(post_holder).scrollTop() + $(post_holder).innerHeight();
@@ -126,6 +127,9 @@ module.exports = React.createClass({
         });
 
     },
+    componentWillUpdate: function() {
+        this.preForcePosition = $(".post-list-holder-by-time").scrollTop();
+    },
     componentDidUpdate: function() {
         this.resize();
         var post_holder = $(".post-list-holder-by-time")[0];
@@ -160,9 +164,8 @@ module.exports = React.createClass({
     _onChange: function() {
         var newState = getStateFromStores();
 
-        // Restricts the special case of holding your place during a refresh
-        // to only when it's updating the timestamp
-        this.wasForced = false;
+        // These changes require the position to be updated
+        this.holdPosition = false
 
         if (!utils.areStatesEqual(newState, this.state)) {
             if (this.state.post_list && this.state.post_list.order) {
@@ -184,10 +187,6 @@ module.exports = React.createClass({
         } 
     },
     _onSocketChange: function(msg) {
-
-        // Restricts the special case of holding your place during a refresh
-        // to only when it's updating the timestamp
-        this.wasForced = false;
 
         if (msg.action == "posted") {
             var post = JSON.parse(msg.props.post);
@@ -232,11 +231,7 @@ module.exports = React.createClass({
                 var index = post_list.order.indexOf(msg.props.post_id);
                 if (index > -1) post_list.order.splice(index, 1);
 
-                var scrollSave = $(".post-list-holder-by-time").scrollTop();
-
                 this.setState({ post_list: post_list });
-
-                $(".post-list-holder-by-time").scrollTop(scrollSave)
 
                 PostStore.storePosts(msg.channel_id, post_list);
             } else {
@@ -251,8 +246,6 @@ module.exports = React.createClass({
         }
     },
     _onTimeChange: function() {
-        this.wasForced = true;
-        this.preForcePosition = $(".post-list-holder-by-time").scrollTop();
         this.forceUpdate();
     },
     getMorePosts: function(e) {
