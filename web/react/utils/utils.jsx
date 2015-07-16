@@ -506,9 +506,15 @@ module.exports.textToJsx = function(text, options) {
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
                 }
-                /*if (trimWord.indexOf("p>") === 0) {
+                if (trimWord.indexOf("p>") === 0) {
                     trimWord = trimWord.slice(2);
-                }*/
+                    prefix = "";
+
+                    if (suffix && suffix.indexOf("</") != -1) {
+                      suffix = "";
+                    }
+                }
+
                 console.log(trimWord);
                 //inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}  /> </span>);
                 inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(trimWord)}} />{suffix} </span>);
