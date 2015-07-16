@@ -560,7 +560,7 @@ var AuditTab = React.createClass({
                 <div className="user-settings">
                     <h3 className="tab-header">Activity Log</h3>
                     <div className="divider-dark first"/>
-                    <div className="table-responsive" style={{ maxWidth: "560px", maxHeight: "300px" }}>
+                    <div className="table-responsive">
                         <table className="table-condensed small">
                             <thead>
                                 <tr>
@@ -576,11 +576,11 @@ var AuditTab = React.createClass({
                                 this.state.audits.map(function(value, index) {
                                     return (
                                         <tr key={ "" + index }>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ new Date(value.create_at).toLocaleString() }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.action.replace("/api/v1", "") }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.ip_address }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.session_id }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.extra_info }</td>
+                                            <td className="text-nowrap">{ new Date(value.create_at).toLocaleString() }</td>
+                                            <td className="text-nowrap">{ value.action.replace("/api/v1", "") }</td>
+                                            <td className="text-nowrap">{ value.ip_address }</td>
+                                            <td className="text-nowrap">{ value.session_id }</td>
+                                            <td className="text-nowrap">{ value.extra_info }</td>
                                         </tr>
                                     );
                                 }, this)

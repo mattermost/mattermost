@@ -49,7 +49,7 @@ module.exports = React.createClass({
                         </div>
                     );
         } else {
-            invite = <div className="member-role text-capitalize" style={{marginRight: 15}}>{member.roles || 'Member'}</div>;
+            invite = <div className="member-role text-capitalize">{member.roles || 'Member'}<span className="caret hidden"></span></div>;
         }
 
         return (

@@ -1,6 +1,10 @@
 .user-settings {
     background: #fff;
     min-height:300px;
+    .table-responsive {
+        max-width: 560px;
+        max-height: 300px;
+    }
 }
 
 .settings-modal {

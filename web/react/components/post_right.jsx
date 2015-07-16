@@ -43,7 +43,7 @@ RhsHeaderPost = React.createClass({
         });
     },
     render: function() {
-        var back = this.props.fromSearch ? <a href="#" onClick={this.handleBack} style={{color:"black"}}>{"< "}</a> : "";
+        var back = this.props.fromSearch ? <a href="#" onClick={this.handleBack} className="sidebar--right__back"><i className="fa fa-chevron-left"></i></a> : "";
 
         return (
             <div className="sidebar--right__header">

@@ -95,11 +95,7 @@
 				}
 			}
 			.dropdown__icon {
-				background: url("../images/dropdown-icon.png");
-				width: 4px;
-				height: 16px;
-				@include background-size(100% 100%);
-				display: inline-block;
+				fill: #fff;
 			}
 		}
 		.user__picture {
@@ -163,7 +159,7 @@
 	#member_popover {
 		width: 45px;
 		color: #999;
-
+		cursor: pointer;
 	}
 	&.alt {
 		margin: 0;
@@ -228,5 +224,23 @@
 	}
 	.header-dropdown__icon {
 		top: 1px;
+	}
+}
+
+.channel-header__links {
+	height: 32px;
+	vertical-align: top;
+	display: inline-block;
+	width: 15px;
+	margin: 9px 3px 3px 0;
+	&:hover {
+		svg {
+			fill: #888;
+		}
+	}
+	svg {
+		vertical-align: top;
+		margin-top: 8px;
+		fill: #AAA;
 	}
 }

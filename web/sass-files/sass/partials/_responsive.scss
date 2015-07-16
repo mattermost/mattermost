@@ -413,7 +413,7 @@
         }
     }
     .footer, .footer-pane, .footer-push {
-        height: 185px;
+        height: auto;
     }
     .footer-pane {
         .footer-link {
@@ -574,6 +574,8 @@
     .modal {
         .modal-image {
             .image-wrapper {
+                font-size: 12px;
+                max-width: 280px;
                 .modal-close {
                     @include opacity(1);
                 }
