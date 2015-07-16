@@ -303,18 +303,25 @@ var getYoutubeEmbed = function(link) {
     };
 
     var success = function(data) {
-        $('.video-uploader.'+youtubeId).html(data.data.uploader);
-        $('.video-title.'+youtubeId).find('a').html(data.data.title);
+        if(!data.items.length || !data.items[0].snippet) {
+          return;
+        }
+        var metadata = data.items[0].snippet;
+        $('.video-uploader.'+youtubeId).html(metadata.channelTitle);
+        $('.video-title.'+youtubeId).find('a').html(metadata.title);
         $(".post-list-holder-by-time").scrollTop($(".post-list-holder-by-time")[0].scrollHeight);
         $(".post-list-holder-by-time").perfectScrollbar('update');
     };
 
-    $.ajax({
-        async: true,
-        url: 'https://gdata.youtube.com/feeds/api/videos/'+youtubeId+'?v=2&alt=jsonc',
-        type: 'GET',
-        success: success
-    });
+    if(config.GoogleDeveloperKey) {
+      $.ajax({
+          async: true,
+          url: "https://www.googleapis.com/youtube/v3/videos",
+          type: 'GET',
+          data: {part:"snippet", id:youtubeId, key:config.GoogleDeveloperKey},
+          success: success
+      });
+    }
 
     return (
         <div className="post-comment">
