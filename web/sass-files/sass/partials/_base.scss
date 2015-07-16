@@ -10,6 +10,9 @@ body {
   height: 100%;
   &.white {
     background: #fff;
+    > .container-fluid {
+      overflow: auto;
+    }
     .inner__wrap {
       > .row.content {
         min-height: 100%;
@@ -53,6 +56,9 @@ div.theme {
 
 .form-control {
   @include border-radius(2px);
+  &.no-resize {
+    resize: none;
+  }
 }
 
 .form-group {
@@ -127,7 +133,7 @@ div.theme {
 }
 
 .glyphicon-refresh-animate {
-    @include animation(spin .7s infinite linear);
+  @include animation(spin .7s infinite linear);
 }
 
 .black-bg {

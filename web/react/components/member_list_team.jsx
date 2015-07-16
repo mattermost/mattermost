@@ -59,7 +59,7 @@ var MemberListTeamItem = React.createClass({
         return {};
     },
     render: function() {
-        var server_error = this.state.server_error ? <div style={{ clear: "both" }} className="has-error"><label className='has-error control-label'>{this.state.server_error}</label></div> : null;
+        var server_error = this.state.server_error ? <div className="has-error"><label className='has-error control-label'>{this.state.server_error}</label></div> : null;
         var user = this.props.user;
         var currentRoles = "Member";
         var timestamp = UserStore.getCurrentUser().update_at;

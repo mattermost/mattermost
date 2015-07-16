@@ -53,12 +53,12 @@ var PopoverListMembers = React.createClass({
             });
 
             members.forEach(function(m) {
-                popoverHtml += "<div style='white-space: nowrap'>" + m.username + "</div>";
+                popoverHtml += "<div class='text--nowrap'>" + m.username + "</div>";
             });
         }
 
         return (
-            <div style={{cursor : "pointer"}} id="member_popover" data-toggle="popover" data-content={popoverHtml} data-original-title="Members" >
+            <div id="member_popover" data-toggle="popover" data-content={popoverHtml} data-original-title="Members" >
                 <div id="member_tooltip" data-toggle="tooltip" title="View Channel Members">
                     {count} <span className="glyphicon glyphicon-user" aria-hidden="true"></span>
                 </div>
@@ -200,11 +200,10 @@ module.exports = React.createClass({
                     <th><PopoverListMembers members={this.state.users} channelId={this.state.channel.id} /></th>
                     <th className="search-bar__container"><NavbarSearchBox /></th>
                     <th>
-                        <div className="dropdown" style={{marginLeft:5, marginRight:10}}>
+                        <div className="dropdown channel-header__links">
                             <a href="#" className="dropdown-toggle theme" type="button" id="channel_header_right_dropdown" data-toggle="dropdown" aria-expanded="true">
-                                <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_right_dropdown" style={{left: "-150px"}}>
+                                <span dangerouslySetInnerHTML={{__html: " <svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='4px' height='16px' viewBox='0 0 8 32' enable-background='new 0 0 8 32' xml:space='preserve'> <g> <circle cx='4' cy='4.062' r='4'/> <circle cx='4' cy='16' r='4'/> <circle cx='4' cy='28' r='4'/> </g> </svg>"}} /> </a>
+                            <ul className="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="channel_header_right_dropdown">
                                 <li role="presentation"><a role="menuitem" href="#" onClick={this.searchMentions}>Recent Mentions</a></li>
                             </ul>
                         </div>

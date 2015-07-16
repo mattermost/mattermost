@@ -122,7 +122,7 @@ module.exports = React.createClass({
                                 </div>
                                 <div className="form-group">
                                     <label className='control-label'>Description</label>
-                                    <textarea className="form-control" style={{resize: "none"}} ref="channel_desc" rows="3" placeholder="Description" maxLength="1024"></textarea>
+                                    <textarea className="form-control no-resize" ref="channel_desc" rows="3" placeholder="Description" maxLength="1024"></textarea>
                                 </div>
                                 { server_error }
                             </form>

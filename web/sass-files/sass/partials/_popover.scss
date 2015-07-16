@@ -1,0 +1,9 @@
+.user-popover {
+	cursor: pointer;
+	display: inline-block;
+}
+
+.user-popover__image {
+	margin: 0 0 10px;
+	@include border-radius(128px);
+}
