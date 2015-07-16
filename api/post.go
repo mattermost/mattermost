@@ -619,23 +619,17 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(postId)
-	uchan := Srv.Store.User().Get(c.Session.UserId)
 
-	if uresult := <-uchan; uresult.Err != nil {
-		c.Err = uresult.Err
+	if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(){
 		return
-	} else if presult := <-pchan; presult.Err != nil {
-		c.Err = presult.Err
+	}
+
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
 		return
 	} else {
 
-		user := uresult.Data.(*model.User)
-
-		if !c.HasPermissionsToChannel(cchan, "deletePost") && !strings.Contains(user.Roles,"admin"){
-			return
-		}
-
-		post := presult.Data.(*model.PostList).Posts[postId]
+		post := result.Data.(*model.PostList).Posts[postId]
 
 		if post == nil {
 			c.SetInvalidParam("deletePost", "postId")
@@ -648,7 +642,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !strings.Contains(user.Roles,"admin") {
+		if post.UserId != c.Session.UserId && !strings.Contains(c.Session.Roles,model.ROLE_ADMIN) {
 			c.Err = model.NewAppError("deletePost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return

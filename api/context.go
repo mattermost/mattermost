@@ -265,6 +265,16 @@ func (c *Context) IsSystemAdmin() bool {
 	return false
 }
 
+func (c *Context) IsTeamAdmin() bool {
+	if uresult := <-Srv.Store.User().Get(c.Session.UserId); uresult.Err != nil {
+		c.Err = uresult.Err
+		return false
+	} else {
+		user := uresult.Data.(*model.User)
+		return strings.Contains(user.Roles, model.ROLE_ADMIN) && user.TeamId == c.Session.TeamId
+	}
+}
+
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter) {
 
 	sessionCache.Remove(c.Session.Id)
