@@ -17,14 +17,37 @@ module.exports = React.createClass({
     displayName: "MentionList",
     componentDidMount: function() {
         PostStore.addMentionDataChangeListener(this._onChange);
-
         var self = this;
-        $('body').on('keypress.mentionlist', '#'+this.props.id,
+
+        $('body').on('keydown.mentionlist', '#'+this.props.id,
             function(e) {
-                if (!self.isEmpty() && self.state.mentionText != '-1' && e.which === 13) {
+                if (!self.isEmpty() && self.state.mentionText != '-1' && (e.which === 13 || e.which === 9)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    self.addFirstMention();
+                    self.addCurrentMention();
+                }
+                else if (!self.isEmpty() && self.state.mentionText != '-1' && (e.which === 38 || e.which === 40)) {
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    var tempSelectedMention = -1;
+                    if (e.which === 38) {    
+                        if (self.getSelection(self.state.selectedMention - 1))
+                            self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
+                        else {
+                            while (self.getSelection(++tempSelectedMention))
+                                ; //Need to find the top of the list
+                            self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
+                        }
+                    }
+                    else if (e.which === 40) {
+                        if (self.getSelection(self.state.selectedMention + 1))
+                            self.setState({ selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username });
+                        else
+                            self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
+                    }
+
+                    self.scrollToMention(e.which, tempSelectedMention);
                 }
             }
         );
@@ -37,7 +60,28 @@ module.exports = React.createClass({
     },
     componentWillUnmount: function() {
         PostStore.removeMentionDataChangeListener(this._onChange);
-        $('body').off('keypress.mentionlist', '#'+this.props.id);
+        $('body').off('keydown.mentionlist', '#'+this.props.id);
+    },
+    componentDidUpdate: function() {
+        if (this.state.mentionText != "-1") {
+            if (this.state.selectedUsername !== "" && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
+                var tempSelectedMention = -1;
+                var foundMatch = false;
+                while (tempSelectedMention < this.state.selectedMention && this.getSelection(++tempSelectedMention)) {
+                    if (this.state.selectedUsername === this.refs['mention' + tempSelectedMention].props.username) {
+                        this.setState({ selectedMention: tempSelectedMention });
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                if (this.getSelection(0) && !foundMatch) {
+                    this.setState({ selectedMention: 0, selectedUsername: this.refs.mention0.props.username });
+                }
+            }
+        }
+        else if (this.state.selectedMention !== 0) {
+            this.setState({ selectedMention: 0, selectedUsername: "" });
+        }
     },
     _onChange: function(id, mentionText, excludeList) {
         if (id !== this.props.id) return;
@@ -45,6 +89,7 @@ module.exports = React.createClass({
         var newState = this.state;
         if (mentionText != null) newState.mentionText = mentionText;
         if (excludeList != null) newState.excludeUsers = excludeList;
+
         this.setState(newState);
     },
     handleClick: function(name) {
@@ -56,12 +101,44 @@ module.exports = React.createClass({
 
         this.setState({ mentionText: '-1' });
     },
+    handleMouseEnter: function(listId) {
+        this.setState({ selectedMention: listId, selectedUsername: this.refs['mention' + listId].props.username });
+    },
+    getSelection: function(listId) {
+        if (!this.refs['mention' + listId]) 
+            return false;
+        else
+            return true;
+    },
+    addCurrentMention: function() {
+        if (!this.getSelection(this.state.selectedMention)) 
+            this.addFirstMention();
+        else
+            this.refs['mention' + this.state.selectedMention].handleClick();
+    },
     addFirstMention: function() {
         if (!this.refs.mention0) return;
         this.refs.mention0.handleClick();
     },
     isEmpty: function() {
         return (!this.refs.mention0);
+    },
+    scrollToMention: function(keyPressed, ifLoopUp) {
+        var direction = keyPressed === 38 ? "up" : "down";
+        var scrollAmount = 0;
+
+        if (direction === "up" && ifLoopUp !== -1)
+            scrollAmount = $("#mentionsbox").height() * 100; //Makes sure that it scrolls all the way to the bottom
+        else if (direction === "down" && this.state.selectedMention === 0)
+            scrollAmount = 0;
+        else if (direction === "up") 
+            scrollAmount = "-=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
+        else if (direction === "down")
+            scrollAmount = "+=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
+
+        $("#mentionsbox").animate({
+            scrollTop: scrollAmount
+        }, 75);
     },
     alreadyMentioned: function(username) {
         var excludeUsers = this.state.excludeUsers;
@@ -73,9 +150,10 @@ module.exports = React.createClass({
         return false;
     },
     getInitialState: function() {
-        return { excludeUsers: [], mentionText: "-1" };
+        return { excludeUsers: [], mentionText: "-1", selectedMention: 0, selectedUsername: "" };
     },
     render: function() {
+        var self = this;
         var mentionText = this.state.mentionText;
         if (mentionText === '-1') return null;
 
@@ -89,12 +167,14 @@ module.exports = React.createClass({
         all.username = "all";
         all.full_name = "";
         all.secondary_text = "Notifies everyone in the team";
+        all.id = "allmention";
         users.push(all);
 
         var channel = {};
         channel.username = "channel";
         channel.full_name = "";
         channel.secondary_text = "Notifies everyone in the channel";
+        channel.id = "channelmention";
         users.push(channel);
 
         users.sort(function(a,b) {
@@ -118,17 +198,21 @@ module.exports = React.createClass({
 
             if (firstName.lastIndexOf(mentionText,0) === 0
                     || lastName.lastIndexOf(mentionText,0) === 0 || users[i].username.lastIndexOf(mentionText,0) === 0) {
-                mentions[i+1] = (
+                mentions[index] = (
                     <Mention
                         ref={'mention' + index}
                         username={users[i].username}
                         secondary_text={users[i].secondary_text}
                         id={users[i].id}
+                        listId={index}
+                        isFocused={this.state.selectedMention === index ? "mentions-focus" : ""}
+                        handleMouseEnter={function(value) { return function() { self.handleMouseEnter(value); } }(index)}
                         handleClick={this.handleClick} />
                 );
                 index++;
             }
         }
+
         var numMentions = Object.keys(mentions).length;
 
         if (numMentions < 1) return null;
@@ -144,7 +228,7 @@ module.exports = React.createClass({
 
         return (
             <div className="mentions--top" style={style}>
-                <div ref="mentionlist" className="mentions-box">
+                <div ref="mentionlist" className="mentions-box" id="mentionsbox">
                     { mentions }
                 </div>
             </div>
