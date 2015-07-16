@@ -137,8 +137,5 @@ To contribute to this open source project please review the Mattermost Contribut
 License
 -------
 
-Most Mattermost source files are made available under the terms of the GNU Affero General Public License (AGPL). See individual files for details.
-
-As an exception, Admin Tools and Configuration Files are are made available under the terms of the Apache License, version 2.0. See LICENSE.txt for more information.
-
+Mattermost is licensed under an "Apache-wrapped AGPL" model, which means you can run and link to the system using Configuration Files and Admin Tools licensed under Apache, version 2.0, as described in the LICENSE file, as an explicit exception to the terms of the GNU Affero General Public License (AGPL) that applies to most of the remaining source files. See individual files for details.
 
