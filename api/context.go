@@ -265,8 +265,8 @@ func (c *Context) IsSystemAdmin() bool {
 	return false
 }
 
-func (c *Context) IsTeamAdmin() bool {
-	if uresult := <-Srv.Store.User().Get(c.Session.UserId); uresult.Err != nil {
+func (c *Context) IsTeamAdmin(userId string) bool {
+	if uresult := <-Srv.Store.User().Get(userId); uresult.Err != nil {
 		c.Err = uresult.Err
 		return false
 	} else {

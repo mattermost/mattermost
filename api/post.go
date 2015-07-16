@@ -620,16 +620,16 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(postId)
 
-	if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(){
-		return
-	}
-
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 
 		post := result.Data.(*model.PostList).Posts[postId]
+
+	if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId){
+		return
+	}
 
 		if post == nil {
 			c.SetInvalidParam("deletePost", "postId")
