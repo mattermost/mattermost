@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func TestCreatePost(t *testing.T) {
