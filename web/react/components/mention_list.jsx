@@ -129,7 +129,7 @@ module.exports = React.createClass({
 
         if (direction === "up" && ifLoopUp !== -1)
             scrollAmount = $("#mentionsbox").height() * 100; //Makes sure that it scrolls all the way to the bottom
-        else if (direction === "down" && this.refs['mention' + this.state.selectedMention].props.listId === 0)
+        else if (direction === "down" && this.state.selectedMention === 0)
             scrollAmount = 0;
         else if (direction === "up") 
             scrollAmount = "-=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
