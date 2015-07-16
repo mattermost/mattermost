@@ -150,9 +150,8 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 						return
 					}
 
-					err = writeFile(buf.Bytes(), dest+name+"_thumb.jpg")
-					if err != nil {
-						l4g.Error("Unable to upload thumbnail to S3 channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+					if err := writeFile(buf.Bytes(), dest+name+"_thumb.jpg"); err != nil {
+						l4g.Error("Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
 						return
 					}
 				}()
@@ -174,9 +173,8 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 						return
 					}
 
-					err = writeFile(buf.Bytes(), dest+name+"_preview.jpg")
-					if err != nil {
-						l4g.Error("Unable to upload preview to S3 channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+					if err := writeFile(buf.Bytes(), dest+name+"_preview.jpg"); err != nil {
+						l4g.Error("Unable to upload preview channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
 						return
 					}
 				}()

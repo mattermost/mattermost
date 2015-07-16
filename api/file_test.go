@@ -68,12 +68,14 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	resp, appErr := Client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
-	if utils.IsS3Configured() {
+	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 		if appErr != nil {
 			t.Fatal(appErr)
 		}
 
-		filenames := resp.Data.(*model.FileUploadResponse).Filenames
+		filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
+		filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+		fileId := strings.Split(filename, ".")[0]
 
 		var auth aws.Auth
 		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
@@ -82,12 +84,10 @@ func TestUploadFile(t *testing.T) {
 		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
 		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
 
-		fileId := strings.Split(filenames[0], ".")[0]
-
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filenames[0])
+		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -97,13 +97,35 @@ func TestUploadFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.png")
+		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg")
 		if err != nil {
 			t.Fatal(err)
 		}
+	} else if utils.Cfg.ServiceSettings.UseLocalStorage && len(utils.Cfg.ServiceSettings.StorageDirectory) > 0 {
+		filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
+		filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+		fileId := strings.Split(filename, ".")[0]
+
+		// wait a bit for files to ready
+		time.Sleep(5 * time.Second)
+
+		path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+		if err := os.Remove(path); err != nil {
+			t.Fatal("Couldn't remove file at " + path)
+		}
+
+		path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+		if err := os.Remove(path); err != nil {
+			t.Fatal("Couldn't remove file at " + path)
+		}
+
+		path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+		if err := os.Remove(path); err != nil {
+			t.Fatal("Couldn't remove file at " + path)
+		}
 	} else {
 		if appErr == nil {
-			t.Fatal("S3 not configured, should have failed")
+			t.Fatal("S3 and local storage not configured, should have failed")
 		}
 	}
 }
@@ -123,7 +145,7 @@ func TestGetFile(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.IsS3Configured() {
+	if utils.IsS3Configured() || utils.Cfg.ServiceSettings.UseLocalStorage {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -225,28 +247,51 @@ func TestGetFile(t *testing.T) {
 			t.Fatal("Should have errored - user not logged in and link not public")
 		}
 
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+			var auth aws.Auth
+			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
+			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
+			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
 
-		fileId := strings.Split(filenames[0], ".")[0]
+			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
+			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+			fileId := strings.Split(filename, ".")[0]
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filenames[0])
-		if err != nil {
-			t.Fatal(err)
-		}
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg")
-		if err != nil {
-			t.Fatal(err)
-		}
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg")
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.png")
-		if err != nil {
-			t.Fatal(err)
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg")
+			if err != nil {
+				t.Fatal(err)
+			}
+		} else {
+			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
+			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+			fileId := strings.Split(filename, ".")[0]
+
+			path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+			if err := os.Remove(path); err != nil {
+				t.Fatal("Couldn't remove file at " + path)
+			}
+
+			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+			if err := os.Remove(path); err != nil {
+				t.Fatal("Couldn't remove file at " + path)
+			}
+
+			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+			if err := os.Remove(path); err != nil {
+				t.Fatal("Couldn't remove file at " + path)
+			}
 		}
 	} else {
 		if _, downErr := Client.GetFile("/files/get/yxebdmbz5pgupx7q6ez88rw11a/n3btzxu9hbnapqk36iwaxkjxhc/junk.jpg", false); downErr.StatusCode != http.StatusNotImplemented {
@@ -274,7 +319,7 @@ func TestGetPublicLink(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.IsS3Configured() {
+	if utils.IsS3Configured() || utils.Cfg.ServiceSettings.UseLocalStorage {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -350,26 +395,52 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal("should have errored, user not member of channel")
 		}
 
-		// perform clean-up on s3
-		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+			// perform clean-up on s3
+			var auth aws.Auth
+			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
+			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
+			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
 
-		fileId := strings.Split(filenames[0], ".")[0]
+			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
+			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+			fileId := strings.Split(filename, ".")[0]
 
-		if err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + rpost1.Data.(*model.Post).UserId + "/" + filenames[0]); err != nil {
-			t.Fatal(err)
-		}
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		if err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + rpost1.Data.(*model.Post).UserId + "/" + fileId + "_thumb.jpg"); err != nil {
-			t.Fatal(err)
-		}
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg")
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		if err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + rpost1.Data.(*model.Post).UserId + "/" + fileId + "_preview.png"); err != nil {
-			t.Fatal(err)
+			err = bucket.Del("teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg")
+			if err != nil {
+				t.Fatal(err)
+			}
+		} else {
+			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
+			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+			fileId := strings.Split(filename, ".")[0]
+
+			path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+			if err := os.Remove(path); err != nil {
+				t.Fatal("Couldn't remove file at " + path)
+			}
+
+			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+			if err := os.Remove(path); err != nil {
+				t.Fatal("Couldn't remove file at " + path)
+			}
+
+			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+			if err := os.Remove(path); err != nil {
+				t.Fatal("Couldn't remove file at " + path)
+			}
 		}
 	} else {
 		data := make(map[string]string)
