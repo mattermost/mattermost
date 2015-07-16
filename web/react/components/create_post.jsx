@@ -152,26 +152,29 @@ module.exports = React.createClass({
             }
 
             if (rootId) {
-                // set the parent id to match the root id so that we're replying to the first post in the thread
-                var parentId = rootId;
+                // only dispatch an event if something changed
+                if (rootId != this.state.rootId) {
+                    // set the parent id to match the root id so that we're replying to the first post in the thread
+                    var parentId = rootId;
 
-                // alert the post list so that it can display the active thread
+                    // alert the post list so that it can display the active thread
+                    AppDispatcher.handleViewAction({
+                        type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                        root_id: rootId,
+                        parent_id: parentId
+                    });
+                }
+            } else {
+                // we couldn't find a post to respond to so clear the active thread
                 AppDispatcher.handleViewAction({
                     type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
-                    root_id: rootId,
-                    parent_id: parentId
+                    root_id: "",
+                    parent_id: ""
                 });
-
-                // save these so that we don't need to recalculate them when we send this post
-                this.setState({rootId: rootId, parentId: parentId});
-            } else {
-                // we couldn't find a post to respond to
-                this.setState({rootId: "", parentId: ""});
             }
         } else {
             if (this.state.rootId || this.state.parentId) {
-                this.setState({rootId: "", parentId: ""});
-
+                // clear the active thread since there no longer is one
                 AppDispatcher.handleViewAction({
                     type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
                     root_id: "",
@@ -242,10 +245,12 @@ module.exports = React.createClass({
     },
     componentDidMount: function() {
         ChannelStore.addChangeListener(this._onChange);
+        PostStore.addActiveThreadChangedListener(this._onActiveThreadChanged);
         this.resizePostHolder();
     },
     componentWillUnmount: function() {
         ChannelStore.removeChangeListener(this._onChange);
+        PostStore.removeActiveThreadChangedListener(this._onActiveThreadChanged);
     },
     _onChange: function() {
         var channel_id = ChannelStore.getCurrentId();
@@ -261,6 +266,11 @@ module.exports = React.createClass({
             }
             this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
         }
+    },
+    _onActiveThreadChanged: function(rootId, parentId) {
+        // note that we register for our own events and set the state from there so we don't need to manually set
+        // our state and dispatch an event each time the active thread changes
+        this.setState({"rootId": rootId, "parentId": parentId});
     },
     getInitialState: function() {
         PostStore.clearDraftUploads();
