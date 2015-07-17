@@ -11,6 +11,7 @@ module.exports = React.createClass({
     render: function() {
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() == post.user_id;
+        var isAdmin = UserStore.getCurrentUser().roles.indexOf("admin") > -1
 
         var type = "Post"
         if (post.root_id.length > 0) {
@@ -36,7 +37,7 @@ module.exports = React.createClass({
                                 <ul className="dropdown-menu" role="menu">
                                     { isOwner ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Edit</a></li>
                                     : "" }
-                                    { isOwner ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Delete</a></li>
+                                    { isOwner || isAdmin ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Delete</a></li>
                                     : "" }
                                     { this.props.allowReply === "true" ? <li role="presentation"><a className="reply-link theme" href="#" onClick={this.props.handleCommentClick}>Reply</a></li>
                                     : "" }

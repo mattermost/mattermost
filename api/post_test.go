@@ -483,6 +483,10 @@ func TestDeletePosts(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
+	userAdmin := &model.User{TeamId: team.Id, Email: team.Email, FullName: "Corey Hulen", Password: "pwd"}
+	userAdmin = Client.Must(Client.CreateUser(userAdmin, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(userAdmin.Id))
+
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
@@ -521,8 +525,16 @@ func TestDeletePosts(t *testing.T) {
 	r2 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
 
 	if len(r2.Posts) != 4 {
-		t.Fatal("should have returned 5 items")
+		t.Fatal("should have returned 4 items")
 	}
+
+	time.Sleep(10 * time.Millisecond)
+	post4 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
+
+	Client.LoginByEmail(team.Domain, userAdmin.Email, "pwd")
+
+	Client.Must(Client.DeletePost(channel1.Id, post4.Id))
 }
 
 func TestEmailMention(t *testing.T) {
