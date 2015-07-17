@@ -20,6 +20,7 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	"image/png"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -1222,51 +1223,85 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AuthorizeGitLabUser(code, state, uri string) (*model.GitLabUser, *model.AppError) {
-	if !model.ComparePassword(state, utils.Cfg.SSOSettings.GitLabId) {
-		return nil, model.NewAppError("AuthorizeGitLabUser", "Invalid state", "")
+func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, service, redirectUri string) {
+
+	teamId := r.FormValue("id")
+
+	if len(teamId) != 26 {
+		c.Err = model.NewAppError("GetAuthorizationCode", "Invalid team id", "team_id="+teamId)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	// Make sure team exists
+	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	clientId := utils.Cfg.SSOSettings[service].Id
+	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
+	state := model.HashPassword(clientId)
+
+	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri+"?id="+teamId) + "&state=" + url.QueryEscape(state)
+	http.Redirect(w, r, authUrl, http.StatusFound)
+}
+
+func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.AppError) {
+	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
+	}
+
+	if !model.ComparePassword(state, utils.Cfg.SSOSettings[service].Id) {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
 	}
 
 	p := url.Values{}
-	p.Set("client_id", utils.Cfg.SSOSettings.GitLabId)
-	p.Set("client_secret", utils.Cfg.SSOSettings.GitLabSecret)
+	p.Set("client_id", utils.Cfg.SSOSettings[service].Id)
+	p.Set("client_secret", utils.Cfg.SSOSettings[service].Secret)
 	p.Set("code", code)
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
-	p.Set("redirect_uri", uri)
+	p.Set("redirect_uri", redirectUri)
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings.GitLabUrl+"/oauth/token", strings.NewReader(p.Encode()))
+	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings[service].TokenEndpoint, strings.NewReader(p.Encode()))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
 	var ar *model.AccessResponse
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeGitLabUser", "Token request to GitLab failed", err.Error())
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request to GitLab failed", err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
 	}
 
 	if ar.TokenType != model.ACCESS_TOKEN_TYPE {
-		return nil, model.NewAppError("AuthorizeGitLabUser", "Bad token type", "token_type="+ar.TokenType)
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, model.NewAppError("AuthorizeGitLabUser", "Missing access token", "")
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
 	}
 
 	p = url.Values{}
 	p.Set("access_token", ar.AccessToken)
-	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings.GitLabUrl+"/api/v3/user", strings.NewReader(""))
+	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings[service].UserApiEndpoint, strings.NewReader(""))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeGitLabUser", "Token request to GitLab failed", err.Error())
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
 	} else {
-		return model.GitLabUserFromJson(resp.Body), nil
+		return resp.Body, nil
 	}
 
 }

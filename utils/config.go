@@ -32,11 +32,13 @@ type ServiceSettings struct {
 	StorageDirectory string
 }
 
-type SSOSettings struct {
-	AllowGitLabSSO bool
-	GitLabSecret   string
-	GitLabId       string
-	GitLabUrl      string
+type SSOSetting struct {
+	Allow           bool
+	Secret          string
+	Id              string
+	AuthEndpoint    string
+	TokenEndpoint   string
+	UserApiEndpoint string
 }
 
 type SqlSettings struct {
@@ -116,7 +118,7 @@ type Config struct {
 	EmailSettings   EmailSettings
 	PrivacySettings PrivacySettings
 	TeamSettings    TeamSettings
-	SSOSettings     SSOSettings
+	SSOSettings     map[string]SSOSetting
 }
 
 func (o *Config) ToJson() string {

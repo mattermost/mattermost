@@ -385,3 +385,7 @@ func GitLabUserFromJson(data io.Reader) *GitLabUser {
 		return nil
 	}
 }
+
+func (glu *GitLabUser) GetAuthData() string {
+	return strconv.FormatInt(glu.Id, 10)
+}
