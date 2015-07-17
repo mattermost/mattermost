@@ -73,9 +73,9 @@ RootPost = React.createClass({
             type = "Comment";
         }
 
-        var currentUser = "";
+        var currentUserCss = "";
         if (UserStore.getCurrentId() === this.props.post.user_id) {
-            currentUser = "current--user";
+            currentUserCss = "current--user";
         }
 
         if (filenames) {
@@ -116,7 +116,7 @@ RootPost = React.createClass({
         }
 
         return (
-            <div className={"post post--root " + currentUser}>
+            <div className={"post post--root " + currentUserCss}>
                 <div className="post-profile-img__container">
                     <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
                 </div>
@@ -175,9 +175,9 @@ CommentPost = React.createClass({
 
         var commentClass = "post";
 
-        var currentUser = "";
+        var currentUserCss = "";
         if (UserStore.getCurrentId() === this.props.post.user_id) {
-            currentUser = "current--user";
+            currentUserCss = "current--user";
         }
 
         var postImageModalId = "rhs_comment_view_image_modal_" + this.props.post.id;
@@ -229,7 +229,7 @@ CommentPost = React.createClass({
         var message = utils.textToJsx(this.props.post.message);
 
         return (
-            <div className={commentClass + " " + currentUser}>
+            <div className={commentClass + " " + currentUserCss}>
                 <div className="post-profile-img__container">
                     <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
                 </div>
