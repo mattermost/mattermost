@@ -97,7 +97,7 @@ module.exports = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="radio">
                         <label>
                             <input type="radio" checked={notifyActive[0]} onClick={function(){self.handleRadioClick("all")}}>For all activity</input>
@@ -158,7 +158,7 @@ module.exports = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="btn-group" data-toggle="buttons-radio">
                         <button className={"btn btn-default "+quietActive[0]} onClick={function(){self.handleQuietToggle(true)}}>On</button>
                         <button className={"btn btn-default "+quietActive[1]} onClick={function(){self.handleQuietToggle(false)}}>Off</button>
@@ -167,7 +167,7 @@ module.exports = React.createClass({
             );
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <br/>
                     Enabling quiet mode will turn off desktop notifications and only mark the channel as unread if you have been mentioned.
                 </div>
