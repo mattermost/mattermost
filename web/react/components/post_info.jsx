@@ -30,9 +30,7 @@ module.exports = React.createClass({
                         <div className="dropdown">
                         { isOwner || (this.props.allowReply === "true" && type != "Comment") ?
                             <div>
-                                <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false">
-                                    [...]
-                                </a>
+                                <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
                                     { isOwner ? <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id} data-comments={type === "Post" ? this.props.commentCount : 0}>Edit</a></li>
                                     : "" }

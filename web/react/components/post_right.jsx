@@ -129,9 +129,7 @@ RootPost = React.createClass({
                             <div className="dropdown">
                             { isOwner ?
                                 <div>
-                                <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false">
-                                    [...]
-                                </a>
+                                <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
                                     <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
                                     <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
