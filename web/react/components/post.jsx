@@ -10,9 +10,9 @@ var ActionTypes = Constants.ActionTypes;
 
 module.exports = React.createClass({
     componentDidMount: function() {
-        $('.edit-modal').on('show.bs.modal', function () {
-            $('.edit-modal .edit-modal-body').css('overflow-y', 'auto');
-            $('.edit-modal .edit-modal-body').css('max-height', $(window).height() * 0.7);
+        $('.modal').on('show.bs.modal', function () {
+            $('.modal-body').css('overflow-y', 'auto');
+            $('.modal-body').css('max-height', $(window).height() * 0.7);
         });
     },
     handleCommentClick: function(e) {
