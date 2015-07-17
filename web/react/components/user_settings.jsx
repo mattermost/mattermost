@@ -640,10 +640,10 @@ var SecurityTab = React.createClass({
         this.setState({ confirm_password: e.target.value });
     },
     handleHistoryOpen: function() {
-        $("#user_settings").modal('hide');
+        $("#user_settings1").modal('hide');
     },
     handleDevicesOpen: function() {
-        $("#user_settings").modal('hide');
+        $("#user_settings1").modal('hide');
     },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };

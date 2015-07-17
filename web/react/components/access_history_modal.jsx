@@ -40,11 +40,34 @@ module.exports = React.createClass({
         for (var i = 0; i < this.state.audits.length; i++) {
             var currentAudit = this.state.audits[i];
             var newHistoryDate = new Date(currentAudit.create_at);
+            var newDate = null;
 
             if (!currentHistoryDate || currentHistoryDate.toLocaleDateString() !== newHistoryDate.toLocaleDateString()) {
                 currentHistoryDate = newHistoryDate;
+
+                var formatIndex = currentHistoryDate.toString().indexOf(":");
+                newDate = ( <div className="access-date">{currentHistoryDate.toString().substring(0, formatIndex - 3)}</div> );
             }
             
+            accessList[i] = (
+                <div>
+                    {newDate}
+                    <div className="single-access">
+                        <div className="access-time">{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div className="access-info">
+                            <div>{"IP: " + currentAudit.ip_address}</div>
+                            <div>{"Session ID: " + currentAudit.session_id}</div>
+                            <div>{"URL: " + currentAudit.action.replace("/api/v1", "")}</div>
+                        </div>
+                        <br/>
+                        {i < this.state.audits.length - 1 ?
+                        <div className="divider-light"/>
+                        :
+                        null
+                        }
+                    </div>
+                </div>
+            );
         }
 
         return (
@@ -53,16 +76,14 @@ module.exports = React.createClass({
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                            <h4 className="modal-title" id="myModalLabel">Access History</h4>
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 className="modal-title" id="myModalLabel">Access History</h4>
                             </div>
                             <div ref="modalBody" className="modal-body">
                                 <form role="form">
                                 { accessList }
                                 </form>
                                 { server_error }
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
