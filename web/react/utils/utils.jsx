@@ -728,20 +728,22 @@ module.exports.isComment = function(post) {
 }
 
 module.exports.getDirectTeammate = function(channel_id) {
-  var userIds = ChannelStore.get(channel_id).name.split('__');
+    var userIds = ChannelStore.get(channel_id).name.split('__');
+    var curUserId = UserStore.getCurrentId();
+    var teammate = {};
 
-  if(userIds.length != 2) {
-    return;
-  }
+    if(userIds.length != 2 || userIds.indexOf(curUserId) === -1) {
+        return teammate;
+    }
 
-  var curUser = UserStore.getCurrentId();
+    for (var idx in userIds) {
+        if(userIds[idx] !== curUserId) {
+            teammate = UserStore.getProfile(userIds[idx]);
+            break;
+        }
+    }
 
-  for(var idx in userIds) {
-    if(userIds[idx] === curUser)
-      delete userIds[idx];
-  }
-
-  return UserStore.getProfile(userIds[0])
+    return teammate;
 }
 
 Image.prototype.load = function(url, progressCallback) {
