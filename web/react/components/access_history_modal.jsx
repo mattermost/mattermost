@@ -3,10 +3,11 @@
 
 var UserStore = require('../stores/user_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var Utils = require('../utils/utils.jsx');
 
 function getStateFromStoresForAudits() {
     return {
-        audits: UserStore.getAudits()
+        audits: UserStore.getAudits(),
     };
 }
 
@@ -35,8 +36,6 @@ module.exports = React.createClass({
 
             if (!currentHistoryDate || currentHistoryDate.toLocaleDateString() !== newHistoryDate.toLocaleDateString()) {
                 currentHistoryDate = newHistoryDate;
-
-                var formatIndex = currentHistoryDate.toString().indexOf(":");
                 newDate = ( <div className="access-date">{currentHistoryDate.toDateString()}</div> );
             }
             
