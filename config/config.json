@@ -20,8 +20,8 @@
         "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
         "AnalyticsUrl": "",
-        "UseLocalStorage": true,
-        "StorageDirectory": "/mattermost/"
+        "UseLocalStorage": false,
+        "StorageDirectory": ""
     },
     "SqlSettings": {
         "DriverName": "mysql",
