@@ -4,20 +4,12 @@
 var UserStore = require('../stores/user_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
-function getStateFromStoresForSessions() {
-    return {
-        sessions: UserStore.getSessions(),
-        server_error: null,
-        client_error: null
-    };
-}
-
 function getStateFromStoresForAudits() {
     return {
         audits: UserStore.getAudits()
     };
 }
-/////////currentPostDay.toDateString()//////////////////
+
 module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addAuditsChangeListener(this._onChange);
@@ -34,7 +26,6 @@ module.exports = React.createClass({
     },
     render: function() {
         var accessList = [];
-        var server_error = this.state.server_error ? this.state.server_error : null;
         var currentHistoryDate = null;
 
         for (var i = 0; i < this.state.audits.length; i++) {
@@ -46,7 +37,7 @@ module.exports = React.createClass({
                 currentHistoryDate = newHistoryDate;
 
                 var formatIndex = currentHistoryDate.toString().indexOf(":");
-                newDate = ( <div className="access-date">{currentHistoryDate.toString().substring(0, formatIndex - 3)}</div> );
+                newDate = ( <div className="access-date">{currentHistoryDate.toDateString()}</div> );
             }
             
             accessList[i] = (
@@ -83,7 +74,6 @@ module.exports = React.createClass({
                                 <form role="form">
                                 { accessList }
                                 </form>
-                                { server_error }
                             </div>
                         </div>
                     </div>
