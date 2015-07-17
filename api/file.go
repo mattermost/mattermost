@@ -103,7 +103,9 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			imageDataList = append(imageDataList, buf.Bytes())
 		}
 
-		fileUrl := "/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + url.QueryEscape(files[i].Filename)
+		encName := utils.UrlEncode(files[i].Filename)
+
+		fileUrl := "/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + encName
 		resStruct.Filenames = append(resStruct.Filenames, fileUrl)
 	}
 
@@ -264,6 +266,7 @@ func asyncGetFile(path string, fileData chan []byte) {
 	go func() {
 		data, getErr := readFile(path)
 		if getErr != nil {
+			l4g.Error(getErr)
 			fileData <- nil
 		} else {
 			fileData <- data
