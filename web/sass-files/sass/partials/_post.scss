@@ -323,8 +323,10 @@ body.ios {
 			@include legacy-pie-clearfix;
 		}
         &.active-thread__content {
-            // HARRISON remove me
-            color: blue;
+            // this still needs a final style applied to it
+            & .post-body {
+                font-weight: bold;
+            }
         }
 	}
 	.post-image__columns {
