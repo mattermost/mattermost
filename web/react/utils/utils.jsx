@@ -198,7 +198,13 @@ module.exports.getTimestamp = function() {
 }
 
 var testUrlMatch = function(text) {
-    var urlMatcher = new Autolinker.matchParser.MatchParser;
+    var urlMatcher = new Autolinker.matchParser.MatchParser({
+      urls: true,
+      emails: false,
+      twitter: false,
+      phone: false,
+      hashtag: false,
+    });
     var result = [];
     var replaceFn = function(match) {
       var linkData = {};
