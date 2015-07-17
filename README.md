@@ -110,7 +110,7 @@ AWS Elastic Beanstalk Setup (Docker)
 	13. You will be asked to review your information. Press Launch.
 
 4. Try it out!
-	14. Wait for beanstalk update the environment.
+	14. Wait for beanstalk to update the environment.
 	15. Try it out by entering the domain of the form \*.elasticbeanstalk.com found at the top of the dashboard into your browser. You can also map your own domain if you wish. 
 
 Contributing 
