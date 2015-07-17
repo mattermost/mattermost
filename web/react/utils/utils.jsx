@@ -485,20 +485,22 @@ module.exports.textToJsx = function(text, options) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                /*if (useMarkdown)
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(name)}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
-                else*/
-                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
-            } else if (testUrlMatch(word).length) {
+                if (useMarkdown)
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities("@" + name)}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)} />{suffix} </span>);
+                else
+                    inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
+            } /*else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
                 var link = match.link;
 
                 var prefix = word.substring(0,word.indexOf(match.text));
                 var suffix = word.substring(word.indexOf(match.text)+match.text.length);
 
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
-
-            } else if (trimWord.match(hashRegex)) {
+                if (useMarkdown)
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={name+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(match.text)}} />{suffix} </span>);
+                else
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
+            } */else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
                 var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";
@@ -528,10 +530,13 @@ module.exports.textToJsx = function(text, options) {
                     if (searchTerm === trimWord.substring(1).toLowerCase()) {
                         highlightSearchClass = " search-highlight";
                     }
-                    inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
+                    if (useMarkdown)
+                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(trimWord)}} />{suffix} </span>);
+                    else
+                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
                 } else {
                     if (useMarkdown)
-                        inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(word)}} />{suffix} </span>);
+                        inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(trimWord)}} />{suffix} </span>);
                     else
                         inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
                 }
