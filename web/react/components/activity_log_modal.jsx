@@ -46,14 +46,27 @@ module.exports = React.createClass({
 
         for (var i = 0; i < this.state.sessions.length; i++) {
             var currentSession = this.state.sessions[i];
+            var lastAccessTime = new Date(currentSession.last_activity_at);
+            var firstAccessTime = new Date(currentSession.create_at);
+            var devicePicture = "";
+
+            if (currentSession.props.platform === "Windows") {
+                devicePicture = "windows-picture";
+            }
+            else if (currentSession.props.platform === "Macintosh" || currentSession.props.platform === "iPhone") {
+                devicePicture = "apple-picture";
+            }
             
             activityList[i] = (
                 <div>
                     <div className="single-device">
-                        <div className="device-platform-name">{currentSession.props.platform}</div>
+                        <div>
+                            <div className={devicePicture} />
+                            <div className="device-platform-name">{currentSession.props.platform}</div>
+                        </div>
                         <div className="activity-info">
-                            <div>{"Last activity: " + new Date(currentSession.last_activity_at).toString()}</div>
-                            <div>{"First time active: " + new Date(currentSession.create_at).toString()}</div>
+                            <div>{"Last activity: " + lastAccessTime.toDateString() + ", " + lastAccessTime.toLocaleTimeString()}</div>
+                            <div>{"First time active: " + firstAccessTime.toDateString() + ", " + lastAccessTime.toLocaleTimeString()}</div>
                             <div>{"OS: " + currentSession.props.os}</div>
                             <div>{"Browser: " + currentSession.props.browser}</div>
                             <div>{"Session ID: " + currentSession.alt_id}</div>
@@ -90,55 +103,5 @@ module.exports = React.createClass({
                 </div>
             </div>
         );
-
-        /*return (
-            <div>
-                <div className="modal fade" ref="modal" id="activity_log" tabIndex="-1" role="dialog" aria-hidden="true">
-                   <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h4 className="modal-title" id="myModalLabel">Active Devices</h4>
-                        </div>
-                        <div ref="modalBody" className="modal-body">
-                            <form role="form">
-                                <div className="table-responsive" style={{ maxWidth: "560px", maxHeight: "300px" }}>
-                                    <table className="table-condensed small">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Action</th>
-                                                <th>IP Address</th>
-                                                <th>Session</th>
-                                                <th>Other Info</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {
-                                            this.state.audits.map(function(value, index) {
-                                                return (
-                                                    <tr key={ "" + index }>
-                                                        <td style={{ whiteSpace: "nowrap" }}>{ new Date(value.create_at).toLocaleString() }</td>
-                                                        <td style={{ whiteSpace: "nowrap" }}>{ value.action.replace("/api/v1", "") }</td>
-                                                        <td style={{ whiteSpace: "nowrap" }}>{ value.ip_address }</td>
-                                                        <td style={{ whiteSpace: "nowrap" }}>{ value.session_id }</td>
-                                                        <td style={{ whiteSpace: "nowrap" }}>{ value.extra_info }</td>
-                                                    </tr>
-                                                );
-                                            }, this)
-                                        }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </form>
-                            { server_error }
-                        </div>
-                        <div className="modal-footer">
-                          <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
-                        </div>
-                      </div>
-                   </div>
-                </div>
-            </div>
-        );*/
     }
 });
