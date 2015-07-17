@@ -69,14 +69,14 @@ module.exports = React.createClass({
             postType = "post--comment";
         }
 
-        var currentUser = "";
+        var currentUserCss = "";
         if (UserStore.getCurrentId() === post.user_id) {
-            currentUser = "current--user";
+            currentUserCss = "current--user";
         }
 
         return (
             <div>
-                <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType + " " + currentUser}>
+                <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType + " " + currentUserCss}>
                     { !this.props.hideProfilePic ?
                     <div className="post-profile-img__container">
                         <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image"} height="36" width="36" />
