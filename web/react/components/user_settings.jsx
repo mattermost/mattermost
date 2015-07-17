@@ -95,11 +95,18 @@ var NotificationsTab = React.createClass({
             }.bind(this)
         );
     },
+    handleClose: function() {
+        this.setState({server_error: null});
+    },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
+
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
+
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     _onChange: function() {
         var newState = getNotificationsStateFromStores();
@@ -502,6 +509,23 @@ var SecurityTab = React.createClass({
     handleDevicesOpen: function() {
         $("#user_settings1").modal('hide');
     },
+    handleClose: function() {
+        if(this.props.activeSection === 'password') {
+            this.refs.curPass.getDOMNode().value = "";
+            this.refs.newPass.getDOMNode().value = "";
+            this.refs.reNewPass.getDOMNode().value = "";
+
+            this.setState({current_password: '', new_password: '', confirm_password: ''});
+        }
+
+        this.setState({server_error: null, password_error: null});
+    },
+    componentDidMount: function() {
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+    },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };
     },
@@ -518,7 +542,7 @@ var SecurityTab = React.createClass({
                 <div className="form-group">
                     <label className="col-sm-5 control-label">Current Password</label>
                     <div className="col-sm-7">
-                        <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
+                        <input ref="curPass" className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
                     </div>
                 </div>
             );
@@ -526,7 +550,7 @@ var SecurityTab = React.createClass({
                 <div className="form-group">
                     <label className="col-sm-5 control-label">New Password</label>
                     <div className="col-sm-7">
-                        <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
+                        <input ref="newPass" className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
                     </div>
                 </div>
             );
@@ -534,7 +558,7 @@ var SecurityTab = React.createClass({
                 <div className="form-group">
                     <label className="col-sm-5 control-label">Retype New Password</label>
                     <div className="col-sm-7">
-                        <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
+                        <input ref="reNewPass" className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
                     </div>
                 </div>
             );
@@ -734,6 +758,15 @@ var GeneralTab = React.createClass({
         this.setState({client_error:""})
         this.submitActive = false
         this.props.updateSection(section);
+    },
+    handleClose: function() {
+        this.setState({client_error: null, server_error: null, email_error: null});
+    },
+    componentDidMount: function() {
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = this.props.user;
@@ -978,16 +1011,23 @@ var AppearanceTab = React.createClass({
         var hex = utils.rgb2hex(e.target.style.backgroundColor);
         this.setState({ theme: hex.toLowerCase() });
     },
+    handleClose: function() {
+        this.setState({server_error: null});    
+    },
     componentDidMount: function() {
         if (this.props.activeSection === "theme") {
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentDidUpdate: function() {
         if (this.props.activeSection === "theme") {
             $('.color-btn').removeClass('active-border');
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = UserStore.getCurrentUser();

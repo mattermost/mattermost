@@ -36,6 +36,9 @@ module.exports = React.createClass({
             var button = e.relatedTarget;
             self.setState({ description: $(button).attr('data-desc'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), server_error: "" });
         });
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function() {
+            self.setState({description: ""});
+        })
     },
     getInitialState: function() {
         return { description: "", title: "", channel_id: "" };

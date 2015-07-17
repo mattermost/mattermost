@@ -47,7 +47,7 @@ module.exports = React.createClass({
     componentDidMount: function() {
         var self = this;
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
-            self.setState({ name: self.props.teamDisplayName });
+            self.setState({ name: self.props.teamDisplayName, name_error: "", server_error: ""});
         });
     },
     getInitialState: function() {
