@@ -177,7 +177,7 @@ var UserStore = assign({}, EventEmitter.prototype, {
   },
   getCurrentMentionKeys: function() {
     var user = this.getCurrentUser();
-    if (user.notify_props && user.notify_props.mention_keys) {
+    if (user && user.notify_props && user.notify_props.mention_keys) {
       var keys = user.notify_props.mention_keys.split(',');
 
       if (user.full_name.length > 0 && user.notify_props.first_name === "true") {

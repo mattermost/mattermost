@@ -142,10 +142,10 @@ module.exports = React.createClass({
             return null;
         }
 
-        var description = utils.textToJsx(this.state.channel.description, {"singleline": true, "noMentionHighlight": true});
-        var popoverContent = React.renderToString(<MessageWrapper message={this.state.channel.description}/>);
-        var channelTitle = this.state.channel.display_name;
-        var channelName = this.state.channel.name;
+        var channel = this.state.channel;
+        var description = utils.textToJsx(channel.description, {"singleline": true, "noMentionHighlight": true});
+        var popoverContent = React.renderToString(<MessageWrapper message={channel.description}/>);
+        var channelTitle = channel.display_name;
         var currentId = UserStore.getCurrentId();
         var isAdmin = this.state.memberChannel.roles.indexOf("admin") > -1 || this.state.memberTeam.roles.indexOf("admin") > -1;
         var isDirect = (this.state.channel.type === 'D');
@@ -169,23 +169,26 @@ module.exports = React.createClass({
                                     <span className="glyphicon glyphicon-chevron-down header-dropdown__icon"></span>
                                 </a>
                                 <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_dropdown">
-                                    <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_info" data-channelid={this.state.channel.id} href="#">View Info</a></li>
-                                    <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_invite" href="#">Add Members</a></li>
-                                    { isAdmin ?
+                                    <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_info" data-channelid={channel.id} href="#">View Info</a></li>
+                                    { !ChannelStore.isDefault(channel) ?
+                                        <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_invite" href="#">Add Members</a></li>
+                                        : null
+                                    }
+                                    { isAdmin && !ChannelStore.isDefault(channel) ?
                                         <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_members" href="#">Manage Members</a></li>
                                         : null
                                     }
-                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#edit_channel" data-desc={this.state.channel.description} data-title={channelTitle} data-channelid={this.state.channel.id}>Set Channel Description...</a></li>
-                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#channel_notifications" data-title={channelTitle} data-channelid={this.state.channel.id}>Notification Preferences</a></li>
-                                    { isAdmin && channelName != Constants.DEFAULT_CHANNEL ?
-                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#rename_channel" data-display={channelTitle} data-name={this.state.channel.name} data-channelid={this.state.channel.id}>Rename Channel...</a></li>
+                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set Channel Description...</a></li>
+                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#channel_notifications" data-title={channel.display_name} data-channelid={channel.id}>Notification Preferences</a></li>
+                                    { isAdmin && !ChannelStore.isDefault(channel) ?
+                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#rename_channel" data-display={channel.display_name} data-name={channel.name} data-channelid={channel.id}>Rename Channel...</a></li>
                                         : null
                                     }
-                                    { isAdmin && channelName != Constants.DEFAULT_CHANNEL ?
-                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#delete_channel" data-title={channelTitle} data-channelid={this.state.channel.id}>Delete Channel...</a></li>
+                                    { isAdmin && !ChannelStore.isDefault(channel) ?
+                                        <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#delete_channel" data-title={channel.display_name} data-channelid={channel.id}>Delete Channel...</a></li>
                                         : null
                                     }
-                                    { channelName != Constants.DEFAULT_CHANNEL ?
+                                    { !ChannelStore.isDefault(channel) ?
                                         <li role="presentation"><a role="menuitem" href="#" onClick={this.handleLeave}>Leave Channel</a></li>
                                         : null
                                     }
@@ -197,7 +200,7 @@ module.exports = React.createClass({
                         <a href="#"><strong className="heading">{channelTitle}</strong></a>
                     }
                     </th>
-                    <th><PopoverListMembers members={this.state.users} channelId={this.state.channel.id} /></th>
+                    <th><PopoverListMembers members={this.state.users} channelId={channel.id} /></th>
                     <th className="search-bar__container"><NavbarSearchBox /></th>
                     <th>
                         <div className="dropdown channel-header__links">

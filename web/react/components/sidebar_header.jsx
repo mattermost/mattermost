@@ -37,17 +37,13 @@ var NavbarDropdown = React.createClass({
         var invite_link = "";
         var manage_link = "";
         var rename_link = "";
-        var currentUser = UserStore.getCurrentUser()
+        var currentUser = UserStore.getCurrentUser();
         var isAdmin = false;
 
         if (currentUser != null) {
             isAdmin = currentUser.roles.indexOf("admin") > -1;
 
-            invite_link = (
-                <li>
-                    <a href="#" data-toggle="modal" data-target="#invite_member">Invite New Member</a>
-                </li>
-            );
+            invite_link = ( <li> <a href="#" data-toggle="modal" data-target="#invite_member">Invite New Member</a> </li>);
 
             if (this.props.teamType == "O") {
                 team_link = (
@@ -59,16 +55,8 @@ var NavbarDropdown = React.createClass({
         }
 
         if (isAdmin) {
-            manage_link = (
-                <li>
-                    <a href="#" data-toggle="modal" data-target="#team_members">Manage Team</a>
-                </li>
-            );
-            rename_link = (
-                <li>
-                    <a href="#" data-toggle="modal" data-target="#rename_team_link">Rename</a>
-                </li>
-            );
+            manage_link = ( <li> <a href="#" data-toggle="modal" data-target="#team_members">Manage Team</a> </li>);
+            rename_link = ( <li> <a href="#" data-toggle="modal" data-target="#rename_team_link">Rename</a> </li>);
         }
 
         var teams = [];
@@ -95,7 +83,7 @@ var NavbarDropdown = React.createClass({
                     </a>
                     <ul className="dropdown-menu" role="menu">
                         <li><a href="#" data-toggle="modal" data-target="#user_settings1">Account Settings</a></li>
-                        { isAdmin ? <li><a href="#" data-toggle="modal" data-target="#team_settings">Team Settings</a></li> : "" }
+                        { isAdmin ? <li><a href="#" data-toggle="modal" data-target="#team_settings">Team Settings</a></li> : null }
                         { invite_link }
                         { team_link }
                         { manage_link }
@@ -113,28 +101,30 @@ var NavbarDropdown = React.createClass({
 });
 
 module.exports = React.createClass({
-    handleSubmit: function(e) {
-        e.preventDefault();
+    displayName: 'SidebarHeader',
+
+    getDefaultProps: function() {
+        return {
+            teamName: config.SiteName
+        };
     },
-    getInitialState: function() {
-        return { };
-    },
+
     render: function() {
-        var teamName = this.props.teamName ? this.props.teamName : config.SiteName;
-        var me = UserStore.getCurrentUser()
+        var me = UserStore.getCurrentUser();
+
+        if (!me) {
+            return null;
+        }
 
         return (
             <div className="team__header theme">
                 <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                 <div className="header__info">
-                    <div className="user__name">@{me.username}</div>
-                    <a className="team__name" href="/channels/town-square">{ teamName }</a>
+                    <div className="user__name">{'@' + me.username}</div>
+                    <a className="team__name" href="/channels/town-square">{this.props.teamName}</a>
                 </div>
                 <NavbarDropdown teamType={this.props.teamType} />
             </div>
         );
     }
 });
-
-
-
