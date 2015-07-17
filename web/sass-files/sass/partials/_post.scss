@@ -208,6 +208,12 @@ body.ios {
 			.dropdown, .comment-icon__container {
 				@include opacity(1);
 			}
+			.dropdown-toggle:after {
+				content: '...';
+			}
+			.dropdown-toggle:hover:after {
+				content: '[...]';
+			}
 		}
 		background: #f5f5f5;
 	}
