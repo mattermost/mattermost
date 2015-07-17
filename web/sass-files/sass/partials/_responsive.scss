@@ -5,7 +5,8 @@
                 &.post--comment {
                     &.other--root {
                         .post-comment {
-                            margin-left: 0;
+                            margin-left: -7px;
+                            background: #e8e8e8;
                         }
                     }
                 }
@@ -82,7 +83,8 @@
         &.post--comment {
             &.other--root {
                 .post-comment {
-                    margin-left: 0;
+                    margin-left: -7px;
+                    background: #e8e8e8;
                 }
             }
         }
@@ -578,7 +580,7 @@
         &.post--comment {
             &.other--root {
                 .post-comment {
-                    margin-left: 11px;
+                    margin-left: 4px;
                 }
             }
         }
