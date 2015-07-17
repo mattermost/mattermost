@@ -33,7 +33,7 @@ func TestCreateFromSignupTeam(t *testing.T) {
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
 
 	team := model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	user := model.User{Email: props["email"], FullName: "Corey Hulen", Password: "hello"}
+	user := model.User{Email: props["email"], Nickname: "Corey Hulen", Password: "hello"}
 
 	ts := model.TeamSignup{Team: team, User: user, Invites: []string{"corey@test.com"}, Data: data, Hash: hash}
 
@@ -77,7 +77,7 @@ func TestCreateTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user := &model.User{TeamId: rteam.Data.(*model.Team).Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: rteam.Data.(*model.Team).Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
@@ -114,7 +114,7 @@ func TestFindTeamByEmail(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
@@ -142,7 +142,7 @@ func TestFindTeamByDomain(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
@@ -182,7 +182,7 @@ func TestFindTeamByEmailSend(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
@@ -206,7 +206,7 @@ func TestInviteMembers(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
@@ -235,11 +235,11 @@ func TestUpdateTeamName(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
@@ -310,7 +310,7 @@ func TestGetMyTeam(t *testing.T) {
 	team := model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
@@ -337,18 +337,18 @@ func TestUpdateValetFeature(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := &model.User{TeamId: team.Id, Email: "test@nowhere.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
 	team2 := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
-	user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user3 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
 

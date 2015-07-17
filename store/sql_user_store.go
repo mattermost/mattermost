@@ -25,7 +25,9 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Password").SetMaxSize(128)
 		table.ColMap("AuthData").SetMaxSize(128)
 		table.ColMap("Email").SetMaxSize(128)
-		table.ColMap("FullName").SetMaxSize(64)
+		table.ColMap("Nickname").SetMaxSize(64)
+		table.ColMap("FirstName").SetMaxSize(64)
+		table.ColMap("LastName").SetMaxSize(64)
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
@@ -36,9 +38,28 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 	return us
 }
 
-func (s SqlUserStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("Users","LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
+func (us SqlUserStore) UpgradeSchemaIfNeeded() {
+	us.CreateColumnIfNotExists("Users", "LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
+
+	// migrating the FullName column to Nickname and adding the FirstName and LastName columns for MM-825
+	if us.RenameColumnIfExists("Users", "FullName", "Nickname", "varchar(64)") {
+		us.CreateColumnIfNotExists("Users", "FirstName", "Nickname", "varchar(64)", "")
+		us.CreateColumnIfNotExists("Users", "LastName", "FirstName", "varchar(64)", "")
+
+		// infer values of first and last name by splitting the previous full name
+		if _, err := us.GetMaster().Exec("UPDATE Users SET FirstName = SUBSTRING_INDEX(SUBSTRING_INDEX(Nickname, ' ', 1), ' ', -1)"); err != nil {
+			panic("Failed to set first name from nickname " + err.Error())
+		}
+
+		// only set the last name from full names that are comprised of multiple words (ie that have at least one space in them)
+		if _, err := us.GetMaster().Exec("Update Users SET LastName = SUBSTRING(Nickname, INSTR(Nickname, ' ') + 1) " +
+			"WHERE CHAR_LENGTH(REPLACE(Nickname, ' ', '')) < CHAR_LENGTH(Nickname)"); err != nil {
+			panic("Failed to set last name from nickname " + err.Error())
+		}
+	}
 }
+
+//func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_team_id", "Users", "TeamId")

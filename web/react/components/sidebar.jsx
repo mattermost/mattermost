@@ -131,7 +131,7 @@ function getStateFromStores() {
         var channel = ChannelStore.getByName(channelName);
 
         if (channel != null) {
-            channel.display_name = teammate.full_name.trim() != "" ? teammate.full_name : teammate.username;
+            channel.display_name = utils.getDisplayName(teammate);
             channel.teammate_username = teammate.username;
 
             channel.status = UserStore.getStatus(teammate.id);
@@ -150,7 +150,7 @@ function getStateFromStores() {
             var tempChannel = {};
             tempChannel.fake = true;
             tempChannel.name = channelName;
-            tempChannel.display_name = teammate.full_name.trim() != "" ? teammate.full_name : teammate.username;
+            tempChannel.display_name = utils.getDisplayName(teammate);
             tempChannel.status = UserStore.getStatus(teammate.id);
             tempChannel.last_post_at = 0;
             readDirectChannels.push(tempChannel);

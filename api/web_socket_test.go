@@ -20,7 +20,7 @@ func TestSocket(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
@@ -39,7 +39,7 @@ func TestSocket(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 	Client.LoginByEmail(team.Domain, user2.Email, "pwd")

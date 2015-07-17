@@ -15,7 +15,7 @@ func TestSuggestRootCommands(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
@@ -58,7 +58,7 @@ func TestLogoutCommands(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
@@ -76,7 +76,7 @@ func TestJoinCommands(t *testing.T) {
 	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
@@ -90,7 +90,7 @@ func TestJoinCommands(t *testing.T) {
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 	Client.Must(Client.LeaveChannel(channel2.Id))
 
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 

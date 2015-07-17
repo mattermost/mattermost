@@ -298,14 +298,11 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						for _, k := range splitKeys {
 							keywordMap[k] = append(keywordMap[strings.ToLower(k)], profile.Id)
 						}
+					}
 
-						// If turned on, add the user's case sensitive first name
-						if profile.NotifyProps["first_name"] == "true" {
-							splitName := strings.Split(profile.FullName, " ")
-							if len(splitName) > 0 && splitName[0] != "" {
-								keywordMap[splitName[0]] = append(keywordMap[splitName[0]], profile.Id)
-							}
-						}
+					// If turned on, add the user's case sensitive first name
+					if profile.NotifyProps["first_name"] == "true" {
+						keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
 					}
 
 					// Add @all to keywords if user has them turned on
@@ -395,10 +392,8 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						continue
 					}
 
-					firstName := strings.Split(profileMap[id].FullName, " ")[0]
-
 					bodyPage := NewServerTemplatePage("post_body", teamUrl)
-					bodyPage.Props["FullName"] = firstName
+					bodyPage.Props["Nickname"] = profileMap[id].FirstName
 					bodyPage.Props["TeamName"] = teamName
 					bodyPage.Props["ChannelName"] = channelName
 					bodyPage.Props["BodyText"] = bodyText

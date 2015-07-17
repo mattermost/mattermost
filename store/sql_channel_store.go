@@ -81,11 +81,11 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
 				dupChannel := model.Channel{}
 				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId=? AND Name=? AND DeleteAt > 0", channel.TeamId, channel.Name)
-				if (dupChannel.DeleteAt > 0) {
+				if dupChannel.DeleteAt > 0 {
 					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
 				} else {
 					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
-				}			
+				}
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "We couldn't save the channel", "id="+channel.Id+", "+err.Error())
 			}
@@ -119,7 +119,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
 				dupChannel := model.Channel{}
 				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId=? AND Name=? AND DeleteAt > 0", channel.TeamId, channel.Name)
-				if (dupChannel.DeleteAt > 0) {
+				if dupChannel.DeleteAt > 0 {
 					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
 				} else {
 					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
@@ -358,7 +358,7 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 		result := StoreResult{}
 
 		var members []model.ExtraMember
-		_, err := s.GetReplica().Select(&members, "SELECT Id, FullName, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = ? LIMIT ?", channelId, limit)
+		_, err := s.GetReplica().Select(&members, "SELECT Id, Nickname, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = ? LIMIT ?", channelId, limit)
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetExtraMembers", "We couldn't get the extra info for channel members", "channel_id="+channelId+", "+err.Error())
 		} else {

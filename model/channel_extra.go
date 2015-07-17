@@ -10,7 +10,7 @@ import (
 
 type ExtraMember struct {
 	Id       string `json:"id"`
-	FullName string `json:"full_name"`
+	Nickname string `json:"nickname"`
 	Email    string `json:"email"`
 	Roles    string `json:"roles"`
 	Username string `json:"username"`
@@ -19,9 +19,6 @@ type ExtraMember struct {
 func (o *ExtraMember) Sanitize(options map[string]bool) {
 	if len(options) == 0 || !options["email"] {
 		o.Email = ""
-	}
-	if len(options) == 0 || !options["fullname"] {
-		o.FullName = ""
 	}
 }
 

@@ -177,21 +177,15 @@ var UserStore = assign({}, EventEmitter.prototype, {
   },
   getCurrentMentionKeys: function() {
     var user = this.getCurrentUser();
-    if (user && user.notify_props && user.notify_props.mention_keys) {
-      var keys = user.notify_props.mention_keys.split(',');
 
-      if (user.full_name.length > 0 && user.notify_props.first_name === "true") {
-        var first = user.full_name.split(' ')[0];
-        if (first.length > 0) keys.push(first);
-      }
+    var keys = [];
 
-      if (user.notify_props.all === "true") keys.push('@all');
-      if (user.notify_props.channel === "true") keys.push('@channel');
+    if (user.notify_props && user.notify_props.mention_keys) keys = keys.concat(user.notify_props.mention_keys.split(','));
+    if (user.first_name && user.notify_props.first_name === "true") keys.push(user.first_name);
+    if (user.notify_props.all === "true") keys.push('@all');
+    if (user.notify_props.channel === "true") keys.push('@channel');
 
-      return keys;
-    } else {
-      return [];
-    }
+    return keys;
   },
   getLastVersion: function() {
     return BrowserStore.getItem("last_version", '');

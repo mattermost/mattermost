@@ -487,12 +487,7 @@ func InviteMembers(team *model.Team, user *model.User, invites []string) {
 				teamUrl = fmt.Sprintf("http://%v.%v", team.Domain, utils.Cfg.ServiceSettings.Domain)
 			}
 
-			sender := ""
-			if len(strings.TrimSpace(user.FullName)) == 0 {
-				sender = user.Username
-			} else {
-				sender = user.FullName
-			}
+			sender := user.GetDisplayName()
 
 			senderRole := ""
 			if strings.Contains(user.Roles, model.ROLE_ADMIN) || strings.Contains(user.Roles, model.ROLE_SYSTEM_ADMIN) {

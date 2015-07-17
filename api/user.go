@@ -181,14 +181,14 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		//fireAndForgetWelcomeEmail(strings.Split(ruser.FullName, " ")[0], ruser.Email, team.Name, c.TeamUrl+"/channels/town-square")
+		//fireAndForgetWelcomeEmail(ruser.FirstName, ruser.Email, team.Name, c.TeamUrl+"/channels/town-square")
 
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
 			}
 		} else {
-			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, strings.Split(ruser.FullName, " ")[0], ruser.Email, team.Name, c.TeamUrl)
+			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.FirstName, ruser.Email, team.Name, c.TeamUrl)
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -207,7 +207,7 @@ func fireAndForgetWelcomeEmail(name, email, teamName, link string) {
 
 		subjectPage := NewServerTemplatePage("welcome_subject", link)
 		bodyPage := NewServerTemplatePage("welcome_body", link)
-		bodyPage.Props["FullName"] = name
+		bodyPage.Props["Nickname"] = name
 		bodyPage.Props["TeamName"] = teamName
 		bodyPage.Props["FeedbackName"] = utils.Cfg.EmailSettings.FeedbackName
 
@@ -226,7 +226,7 @@ func FireAndForgetVerifyEmail(userId, name, email, teamName, teamUrl string) {
 		subjectPage := NewServerTemplatePage("verify_subject", teamUrl)
 		subjectPage.Props["TeamName"] = teamName
 		bodyPage := NewServerTemplatePage("verify_body", teamUrl)
-		bodyPage.Props["FullName"] = name
+		bodyPage.Props["Nickname"] = name
 		bodyPage.Props["TeamName"] = teamName
 		bodyPage.Props["VerifyUrl"] = link
 

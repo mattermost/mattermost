@@ -126,9 +126,9 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	return dbmap
 }
 
-func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
+func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	count, err := ss.GetMaster().SelectInt(
-		`SELECT 
+		`SELECT
 		    COUNT(0) AS column_exists
 		FROM
 		    information_schema.COLUMNS
@@ -145,11 +145,15 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		panic("Failed to check if column exists " + err.Error())
 	}
 
-	if count > 0 {
+	return count > 0
+}
+
+func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
+	if ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
 
-	_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + colType + " DEFAULT '" + defaultValue + "'" + " AFTER " + afterName)
+	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + colType + " DEFAULT '" + defaultValue + "'" + " AFTER " + afterName)
 	if err != nil {
 		l4g.Critical("Failed to create column %v", err)
 		time.Sleep(time.Second)
@@ -160,31 +164,32 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 }
 
 func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
-	count, err := ss.GetMaster().SelectInt(
-		`SELECT 
-		    COUNT(0) AS column_exists
-		FROM
-		    information_schema.COLUMNS
-		WHERE
-		    TABLE_SCHEMA = DATABASE()
-		        AND TABLE_NAME = ?
-		        AND COLUMN_NAME = ?`,
-		tableName,
-		columnName,
-	)
-	if err != nil {
-		l4g.Critical("Failed to check if column exists %v", err)
-		time.Sleep(time.Second)
-		panic("Failed to check if column exists " + err.Error())
-	}
-
-	if count == 0 {
+	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
 
-	_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
+	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
 		l4g.Critical("Failed to drop column %v", err)
+		time.Sleep(time.Second)
+		panic("Failed to drop column " + err.Error())
+	}
+
+	return true
+}
+
+func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+	if !ss.DoesColumnExist(tableName, oldColumnName) {
+		return false
+	}
+
+	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
+
+	// when we eventually support PostgreSQL, we can use the following instead
+	//_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
+
+	if err != nil {
+		l4g.Critical("Failed to rename column %v", err)
 		time.Sleep(time.Second)
 		panic("Failed to drop column " + err.Error())
 	}
