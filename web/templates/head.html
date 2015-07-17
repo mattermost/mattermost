@@ -42,6 +42,9 @@
         }
         config.SiteName = '{{ .SiteName }}';
     </script>
+
+    <script src="/static/js/bundle.js"></script>
+
     <script>
         if (config.LogglyWriteKey != null && config.LogglyWriteKey !== "") {
             var _LTracker = _LTracker || [];
@@ -101,7 +104,5 @@
         }
     </script>
     <!-- Snowplow stops plowing -->
-
-    <script src="/static/js/bundle.js"></script>
 </head>
 {{end}}

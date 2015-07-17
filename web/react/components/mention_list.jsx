@@ -188,8 +188,8 @@ module.exports = React.createClass({
         for (var i = 0; i < users.length && index < MAX_ITEMS_IN_LIST; i++) {
             if (this.alreadyMentioned(users[i].username)) continue;
 
-            if (users[i].first_name.lastIndexOf(mentionText,0) === 0
-                    || users[i].last_name.lastIndexOf(mentionText,0) === 0 || users[i].username.lastIndexOf(mentionText,0) === 0) {
+            if ((users[i].first_name && users[i].first_name.lastIndexOf(mentionText,0) === 0)
+                    || (users[i].last_name && users[i].last_name.lastIndexOf(mentionText,0) === 0) || users[i].username.lastIndexOf(mentionText,0) === 0) {
                 mentions[index] = (
                     <Mention
                         ref={'mention' + index}
