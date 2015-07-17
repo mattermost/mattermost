@@ -196,7 +196,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 		// This message goes to every channel, so the channelId is irrelevant
 		message := model.NewMessage(team.Id, "", ruser.Id, model.ACTION_NEW_USER)
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 
 		return ruser
 	}

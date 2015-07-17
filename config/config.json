@@ -31,10 +31,6 @@
         "Trace": false,
         "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
     },
-    "RedisSettings": {
-        "DataSource": "dockerhost:6379",
-        "MaxOpenConns": 1000
-    },
     "AWSSettings": {
         "S3AccessKeyId": "",
         "S3SecretAccessKey": "",

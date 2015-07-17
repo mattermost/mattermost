@@ -6,8 +6,6 @@ package api
 import (
 	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"strings"
 )
 
 type TeamHub struct {
@@ -43,43 +41,6 @@ func (h *TeamHub) Stop() {
 }
 
 func (h *TeamHub) Start() {
-
-	pubsub := store.RedisClient().PubSub()
-
-	go func() {
-		defer func() {
-			l4g.Debug("redis reader finished for teamId=%v", h.teamId)
-			hub.Stop(h.teamId)
-		}()
-
-		l4g.Debug("redis reader starting for teamId=%v", h.teamId)
-
-		err := pubsub.Subscribe(h.teamId)
-		if err != nil {
-			l4g.Error("Error while subscribing to redis %v %v", h.teamId, err)
-			return
-		}
-
-		for {
-			if payload, err := pubsub.ReceiveTimeout(REDIS_WAIT); err != nil {
-				if strings.Contains(err.Error(), "i/o timeout") {
-					if len(h.connections) == 0 {
-						l4g.Debug("No active connections so sending stop %v", h.teamId)
-						return
-					}
-				} else {
-					return
-				}
-			} else {
-				msg := store.GetMessageFromPayload(payload)
-				if msg != nil {
-					h.broadcast <- msg
-				}
-			}
-		}
-
-	}()
-
 	go func() {
 		for {
 			select {
@@ -110,7 +71,6 @@ func (h *TeamHub) Start() {
 						webCon.WebSocket.Close()
 					}
 
-					pubsub.Close()
 					return
 				}
 			}

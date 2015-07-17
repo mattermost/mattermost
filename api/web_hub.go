@@ -5,12 +5,14 @@ package api
 
 import (
 	l4g "code.google.com/p/log4go"
+	"github.com/mattermost/platform/model"
 )
 
 type Hub struct {
 	teamHubs   map[string]*TeamHub
 	register   chan *WebConn
 	unregister chan *WebConn
+	broadcast  chan *model.Message
 	stop       chan string
 }
 
@@ -18,7 +20,14 @@ var hub = &Hub{
 	register:   make(chan *WebConn),
 	unregister: make(chan *WebConn),
 	teamHubs:   make(map[string]*TeamHub),
+	broadcast:  make(chan *model.Message),
 	stop:       make(chan string),
+}
+
+func PublishAndForget(message *model.Message) {
+	go func() {
+		hub.Broadcast(message)
+	}()
 }
 
 func (h *Hub) Register(webConn *WebConn) {
@@ -29,8 +38,14 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	h.unregister <- webConn
 }
 
-func (h *Hub) Stop(teamId string) {
-	h.stop <- teamId
+func (h *Hub) Broadcast(message *model.Message) {
+	if message != nil {
+		h.broadcast <- message
+	}
+}
+
+func (h *Hub) Stop() {
+	h.stop <- "all"
 }
 
 func (h *Hub) Start() {
@@ -53,18 +68,17 @@ func (h *Hub) Start() {
 				if nh, ok := h.teamHubs[c.TeamId]; ok {
 					nh.Unregister(c)
 				}
-
-			case s := <-h.stop:
-				if len(s) == 0 {
-					l4g.Debug("stopping all connections")
-					for _, v := range h.teamHubs {
-						v.Stop()
-					}
-					return
-				} else if nh, ok := h.teamHubs[s]; ok {
-					delete(h.teamHubs, s)
-					nh.Stop()
+			case msg := <-h.broadcast:
+				nh := h.teamHubs[msg.TeamId]
+				if nh != nil {
+					nh.broadcast <- msg
 				}
+			case s := <-h.stop:
+				l4g.Debug("stopping %v connections", s)
+				for _, v := range h.teamHubs {
+					v.Stop()
+				}
+				return
 			}
 		}
 	}()

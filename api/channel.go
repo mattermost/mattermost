@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"net/http"
 	"strings"
 )
@@ -542,7 +541,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_VIEWED)
 	message.Add("channel_id", id)
 
-	store.PublishAndForget(message)
+	PublishAndForget(message)
 
 	result := make(map[string]string)
 	result["id"] = id
@@ -657,7 +656,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_ADDED)
 
-			store.PublishAndForget(message)
+			PublishAndForget(message)
 
 			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
