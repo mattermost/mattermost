@@ -2,21 +2,20 @@
 	padding: 8px 8px 8px 0;
 }
 .sidebar__collapse {
-	width: 20px;
-	height: 30px;
+	width: auto;
+	height: auto;
 	position: absolute;
-	top: 10px;
-	left: 6px;
+	top: 17px;
+	right: 15px;
 	cursor: pointer;
-	background: url("../images/arrow-left.png") center no-repeat;
-	@include background-size(10px 15px);
 	z-index: 5;
 	display: none;
 }
 .sidebar__search-icon {
 	position: absolute;
-	left: 40px;
+	left: 15px;
 	top: 18px;
+	font-size: 16px;
 	@include opacity(0.8);
 	display: none;
 }

@@ -432,13 +432,16 @@
         color: #fff;
         .search__form {
             border: none;
-            padding: 0 10px 0 30px;
+            padding: 0 60px 0 25px;
             .form-control {
+                line-height: 31px;
                 background: none;
                 color: #fff;
-                border-bottom: 1px solid rgba(#fff, 0.7);
                 border-radius: 0;
-                padding: 0 10px 0 23px;
+                padding: 0 10px 0;
+                @include input-placeholder {
+                    color: rgba(#fff, 0.6);
+                }
             }
             ::-webkit-input-placeholder {
                 color: #fff;
