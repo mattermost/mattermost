@@ -37,6 +37,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (s SqlUserStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("Users","LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
@@ -120,6 +121,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.AuthData = oldUser.AuthData
 			user.Password = oldUser.Password
 			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
+			user.LastPictureUpdate = oldUser.LastPictureUpdate
 			user.TeamId = oldUser.TeamId
 			user.LastActivityAt = oldUser.LastActivityAt
 			user.LastPingAt = oldUser.LastPingAt
@@ -150,13 +152,15 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateUpdateAt(userId string) StoreChannel {
+func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET UpdateAt = ? WHERE Id = ?", model.GetMillis(), userId); err != nil {
+		curTime := model.GetMillis()
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = ?, UpdateAt = ? WHERE Id = ?", curTime, curTime, userId); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "We couldn't update the update_at", "user_id="+userId)
 		} else {
 			result.Data = userId

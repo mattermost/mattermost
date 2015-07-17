@@ -820,6 +820,7 @@ var GeneralTab = React.createClass({
         client.uploadProfileImage(formData,
             function(data) {
                 this.submitActive = false;
+                AsyncClient.getMe();
                 window.location.reload();
             }.bind(this),
             function(err) {
@@ -989,7 +990,7 @@ var GeneralTab = React.createClass({
                 <SettingPicture
                     title="Profile Picture"
                     submit={this.submitPicture}
-                    src={"/api/v1/users/" + user.id + "/image"}
+                    src={"/api/v1/users/" + user.id + "/image?time=" + user.last_picture_update}
                     server_error={server_error}
                     client_error={client_error}
                     updateSection={function(e){self.updateSection("");e.preventDefault();}}
@@ -1000,10 +1001,14 @@ var GeneralTab = React.createClass({
             );
 
         } else {
+            var minMessage = "Click Edit to upload an image.";
+            if (user.last_picture_update) {
+                minMessage = "Image last updated " + utils.displayDate(user.last_picture_update)
+            }
             pictureSection = (
                 <SettingItemMin
                     title="Profile Picture"
-                    describe="Picture inside."
+                    describe={minMessage}
                     updateSection={function(){self.updateSection("picture");}}
                 />
             );

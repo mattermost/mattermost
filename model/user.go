@@ -45,6 +45,7 @@ type User struct {
 	Props              StringMap `json:"props"`
 	NotifyProps        StringMap `json:"notify_props"`
 	LastPasswordUpdate int64     `json:"last_password_update"`
+	LastPictureUpdate  int64     `json:"last_picture_update"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
