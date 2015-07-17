@@ -83,7 +83,7 @@ func SendMail(to, subject, body string) *model.AppError {
 		return nil
 	}
 
-	fromMail := mail.Address{"", Cfg.EmailSettings.FeedbackEmail}
+	fromMail := mail.Address{Cfg.EmailSettings.FeedbackName, Cfg.EmailSettings.FeedbackEmail}
 	toMail := mail.Address{"", to}
 
 	headers := make(map[string]string)
