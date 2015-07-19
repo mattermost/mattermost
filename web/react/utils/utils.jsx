@@ -406,7 +406,7 @@ module.exports.textToJsx = function(text, options) {
             return html;
         };*/
         customMarkedRenderer.codespan = function(code) {
-            return "<code>" + code + "</code>";
+            return "<pre>" + code + "</pre>";
         };
         customMarkedRenderer.del = function(text) {
             return "<s>" + text + "</s>";
@@ -421,10 +421,11 @@ module.exports.textToJsx = function(text, options) {
             return header + " " + body;
         }*/
         /*customMarkedRenderer.paragraph = function(text) {
-            return text;
+            console.log(text);
+            return text + "\n\n";
         };*/
 
-        text = Marked(text, {sanitize: true, gfm: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
+        text = Marked(text, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
     }
 
     if (options && options['singleline']) {
@@ -489,7 +490,7 @@ module.exports.textToJsx = function(text, options) {
                     inner.push(<span key={word+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities("@" + name)}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)} />{suffix} </span>);
                 else
                     inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
-            } /*else if (testUrlMatch(word).length) {
+            } else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
                 var link = match.link;
 
@@ -500,7 +501,7 @@ module.exports.textToJsx = function(text, options) {
                     inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={name+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link} dangerouslySetInnerHTML={{__html: module.exports.replaceHtmlEntities(match.text)}} />{suffix} </span>);
                 else
                     inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
-            } */else if (trimWord.match(hashRegex)) {
+            } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
                 var prefix = word.match(puncStartRegex);
                 var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";

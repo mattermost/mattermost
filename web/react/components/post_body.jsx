@@ -68,7 +68,7 @@ module.exports = React.createClass({
         return (
             <div className="post-body">
                 { comment }
-                <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
+                <div key={post.id+"_message"} className={postClass}><span>{inner}</span></div>
                 { filenames && filenames.length > 0 ?
                     <FileAttachmentList
                         filenames={filenames}
