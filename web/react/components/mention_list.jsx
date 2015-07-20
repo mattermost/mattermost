@@ -7,6 +7,7 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Mention = require('./mention.jsx');
 
 var Constants = require('../utils/constants.jsx');
+var Utils = require('../utils/utils.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 var MAX_HEIGHT_LIST = 292;
@@ -194,7 +195,7 @@ module.exports = React.createClass({
                     <Mention
                         ref={'mention' + index}
                         username={users[i].username}
-                        secondary_text={users[i].first_name + " " + users[i].last_name}
+                        secondary_text={Utils.getFullName(users[i])}
                         id={users[i].id}
                         listId={index}
                         isFocused={this.state.selectedMention === index ? "mentions-focus" : ""}
