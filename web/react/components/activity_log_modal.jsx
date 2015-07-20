@@ -71,7 +71,7 @@ module.exports = React.createClass({
                             <div>{"Browser: " + currentSession.props.browser}</div>
                             <div>{"Session ID: " + currentSession.alt_id}</div>
                         </div>
-                        <div><button onClick={this.submitRevoke.bind(this, currentSession.alt_id)} className="pull-right btn btn-primary">Revoke</button></div>
+                        <div><button onClick={this.submitRevoke.bind(this, currentSession.alt_id)} className="pull-right btn btn-primary">Logout</button></div>
                         <br/>
                         {i < this.state.sessions.length - 1 ?
                         <div className="divider-light"/>
