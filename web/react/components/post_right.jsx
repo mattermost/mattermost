@@ -280,6 +280,7 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addSelectedPostChangeListener(this._onChange);
         PostStore.addChangeListener(this._onChangeAll);
+        UserStore.addStatusesChangeListener(this._onTimeChange);
         this.resize();
         var self = this;
         $(window).resize(function(){
@@ -292,6 +293,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeSelectedPostChangeListener(this._onChange);
         PostStore.removeChangeListener(this._onChangeAll);
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
     },
     _onChange: function() {
         if (this.isMounted()) {
@@ -302,7 +304,6 @@ module.exports = React.createClass({
         }
     },
     _onChangeAll: function() {
-
         if (this.isMounted()) {
 
             // if something was changed in the channel like adding a
@@ -329,6 +330,12 @@ module.exports = React.createClass({
             }
 
             this.setState(getStateFromStores());
+        }
+    },
+    _onTimeChange: function() {
+        for (var id in this.state.post_list.posts) {
+            if (!this.refs[id]) continue;
+            this.refs[id].forceUpdate();
         }
     },
     getInitialState: function() {
@@ -390,7 +397,7 @@ module.exports = React.createClass({
                         <RootPost post={root_post} commentCount={posts_array.length}/>
                         <div className="post-right-comments-container">
                         { posts_array.map(function(cpost) {
-                                return <CommentPost key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
+                                return <CommentPost ref={cpost.id} key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
                         })}
                         </div>
                         <div className="post-create__container">
