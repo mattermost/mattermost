@@ -11,7 +11,7 @@
 
 	.post {
 		&.post--root {
-			padding: 1em 1em 0;
+			padding: 0 1em 0;
 			margin: 1em 0;
 			hr {
 				border-color: #DDD;
@@ -60,6 +60,11 @@
 		padding-left: 0;
 		margin-bottom: 2px;
 	}
+}
+
+.post-right-channel__name {
+	font-weight: 600;
+	margin: 0 0 10px 0;
 }
 
 .post-right-root-container li {

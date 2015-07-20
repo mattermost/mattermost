@@ -77,7 +77,7 @@ var SearchItem = React.createClass({
 
         var message = utils.textToJsx(this.props.post.message, {searchTerm: this.props.term, noMentionHighlight: !this.props.isMentionSearch});
         var channelName = "";
-        var channel = ChannelStore.get(this.props.post.channel_id)
+        var channel = ChannelStore.get(this.props.post.channel_id);
         var timestamp = UserStore.getCurrentUser().update_at;
 
         if (channel) {
