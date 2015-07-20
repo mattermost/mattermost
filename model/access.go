@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	ACCESS_TOKEN_EXPIRE_TIME = -1 // forever
-	ACCESS_TOKEN_CACHE_SIZE  = 10000
-	ACCESS_TOKEN_GRANT_TYPE  = "authorization_code"
-	ACCESS_TOKEN_TYPE        = "bearer"
-	REFRESH_TOKEN_GRANT_TYPE = "refresh_token"
+	ACCESS_TOKEN_EXPIRE_TIME_IN_SECS = 60 * 60 * 24 * 365 // 1 year
+	ACCESS_TOKEN_CACHE_SIZE          = 10000
+	ACCESS_TOKEN_GRANT_TYPE          = "authorization_code"
+	ACCESS_TOKEN_TYPE                = "bearer"
+	REFRESH_TOKEN_GRANT_TYPE         = "refresh_token"
 )
 
 type AccessData struct {
@@ -55,7 +55,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewAppError("AccessData.IsValid", "Invalid refresh token", "")
 	}
 
-	if ad.ExpiresIn == 0 {
+	if ad.ExpiresIn <= 0 {
 		return NewAppError("AccessData.IsValid", "Expires in must be set", "")
 	}
 
@@ -76,7 +76,7 @@ func (ad *AccessData) IsValid() *AppError {
 
 func (ad *AccessData) PreSave(tokenSalt string) {
 	if ad.ExpiresIn == 0 {
-		ad.ExpiresIn = ACCESS_TOKEN_EXPIRE_TIME
+		ad.ExpiresIn = ACCESS_TOKEN_EXPIRE_TIME_IN_SECS
 	}
 
 	if ad.CreateAt == 0 {
@@ -102,10 +102,6 @@ func (ad *AccessData) ToJson() string {
 }
 
 func (ad *AccessData) IsExpired() bool {
-
-	if ad.ExpiresIn < 0 {
-		return false
-	}
 
 	if GetMillis() > ad.CreateAt+int64(ad.ExpiresIn*1000) {
 		return true

@@ -87,12 +87,8 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		registeredUrl, _ := url.Parse(app.CallbackUrl)
 		redirectUrl, _ := url.Parse(redirectUri)
 
-		if redirectUrl.Scheme != "https" {
-			c.Err = model.NewOAuthAppError("allowOAuth", "invalid_request", "Supplied redirect_uri must be https")
-			return
-		}
-
 		if registeredUrl.Host != redirectUrl.Host {
+			c.LogAudit("fail - redirect_uri did not match registered callback host")
 			c.Err = model.NewOAuthAppError("allowOAuth", "invalid_request", "Supplied redirect_uri host/port did not match registered callback_url")
 			return
 		}
@@ -164,6 +160,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if authData == nil {
 		if result := <-Srv.Store.AuthData().Get(code); result.Err != nil {
+			c.LogAudit("fail - invalid auth code")
 			c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
 			return
 		} else {
@@ -172,16 +169,19 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if authData == nil || authData.IsExpired() {
+		c.LogAudit("fail - auth code either expired or missing")
 		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
 		return
 	}
 
 	if authData.RedirectUri != redirectUri {
+		c.LogAudit("fail - redirect uri provided did not match previous redirect uri")
 		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_request", "Supplied redirect_uri does not match authorization code redirect_uri")
 		return
 	}
 
 	if !model.ComparePassword(code, fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
+		c.LogAudit("fail - auth code is invalid")
 		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_grant", "Invalid or expired authorization code")
 		return
 	}
@@ -195,6 +195,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !model.ComparePassword(app.ClientSecret, secret) {
+		c.LogAudit("fail - invalid client credentials")
 		c.Err = model.NewOAuthAppError("getAccessToken", "invalid_client", "Invalid client credentials")
 		return
 	}
@@ -208,6 +209,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewOAuthAppError("getAccessToken", "server_error", "Encountered internal server error while accessing database")
 		return
 	} else if result.Data != nil {
+		c.LogAudit("fail - auth code has been used previously")
 		accessData := result.Data.(*model.AccessData)
 
 		// Revoke access token, related auth code, and session from DB as well as from cache
@@ -232,7 +234,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		savedData = result.Data.(*model.AccessData)
 	}
 
-	accessTokenCache.Add(accessToken, accessData)
+	accessTokenCache.Add(savedData.Token, accessData)
 
 	accessRsp := &model.AccessResponse{AccessToken: accessToken, TokenType: model.ACCESS_TOKEN_TYPE, ExpiresIn: savedData.ExpiresIn, Scope: savedData.Scope}
 
