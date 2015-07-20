@@ -131,11 +131,11 @@ func resizeRGBA(in *image.RGBA, out *image.NRGBA, scale float64, coeffs []int16,
 
 					// reverse alpha-premultiplication.
 					if a != 0 {
-						r *= 0xffff
+						r *= 0xff
 						r /= a
-						g *= 0xffff
+						g *= 0xff
 						g /= a
-						b *= 0xffff
+						b *= 0xff
 						b /= a
 					}
 
