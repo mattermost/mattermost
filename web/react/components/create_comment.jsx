@@ -43,7 +43,7 @@ module.exports = React.createClass({
 
         client.createPost(post, ChannelStore.getCurrent(),
             function(data) {
-                this.setState({ messageText: '', submitting: false, post_error: null });
+                this.setState({ messageText: '', submitting: false, post_error: null, server_error: null });
                 this.clearPreviews();
                 AsyncClient.getPosts(true, this.props.channelId);
 
@@ -57,6 +57,7 @@ module.exports = React.createClass({
             function(err) {
                 var state = {};
                 state.server_error = err.message;
+                state.submitting = false;
 
                 if (err.message === "Invalid RootId parameter") {
                     if ($('#post_deleted').length > 0) $('#post_deleted').modal('show');
