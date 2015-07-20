@@ -49,6 +49,7 @@ module.exports = React.createClass({
 
         PostStore.addChangeListener(this._onChange);
         ChannelStore.addChangeListener(this._onChange);
+        UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
 
         $(".post-list-holder-by-time").perfectScrollbar();
@@ -128,6 +129,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeChangeListener(this._onChange);
         ChannelStore.removeChangeListener(this._onChange);
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
     },
@@ -206,11 +208,7 @@ module.exports = React.createClass({
                 var index = post_list.order.indexOf(msg.props.post_id);
                 if (index > -1) post_list.order.splice(index, 1);
 
-                var scrollSave = $(".post-list-holder-by-time").scrollTop();
-
                 this.setState({ post_list: post_list });
-
-                $(".post-list-holder-by-time").scrollTop(scrollSave)
 
                 PostStore.storePosts(msg.channel_id, post_list);
             } else {
@@ -220,8 +218,14 @@ module.exports = React.createClass({
             if (activeRootPostId === msg.props.post_id && UserStore.getCurrentId() != msg.user_id) {
                 $('#post_deleted').modal('show');
             }
-        } else if(msg.action == "new_user") {
+        } else if (msg.action == "new_user") {
             AsyncClient.getProfiles();
+        }
+    },
+    _onTimeChange: function() {
+        for (var id in this.state.post_list.posts) {
+            if (!this.refs[id]) continue;
+            this.refs[id].forceUpdateInfo();
         }
     },
     getMorePosts: function(e) {
@@ -415,7 +419,7 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
-                var postCtl = <Post sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+                var postCtl = <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {

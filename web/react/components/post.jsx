@@ -34,6 +34,10 @@ module.exports = React.createClass({
             results: null
         });
     },
+    forceUpdateInfo: function() {
+        this.refs.info.forceUpdate();
+        this.refs.header.forceUpdate();
+    },
     getInitialState: function() {
         return { };
     },
@@ -80,9 +84,9 @@ module.exports = React.createClass({
                     </div>
                     : null }
                     <div className="post__content">
-                        <PostHeader post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
+                        <PostHeader ref="header" post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
                         <PostBody post={post} sameRoot={this.props.sameRoot} parentPost={parentPost} posts={posts} handleCommentClick={this.handleCommentClick} />
-                        <PostInfo post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} allowReply="true" />
+                        <PostInfo ref="info" post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} allowReply="true" />
                     </div>
                 </div>
             </div>
