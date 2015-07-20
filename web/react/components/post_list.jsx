@@ -34,6 +34,8 @@ module.exports = React.createClass({
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
+    preUpdatePosition: 0,
+    holdPosition: false,   // Use this for preventing scroll-down on update
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
         if (user.props && user.props.theme) {
@@ -49,6 +51,7 @@ module.exports = React.createClass({
 
         PostStore.addChangeListener(this._onChange);
         ChannelStore.addChangeListener(this._onChange);
+        UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
 
         $(".post-list-holder-by-time").perfectScrollbar();
@@ -78,6 +81,11 @@ module.exports = React.createClass({
         });
 
         $(post_holder).scroll(function(e){
+            if (self.holdPosition) {
+                $(post_holder).scrollTop(self.preUpdatePosition);
+                $(post_holder).perfectScrollbar('update');
+                self.holdPosition = false;
+            }
             if (!self.preventScrollTrigger) {
                 self.scrollPosition = $(post_holder).scrollTop() + $(post_holder).innerHeight();
             }
@@ -117,6 +125,9 @@ module.exports = React.createClass({
         });
 
     },
+    componentWillUpdate: function() {
+        this.preUpdatePosition = $(".post-list-holder-by-time").scrollTop();
+    },
     componentDidUpdate: function() {
         this.resize();
         var post_holder = $(".post-list-holder-by-time")[0];
@@ -128,6 +139,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeChangeListener(this._onChange);
         ChannelStore.removeChangeListener(this._onChange);
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
     },
@@ -150,6 +162,9 @@ module.exports = React.createClass({
     _onChange: function() {
         var newState = getStateFromStores();
 
+        // These changes require the position to be updated
+        this.holdPosition = false;
+
         if (!utils.areStatesEqual(newState, this.state)) {
             if (this.state.post_list && this.state.post_list.order) {
                 if (this.state.channel.id === newState.channel.id && this.state.post_list.order.length != newState.post_list.order.length && newState.post_list.order.length > Constants.POST_CHUNK_SIZE) {
@@ -160,9 +175,14 @@ module.exports = React.createClass({
                 this.scrolledToNew = false;
             }
             this.setState(newState);
-        }
+        } 
     },
     _onSocketChange: function(msg) {
+
+        // Default these events to not holding position
+        // Overwritten in certain events
+        this.holdPosition = false;
+
         if (msg.action == "posted") {
             var post = JSON.parse(msg.props.post);
 
@@ -206,11 +226,7 @@ module.exports = React.createClass({
                 var index = post_list.order.indexOf(msg.props.post_id);
                 if (index > -1) post_list.order.splice(index, 1);
 
-                var scrollSave = $(".post-list-holder-by-time").scrollTop();
-
                 this.setState({ post_list: post_list });
-
-                $(".post-list-holder-by-time").scrollTop(scrollSave)
 
                 PostStore.storePosts(msg.channel_id, post_list);
             } else {
@@ -220,9 +236,15 @@ module.exports = React.createClass({
             if (activeRootPostId === msg.props.post_id && UserStore.getCurrentId() != msg.user_id) {
                 $('#post_deleted').modal('show');
             }
-        } else if(msg.action == "new_user") {
+        } else if (msg.action == "new_user") {
             AsyncClient.getProfiles();
+        } else if (msg.action === "viewed") {
+            this.holdPosition = true;
         }
+    },
+    _onTimeChange: function() {
+        this.holdPosition = true;
+        this.forceUpdate();
     },
     getMorePosts: function(e) {
         e.preventDefault();
