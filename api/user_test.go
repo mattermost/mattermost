@@ -356,6 +356,24 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client.DoGet("/users/"+user.Id+"/image", "", "")
 
+	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		var auth aws.Auth
+		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
+		auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+
+		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
+		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+
+		if err := bucket.Del("teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"); err != nil {
+			t.Fatal(err)
+		}
+	} else {
+		path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"
+		if err := os.Remove(path); err != nil {
+			t.Fatal("Couldn't remove file at " + path)
+		}
+	}
+
 }
 
 func TestUserUploadProfileImage(t *testing.T) {
