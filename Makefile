@@ -4,6 +4,13 @@ GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 
+ifeq ($(shell which godep), "")
+	GODEP=$(GOPATH)/bin/godep
+else
+	GODEP=godep
+endif
+GO=$(GODEP) go
+
 ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
@@ -21,29 +28,27 @@ travis:
 	@echo building for travis
 
 	rm -Rf $(DIST_ROOT)
-	@go clean $(GOFLAGS) -i ./...
-	
+	@$(GO) clean $(GOFLAGS) -i ./...
+
 	@cd web/react/ && npm install
 
-	@go build $(GOFLAGS) ./...
+	@$(GO) build $(GOFLAGS) ./...
 
 	@mkdir -p logs
 
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 
 build:
-	@go build $(GOFLAGS) ./...
+	@$(GO) build $(GOFLAGS) ./...
 
 install:
 	@go get $(GOFLAGS) github.com/tools/godep
 
 	@if [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
-		echo restoring go libs using godep; \
-		$(GOPATH)/bin/godep restore; \
 		echo starting mattermost-mysql; \
 		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
     	-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql > /dev/null; \
@@ -58,15 +63,15 @@ install:
 
 test: install
 	@mkdir -p logs
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
-	@go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 
 benchmark: install
 	@mkdir -p logs
-	@go test $(GOFLAGS) -test.v -run=NO_TESTS -bench=$(BENCH) ./api || exit 1
+	@$(GO) test $(GOFLAGS) -test.v -run=NO_TESTS -bench=$(BENCH) ./api || exit 1
 
 cover: install
 	rm -Rf $(DIST_RESULTS)
@@ -88,7 +93,7 @@ cover: install
 	
 clean:
 	rm -Rf $(DIST_ROOT)
-	@go clean $(GOFLAGS) -i ./...
+	@$(GO) clean $(GOFLAGS) -i ./...
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
 		echo stopping mattermost-mysql; \
@@ -116,7 +121,7 @@ run: install
 	@cd web/react && npm start &
 
 	@echo starting go web server
-	@go run $(GOFLAGS) mattermost.go -config=config.json &
+	@$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
 	@echo starting compass watch
 	@cd web/sass-files && compass watch &
@@ -153,8 +158,8 @@ cleandb:
 
 dist: install
 
-	@go build $(GOFLAGS) -i -a ./...
-	@go install $(GOFLAGS) -a ./...
+	@$(GO) build $(GOFLAGS) -i -a ./...
+	@$(GO) install $(GOFLAGS) -a ./...
 
 	mkdir -p $(DIST_PATH)/bin
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
