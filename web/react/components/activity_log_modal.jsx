@@ -9,7 +9,8 @@ function getStateFromStoresForSessions() {
     return {
         sessions: UserStore.getSessions(),
         server_error: null,
-        client_error: null
+        client_error: null,
+        moreInfo: []
     };
 }
 
@@ -36,6 +37,14 @@ module.exports = React.createClass({
     },
     _onChange: function() {
         this.setState(getStateFromStoresForSessions());
+    },
+    handleMoreInfo: function(index) {
+        var newMoreInfo = this.state.moreInfo;
+        newMoreInfo[index] = true;
+        this.setState({ moreInfo: newMoreInfo });
+    },
+    handleClose: function() {
+        this.setState({ moreInfo: [] });
     },
     getInitialState: function() {
         return getStateFromStoresForSessions();
@@ -66,10 +75,16 @@ module.exports = React.createClass({
                         </div>
                         <div className="activity-info">
                             <div>{"Last activity: " + lastAccessTime.toDateString() + ", " + lastAccessTime.toLocaleTimeString()}</div>
-                            <div>{"First time active: " + firstAccessTime.toDateString() + ", " + lastAccessTime.toLocaleTimeString()}</div>
-                            <div>{"OS: " + currentSession.props.os}</div>
-                            <div>{"Browser: " + currentSession.props.browser}</div>
-                            <div>{"Session ID: " + currentSession.alt_id}</div>
+                            { this.state.moreInfo[i] ?
+                            <div>
+                                <div>{"First time active: " + firstAccessTime.toDateString() + ", " + lastAccessTime.toLocaleTimeString()}</div>
+                                <div>{"OS: " + currentSession.props.os}</div>
+                                <div>{"Browser: " + currentSession.props.browser}</div>
+                                <div>{"Session ID: " + currentSession.alt_id}</div>
+                            </div>
+                            :
+                            <a href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
+                            }
                         </div>
                         <div><button onClick={this.submitRevoke.bind(this, currentSession.alt_id)} className="pull-right btn btn-primary">Logout</button></div>
                         <br/>
@@ -89,7 +104,7 @@ module.exports = React.createClass({
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close" onClick={this.handleClose}><span aria-hidden="true">&times;</span></button>
                                 <h4 className="modal-title" id="myModalLabel">Active Devices</h4>
                             </div>
                             <div ref="modalBody" className="modal-body">
