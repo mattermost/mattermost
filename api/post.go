@@ -405,8 +405,8 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamUrl + "/channels/" + channel.Name
 
-					// attempt to fill in a message body based if the message has none
-					if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 {
+					// attempt to fill in a message body if the post doesn't have any text
+					if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 && len(post.Filenames) > 0 {
 						// extract the filenames from their paths and determine what type of files are attached
 						filenames := make([]string, len(post.Filenames))
 						onlyImages := true
