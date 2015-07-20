@@ -87,8 +87,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// If no token provided in query, attempt to parse it out of the header
 	if len(token) == 0 {
-		if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
-			if len(ah) > 5 && strings.ToUpper(ah[0:5]) == model.HEADER_TOKEN {
+		if ah := r.Header.Get(model.HEADER_AUTH); len(ah) > 5 {
+			if strings.ToLower(ah[0:5]) == model.HEADER_OAUTH_TOKEN {
 				token = ah[6:]
 			}
 		}
@@ -124,8 +124,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(token) == 0 {
 		// attempt to parse the session token from the header
-		if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
-			if len(ah) > 6 && strings.ToUpper(ah[0:6]) == model.HEADER_BEARER {
+		if ah := r.Header.Get(model.HEADER_AUTH); len(ah) > 6 {
+			if strings.ToUpper(ah[0:6]) == model.HEADER_BEARER {
 				sessionId = ah[7:]
 			}
 		}
@@ -161,25 +161,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
-		var accessData *model.AccessData
-		if td, ok := accessTokenCache.Get(token); ok {
-			accessData = td.(*model.AccessData)
-		}
-
-		if accessData == nil {
-			if result := <-Srv.Store.AccessData().Get(token); result.Err != nil {
-				c.LogError(model.NewAppError("ServeHTTP", "Invalid access token", "err="+result.Err.DetailedError))
-			} else {
-				accessData = result.Data.(*model.AccessData)
-			}
-		}
+		accessData := GetAccessData(token, false)
 
 		if accessData == nil {
 			c.Err = model.NewAppError("ServeHTTP", "Invalid access token", "")
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else if accessData.IsExpired() {
 			// Remove access token, related auth code from DB as well as from cache
-			if err := RevokeAccessToken(token); err != nil {
+			if err := RevokeAccessToken(token, false); err != nil {
 				l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
 			}
 
@@ -518,14 +507,15 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateOAuthSession(token string) (*model.Session, *model.AppError) {
-	accessData := GetAccessData(token)
+	token = model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
+	accessData := GetAccessData(token, true)
 
 	if accessData == nil {
 		return nil, model.NewAppError("CreateOAuthSession", "Could not find access token", "")
 	}
 
 	if accessData.IsExpired() {
-		if err := RevokeAccessToken(token); err != nil {
+		if err := RevokeAccessToken(token, true); err != nil {
 			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
 		}
 		return nil, model.NewAppError("CreateOAuthSession", "Access token is expired", "")

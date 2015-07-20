@@ -43,13 +43,7 @@ func (as SqlAccessDataStore) Save(accessData *model.AccessData) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if err := accessData.PreSave(utils.Cfg.ServiceSettings.AesKey); err != nil {
-			result.Err = err
-			storeChannel <- result
-			close(storeChannel)
-			return
-		}
-
+		accessData.PreSave(utils.Cfg.ServiceSettings.TokenSalt)
 		if result.Err = accessData.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
@@ -76,21 +70,14 @@ func (as SqlAccessDataStore) Get(token string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
-		if err != nil {
+		encryptedToken := model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
 
-			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We encounted an error encrypting the token", err.Error())
-			storeChannel <- result
-			close(storeChannel)
-			return
-		}
+		accessData := model.AccessData{}
 
-		if obj, err := as.GetReplica().Get(model.AccessData{}, encryptedToken); err != nil {
+		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM AccessData WHERE Token= ? OR Token = ?", token, encryptedToken); err != nil {
 			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We encounted an error finding the access token", err.Error())
-		} else if obj == nil {
-			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We couldn't find the existing access token", "")
 		} else {
-			result.Data = obj.(*model.AccessData)
+			result.Data = &accessData
 		}
 
 		storeChannel <- result
@@ -134,16 +121,9 @@ func (as SqlAccessDataStore) Remove(token string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
-		if err != nil {
+		encryptedToken := model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
 
-			result.Err = model.NewAppError("SqlAccessDataStore.Get", "We encounted an error encrypting the token", err.Error())
-			storeChannel <- result
-			close(storeChannel)
-			return
-		}
-
-		if _, err := as.GetMaster().Exec("DELETE FROM AccessData WHERE Token = ?", encryptedToken); err != nil {
+		if _, err := as.GetMaster().Exec("DELETE FROM AccessData WHERE Token = ? OR Token = ?", token, encryptedToken); err != nil {
 			result.Err = model.NewAppError("SqlAccessDataStore.Remove", "We couldn't remove the access token", "err="+err.Error())
 		}
 

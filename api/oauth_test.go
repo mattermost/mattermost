@@ -17,7 +17,7 @@ func TestRegisterApp(t *testing.T) {
 	team := model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
@@ -65,7 +65,7 @@ func TestAllowOAuth(t *testing.T) {
 	team := model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
@@ -144,7 +144,7 @@ func TestGetAccessToken(t *testing.T) {
 	team := model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", FullName: "Corey Hulen", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
@@ -260,4 +260,6 @@ func TestGetAccessToken(t *testing.T) {
 	if _, err := Client.GetAccessToken(data); err == nil {
 		t.Fatal("should have failed - tried to reuse auth code")
 	}
+
+	Client.ClearOAuthToken()
 }

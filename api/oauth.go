@@ -209,10 +209,9 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else if result.Data != nil {
 		accessData := result.Data.(*model.AccessData)
-		token, _ := model.AesDecrypt(utils.Cfg.ServiceSettings.AesKey, accessData.Token)
 
 		// Revoke access token, related auth code, and session from DB as well as from cache
-		if err := RevokeAccessToken(token); err != nil {
+		if err := RevokeAccessToken(accessData.Token, true); err != nil {
 			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
 		}
 
@@ -246,7 +245,11 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(accessRsp.ToJson()))
 }
 
-func GetAccessData(token string) *model.AccessData {
+func GetAccessData(token string, isEncrypted bool) *model.AccessData {
+	if !isEncrypted {
+		token = model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
+	}
+
 	var accessData *model.AccessData
 	if ad, ok := accessTokenCache.Get(token); ok {
 		accessData = ad.(*model.AccessData)
@@ -264,8 +267,12 @@ func GetAccessData(token string) *model.AccessData {
 	return accessData
 }
 
-func RevokeAccessToken(token string) *model.AppError {
-	accessData := GetAccessData(token)
+func RevokeAccessToken(token string, isEncrypted bool) *model.AppError {
+	if !isEncrypted {
+		token = model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
+	}
+
+	accessData := GetAccessData(token, true)
 
 	if accessData == nil {
 		return model.NewAppError("RevokeAccessToken", "Could not find token to revoke", "")

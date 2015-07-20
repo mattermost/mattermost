@@ -74,7 +74,7 @@ func (ad *AccessData) IsValid() *AppError {
 	return nil
 }
 
-func (ad *AccessData) PreSave(aesKey string) *AppError {
+func (ad *AccessData) PreSave(tokenSalt string) {
 	if ad.ExpiresIn == 0 {
 		ad.ExpiresIn = ACCESS_TOKEN_EXPIRE_TIME
 	}
@@ -83,16 +83,13 @@ func (ad *AccessData) PreSave(aesKey string) *AppError {
 		ad.CreateAt = GetMillis()
 	}
 
-	var err *AppError
 	if len(ad.Token) > 0 {
-		ad.Token, err = AesEncrypt(aesKey, ad.Token)
+		ad.Token = Md5Encrypt(tokenSalt, ad.Token)
 	}
 
 	if len(ad.RefreshToken) > 0 {
-		ad.RefreshToken, err = AesEncrypt(aesKey, ad.RefreshToken)
+		ad.RefreshToken = Md5Encrypt(tokenSalt, ad.RefreshToken)
 	}
-
-	return err
 }
 
 func (ad *AccessData) ToJson() string {

@@ -38,7 +38,7 @@ func TestAccessStoreGet(t *testing.T) {
 		t.Fatal(result.Err)
 	} else {
 		ra1 := result.Data.(*model.AccessData)
-		encToken, _ := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
+		encToken := model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
 
 		if encToken != ra1.Token {
 			t.Fatal("token encryption failed")

@@ -188,21 +188,18 @@ func (me SqlSessionStore) GetByAccessToken(token string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetByAccessToken", "We encountered an error encrypting the session", err.Error())
-		}
+		encryptedToken := model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
 
 		session := model.Session{}
 
-		if err := me.GetReplica().SelectOne(&session, "SELECT * FROM Sessions WHERE AccessToken = :Token", map[string]interface{}{"Token": encryptedToken}); err != nil {
+		if err := me.GetReplica().SelectOne(&session, "SELECT * FROM Sessions WHERE AccessToken = :Token OR AccessToken = :EncryptedToken", map[string]interface{}{"Token": token, "EncryptedToken": encryptedToken}); err != nil {
 			if strings.Contains(err.Error(), "no rows") {
 				result.Data = nil
 			} else {
 				result.Err = model.NewAppError("SqlSessionStore.GetByAccessToken", "We encountered an error finding the session", err.Error())
 			}
 		} else {
-			result.Data = session
+			result.Data = &session
 		}
 
 		storeChannel <- result
@@ -219,12 +216,9 @@ func (me SqlSessionStore) RemoveByAccessToken(token string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		encryptedToken, err := model.AesEncrypt(utils.Cfg.ServiceSettings.AesKey, token)
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveByAccessToken", "We encountered an error encrypting the session", err.Error())
-		}
+		encryptedToken := model.Md5Encrypt(utils.Cfg.ServiceSettings.TokenSalt, token)
 
-		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE AccessToken = ?", encryptedToken); err != nil {
+		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE AccessToken = ? OR AccessToken = ?", token, encryptedToken); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.RemoveByAccessToken", "We couldn't remove the session", "err="+err.Error())
 		}
 

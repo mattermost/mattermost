@@ -27,10 +27,10 @@ type ServiceSettings struct {
 	InviteSalt       string
 	PublicLinkSalt   string
 	ResetSalt        string
+	TokenSalt        string
 	AnalyticsUrl     string
 	UseLocalStorage  bool
 	StorageDirectory string
-	AesKey           string
 }
 
 type SSOSetting struct {
