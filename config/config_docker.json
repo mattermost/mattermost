@@ -21,7 +21,7 @@
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
         "AnalyticsUrl": "",
         "UseLocalStorage": true,
-        "StorageDirectory": "/mattermost/"
+        "StorageDirectory": "/mattermost/data/"
     },
     "SqlSettings": {
         "DriverName": "mysql",
