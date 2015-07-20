@@ -136,19 +136,23 @@ var PostStore = assign({}, EventEmitter.prototype, {
   },
   storeCurrentDraft: function(draft) {
     var channel_id = ChannelStore.getCurrentId();
-    var user_id = UserStore.getCurrentId();
-    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, draft);
+    BrowserStore.setItem("draft_" + channel_id, draft);
   },
   getCurrentDraft: function() {
     var channel_id = ChannelStore.getCurrentId();
-    var user_id = UserStore.getCurrentId();
-    return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
+    return BrowserStore.getItem("draft_" + channel_id);
   },
-  storeDraft: function(channel_id, user_id, draft) {
-    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, draft);
+  storeDraft: function(channel_id, draft) {
+    BrowserStore.setItem("draft_" + channel_id, draft);
   },
-  getDraft: function(channel_id, user_id) {
-    return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
+  getDraft: function(channel_id) {
+    return BrowserStore.getItem("draft_" + channel_id);
+  },
+  storeCommentDraft: function(parent_post_id, draft) {
+    BrowserStore.setItem("comment_draft_" + parent_post_id, draft);
+  },
+  getCommentDraft: function(parent_post_id) {
+    return BrowserStore.getItem("comment_draft_" + parent_post_id);
   },
   clearDraftUploads: function() {
       BrowserStore.actionOnItemsWithPrefix("draft_", function (key, value) {
@@ -157,6 +161,14 @@ var PostStore = assign({}, EventEmitter.prototype, {
               BrowserStore.setItem(key, value);
           }
       });
+  },
+  clearCommentDraftUploads: function() {
+    BrowserStore.actionOnItemsWithPrefix("comment_draft_", function (key, value) {
+      if (value) {
+        value.uploadsInProgress = 0;
+        BrowserStore.setItem(key, value);
+      }
+    });
   }
 });
 

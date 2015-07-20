@@ -50,7 +50,7 @@ module.exports = React.createClass({
                 post.message,
                 false,
                 function(data) {
-                    PostStore.storeDraft(data.channel_id, user_id, null);
+                    PostStore.storeDraft(data.channel_id, null);
                     this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
 
                     if (data.goto_location.length > 0) {
@@ -70,7 +70,7 @@ module.exports = React.createClass({
 
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
-                    PostStore.storeDraft(data.channel_id, data.user_id, null);
+                    PostStore.storeDraft(data.channel_id, null);
                     this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
                     this.resizePostHolder();
                     AsyncClient.getPosts(true);
@@ -127,7 +127,7 @@ module.exports = React.createClass({
         $(window).trigger('resize');
     },
     handleFileUpload: function(newPreviews, channel_id) {
-        var draft = PostStore.getDraft(channel_id, UserStore.getCurrentId());
+        var draft = PostStore.getDraft(channel_id);
         if (!draft) {
             draft = {}
             draft['message'] = '';
@@ -148,7 +148,7 @@ module.exports = React.createClass({
         } else {
             draft['previews'] = draft['previews'].concat(newPreviews);
             draft['uploadsInProgress'] = draft['uploadsInProgress'] > 0 ? draft['uploadsInProgress'] - 1 : 0;
-            PostStore.storeDraft(channel_id, UserStore.getCurrentId(), draft);
+            PostStore.storeDraft(channel_id, draft);
         }
     },
     handleUploadError: function(err) {
