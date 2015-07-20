@@ -68,6 +68,7 @@ RootPost = React.createClass({
         var filenames = this.props.post.filenames;
         var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
         var timestamp = UserStore.getProfile(this.props.post.user_id).update_at;
+        var channel = ChannelStore.get(this.props.post.channel_id);
 
         var type = "Post";
         if (this.props.post.root_id.length > 0) {
@@ -77,6 +78,10 @@ RootPost = React.createClass({
         var currentUserCss = "";
         if (UserStore.getCurrentId() === this.props.post.user_id) {
             currentUserCss = "current--user";
+        }
+
+        if (channel) {
+            channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
         }
 
         if (filenames) {
@@ -118,6 +123,7 @@ RootPost = React.createClass({
 
         return (
             <div className={"post post--root " + currentUserCss}>
+                <div className="post-right-channel__name">{ channelName }</div>
                 <div className="post-profile-img__container">
                     <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
