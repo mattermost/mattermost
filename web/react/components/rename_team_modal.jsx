@@ -43,7 +43,7 @@ module.exports = React.createClass({
     },
     handleClose: function() {
         this.setState({ name: this.props.teamName})
-    }
+    },
     onNameChange: function() {
         this.setState({ name: this.refs.name.getDOMNode().value })
     },
