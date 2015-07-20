@@ -405,6 +405,31 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamUrl + "/channels/" + channel.Name
 
+					// attempt to fill in a message body based if the message has none
+					if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 {
+						// extract the filenames from their paths and determine what type of files are attached
+						filenames := make([]string, len(post.Filenames))
+						onlyImages := true
+						for i, filename := range post.Filenames {
+							filenames[i] = strings.Replace(filepath.Base(filename), "+", " ", -1)
+							ext := filepath.Ext(filename)
+							onlyImages = onlyImages && model.IsFileExtImage(ext)
+						}
+						filenamesString := strings.Join(filenames, ", ")
+
+						var attachmentPrefix string
+						if onlyImages {
+							attachmentPrefix = "Image"
+						} else {
+							attachmentPrefix = "File"
+						}
+						if len(post.Filenames) > 1 {
+							attachmentPrefix += "s"
+						}
+
+						bodyPage.Props["PostMessage"] = fmt.Sprintf("%s: %s sent", attachmentPrefix, filenamesString)
+					}
+
 					if err := utils.SendMail(profileMap[id].Email, subjectPage.Render(), bodyPage.Render()); err != nil {
 						l4g.Error("Failed to send mention email successfully email=%v err=%v", profileMap[id].Email, err)
 					}
@@ -636,9 +661,9 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		post := result.Data.(*model.PostList).Posts[postId]
 
-	if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId){
-		return
-	}
+		if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId) {
+			return
+		}
 
 		if post == nil {
 			c.SetInvalidParam("deletePost", "postId")
@@ -651,7 +676,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !strings.Contains(c.Session.Roles,model.ROLE_ADMIN) {
+		if post.UserId != c.Session.UserId && !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
 			c.Err = model.NewAppError("deletePost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
