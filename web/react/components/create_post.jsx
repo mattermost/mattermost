@@ -234,7 +234,7 @@ module.exports = React.createClass({
     },
     render: function() {
 
-        var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
+        var server_error = this.state.server_error ? <div className='has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;
         var limit_error = this.state.limit_error ? <div className='has-error'><label className='control-label'>{this.state.limit_error}</label></div> : null;
 

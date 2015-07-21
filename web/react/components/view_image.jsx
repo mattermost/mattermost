@@ -25,7 +25,11 @@ module.exports = React.createClass({
         this.setState({ imgId: nextProps.startId });
     },
     loadImage: function(id) {
-        if (this.state.loaded[id] || this.state.images[id]) return;
+        var imgHeight = $(window).height()-100;
+        if (this.state.loaded[id] || this.state.images[id]){
+            $('.modal .modal-image .image-wrapper img').css("max-height",imgHeight);
+            return;
+        };
 
         var src = "";
         if (this.props.imgCount > 0) {
@@ -48,6 +52,7 @@ module.exports = React.createClass({
                 var loaded = self.state.loaded;
                 loaded[imgid] = true;
                 self.setState({ loaded: loaded });
+                $(self.refs.image.getDOMNode()).css("max-height",imgHeight);
             };
         }(id);
         var images = this.state.images;
@@ -56,10 +61,8 @@ module.exports = React.createClass({
     },
     componentDidUpdate: function() {
         if (this.refs.image) {
-            var height = $(window).height()-100;
             if (this.state.loaded[this.state.imgId]) {
                 $(this.refs.imageWrap.getDOMNode()).removeClass("default");
-                $(this.refs.image.getDOMNode()).css("max-height",height);
             }
         }
     },
