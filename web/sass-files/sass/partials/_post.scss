@@ -187,6 +187,12 @@ body.ios {
 	.post-create-footer {
 		@include clearfix;
 		padding: 0;
+		.has-error {
+			.control-label {
+				font-weight: normal;
+				margin-bottom: 0;
+			}
+		}
 		.msg-typing {
 			min-height: 20px;
 			line-height: 18px;
