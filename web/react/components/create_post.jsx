@@ -31,6 +31,11 @@ module.exports = React.createClass({
 
         post.message = this.state.messageText;
 
+        // if this is a reply, trim off any carets from the beginning of a message
+        if (this.state.rootId && post.message.startsWith("^")) {
+            post.message = post.message.replace(/^\^+\s*/g, "");
+        }
+
         if (post.message.trim().length === 0 && this.state.previews.length === 0) {
             return;
         }
@@ -70,11 +75,6 @@ module.exports = React.createClass({
 
             post.root_id = this.state.rootId;
             post.parent_id = this.state.parentId;
-
-            // if this is a reply, trim off any carets from the beginning of a message
-            if (post.root_id && post.message.startsWith("^")) {
-                post.message = post.message.replace(/^\^+\s*/g, "");
-            }
 
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
