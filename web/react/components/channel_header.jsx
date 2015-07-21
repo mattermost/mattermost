@@ -174,17 +174,17 @@ module.exports = React.createClass({
                                         <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_invite" href="#">Add Members</a></li>
                                         : null
                                     }
-                                    { isAdmin && !ChannelStore.isDefault(channel) ?
+                                    { !ChannelStore.isDefault(channel) ?
                                         <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_members" href="#">Manage Members</a></li>
                                         : null
                                     }
                                     <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set Channel Description...</a></li>
                                     <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#channel_notifications" data-title={channel.display_name} data-channelid={channel.id}>Notification Preferences</a></li>
-                                    { isAdmin && !ChannelStore.isDefault(channel) ?
+                                    { !ChannelStore.isDefault(channel) ?
                                         <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#rename_channel" data-display={channel.display_name} data-name={channel.name} data-channelid={channel.id}>Rename Channel...</a></li>
                                         : null
                                     }
-                                    { isAdmin && !ChannelStore.isDefault(channel) ?
+                                    { !ChannelStore.isDefault(channel) ?
                                         <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#delete_channel" data-title={channel.display_name} data-channelid={channel.id}>Delete Channel...</a></li>
                                         : null
                                     }

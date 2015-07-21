@@ -30,7 +30,7 @@ module.exports = React.createClass({
             invite = <span className="member-role">Added</span>;
         } else if (this.props.handleInvite) {
             invite = <a onClick={this.handleInvite} className="btn btn-sm btn-primary member-invite"><i className="glyphicon glyphicon-envelope"/>  Add</a>;
-        } else if (isAdmin && !isMemberAdmin && (member.id != UserStore.getCurrentId())) {
+        } else if ((isAdmin || this.props.allAdminAccess) && !isMemberAdmin && (member.id != UserStore.getCurrentId())) {
             var self = this;
             invite = (
                         <div className="dropdown member-drop">

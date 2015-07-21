@@ -137,6 +137,7 @@ module.exports = React.createClass({
                                     memberList={this.state.member_list}
                                     isAdmin={isAdmin}
                                     handleRemove={this.handleRemove}
+                                    allAdminAccess={true}
                                 />
                                 : "" }
                             </div>

@@ -512,8 +512,8 @@ func TestDeleteChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(channel2.Id))
 
-	if _, err := Client.DeleteChannel(channel2.Id); err == nil {
-		t.Fatal("should have failed to delete channel you're not an admin of")
+	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
+		t.Fatal("should have been able to delete channel you're not an admin of")
 	}
 
 	rget := Client.Must(Client.GetChannels(""))

@@ -182,14 +182,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		oldChannel := cresult.Data.(*model.Channel)
-		channelMember := cmcresult.Data.(model.ChannelMember)
 		if !c.HasPermissionsToTeam(oldChannel.TeamId, "updateChannel") {
-			return
-		}
-
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
-			c.Err = model.NewAppError("updateChannel", "You do not have the appropriate permissions", "")
-			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 
@@ -486,15 +479,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
-		channelMember := scmresult.Data.(model.ChannelMember)
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "deleteChannel") {
-			return
-		}
-
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
-			c.Err = model.NewAppError("deleteChannel", "You do not have the appropriate permissions", "")
-			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 
@@ -687,15 +673,8 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
-		channelMember := cmcresult.Data.(model.ChannelMember)
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "removeChannelMember") {
-			return
-		}
-
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
-			c.Err = model.NewAppError("updateChannel", "You do not have the appropriate permissions ", "")
-			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 

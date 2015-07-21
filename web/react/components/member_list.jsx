@@ -25,6 +25,7 @@ module.exports = React.createClass({
                                 handleInvite={this.props.handleInvite}
                                 handleRemove={this.props.handleRemove}
                                 handleMakeAdmin={this.props.handleMakeAdmin}
+                                allAdminAccess={this.props.allAdminAccess}
                             />;
                 }, this)}
                 {message}
