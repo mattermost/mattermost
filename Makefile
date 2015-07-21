@@ -21,6 +21,10 @@ travis:
 	@echo building for travis
 
 	rm -Rf $(DIST_ROOT)
+
+	@go get $(GOFLAGS) github.com/tools/godep
+	$(GOPATH)/bin/godep restore
+
 	@go clean $(GOFLAGS) -i ./...
 	
 	@cd web/react/ && npm install
