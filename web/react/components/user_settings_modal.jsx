@@ -30,8 +30,6 @@ module.exports = React.createClass({
         tabs.push({name: "security", ui_name: "Security", icon: "glyphicon glyphicon-lock"});
         tabs.push({name: "notifications", ui_name: "Notifications", icon: "glyphicon glyphicon-exclamation-sign"});
         tabs.push({name: "appearance", ui_name: "Appearance", icon: "glyphicon glyphicon-wrench"});
-        //tabs.push({name: "sessions", ui_name: "Sessions", icon: "glyphicon glyphicon-globe"});
-        //tabs.push({name: "activity_log", ui_name: "Activity Log", icon: "glyphicon glyphicon-time"});
 
         return (
             <div className="modal fade" ref="modal" id="user_settings1" role="dialog" aria-hidden="true">

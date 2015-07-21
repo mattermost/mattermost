@@ -32,6 +32,8 @@ var ErrorBar = require('../components/error_bar.jsx')
 var ChannelLoader = require('../components/channel_loader.jsx');
 var MentionList = require('../components/mention_list.jsx');
 var ChannelInfoModal = require('../components/channel_info_modal.jsx');
+var AccessHistoryModal = require('../components/access_history_modal.jsx');
+var ActivityLogModal = require('../components/activity_log_modal.jsx');
 
 
 var Constants = require('../utils/constants.jsx');
@@ -203,6 +205,16 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     React.render(
         <MentionList id="edit_textbox" />,
         document.getElementById('edit_mention_tab')
+    );
+
+    React.render(
+        <AccessHistoryModal />,
+        document.getElementById('access_history_modal')
+    );
+
+    React.render(
+        <ActivityLogModal />,
+        document.getElementById('activity_log_modal')
     );
 
 };
