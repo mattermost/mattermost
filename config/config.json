@@ -9,7 +9,6 @@
     },
     "ServiceSettings": {
         "SiteName": "Mattermost",
-        "Domain": "xxxxxxmustbefilledin.com",
         "Mode" : "dev",
 		"AllowTesting" : false,
         "UseSSL": false,
@@ -31,19 +30,11 @@
         "Trace": false,
         "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
     },
-    "RedisSettings": {
-        "DataSource": "dockerhost:6379",
-        "MaxOpenConns": 1000
-    },
     "AWSSettings": {
         "S3AccessKeyId": "",
         "S3SecretAccessKey": "",
         "S3Bucket": "",
-        "S3Region": "",
-        "Route53AccessKeyId": "",
-        "Route53SecretAccessKey": "",
-        "Route53ZoneId": "",
-        "Route53Region": ""
+        "S3Region": ""
     },
     "ImageSettings": {
         "ThumbnailWidth": 200,
@@ -54,11 +45,12 @@
         "ProfileHeight": 128
     },
     "EmailSettings": {
+        "ByPassEmail" : true,
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
 		"UseTLS": false,
-        "FeedbackEmail": "feedback@xxxxxxmustbefilledin.com",
+        "FeedbackEmail": "",
         "FeedbackName": "",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",

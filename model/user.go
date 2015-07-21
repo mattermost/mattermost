@@ -37,7 +37,9 @@ type User struct {
 	AuthData           string    `json:"auth_data"`
 	Email              string    `json:"email"`
 	EmailVerified      bool      `json:"email_verified"`
-	FullName           string    `json:"full_name"`
+	Nickname           string    `json:"nickname"`
+	FirstName          string    `json:"first_name"`
+	LastName           string    `json:"last_name"`
 	Roles              string    `json:"roles"`
 	LastActivityAt     int64     `json:"last_activity_at"`
 	LastPingAt         int64     `json:"last_ping_at"`
@@ -45,6 +47,7 @@ type User struct {
 	Props              StringMap `json:"props"`
 	NotifyProps        StringMap `json:"notify_props"`
 	LastPasswordUpdate int64     `json:"last_password_update"`
+	LastPictureUpdate  int64     `json:"last_picture_update"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -81,8 +84,16 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "Invalid email", "user_id="+u.Id)
 	}
 
-	if len(u.FullName) > 64 {
-		return NewAppError("User.IsValid", "Invalid full name", "user_id="+u.Id)
+	if len(u.Nickname) > 64 {
+		return NewAppError("User.IsValid", "Invalid nickname", "user_id="+u.Id)
+	}
+
+	if len(u.FirstName) > 64 {
+		return NewAppError("User.IsValid", "Invalid first name", "user_id="+u.Id)
+	}
+
+	if len(u.LastName) > 64 {
+		return NewAppError("User.IsValid", "Invalid last name", "user_id="+u.Id)
 	}
 
 	return nil
@@ -151,7 +162,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps["first_name"] = "false"
 	u.NotifyProps["all"] = "true"
 	u.NotifyProps["channel"] = "true"
-	splitName := strings.Split(u.FullName, " ")
+	splitName := strings.Split(u.Nickname, " ")
 	if len(splitName) > 0 && splitName[0] != "" {
 		u.NotifyProps["first_name"] = "true"
 		u.NotifyProps["mention_keys"] += "," + splitName[0]
@@ -190,7 +201,8 @@ func (u *User) Sanitize(options map[string]bool) {
 		u.Email = ""
 	}
 	if len(options) != 0 && !options["fullname"] {
-		u.FullName = ""
+		u.FirstName = ""
+		u.LastName = ""
 	}
 	if len(options) != 0 && !options["skypeid"] {
 		// TODO - fill in when SkypeId is added to user model
@@ -223,6 +235,28 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.MakeNonNil()
 
 	u.NotifyProps[key] = value
+}
+
+func (u *User) GetFullName() string {
+	if u.FirstName != "" && u.LastName != "" {
+		return u.FirstName + " " + u.LastName
+	} else if u.FirstName != "" {
+		return u.FirstName
+	} else if u.LastName != "" {
+		return u.LastName
+	} else {
+		return ""
+	}
+}
+
+func (u *User) GetDisplayName() string {
+	if u.Nickname != "" {
+		return u.Nickname
+	} else if fullName := u.GetFullName(); fullName != "" {
+		return fullName
+	} else {
+		return u.Username
+	}
 }
 
 // UserFromJson will decode the input and return a User

@@ -154,7 +154,8 @@
 			background: #FFF;
 			position: relative;
 			max-width: 90%;
-			min-width: 280px;
+			min-height: 50px;
+			min-width: 320px;
 			@include border-radius(3px);
 			display: table;
 			margin: 0 auto;

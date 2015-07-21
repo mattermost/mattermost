@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -121,7 +122,7 @@ func CreateValetPost(c *Context, post *model.Post) (*model.Post, *model.AppError
 		rpost = result.Data.(*model.Post)
 	}
 
-	fireAndForgetNotifications(rpost, c.Session.TeamId, c.TeamUrl)
+	fireAndForgetNotifications(rpost, c.Session.TeamId, c.GetSiteURL())
 
 	return rpost, nil
 }
@@ -200,14 +201,14 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 	} else {
 		rpost = result.Data.(*model.Post)
 
-		fireAndForgetNotifications(rpost, c.Session.TeamId, c.TeamUrl)
+		fireAndForgetNotifications(rpost, c.Session.TeamId, c.GetSiteURL())
 
 	}
 
 	return rpost, nil
 }
 
-func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
+func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {
 
 	go func() {
 		// Get a list of user names (to be used as keywords) and ids for the given team
@@ -297,14 +298,11 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						for _, k := range splitKeys {
 							keywordMap[k] = append(keywordMap[strings.ToLower(k)], profile.Id)
 						}
+					}
 
-						// If turned on, add the user's case sensitive first name
-						if profile.NotifyProps["first_name"] == "true" {
-							splitName := strings.Split(profile.FullName, " ")
-							if len(splitName) > 0 && splitName[0] != "" {
-								keywordMap[splitName[0]] = append(keywordMap[splitName[0]], profile.Id)
-							}
-						}
+					// If turned on, add the user's case sensitive first name
+					if profile.NotifyProps["first_name"] == "true" {
+						keywordMap[profile.FirstName] = append(keywordMap[profile.FirstName], profile.Id)
 					}
 
 					// Add @all to keywords if user has them turned on
@@ -364,20 +362,22 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 					mentionedUsers = append(mentionedUsers, k)
 				}
 
-				var teamName string
+				var teamDisplayName string
+				var teamURL string
 				if result := <-tchan; result.Err != nil {
 					l4g.Error("Failed to retrieve team team_id=%v, err=%v", teamId, result.Err)
 					return
 				} else {
-					teamName = result.Data.(*model.Team).Name
+					teamDisplayName = result.Data.(*model.Team).DisplayName
+					teamURL = siteURL + "/" + result.Data.(*model.Team).Name
 				}
 
 				// Build and send the emails
 				location, _ := time.LoadLocation("UTC")
 				tm := time.Unix(post.CreateAt/1000, 0).In(location)
 
-				subjectPage := NewServerTemplatePage("post_subject", teamUrl)
-				subjectPage.Props["TeamName"] = teamName
+				subjectPage := NewServerTemplatePage("post_subject", teamURL)
+				subjectPage.Props["TeamDisplayName"] = teamDisplayName
 				subjectPage.Props["SubjectText"] = subjectText
 				subjectPage.Props["Month"] = tm.Month().String()[:3]
 				subjectPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
@@ -394,11 +394,9 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						continue
 					}
 
-					firstName := strings.Split(profileMap[id].FullName, " ")[0]
-
-					bodyPage := NewServerTemplatePage("post_body", teamUrl)
-					bodyPage.Props["FullName"] = firstName
-					bodyPage.Props["TeamName"] = teamName
+					bodyPage := NewServerTemplatePage("post_body", teamURL)
+					bodyPage.Props["Nickname"] = profileMap[id].FirstName
+					bodyPage.Props["TeamDisplayName"] = teamDisplayName
 					bodyPage.Props["ChannelName"] = channelName
 					bodyPage.Props["BodyText"] = bodyText
 					bodyPage.Props["SenderName"] = senderName
@@ -407,7 +405,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 					bodyPage.Props["Month"] = tm.Month().String()[:3]
 					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
-					bodyPage.Props["TeamLink"] = teamUrl + "/channels/" + channel.Name
+					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
 
 					if err := utils.SendMail(profileMap[id].Email, subjectPage.Render(), bodyPage.Render()); err != nil {
 						l4g.Error("Failed to send mention email successfully email=%v err=%v", profileMap[id].Email, err)
@@ -437,11 +435,24 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 
 		message := model.NewMessage(teamId, post.ChannelId, post.UserId, model.ACTION_POSTED)
 		message.Add("post", post.ToJson())
+
+		if len(post.Filenames) != 0 {
+			message.Add("otherFile", "true")
+
+			for _, filename := range post.Filenames {
+				ext := filepath.Ext(filename)
+				if model.IsFileExtImage(ext) {
+					message.Add("image", "true")
+					break
+				}
+			}
+		}
+
 		if len(mentionedUsers) != 0 {
 			message.Add("mentions", model.ArrayToJson(mentionedUsers))
 		}
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 	}()
 }
 
@@ -507,7 +518,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("channel_id", rpost.ChannelId)
 		message.Add("message", rpost.Message)
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 
 		w.Write([]byte(rpost.ToJson()))
 	}
@@ -620,15 +631,16 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 	pchan := Srv.Store.Post().Get(postId)
 
-	if !c.HasPermissionsToChannel(cchan, "deletePost") {
-		return
-	}
-
 	if result := <-pchan; result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
+
 		post := result.Data.(*model.PostList).Posts[postId]
+
+		if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId) {
+			return
+		}
 
 		if post == nil {
 			c.SetInvalidParam("deletePost", "postId")
@@ -641,7 +653,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId {
+		if post.UserId != c.Session.UserId && !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
 			c.Err = model.NewAppError("deletePost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
@@ -656,7 +668,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("post_id", post.Id)
 		message.Add("channel_id", post.ChannelId)
 
-		store.PublishAndForget(message)
+		PublishAndForget(message)
 
 		result := make(map[string]string)
 		result["id"] = postId

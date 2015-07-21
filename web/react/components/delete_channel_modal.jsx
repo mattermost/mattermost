@@ -12,7 +12,7 @@ module.exports = React.createClass({
         Client.deleteChannel(this.state.channel_id,
             function(data) {
                 AsyncClient.getChannels(true);
-                window.location.href = '/channels/town-square';
+                window.location.href = '/';
             }.bind(this),
             function(err) {
                 AsyncClient.dispatchError(err, "handleDelete");

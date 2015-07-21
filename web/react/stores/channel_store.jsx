@@ -16,6 +16,7 @@ var MORE_CHANGE_EVENT = 'change';
 var EXTRA_INFO_EVENT = 'extra_info';
 
 var ChannelStore = assign({}, EventEmitter.prototype, {
+    _current_id: null,
   emitChange: function() {
     this.emit(CHANGE_EVENT);
   },
@@ -43,40 +44,24 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   removeExtraInfoChangeListener: function(callback) {
     this.removeListener(EXTRA_INFO_EVENT, callback);
   },
-  get: function(id) {
-    var current = null;
-    var c = this._getChannels();
-
-    c.some(function(channel) {
-      if (channel.id == id) {
-        current = channel;
-        return true;
+  findFirstBy: function(field, value) {
+    var channels = this._getChannels();
+    for (var i = 0; i < channels.length; i++) {
+      if (channels[i][field] == value) {
+        return channels[i];
       }
-      return false;
-    });
+    }
 
-    return current;
+    return null;
+  },
+  get: function(id) {
+    return this.findFirstBy('id', id);
   },
   getMember: function(id) {
-    var current = null;
     return this.getAllMembers()[id];
   },
   getByName: function(name) {
-    var current = null;
-    var c = this._getChannels();
-
-    c.some(function(channel) {
-      if (channel.name == name) {
-        current = channel;
-        return true;
-      }
-
-      return false;
-
-    });
-
-    return current;
-
+    return this.findFirstBy('name', name);
   },
   getAll: function() {
     return this._getChannels();
@@ -88,10 +73,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     return this._getMoreChannels();
   },
   setCurrentId: function(id) {
-    if (id == null)
-      BrowserStore.removeItem("current_channel_id");
-    else
-      BrowserStore.setItem("current_channel_id", id);
+      this._current_id = id;
   },
   setLastVisitedName: function(name) {
     if (name == null)
@@ -117,12 +99,12 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
       this._storeChannelMembers(cm);
   },
   getCurrentId: function() {
-    return BrowserStore.getItem("current_channel_id");
+      return this._current_id;
   },
   getCurrent: function() {
-    var currentId = ChannelStore.getCurrentId();
+    var currentId = this.getCurrentId();
 
-    if (currentId != null)
+    if (currentId)
       return this.get(currentId);
     else
       return null;
@@ -130,7 +112,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   getCurrentMember: function() {
     var currentId = ChannelStore.getCurrentId();
 
-    if (currentId != null)
+    if (currentId)
       return this.getAllMembers()[currentId];
     else
       return null;
@@ -145,7 +127,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     var currentId = ChannelStore.getCurrentId();
     var extra = null;
 
-    if (currentId != null)
+    if (currentId)
       extra = this._getExtraInfos()[currentId];
 
     if (extra == null)
@@ -156,7 +138,7 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
   getExtraInfo: function(channel_id) {
     var extra = null;
 
-    if (channel_id != null)
+    if (channel_id)
       extra = this._getExtraInfos()[channel_id];
 
     if (extra == null)
@@ -165,49 +147,22 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     return extra;
   },
   _storeChannels: function(channels) {
-    BrowserStore.setItem("channels", JSON.stringify(channels));
+    BrowserStore.setItem("channels", channels);
   },
   _getChannels: function() {
-    var channels = [];
-    try {
-        channels = JSON.parse(BrowserStore.getItem("channels"));
-    }
-    catch (err) {
-    }
-
-	if (channels == null) {
-		channels = [];
-	}
-
-    return channels;
+    return BrowserStore.getItem("channels", []);
   },
   _storeChannelMembers: function(channelMembers) {
-    BrowserStore.setItem("channel_members", JSON.stringify(channelMembers));
+    BrowserStore.setItem("channel_members", channelMembers);
   },
   _getChannelMembers: function() {
-    var members = {};
-    try {
-        members = JSON.parse(BrowserStore.getItem("channel_members"));
-    }
-    catch (err) {
-    }
-
-	if (members  == null) {
-		members = {};
-	}
-
-    return members;
+    return BrowserStore.getItem("channel_members", {});
   },
   _storeMoreChannels: function(channels) {
-    BrowserStore.setItem("more_channels", JSON.stringify(channels));
+    BrowserStore.setItem("more_channels", channels);
   },
   _getMoreChannels: function() {
-    var channels = null;
-    try {
-        channels = JSON.parse(BrowserStore.getItem("more_channels"));
-    }
-    catch (err) {
-	}
+    var channels = BrowserStore.getItem("more_channels");
 
     if (channels == null) {
         channels = {};
@@ -217,22 +172,14 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
     return channels;
   },
   _storeExtraInfos: function(extraInfos) {
-    BrowserStore.setItem("extra_infos", JSON.stringify(extraInfos));
+    BrowserStore.setItem("extra_infos", extraInfos);
   },
   _getExtraInfos: function() {
-    var members = {};
-    try {
-        members = JSON.parse(BrowserStore.getItem("extra_infos"));
-    }
-    catch (err) {
-	}
-
-	if (members  == null) {
-		members = {};
-	}
-
-    return members;
-  }
+    return BrowserStore.getItem("extra_infos", {});
+  },
+  isDefault: function(channel) {
+    return channel.name == Constants.DEFAULT_CHANNEL;
+  }  
 });
 
 ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {

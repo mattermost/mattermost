@@ -57,17 +57,17 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	// Check for username parameter and create a user if present
 	username, ok1 := params["username"]
-	teamname, ok2 := params["teamname"]
+	teamDisplayName, ok2 := params["teamname"]
 	var teamID string
 	var userID string
 	if ok1 && ok2 {
 		l4g.Info("Creating user and team")
 		// Create team for testing
 		team := &model.Team{
-			Name:   teamname[0],
-			Domain: utils.RandomName(utils.Range{20, 20}, utils.LOWERCASE),
-			Email:  utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
-			Type:   model.TEAM_OPEN,
+			DisplayName: teamDisplayName[0],
+			Name:       utils.RandomName(utils.Range{20, 20}, utils.LOWERCASE),
+			Email:       utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
+			Type:        model.TEAM_OPEN,
 		}
 
 		if result := <-api.Srv.Store.Team().Save(team); result.Err != nil {
@@ -90,7 +90,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			TeamId:   teamID,
 			Email:    utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
-			FullName: username[0],
+			Nickname: username[0],
 			Password: api.USER_PASSWORD}
 
 		result, err := client.CreateUser(user, "")

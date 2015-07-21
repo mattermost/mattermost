@@ -2,13 +2,8 @@
 	display: table;
 	width: 100%;
 	height: 100%;
-	position: absolute;
-	@include box-sizing(border-box);
+	padding: 60px;
 	text-align: center;
-	&.loading-screen--channel {
-		position: relative;
-		padding: 4em 0 3.5em;
-	}
 	.loading__content {
 		display: table-cell;
 		vertical-align: middle;
@@ -19,11 +14,7 @@
 			margin: 0 0.2em 0;
 			display: inline-block;
 		}
-	}
-}
 
-.loading-screen {
-	.loading__content {
 		.round {
 			background-color: #444;
 			width: 4px;
@@ -32,43 +23,18 @@
 			margin: 0 2px;
 			opacity: 0.1;
 			@include border-radius(10px);
-			-moz-animation: move 0.75s infinite linear;
-			-webkit-animation: move 0.75s infinite linear;
+			@include animation(move 0.75s infinite linear);
 		}
 
-		#round_1 {
-			-moz-animation-delay: .2s;
-			-webkit-animation-delay: .2s;
-		}
-
-		#round_2 {
-			-moz-animation-delay: .4s;
-			-webkit-animation-delay: .4s;
-		}
-
-		#round_3 {
-			-moz-animation-delay: .6s;
-			-webkit-animation-delay: .6s;
-		}
-
-		@-moz-keyframes move {
-			0% {
-				opacity: 1;
+		@for $i from 1 through 3 {
+			.round-#{$i} {
+				@include animation-delay(.2s*$i);
 			}
-
-			100% {
-				opacity: 0.1;
-			};
 		}
 
-		@-webkit-keyframes move {
-			0% {
-				opacity: 1;
-			}
-
-			100% {
-				opacity: 0.1;
-			};
+		@include keyframes(move) {
+			from { opacity: 1; }
+			to { opacity: 0.1; }
 		}
 	}
 }

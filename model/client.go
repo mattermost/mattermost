@@ -100,10 +100,10 @@ func (c *Client) Must(result *Result, err *AppError) *Result {
 	return result
 }
 
-func (c *Client) SignupTeam(email string, name string) (*Result, *AppError) {
+func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["email"] = email
-	m["name"] = name
+	m["display_name"] = displayName
 	if r, err := c.DoPost("/teams/signup", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
@@ -130,11 +130,11 @@ func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) FindTeamByDomain(domain string, allServers bool) (*Result, *AppError) {
+func (c *Client) FindTeamByName(name string, allServers bool) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["domain"] = domain
+	m["name"] = name
 	m["all"] = fmt.Sprintf("%v", allServers)
-	if r, err := c.DoPost("/teams/find_team_by_domain", MapToJson(m)); err != nil {
+	if r, err := c.DoPost("/teams/find_team_by_name", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		val := false
@@ -179,7 +179,7 @@ func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) UpdateTeamName(data map[string]string) (*Result, *AppError) {
+func (c *Client) UpdateTeamDisplayName(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoPost("/teams/update_name", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
@@ -249,17 +249,17 @@ func (c *Client) LoginById(id string, password string) (*Result, *AppError) {
 	return c.login(m)
 }
 
-func (c *Client) LoginByEmail(domain string, email string, password string) (*Result, *AppError) {
+func (c *Client) LoginByEmail(name string, email string, password string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["domain"] = domain
+	m["name"] = name
 	m["email"] = email
 	m["password"] = password
 	return c.login(m)
 }
 
-func (c *Client) LoginByEmailWithDevice(domain string, email string, password string, deviceId string) (*Result, *AppError) {
+func (c *Client) LoginByEmailWithDevice(name string, email string, password string, deviceId string) (*Result, *AppError) {
 	m := make(map[string]string)
-	m["domain"] = domain
+	m["name"] = name
 	m["email"] = email
 	m["password"] = password
 	m["device_id"] = deviceId

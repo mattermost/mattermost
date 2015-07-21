@@ -33,15 +33,15 @@ func NewAutoUserCreator(client *model.Client, teamID string) *AutoUserCreator {
 
 // Basic test team and user so you always know one
 func CreateBasicUser(client *model.Client) *model.AppError {
-	result, _ := client.FindTeamByDomain(BTEST_TEAM_DOMAIN_NAME, true)
+	result, _ := client.FindTeamByName(BTEST_TEAM_NAME, true)
 	if result.Data.(bool) == false {
-		newteam := &model.Team{Name: BTEST_TEAM_NAME, Domain: BTEST_TEAM_DOMAIN_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
+		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
 		result, err := client.CreateTeam(newteam)
 		if err != nil {
 			return err
 		}
 		basicteam := result.Data.(*model.Team)
-		newuser := &model.User{TeamId: basicteam.Id, Email: BTEST_USER_EMAIL, FullName: BTEST_USER_NAME, Password: BTEST_USER_PASSWORD}
+		newuser := &model.User{TeamId: basicteam.Id, Email: BTEST_USER_EMAIL, Nickname: BTEST_USER_NAME, Password: BTEST_USER_PASSWORD}
 		result, err = client.CreateUser(newuser, "")
 		if err != nil {
 			return err
@@ -65,7 +65,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	user := &model.User{
 		TeamId:   cfg.teamID,
 		Email:    userEmail,
-		FullName: userName,
+		Nickname: userName,
 		Password: USER_PASSWORD}
 
 	result, err := cfg.client.CreateUser(user, "")

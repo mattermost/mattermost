@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var BrowserStore = require('../stores/browser_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 
 module.exports.track = function(category, action, label, prop, val) {
     global.window.snowplow('trackStructEvent', category, action, label, prop, val);
@@ -44,7 +45,12 @@ function handleError(method_name, xhr, status, err) {
     module.exports.track('api', 'api_weberror', method_name, 'message', msg);
 
     if (xhr.status == 401) {
-        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname+window.location.search);
+        if (window.location.href.indexOf("/channels") === 0) {
+            window.location.pathname = '/login?redirect=' + encodeURIComponent(window.location.pathname+window.location.search);
+        } else {
+            var teamURL = window.location.href.split('/channels')[0];
+            window.location.href = teamURL + '/login?redirect=' + encodeURIComponent(window.location.pathname+window.location.search);
+        }
     }
 
     return e;
@@ -205,17 +211,18 @@ module.exports.resetPassword = function(data, success, error) {
 
 module.exports.logout = function() {
     module.exports.track('api', 'api_users_logout');
-	BrowserStore.clear();
-    window.location.href = "/logout";
+    var currentTeamUrl = TeamStore.getCurrentTeamUrl();
+    BrowserStore.clear();
+    window.location.href = currentTeamUrl + "/logout";
 };
 
-module.exports.loginByEmail = function(domain, email, password, success, error) {
+module.exports.loginByEmail = function(name, email, password, success, error) {
     $.ajax({
         url: "/api/v1/users/login",
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({domain: domain, email: email, password: password}),
+        data: JSON.stringify({name: name, email: email, password: password}),
         success: function(data, textStatus, xhr) {
             module.exports.track('api', 'api_users_login_success', data.team_id, 'email', data.email);
             success(data, textStatus, xhr);
@@ -317,7 +324,7 @@ module.exports.inviteMembers = function(data, success, error) {
     module.exports.track('api', 'api_teams_invite_members');
 };
 
-module.exports.updateTeamName = function(data, success, error) {
+module.exports.updateTeamDisplayName = function(data, success, error) {
     $.ajax({
         url: "/api/v1/teams/update_name",
         dataType: 'json',
@@ -326,7 +333,7 @@ module.exports.updateTeamName = function(data, success, error) {
         data: JSON.stringify(data),
         success: success,
         error: function(xhr, status, err) {
-            e = handleError("updateTeamName", xhr, status, err);
+            e = handleError("updateTeamDisplayName", xhr, status, err);
             error(e);
         }
     });
@@ -334,13 +341,13 @@ module.exports.updateTeamName = function(data, success, error) {
     module.exports.track('api', 'api_teams_update_name');
 };
 
-module.exports.signupTeam = function(email, name, success, error) {
+module.exports.signupTeam = function(email, display_name, success, error) {
     $.ajax({
         url: "/api/v1/teams/signup",
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({email: email, name: name}),
+        data: JSON.stringify({email: email, display_name: display_name}),
         success: success,
         error: function(xhr, status, err) {
             e = handleError("singupTeam", xhr, status, err);
@@ -366,16 +373,16 @@ module.exports.createTeam = function(team, success, error) {
     });
 };
 
-module.exports.findTeamByDomain = function(domain, success, error) {
+module.exports.findTeamByName = function(teamName, success, error) {
     $.ajax({
-        url: "/api/v1/teams/find_team_by_domain",
+        url: "/api/v1/teams/find_team_by_name",
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({domain: domain}),
+        data: JSON.stringify({name: teamName}),
         success: success,
         error: function(xhr, status, err) {
-            e = handleError("findTeamByDomain", xhr, status, err);
+            e = handleError("findTeamByName", xhr, status, err);
             error(e);
         }
     });

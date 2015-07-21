@@ -17,12 +17,14 @@ import (
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
 
 type Context struct {
-	Session   model.Session
-	RequestId string
-	IpAddress string
-	TeamUrl   string
-	Path      string
-	Err       *model.AppError
+	Session      model.Session
+	RequestId    string
+	IpAddress    string
+	Path         string
+	Err          *model.AppError
+	teamURLValid bool
+	teamURL      string
+	siteURL      string
 }
 
 type Page struct {
@@ -30,32 +32,36 @@ type Page struct {
 	Title         string
 	SiteName      string
 	FeedbackEmail string
-	TeamUrl       string
+	TeamURL       string
 	Props         map[string]string
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false}
+	return &handler{h, false, false, true, false, false}
 }
 
 func AppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false}
+	return &handler{h, false, false, false, false, false}
+}
+
+func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{h, false, false, false, false, true}
 }
 
 func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, true}
+	return &handler{h, true, false, true, true, false}
 }
 
 func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
-	return &handler{h, true, false, true, isUserActivity}
+	return &handler{h, true, false, true, isUserActivity, false}
 }
 
 func UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, false, false}
+	return &handler{h, true, false, false, false, false}
 }
 
 func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, true, true, false}
+	return &handler{h, true, true, true, false, false}
 }
 
 type handler struct {
@@ -64,6 +70,7 @@ type handler struct {
 	requireSystemAdmin bool
 	isApi              bool
 	isUserActivity     bool
+	isTeamIndependent  bool
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +80,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := &Context{}
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
-	c.Path = r.URL.Path
 
 	protocol := "http"
 
@@ -90,7 +96,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.TeamUrl = protocol + "://" + r.Host
+	c.setSiteURL(protocol + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version)
@@ -135,6 +141,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if h.isApi || h.isTeamIndependent {
+		c.setTeamURL(c.GetSiteURL(), false)
+		c.Path = r.URL.Path
+	} else {
+		splitURL := strings.Split(r.URL.Path, "/")
+		c.setTeamURL(protocol+"://"+r.Host+"/"+splitURL[1], true)
+		c.Path = "/" + strings.Join(splitURL[2:], "/")
+	}
+
 	if c.Err == nil && h.requireUser {
 		c.UserRequired()
 	}
@@ -165,7 +180,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
-				http.Redirect(w, r, "/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
+				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 			} else {
 				RenderWebError(c.Err, w, r)
 			}
@@ -265,6 +280,16 @@ func (c *Context) IsSystemAdmin() bool {
 	return false
 }
 
+func (c *Context) IsTeamAdmin(userId string) bool {
+	if uresult := <-Srv.Store.User().Get(userId); uresult.Err != nil {
+		c.Err = uresult.Err
+		return false
+	} else {
+		user := uresult.Data.(*model.User)
+		return strings.Contains(c.Session.Roles, model.ROLE_ADMIN) && user.TeamId == c.Session.TeamId
+	}
+}
+
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter) {
 
 	sessionCache.Remove(c.Session.Id)
@@ -287,6 +312,39 @@ func (c *Context) SetInvalidParam(where string, name string) {
 
 func (c *Context) SetUnknownError(where string, details string) {
 	c.Err = model.NewAppError(where, "An unknown error has occured. Please contact support.", details)
+}
+
+func (c *Context) setTeamURL(url string, valid bool) {
+	c.teamURL = url
+	c.teamURLValid = valid
+}
+
+func (c *Context) setTeamURLFromSession() {
+	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err == nil {
+		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
+	}
+}
+
+func (c *Context) setSiteURL(url string) {
+	c.siteURL = url
+}
+
+func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
+	return c.GetSiteURL() + "/" + team.Name
+}
+
+func (c *Context) GetTeamURL() string {
+	if !c.teamURLValid {
+		c.setTeamURLFromSession()
+		if !c.teamURLValid {
+			l4g.Debug("TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent")
+		}
+	}
+	return c.teamURL
+}
+
+func (c *Context) GetSiteURL() string {
+	return c.siteURL
 }
 
 func GetIpAddress(r *http.Request) string {

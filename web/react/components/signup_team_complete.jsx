@@ -15,7 +15,7 @@ WelcomePage = React.createClass({
             return;
         }
         e.preventDefault();
-        this.props.state.wizard = "team_name";
+        this.props.state.wizard = "team_display_name";
         this.props.updateParent(this.props.state);
     },
     handleDiffEmail: function (e) {
@@ -57,6 +57,17 @@ WelcomePage = React.createClass({
     getInitialState: function() {
         return { use_diff: false };
     },
+    handleKeyPress: function(event) {
+        if (event.keyCode == 13) {
+            this.submitNext(event);
+        }
+    },
+    componentWillMount: function() {
+        document.addEventListener("keyup", this.handleKeyPress, false);
+    },
+    componentWillUnmount: function() {
+        document.removeEventListener("keyup", this.handleKeyPress, false);
+    },
     render: function() {
 
         client.track('signup', 'signup_team_01_welcome');
@@ -77,7 +88,7 @@ WelcomePage = React.createClass({
                     <span className="black">{ this.props.state.team.email }</span><br />
                 </p>
                 <div className="form-group">
-                    <button className="btn-primary btn form-group" onClick={this.submitNext}><i className="glyphicon glyphicon-ok"></i>Yes, this address is correct</button>
+                    <button className="btn-primary btn form-group" type="submit" onClick={this.submitNext}><i className="glyphicon glyphicon-ok"></i>Yes, this address is correct</button>
                     { storage_error }
                 </div>
                 <hr />
@@ -92,15 +103,15 @@ WelcomePage = React.createClass({
                         { email_error }
                     </div>
                     { server_error }
-                    <button className="btn btn-md btn-primary" onClick={this.handleDiffSubmit} type="submit">Use this instead</button>
+                    <button className="btn btn-md btn-primary" type="button" onClick={this.handleDiffSubmit} type="submit">Use this instead</button>
                 </div>
-                <button onClick={this.handleDiffEmail} className={ this.state.use_diff ? "btn-default btn hidden" : "btn-default btn" }>Use a different address</button>
+                <button type="button" onClick={this.handleDiffEmail} className={ this.state.use_diff ? "btn-default btn hidden" : "btn-default btn" }>Use a different address</button>
             </div>
         );
     }
 });
 
-TeamNamePage = React.createClass({
+TeamDisplayNamePage = React.createClass({
     submitBack: function (e) {
         e.preventDefault();
         this.props.state.wizard = "welcome";
@@ -109,18 +120,23 @@ TeamNamePage = React.createClass({
     submitNext: function (e) {
         e.preventDefault();
 
-        var name = this.refs.name.getDOMNode().value.trim();
-        if (!name) {
+        var display_name = this.refs.name.getDOMNode().value.trim();
+        if (!display_name) {
             this.setState({name_error: "This field is required"});
             return;
         }
 
         this.props.state.wizard = "team_url";
-        this.props.state.team.name = name;
+        this.props.state.team.display_name = display_name;
         this.props.updateParent(this.props.state);
     },
     getInitialState: function() {
         return {  };
+    },
+    handleFocus: function(e) {
+        e.preventDefault();
+
+        e.currentTarget.select();
     },
     render: function() {
 
@@ -130,29 +146,31 @@ TeamNamePage = React.createClass({
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
 
                 <h2>{utils.toTitleCase(strings.Team) + " Name"}</h2>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <div className="row">
                     <div className="col-sm-9">
-                        <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.name} />
+                        <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.display_name} autoFocus={true} onFocus={this.handleFocus} />
                     </div>
                 </div>
                 { name_error }
                 </div>
                 <p>{"Your " + strings.Team + " name shows in menus and headings. It may include the name of your " + strings.Company + ", but it's not required."}</p>
-                <button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
+                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+            </form>
             </div>
         );
     }
 });
 
-TeamUrlPage = React.createClass({
+TeamURLPage = React.createClass({
     submitBack: function (e) {
         e.preventDefault();
-        this.props.state.wizard = "team_name";
+        this.props.state.wizard = "team_display_name";
         this.props.updateParent(this.props.state);
     },
     submitNext: function (e) {
@@ -172,18 +190,18 @@ TeamUrlPage = React.createClass({
             return;
         }
         else if (cleaned_name.length <= 3 || cleaned_name.length > 15) {
-            this.setState({name_error: "Domain must be 4 or more characters up to a maximum of 15"})
+            this.setState({name_error: "Name must be 4 or more characters up to a maximum of 15"})
             return;
         }
 
-        for (var index = 0; index < constants.RESERVED_DOMAINS.length; index++) {
-            if (cleaned_name.indexOf(constants.RESERVED_DOMAINS[index]) == 0) {
-                this.setState({name_error: "This Team URL name is unavailable"})
+        for (var index = 0; index < constants.RESERVED_TEAM_NAMES.length; index++) {
+            if (cleaned_name.indexOf(constants.RESERVED_TEAM_NAMES[index]) == 0) {
+                this.setState({name_error: "This team name is unavailable"})
                 return;
             }
         }
 
-        client.findTeamByDomain(name,
+        client.findTeamByName(name,
             function(data) {
                 if (!data) {
                     if (config.AllowSignupDomainsWizard) {
@@ -193,7 +211,7 @@ TeamUrlPage = React.createClass({
                         this.props.state.team.type = 'O';
                     }
 
-                    this.props.state.team.domain = name;
+                    this.props.state.team.name = name;
                     this.props.updateParent(this.props.state);
                 }
                 else {
@@ -210,6 +228,11 @@ TeamUrlPage = React.createClass({
     getInitialState: function() {
         return { };
     },
+    handleFocus: function(e) {
+        e.preventDefault();
+
+        e.currentTarget.select();
+    },
     render: function() {
 
         client.track('signup', 'signup_team_03_url');
@@ -218,14 +241,15 @@ TeamUrlPage = React.createClass({
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h2>{utils.toTitleCase(strings.Team) + " URL"}</h2>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                <div className="row">
                     <div className="col-sm-9">
                         <div className="input-group">
-                            <input type="text" ref="name" className="form-control text-right" placeholder="" maxLength="128" defaultValue={this.props.state.team.domain} />
-                            <span className="input-group-addon">.{ utils.getDomainWithOutSub() }</span>
+                            <span className="input-group-addon">{ window.location.origin + "/" }</span>
+                            <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.name} autoFocus={true} onFocus={this.handleFocus}/>
                         </div>
                     </div>
                 </div>
@@ -233,8 +257,9 @@ TeamUrlPage = React.createClass({
                 </div>
                 <p className="black">{"Pick something short and memorable for your " + strings.Team + "'s web address."}</p>
                 <p>{"Your " + strings.Team + " URL can only contain lowercase letters, numbers and dashes. Also, it needs to start with a letter and cannot end in a dash."}</p>
-                <button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
+                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+            </form>
             </div>
         );
     }
@@ -291,6 +316,7 @@ AllowedDomainsPage = React.createClass({
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h2>Email Domain</h2>
                 <p>
@@ -303,7 +329,7 @@ AllowedDomainsPage = React.createClass({
                     <div className="col-sm-9">
                         <div className="input-group">
                             <span className="input-group-addon">@</span>
-                            <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.allowed_domains} />
+                            <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.allowed_domains} autoFocus={true} onFocus={this.handleFocus}/>
                         </div>
                     </div>
                 </div>
@@ -313,8 +339,9 @@ AllowedDomainsPage = React.createClass({
                 <p>
                 <div className="checkbox"><label><input type="checkbox" ref="open_network" defaultChecked={this.props.state.team.type == 'O'} /> Allow anyone to signup to this domain without an invitation.</label></div>
                 </p>
-                <button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
+                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+            </form>
             </div>
         );
     }
@@ -356,7 +383,7 @@ EmailItem = React.createClass({
 
         return (
             <div className={ email_error ? "form-group has-error" : "form-group" }>
-                <input type="email" ref="email" className="form-control" placeholder="Email Address" defaultValue={this.props.email} maxLength="128" />
+                <input autoFocus={this.props.focus} type="email" ref="email" className="form-control" placeholder="Email Address" defaultValue={this.props.email} maxLength="128" />
                 { email_error }
             </div>
         );
@@ -424,16 +451,22 @@ SendInivtesPage = React.createClass({
         var emails = [];
 
         for (var i = 0; i < this.props.state.invites.length; i++) {
-            emails.push(<EmailItem key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+            if (i == 0) {
+                emails.push(<EmailItem focus={true} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+            } else {
+                emails.push(<EmailItem focus={false} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+            }
         }
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h2>Send Invitations</h2>
                 { emails }
-                <div className="form-group"><button className="btn-default btn" onClick={this.submitAddInvite}>Add Invitation</button></div>
-                <div className="form btn-default-group"><button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;<button className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button></div>
+                <div className="form-group"><button type="button" className="btn-default btn" onClick={this.submitAddInvite}>Add Invitation</button></div>
+                <div className="form btn-default-group"><button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;<button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button></div>
+            </form>
                 <p>{"If you'd prefer, you can send invitations after you finish setting up the "+ strings.Team + "."}</p>
                 <div><a href="#" onClick={this.submitSkip}>Skip this step</a></div>
             </div>
@@ -477,20 +510,22 @@ UsernamePage = React.createClass({
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h2>Choose a username</h2>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <div className="row">
                     <div className="col-sm-9">
-                        <input type="text" ref="name" className="form-control" placeholder="" defaultValue={this.props.state.user.username} maxLength="128" />
+                        <input autoFocus={true} type="text" ref="name" className="form-control" placeholder="" defaultValue={this.props.state.user.username} maxLength="128" />
                     </div>
                 </div>
                 { name_error }
                 </div>
                 <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others."}</p>
                 <p>It can be made of lowercase letters and numbers.</p>
-                <button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
+                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+            </form>
             </div>
         );
     }
@@ -531,18 +566,11 @@ PasswordPage = React.createClass({
                     props.state.wizard = "finished";
                     props.updateParent(props.state, true);
 
-                    if (utils.isTestDomain()) {
-                        UserStore.setLastDomain(teamSignup.team.domain);
-                        UserStore.setLastEmail(teamSignup.team.email);
-                        window.location.href = window.location.protocol  + '//' + utils.getDomainWithOutSub() + '/login?email=' + encodeURIComponent(teamSignup.team.email);
-                    }
-                    else {
-                        window.location.href = window.location.protocol + '//' + teamSignup.team.domain + '.' + utils.getDomainWithOutSub() + '/login?email=' + encodeURIComponent(teamSignup.team.email);
-                    }
+                    window.location.href = window.location.origin + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
 
                     // client.loginByEmail(teamSignup.team.domain, teamSignup.team.email, teamSignup.user.password,
                     //     function(data) {
-                    //         UserStore.setLastDomain(teamSignup.team.domain);
+                    //         TeamStore.setLastName(teamSignup.team.domain);
                     //         UserStore.setLastEmail(teamSignup.team.email);
                     //         UserStore.setCurrentUser(data);
                     //         window.location.href = '/channels/town-square';
@@ -570,13 +598,14 @@ PasswordPage = React.createClass({
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h2>Choose a password</h2>
                 <p>You'll use your email address ({this.props.state.team.email}) and password to log into {config.SiteName}.</p>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <div className="row">
                     <div className="col-sm-9">
-                        <input type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
+                        <input autoFocus={true} type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
                     </div>
                 </div>
                     { name_error }
@@ -585,10 +614,11 @@ PasswordPage = React.createClass({
                     <label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service.</label>
                 </div>
                 <div className="form-group">
-                    <button className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                    <button className="btn-primary btn" id="finish-button" data-loading-text={"<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> Creating "+strings.Team+"..."} onClick={this.submitNext}>Finish</button>
+                    <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
+                    <button type="submit" className="btn-primary btn" id="finish-button" data-loading-text={"<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> Creating "+strings.Team+"..."} onClick={this.submitNext}>Finish</button>
                 </div>
                 <p>By proceeding to create your account and use { config.SiteName }, you agree to our <a href={ config.TermsLink }>Terms of Service</a> and <a href={ config.PrivacyLink }>Privacy Policy</a>. If you do not agree, you cannot use {config.SiteName}.</p>
+            </form>
             </div>
         );
     }
@@ -596,28 +626,23 @@ PasswordPage = React.createClass({
 
 module.exports = React.createClass({
     updateParent: function(state, skipSet) {
-        BrowserStore.setGlobalItem(this.props.hash, JSON.stringify(state));
+        BrowserStore.setGlobalItem(this.props.hash, state);
 
         if (!skipSet) {
             this.setState(state);
         }
     },
     getInitialState: function() {
-        var props = null;
-        try {
-            props = JSON.parse(BrowserStore.getGlobalItem(this.props.hash));
-        }
-        catch(parse_error) {
-        }
+        var props = BrowserStore.getGlobalItem(this.props.hash);
 
         if (!props) {
             props = {};
             props.wizard = "welcome";
             props.team = {};
             props.team.email = this.props.email;
-            props.team.name = this.props.name;
+            props.team.display_name = this.props.name;
             props.team.company_name = this.props.name;
-            props.team.domain = utils.cleanUpUrlable(this.props.name);
+            props.team.name = utils.cleanUpUrlable(this.props.name);
             props.team.allowed_domains = "";
             props.invites = [];
             props.invites.push("");
@@ -628,19 +653,19 @@ module.exports = React.createClass({
             props.data = this.props.data;
         }
 
-        return props ;
+        return props;
     },
     render: function() {
         if (this.state.wizard == "welcome") {
             return <WelcomePage state={this.state} updateParent={this.updateParent} />
         }
 
-        if (this.state.wizard == "team_name") {
-            return <TeamNamePage state={this.state} updateParent={this.updateParent} />
+        if (this.state.wizard == "team_display_name") {
+            return <TeamDisplayNamePage state={this.state} updateParent={this.updateParent} />
         }
 
         if (this.state.wizard == "team_url") {
-            return <TeamUrlPage state={this.state} updateParent={this.updateParent} />
+            return <TeamURLPage state={this.state} updateParent={this.updateParent} />
         }
 
         if (this.state.wizard == "allowed_domains") {

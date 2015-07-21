@@ -17,7 +17,7 @@ module.exports = React.createClass({
             return;
         }
 
-        var username_error = utils.isValidUsername(this.state.user.username)
+        var username_error = utils.isValidUsername(this.state.user.username);
         if (username_error === "Cannot use a reserved word as a username.") {
             this.setState({name_error: "This username is reserved, please choose a new one.", email_error: "", password_error: "", server_error: ""});
             return;
@@ -46,25 +46,25 @@ module.exports = React.createClass({
             function(data) {
                 client.track('signup', 'signup_user_02_complete');
 
-                if (data.email_verified) {
-                    client.loginByEmail(this.props.domain, this.state.user.email, this.state.user.password,
-                        function(data) {
-                            UserStore.setLastDomain(this.props.domain);
-                            UserStore.setLastEmail(this.state.user.email);
-                            UserStore.setCurrentUser(data);
-                            if (this.props.hash > 0)
-                                BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: "finished"}));
-                            window.location.href = '/channels/town-square';
-                        }.bind(this),
-                        function(err) {
+                client.loginByEmail(this.props.domain, this.state.user.email, this.state.user.password,
+                    function(data) {
+                        UserStore.setLastEmail(this.state.user.email);
+                        UserStore.setCurrentUser(data);
+                        if (this.props.hash > 0)
+                        {
+                            BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: "finished"}));
+                        }
+                        window.location.href = '/';
+                    }.bind(this),
+                    function(err) {
+                        if (err.message == "Login failed because email address has not been verified") {
+                            window.location.href = "/verify_email?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.domain);
+                        } else {
                             this.state.server_error = err.message;
                             this.setState(this.state);
-                        }.bind(this)
-                    );
-                }
-                else {
-                    window.location.href = "/verify?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.domain);
-                }
+                        }
+                    }.bind(this)
+                );
             }.bind(this),
             function(err) {
                 this.state.server_error = err.message;
@@ -73,12 +73,7 @@ module.exports = React.createClass({
         );
     },
     getInitialState: function() {
-        var props = null;
-        try {
-            props = JSON.parse(BrowserStore.getGlobalItem(this.props.hash));
-        }
-        catch(parse_error) {
-        }
+        var props = BrowserStore.getGlobalItem(this.props.hash);
 
         if (!props) {
             props = {};
@@ -91,7 +86,7 @@ module.exports = React.createClass({
             props.original_email = this.props.email;
         }
 
-        return props ;
+        return props;
     },
     render: function() {
 

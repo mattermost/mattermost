@@ -19,13 +19,11 @@ const (
 
 type ServiceSettings struct {
 	SiteName       string
-	Domain         string
 	Mode           string
 	AllowTesting   bool
 	UseSSL         bool
 	Port           string
 	Version        string
-	Shards         map[string]string
 	InviteSalt     string
 	PublicLinkSalt string
 	ResetSalt      string
@@ -42,11 +40,6 @@ type SqlSettings struct {
 	AtRestEncryptKey   string
 }
 
-type RedisSettings struct {
-	DataSource   string
-	MaxOpenConns int
-}
-
 type LogSettings struct {
 	ConsoleEnable bool
 	ConsoleLevel  string
@@ -57,14 +50,10 @@ type LogSettings struct {
 }
 
 type AWSSettings struct {
-	S3AccessKeyId          string
-	S3SecretAccessKey      string
-	S3Bucket               string
-	S3Region               string
-	Route53AccessKeyId     string
-	Route53SecretAccessKey string
-	Route53ZoneId          string
-	Route53Region          string
+	S3AccessKeyId     string
+	S3SecretAccessKey string
+	S3Bucket          string
+	S3Region          string
 }
 
 type ImageSettings struct {
@@ -77,6 +66,7 @@ type ImageSettings struct {
 }
 
 type EmailSettings struct {
+	ByPassEmail          bool
 	SMTPUsername         string
 	SMTPPassword         string
 	SMTPServer           string
@@ -112,7 +102,6 @@ type Config struct {
 	LogSettings     LogSettings
 	ServiceSettings ServiceSettings
 	SqlSettings     SqlSettings
-	RedisSettings   RedisSettings
 	AWSSettings     AWSSettings
 	ImageSettings   ImageSettings
 	EmailSettings   EmailSettings
@@ -218,18 +207,10 @@ func LoadConfig(fileName string) {
 		panic("Error decoding configuration " + err.Error())
 	}
 
-	// Grabs the domain from enviroment variable if not in configuration
-	if config.ServiceSettings.Domain == "" {
-		config.ServiceSettings.Domain = os.Getenv("MATTERMOST_DOMAIN")
-		// If the enviroment variable is not set, use a default
-		if config.ServiceSettings.Domain == "" {
-			config.ServiceSettings.Domain = "localhost"
-		}
-	}
-
 	// Check for a valid email for feedback, if not then do feedback@domain
 	if _, err := mail.ParseAddress(config.EmailSettings.FeedbackEmail); err != nil {
-		config.EmailSettings.FeedbackEmail = "feedback@" + config.ServiceSettings.Domain
+		config.EmailSettings.FeedbackEmail = "feedback@localhost"
+		l4g.Error("Misconfigured feedback email setting: %s", config.EmailSettings.FeedbackEmail)
 	}
 
 	configureLog(config.LogSettings)

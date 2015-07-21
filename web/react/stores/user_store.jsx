@@ -8,7 +8,7 @@ var client = require('../utils/client.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
-var BrowserStore = require('../stores/browser_store.jsx');
+var BrowserStore = require('./browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
 var CHANGE_EVENT_SESSIONS = 'change_sessions';
@@ -17,6 +17,8 @@ var CHANGE_EVENT_TEAMS = 'change_teams';
 var CHANGE_EVENT_STATUSES = 'change_statuses';
 
 var UserStore = assign({}, EventEmitter.prototype, {
+
+    _current_id: null,
 
   emitChange: function(userId) {
     this.emit(CHANGE_EVENT, userId);
@@ -64,13 +66,19 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this.removeListener(CHANGE_EVENT_STATUSES, callback);
   },
   setCurrentId: function(id) {
-    if (id == null)
-      BrowserStore.removeGlobalItem("current_user_id");
-    else
-      BrowserStore.setGlobalItem("current_user_id", id);
+     this._current_id = id;
+     if (id == null) {
+         BrowserStore.removeGlobalItem("current_user_id");
+     } else {
+         BrowserStore.setGlobalItem("current_user_id", id);
+     }
   },
   getCurrentId: function(skipFetch) {
-    var current_id = BrowserStore.getGlobalItem("current_user_id");
+    var current_id = this._current_id;
+
+    if (current_id == null) {
+        current_id = BrowserStore.getGlobalItem("current_user_id");
+    }
 
     // this is a speical case to force fetch the
     // current user if it's missing
@@ -93,25 +101,11 @@ var UserStore = assign({}, EventEmitter.prototype, {
     return this._getProfiles()[this.getCurrentId()];
   },
   setCurrentUser: function(user) {
-    this.saveProfile(user);
     this.setCurrentId(user.id);
-  },
-  getLastDomain: function() {
-	var last_domain = BrowserStore.getItem("last_domain");
-	if (last_domain == null) {
-		last_domain = "";
-	}
-	return last_domain;
-  },
-  setLastDomain: function(domain) {
-    BrowserStore.setItem("last_domain", domain);
+    this.saveProfile(user);
   },
   getLastEmail: function() {
-	var last_email = BrowserStore.getItem("last_email");
-	if (last_email == null) {
-		last_email = "";
-	}
-	return last_email;
+      return BrowserStore.getItem("last_email", '');
   },
   setLastEmail: function(email) {
     BrowserStore.setItem("last_email", email);
@@ -153,116 +147,51 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this._storeProfiles(ps);
   },
   _storeProfiles: function(profiles) {
-    BrowserStore.setGlobalItem("profiles", JSON.stringify(profiles));
+    BrowserStore.setItem("profiles", profiles);
     var profileUsernameMap = {};
     for (var id in profiles) {
         profileUsernameMap[profiles[id].username] = profiles[id];
     }
-    BrowserStore.setGlobalItem("profileUsernameMap", JSON.stringify(profileUsernameMap));
+    BrowserStore.setItem("profileUsernameMap", profileUsernameMap);
   },
   _getProfiles: function() {
-    var profiles = {};
-    try {
-        profiles = JSON.parse(BrowserStore.getGlobalItem("profiles"));
-    }
-    catch (err) {
-    }
-
-	if (profiles == null) {
-		profiles = {};
-	}
-
-    return profiles;
+    return BrowserStore.getItem("profiles", {});
   },
   _getProfilesUsernameMap: function() {
-    var profileUsernameMap = {};
-    try {
-        profileUsernameMap = JSON.parse(BrowserStore.getGlobalItem("profileUsernameMap"));
-    }
-    catch (err) {
-    }
-
-	if (profileUsernameMap == null) {
-		profileUsernameMap = {};
-	}
-
-    return profileUsernameMap;
+    return BrowserStore.getItem("profileUsernameMap", {});
   },
   setSessions: function(sessions) {
-    BrowserStore.setItem("sessions", JSON.stringify(sessions));
+    BrowserStore.setItem("sessions", sessions);
   },
   getSessions: function() {
-    var sessions = [];
-    try {
-        sessions = JSON.parse(BrowserStore.getItem("sessions"));
-    }
-    catch (err) {
-	}
-	if (sessions == null) {
-		sessions = [];
-	}
-
-    return sessions;
+    return BrowserStore.getItem("sessions", []);
   },
   setAudits: function(audits) {
-    BrowserStore.setItem("audits", JSON.stringify(audits));
+    BrowserStore.setItem("audits", audits);
   },
   getAudits: function() {
-    var audits = [];
-    try {
-        audits = JSON.parse(BrowserStore.getItem("audits"));
-    }
-    catch (err) {
-	}
-
-	if (audits == null) {
-		audits = [];
-	}
-
-    return audits;
+    return BrowserStore.getItem("audits", []);
   },
   setTeams: function(teams) {
-    BrowserStore.setItem("teams", JSON.stringify(teams));
+    BrowserStore.setItem("teams", teams);
   },
   getTeams: function() {
-    var teams = [];
-    try {
-        teams = JSON.parse(BrowserStore.getItem("teams"));
-
-    }
-    catch (err) {
-	}
-
-	if (teams == null) {
-		teams = [];
-	}
-
-    return teams;
+    return BrowserStore.getItem("teams", []);
   },
   getCurrentMentionKeys: function() {
     var user = this.getCurrentUser();
-    if (user.notify_props && user.notify_props.mention_keys) {
-      var keys = user.notify_props.mention_keys.split(',');
 
-      if (user.full_name.length > 0 && user.notify_props.first_name === "true") {
-        var first = user.full_name.split(' ')[0];
-        if (first.length > 0) keys.push(first);
-      }
+    var keys = [];
 
-      if (user.notify_props.all === "true") keys.push('@all');
-      if (user.notify_props.channel === "true") keys.push('@channel');
+    if (user.notify_props && user.notify_props.mention_keys) keys = keys.concat(user.notify_props.mention_keys.split(','));
+    if (user.first_name && user.notify_props.first_name === "true") keys.push(user.first_name);
+    if (user.notify_props.all === "true") keys.push('@all');
+    if (user.notify_props.channel === "true") keys.push('@channel');
 
-      return keys;
-    } else {
-      return [];
-    }
+    return keys;
   },
   getLastVersion: function() {
-    var last_version = BrowserStore.getItem("last_version");
-	if (last_version == null) {
-		last_version = "";
-	}
-	return last_version;
+    return BrowserStore.getItem("last_version", '');
   },
   setLastVersion: function(version) {
     BrowserStore.setItem("last_version", version);
@@ -272,7 +201,7 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this.emitStatusesChange();
   },
   _setStatuses: function(statuses) {
-    BrowserStore.setItem("statuses", JSON.stringify(statuses));
+    BrowserStore.setItem("statuses", statuses);
   },
   setStatus: function(user_id, status) {
     var statuses = this.getStatuses();
@@ -281,18 +210,7 @@ var UserStore = assign({}, EventEmitter.prototype, {
     this.emitStatusesChange();
   },
   getStatuses: function() {
-    var statuses = {};
-    try {
-        statuses = JSON.parse(BrowserStore.getItem("statuses"));
-    }
-    catch (err) {
-    }
-
-	if (statuses == null) {
-		statuses = {};
-	}
-
-    return statuses;
+    return BrowserStore.getItem("statuses", {});
   },
   getStatus: function(id) {
     return this.getStatuses()[id];
@@ -340,5 +258,4 @@ UserStore.dispatchToken = AppDispatcher.register(function(payload) {
 UserStore.setMaxListeners(0);
 global.window.UserStore = UserStore;
 module.exports = UserStore;
-
 

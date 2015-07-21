@@ -3,6 +3,7 @@
 
 
 var client = require('../utils/client.jsx');
+var AsyncClient = require('../utils/async_client.jsx');
 var PostStore = require('../stores/post_store.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var utils = require('../utils/utils.jsx');
@@ -10,14 +11,14 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 function getSearchTermStateFromStores() {
-    term = PostStore.getSearchTerm();
-    if (!term) term = "";
+    var term = PostStore.getSearchTerm() || '';
     return {
         search_term: term
     };
 }
 
 module.exports = React.createClass({
+    displayName: 'SearchBar',
     componentDidMount: function() {
         PostStore.addSearchTermChangeListener(this._onChange);
     },
@@ -58,14 +59,14 @@ module.exports = React.createClass({
         e.target.select();
     },
     performSearch: function(terms, isMentionSearch) {
-        if (terms.length > 0) {
-            $("#search-spinner").removeClass("hidden");
+        if (terms.length) {
+            this.setState({isSearching: true});
             client.search(
                 terms,
                 function(data) {
-                    $("#search-spinner").addClass("hidden");
-                    if(utils.isMobile()) {
-                        $('#search')[0].value = "";
+                    this.setState({isSearching: false});
+                    if (utils.isMobile()) {
+                        React.findDOMNode(this.refs.search).value = '';
                     }
 
                     AppDispatcher.handleServerAction({
@@ -73,18 +74,17 @@ module.exports = React.createClass({
                         results: data,
                         is_mention_search: isMentionSearch
                     });
-                },
+                }.bind(this),
                 function(err) {
-                    $("#search-spinner").addClass("hidden");
-                    dispatchError(err, "search");
-                }
+                    this.setState({isSearching: false});
+                    AsyncClient.dispatchError(err, "search");
+                }.bind(this)
             );
         }
     },
     handleSubmit: function(e) {
         e.preventDefault();
-        terms = this.state.search_term.trim();
-        this.performSearch(terms);
+        this.performSearch(this.state.search_term.trim());
     },
     getInitialState: function() {
         return getSearchTermStateFromStores();
@@ -92,11 +92,18 @@ module.exports = React.createClass({
     render: function() {
         return (
             <div>
-                <div className="sidebar__collapse" onClick={this.handleClose}></div>
+                <div className="sidebar__collapse" onClick={this.handleClose}>Cancel</div>
                 <span className="glyphicon glyphicon-search sidebar__search-icon"></span>
                 <form role="form" className="search__form relative-div" onSubmit={this.handleSubmit}>
-                    <input type="text" className="form-control search-bar-box" ref="search" id="search" placeholder="Search" value={this.state.search_term} onFocus={this.handleUserFocus} onChange={this.handleUserInput} />
-                    <span id="search-spinner" className="glyphicon glyphicon-refresh glyphicon-refresh-animate hidden"></span>
+                    <input
+                        type="text"
+                        ref="search"
+                        className="form-control search-bar-box"
+                        placeholder="Search"
+                        value={this.state.search_term}
+                        onFocus={this.handleUserFocus}
+                        onChange={this.handleUserInput} />
+                    {this.state.isSearching ? <span className={"glyphicon glyphicon-refresh glyphicon-refresh-animate"}></span> : null}
                 </form>
             </div>
         );

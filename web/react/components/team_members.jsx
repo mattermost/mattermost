@@ -57,7 +57,7 @@ module.exports = React.createClass({
                   <div className="modal-content">
                     <div className="modal-header">
                       <button type="button" className="close" data-dismiss="modal" aria-label="Close" data-reactid=".5.0.0.0.0"><span aria-hidden="true" data-reactid=".5.0.0.0.0.0">×</span></button>
-                      <h4 className="modal-title" id="myModalLabel">{this.props.teamName + " Members"}</h4>
+                      <h4 className="modal-title" id="myModalLabel">{this.props.teamDisplayName + " Members"}</h4>
                     </div>
                     <div ref="modalBody" className="modal-body">
                         <div className="channel-settings">

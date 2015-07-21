@@ -9,7 +9,7 @@ import (
 )
 
 func TestTeamSignupJson(t *testing.T) {
-	team := Team{Id: NewId(), Name: NewId()}
+	team := Team{Id: NewId(), DisplayName: NewId()}
 	o := TeamSignup{Team: team, Data: "data"}
 	json := o.ToJson()
 	ro := TeamSignupFromJson(strings.NewReader(json))

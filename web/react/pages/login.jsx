@@ -3,9 +3,9 @@
 
 var Login = require('../components/login.jsx');
 
-global.window.setup_login_page = function() {
+global.window.setup_login_page = function(teamDisplayName, teamName) {
     React.render(
-        <Login />,
+        <Login teamDisplayName={teamDisplayName} teamName={teamName}/>,
         document.getElementById('login')
     );
 };

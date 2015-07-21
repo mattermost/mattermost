@@ -16,10 +16,10 @@ module.exports.isEmail = function(email) {
 };
 
 module.exports.cleanUpUrlable = function(input) {
-	var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
-	cleaned = cleaned.replace(/^\-+/, '');
-	cleaned = cleaned.replace(/\-+$/, '');
-	return cleaned;
+    var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
+    cleaned = cleaned.replace(/^\-+/, '');
+    cleaned = cleaned.replace(/\-+$/, '');
+    return cleaned;
 };
 
 
@@ -114,7 +114,7 @@ module.exports.notifyMe = function(title, body, channel) {
           if (channel) {
               module.exports.switchChannel(channel);
           } else {
-              window.location.href = "/channels/town-square";
+              window.location.href = "/";
           }
         };
         setTimeout(function(){
@@ -198,7 +198,13 @@ module.exports.getTimestamp = function() {
 }
 
 var testUrlMatch = function(text) {
-    var urlMatcher = new Autolinker.matchParser.MatchParser;
+    var urlMatcher = new Autolinker.matchParser.MatchParser({
+      urls: true,
+      emails: false,
+      twitter: false,
+      phone: false,
+      hashtag: false,
+    });
     var result = [];
     var replaceFn = function(match) {
       var linkData = {};
@@ -225,7 +231,7 @@ module.exports.extractLinks = function(text) {
     }
 
     return { "links": links, "text": text };
-} 
+}
 
 module.exports.escapeRegExp = function(string) {
     return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
@@ -303,18 +309,25 @@ var getYoutubeEmbed = function(link) {
     };
 
     var success = function(data) {
-        $('.video-uploader.'+youtubeId).html(data.data.uploader);
-        $('.video-title.'+youtubeId).find('a').html(data.data.title);
+        if(!data.items.length || !data.items[0].snippet) {
+          return;
+        }
+        var metadata = data.items[0].snippet;
+        $('.video-uploader.'+youtubeId).html(metadata.channelTitle);
+        $('.video-title.'+youtubeId).find('a').html(metadata.title);
         $(".post-list-holder-by-time").scrollTop($(".post-list-holder-by-time")[0].scrollHeight);
         $(".post-list-holder-by-time").perfectScrollbar('update');
     };
 
-    $.ajax({
-        async: true,
-        url: 'https://gdata.youtube.com/feeds/api/videos/'+youtubeId+'?v=2&alt=jsonc',
-        type: 'GET',
-        success: success
-    });
+    if(config.GoogleDeveloperKey) {
+      $.ajax({
+          async: true,
+          url: "https://www.googleapis.com/youtube/v3/videos",
+          type: 'GET',
+          data: {part:"snippet", id:youtubeId, key:config.GoogleDeveloperKey},
+          success: success
+      });
+    }
 
     return (
         <div className="post-comment">
@@ -671,13 +684,13 @@ module.exports.isValidUsername = function (name) {
         error = "First character must be a letter.";
     }
 
-    else 
+    else
     {
         var lowerName = name.toLowerCase().trim();
 
-        for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) 
+        for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++)
         {
-            if (lowerName === Constants.RESERVED_USERNAMES[i]) 
+            if (lowerName === Constants.RESERVED_USERNAMES[i])
             {
                 error = "Cannot use a reserved word as a username.";
                 break;
@@ -695,8 +708,8 @@ module.exports.switchChannel = function(channel, teammate_name) {
       id: channel.id
     });
 
-    var domain = window.location.href.split('/channels')[0];
-    history.replaceState('data', '', domain + '/channels/' + channel.name);
+    var teamURL = window.location.href.split('/channels')[0];
+    history.replaceState('data', '', teamURL + '/channels/' + channel.name);
 
     if (channel.type === 'D' && teammate_name) {
         document.title = teammate_name + " " + document.title.substring(document.title.lastIndexOf("-"));
@@ -771,14 +784,57 @@ Image.prototype.load = function(url, progressCallback) {
 
 Image.prototype.completedPercentage = 0;
 
-module.exports.getHomeLink = function() {
-	if (config.HomeLink != "") {
-		return config.HomeLink;
-	}
-	var parts = window.location.host.split(".");
-	if (parts.length <= 1) {
-		return window.location.protocol + "//" + window.location.host;
-	}
-	parts[0] = "www";
-	return window.location.protocol + "//" + parts.join(".");
-}
+module.exports.changeColor =function(col, amt) {
+
+    var usePound = false;
+
+    if (col[0] == "#") {
+        col = col.slice(1);
+        usePound = true;
+    }
+
+    var num = parseInt(col,16);
+
+    var r = (num >> 16) + amt;
+
+    if (r > 255) r = 255;
+    else if  (r < 0) r = 0;
+
+    var b = ((num >> 8) & 0x00FF) + amt;
+
+    if (b > 255) b = 255;
+    else if  (b < 0) b = 0;
+
+    var g = (num & 0x0000FF) + amt;
+
+    if (g > 255) g = 255;
+    else if (g < 0) g = 0;
+
+    return (usePound?"#":"") + String("000000" + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
+};
+
+module.exports.getFullName = function(user) {
+    if (user.first_name && user.last_name) {
+        return user.first_name + " " + user.last_name;
+    } else if (user.first_name) {
+        return user.first_name;
+    } else if (user.last_name) {
+        return user.last_name;
+    } else {
+        return "";
+    }
+};
+
+module.exports.getDisplayName = function(user) {
+    if (user.nickname && user.nickname.trim().length > 0) {
+        return user.nickname;
+    } else {
+        var fullName = module.exports.getFullName(user);
+
+        if (fullName) {
+            return fullName;
+        } else {
+            return user.username;
+        }
+    }
+};

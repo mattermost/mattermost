@@ -32,6 +32,7 @@
     }
   }
   .preview-img {
+      display: block;
       height: auto;
       max-width: 100%;
   }
@@ -137,7 +138,7 @@
     border: 1px solid #E2E2E2;
     background-color: #FFF;
     background-repeat: no-repeat;
-    background-position: left center;
+    background-position: top left;
   }
   a {
     text-decoration: none;

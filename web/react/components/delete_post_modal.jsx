@@ -56,13 +56,13 @@ module.exports = React.createClass({
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
             var newState = {};
             if(BrowserStore.getItem('edit_state_transfer')) {
-                newState = JSON.parse(BrowserStore.getItem('edit_state_transfer'));
+                newState = BrowserStore.getItem('edit_state_transfer');
                 BrowserStore.removeItem('edit_state_transfer');
             } else {
                 var button = e.relatedTarget;
                 newState = { title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments') };
             }
-            self.setState(newState)
+            self.setState(newState);
         });
         PostStore.addSelectedPostChangeListener(this._onChange);
     },

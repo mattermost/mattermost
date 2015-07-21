@@ -28,7 +28,6 @@ func NewServer() {
 	Srv = &Server{}
 	Srv.Server = manners.NewServer()
 	Srv.Store = store.NewSqlStore()
-	store.RedisClient()
 
 	Srv.Router = mux.NewRouter()
 	Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
@@ -54,7 +53,7 @@ func StopServer() {
 
 	Srv.Server.Shutdown <- true
 	Srv.Store.Close()
-	store.RedisClose()
+	hub.Stop()
 
 	l4g.Info("Server stopped")
 }

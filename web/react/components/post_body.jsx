@@ -71,11 +71,22 @@ module.exports = React.createClass({
                 name = <a className="theme" onClick={function(){ utils.searchForTerm(profile.username); }}>{profile.username}</a>;
             }
 
-            var message = parentPost.message;
+            var message = ""
+            if(parentPost.message) {
+                message = utils.replaceHtmlEntities(parentPost.message)
+            } else if (parentPost.filenames.length) {
+                message = parentPost.filenames[0].split('/').pop();
+
+                if (parentPost.filenames.length === 2) {
+                    message += " plus 1 other file";
+                } else if (parentPost.filenames.length > 2) {
+                    message += " plus " + (parentPost.filenames.length - 1) + " other files";
+                }
+            }
 
             comment = (
                 <p className="post-link">
-                    <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{utils.replaceHtmlEntities(message)}</a></span>
+                    <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{message}</a></span>
                 </p>
             );
 
@@ -120,7 +131,7 @@ module.exports = React.createClass({
         return (
             <div className="post-body">
                 { comment }
-                <p key={post.Id+"_message"} className={postClass}><span>{inner}</span></p>
+                <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
                 { filenames && filenames.length > 0 ?
                     <div className="post-image__columns">
                         { postFiles }

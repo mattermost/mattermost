@@ -23,6 +23,7 @@ module.exports = React.createClass({
         var member = this.props.member;
         var isAdmin = this.props.isAdmin;
         var isMemberAdmin = member.roles.indexOf("admin") > -1;
+        var timestamp = UserStore.getCurrentUser().update_at;
 
         var invite;
         if (member.invited && this.props.handleInvite) {
@@ -48,12 +49,12 @@ module.exports = React.createClass({
                         </div>
                     );
         } else {
-            invite = <div className="member-role text-capitalize" style={{marginRight: 15}}>{member.roles || 'Member'}</div>;
+            invite = <div className="member-role text-capitalize">{member.roles || 'Member'}<span className="caret hidden"></span></div>;
         }
 
         return (
             <div className="row member-div">
-                <img className="post-profile-img pull-left" src={"/api/v1/users/" + member.id + "/image"} height="36" width="36" />
+                <img className="post-profile-img pull-left" src={"/api/v1/users/" + member.id + "/image?time=" + timestamp} height="36" width="36" />
                 <span className="member-name">{member.username}</span>
                 <span className="member-email">{member.email}</span>
                 { invite }

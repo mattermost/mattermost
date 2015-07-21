@@ -108,26 +108,10 @@ AWS Elastic Beanstalk Setup (Docker)
 	11. You can set the configuration details as you please but they may be left at their defaults. When you are done press next.
 	12. Environment tags my be left blank. Press next.
 	13. You will be asked to review your information. Press Launch.
-	14. Up near the top of the dashboard you will see a domain of the form \*.elasticbeanstalk.com copy this as you will need it later.
-
-2. Map a wildcard domain to the new elastic beanstalk application
-	15. From the AWS console select route 53
-	16. From the sidebar select Hosted Zones 
-	17. Select the domain you want to use or create a new one.
-	18. Modify an existing CNAME record set or create a new one with the name * and the value of the domain you copied in step 1.13.
-	19. Save the record set
-
-3. Set the environment variable "MATTERMOST\_DOMAIN" to the domain you mapped above (example.com not www.example.com)
-	20. Return the Elastic Beanstalk from the AWS console.
-	21. Select the environment you created.
-	22. Select configuration from the sidebar.
-	23. Click the gear beside software configuration.
-	24. Add an environment property with the name “MATTERMOST\_DOMAIN” and a value of the domain you mapped in route 53. For example if your domain is \*.example.com you would enter example.com not www.example.com.
-	25. Select apply.
 
 4. Try it out!
-	26. Return to the dashboard on the sidebar and wait for beanstalk update the environment.
-	27. Try it out by entering the domain you mapped into your browser.
+	14. Wait for beanstalk to update the environment.
+	15. Try it out by entering the domain of the form \*.elasticbeanstalk.com found at the top of the dashboard into your browser. You can also map your own domain if you wish. 
 
 Contributing 
 ------------ 
@@ -137,8 +121,5 @@ To contribute to this open source project please review the Mattermost Contribut
 License
 -------
 
-Most Mattermost source files are made available under the terms of the GNU Affero General Public License (AGPL). See individual files for details.
-
-As an exception, Admin Tools and Configuration Files are are made available under the terms of the Apache License, version 2.0. See LICENSE.txt for more information.
-
+Mattermost is licensed under an "Apache-wrapped AGPL" model, which means you can run and link to the system using Configuration Files and Admin Tools licensed under Apache, version 2.0, as described in the LICENSE file, as an explicit exception to the terms of the GNU Affero General Public License (AGPL) that applies to most of the remaining source files. See individual files for details.
 

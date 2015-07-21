@@ -51,7 +51,7 @@ module.exports = React.createClass({
     },
     render: function() {
         return (
-        	<span className="msg-typing">{ this.state.text }</span>
+            <span className="msg-typing">{ this.state.text }</span>
         );
     }
 });

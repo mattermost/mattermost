@@ -360,7 +360,7 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 		result := StoreResult{}
 
 		var members []model.ExtraMember
-		_, err := s.GetReplica().Select(&members, "SELECT Id, FullName, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = :ChannelId LIMIT :Limit", map[string]interface{}{"ChannelId": channelId, "Limit": limit})
+		_, err := s.GetReplica().Select(&members, "SELECT Id, Nickname, Email, ChannelMembers.Roles, Username FROM ChannelMembers, Users WHERE ChannelMembers.UserId = Users.Id AND ChannelId = :ChannelId LIMIT :Limit", map[string]interface{}{"ChannelId": channelId, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetExtraMembers", "We couldn't get the extra info for channel members", "channel_id="+channelId+", "+err.Error())
 		} else {

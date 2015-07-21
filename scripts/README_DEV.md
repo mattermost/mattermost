@@ -10,7 +10,7 @@ DOCKER SETUP
 3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost` 
 4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash_profile 
 
-Any issues? Please let us know on our forums at: http://bit.ly/1MY1kul
+Any issues? Please let us know on our forums at: http://forum.mattermost.org
 
 GO SETUP
 
@@ -39,4 +39,4 @@ MATTERMOST SETUP
 6. Then do `cd platform` and `make test`. Provided the test runs fine, you now have a complete build environment. 
 7. Use `make run` to run your code
 
-Any issues? Please let us know on our forums at: http://bit.ly/1MY1kul
+Any issues? Please let us know on our forums at: http://forum.mattermost.org

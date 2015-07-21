@@ -156,6 +156,8 @@ var NotificationsTab = React.createClass({
 
         var self = this;
 
+        var user = this.props.user;
+
         var desktopSection;
         if (this.props.activeSection === 'desktop') {
             var notifyActive = [false, false, false];
@@ -314,20 +316,14 @@ var NotificationsTab = React.createClass({
 
         var keysSection;
         if (this.props.activeSection === 'keys') {
-            var user = this.props.user;
-            var first_name = "";
-            if (user.full_name.length > 0) {
-                first_name = user.full_name.split(' ')[0];
-            }
-
             var inputs = [];
 
-            if (first_name != "") {
+            if (user.first_name) {
                 inputs.push(
                     <div>
                         <div className="checkbox">
                             <label>
-                                <input type="checkbox" checked={this.state.first_name_key} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + first_name + '"'}</input>
+                                <input type="checkbox" checked={this.state.first_name_key} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + user.first_name + '"'}</input>
                             </label>
                         </div>
                     </div>
@@ -396,14 +392,9 @@ var NotificationsTab = React.createClass({
             );
         } else {
             var keys = [];
-            if (this.state.first_name_key) {
-                var first_name = "";
-                var user = this.props.user;
-                if (user.full_name.length > 0) first_name = user.full_name.split(' ')[0];
-                if (first_name != "") keys.push(first_name);
-            }
-            if (this.state.username_key) keys.push(this.props.user.username);
-            if (this.state.mention_key) keys.push('@'+this.props.user.username);
+            if (this.state.first_name_key) keys.push(user.first_name);
+            if (this.state.username_key) keys.push(user.username);
+            if (this.state.mention_key) keys.push('@'+user.username);
             if (this.state.all_key) keys.push('@all');
             if (this.state.channel_key) keys.push('@channel');
             if (this.state.custom_keys.length > 0) keys = keys.concat(this.state.custom_keys.split(','));
@@ -560,7 +551,7 @@ var AuditTab = React.createClass({
                 <div className="user-settings">
                     <h3 className="tab-header">Activity Log</h3>
                     <div className="divider-dark first"/>
-                    <div className="table-responsive" style={{ maxWidth: "560px", maxHeight: "300px" }}>
+                    <div className="table-responsive">
                         <table className="table-condensed small">
                             <thead>
                                 <tr>
@@ -576,11 +567,11 @@ var AuditTab = React.createClass({
                                 this.state.audits.map(function(value, index) {
                                     return (
                                         <tr key={ "" + index }>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ new Date(value.create_at).toLocaleString() }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.action.replace("/api/v1", "") }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.ip_address }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.session_id }</td>
-                                            <td style={{ whiteSpace: "nowrap" }}>{ value.extra_info }</td>
+                                            <td className="text-nowrap">{ new Date(value.create_at).toLocaleString() }</td>
+                                            <td className="text-nowrap">{ value.action.replace("/api/v1", "") }</td>
+                                            <td className="text-nowrap">{ value.ip_address }</td>
+                                            <td className="text-nowrap">{ value.session_id }</td>
+                                            <td className="text-nowrap">{ value.extra_info }</td>
                                         </tr>
                                     );
                                 }, this)
@@ -626,7 +617,7 @@ var SecurityTab = React.createClass({
 
         client.updatePassword(data,
             function(data) {
-                this.updateSection("");
+                this.props.updateSection("");
                 AsyncClient.getMe();
                 this.setState({ current_password: '', new_password: '', confirm_password: '' });
             }.bind(this),
@@ -752,6 +743,21 @@ var GeneralTab = React.createClass({
 
         this.submitUser(user);
     },
+    submitNickname: function(e) {
+        e.preventDefault();
+
+        var user = UserStore.getCurrentUser();
+        var nickname = this.state.nickname.trim();
+
+        if (user.nickname === nickname) {
+            this.setState({client_error: "You must submit a new nickname"})
+            return;
+        }
+
+        user.nickname = nickname;
+
+        this.submitUser(user);
+    },
     submitName: function(e) {
         e.preventDefault();
 
@@ -759,14 +765,13 @@ var GeneralTab = React.createClass({
         var firstName = this.state.first_name.trim();
         var lastName = this.state.last_name.trim();
 
-        var fullName = firstName + ' ' + lastName;
-
-        if (user.full_name === fullName) {
-            this.setState({client_error: "You must submit a new name"})
+        if (user.first_name === firstName && user.last_name === lastName) {
+            this.setState({client_error: "You must submit a new first or last name"})
             return;
         }
 
-        user.full_name = fullName;
+        user.first_name = firstName;
+        user.last_name = lastName;
 
         this.submitUser(user);
     },
@@ -820,6 +825,7 @@ var GeneralTab = React.createClass({
         client.uploadProfileImage(formData,
             function(data) {
                 this.submitActive = false;
+                AsyncClient.getMe();
                 window.location.reload();
             }.bind(this),
             function(err) {
@@ -837,6 +843,9 @@ var GeneralTab = React.createClass({
     },
     updateLastName: function(e) {
         this.setState({ last_name: e.target.value});
+    },
+    updateNickname: function(e) {
+        this.setState({nickname: e.target.value});
     },
     updateEmail: function(e) {
         this.setState({ email: e.target.value});
@@ -860,11 +869,7 @@ var GeneralTab = React.createClass({
     getInitialState: function() {
         var user = this.props.user;
 
-        var splitStr = user.full_name.split(' ');
-        var firstName = splitStr.shift();
-        var lastName = splitStr.join(' ');
-
-        return { username: user.username, first_name: firstName, last_name: lastName,
+        return { username: user.username, first_name: user.first_name, last_name: user.last_name, nickname: user.nickname,
                  email: user.email, picture: null };
     },
     render: function() {
@@ -900,7 +905,7 @@ var GeneralTab = React.createClass({
 
             nameSection = (
                 <SettingItemMax
-                    title="Name"
+                    title="Full Name"
                     inputs={inputs}
                     submit={this.submitName}
                     server_error={server_error}
@@ -909,11 +914,54 @@ var GeneralTab = React.createClass({
                 />
             );
         } else {
+            var full_name = "";
+
+            if (user.first_name && user.last_name) {
+                full_name = user.first_name + " " + user.last_name;
+            } else if (user.first_name) {
+                full_name = user.first_name;
+            } else if (user.last_name) {
+                full_name = user.last_name;
+            }
+
             nameSection = (
                 <SettingItemMin
-                    title="Name"
-                    describe={UserStore.getCurrentUser().full_name}
+                    title="Full Name"
+                    describe={full_name}
                     updateSection={function(){self.updateSection("name");}}
+                />
+            );
+        }
+
+        var nicknameSection;
+        if (this.props.activeSection === 'nickname') {
+            var inputs = [];
+
+            inputs.push(
+                <div className="form-group">
+                    <label className="col-sm-5 control-label">{utils.isMobile() ? "": "Nickname"}</label>
+                    <div className="col-sm-7">
+                        <input className="form-control" type="text" onChange={this.updateNickname} value={this.state.nickname}/>
+                    </div>
+                </div>
+            );
+
+            nicknameSection = (
+                <SettingItemMax
+                    title="Nickname"
+                    inputs={inputs}
+                    submit={this.submitNickname}
+                    server_error={server_error}
+                    client_error={client_error}
+                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                />
+            );
+        } else {
+            nicknameSection = (
+                <SettingItemMin
+                    title="Nickname"
+                    describe={UserStore.getCurrentUser().nickname}
+                    updateSection={function(){self.updateSection("nickname");}}
                 />
             );
         }
@@ -989,7 +1037,7 @@ var GeneralTab = React.createClass({
                 <SettingPicture
                     title="Profile Picture"
                     submit={this.submitPicture}
-                    src={"/api/v1/users/" + user.id + "/image"}
+                    src={"/api/v1/users/" + user.id + "/image?time=" + user.last_picture_update}
                     server_error={server_error}
                     client_error={client_error}
                     updateSection={function(e){self.updateSection("");e.preventDefault();}}
@@ -1000,10 +1048,14 @@ var GeneralTab = React.createClass({
             );
 
         } else {
+            var minMessage = "Click Edit to upload an image.";
+            if (user.last_picture_update) {
+                minMessage = "Image last updated " + utils.displayDate(user.last_picture_update)
+            }
             pictureSection = (
                 <SettingItemMin
                     title="Profile Picture"
-                    describe="Picture inside."
+                    describe={minMessage}
                     updateSection={function(){self.updateSection("picture");}}
                 />
             );
@@ -1020,6 +1072,8 @@ var GeneralTab = React.createClass({
                     {nameSection}
                     <div className="divider-light"/>
                     {usernameSection}
+                    <div className="divider-light"/>
+                    {nicknameSection}
                     <div className="divider-light"/>
                     {emailSection}
                     <div className="divider-light"/>

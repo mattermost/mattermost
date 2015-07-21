@@ -148,7 +148,7 @@ func IsValidEmail(email string) bool {
 	return false
 }
 
-var reservedDomains = []string{
+var reservedName = []string{
 	"www",
 	"web",
 	"admin",
@@ -168,10 +168,10 @@ var reservedDomains = []string{
 	"api",
 }
 
-func IsReservedDomain(s string) bool {
+func IsReservedTeamName(s string) bool {
 	s = strings.ToLower(s)
 
-	for _, value := range reservedDomains {
+	for _, value := range reservedName {
 		if strings.Index(s, value) == 0 {
 			return true
 		}
@@ -180,7 +180,7 @@ func IsReservedDomain(s string) bool {
 	return false
 }
 
-func IsValidDomain(s string) bool {
+func IsValidTeamName(s string) bool {
 
 	if !IsValidAlphaNum(s) {
 		return false

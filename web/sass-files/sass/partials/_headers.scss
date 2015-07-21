@@ -75,14 +75,16 @@
 // Team Header in Sidebar
 .sidebar--left, .sidebar--menu {
 	.team__header {
-		padding: 0 15px 0 15px;
+		padding: 10px;
 		@include legacy-pie-clearfix;
 		a {
 			color: #fff;
 		}
 		.navbar-right {
 			font-size: 0.85em;
-			margin: 16px -5px 0;
+			position: absolute;
+			top: 20px;
+			right: 22px;
 			.dropdown-toggle {
 				padding: 0 10px;
 			}
@@ -93,23 +95,37 @@
 				}
 			}
 			.dropdown__icon {
-				background: url("../images/dropdown-icon.png");
-				width: 4px;
-				height: 16px;
-				@include background-size(100% 100%);
-				display: inline-block;
+				fill: #fff;
 			}
 		}
-		.team__name {
+		.settings__link a:hover, a:visited, a:link, a:active {
+			text-decoration: none;
+		}
+		.user__picture {
+			width: 36px;
+			height: 36px;
 			float: left;
-			line-height: 50px;
+			@include border-radius(36px);
+		}
+		.header__info {
+			padding-left: 42px;
+			color: #fff;
+		}
+		.team__name, .user__name {
+			display: block;
+			line-height: 18px;
 			font-weight: 600;
-			font-size: 1.2em;
+			font-size: 16px;
 			max-width: 80%;
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
 			text-decoration: none;
+		}
+		.user__name {
+			font-size: 14px;
+			font-weight: 400;
+			color: #eee;
 		}
 		> .nav {
 			> li {
@@ -144,9 +160,10 @@
 	font-size: 14px;
 	line-height: 50px;
 	#member_popover {
+		margin-right: 5px;
 		width: 45px;
 		color: #999;
-
+		cursor: pointer;
 	}
 	&.alt {
 		margin: 0;
@@ -211,5 +228,27 @@
 	}
 	.header-dropdown__icon {
 		top: 1px;
+	}
+}
+
+.channel-header__links {
+	height: 32px;
+	vertical-align: top;
+	display: inline-block;
+	width: 15px;
+	margin: 9px 4px 3px 0;
+	&:hover {
+		svg {
+			fill: #888;
+		}
+	}
+	a {
+		height: 100%;
+		display: block;
+	}
+	svg {
+		vertical-align: top;
+		margin-top: 8px;
+		fill: #AAA;
 	}
 }

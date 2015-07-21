@@ -36,9 +36,9 @@ type Store interface {
 type TeamStore interface {
 	Save(team *model.Team) StoreChannel
 	Update(team *model.Team) StoreChannel
-	UpdateName(name string, teamId string) StoreChannel
+	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) StoreChannel
-	GetByDomain(domain string) StoreChannel
+	GetByName(name string) StoreChannel
 	GetTeamsForEmail(domain string) StoreChannel
 }
 
@@ -77,6 +77,7 @@ type PostStore interface {
 type UserStore interface {
 	Save(user *model.User) StoreChannel
 	Update(user *model.User, allowRoleUpdate bool) StoreChannel
+	UpdateLastPictureUpdate(userId string) StoreChannel
 	UpdateLastPingAt(userId string, time int64) StoreChannel
 	UpdateLastActivityAt(userId string, time int64) StoreChannel
 	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel

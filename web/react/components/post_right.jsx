@@ -43,7 +43,7 @@ RhsHeaderPost = React.createClass({
         });
     },
     render: function() {
-        var back = this.props.fromSearch ? <a href="#" onClick={this.handleBack} style={{color:"black"}}>{"< "}</a> : "";
+        var back = this.props.fromSearch ? <a href="#" onClick={this.handleBack} className="sidebar--right__back"><i className="fa fa-chevron-left"></i></a> : "";
 
         return (
             <div className="sidebar--right__header">
@@ -67,6 +67,8 @@ RootPost = React.createClass({
         var message = utils.textToJsx(this.props.post.message);
         var filenames = this.props.post.filenames;
         var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
+        var timestamp = UserStore.getProfile(this.props.post.user_id).update_at;
+        var channel = ChannelStore.get(this.props.post.channel_id);
 
         var type = "Post";
         if (this.props.post.root_id.length > 0) {
@@ -76,6 +78,10 @@ RootPost = React.createClass({
         var currentUserCss = "";
         if (UserStore.getCurrentId() === this.props.post.user_id) {
             currentUserCss = "current--user";
+        }
+
+        if (channel) {
+            channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
         }
 
         if (filenames) {
@@ -117,8 +123,9 @@ RootPost = React.createClass({
 
         return (
             <div className={"post post--root " + currentUserCss}>
+                <div className="post-right-channel__name">{ channelName }</div>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
@@ -128,9 +135,7 @@ RootPost = React.createClass({
                             <div className="dropdown">
                             { isOwner ?
                                 <div>
-                                <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false">
-                                    [...]
-                                </a>
+                                <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
                                     <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
                                     <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
@@ -227,11 +232,12 @@ CommentPost = React.createClass({
         }
 
         var message = utils.textToJsx(this.props.post.message);
+        var timestamp = UserStore.getCurrentUser().update_at;
 
         return (
             <div className={commentClass + " " + currentUserCss}>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image"} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
@@ -240,9 +246,7 @@ CommentPost = React.createClass({
                         <li className="post-header-col post-header__reply">
                         { isOwner ?
                         <div className="dropdown" onClick={function(e){$('.post-list-holder-by-time').scrollTop($(".post-list-holder-by-time").scrollTop() + 50);}}>
-                            <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false">
-                                [...]
-                            </a>
+                            <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                             <ul className="dropdown-menu" role="menu">
                                 <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
                                 <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={0}>Delete</a></li>
@@ -282,6 +286,7 @@ module.exports = React.createClass({
     componentDidMount: function() {
         PostStore.addSelectedPostChangeListener(this._onChange);
         PostStore.addChangeListener(this._onChangeAll);
+        UserStore.addStatusesChangeListener(this._onTimeChange);
         this.resize();
         var self = this;
         $(window).resize(function(){
@@ -294,6 +299,7 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         PostStore.removeSelectedPostChangeListener(this._onChange);
         PostStore.removeChangeListener(this._onChangeAll);
+        UserStore.removeStatusesChangeListener(this._onTimeChange);
     },
     _onChange: function() {
         if (this.isMounted()) {
@@ -304,7 +310,6 @@ module.exports = React.createClass({
         }
     },
     _onChangeAll: function() {
-
         if (this.isMounted()) {
 
             // if something was changed in the channel like adding a
@@ -331,6 +336,12 @@ module.exports = React.createClass({
             }
 
             this.setState(getStateFromStores());
+        }
+    },
+    _onTimeChange: function() {
+        for (var id in this.state.post_list.posts) {
+            if (!this.refs[id]) continue;
+            this.refs[id].forceUpdate();
         }
     },
     getInitialState: function() {
@@ -392,7 +403,7 @@ module.exports = React.createClass({
                         <RootPost post={root_post} commentCount={posts_array.length}/>
                         <div className="post-right-comments-container">
                         { posts_array.map(function(cpost) {
-                                return <CommentPost key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
+                                return <CommentPost ref={cpost.id} key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
                         })}
                         </div>
                         <div className="post-create__container">

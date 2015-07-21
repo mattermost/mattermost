@@ -119,6 +119,7 @@ body.ios {
 		table-layout: fixed;
 		width: 100%;
 		min-height: 100%;
+		height: 100%;
 		.post-list__content {
 			display: table-cell;
 			vertical-align: bottom;
@@ -186,6 +187,12 @@ body.ios {
 	.post-create-footer {
 		@include clearfix;
 		padding: 0;
+		.has-error {
+			.control-label {
+				font-weight: normal;
+				margin-bottom: 0;
+			}
+		}
 		.msg-typing {
 			min-height: 20px;
 			line-height: 18px;
@@ -206,6 +213,12 @@ body.ios {
 		.post-header .post-header-col.post-header__reply {
 			.dropdown, .comment-icon__container {
 				@include opacity(1);
+			}
+			.dropdown-toggle:after {
+				content: '...';
+			}
+			.dropdown-toggle:hover:after {
+				content: '[...]';
 			}
 		}
 		background: #f5f5f5;

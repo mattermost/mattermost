@@ -10,6 +10,14 @@
     &.move--left {
         right: 0;
     }
+    .sidebar--right__back {
+        color: #666;
+        width: 20px;
+        text-align: center;
+        margin: 0 0 0 -6px;
+        font-size: 12px;
+        display: inline-block;
+    }
     .sidebar-right__body {
         border-left: $border-gray;
         border-top: $border-gray;

@@ -200,13 +200,13 @@ func TestChannelMemberStore(t *testing.T) {
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
-	u1.FullName = model.NewId()
+	u1.Nickname = model.NewId()
 	Must(store.User().Save(&u1))
 
 	u2 := model.User{}
 	u2.TeamId = model.NewId()
 	u2.Email = model.NewId()
-	u2.FullName = model.NewId()
+	u2.Nickname = model.NewId()
 	Must(store.User().Save(&u2))
 
 	o1 := model.ChannelMember{}
