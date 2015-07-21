@@ -7,7 +7,7 @@
 		<div class="inner__wrap">
 			<div class="row content">
 				<div class="signup-header">
-					{{.Props.TeamName}}
+					{{.Props.TeamDisplayName}}
 				</div>
 				<div class="col-sm-12">
 						<div id="login"></div>
@@ -20,7 +20,7 @@
 		</div>
 	</div>
 	<script>
-		window.setup_login_page();
+window.setup_login_page({{.Props.TeamDisplayName}}, {{.Props.TeamName}});
 	</script>
 </body>
 </html>

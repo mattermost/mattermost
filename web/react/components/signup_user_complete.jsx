@@ -48,16 +48,17 @@ module.exports = React.createClass({
 
                 client.loginByEmail(this.props.domain, this.state.user.email, this.state.user.password,
                     function(data) {
-                        UserStore.setLastDomain(this.props.domain);
                         UserStore.setLastEmail(this.state.user.email);
                         UserStore.setCurrentUser(data);
                         if (this.props.hash > 0)
+                        {
                             BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: "finished"}));
-                        window.location.href = '/channels/town-square';
+                        }
+                        window.location.href = '/';
                     }.bind(this),
                     function(err) {
                         if (err.message == "Login failed because email address has not been verified") {
-                            window.location.href = "/verify?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.domain);
+                            window.location.href = "/verify_email?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.domain);
                         } else {
                             this.state.server_error = err.message;
                             this.setState(this.state);

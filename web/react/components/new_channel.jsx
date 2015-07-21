@@ -6,6 +6,8 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var asyncClient = require('../utils/async_client.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
+var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
     handleSubmit: function(e) {
@@ -60,13 +62,13 @@ module.exports = React.createClass({
 
         var self = this;
         client.createChannel(channel,
-            function(data) {
+            function() {
                 this.refs.display_name.getDOMNode().value = "";
                 this.refs.channel_name.getDOMNode().value = "";
                 this.refs.channel_desc.getDOMNode().value = "";
 
                 $(self.refs.modal.getDOMNode()).modal('hide');
-                window.location.href = "/channels/" + channel.name;
+                window.location = TeamStore.getCurrentTeamUrl() + "/channels/" + channel.name;
                 asyncClient.getChannels(true);
             }.bind(this),
             function(err) {

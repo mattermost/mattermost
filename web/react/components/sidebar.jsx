@@ -6,99 +6,13 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 var utils = require('../utils/utils.jsx');
 var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
-
-var SidebarLoginForm = React.createClass({
-    handleSubmit: function(e) {
-        e.preventDefault();
-        var state = { }
-
-        var domain = this.refs.domain.getDOMNode().value.trim();
-        if (!domain) {
-            state.server_error = "A domain is required"
-            this.setState(state);
-            return;
-        }
-
-       var email = this.refs.email.getDOMNode().value.trim();
-        if (!email) {
-            state.server_error = "An email is required"
-            this.setState(state);
-            return;
-        }
-
-        var password = this.refs.password.getDOMNode().value.trim();
-        if (!password) {
-            state.server_error = "A password is required"
-            this.setState(state);
-            return;
-        }
-
-        state.server_error = "";
-        this.setState(state);
-
-        client.loginByEmail(domain, email, password,
-            function(data) {
-                UserStore.setLastDomain(domain);
-                UserStore.setLastEmail(email);
-                UserStore.setCurrentUser(data);
-
-                var redirect = utils.getUrlParameter("redirect");
-                if (redirect) {
-                    window.location.href = decodeURI(redirect);
-                } else {
-                    window.location.href = '/channels/town-square';
-                }
-
-            }.bind(this),
-            function(err) {
-                if (err.message == "Login failed because email address has not been verified") {
-                    window.location.href = '/verify?domain=' + encodeURIComponent(domain) + '&email=' + encodeURIComponent(email);
-                    return;
-                }
-                state.server_error = err.message;
-                this.valid = false;
-                this.setState(state);
-            }.bind(this)
-        );
-    },
-    getInitialState: function() {
-        return { };
-    },
-    render: function() {
-        var server_error = this.state.server_error ? <label className="control-label">{this.state.server_error}</label> : null;
-
-        var subDomain = utils.getSubDomain();
-        var subDomainClass = "form-control hidden";
-
-        if (subDomain == "") {
-            subDomain = UserStore.getLastDomain();
-            subDomainClass = "form-control";
-        }
-
-        return (
-            <form className="" onSubmit={this.handleSubmit}>
-                <a href="/find_team">{"Find your " + strings.Team}</a>
-                <div className={server_error ? 'form-group has-error' : 'form-group'}>
-                    { server_error }
-                    <input type="text" className={subDomainClass} name="domain" defaultValue={subDomain} ref="domain" placeholder="Domain" />
-                </div>
-                <div className={server_error ? 'form-group has-error' : 'form-group'}>
-                    <input type="text" className="form-control" name="email" defaultValue={UserStore.getLastEmail()}  ref="email" placeholder="Email" />
-                </div>
-                <div className={server_error ? 'form-group has-error' : 'form-group'}>
-                    <input type="password" className="form-control" name="password" ref="password" placeholder="Password" />
-                </div>
-                <button type="submit" className="btn btn-default">Login</button>
-            </form>
-        );
-    }
-});
 
 function getStateFromStores() {
     var members = ChannelStore.getAllMembers();
@@ -192,7 +106,7 @@ function getStateFromStores() {
     };
 }
 
-var SidebarLoggedIn = React.createClass({
+module.exports = React.createClass({
     componentDidMount: function() {
         ChannelStore.addChangeListener(this._onChange);
         UserStore.addChangeListener(this._onChange);
@@ -383,7 +297,7 @@ var SidebarLoggedIn = React.createClass({
                 );
             } else {
                 return (
-                    <li key={channel.name} className={active}><a className={"sidebar-channel " + titleClass} href={"/channels/"+channel.name}><span className="status" dangerouslySetInnerHTML={{__html: statusIcon}} /> {badge}{channel.display_name}</a></li>
+                    <li key={channel.name} className={active}><a className={"sidebar-channel " + titleClass} href={TeamStore.getCurrentTeamUrl() + "/channels/"+channel.name}><span className="status" dangerouslySetInnerHTML={{__html: statusIcon}} /> {badge}{channel.display_name}</a></li>
                 );
             }
 
@@ -414,7 +328,7 @@ var SidebarLoggedIn = React.createClass({
         }
         return (
             <div>
-                <SidebarHeader teamName={this.props.teamName} teamType={this.props.teamType} />
+                <SidebarHeader teamDisplayName={this.props.teamDisplayName} teamType={this.props.teamType} />
                 <SearchBox />
 
                 <div className="nav-pills__container">
@@ -438,27 +352,5 @@ var SidebarLoggedIn = React.createClass({
                 </div>
             </div>
         );
-    }
-});
-
-var SidebarLoggedOut = React.createClass({
-    render: function() {
-        return (
-            <div>
-                <SidebarHeader teamName={this.props.teamName} />
-                <SidebarLoginForm />
-            </div>
-        );
-    }
-});
-
-module.exports = React.createClass({
-    render: function() {
-        var currentId = UserStore.getCurrentId();
-        if (currentId != null) {
-            return <SidebarLoggedIn teamName={this.props.teamName} teamType={this.props.teamType} />;
-        } else {
-            return <SidebarLoggedOut teamName={this.props.teamName} />;
-        }
     }
 });

@@ -14,17 +14,17 @@ import (
 func TestCreateChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	team2 := &model.Team{Name: "Name Team 2", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team2 := &model.Team{DisplayName: "Name Team 2", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel := model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	rchannel, err := Client.CreateChannel(&channel)
@@ -94,7 +94,7 @@ func TestCreateChannel(t *testing.T) {
 func TestCreateDirectChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
@@ -105,7 +105,7 @@ func TestCreateDirectChannel(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	data := make(map[string]string)
 	data["user_id"] = user2.Id
@@ -149,7 +149,7 @@ func TestCreateDirectChannel(t *testing.T) {
 func TestUpdateChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	userTeamAdmin := &model.User{TeamId: team.Id, Email: team.Email, Nickname: "Corey Hulen", Password: "pwd"}
@@ -165,7 +165,7 @@ func TestUpdateChannel(t *testing.T) {
 	store.Must(Srv.Store.User().VerifyEmail(userStd.Id))
 	userStd.Roles = ""
 
-	Client.LoginByEmail(team.Domain, userChannelAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userChannelAdmin.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -184,7 +184,7 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal("Channel admin failed to skip displayName")
 	}
 
-	Client.LoginByEmail(team.Domain, userTeamAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userTeamAdmin.Email, "pwd")
 
 	desc = "b" + model.NewId() + "b"
 	upChannel1 = &model.Channel{Id: channel1.Id, Description: desc}
@@ -210,7 +210,7 @@ func TestUpdateChannel(t *testing.T) {
 		}
 	}
 
-	Client.LoginByEmail(team.Domain, userStd.Email, "pwd")
+	Client.LoginByEmail(team.Name, userStd.Email, "pwd")
 
 	if _, err := Client.UpdateChannel(upChannel1); err == nil {
 		t.Fatal("Standard User should have failed to update")
@@ -220,14 +220,14 @@ func TestUpdateChannel(t *testing.T) {
 func TestUpdateChannelDesc(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -270,7 +270,7 @@ func TestUpdateChannelDesc(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
 	data["channel_id"] = channel1.Id
 	data["channel_description"] = "new desc"
@@ -282,14 +282,14 @@ func TestUpdateChannelDesc(t *testing.T) {
 func TestGetChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -324,14 +324,14 @@ func TestGetChannel(t *testing.T) {
 func TestGetMoreChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -343,7 +343,7 @@ func TestGetMoreChannel(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
 	rget := Client.Must(Client.GetMoreChannels(""))
 	data := rget.Data.(*model.ChannelList)
@@ -368,14 +368,14 @@ func TestGetMoreChannel(t *testing.T) {
 func TestJoinChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -387,7 +387,7 @@ func TestJoinChannel(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
 	Client.Must(Client.JoinChannel(channel1.Id))
 
@@ -402,7 +402,7 @@ func TestJoinChannel(t *testing.T) {
 	user3 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
 
-	Client.LoginByEmail(team.Domain, user3.Email, "pwd")
+	Client.LoginByEmail(team.Name, user3.Email, "pwd")
 
 	if _, err := Client.JoinChannel(rchannel.Id); err == nil {
 		t.Fatal("shoudn't be able to join direct channel")
@@ -412,14 +412,14 @@ func TestJoinChannel(t *testing.T) {
 func TestLeaveChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -431,7 +431,7 @@ func TestLeaveChannel(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
 	Client.Must(Client.JoinChannel(channel1.Id))
 
@@ -461,7 +461,7 @@ func TestLeaveChannel(t *testing.T) {
 func TestDeleteChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	userTeamAdmin := &model.User{TeamId: team.Id, Email: team.Email, Nickname: "Corey Hulen", Password: "pwd"}
@@ -472,14 +472,14 @@ func TestDeleteChannel(t *testing.T) {
 	userChannelAdmin = Client.Must(Client.CreateUser(userChannelAdmin, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(userChannelAdmin.Id))
 
-	Client.LoginByEmail(team.Domain, userChannelAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userChannelAdmin.Email, "pwd")
 
 	channelMadeByCA := &model.Channel{DisplayName: "C Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channelMadeByCA = Client.Must(Client.CreateChannel(channelMadeByCA)).Data.(*model.Channel)
 
 	Client.AddChannelMember(channelMadeByCA.Id, userTeamAdmin.Id)
 
-	Client.LoginByEmail(team.Domain, userTeamAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userTeamAdmin.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -504,7 +504,7 @@ func TestDeleteChannel(t *testing.T) {
 	userStd = Client.Must(Client.CreateUser(userStd, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(userStd.Id))
 
-	Client.LoginByEmail(team.Domain, userStd.Email, "pwd")
+	Client.LoginByEmail(team.Name, userStd.Email, "pwd")
 
 	if _, err := Client.JoinChannel(channel1.Id); err == nil {
 		t.Fatal("should have failed to join deleted channel")
@@ -531,14 +531,14 @@ func TestDeleteChannel(t *testing.T) {
 func TestGetChannelExtraInfo(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -552,14 +552,14 @@ func TestGetChannelExtraInfo(t *testing.T) {
 func TestAddChannelMember(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -591,13 +591,13 @@ func TestAddChannelMember(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
 	if _, err := Client.AddChannelMember(channel2.Id, user2.Id); err == nil {
 		t.Fatal("Should have errored, user not in channel")
 	}
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	Client.Must(Client.DeleteChannel(channel2.Id))
 
@@ -610,7 +610,7 @@ func TestAddChannelMember(t *testing.T) {
 func TestRemoveChannelMember(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	userTeamAdmin := &model.User{TeamId: team.Id, Email: team.Email, Nickname: "Corey Hulen", Password: "pwd"}
@@ -621,14 +621,14 @@ func TestRemoveChannelMember(t *testing.T) {
 	userChannelAdmin = Client.Must(Client.CreateUser(userChannelAdmin, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(userChannelAdmin.Id))
 
-	Client.LoginByEmail(team.Domain, userChannelAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userChannelAdmin.Email, "pwd")
 
 	channelMadeByCA := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channelMadeByCA = Client.Must(Client.CreateChannel(channelMadeByCA)).Data.(*model.Channel)
 
 	Client.Must(Client.AddChannelMember(channelMadeByCA.Id, userTeamAdmin.Id))
 
-	Client.LoginByEmail(team.Domain, userTeamAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userTeamAdmin.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -660,13 +660,13 @@ func TestRemoveChannelMember(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	Client.LoginByEmail(team.Domain, userStd.Email, "pwd")
+	Client.LoginByEmail(team.Name, userStd.Email, "pwd")
 
 	if _, err := Client.RemoveChannelMember(channel2.Id, userStd.Id); err == nil {
 		t.Fatal("Should have errored, user not channel admin")
 	}
 
-	Client.LoginByEmail(team.Domain, userTeamAdmin.Email, "pwd")
+	Client.LoginByEmail(team.Name, userTeamAdmin.Email, "pwd")
 	Client.Must(Client.AddChannelMember(channel2.Id, userStd.Id))
 
 	Client.Must(Client.DeleteChannel(channel2.Id))
@@ -680,14 +680,14 @@ func TestRemoveChannelMember(t *testing.T) {
 func TestUpdateNotifyLevel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -749,7 +749,7 @@ func TestUpdateNotifyLevel(t *testing.T) {
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 
-	Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
 	data["channel_id"] = channel1.Id
 	data["user_id"] = user2.Id
@@ -762,14 +762,14 @@ func TestUpdateNotifyLevel(t *testing.T) {
 func TestFuzzyChannel(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	// Strings that should pass as acceptable channel names
 	var fuzzyStringsPass = []string{

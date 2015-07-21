@@ -36,9 +36,9 @@ type Store interface {
 type TeamStore interface {
 	Save(team *model.Team) StoreChannel
 	Update(team *model.Team) StoreChannel
-	UpdateName(name string, teamId string) StoreChannel
+	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) StoreChannel
-	GetByDomain(domain string) StoreChannel
+	GetByName(name string) StoreChannel
 	GetTeamsForEmail(domain string) StoreChannel
 }
 

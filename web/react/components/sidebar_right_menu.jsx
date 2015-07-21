@@ -49,12 +49,12 @@ module.exports = React.createClass({
         }
 
         var siteName = config.SiteName != null ? config.SiteName : "";
-        var teamName = this.props.teamName ? this.props.teamName : siteName;
+        var teamDisplayName = this.props.teamDisplayName ? this.props.teamDisplayName : siteName;
 
         return (
             <div>
                 <div className="team__header theme">
-                    <a className="team__name" href="/channels/town-square">{ teamName }</a>
+                    <a className="team__name" href="/channels/town-square">{ teamDisplayName }</a>
                 </div>
 
                 <div className="nav-pills__container">

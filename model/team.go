@@ -18,8 +18,8 @@ type Team struct {
 	CreateAt       int64  `json:"create_at"`
 	UpdateAt       int64  `json:"update_at"`
 	DeleteAt       int64  `json:"delete_at"`
+	DisplayName    string `json:"display_name"`
 	Name           string `json:"name"`
-	Domain         string `json:"domain"`
 	Email          string `json:"email"`
 	Type           string `json:"type"`
 	CompanyName    string `json:"company_name"`
@@ -97,20 +97,20 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 
-	if len(o.Name) > 64 {
+	if len(o.DisplayName) > 64 {
 		return NewAppError("Team.IsValid", "Invalid name", "id="+o.Id)
 	}
 
-	if len(o.Domain) > 64 {
-		return NewAppError("Team.IsValid", "Invalid domain", "id="+o.Id)
+	if len(o.Name) > 64 {
+		return NewAppError("Team.IsValid", "Invalid URL Identifier", "id="+o.Id)
 	}
 
-	if IsReservedDomain(o.Domain) {
+	if IsReservedTeamName(o.Name) {
 		return NewAppError("Team.IsValid", "This URL is unavailable. Please try another.", "id="+o.Id)
 	}
 
-	if !IsValidDomain(o.Domain) {
-		return NewAppError("Team.IsValid", "Domain must be 4 or more lowercase alphanumeric characters", "id="+o.Id)
+	if !IsValidTeamName(o.Name) {
+		return NewAppError("Team.IsValid", "Name must be 4 or more lowercase alphanumeric characters", "id="+o.Id)
 	}
 
 	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {

@@ -122,7 +122,7 @@ func CreateValetPost(c *Context, post *model.Post) (*model.Post, *model.AppError
 		rpost = result.Data.(*model.Post)
 	}
 
-	fireAndForgetNotifications(rpost, c.Session.TeamId, c.TeamUrl)
+	fireAndForgetNotifications(rpost, c.Session.TeamId, c.GetSiteURL())
 
 	return rpost, nil
 }
@@ -201,14 +201,14 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 	} else {
 		rpost = result.Data.(*model.Post)
 
-		fireAndForgetNotifications(rpost, c.Session.TeamId, c.TeamUrl)
+		fireAndForgetNotifications(rpost, c.Session.TeamId, c.GetSiteURL())
 
 	}
 
 	return rpost, nil
 }
 
-func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
+func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {
 
 	go func() {
 		// Get a list of user names (to be used as keywords) and ids for the given team
@@ -362,20 +362,22 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 					mentionedUsers = append(mentionedUsers, k)
 				}
 
-				var teamName string
+				var teamDisplayName string
+				var teamURL string
 				if result := <-tchan; result.Err != nil {
 					l4g.Error("Failed to retrieve team team_id=%v, err=%v", teamId, result.Err)
 					return
 				} else {
-					teamName = result.Data.(*model.Team).Name
+					teamDisplayName = result.Data.(*model.Team).DisplayName
+					teamURL = siteURL + "/" + result.Data.(*model.Team).Name
 				}
 
 				// Build and send the emails
 				location, _ := time.LoadLocation("UTC")
 				tm := time.Unix(post.CreateAt/1000, 0).In(location)
 
-				subjectPage := NewServerTemplatePage("post_subject", teamUrl)
-				subjectPage.Props["TeamName"] = teamName
+				subjectPage := NewServerTemplatePage("post_subject", teamURL)
+				subjectPage.Props["TeamDisplayName"] = teamDisplayName
 				subjectPage.Props["SubjectText"] = subjectText
 				subjectPage.Props["Month"] = tm.Month().String()[:3]
 				subjectPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
@@ -392,9 +394,9 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						continue
 					}
 
-					bodyPage := NewServerTemplatePage("post_body", teamUrl)
+					bodyPage := NewServerTemplatePage("post_body", teamURL)
 					bodyPage.Props["Nickname"] = profileMap[id].FirstName
-					bodyPage.Props["TeamName"] = teamName
+					bodyPage.Props["TeamDisplayName"] = teamDisplayName
 					bodyPage.Props["ChannelName"] = channelName
 					bodyPage.Props["BodyText"] = bodyText
 					bodyPage.Props["SenderName"] = senderName
@@ -403,7 +405,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 					bodyPage.Props["Month"] = tm.Month().String()[:3]
 					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
-					bodyPage.Props["TeamLink"] = teamUrl + "/channels/" + channel.Name
+					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
 
 					if err := utils.SendMail(profileMap[id].Email, subjectPage.Render(), bodyPage.Render()); err != nil {
 						l4g.Error("Failed to send mention email successfully email=%v err=%v", profileMap[id].Email, err)
@@ -636,9 +638,9 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		post := result.Data.(*model.PostList).Posts[postId]
 
-	if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId){
-		return
-	}
+		if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId) {
+			return
+		}
 
 		if post == nil {
 			c.SetInvalidParam("deletePost", "postId")
@@ -651,7 +653,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !strings.Contains(c.Session.Roles,model.ROLE_ADMIN) {
+		if post.UserId != c.Session.UserId && !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
 			c.Err = model.NewAppError("deletePost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return

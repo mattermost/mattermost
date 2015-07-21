@@ -98,6 +98,9 @@
 				fill: #fff;
 			}
 		}
+		.settings__link a:hover, a:visited, a:link, a:active {
+			text-decoration: none;
+		}
 		.user__picture {
 			width: 36px;
 			height: 36px;

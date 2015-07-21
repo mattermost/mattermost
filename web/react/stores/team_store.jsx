@@ -57,10 +57,13 @@ var TeamStore = assign({}, EventEmitter.prototype, {
     else
       return null;
   },
+  getCurrentTeamUrl: function() {
+      return window.location.origin + "/" + this.getCurrent().name;
+  },
   storeTeam: function(team) {
-    var teams = this._getTeams();
-    teams[team.id] = team;
-    this._storeTeams(teams);
+      var teams = this._getTeams();
+      teams[team.id] = team;
+      this._storeTeams(teams);
   },
   _storeTeams: function(teams) {
     BrowserStore.setItem("user_teams", teams);

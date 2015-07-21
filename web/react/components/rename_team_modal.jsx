@@ -24,13 +24,13 @@ module.exports = React.createClass({
         if (!valid)
             return;
 
-        if (this.props.teamName === name)
+        if (this.props.teamDisplayName === name)
             return;
 
         var data = {};
         data["new_name"] = name;
 
-        Client.updateTeamName(data,
+        Client.updateTeamDisplayName(data,
             function(data) {
                 $('#rename_team_link').modal('hide');
                 window.location.reload();
@@ -47,11 +47,11 @@ module.exports = React.createClass({
     componentDidMount: function() {
         var self = this;
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
-            self.setState({ name: self.props.teamName });
+            self.setState({ name: self.props.teamDisplayName });
         });
     },
     getInitialState: function() {
-        return { name: this.props.teamName };
+        return { name: this.props.teamDisplayName };
     },
     render: function() {
 

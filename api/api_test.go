@@ -24,12 +24,12 @@ func Setup() {
 func SetupBenchmark() (*model.Team, *model.User, *model.Channel) {
 	Setup()
 
-	team := &model.Team{Name: "Benchmark Team", Domain: "z-z-" + model.NewId() + "a", Email: "benchmark@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Benchmark Team", Name: "z-z-" + model.NewId() + "a", Email: "benchmark@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "benchmark@test.com", Nickname: "Mr. Benchmarker", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
-	Client.LoginByEmail(team.Domain, user.Email, "pwd")
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 	channel := &model.Channel{DisplayName: "Benchmark Channel", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel = Client.Must(Client.CreateChannel(channel)).Data.(*model.Channel)
 

@@ -24,14 +24,14 @@ import (
 func TestUploadFile(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -111,14 +111,14 @@ func TestUploadFile(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -173,7 +173,7 @@ func TestGetFile(t *testing.T) {
 			t.Fatal("file get failed")
 		}
 
-		team2 := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+		team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 		team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
 		user2 := &model.User{TeamId: team2.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
@@ -187,7 +187,7 @@ func TestGetFile(t *testing.T) {
 		data := model.MapToJson(newProps)
 		hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt))
 
-		Client.LoginByEmail(team2.Domain, user2.Email, "pwd")
+		Client.LoginByEmail(team2.Name, user2.Email, "pwd")
 
 		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, true); downErr != nil {
 			t.Fatal(downErr)
@@ -258,7 +258,7 @@ func TestGetFile(t *testing.T) {
 func TestGetPublicLink(t *testing.T) {
 	Setup()
 
-	team := &model.Team{Name: "Name", Domain: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
@@ -269,7 +269,7 @@ func TestGetPublicLink(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	Client.LoginByEmail(team.Domain, user1.Email, "pwd")
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
@@ -344,7 +344,7 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal("Should have errored - bad file path")
 		}
 
-		Client.LoginByEmail(team.Domain, user2.Email, "pwd")
+		Client.LoginByEmail(team.Name, user2.Email, "pwd")
 		data["filename"] = filenames[0]
 		if _, err := Client.GetPublicLink(data); err == nil {
 			t.Fatal("should have errored, user not member of channel")

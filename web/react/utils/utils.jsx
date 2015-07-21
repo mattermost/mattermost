@@ -16,10 +16,10 @@ module.exports.isEmail = function(email) {
 };
 
 module.exports.cleanUpUrlable = function(input) {
-	var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
-	cleaned = cleaned.replace(/^\-+/, '');
-	cleaned = cleaned.replace(/\-+$/, '');
-	return cleaned;
+    var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
+    cleaned = cleaned.replace(/^\-+/, '');
+    cleaned = cleaned.replace(/\-+$/, '');
+    return cleaned;
 };
 
 
@@ -114,7 +114,7 @@ module.exports.notifyMe = function(title, body, channel) {
           if (channel) {
               module.exports.switchChannel(channel);
           } else {
-              window.location.href = "/channels/town-square";
+              window.location.href = "/";
           }
         };
         setTimeout(function(){
@@ -708,8 +708,8 @@ module.exports.switchChannel = function(channel, teammate_name) {
       id: channel.id
     });
 
-    var domain = window.location.href.split('/channels')[0];
-    history.replaceState('data', '', domain + '/channels/' + channel.name);
+    var teamURL = window.location.href.split('/channels')[0];
+    history.replaceState('data', '', teamURL + '/channels/' + channel.name);
 
     if (channel.type === 'D' && teammate_name) {
         document.title = teammate_name + " " + document.title.substring(document.title.lastIndexOf("-"));
@@ -783,18 +783,6 @@ Image.prototype.load = function(url, progressCallback) {
 };
 
 Image.prototype.completedPercentage = 0;
-
-module.exports.getHomeLink = function() {
-	if (config.HomeLink != "") {
-		return config.HomeLink;
-	}
-	var parts = window.location.host.split(".");
-	if (parts.length <= 1) {
-		return window.location.protocol + "//" + window.location.host;
-	}
-	parts[0] = "www";
-	return window.location.protocol + "//" + parts.join(".");
-}
 
 module.exports.changeColor =function(col, amt) {
 

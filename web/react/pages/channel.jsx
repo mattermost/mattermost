@@ -61,17 +61,17 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <Navbar teamName={team_name} />,
+        <Navbar teamDisplayName={team_name} />,
         document.getElementById('navbar')
     );
 
     React.render(
-        <Sidebar teamName={team_name} teamType={team_type} />,
+        <Sidebar teamDisplayName={team_name} teamType={team_type} />,
         document.getElementById('sidebar-left')
     );
 
     React.render(
-        <RenameTeamModal teamName={team_name} />,
+        <RenameTeamModal teamDisplayName={team_name} />,
         document.getElementById('rename_team_modal')
     );
 
@@ -91,7 +91,7 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <TeamMembersModal teamName={team_name} />,
+        <TeamMembersModal teamDisplayName={team_name} />,
         document.getElementById('team_members_modal')
     );
 
@@ -186,7 +186,7 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <SidebarRightMenu teamName={team_name} teamType={team_type} />,
+        <SidebarRightMenu teamDisplayName={team_name} teamType={team_type} />,
         document.getElementById('sidebar-menu')
     );
 
