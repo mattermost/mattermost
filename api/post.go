@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -411,7 +412,12 @@ func fireAndForgetNotifications(post *model.Post, teamId, teamUrl string) {
 						filenames := make([]string, len(post.Filenames))
 						onlyImages := true
 						for i, filename := range post.Filenames {
-							filenames[i] = strings.Replace(filepath.Base(filename), "+", " ", -1)
+							var err error
+							if filenames[i], err = url.QueryUnescape(filepath.Base(filename)); err != nil {
+								// this should never error since filepath was escaped using url.QueryEscape
+								filenames[i] = filepath.Base(filename)
+							}
+
 							ext := filepath.Ext(filename)
 							onlyImages = onlyImages && model.IsFileExtImage(ext)
 						}
