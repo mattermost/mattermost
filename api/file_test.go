@@ -38,7 +38,7 @@ func TestUploadFile(t *testing.T) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("files", "test.png")
+	part, err := writer.CreateFormFile("files", "../test.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,6 +75,9 @@ func TestUploadFile(t *testing.T) {
 
 		filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 		filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+		if strings.Contains(filename, "../") {
+			t.Fatal("relative path should have been sanitized out")
+		}
 		fileId := strings.Split(filename, ".")[0]
 
 		var auth aws.Auth
@@ -104,6 +107,9 @@ func TestUploadFile(t *testing.T) {
 	} else if utils.Cfg.ServiceSettings.UseLocalStorage && len(utils.Cfg.ServiceSettings.StorageDirectory) > 0 {
 		filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 		filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
+		if strings.Contains(filename, "../") {
+			t.Fatal("relative path should have been sanitized out")
+		}
 		fileId := strings.Split(filename, ".")[0]
 
 		// wait a bit for files to ready

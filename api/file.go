@@ -89,9 +89,11 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, file)
 
+		filename := filepath.Base(files[i].Filename)
+
 		uid := model.NewId()
 
-		path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + files[i].Filename
+		path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + filename
 
 		if err := writeFile(buf.Bytes(), path); err != nil {
 			c.Err = err
@@ -99,11 +101,11 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if model.IsFileExtImage(filepath.Ext(files[i].Filename)) {
-			imageNameList = append(imageNameList, uid+"/"+files[i].Filename)
+			imageNameList = append(imageNameList, uid+"/"+filename)
 			imageDataList = append(imageDataList, buf.Bytes())
 		}
 
-		encName := utils.UrlEncode(files[i].Filename)
+		encName := utils.UrlEncode(filename)
 
 		fileUrl := "/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + encName
 		resStruct.Filenames = append(resStruct.Filenames, fileUrl)
