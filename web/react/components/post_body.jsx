@@ -52,53 +52,62 @@ module.exports = React.createClass({
                 }
             }
 
-            var customMarkedRenderer = new Marked.Renderer();
-            customMarkedRenderer.code = function(code, language) {
-                return code;
-            };
-            customMarkedRenderer.blockquote = function(quote) {
-                return quote;
-            };
-            customMarkedRenderer.list = function(body, ordered) {
-                return body;
-            };
-            customMarkedRenderer.listitem = function(text) {
-                return text + " ";
-            };
-            customMarkedRenderer.paragraph = function(text) {
-                return text + " ";
-            };
-            customMarkedRenderer.heading = function(text, level) {
-                var hashText = "";
-                for (var i = 0; i < level; i++)
-                    hashText += "#";
+            if (useMarkdown) {
+                var customMarkedRenderer = new Marked.Renderer();
+                customMarkedRenderer.code = function(code, language) {
+                    return code;
+                };
+                customMarkedRenderer.blockquote = function(quote) {
+                    return quote;
+                };
+                customMarkedRenderer.list = function(body, ordered) {
+                    return body;
+                };
+                customMarkedRenderer.listitem = function(text) {
+                    return text + " ";
+                };
+                customMarkedRenderer.paragraph = function(text) {
+                    return text + " ";
+                };
+                customMarkedRenderer.heading = function(text, level) {
+                    var hashText = "";
+                    for (var i = 0; i < level; i++)
+                        hashText += "#";
 
-                return hashText + text + "";
-            };
-            customMarkedRenderer.codespan = function(code) {
-                return "<pre>" + code + "</pre>";
-            };
-            customMarkedRenderer.del = function(text) {
-                return "<s>" + text + "</s>";
-            };
-            customMarkedRenderer.link = function(href, title, text) {
-                return " " + href + " ";
-            };
-            customMarkedRenderer.image = function(href, title, text) {
-                return " " + href + " ";
-            };
+                    return hashText + text + "";
+                };
+                customMarkedRenderer.codespan = function(code) {
+                    return code;
+                };
+                customMarkedRenderer.del = function(text) {
+                    return "<s>" + text + "</s>";
+                };
+                customMarkedRenderer.link = function(href, title, text) {
+                    return " " + href + " ";
+                };
+                customMarkedRenderer.image = function(href, title, text) {
+                    return " " + href + " ";
+                };
 
-            message = Marked(message, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
+                message = Marked(message, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
 
-            if (message.indexOf("<p>") === 0) {
-                message = message.slice(3);
+                if (message.indexOf("<p>") === 0) {
+                    message = message.slice(3);
+                }
+
+                comment = (
+                    <div className="post-link">
+                        <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick} dangerouslySetInnerHTML={{__html: message}} /></span>
+                    </div>
+                );
             }
-
-            comment = (
-                <div className="post-link">
-                    <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick} dangerouslySetInnerHTML={{__html: message}} /></span>
-                </div>
-            );
+            else {
+                comment = (
+                    <p className="post-link">
+                        <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{message}</a></span>
+                    </p> 
+                );
+            }
 
             postClass += " post-comment";
         }

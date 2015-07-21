@@ -293,8 +293,6 @@ module.exports = React.createClass({
 
         var last_viewed = Number.MAX_VALUE;
 
-        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
-
         if (ChannelStore.getCurrentMember() != null)
             last_viewed = ChannelStore.getCurrentMember().last_viewed_at;
 

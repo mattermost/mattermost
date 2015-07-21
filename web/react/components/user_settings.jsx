@@ -1169,8 +1169,6 @@ var AppearanceTab = React.createClass({
             }
         }
 
-        //Need to discuss first & would need to add to user.go api so that if disabled default is false, if enabled then true or false
-        //if (config.markdownEnabled)
         if (this.props.activeSection === 'markdown') {
             var markdownActive = ["",""];
             if (this.state.enable_markdown === "false") {
@@ -1209,7 +1207,6 @@ var AppearanceTab = React.createClass({
                 />
             );
         }
-
 
         return (
             <div>
