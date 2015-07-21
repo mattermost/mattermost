@@ -550,7 +550,7 @@ func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
 	if isFullUrl {
 		rq, _ = http.NewRequest("GET", url, nil)
 	} else {
-		rq, _ = http.NewRequest("GET", c.Url+url, nil)
+		rq, _ = http.NewRequest("GET", c.Url+"/files/get"+url, nil)
 	}
 
 	if len(c.AuthToken) > 0 {
