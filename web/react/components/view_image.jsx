@@ -155,7 +155,7 @@ module.exports = React.createClass({
                 var imgClass = "hidden";
                 if (this.state.loaded[id] && this.state.imgId == id) imgClass = "";
 
-                img[info['path']] = <a key={info['path']} className={imgClass} href={this.props.filenames[id]} target="_blank"><img ref="image" src={preview_filename}/></a>;
+                img[info['path']] = <a key={info['path']} className={imgClass} href={info.path+"."+info.ext} target="_blank"><img ref="image" src={preview_filename}/></a>;
             }
         }
 
