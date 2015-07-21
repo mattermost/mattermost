@@ -20,6 +20,9 @@ module.exports = React.createClass({
             }.bind(this)
         );
     },
+    handleClose: function() {
+        this.setState({description: ""})
+    },
     handleUserInput: function(e) {
         this.setState({ description: e.target.value });
     },
@@ -39,14 +42,14 @@ module.exports = React.createClass({
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" className="close" data-dismiss="modal" onClick={this.handleClose} aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 className="modal-title" ref="title">Edit {this.state.title} Description</h4>
                   </div>
                   <div className="modal-body">
                     <textarea className="form-control no-resize" rows="6" ref="channelDesc" maxLength="1024" value={this.state.description} onChange={this.handleUserInput}></textarea>
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" className="btn btn-default" data-dismiss="modal" onClick={this.handleClose}>Close</button>
                     <button type="button" className="btn btn-primary" data-dismiss="modal" onClick={this.handleEdit}>Save</button>
                   </div>
                 </div>

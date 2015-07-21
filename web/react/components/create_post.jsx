@@ -93,9 +93,6 @@ module.exports = React.createClass({
 
         $(".post-list-holder-by-time").perfectScrollbar('update');
     },
-    componentDidUpdate: function() {
-        this.resizePostHolder();
-    },
     postMsgKeyPress: function(e) {
         if (e.which == 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
@@ -179,6 +176,9 @@ module.exports = React.createClass({
     componentWillUnmount: function() {
         ChannelStore.removeChangeListener(this._onChange);
     },
+    componentDidUpdate: function() {
+        this.resizePostHolder();
+    },
     _onChange: function() {
         var channel_id = ChannelStore.getCurrentId();
         if (this.state.channel_id != channel_id) {
@@ -191,7 +191,7 @@ module.exports = React.createClass({
                 messageText = draft['message'];
                 uploadsInProgress = draft['uploadsInProgress'];
             }
-            this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
+            this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, limit_error: null, server_error: null, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
         }
     },
     getInitialState: function() {

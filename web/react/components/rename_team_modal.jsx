@@ -41,6 +41,9 @@ module.exports = React.createClass({
             }.bind(this)
         );
     },
+    handleClose: function() {
+        this.setState({ name: this.props.teamName})
+    },
     onNameChange: function() {
         this.setState({ name: this.refs.name.getDOMNode().value })
     },
@@ -63,7 +66,7 @@ module.exports = React.createClass({
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal">
+                            <button type="button" className="close" data-dismiss="modal" onClick={this.handleClose}>
                                 <span aria-hidden="true">&times;</span>
                                 <span className="sr-only">Close</span>
                             </button>
@@ -80,7 +83,7 @@ module.exports = React.createClass({
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" className="btn btn-default" data-dismiss="modal" onClick={this.handleClose}>Close</button>
                             <button onClick={this.handleSubmit} type="button" className="btn btn-primary">Save</button>
                         </div>
                     </div>

@@ -75,6 +75,9 @@ module.exports = React.createClass({
             }.bind(this)
         );
     },
+    handleClose: function() {
+        this.setState({display_name: "", channel_name: ""})
+    },
     onNameChange: function() {
         this.setState({ channel_name: this.refs.channel_name.getDOMNode().value })
     },
@@ -108,7 +111,7 @@ module.exports = React.createClass({
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal">
+                            <button type="button" className="close" data-dismiss="modal" onClick={this.handleClose}>
                                 <span aria-hidden="true">&times;</span>
                                 <span className="sr-only">Close</span>
                             </button>
@@ -130,7 +133,7 @@ module.exports = React.createClass({
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" className="btn btn-default" data-dismiss="modal" onClick={this.handleClose}>Close</button>
                             <button onClick={this.handleSubmit} type="button" className="btn btn-primary">Save</button>
                         </div>
                     </div>
