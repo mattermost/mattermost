@@ -37,7 +37,7 @@ func TestCreatePost(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	filenames := []string{"/api/v1/files/get/12345678901234567890123456/12345678901234567890123456/test.png", "/api/v1/files/get/" + channel1.Id + "/" + user1.Id + "/test.png"}
+	filenames := []string{"/12345678901234567890123456/12345678901234567890123456/12345678901234567890123456/test.png", "/" + channel1.Id + "/" + user1.Id + "/test.png", "www.mattermost.com/fake/url", "junk"}
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Filenames: filenames}
 	rpost1, err := Client.CreatePost(post1)

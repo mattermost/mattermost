@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	l4g "code.google.com/p/log4go"
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
@@ -197,8 +198,9 @@ func TestGetFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		if _, downErr := Client.GetFile(filenames[0], true); downErr != nil {
-			t.Fatal("file get failed")
+		l4g.Debug(filenames)
+		if _, downErr := Client.GetFile(filenames[0], false); downErr != nil {
+			t.Fatal(downErr)
 		}
 
 		team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -217,35 +219,35 @@ func TestGetFile(t *testing.T) {
 
 		Client.LoginByEmail(team2.Name, user2.Email, "pwd")
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, true); downErr != nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t="+team.Id, false); downErr != nil {
 			t.Fatal(downErr)
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash), true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash), false); downErr == nil {
 			t.Fatal("Should have errored - missing team id")
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t=junk", true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t=junk", false); downErr == nil {
 			t.Fatal("Should have errored - bad team id")
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t=12345678901234567890123456", true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h="+url.QueryEscape(hash)+"&t=12345678901234567890123456", false); downErr == nil {
 			t.Fatal("Should have errored - bad team id")
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&t="+team.Id, true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&t="+team.Id, false); downErr == nil {
 			t.Fatal("Should have errored - missing hash")
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h=junk&t="+team.Id, true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d="+url.QueryEscape(data)+"&h=junk&t="+team.Id, false); downErr == nil {
 			t.Fatal("Should have errored - bad hash")
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?h="+url.QueryEscape(hash)+"&t="+team.Id, true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?h="+url.QueryEscape(hash)+"&t="+team.Id, false); downErr == nil {
 			t.Fatal("Should have errored - missing data")
 		}
 
-		if _, downErr := Client.GetFile(filenames[0]+"?d=junk&h="+url.QueryEscape(hash)+"&t="+team.Id, true); downErr == nil {
+		if _, downErr := Client.GetFile(filenames[0]+"?d=junk&h="+url.QueryEscape(hash)+"&t="+team.Id, false); downErr == nil {
 			t.Fatal("Should have errored - bad data")
 		}
 
@@ -429,6 +431,7 @@ func TestGetPublicLink(t *testing.T) {
 				t.Fatal(err)
 			}
 		} else {
+			l4g.Debug(resp.Data.(*model.FileUploadResponse).Filenames[0])
 			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]

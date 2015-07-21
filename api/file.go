@@ -297,15 +297,14 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	matches := model.PartialUrlRegex.FindAllStringSubmatch(filename, -1)
-	if len(matches) == 0 || len(matches[0]) < 5 {
+	if len(matches) == 0 || len(matches[0]) < 4 {
 		c.SetInvalidParam("getPublicLink", "filename")
 		return
 	}
 
-	getType := matches[0][1]
-	channelId := matches[0][2]
-	userId := matches[0][3]
-	filename = matches[0][4]
+	channelId := matches[0][1]
+	userId := matches[0][2]
+	filename = matches[0][3]
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 
@@ -316,7 +315,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapToJson(newProps)
 	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt))
 
-	url := fmt.Sprintf("%s/api/v1/files/%s/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL(), getType, channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
+	url := fmt.Sprintf("%s/api/v1/files/get/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL(), channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
 
 	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
 		return

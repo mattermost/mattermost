@@ -160,6 +160,40 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 
 	post.UserId = c.Session.UserId
 
+	if len(post.Filenames) > 0 {
+		doRemove := false
+		for i := len(post.Filenames) - 1; i >= 0; i-- {
+			path := post.Filenames[i]
+
+			doRemove = false
+			l4g.Debug(path)
+			if model.UrlRegex.MatchString(path) {
+				continue
+			} else if model.PartialUrlRegex.MatchString(path) {
+				matches := model.PartialUrlRegex.FindAllStringSubmatch(path, -1)
+				if len(matches) == 0 || len(matches[0]) < 4 {
+					doRemove = true
+				}
+
+				channelId := matches[0][1]
+				if channelId != post.ChannelId {
+					doRemove = true
+				}
+
+				userId := matches[0][2]
+				if userId != post.UserId {
+					doRemove = true
+				}
+			} else {
+				doRemove = true
+			}
+			if doRemove {
+				l4g.Error("Bad filename discarded, filename=%v", path)
+				post.Filenames = append(post.Filenames[:i], post.Filenames[i+1:]...)
+			}
+		}
+	}
+
 	var rpost *model.Post
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
