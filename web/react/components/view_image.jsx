@@ -144,6 +144,11 @@ module.exports = React.createClass({
                 if (this.props.imgCount > 0) {
                     preview_filename = this.props.filenames[this.state.imgId];
                 } else {
+                    // This is a temporary patch to fix issue with old files using absolute paths
+                    if (info.path.indexOf("/api/v1/files/get") != -1) {
+                        info.path = info.path.split("/api/v1/files/get")[1];
+                    }
+                    info.path = window.location.origin + "/api/v1/files/get" + info.path;
                     preview_filename = info['path'] + '_preview.jpg';
                 }
 
