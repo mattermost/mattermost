@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlTeamStore struct {
@@ -40,7 +41,7 @@ func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_teams_domain", "Teams", "Domain")
+	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
