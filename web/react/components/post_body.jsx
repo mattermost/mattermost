@@ -4,6 +4,7 @@
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
+var Marked = require('marked');
 
 module.exports = React.createClass({
     componentWillReceiveProps: function(nextProps) {
@@ -51,10 +52,52 @@ module.exports = React.createClass({
                 }
             }
 
+            var customMarkedRenderer = new Marked.Renderer();
+            customMarkedRenderer.code = function(code, language) {
+                return code;
+            };
+            customMarkedRenderer.blockquote = function(quote) {
+                return quote;
+            };
+            customMarkedRenderer.list = function(body, ordered) {
+                return body;
+            };
+            customMarkedRenderer.listitem = function(text) {
+                return text + " ";
+            };
+            customMarkedRenderer.paragraph = function(text) {
+                return text + " ";
+            };
+            customMarkedRenderer.heading = function(text, level) {
+                var hashText = "";
+                for (var i = 0; i < level; i++)
+                    hashText += "#";
+
+                return hashText + text + "";
+            };
+            customMarkedRenderer.codespan = function(code) {
+                return "<pre>" + code + "</pre>";
+            };
+            customMarkedRenderer.del = function(text) {
+                return "<s>" + text + "</s>";
+            };
+            customMarkedRenderer.link = function(href, title, text) {
+                return " " + href + " ";
+            };
+            customMarkedRenderer.image = function(href, title, text) {
+                return " " + href + " ";
+            };
+
+            message = Marked(message, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
+
+            if (message.indexOf("<p>") === 0) {
+                message = message.slice(3);
+            }
+
             comment = (
-                <p className="post-link">
-                    <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{message}</a></span>
-                </p>
+                <div className="post-link">
+                    <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick} dangerouslySetInnerHTML={{__html: message}} /></span>
+                </div>
             );
 
             postClass += " post-comment";

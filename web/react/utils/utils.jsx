@@ -386,10 +386,14 @@ module.exports.searchForTerm = function(term) {
 }
 
 var oldExplicitMentionRegex = /(?:<mention>)([\s\S]*?)(?:<\/mention>)/g;
-var puncStartRegex = /(<[^<>]+>)^((?![@#])\W)+/g;
-var puncEndRegex = /(<[^<>]+>)(\W)+$/g;
-var markdownRegex = /<[^<>]+>/g;
+var puncStartRegex = /^((?![@#])\W)+/g;
+var puncEndRegex = /(\W)+$/g;
+var startTagRegex = /(<\s*\w.*?>)+/g;
+var endTagRegex = /(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)+/g;
+//var markdownRegex = /<[^<>]+>/g;
 
+//(<\s*\w.*?>)
+//(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)
 module.exports.textToJsx = function(text, options) {
     var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false && !options.searchTerm;
 
@@ -414,12 +418,12 @@ module.exports.textToJsx = function(text, options) {
         customMarkedRenderer.image = function(href, title, text) {
             return " " + href + " ";
         };
-        customMarkedRenderer.html = function(html) {
+        /*customMarkedRenderer.html = function(html) {
             return "";
-        };
+        };*/
 
         text = Marked(text, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
-        console.log("TEXT: " + text);
+        //console.log("TEXT: " + text);
     }
 
     if (options && options['singleline']) {
@@ -451,7 +455,7 @@ module.exports.textToJsx = function(text, options) {
         var highlightSearchClass = "";
         for (var z = 0; z < words.length; z++) {
             var word = words[z];
-            var trimWord = word.replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            var trimWord = word.replace(endTagRegex, '').replace(startTagRegex, '').replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
 
@@ -468,8 +472,8 @@ module.exports.textToJsx = function(text, options) {
                 // do both a non-case sensitive and case senstive check
                 var mClass = implicitKeywords.indexOf('@'+name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@'+name) !== -1 ? mentionClass : "";
 
-                var suffix = word.match(puncEndRegex);
-                var prefix = word.match(puncStartRegex);
+                var suffix = word.match(endTagRegex) + word.match(puncEndRegex);
+                var prefix = word.match(startTagRegex) + word.match(puncStartRegex);
 
                 if (searchTerm === name) {
                     highlightSearchClass = " search-highlight";
@@ -477,8 +481,11 @@ module.exports.textToJsx = function(text, options) {
 
                 console.log("prefix: " + prefix + " name: " + name + " suffix: " + suffix);
 
-                if (useMarkdown)
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: "@" + name}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)} />{suffix} </span>);
+                if (useMarkdown) {
+                    prefix ? inner.push(<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
+                    inner.push(<span key={word+i+z+"word_span"}><a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: "@" + name}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)} /></span>);
+                    suffix ? inner.push(<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : inner.push(<span key={word+i+z+"suf_span"}> </span>);
+                }
                 else
                     inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (testUrlMatch(word).length) {
