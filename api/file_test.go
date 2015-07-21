@@ -5,7 +5,6 @@ package api
 
 import (
 	"bytes"
-	l4g "code.google.com/p/log4go"
 	"fmt"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
@@ -198,7 +197,6 @@ func TestGetFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		l4g.Debug(filenames)
 		if _, downErr := Client.GetFile(filenames[0], false); downErr != nil {
 			t.Fatal(downErr)
 		}
@@ -431,7 +429,6 @@ func TestGetPublicLink(t *testing.T) {
 				t.Fatal(err)
 			}
 		} else {
-			l4g.Debug(resp.Data.(*model.FileUploadResponse).Filenames[0])
 			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]

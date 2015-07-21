@@ -166,7 +166,6 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 			path := post.Filenames[i]
 
 			doRemove = false
-			l4g.Debug(path)
 			if model.UrlRegex.MatchString(path) {
 				continue
 			} else if model.PartialUrlRegex.MatchString(path) {
