@@ -7,7 +7,7 @@ var Utils = require('../utils/utils.jsx');
 
 function getStateFromStoresForAudits() {
     return {
-        audits: UserStore.getAudits(),
+        audits: UserStore.getAudits()
     };
 }
 
@@ -15,6 +15,11 @@ module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addAuditsChangeListener(this._onChange);
         AsyncClient.getAudits();
+
+        var self = this;
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
+            self.setState({ moreInfo: [] });
+        });
     },
     componentWillUnmount: function() {
         UserStore.removeAuditsChangeListener(this._onChange);
@@ -22,8 +27,15 @@ module.exports = React.createClass({
     _onChange: function() {
         this.setState(getStateFromStoresForAudits());
     },
+    handleMoreInfo: function(index) {
+        var newMoreInfo = this.state.moreInfo;
+        newMoreInfo[index] = true;
+        this.setState({ moreInfo: newMoreInfo });
+    },
     getInitialState: function() {
-        return getStateFromStoresForAudits();
+        var initialState = getStateFromStoresForAudits();
+        initialState.moreInfo = [];
+        return initialState;
     },
     render: function() {
         var accessList = [];
@@ -46,8 +58,14 @@ module.exports = React.createClass({
                         <div className="access-time">{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'})}</div>
                         <div className="access-info">
                             <div>{"IP: " + currentAudit.ip_address}</div>
-                            <div>{"Session ID: " + currentAudit.session_id}</div>
-                            <div>{"URL: " + currentAudit.action.replace("/api/v1", "")}</div>
+                            { this.state.moreInfo[i] ?
+                            <div>
+                                <div>{"Session ID: " + currentAudit.session_id}</div>
+                                <div>{"URL: " + currentAudit.action.replace("/api/v1", "")}</div>
+                            </div>
+                            :
+                            <a href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
+                            }
                         </div>
                         <br/>
                         {i < this.state.audits.length - 1 ?

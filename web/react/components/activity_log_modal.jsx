@@ -9,8 +9,7 @@ function getStateFromStoresForSessions() {
     return {
         sessions: UserStore.getSessions(),
         server_error: null,
-        client_error: null,
-        moreInfo: []
+        client_error: null
     };
 }
 
@@ -31,6 +30,11 @@ module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addSessionsChangeListener(this._onChange);
         AsyncClient.getSessions();
+
+        var self = this;
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
+            self.setState({ moreInfo: [] });
+        });
     },
     componentWillUnmount: function() {
         UserStore.removeSessionsChangeListener(this._onChange);
@@ -43,11 +47,10 @@ module.exports = React.createClass({
         newMoreInfo[index] = true;
         this.setState({ moreInfo: newMoreInfo });
     },
-    handleClose: function() {
-        this.setState({ moreInfo: [] });
-    },
     getInitialState: function() {
-        return getStateFromStoresForSessions();
+        var initialState = getStateFromStoresForSessions();
+        initialState.moreInfo = [];
+        return initialState;
     },
     render: function() {
         var activityList = [];
@@ -104,7 +107,7 @@ module.exports = React.createClass({
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <button type="button" className="close" data-dismiss="modal" aria-label="Close" onClick={this.handleClose}><span aria-hidden="true">&times;</span></button>
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                 <h4 className="modal-title" id="myModalLabel">Active Devices</h4>
                             </div>
                             <div ref="modalBody" className="modal-body">
