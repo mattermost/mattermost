@@ -102,7 +102,7 @@ module.exports = React.createClass({
         $(".post-list-holder-by-time").perfectScrollbar('update');
 
         if (this.state.rootId || this.state.parentId) {
-            this.setState({rootId: "", parentId: ""});
+            this.setState({rootId: "", parentId: "", caretCount: 0});
 
             // clear the active thread since we've now sent our message
             AppDispatcher.handleViewAction({
@@ -138,25 +138,30 @@ module.exports = React.createClass({
             // the number of carets indicates how many message threads back we're replying to
             var caretCount = replyMatch[0].length;
 
-            var posts = PostStore.getCurrentPosts();
+            // note that if someone else replies to this thread while a user is typing a reply, the message to which they're replying
+            // won't change unless they change the number of carets. this is probably the desired behaviour since we don't want the
+            // active message thread to change without the user noticing
+            if (caretCount != this.state.caretCount) {
+                this.setState({caretCount: caretCount});
 
-            var rootId = "";
+                var posts = PostStore.getCurrentPosts();
 
-            // find the nth most recent post that isn't a comment on another (ie it has no parent) where n is caretCount
-            for (var i = 0; i < posts.order.length; i++) {
-                var postId = posts.order[i];
+                var rootId = "";
 
-                if (posts.posts[postId].parent_id === "") {
-                    if (caretCount == 1) {
-                        rootId = postId;
-                        break;
-                    } else {
+                // find the nth most recent post that isn't a comment on another (ie it has no parent) where n is caretCount
+                for (var i = 0; i < posts.order.length; i++) {
+                    var postId = posts.order[i];
+
+                    if (posts.posts[postId].parent_id === "") {
                         caretCount -= 1;
+
+                        if (caretCount < 1) {
+                            rootId = postId;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (rootId) {
                 // only dispatch an event if something changed
                 if (rootId != this.state.rootId) {
                     // set the parent id to match the root id so that we're replying to the first post in the thread
@@ -169,16 +174,11 @@ module.exports = React.createClass({
                         parent_id: parentId
                     });
                 }
-            } else {
-                // we couldn't find a post to respond to so clear the active thread
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
-                    root_id: "",
-                    parent_id: ""
-                });
             }
         } else {
-            if (this.state.rootId || this.state.parentId) {
+            if (this.state.caretCount > 0) {
+                this.setState({caretCount: 0});
+
                 // clear the active thread since there no longer is one
                 AppDispatcher.handleViewAction({
                     type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
@@ -287,7 +287,7 @@ module.exports = React.createClass({
             previews = draft['previews'];
             messageText = draft['message'];
         }
-        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: 0, previews: previews, submitting: false, initialText: messageText };
+        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: 0, previews: previews, submitting: false, initialText: messageText, caretCount: 0 };
     },
     setUploads: function(val) {
         var oldInProgress = this.state.uploadsInProgress
