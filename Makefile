@@ -41,17 +41,23 @@ build:
 install:
 	@go get $(GOFLAGS) github.com/tools/godep
 
-	@if [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
+	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 0 ]; then \
 		echo restoring go libs using godep; \
 		$(GOPATH)/bin/godep restore; \
 		echo starting mattermost-mysql; \
 		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
     	-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
+		echo restarting mattermost-mysql; \
+		docker start mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps | grep -ci mattermost-redis) -eq 0 ]; then \
+	@if [ $(shell docker ps -a | grep -ci mattermost-redis) -eq 0 ]; then \
 		echo starting mattermost-redis; \
 		docker run --name mattermost-redis -p 6379:6379 -d redis > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-redis) -eq 0 ]; then \
+		echo restarting mattermost-redis; \
+		docker start mattermost-redis > /dev/null; \
 	fi
 
 	@cd web/react/ && npm install
