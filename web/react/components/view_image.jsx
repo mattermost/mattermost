@@ -36,6 +36,11 @@ module.exports = React.createClass({
             src = this.props.filenames[id];
         } else {
             var fileInfo = utils.splitFileLocation(this.props.filenames[id]);
+            // This is a temporary patch to fix issue with old files using absolute paths
+            if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
+                fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
+            }
+            fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
             src = fileInfo['path'] + '_preview.jpg';
         }
 

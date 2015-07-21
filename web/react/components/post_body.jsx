@@ -29,7 +29,7 @@ module.exports = React.createClass({
                 var type = utils.getFileType(fileInfo.ext);
 
                 // This is a temporary patch to fix issue with old files using absolute paths
-                if (fileInfo.path.indexOf("/api/v1/files/get") == -1) {
+                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
                     fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
                 }
                 fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
@@ -109,7 +109,7 @@ module.exports = React.createClass({
                 var type = utils.getFileType(fileInfo.ext);
 
                 // This is a temporary patch to fix issue with old files using absolute paths
-                if (fileInfo.path.indexOf("/api/v1/files/get") == -1) {
+                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
                     fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
                 }
                 fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;

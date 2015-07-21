@@ -19,6 +19,7 @@ module.exports = React.createClass({
             var filenameSplit = filename.split('.');
             var ext = filenameSplit[filenameSplit.length-1];
             var type = utils.getFileType(ext);
+            filename = window.location.origin + "/api/v1/files/get" + filename;
 
             if (type === "image") {
                 previews.push(
