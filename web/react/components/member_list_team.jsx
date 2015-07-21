@@ -5,6 +5,7 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var utils = require('../utils/utils.jsx');
 
 var MemberListTeamItem = React.createClass({
     handleMakeMember: function() {
