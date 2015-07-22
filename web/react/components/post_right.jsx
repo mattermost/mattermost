@@ -293,6 +293,8 @@ module.exports = React.createClass({
         });
     },
     componentDidUpdate: function() {
+        $(".post-right__scroll").scrollTop($(".post-right__scroll")[0].scrollHeight);
+        $(".post-right__scroll").perfectScrollbar('update');
         this.resize();
     },
     componentWillUnmount: function() {
