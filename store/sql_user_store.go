@@ -34,7 +34,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("AuthService").SetMaxSize(32)
 		table.SetUniqueTogether("Email", "TeamId")
 		table.SetUniqueTogether("Username", "TeamId")
-		table.SetUniqueTogether("AuthData", "AuthService", "TeamId")
 	}
 
 	return us

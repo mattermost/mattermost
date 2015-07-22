@@ -241,38 +241,44 @@ func FireAndForgetVerifyEmail(userId, name, email, teamDisplayName, teamURL stri
 	}()
 }
 
-func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, deviceId string) {
+func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, deviceId string) *model.User {
 	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
 		c.Err = result.Err
-		return
+		return nil
 	} else {
 		user := result.Data.(*model.User)
 		if checkUserPassword(c, user, password) {
 			Login(c, w, r, user, deviceId)
+			return user
 		}
 	}
+
+	return nil
 }
 
-func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, deviceId string) {
+func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, deviceId string) *model.User {
 	var team *model.Team
 
 	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
 		c.Err = result.Err
-		return
+		return nil
 	} else {
 		team = result.Data.(*model.Team)
 	}
 
 	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
 		c.Err = result.Err
-		return
+		return nil
 	} else {
 		user := result.Data.(*model.User)
 
 		if checkUserPassword(c, user, password) {
 			Login(c, w, r, user, deviceId)
+			return user
 		}
 	}
+
+	return nil
 }
 
 func checkUserPassword(c *Context, user *model.User, password string) bool {
@@ -356,7 +362,6 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	}
 
 	http.SetCookie(w, sessionCookie)
-	user.Sanitize(map[string]bool{})
 
 	c.Session = *session
 	c.LogAuditWithUserId(user.Id, "success")
@@ -365,17 +370,26 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
+	var user *model.User
 	if len(props["id"]) != 0 {
-		LoginById(c, w, r, props["id"], props["password"], props["device_id"])
+		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
-		LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+	} else {
+		c.Err = model.NewAppError("login", "Either user id or team name and user email must be provided", "")
+		return
 	}
 
 	if c.Err != nil {
 		return
 	}
 
-	w.Write([]byte("{}"))
+	if user != nil {
+		user.Sanitize(map[string]bool{})
+	} else {
+		user = &model.User{}
+	}
+	w.Write([]byte(user.ToJson()))
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
