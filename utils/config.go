@@ -253,3 +253,14 @@ func IsS3Configured() bool {
 
 	return true
 }
+
+func GetAllowedAuthServices() []string {
+	authServices := []string{}
+	for name, service := range Cfg.SSOSettings {
+		if service.Allow {
+			authServices = append(authServices, name)
+		}
+	}
+
+	return authServices
+}

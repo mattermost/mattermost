@@ -28,9 +28,9 @@
             "Allow": false,
             "Secret" : "",
             "Id": "",
-            "AuthEndpoint": "<yourgitlabdomain>/oauth/authorize",
-            "TokenEndpoint": "<yourgitlabdomain>/oauth/token",
-            "UserApiEndpoint": "<yourgitlabdomain>/api/v3/user"
+            "AuthEndpoint": "",
+            "TokenEndpoint": "",
+            "UserApiEndpoint": ""
         }
     },
     "SqlSettings": {

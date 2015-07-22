@@ -103,7 +103,7 @@ module.exports = React.createClass({
 
         var yourEmailIs = this.state.user.email == "" ? "" : <span>Your email address is { this.state.user.email }.  </span>
 
-        var email =
+        var email = (
                 <div className={ this.state.original_email == "" ? "" : "hidden"} >
                 <label className="control-label">Email</label>
                 <div className={ email_error ? "form-group has-error" : "form-group" }>
@@ -111,6 +111,16 @@ module.exports = React.createClass({
                 { email_error }
                 </div>
                 </div>
+        );
+
+        var auth_services = JSON.parse(this.props.authServices);
+
+        var signup_message;
+        if (auth_services.indexOf("gitlab") >= 0) {
+            signup_message = <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team} <a href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}>{"or sign up with GitLab."}</a></p>;
+        } else {
+            signup_message = <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team + "."}</p>;
+        }
 
         return (
             <div>
@@ -119,7 +129,7 @@ module.exports = React.createClass({
                 <div className="form-group form-group--small">
                     <span></span>
                 </div>
-                <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team} <a href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}>{"or sign up with GitLab."}</a></p>
+                { signup_message }
                 <p>Your username can be made of lowercase letters and numbers.</p>
                 <label className="control-label">Username</label>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
