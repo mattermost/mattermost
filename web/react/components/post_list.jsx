@@ -223,6 +223,7 @@ module.exports = React.createClass({
         }
     },
     _onTimeChange: function() {
+        if (!this.state.post_list) return;
         for (var id in this.state.post_list.posts) {
             if (!this.refs[id]) continue;
             this.refs[id].forceUpdateInfo();
