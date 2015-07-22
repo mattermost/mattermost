@@ -499,6 +499,11 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, user.Email); result.Err == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", "Team "+team.DisplayName+" already has a user with the email address attached to your "+service+" account", "email="+user.Email)
+			return
+		}
+
 		user.TeamId = team.Id
 
 		page := NewHtmlTemplatePage("signup_user_oauth", "Complete User Sign Up")
