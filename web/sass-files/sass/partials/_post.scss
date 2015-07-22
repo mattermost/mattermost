@@ -215,9 +215,6 @@ body.ios {
 				@include opacity(1);
 			}
 			.dropdown-toggle:after {
-				content: '...';
-			}
-			.dropdown-toggle:hover:after {
 				content: '[...]';
 			}
 		}
