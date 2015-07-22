@@ -106,9 +106,9 @@
 			height: 36px;
 			float: left;
 			@include border-radius(36px);
+			margin-right: 6px;
 		}
 		.header__info {
-			padding-left: 42px;
 			color: #fff;
 		}
 		.team__name, .user__name {

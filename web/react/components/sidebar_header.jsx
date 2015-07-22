@@ -118,7 +118,7 @@ module.exports = React.createClass({
                     { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                     :
-                    <div className="no-user__picture" />
+                    <div />
                     }
                     <div className="header__info">
                         <div className="user__name">{ '@' + me.username}</div>
