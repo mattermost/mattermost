@@ -351,6 +351,7 @@ module.exports = React.createClass({
         $(".post-right__scroll").css("height", height + "px");
         $(".post-right__scroll").scrollTop(100000);
         $(".post-right__scroll").perfectScrollbar();
+        $(".post-right__scroll").perfectScrollbar('update');
     },
     render: function() {
 
