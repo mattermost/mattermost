@@ -48,15 +48,15 @@ module.exports = React.createClass({
 
             if (!currentHistoryDate || currentHistoryDate.toLocaleDateString() !== newHistoryDate.toLocaleDateString()) {
                 currentHistoryDate = newHistoryDate;
-                newDate = ( <div className="access-date">{currentHistoryDate.toDateString()}</div> );
+                newDate = (<div> {currentHistoryDate.toDateString()} </div>);
             }
-            
+
             accessList[i] = (
-                <div>
-                    {newDate}
-                    <div className="single-access">
-                        <div className="access-time">{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'})}</div>
-                        <div className="access-info">
+                <div className="access-history__table">
+                    <div className="access__date">{newDate}</div>
+                    <div className="access__report">
+                        <div className="report__time">{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div className="report__info">
                             <div>{"IP: " + currentAudit.ip_address}</div>
                             { this.state.moreInfo[i] ?
                             <div>
@@ -67,7 +67,6 @@ module.exports = React.createClass({
                             <a href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
                             }
                         </div>
-                        <br/>
                         {i < this.state.audits.length - 1 ?
                         <div className="divider-light"/>
                         :
@@ -80,8 +79,8 @@ module.exports = React.createClass({
 
         return (
             <div>
-                <div className="modal fade" ref="modal" id="access_history" tabIndex="-1" role="dialog" aria-hidden="true">
-                    <div className="modal-dialog">
+                <div className="modal fade" ref="modal" id="access-history" tabIndex="-1" role="dialog" aria-hidden="true">
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

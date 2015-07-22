@@ -63,20 +63,17 @@ module.exports = React.createClass({
             var devicePicture = "";
 
             if (currentSession.props.platform === "Windows") {
-                devicePicture = "windows-picture";
+                devicePicture = "fa fa-windows";
             }
             else if (currentSession.props.platform === "Macintosh" || currentSession.props.platform === "iPhone") {
-                devicePicture = "apple-picture";
+                devicePicture = "fa fa-apple";
             }
-            
+
             activityList[i] = (
-                <div>
-                    <div className="single-device">
-                        <div>
-                            <div className={devicePicture} />
-                            <div className="device-platform-name">{currentSession.props.platform}</div>
-                        </div>
-                        <div className="activity-info">
+                <div className="activity-log__table">
+                    <div className="activity-log__report">
+                        <div className="report__platform"><i className={devicePicture} />{currentSession.props.platform}</div>
+                        <div className="report__info">
                             <div>{"Last activity: " + lastAccessTime.toDateString() + ", " + lastAccessTime.toLocaleTimeString()}</div>
                             { this.state.moreInfo[i] ?
                             <div>
@@ -89,22 +86,16 @@ module.exports = React.createClass({
                             <a href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
                             }
                         </div>
-                        <div><button onClick={this.submitRevoke.bind(this, currentSession.alt_id)} className="pull-right btn btn-primary">Logout</button></div>
-                        <br/>
-                        {i < this.state.sessions.length - 1 ?
-                        <div className="divider-light"/>
-                        :
-                        null
-                        }
                     </div>
+                    <div className="activity-log__action"><button onClick={this.submitRevoke.bind(this, currentSession.alt_id)} className="btn btn-primary">Logout</button></div>
                 </div>
             );
         }
 
         return (
             <div>
-                <div className="modal fade" ref="modal" id="activity_log" tabIndex="-1" role="dialog" aria-hidden="true">
-                    <div className="modal-dialog">
+                <div className="modal fade" ref="modal" id="activity-log" tabIndex="-1" role="dialog" aria-hidden="true">
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
