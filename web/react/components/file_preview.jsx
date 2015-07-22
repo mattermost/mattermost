@@ -16,6 +16,7 @@ module.exports = React.createClass({
         var previews = [];
         this.props.files.forEach(function(filename) {
 
+            var originalFilename = filename;
             var filenameSplit = filename.split('.');
             var ext = filenameSplit[filenameSplit.length-1];
             var type = utils.getFileType(ext);
@@ -27,14 +28,14 @@ module.exports = React.createClass({
 
             if (type === "image") {
                 previews.push(
-                    <div key={filename} className="preview-div" data-filename={filename}>
+                    <div key={filename} className="preview-div" data-filename={originalFilename}>
                         <img className="preview-img" src={filename}/>
                         <a className="remove-preview" onClick={this.handleRemove}><i className="glyphicon glyphicon-remove"/></a>
                     </div>
                 );
             } else {
                 previews.push(
-                    <div key={filename} className="preview-div custom-file" data-filename={filename}>
+                    <div key={filename} className="preview-div custom-file" data-filename={originalFilename}>
                         <div className={"file-icon "+utils.getIconClassName(type)}/>
                         <a className="remove-preview" onClick={this.handleRemove}><i className="glyphicon glyphicon-remove"/></a>
                     </div>
