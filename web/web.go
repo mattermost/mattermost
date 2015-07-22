@@ -476,18 +476,18 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		props := model.MapFromJson(strings.NewReader(data))
 
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
-			c.Err = model.NewAppError("createUser", "The signup link does not appear to be valid", "")
+			c.Err = model.NewAppError("signupWithOAuth", "The signup link does not appear to be valid", "")
 			return
 		}
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-			c.Err = model.NewAppError("createUser", "The signup link has expired", "")
+			c.Err = model.NewAppError("signupWithOAuth", "The signup link has expired", "")
 			return
 		}
 
 		if team.Id != props["id"] {
-			c.Err = model.NewAppError("createUser", "Invalid team name", data)
+			c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", data)
 			return
 		}
 	}

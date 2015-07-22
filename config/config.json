@@ -25,12 +25,12 @@
     },
     "SSOSettings": {
         "gitlab": {
-            "Allow": true,
-            "Secret" : "0495d3d6e528d91ba46605622a3645a8409ac5971ee287b1c3a6519fe27e6f6a",
-            "Id": "87a4aeb746c67e87a54df78f6eccf85229dd30a3a797bfdb423b82ba4e749cd0",
-            "AuthEndpoint": "http://dockerhost:8080/oauth/authorize",
-            "TokenEndpoint": "http://dockerhost:8080/oauth/token",
-            "UserApiEndpoint": "http://dockerhost:8080/api/v3/user"
+            "Allow": false,
+            "Secret" : "",
+            "Id": "",
+            "AuthEndpoint": "<yourgitlabdomain>/oauth/authorize",
+            "TokenEndpoint": "<yourgitlabdomain>/oauth/token",
+            "UserApiEndpoint": "<yourgitlabdomain>/api/v3/user"
         }
     },
     "SqlSettings": {

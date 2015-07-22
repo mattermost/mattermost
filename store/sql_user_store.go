@@ -24,6 +24,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Username").SetMaxSize(64)
 		table.ColMap("Password").SetMaxSize(128)
 		table.ColMap("AuthData").SetMaxSize(128)
+		table.ColMap("AuthService").SetMaxSize(32)
 		table.ColMap("Email").SetMaxSize(128)
 		table.ColMap("Nickname").SetMaxSize(64)
 		table.ColMap("FirstName").SetMaxSize(64)
@@ -31,7 +32,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
-		table.ColMap("AuthService").SetMaxSize(32)
 		table.SetUniqueTogether("Email", "TeamId")
 		table.SetUniqueTogether("Username", "TeamId")
 	}
@@ -59,7 +59,7 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 		}
 	}
 
-	us.CreateColumnIfNotExists("Users", "AuthService", "LastPictureUpdate", "varchar(32)", "") // for OAuth Client
+	us.CreateColumnIfNotExists("Users", "AuthService", "AuthData", "varchar(32)", "") // for OAuth Client
 }
 
 //func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {

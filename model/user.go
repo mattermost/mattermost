@@ -37,6 +37,7 @@ type User struct {
 	Username           string    `json:"username"`
 	Password           string    `json:"password"`
 	AuthData           string    `json:"auth_data"`
+	AuthService        string    `json:"auth_service"`
 	Email              string    `json:"email"`
 	EmailVerified      bool      `json:"email_verified"`
 	Nickname           string    `json:"nickname"`
@@ -50,7 +51,6 @@ type User struct {
 	NotifyProps        StringMap `json:"notify_props"`
 	LastPasswordUpdate int64     `json:"last_password_update"`
 	LastPictureUpdate  int64     `json:"last_picture_update"`
-	AuthService        string    `json:"auth_service"`
 }
 
 type GitLabUser struct {

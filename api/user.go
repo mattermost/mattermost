@@ -377,6 +377,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
 	} else {
 		c.Err = model.NewAppError("login", "Either user id or team name and user email must be provided", "")
+		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
