@@ -114,23 +114,48 @@ module.exports = React.createClass({
                 }
                 fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
+                var thumbnail;
                 if (type === "image") {
-                    if (i < Constants.MAX_DISPLAY_FILES) {
-                        postFiles.push(
-                            <div className="post-image__column" key={filenames[i]}>
-                                <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={filenames[i]} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}></div></a>
-                            </div>
-                        );
-                    }
-                    images.push(filenames[i]);
-                } else if (i < Constants.MAX_DISPLAY_FILES) {
-                    postFiles.push(
-                        <div className="post-image__column custom-file" key={fileInfo.name+i}>
-                            <a href={fileInfo.path + (fileInfo.ext ? "." + fileInfo.ext : "")} download={fileInfo.name + (fileInfo.ext ? "." + fileInfo.ext : "")}>
-                                <div className={"file-icon "+utils.getIconClassName(type)}/>
-                            </a>
-                        </div>
+                    thumbnail = (
+                        <a className="post-image__thumbnail" href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }>
+                            <div ref={filenames[i]} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}/>
+                        </a>
                     );
+                } else {
+                    thumbnail = (
+                        <a href={fileInfo.path + (fileInfo.ext ? "." + fileInfo.ext : "")} download={fileInfo.name + (fileInfo.ext ? "." + fileInfo.ext : "")}>
+                            <div className={"file-icon "+utils.getIconClassName(type)}/>
+                        </a>
+                    );
+                }
+
+                var containerClassName = "post-image__column";
+                if (type !== "image") {
+                    containerClassName += " custom-file";
+                }
+
+                postFiles.push(
+                    <div className={containerClassName} key={filenames[i]}>
+                        {thumbnail}
+                        <div className="post-image__details">
+                            <div className="post-image__name">{fileInfo.name}</div>
+                            <div>
+                                <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
+                                <span className="post-image__size" ref={filenames[i] + "__size"}></span>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                // asynchronously request the size of the file so that we can display it next to the thumbnail
+                utils.getFileSize(fileInfo.path + "." + fileInfo.ext, function(self, filename) {
+                    return function(size) {
+                        self.refs[filename + "__size"].getDOMNode().innerHTML = " " + utils.fileSizeToString(size);
+                    }
+                }(this, filenames[i]));
+
+                if (type === "image") {
+                    images.push(filenames[i]);
                 }
             }
         }

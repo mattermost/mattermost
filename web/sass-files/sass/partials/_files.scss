@@ -117,13 +117,14 @@
 }
 .post-image__column {
   position: relative;
-  width: 120px;
+  width: 240px;
   height: 100px;
   float: left;
   margin: 5px 10px 5px 0;
+  display: flex;
+  border: 1px solid lightgrey;
   &.custom-file {
-    width: 85px;
-    height: 100px;
+    // TODO remove this class if it doesn't end up getting used any more
   }
   .post__load {
     height: 100%;
@@ -133,12 +134,33 @@
     background-position: center;
   }
   .post__image {
-    height: 100%;
     width: 100%;
-    border: 1px solid #E2E2E2;
+    height: 100%;
     background-color: #FFF;
     background-repeat: no-repeat;
     background-position: top left;
+  }
+  .post-image__thumbnail {
+    width: 50%;
+    height: 100%;
+  }
+  .post-image__details {
+    width: 50%;
+    height: 100%;
+    background: white;
+    border-left: 1px solid lightgrey;
+    font-size: small;
+    padding: 5px 5px;
+    .post-image__name {
+      font-weight: 600;
+    }
+    .post-image__type {
+      color: grey;
+    }
+    .post-image__size {
+      border-left: 2px;
+      color: grey;
+    }
   }
   a {
     text-decoration: none;

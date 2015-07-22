@@ -557,6 +557,23 @@ module.exports.splitFileLocation = function(fileLocation) {
     return {'ext': ext, 'name': filename, 'path': filePath};
 }
 
+// Asynchronously gets the size of a file by requesting its headers. If successful, it calls the
+// provided callback with the file size in bytes as the argument.
+module.exports.getFileSize = function(url, callback) {
+    var request = new XMLHttpRequest();
+
+    request.open('HEAD', url, true);
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
+            if (callback) {
+                callback(parseInt(request.getResponseHeader("content-length")));
+            }
+        }
+    };
+
+    request.send();
+};
+
 module.exports.toTitleCase = function(str) {
     return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 }
@@ -847,4 +864,20 @@ module.exports.getWindowLocationOrigin = function() {
         windowLocationOrigin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
     }
     return windowLocationOrigin;
+}
+
+// Converts a file size in bytes into a human-readable string of the form "123MB".
+module.exports.fileSizeToString = function(bytes) {
+    // it's unlikely that we'll have files bigger than this
+    if (bytes > 1024 * 1024 * 1024 * 1024) {
+        return Math.floor(bytes / (1024 * 1024 * 1024 * 1024)) + "TB";
+    } else if (bytes > 1024 * 1024 * 1024) {
+        return Math.floor(bytes / (1024 * 1024 * 1024)) + "GB";
+    } else if (bytes > 1024 * 1024) {
+        return Math.floor(bytes / (1024 * 1024)) + "MB";
+    } else if (bytes > 1024) {
+        return Math.floor(bytes / 1024) + "KB";
+    } else {
+        return bytes + "B";
+    }
 };
