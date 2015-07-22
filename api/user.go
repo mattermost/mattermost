@@ -1277,7 +1277,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	var ar *model.AccessResponse
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request to GitLab failed", err.Error())
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
 	}

@@ -499,6 +499,11 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
+		if result := <-api.Srv.Store.User().GetByAuth(team.Id, user.AuthData, service); result.Err == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", "This "+service+" account has already been used to sign up for team "+team.DisplayName, "email="+user.Email)
+			return
+		}
+
 		if result := <-api.Srv.Store.User().GetByEmail(team.Id, user.Email); result.Err == nil {
 			c.Err = model.NewAppError("signupCompleteOAuth", "Team "+team.DisplayName+" already has a user with the email address attached to your "+service+" account", "email="+user.Email)
 			return
