@@ -20,6 +20,8 @@ all: travis
 travis:
 	@echo building for travis
 
+	godep restore
+
 	rm -Rf $(DIST_ROOT)
 	@go clean $(GOFLAGS) -i ./...
 	
