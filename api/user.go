@@ -81,36 +81,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hash := r.URL.Query().Get("h")
 
-	shouldVerifyHash := true
-
-	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 {
-		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(team.AllowedDomains, "@", " ", -1), ",", " ", -1))))
-
-		matched := false
-		for _, d := range domains {
-			if strings.HasSuffix(user.Email, "@"+d) {
-				matched = true
-				break
-			}
-		}
-
-		if matched {
-			shouldVerifyHash = false
-		} else {
-			c.Err = model.NewAppError("createUser", "The signup link does not appear to be valid", "allowed domains failed")
-			return
-		}
-	}
-
-	if team.Type == model.TEAM_OPEN {
-		shouldVerifyHash = false
-	}
-
-	if len(hash) > 0 {
-		shouldVerifyHash = true
-	}
-
-	if shouldVerifyHash {
+	if IsVerifyHashRequired(user, team, hash) {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
@@ -145,6 +116,38 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(ruser.ToJson()))
 
+}
+
+func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool {
+	shouldVerifyHash := true
+
+	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 && user != nil {
+		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(team.AllowedDomains, "@", " ", -1), ",", " ", -1))))
+
+		matched := false
+		for _, d := range domains {
+			if strings.HasSuffix(user.Email, "@"+d) {
+				matched = true
+				break
+			}
+		}
+
+		if matched {
+			shouldVerifyHash = false
+		} else {
+			return true
+		}
+	}
+
+	if team.Type == model.TEAM_OPEN {
+		shouldVerifyHash = false
+	}
+
+	if len(hash) > 0 {
+		shouldVerifyHash = true
+	}
+
+	return shouldVerifyHash
 }
 
 func CreateValet(c *Context, team *model.Team) *model.User {
@@ -1223,21 +1226,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, service, redirectUri string) {
-	params := mux.Vars(r)
-	teamName := params["team"]
-
-	if len(teamName) == 0 {
-		c.Err = model.NewAppError("GetAuthorizationCode", "Invalid team name", "team_name="+teamName)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	// Make sure team exists
-	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.Err = result.Err
-		return
-	}
+func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri string) {
 
 	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
 		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)

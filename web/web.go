@@ -453,10 +453,48 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
+	teamName := params["team"]
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	hash := r.URL.Query().Get("h")
+
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if api.IsVerifyHashRequired(nil, team, hash) {
+		data := r.URL.Query().Get("d")
+		props := model.MapFromJson(strings.NewReader(data))
+
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+			c.Err = model.NewAppError("createUser", "The signup link does not appear to be valid", "")
+			return
+		}
+
+		t, err := strconv.ParseInt(props["time"], 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+			c.Err = model.NewAppError("createUser", "The signup link has expired", "")
+			return
+		}
+
+		if team.Id != props["id"] {
+			c.Err = model.NewAppError("createUser", "Invalid team name", data)
+			return
+		}
+	}
 
 	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
 
-	api.GetAuthorizationCode(c, w, r, service, redirectUri)
+	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri)
 }
 
 func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -522,11 +560,23 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
-	l4g.Debug(service)
+	teamName := params["team"]
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("loginWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	// Make sure team exists
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
 
 	redirectUri := c.GetSiteURL() + "/login/" + service + "/complete"
 
-	api.GetAuthorizationCode(c, w, r, service, redirectUri)
+	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri)
 }
 
 func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {

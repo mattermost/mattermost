@@ -119,7 +119,7 @@ module.exports = React.createClass({
                 <div className="form-group form-group--small">
                     <span></span>
                 </div>
-                <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team} <a href={"/"+this.props.teamName+"/signup/gitlab"}>{"or sign up with GitLab."}</a></p>
+                <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team} <a href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}>{"or sign up with GitLab."}</a></p>
                 <p>Your username can be made of lowercase letters and numbers.</p>
                 <label className="control-label">Username</label>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
