@@ -112,6 +112,8 @@ clean:
 	rm -f web/static/js/bundle*.js
 	rm -f web/static/css/styles.css
 
+	rm -rf data/*
+	rm -rf api/data/*
 	rm -rf logs/*
 
 

@@ -19,6 +19,11 @@ module.exports = React.createClass({
             var filenameSplit = filename.split('.');
             var ext = filenameSplit[filenameSplit.length-1];
             var type = utils.getFileType(ext);
+            // This is a temporary patch to fix issue with old files using absolute paths
+            if (filename.indexOf("/api/v1/files/get") != -1) {
+                filename = filename.split("/api/v1/files/get")[1];
+            }
+            filename = window.location.origin + "/api/v1/files/get" + filename;
 
             if (type === "image") {
                 previews.push(

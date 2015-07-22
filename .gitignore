@@ -47,3 +47,7 @@ web/sass-files/sass/.sass-cache/
 *config.codekit
 *.sass-cache
 *styles.css
+
+# Default local file storage
+data/*
+api/data/*

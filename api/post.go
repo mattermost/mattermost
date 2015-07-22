@@ -170,16 +170,16 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 				continue
 			} else if model.PartialUrlRegex.MatchString(path) {
 				matches := model.PartialUrlRegex.FindAllStringSubmatch(path, -1)
-				if len(matches) == 0 || len(matches[0]) < 5 {
+				if len(matches) == 0 || len(matches[0]) < 4 {
 					doRemove = true
 				}
 
-				channelId := matches[0][2]
+				channelId := matches[0][1]
 				if channelId != post.ChannelId {
 					doRemove = true
 				}
 
-				userId := matches[0][3]
+				userId := matches[0][2]
 				if userId != post.UserId {
 					doRemove = true
 				}
