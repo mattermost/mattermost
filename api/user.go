@@ -821,6 +821,13 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	tchan := Srv.Store.Team().Get(user.TeamId)
 
+	if user.AuthData != "" {
+		c.LogAudit("failed - tried to update user password who was logged in through oauth")
+		c.Err = model.NewAppError("updatePassword", "Update password failed because the user is logged in through an OAuth service", "auth_service="+user.AuthService)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
 	if !model.ComparePassword(user.Password, currentPassword) {
 		c.Err = model.NewAppError("updatePassword", "Update password failed because of invalid password", "")
 		c.Err.StatusCode = http.StatusForbidden
