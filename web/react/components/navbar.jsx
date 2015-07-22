@@ -28,7 +28,7 @@ function getCountsStateFromStores() {
         } else {
             if (channelMember.mention_count > 0) {
                 count += channelMember.mention_count;
-            } else if (channel.total_msg_count - channelMember.msg_count > 0) {
+            } else if (channelMember.notify_level !== "quiet" && channel.total_msg_count - channelMember.msg_count > 0) {
                 count += 1;
             }
         }
