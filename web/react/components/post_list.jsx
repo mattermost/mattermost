@@ -22,7 +22,8 @@ function getStateFromStores() {
 
     return {
         post_list: PostStore.getCurrentPosts(),
-        channel: channel
+        channel: channel,
+        activeThreadRootId: ""
     };
 }
 
@@ -51,6 +52,7 @@ module.exports = React.createClass({
         ChannelStore.addChangeListener(this._onChange);
         UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
+        PostStore.addActiveThreadChangedListener(this._onActiveThreadChanged);
 
         $(".post-list-holder-by-time").perfectScrollbar();
 
@@ -131,6 +133,7 @@ module.exports = React.createClass({
         ChannelStore.removeChangeListener(this._onChange);
         UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
+        PostStore.removeActiveThreadChangedListener(this._onActiveThreadChanged);
         $('body').off('click.userpopover');
     },
     resize: function() {
@@ -228,6 +231,9 @@ module.exports = React.createClass({
             if (!this.refs[id]) continue;
             this.refs[id].forceUpdateInfo();
         }
+    },
+    _onActiveThreadChanged: function(rootId, parentId) {
+        this.setState({"activeThreadRootId": rootId});
     },
     getMorePosts: function(e) {
         e.preventDefault();
@@ -420,7 +426,14 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
-                var postCtl = <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+                // check if this is part of the thread that we're currently replying to
+                var isActiveThread = this.state.activeThreadRootId && (post.id === this.state.activeThreadRootId || post.root_id === this.state.activeThreadRootId);
+
+                var postCtl = (
+                    <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id}
+                        posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} isActiveThread={isActiveThread}
+                    />
+                );
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {

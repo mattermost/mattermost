@@ -18,6 +18,7 @@ module.exports = {
     RECIEVED_POST_SELECTED: null,
     RECIEVED_MENTION_DATA: null,
     RECIEVED_ADD_MENTION: null,
+    RECEIVED_ACTIVE_THREAD_CHANGED: null,
 
     RECIEVED_PROFILES: null,
     RECIEVED_ME: null,
