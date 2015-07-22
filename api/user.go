@@ -1224,17 +1224,17 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, service, redirectUri string) {
+	params := mux.Vars(r)
+	teamName := params["team"]
 
-	teamId := r.FormValue("id")
-
-	if len(teamId) != 26 {
-		c.Err = model.NewAppError("GetAuthorizationCode", "Invalid team id", "team_id="+teamId)
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("GetAuthorizationCode", "Invalid team name", "team_name="+teamName)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	// Make sure team exists
-	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -1249,7 +1249,7 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, se
 	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
 	state := model.HashPassword(clientId)
 
-	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri+"?id="+teamId) + "&state=" + url.QueryEscape(state)
+	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri+"?team="+teamName) + "&state=" + url.QueryEscape(state)
 	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 

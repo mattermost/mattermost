@@ -53,7 +53,8 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
 
-	mainrouter.Handle("/login/{service:[A-Za-z]+}", api.AppHandlerIndependent(loginWithOAuth)).Methods("GET")
+	// Bug in gorilla.mux pervents us from using regex here.
+	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")
 	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(loginCompleteOAuth)).Methods("GET")
 
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
@@ -66,7 +67,8 @@ func InitWeb() {
 	mainrouter.Handle("/signup_user_complete/", api.AppHandlerIndependent(signupUserComplete)).Methods("GET")
 	mainrouter.Handle("/signup_team_confirm/", api.AppHandlerIndependent(signupTeamConfirm)).Methods("GET")
 
-	mainrouter.Handle("/signup/{service:[A-Za-z]+}", api.AppHandlerIndependent(signupWithOAuth)).Methods("GET")
+	// Bug in gorilla.mux pervents us from using regex here.
+	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")
 	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(signupCompleteOAuth)).Methods("GET")
 
 	mainrouter.Handle("/verify_email", api.AppHandlerIndependent(verifyEmail)).Methods("GET")
@@ -463,20 +465,23 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
-	teamId := r.FormValue("id")
+	teamName := r.FormValue("team")
 
-	uri := c.GetSiteURL() + "/signup/" + service + "/complete?id=" + teamId
+	uri := c.GetSiteURL() + "/signup/" + service + "/complete?team=" + teamName
 
-	if len(teamId) != 26 {
-		c.Err = model.NewAppError("signupCompleteOAuth", "Invalid team id", "team_id="+teamId)
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("signupCompleteOAuth", "Invalid team name", "team_name="+teamName)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	// Make sure team exists
-	if result := <-api.Srv.Store.Team().Get(teamId); result.Err != nil {
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
 		c.Err = result.Err
 		return
+	} else {
+		team = result.Data.(*model.Team)
 	}
 
 	if body, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
@@ -494,10 +499,12 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		user.TeamId = teamId
+		user.TeamId = team.Id
 
 		page := NewHtmlTemplatePage("signup_user_oauth", "Complete User Sign Up")
 		page.Props["User"] = user.ToJson()
+		page.Props["TeamName"] = team.Name
+		page.Props["TeamDisplayName"] = team.DisplayName
 		page.Render(c, w)
 	}
 }
@@ -505,6 +512,7 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
+	l4g.Debug(service)
 
 	redirectUri := c.GetSiteURL() + "/login/" + service + "/complete"
 
@@ -517,20 +525,23 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
-	teamId := r.FormValue("id")
+	teamName := r.FormValue("team")
 
-	uri := c.GetSiteURL() + "/login/" + service + "/complete?id=" + teamId
+	uri := c.GetSiteURL() + "/login/" + service + "/complete?team=" + teamName
 
-	if len(teamId) != 26 {
-		c.Err = model.NewAppError("loginCompleteOAuth", "Invalid team id", "team_id="+teamId)
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("loginCompleteOAuth", "Invalid team name", "team_name="+teamName)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	// Make sure team exists
-	if result := <-api.Srv.Store.Team().Get(teamId); result.Err != nil {
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
 		c.Err = result.Err
 		return
+	} else {
+		team = result.Data.(*model.Team)
 	}
 
 	if body, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
@@ -549,7 +560,7 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByAuth(teamId, authData, service); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByAuth(team.Id, authData, service); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {

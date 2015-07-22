@@ -33,7 +33,7 @@ module.exports = React.createClass({
         client.createUser(user, "", "",
             function(data) {
                 client.track('signup', 'signup_user_oauth_02');
-                window.location.href = '/login/'+user.auth_service+'?id='+user.team_id;
+                window.location.href = '/' + this.props.teamName + '/login/'+user.auth_service;
             }.bind(this),
             function(err) {
                 this.state.server_error = err.message;
@@ -63,14 +63,14 @@ module.exports = React.createClass({
             <div>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h4>Welcome to { config.SiteName }</h4>
-                <p>{"To continue signing up with " + this.state.user.auth_type + ", please register a username."}</p>
+                <p>{"To continue signing up with " + this.state.user.auth_service + ", please register a username."}</p>
                 <p>Your username can be made of lowercase letters and numbers.</p>
                 <label className="control-label">Username</label>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" value={this.state.user.username} onChange={this.handleChange} />
                 { name_error }
                 </div>
-                <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others"}</p>
+                <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others."}</p>
                 <p>{ yourEmailIs } You’ll use this address to sign in to {config.SiteName}.</p>
                 <div className="checkbox"><label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service. </label></div>
                 <p><button onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
