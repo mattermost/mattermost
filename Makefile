@@ -20,7 +20,7 @@ all: travis
 travis:
 	@echo building for travis
 
-	godep restore
+	${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin/godep restore
 
 	rm -Rf $(DIST_ROOT)
 	@go clean $(GOFLAGS) -i ./...
