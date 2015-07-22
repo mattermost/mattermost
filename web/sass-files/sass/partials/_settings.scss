@@ -1,3 +1,6 @@
+@import "access-history";
+@import "activity-log";
+
 .user-settings {
     background: #fff;
     min-height:300px;
@@ -31,6 +34,12 @@
         > div {
             display: table-cell;
             vertical-align: top;
+        }
+        .security-links {
+            margin-right: 20px;
+            .fa {
+                margin-right: 6px;
+            }
         }
         .settings-links {
             width: 180px;
