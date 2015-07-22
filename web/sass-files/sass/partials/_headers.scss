@@ -44,14 +44,16 @@
 			white-space: normal;
 		}
 	}
+
 }
 
 .channel-intro {
 	padding-bottom:5px;
 	margin: 0 1em 35px;
+	max-width: 850px;
 	border-bottom: 1px solid lightgrey;
 	.intro-links {
-		margin: 0.5em 1.5em 0 0;
+		margin: 0 1.5em 10px 0;
 		display: inline-block;
 		.fa {
 			margin-right: 5px;
@@ -64,8 +66,15 @@
 	.channel-intro-img {
 		float:left;
 	}
-	.channel-intro-title {
+	.channel-intro__title {
 		font-weight:600;
+		font-size: 20px;
+		margin-bottom: 15px;
+	}
+	.channel-intro__content {
+		background: #f7f7f7;
+		padding: 10px 15px;
+		@include border-radius(3px);
 	}
 	.channel-intro-text {
 		margin-top:35px;
