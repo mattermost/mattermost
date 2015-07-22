@@ -201,8 +201,13 @@ module.exports = React.createClass({
             if(msg.user_id === UserStore.getCurrentId()) {
                 AsyncClient.getChannels(true);
 
-                if(msg.props.channel_id === ChannelStore.getCurrentId()) {
-                    window.location.reload();
+                if(msg.props.channel_id === ChannelStore.getCurrentId() && $('#removed_from_channel').length > 0) {
+                    var channelName = ChannelStore.getCurrent().display_name;
+                    var curUser = UserStore.getProfile(msg.props.remover).username;
+                    $('#removed_from_channel').find('.modal-title').text("Removed from " + channelName);
+                    $('#removed_from_channel').find('.modal-body').children().text(curUser + " removed you from " + channelName);
+
+                    $('#removed_from_channel').modal('show');
                 }
             }
         }
