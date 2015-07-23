@@ -125,7 +125,14 @@ module.exports = React.createClass({
 
         var terms = "";
         if (user.notify_props && user.notify_props.mention_keys) {
-            terms = UserStore.getCurrentMentionKeys().join(' ');
+            var termKeys = UserStore.getCurrentMentionKeys();
+            if (user.notify_props.all === "true" && termKeys.indexOf("@all") !== -1) {
+                termKeys.splice(termKeys.indexOf("@all"), 1);
+            }
+            if (user.notify_props.channel === "true" && termKeys.indexOf("@channel") !== -1) {
+                termKeys.splice(termKeys.indexOf("@channel"), 1);
+            }
+            terms = termKeys.join(' ');
         }
 
         AppDispatcher.handleServerAction({
