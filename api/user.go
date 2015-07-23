@@ -370,6 +370,12 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
+	if len(props["password"]) == 0 {
+		c.Err = model.NewAppError("login", "Password field must not be blank", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
 	var user *model.User
 	if len(props["id"]) != 0 {
 		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
