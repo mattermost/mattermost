@@ -40,7 +40,7 @@ module.exports = React.createClass({
         post.parent_id = this.props.parentId;
         post.filenames = this.state.previews;
 
-        this.setState({ submitting: true });
+        this.setState({ submitting: true, limit_error: null });
 
         client.createPost(post, ChannelStore.getCurrent(),
             function(data) {

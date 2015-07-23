@@ -45,7 +45,7 @@ module.exports = React.createClass({
             return;
         }
 
-        this.setState({ submitting: true });
+        this.setState({ submitting: true, limit_error: null });
 
         var user_id = UserStore.getCurrentId();
 
