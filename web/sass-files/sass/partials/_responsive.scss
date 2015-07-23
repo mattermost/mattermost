@@ -459,14 +459,15 @@
                 border-radius: 0;
                 padding: 0;
                 border-bottom: 1px solid #FFF;
-                border-bottom: 1px solid rgba(#fff, 0.6);
-                @include input-placeholder {
-                    color: rgba(#fff, 0.6);
+                border-bottom: 1px solid rgba(#fff, 0.4);
+                &:focus {
+                    border-bottom: 1px solid rgba(#fff, 0.8);
                 }
             }
             input[type=text] {
                     @include input-placeholder {
                     color: #fff;
+                    color: rgba(#fff, 0.6);
                 }
             }
         }
