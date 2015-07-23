@@ -11,6 +11,9 @@ module.exports = React.createClass({
         modalId: React.PropTypes.string.isRequired,
         handleImageClick: React.PropTypes.func
     },
+    getInitialState: function() {
+        return {fileSize: 0};
+    },
     componentDidMount: function() {
         var filename = this.props.filenames[this.props.index];
 
@@ -47,6 +50,22 @@ module.exports = React.createClass({
             }
         }
     },
+    shouldComponentUpdate: function(nextProps, nextState) {
+        // the only time this object should update is when it receives an updated file size which we can usually handle without re-rendering
+        if (nextState.fileSize != this.state.fileSize) {
+            if (this.refs.fileSize) {
+                // update the UI element to display the file size without re-rendering the whole component
+                this.refs.fileSize.getDOMNode().innerHTML = utils.fileSizeToString(nextState.fileSize);
+
+                return false;
+            } else {
+                // we can't find the element that should hold the file size so we must not have rendered yet
+                return true;
+            }
+        } else {
+            return true;
+        }
+    },
     render: function() {
         var filenames = this.props.filenames;
         var filename = filenames[this.props.index];
@@ -78,15 +97,14 @@ module.exports = React.createClass({
             );
         }
 
-        // TODO fix the race condition here where the file size may arrive before the rest of the page is rendered
-        // asynchronously request the size of the file so that we can display it next to the thumbnail
-        utils.getFileSize(fileInfo.path + "." + fileInfo.ext, function(self, _filename) {
-            return function(size) {
-                if ((_filename + "__size") in self.refs) {
-                    self.refs[_filename + "__size"].getDOMNode().innerHTML = " " + utils.fileSizeToString(size);
-                }
-            }
-        }(this, filename));
+        if (!this.state.fileSize) {
+            var self = this;
+
+            // asynchronously request the size of the file so that we can display it next to the thumbnail
+            utils.getFileSize(fileInfo.path + "." + fileInfo.ext, function(fileSize) {
+                self.setState({fileSize: fileSize});
+            });
+        }
 
         return (
             <div className="post-image__column" key={filename}>
@@ -95,7 +113,7 @@ module.exports = React.createClass({
                     <div className="post-image__name">{fileInfo.name}</div>
                     <div>
                         <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
-                        <span className="post-image__size" ref={filename + "__size"}></span>
+                        <span className="post-image__size">{this.state.fileSize ? utils.fileSizeToString(this.state.fileSize) : ""}</span>
                     </div>
                 </div>
             </div>
