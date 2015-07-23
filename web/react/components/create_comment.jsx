@@ -2,15 +2,16 @@
 // See License.txt for license information.
 
 var client = require('../utils/client.jsx');
-var AsyncClient =require('../utils/async_client.jsx');
+var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var UserStore = require('../stores/user_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
 var Textbox = require('./textbox.jsx');
 var MsgTyping = require('./msg_typing.jsx');
 var FileUpload = require('./file_upload.jsx');
 var FilePreview = require('./file_preview.jsx');
-
+var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
@@ -39,10 +40,16 @@ module.exports = React.createClass({
             return;
         }
 
+        var user_id = UserStore.getCurrentId();
+
         post.channel_id = this.props.channelId;
         post.root_id = this.props.rootId;
-        post.parent_id = this.props.parentId;
+        post.parent_id = this.props.rootId;
         post.filenames = this.state.previews;
+        var time = utils.getTimestamp();
+        post.pending_post_id = user_id + ":"+ time;
+        post.user_id = user_id;
+        post.create_at = time;
 
         this.setState({submitting: true, serverError: null});
 
@@ -69,10 +76,19 @@ module.exports = React.createClass({
                         $('#post_deleted').modal('show');
                     }
                 } else {
-                    this.setState(state);
+                    post.did_fail = true;
+                    PostStore.updatePendingPost(post);
                 }
+
+                state.submitting = false;
+                this.setState(state);
             }.bind(this)
         );
+
+        post.is_loading = true;
+        PostStore.storePendingPost(post);
+        PostStore.storeCommentDraft(this.props.rootId, null);
+        this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
     },
     commentMsgKeyPress: function(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
