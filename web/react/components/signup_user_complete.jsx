@@ -46,7 +46,7 @@ module.exports = React.createClass({
             function(data) {
                 client.track('signup', 'signup_user_02_complete');
 
-                client.loginByEmail(this.props.domain, this.state.user.email, this.state.user.password,
+                client.loginByEmail(this.props.teamName, this.state.user.email, this.state.user.password,
                     function(data) {
                         UserStore.setLastEmail(this.state.user.email);
                         UserStore.setCurrentUser(data);
@@ -58,7 +58,7 @@ module.exports = React.createClass({
                     }.bind(this),
                     function(err) {
                         if (err.message == "Login failed because email address has not been verified") {
-                            window.location.href = "/verify_email?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.domain);
+                            window.location.href = "/verify_email?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.teamName);
                         } else {
                             this.state.server_error = err.message;
                             this.setState(this.state);
@@ -79,7 +79,7 @@ module.exports = React.createClass({
             props = {};
             props.wizard = "welcome";
             props.user = {};
-            props.user.team_id = this.props.team_id;
+            props.user.team_id = this.props.teamId;
             props.user.email = this.props.email;
             props.hash = this.props.hash;
             props.data = this.props.data;
@@ -103,7 +103,7 @@ module.exports = React.createClass({
 
         var yourEmailIs = this.state.user.email == "" ? "" : <span>Your email address is { this.state.user.email }.  </span>
 
-        var email =
+        var email = (
                 <div className={ this.state.original_email == "" ? "" : "hidden"} >
                 <label className="control-label">Email</label>
                 <div className={ email_error ? "form-group has-error" : "form-group" }>
@@ -111,12 +111,25 @@ module.exports = React.createClass({
                 { email_error }
                 </div>
                 </div>
+        );
+
+        var auth_services = JSON.parse(this.props.authServices);
+
+        var signup_message;
+        if (auth_services.indexOf("gitlab") >= 0) {
+            signup_message = <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team} <a href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}>{"or sign up with GitLab."}</a></p>;
+        } else {
+            signup_message = <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team + "."}</p>;
+        }
 
         return (
             <div>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h4>Welcome to { config.SiteName }</h4>
-                <p>{"Choose your username and password for the " + this.props.team_name + " " + strings.Team +"."}</p>
+                <div className="form-group form-group--small">
+                    <span></span>
+                </div>
+                { signup_message }
                 <p>Your username can be made of lowercase letters and numbers.</p>
                 <label className="control-label">Username</label>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>

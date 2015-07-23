@@ -85,6 +85,7 @@ type UserStore interface {
 	Get(id string) StoreChannel
 	GetProfiles(teamId string) StoreChannel
 	GetByEmail(teamId string, email string) StoreChannel
+	GetByAuth(teamId string, authData string, authService string) StoreChannel
 	GetByUsername(teamId string, username string) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel

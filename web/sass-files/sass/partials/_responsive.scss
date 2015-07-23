@@ -451,31 +451,23 @@
         color: #fff;
         .search__form {
             border: none;
-            padding: 0 60px 0 25px;
+            padding: 0 60px 0 35px;
             .form-control {
-                line-height: 31px;
+                line-height: normal;
                 background: none;
                 color: #fff;
                 border-radius: 0;
-                padding: 0 10px 0;
+                padding: 0;
+                border-bottom: 1px solid #FFF;
+                border-bottom: 1px solid rgba(#fff, 0.6);
                 @include input-placeholder {
                     color: rgba(#fff, 0.6);
                 }
             }
-            ::-webkit-input-placeholder {
-                color: #fff;
-            }
-
-            :-moz-placeholder { /* Firefox 18- */
-                color: #fff;
-            }
-
-            ::-moz-placeholder {  /* Firefox 19+ */
-                color: #fff;
-            }
-
-            :-ms-input-placeholder {
-                color: #fff;
+            input[type=text] {
+                    @include input-placeholder {
+                    color: #fff;
+                }
             }
         }
     }

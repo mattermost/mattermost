@@ -163,8 +163,10 @@
 }
 
 .profile-img {
-    width:158px;
-    max-height:128px;
+    width:128px;
+    height:128px;
+    margin-bottom: 10px;
+    @include border-radius(128px);
 }
 
 .sel-btn {

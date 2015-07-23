@@ -73,13 +73,12 @@ var FeatureTab = React.createClass({
             var inputs = [];
 
             inputs.push(
-                <div className="col-sm-12">
+                <div>
                     <div className="btn-group" data-toggle="buttons-radio">
                         <button className={"btn btn-default "+valetActive[0]} onClick={function(){self.handleValetRadio("true")}}>On</button>
                         <button className={"btn btn-default "+valetActive[1]} onClick={function(){self.handleValetRadio("false")}}>Off</button>
                     </div>
                     <div><br/>Valet is a preview feature for enabling a non-user account limited to basic member permissions that can be manipulated by 3rd parties.<br/><br/>IMPORTANT: The preview version of Valet should not be used without a secure connection and a trusted 3rd party, since user credentials are used to connect. OAuth2 will be used in the final release.</div>
-                    <br></br>
                 </div>
             );
 
