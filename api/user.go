@@ -623,6 +623,24 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	h.Write([]byte(userId))
 	seed := h.Sum32()
 
+	initials := ""
+	parts := strings.Split(username, " ")
+
+	for _, v := range parts {
+
+		if len(v) > 0 {
+			initials += string(strings.ToUpper(v)[0])
+		}
+	}
+
+	if len(initials) == 0 {
+		initials = "^"
+	}
+
+	if len(initials) > 2 {
+		initials = initials[0:2]
+	}
+
 	color := colors[int64(seed)%int64(len(colors))]
 	img := image.NewRGBA(image.Rect(0, 0, int(utils.Cfg.ImageSettings.ProfileWidth), int(utils.Cfg.ImageSettings.ProfileHeight)))
 	draw.Draw(img, img.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
