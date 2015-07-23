@@ -92,10 +92,10 @@
 		.navbar-right {
 			font-size: 0.85em;
 			position: absolute;
-			top: 20px;
+			top: 10px;
 			right: 22px;
 			.dropdown-toggle {
-				padding: 0 10px;
+				padding: 10px;
 			}
 			.dropdown-menu {
 				li a {
@@ -119,6 +119,7 @@
 		}
 		.header__info {
 			color: #fff;
+			 padding-left: 3px
 		}
 		.team__name, .user__name {
 			display: block;

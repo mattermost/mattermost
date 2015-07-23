@@ -68,6 +68,9 @@ module.exports = React.createClass({
             else if (currentSession.props.platform === "Macintosh" || currentSession.props.platform === "iPhone") {
                 devicePicture = "fa fa-apple";
             }
+            else if (currentSession.props.platform === "Linux") {
+                devicePicture = "fa fa-linux";
+            }
 
             activityList[i] = (
                 <div className="activity-log__table">
@@ -83,7 +86,7 @@ module.exports = React.createClass({
                                 <div>{"Session ID: " + currentSession.alt_id}</div>
                             </div>
                             :
-                            <a href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
+                            <a className="theme" href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
                             }
                         </div>
                     </div>

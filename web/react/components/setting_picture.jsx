@@ -25,9 +25,9 @@ module.exports = React.createClass({
 
         var img = null;
         if (this.props.picture) {
-            img = (<img ref="image" className="col-xs-5 profile-img" src=""/>);
+            img = (<img ref="image" className="profile-img" src=""/>);
         } else {
-            img = (<img ref="image" className="col-xs-5 profile-img" src={this.props.src}/>);
+            img = (<img ref="image" className="profile-img" src={this.props.src}/>);
         }
 
         var self = this;
@@ -37,7 +37,7 @@ module.exports = React.createClass({
                 <li className="col-xs-12 section-title">{this.props.title}</li>
                 <li className="col-xs-offset-3 col-xs-8">
                     <ul className="setting-list">
-                        <li className="row setting-list-item">
+                        <li className="setting-list-item">
                             {img}
                         </li>
                         <li className="setting-list-item">
