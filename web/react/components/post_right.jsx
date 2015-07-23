@@ -10,7 +10,7 @@ var utils = require('../utils/utils.jsx');
 var SearchBox =require('./search_bar.jsx');
 var CreateComment = require( './create_comment.jsx' );
 var Constants = require('../utils/constants.jsx');
-var ViewImageModal = require('./view_image.jsx');
+var FileAttachmentList = require('./file_attachment_list.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 RhsHeaderPost = React.createClass({
@@ -55,17 +55,8 @@ RhsHeaderPost = React.createClass({
 });
 
 RootPost = React.createClass({
-    handleImageClick: function(e) {
-        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'))});
-    },
-    getInitialState: function() {
-        return { startImgId: 0 };
-    },
     render: function() {
-
-        var postImageModalId = "rhs_view_image_modal_" + this.props.post.id;
         var message = utils.textToJsx(this.props.post.message);
-        var filenames = this.props.post.filenames;
         var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
         var timestamp = UserStore.getProfile(this.props.post.user_id).update_at;
         var channel = ChannelStore.get(this.props.post.channel_id);
@@ -82,42 +73,6 @@ RootPost = React.createClass({
 
         if (channel) {
             channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
-        }
-
-        if (filenames) {
-            var postFiles = [];
-            var images = [];
-            var re1 = new RegExp(' ', 'g');
-            var re2 = new RegExp('\\(', 'g');
-            var re3 = new RegExp('\\)', 'g');
-            for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-                var fileInfo = utils.splitFileLocation(filenames[i]);
-                var ftype = utils.getFileType(fileInfo.ext);
-
-                // This is a temporary patch to fix issue with old files using absolute paths
-                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
-                    fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-                }
-                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
-
-                if (ftype === "image") {
-                    var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
-                    postFiles.push(
-                        <div className="post-image__column" key={fileInfo.path}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={fileInfo.path} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
-                        </div>
-                    );
-                    images.push(filenames[i]);
-                } else {
-                    postFiles.push(
-                        <div className="post-image__column custom-file" key={fileInfo.path}>
-                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
-                                <div className={"file-icon "+utils.getIconClassName(ftype)}/>
-                            </a>
-                        </div>
-                    );
-                }
-            }
         }
 
         return (
@@ -146,19 +101,12 @@ RootPost = React.createClass({
                     </ul>
                     <div className="post-body">
                         <p>{message}</p>
-                        { filenames.length > 0 ?
-                            <div className="post-image__columns">
-                                { postFiles }
-                            </div>
-                        : "" }
-                        { images.length > 0 ?
-                            <ViewImageModal
-                            channelId={this.props.post.channel_id}
-                            userId={this.props.post.user_id}
-                            modalId={postImageModalId}
-                            startId={this.state.startImgId}
-                            imgCount={this.props.post.img_count}
-                            filenames={images} />
+                        { this.props.post.filenames && this.props.post.filenames.length > 0 ?
+                            <FileAttachmentList
+                                postId={this.props.post.id}
+                                channelId={this.props.post.channel_id}
+                                userId={this.props.post.user_id}
+                                filenames={this.props.post.filenames} />
                         : "" }
                     </div>
                 </div>
@@ -169,14 +117,7 @@ RootPost = React.createClass({
 });
 
 CommentPost = React.createClass({
-    handleImageClick: function(e) {
-        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'))});
-    },
-    getInitialState: function() {
-        return { startImgId: 0 };
-    },
     render: function() {
-
         var commentClass = "post";
 
         var currentUserCss = "";
@@ -184,50 +125,11 @@ CommentPost = React.createClass({
             currentUserCss = "current--user";
         }
 
-        var postImageModalId = "rhs_comment_view_image_modal_" + this.props.post.id;
-        var filenames = this.props.post.filenames;
         var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
 
         var type = "Post"
         if (this.props.post.root_id.length > 0) {
             type = "Comment"
-        }
-
-        if (filenames) {
-            var postFiles = [];
-            var images = [];
-            var re1 = new RegExp(' ', 'g');
-            var re2 = new RegExp('\\(', 'g');
-            var re3 = new RegExp('\\)', 'g');
-            for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-
-                var fileInfo = utils.splitFileLocation(filenames[i]);
-                var type = utils.getFileType(fileInfo.ext);
-
-                // This is a temporary patch to fix issue with old files using absolute paths
-                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
-                    fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-                }
-                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
-
-                if (type === "image") {
-                    var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
-                    postFiles.push(
-                        <div className="post-image__column" key={fileInfo.path}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={fileInfo.path} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
-                        </div>
-                    );
-                    images.push(filenames[i]);
-                } else {
-                    postFiles.push(
-                        <div className="post-image__column custom-file" key={fileInfo.path}>
-                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
-                                <div className={"file-icon "+utils.getIconClassName(type)}/>
-                            </a>
-                        </div>
-                    );
-                }
-            }
         }
 
         var message = utils.textToJsx(this.props.post.message);
@@ -256,19 +158,12 @@ CommentPost = React.createClass({
                     </ul>
                     <div className="post-body">
                         <p>{message}</p>
-                        { filenames.length > 0 ?
-                            <div className="post-image__columns">
-                                { postFiles }
-                            </div>
-                        : "" }
-                        { images.length > 0 ?
-                            <ViewImageModal
-                            channelId={this.props.post.channel_id}
-                            userId={this.props.post.user_id}
-                            modalId={postImageModalId}
-                            startId={this.state.startImgId}
-                            imgCount={this.props.post.img_count}
-                            filenames={images} />
+                        { this.props.post.filenames && this.props.post.filenames.length > 0 ?
+                            <FileAttachmentList
+                                postId={this.props.post.id}
+                                channelId={this.props.post.channel_id}
+                                userId={this.props.post.user_id}
+                                filenames={this.props.post.filenames} />
                         : "" }
                     </div>
                 </div>
