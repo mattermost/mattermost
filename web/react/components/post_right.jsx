@@ -111,7 +111,7 @@ RootPost = React.createClass({
                 } else {
                     postFiles.push(
                         <div className="post-image__column custom-file" key={fileInfo.path}>
-                            <a href={fileInfo.path+"."+ext} download={fileInfo.name+"."+ext}>
+                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
                                 <div className={"file-icon "+utils.getIconClassName(ftype)}/>
                             </a>
                         </div>
