@@ -191,7 +191,7 @@ module.exports = React.createClass({
                         </button>;
         var right_sidebar_collapse_button= currentId == null ? null :
                         <button type="button" className="navbar-toggle menu-toggle pull-right" data-toggle="collapse" data-target="#sidebar-nav" onClick={this.toggleRightSidebar}>
-                            <span className="dropdown__icon"></span>
+                            <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                         </button>;
 
 
