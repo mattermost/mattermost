@@ -83,14 +83,7 @@ func NewSqlStore() Store {
 
 func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {
 
-	charset := ""
-	if strings.Index(dataSource, "?") > -1 {
-		charset = "&charset=utf8mb4,utf8"
-	} else {
-		charset = "?charset=utf8mb4,utf8"
-	}
-
-	db, err := dbsql.Open(driver, dataSource+charset)
+	db, err := dbsql.Open(driver, dataSource)
 	if err != nil {
 		l4g.Critical("Failed to open sql connection to '%v' err:%v", dataSource, err)
 		time.Sleep(time.Second)
@@ -130,6 +123,11 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 }
 
 func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
+	// XXX TODO FIXME this should be removed after 0.6.0
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		return false
+	}
+
 	count, err := ss.GetMaster().SelectInt(
 		`SELECT
 		    COUNT(0) AS column_exists
@@ -152,6 +150,12 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 }
 
 func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
+
+	// XXX TODO FIXME this should be removed after 0.6.0
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		return false
+	}
+
 	if ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -167,6 +171,12 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 }
 
 func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
+
+	// XXX TODO FIXME this should be removed after 0.6.0
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		return false
+	}
+
 	if !ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -182,14 +192,17 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 }
 
 func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+
+	// XXX TODO FIXME this should be removed after 0.6.0
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		return false
+	}
+
 	if !ss.DoesColumnExist(tableName, oldColumnName) {
 		return false
 	}
 
 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
-
-	// when we eventually support PostgreSQL, we can use the following instead
-	//_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
 
 	if err != nil {
 		l4g.Critical("Failed to rename column %v", err)
@@ -209,27 +222,55 @@ func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName st
 }
 
 func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, fullText bool) {
-	count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
-	if err != nil {
-		l4g.Critical("Failed to check index", err)
+
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		_, err := ss.GetMaster().SelectStr("SELECT to_regclass($1)", indexName)
+		// It should fail if the index does not exist
+		if err == nil {
+			return
+		}
+
+		query := ""
+		if fullText {
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
+		} else {
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+		}
+
+		_, err = ss.GetMaster().Exec(query)
+		if err != nil {
+			l4g.Critical("Failed to create index %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to create index " + err.Error())
+		}
+	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		if err != nil {
+			l4g.Critical("Failed to check index %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to check index " + err.Error())
+		}
+
+		if count > 0 {
+			return
+		}
+
+		fullTextIndex := ""
+		if fullText {
+			fullTextIndex = " FULLTEXT "
+		}
+
+		_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
+		if err != nil {
+			l4g.Critical("Failed to create index %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to create index " + err.Error())
+		}
+	} else {
+		l4g.Critical("Failed to create index because of missing driver")
 		time.Sleep(time.Second)
-		panic("Failed to check index" + err.Error())
-	}
-
-	if count > 0 {
-		return
-	}
-
-	fullTextIndex := ""
-	if fullText {
-		fullTextIndex = " FULLTEXT "
-	}
-
-	_, err = ss.GetMaster().Exec("CREATE " + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
-	if err != nil {
-		l4g.Critical("Failed to create index", err)
-		time.Sleep(time.Second)
-		panic("Failed to create index " + err.Error())
+		panic("Failed to create index because of missing driver")
 	}
 }
 

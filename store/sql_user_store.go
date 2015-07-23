@@ -383,7 +383,7 @@ func (us SqlUserStore) GetByAuth(teamId string, authData string, authService str
 
 		user := model.User{}
 
-		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId=? AND AuthData=? AND AuthService=?", teamId, authData, authService); err != nil {
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"TeamId": teamId, "AuthData": authData, "AuthService": authService}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByAuth", "We couldn't find the existing account", "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
 		}
 

@@ -66,7 +66,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(team); err != nil {
-			if IsUniqueConstraintError(err.Error(), "Name", "teams_domain_key") {
+			if IsUniqueConstraintError(err.Error(), "Name", "teams_name_key") {
 				result.Err = model.NewAppError("SqlTeamStore.Save", "A team with that domain already exists", "id="+team.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewAppError("SqlTeamStore.Save", "We couldn't save the team", "id="+team.Id+", "+err.Error())

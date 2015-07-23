@@ -82,7 +82,7 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 		if err := s.GetMaster().Insert(channel); err != nil {
 			if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
 				dupChannel := model.Channel{}
-				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId=? AND Name=? AND DeleteAt > 0", channel.TeamId, channel.Name)
+				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 				if dupChannel.DeleteAt > 0 {
 					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
 				} else {
