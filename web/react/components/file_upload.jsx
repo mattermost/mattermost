@@ -15,7 +15,7 @@ module.exports = React.createClass({
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
         var numFiles = 0;
-        for(var i = 0; i < files.length && i < Constants.MAX_UPLOAD_FILES; i++) {
+        for(var i = 0; i < files.length; i++) {
             if (files[i].size <= Constants.MAX_FILE_SIZE) {
                 numFiles++;
             }
