@@ -169,7 +169,7 @@ func (s SqlChannelStore) Delete(channelId string, time int64) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("Update Channels SET DeleteAt = "+s.GetMaster().Dialect.BindVar(0)+", UpdateAt = "+s.GetMaster().Dialect.BindVar(1)+" WHERE Id = "+s.GetMaster().Dialect.BindVar(2), time, time, channelId)
+		_, err := s.GetMaster().Exec("Update Channels SET DeleteAt = :Time, UpdateAt = :Time WHERE Id = :ChannelId", map[string]interface{}{"Time": time, "ChannelId": channelId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Delete", "We couldn't delete the channel", "id="+channelId+", err="+err.Error())
 		}
