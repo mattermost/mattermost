@@ -70,10 +70,10 @@ module.exports = React.createClass({
                 <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
                 { filenames && filenames.length > 0 ?
                     <FileAttachmentList
-                        postId={post.id}
+                        filenames={filenames}
+                        modalId={"view_image_modal_" + post.id}
                         channelId={post.channel_id}
-                        userId={post.user_id}
-                        filenames={filenames} />
+                        userId={post.user_id} />
                 : "" }
                 { embed }
             </div>

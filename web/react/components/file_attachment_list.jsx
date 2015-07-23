@@ -9,7 +9,7 @@ module.exports = React.createClass({
     displayName: "FileAttachmentList",
     propTypes: {
         filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-        postId: React.PropTypes.string.isRequired,
+        modalId: React.PropTypes.string.isRequired,
         channelId: React.PropTypes.string,
         userId: React.PropTypes.string
     },
@@ -18,12 +18,11 @@ module.exports = React.createClass({
     },
     render: function() {
         var filenames = this.props.filenames;
-
-        var postImageModalId = "view_image_modal_" + this.props.postId;
+        var modalId = this.props.modalId;
 
         var postFiles = [];
         for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-            postFiles.push(<FileAttachment key={i} filenames={filenames} index={i} imageModalId={postImageModalId} handleImageClick={this.handleImageClick} />);
+            postFiles.push(<FileAttachment key={i} filenames={filenames} index={i} modalId={modalId} handleImageClick={this.handleImageClick} />);
         }
 
         return (
@@ -34,7 +33,7 @@ module.exports = React.createClass({
                 <ViewImageModal
                     channelId={this.props.channelId}
                     userId={this.props.userId}
-                    modalId={postImageModalId}
+                    modalId={modalId}
                     startId={this.state.startImgId}
                     imgCount={0}
                     filenames={filenames} />
