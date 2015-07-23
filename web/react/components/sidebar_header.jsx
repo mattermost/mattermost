@@ -115,7 +115,11 @@ module.exports = React.createClass({
         return (
             <div className="team__header theme">
                 <a className="settings_link" href="#" data-toggle="modal" data-target="#user_settings1">
+                    { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
+                    :
+                    <div />
+                    }
                     <div className="header__info">
                         <div className="user__name">{ '@' + me.username}</div>
                         <div className="team__name">{ teamDisplayName }</div>

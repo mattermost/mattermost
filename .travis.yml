@@ -20,6 +20,11 @@ before_install:
   - "sudo sed -i'' 's/basedir[^=]\\+=.*$/basedir = \\/opt\\/mysql\\/server-5.6/' /etc/mysql/my.cnf"
   - "sudo /etc/init.d/mysql.server start"
 
+install:
+  - export PATH=$PATH:$HOME/gopath/bin
+  - go get github.com/tools/godep
+  - godep restore
+
 before_script:
   - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
   - mysql -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mostest' ;"  -uroot

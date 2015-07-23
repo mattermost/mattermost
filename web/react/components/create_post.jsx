@@ -31,6 +31,11 @@ module.exports = React.createClass({
 
         post.message = this.state.messageText;
 
+        // if this is a reply, trim off any carets from the beginning of a message
+        if (this.state.rootId && post.message.startsWith("^")) {
+            post.message = post.message.replace(/^\^+\s*/g, "");
+        }
+
         if (post.message.trim().length === 0 && this.state.previews.length === 0) {
             return;
         }
@@ -50,7 +55,7 @@ module.exports = React.createClass({
                 post.message,
                 false,
                 function(data) {
-                    PostStore.storeDraft(data.channel_id, user_id, null);
+                    PostStore.storeDraft(data.channel_id, null);
                     this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
 
                     if (data.goto_location.length > 0) {
@@ -68,9 +73,12 @@ module.exports = React.createClass({
             post.channel_id = this.state.channel_id;
             post.filenames = this.state.previews;
 
+            post.root_id = this.state.rootId;
+            post.parent_id = this.state.parentId;
+
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
-                    PostStore.storeDraft(data.channel_id, data.user_id, null);
+                    PostStore.storeDraft(data.channel_id, null);
                     this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
                     this.resizePostHolder();
                     AsyncClient.getPosts(true);
@@ -84,7 +92,13 @@ module.exports = React.createClass({
                 }.bind(this),
                 function(err) {
                     var state = {}
-                    state.server_error = err.message;
+
+                    if (err.message === "Invalid RootId parameter") {
+                        if ($('#post_deleted').length > 0) $('#post_deleted').modal('show');
+                    } else {
+                        state.server_error = err.message;
+                    }
+
                     state.submitting = false;
                     this.setState(state);
                 }.bind(this)
@@ -92,6 +106,17 @@ module.exports = React.createClass({
         }
 
         $(".post-list-holder-by-time").perfectScrollbar('update');
+
+        if (this.state.rootId || this.state.parentId) {
+            this.setState({rootId: "", parentId: "", caretCount: 0});
+
+            // clear the active thread since we've now sent our message
+            AppDispatcher.handleViewAction({
+                type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                root_id: "",
+                parent_id: ""
+            });
+        }
     },
     componentDidUpdate: function() {
         this.resizePostHolder();
@@ -112,6 +137,63 @@ module.exports = React.createClass({
     handleUserInput: function(messageText) {
         this.resizePostHolder();
         this.setState({messageText: messageText});
+
+        // look to see if the message begins with any carets to indicate that it's a reply
+        var replyMatch = messageText.match(/^\^+/g);
+        if (replyMatch) {
+            // the number of carets indicates how many message threads back we're replying to
+            var caretCount = replyMatch[0].length;
+
+            // note that if someone else replies to this thread while a user is typing a reply, the message to which they're replying
+            // won't change unless they change the number of carets. this is probably the desired behaviour since we don't want the
+            // active message thread to change without the user noticing
+            if (caretCount != this.state.caretCount) {
+                this.setState({caretCount: caretCount});
+
+                var posts = PostStore.getCurrentPosts();
+
+                var rootId = "";
+
+                // find the nth most recent post that isn't a comment on another (ie it has no parent) where n is caretCount
+                for (var i = 0; i < posts.order.length; i++) {
+                    var postId = posts.order[i];
+
+                    if (posts.posts[postId].parent_id === "") {
+                        caretCount -= 1;
+
+                        if (caretCount < 1) {
+                            rootId = postId;
+                            break;
+                        }
+                    }
+                }
+
+                // only dispatch an event if something changed
+                if (rootId != this.state.rootId) {
+                    // set the parent id to match the root id so that we're replying to the first post in the thread
+                    var parentId = rootId;
+
+                    // alert the post list so that it can display the active thread
+                    AppDispatcher.handleViewAction({
+                        type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                        root_id: rootId,
+                        parent_id: parentId
+                    });
+                }
+            }
+        } else {
+            if (this.state.caretCount > 0) {
+                this.setState({caretCount: 0});
+
+                // clear the active thread since there no longer is one
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED,
+                    root_id: "",
+                    parent_id: ""
+                });
+            }
+        }
+
         var draft = PostStore.getCurrentDraft();
         if (!draft) {
             draft = {}
@@ -127,7 +209,7 @@ module.exports = React.createClass({
         $(window).trigger('resize');
     },
     handleFileUpload: function(newPreviews, channel_id) {
-        var draft = PostStore.getDraft(channel_id, UserStore.getCurrentId());
+        var draft = PostStore.getDraft(channel_id);
         if (!draft) {
             draft = {}
             draft['message'] = '';
@@ -148,7 +230,7 @@ module.exports = React.createClass({
         } else {
             draft['previews'] = draft['previews'].concat(newPreviews);
             draft['uploadsInProgress'] = draft['uploadsInProgress'] > 0 ? draft['uploadsInProgress'] - 1 : 0;
-            PostStore.storeDraft(channel_id, UserStore.getCurrentId(), draft);
+            PostStore.storeDraft(channel_id, draft);
         }
     },
     handleUploadError: function(err) {
@@ -174,10 +256,12 @@ module.exports = React.createClass({
     },
     componentDidMount: function() {
         ChannelStore.addChangeListener(this._onChange);
+        PostStore.addActiveThreadChangedListener(this._onActiveThreadChanged);
         this.resizePostHolder();
     },
     componentWillUnmount: function() {
         ChannelStore.removeChangeListener(this._onChange);
+        PostStore.removeActiveThreadChangedListener(this._onActiveThreadChanged);
     },
     _onChange: function() {
         var channel_id = ChannelStore.getCurrentId();
@@ -194,6 +278,11 @@ module.exports = React.createClass({
             this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
         }
     },
+    _onActiveThreadChanged: function(rootId, parentId) {
+        // note that we register for our own events and set the state from there so we don't need to manually set
+        // our state and dispatch an event each time the active thread changes
+        this.setState({"rootId": rootId, "parentId": parentId});
+    },
     getInitialState: function() {
         PostStore.clearDraftUploads();
 
@@ -204,7 +293,7 @@ module.exports = React.createClass({
             previews = draft['previews'];
             messageText = draft['message'];
         }
-        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: 0, previews: previews, submitting: false, initialText: messageText };
+        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: 0, previews: previews, submitting: false, initialText: messageText, caretCount: 0 };
     },
     setUploads: function(val) {
         var oldInProgress = this.state.uploadsInProgress

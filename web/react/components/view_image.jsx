@@ -36,6 +36,11 @@ module.exports = React.createClass({
             src = this.props.filenames[id];
         } else {
             var fileInfo = utils.splitFileLocation(this.props.filenames[id]);
+            // This is a temporary patch to fix issue with old files using absolute paths
+            if (fileInfo.path.indexOf("/api/v1/files/get") !== -1) {
+                fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
+            }
+            fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
             src = fileInfo['path'] + '_preview.jpg';
         }
 
@@ -139,17 +144,29 @@ module.exports = React.createClass({
                 if (this.props.imgCount > 0) {
                     preview_filename = this.props.filenames[this.state.imgId];
                 } else {
+                    // This is a temporary patch to fix issue with old files using absolute paths
+                    if (info.path.indexOf("/api/v1/files/get") !== -1) {
+                        info.path = info.path.split("/api/v1/files/get")[1];
+                    }
+                    info.path = window.location.origin + "/api/v1/files/get" + info.path;
                     preview_filename = info['path'] + '_preview.jpg';
                 }
 
                 var imgClass = "hidden";
                 if (this.state.loaded[id] && this.state.imgId == id) imgClass = "";
 
-                img[info['path']] = <a key={info['path']} className={imgClass} href={this.props.filenames[id]} target="_blank"><img ref="image" src={preview_filename}/></a>;
+                img[info['path']] = <a key={info['path']} className={imgClass} href={info.path+"."+info.ext} target="_blank"><img ref="image" src={preview_filename}/></a>;
             }
         }
 
         var imgFragment = React.addons.createFragment(img);
+
+        // This is a temporary patch to fix issue with old files using absolute paths
+        var download_link = this.props.filenames[this.state.imgId];
+        if (download_link.indexOf("/api/v1/files/get") !== -1) {
+            download_link = download_link.split("/api/v1/files/get")[1];
+        }
+        download_link = window.location.origin + "/api/v1/files/get" + download_link;
 
         return (
             <div className="modal fade image_modal" ref="modal" id={this.props.modalId} tabIndex="-1" role="dialog" aria-hidden="true">
@@ -168,7 +185,7 @@ module.exports = React.createClass({
                                                 <span className="text"> | </span>
                                             </div>
                                         : "" }
-                                        <a href={this.props.filenames[id]} download={decodeURIComponent(name)} className="text">Download</a>
+                                        <a href={download_link} download={decodeURIComponent(name)} className="text">Download</a>
                                     </div>
                                 </div>
                                 {loading}

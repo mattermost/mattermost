@@ -91,28 +91,27 @@ RootPost = React.createClass({
             var re2 = new RegExp('\\(', 'g');
             var re3 = new RegExp('\\)', 'g');
             for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-                var fileSplit = filenames[i].split('.');
-                if (fileSplit.length < 2) continue;
+                var fileInfo = utils.splitFileLocation(filenames[i]);
+                var ftype = utils.getFileType(fileInfo.ext);
 
-                var ext = fileSplit[fileSplit.length-1];
-                fileSplit.splice(fileSplit.length-1,1);
-                var filePath = fileSplit.join('.');
-                var filename = filePath.split('/')[filePath.split('/').length-1];
-
-                var ftype = utils.getFileType(ext);
+                // This is a temporary patch to fix issue with old files using absolute paths
+                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
+                    fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
+                }
+                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
 
                 if (ftype === "image") {
-                    var url = filePath.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
+                    var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
                     postFiles.push(
-                        <div className="post-image__column" key={filePath}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={filePath} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
+                        <div className="post-image__column" key={fileInfo.path}>
+                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={fileInfo.path} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
                         </div>
                     );
                     images.push(filenames[i]);
                 } else {
                     postFiles.push(
-                        <div className="post-image__column custom-file" key={filePath}>
-                            <a href={filePath+"."+ext} download={filename+"."+ext}>
+                        <div className="post-image__column custom-file" key={fileInfo.path}>
+                            <a href={fileInfo.path+"."+ext} download={fileInfo.name+"."+ext}>
                                 <div className={"file-icon "+utils.getIconClassName(ftype)}/>
                             </a>
                         </div>
@@ -201,28 +200,28 @@ CommentPost = React.createClass({
             var re2 = new RegExp('\\(', 'g');
             var re3 = new RegExp('\\)', 'g');
             for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-                var fileSplit = filenames[i].split('.');
-                if (fileSplit.length < 2) continue;
 
-                var ext = fileSplit[fileSplit.length-1];
-                fileSplit.splice(fileSplit.length-1,1)
-                var filePath = fileSplit.join('.');
-                var filename = filePath.split('/')[filePath.split('/').length-1];
+                var fileInfo = utils.splitFileLocation(filenames[i]);
+                var type = utils.getFileType(fileInfo.ext);
 
-                var type = utils.getFileType(ext);
+                // This is a temporary patch to fix issue with old files using absolute paths
+                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
+                    fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
+                }
+                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
 
                 if (type === "image") {
-                    var url = filePath.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
+                    var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
                     postFiles.push(
-                        <div className="post-image__column" key={filename}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={filename} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
+                        <div className="post-image__column" key={fileInfo.path}>
+                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={fileInfo.path} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
                         </div>
                     );
                     images.push(filenames[i]);
                 } else {
                     postFiles.push(
-                        <div className="post-image__column custom-file" key={filename}>
-                            <a href={filePath+"."+ext} download={filename+"."+ext}>
+                        <div className="post-image__column custom-file" key={fileInfo.path}>
+                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
                                 <div className={"file-icon "+utils.getIconClassName(type)}/>
                             </a>
                         </div>
@@ -294,6 +293,8 @@ module.exports = React.createClass({
         });
     },
     componentDidUpdate: function() {
+        $(".post-right__scroll").scrollTop($(".post-right__scroll")[0].scrollHeight);
+        $(".post-right__scroll").perfectScrollbar('update');
         this.resize();
     },
     componentWillUnmount: function() {
@@ -352,6 +353,7 @@ module.exports = React.createClass({
         $(".post-right__scroll").css("height", height + "px");
         $(".post-right__scroll").scrollTop(100000);
         $(".post-right__scroll").perfectScrollbar();
+        $(".post-right__scroll").perfectScrollbar('update');
     },
     render: function() {
 

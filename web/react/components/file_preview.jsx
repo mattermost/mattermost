@@ -16,20 +16,26 @@ module.exports = React.createClass({
         var previews = [];
         this.props.files.forEach(function(filename) {
 
+            var originalFilename = filename;
             var filenameSplit = filename.split('.');
             var ext = filenameSplit[filenameSplit.length-1];
             var type = utils.getFileType(ext);
+            // This is a temporary patch to fix issue with old files using absolute paths
+            if (filename.indexOf("/api/v1/files/get") != -1) {
+                filename = filename.split("/api/v1/files/get")[1];
+            }
+            filename = window.location.origin + "/api/v1/files/get" + filename;
 
             if (type === "image") {
                 previews.push(
-                    <div key={filename} className="preview-div" data-filename={filename}>
+                    <div key={filename} className="preview-div" data-filename={originalFilename}>
                         <img className="preview-img" src={filename}/>
                         <a className="remove-preview" onClick={this.handleRemove}><i className="glyphicon glyphicon-remove"/></a>
                     </div>
                 );
             } else {
                 previews.push(
-                    <div key={filename} className="preview-div custom-file" data-filename={filename}>
+                    <div key={filename} className="preview-div custom-file" data-filename={originalFilename}>
                         <div className={"file-icon "+utils.getIconClassName(type)}/>
                         <a className="remove-preview" onClick={this.handleRemove}><i className="glyphicon glyphicon-remove"/></a>
                     </div>

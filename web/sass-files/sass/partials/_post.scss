@@ -215,9 +215,6 @@ body.ios {
 				@include opacity(1);
 			}
 			.dropdown-toggle:after {
-				content: '...';
-			}
-			.dropdown-toggle:hover:after {
 				content: '[...]';
 			}
 		}
@@ -322,6 +319,12 @@ body.ios {
 			max-width: 100%;
 			@include legacy-pie-clearfix;
 		}
+        &.active-thread__content {
+            // this still needs a final style applied to it
+            & .post-body {
+                font-weight: bold;
+            }
+        }
 	}
 	.post-image__columns {
 		@include legacy-pie-clearfix;

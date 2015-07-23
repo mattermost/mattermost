@@ -19,7 +19,9 @@
         "InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6",
         "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
-        "AnalyticsUrl": ""
+        "AnalyticsUrl": "",
+        "UseLocalStorage": true,
+        "StorageDirectory": "./data/"
     },
     "SqlSettings": {
         "DriverName": "mysql",

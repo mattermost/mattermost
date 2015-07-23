@@ -18,6 +18,7 @@ var SEARCH_TERM_CHANGE_EVENT = 'search_term_change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
 var ADD_MENTION_EVENT = 'add_mention';
+var ACTIVE_THREAD_CHANGED_EVENT = 'active_thread_changed';
 
 var PostStore = assign({}, EventEmitter.prototype, {
 
@@ -93,6 +94,18 @@ var PostStore = assign({}, EventEmitter.prototype, {
     this.removeListener(ADD_MENTION_EVENT, callback);
   },
 
+  emitActiveThreadChanged: function(rootId, parentId) {
+    this.emit(ACTIVE_THREAD_CHANGED_EVENT, rootId, parentId);
+  },
+
+  addActiveThreadChangedListener: function(callback) {
+    this.on(ACTIVE_THREAD_CHANGED_EVENT, callback);
+  },
+
+  removeActiveThreadChangedListener: function(callback) {
+    this.removeListener(ACTIVE_THREAD_CHANGED_EVENT, callback);
+  },
+
   getCurrentPosts: function() {
     var currentId = ChannelStore.getCurrentId();
 
@@ -136,19 +149,23 @@ var PostStore = assign({}, EventEmitter.prototype, {
   },
   storeCurrentDraft: function(draft) {
     var channel_id = ChannelStore.getCurrentId();
-    var user_id = UserStore.getCurrentId();
-    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, draft);
+    BrowserStore.setItem("draft_" + channel_id, draft);
   },
   getCurrentDraft: function() {
     var channel_id = ChannelStore.getCurrentId();
-    var user_id = UserStore.getCurrentId();
-    return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
+    return BrowserStore.getItem("draft_" + channel_id);
   },
-  storeDraft: function(channel_id, user_id, draft) {
-    BrowserStore.setItem("draft_" + channel_id + "_" + user_id, draft);
+  storeDraft: function(channel_id, draft) {
+    BrowserStore.setItem("draft_" + channel_id, draft);
   },
-  getDraft: function(channel_id, user_id) {
-    return BrowserStore.getItem("draft_" + channel_id + "_" + user_id);
+  getDraft: function(channel_id) {
+    return BrowserStore.getItem("draft_" + channel_id);
+  },
+  storeCommentDraft: function(parent_post_id, draft) {
+    BrowserStore.setItem("comment_draft_" + parent_post_id, draft);
+  },
+  getCommentDraft: function(parent_post_id) {
+    return BrowserStore.getItem("comment_draft_" + parent_post_id);
   },
   clearDraftUploads: function() {
       BrowserStore.actionOnItemsWithPrefix("draft_", function (key, value) {
@@ -157,6 +174,14 @@ var PostStore = assign({}, EventEmitter.prototype, {
               BrowserStore.setItem(key, value);
           }
       });
+  },
+  clearCommentDraftUploads: function() {
+    BrowserStore.actionOnItemsWithPrefix("comment_draft_", function (key, value) {
+      if (value) {
+        value.uploadsInProgress = 0;
+        BrowserStore.setItem(key, value);
+      }
+    });
   }
 });
 
@@ -185,6 +210,9 @@ PostStore.dispatchToken = AppDispatcher.register(function(payload) {
       break;
     case ActionTypes.RECIEVED_ADD_MENTION:
       PostStore.emitAddMention(action.id, action.username);
+      break;
+    case ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED:
+      PostStore.emitActiveThreadChanged(action.root_id, action.parent_id);
       break;
 
     default:

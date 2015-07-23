@@ -89,6 +89,9 @@
             max-width: 810px;
         }
     }
+    .channel-intro {
+        max-width: 810px;
+    }
     .date-separator, .new-separator {
         &.hovered--comment {
             &:before, &:after {
@@ -214,6 +217,12 @@
     }
 }
 
+@media (min-width: 992px){
+    .modal-lg {
+        width: 700px;
+    }
+}
+
 @media screen and (min-width: 768px) {
     .second-bar {
         display: none;
@@ -239,12 +248,22 @@
         }
         &:hover {
             background: none;
+            .post-header .post-header-col.post-header__reply {
+                .dropdown-toggle:after {
+                    content: '...';
+                }
+            }
         }
         &.post--comment {
             &.other--root {
                 &:hover {
                     background: none;
                 }
+            }
+        }
+        .post-header .post-header-col.post-header__reply {
+            .dropdown-toggle:after {
+                content: '...';
             }
         }
     }
@@ -628,6 +647,33 @@
 
     .post-comments {
         padding: 9px 21px 10px 10px !important;
+    }
+}
+@media screen and (max-width: 640px) {
+    .access-history__table {
+        > div {
+            display: block;
+        }
+        .access__report {
+              margin: 0 0 15px 15px;
+        }
+        .access__date {
+            div {
+                margin-bottom: 15px;
+            }
+        }
+    }
+    .activity-log__table {
+        > div {
+            display: block;
+        }
+        .activity-log__report {
+            width: 100%;
+        }
+        .activity-log__action {
+            text-align: left;
+            margin-top: 10px;
+        }
     }
 }
 @media screen and (max-width: 480px) {

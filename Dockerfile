@@ -40,7 +40,7 @@ WORKDIR /go
 
 #
 # Install SQL
-# 
+#
 
 ENV MYSQL_ROOT_PASSWORD=mostest
 ENV MYSQL_USER=mmuser
@@ -60,7 +60,7 @@ RUN echo "deb http://repo.mysql.com/apt/debian/ wheezy mysql-${MYSQL_MAJOR}" > /
 
 RUN apt-get update \
 	&& export DEBIAN_FRONTEND=noninteractive \
-	&& apt-get -y install mysql-server \ 
+	&& apt-get -y install mysql-server \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql
 
@@ -88,12 +88,15 @@ ADD . /go/src/github.com/mattermost/platform
 ADD ./docker/main.cf /etc/postfix/
 
 RUN go get github.com/tools/godep
-RUN cd /go/src/github.com/mattermost/platform; godep restore 
+RUN cd /go/src/github.com/mattermost/platform; godep restore
 RUN go install github.com/mattermost/platform
-RUN cd /go/src/github.com/mattermost/platform/web/react; npm install 
+RUN cd /go/src/github.com/mattermost/platform/web/react; npm install
 
 RUN chmod +x /go/src/github.com/mattermost/platform/docker/docker-entry.sh
 ENTRYPOINT /go/src/github.com/mattermost/platform/docker/docker-entry.sh
+
+# Create default storage directory
+RUN mkdir /mattermost/
 
 # Ports
 EXPOSE 80
