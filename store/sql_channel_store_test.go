@@ -451,7 +451,7 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 
 	err := (<-store.Channel().UpdateLastViewedAt(m1.ChannelId, m1.UserId)).Err
 	if err != nil {
-		t.Fatal("failed to update")
+		t.Fatal("failed to update", err)
 	}
 
 	err = (<-store.Channel().UpdateLastViewedAt(m1.ChannelId, "missing id")).Err

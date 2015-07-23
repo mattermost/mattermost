@@ -35,8 +35,8 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test",
-        "DataSourceReplicas": ["mmuser:mostest@tcp(localhost:3306)/mattermost_test"],
+        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8",
+        "DataSourceReplicas": ["mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8"],
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,

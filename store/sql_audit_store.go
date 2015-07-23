@@ -31,7 +31,7 @@ func (s SqlAuditStore) UpgradeSchemaIfNeeded() {
 }
 
 func (s SqlAuditStore) CreateIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_user_id", "Audits", "UserId")
+	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 
 func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
@@ -73,8 +73,8 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 		}
 
 		var audits model.Audits
-		if _, err := s.GetReplica().Select(&audits, "SELECT * FROM Audits WHERE UserId = ? ORDER BY CreateAt DESC LIMIT ?",
-			user_id, limit); err != nil {
+		if _, err := s.GetReplica().Select(&audits, "SELECT * FROM Audits WHERE UserId = :user_id ORDER BY CreateAt DESC LIMIT :limit",
+			map[string]interface{}{"user_id": user_id, "limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlAuditStore.Get", "We encounted an error finding the audits", "user_id="+user_id)
 		} else {
 			result.Data = audits

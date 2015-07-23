@@ -54,6 +54,13 @@ func TestCreateUser(t *testing.T) {
 		}
 	}
 
+	ruser.Data.(*model.User).Email = "test2@nowhere.com"
+	if _, err := Client.CreateUser(ruser.Data.(*model.User), ""); err != nil {
+		if err.Message != "An account with that username already exists." {
+			t.Fatal(err)
+		}
+	}
+
 	ruser.Data.(*model.User).Email = ""
 	if _, err := Client.CreateUser(ruser.Data.(*model.User), ""); err != nil {
 		if err.Message != "Invalid email" {

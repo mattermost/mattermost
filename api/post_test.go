@@ -520,6 +520,7 @@ func TestDeletePosts(t *testing.T) {
 	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post3.Id}
 	post3a1 = Client.Must(Client.CreatePost(post3a1)).Data.(*model.Post)
 
+	time.Sleep(10 * time.Millisecond)
 	Client.Must(Client.DeletePost(channel1.Id, post3.Id))
 
 	r2 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
