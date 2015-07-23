@@ -23,6 +23,16 @@
         "UseLocalStorage": true,
         "StorageDirectory": "./data/"
     },
+    "SSOSettings": {
+        "gitlab": {
+            "Allow": false,
+            "Secret" : "",
+            "Id": "",
+            "AuthEndpoint": "",
+            "TokenEndpoint": "",
+            "UserApiEndpoint": ""
+        }
+    },
     "SqlSettings": {
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test",

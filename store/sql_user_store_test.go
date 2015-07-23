@@ -236,6 +236,25 @@ func TestUserStoreGetByEmail(t *testing.T) {
 	}
 }
 
+func TestUserStoreGetByAuthData(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	u1.AuthData = "123"
+	u1.AuthService = "service"
+	Must(store.User().Save(&u1))
+
+	if err := (<-store.User().GetByAuth(u1.TeamId, u1.AuthData, u1.AuthService)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if err := (<-store.User().GetByAuth("", "", "")).Err; err == nil {
+		t.Fatal("Should have failed because of missing auth data")
+	}
+}
+
 func TestUserStoreGetByUsername(t *testing.T) {
 	Setup()
 

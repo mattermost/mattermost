@@ -52,6 +52,11 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
+
+	// Bug in gorilla.mux pervents us from using regex here.
+	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")
+	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(loginCompleteOAuth)).Methods("GET")
+
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
 	// Bug in gorilla.mux pervents us from using regex here.
@@ -61,6 +66,11 @@ func InitWeb() {
 	mainrouter.Handle("/signup_team_complete/", api.AppHandlerIndependent(signupTeamComplete)).Methods("GET")
 	mainrouter.Handle("/signup_user_complete/", api.AppHandlerIndependent(signupUserComplete)).Methods("GET")
 	mainrouter.Handle("/signup_team_confirm/", api.AppHandlerIndependent(signupTeamConfirm)).Methods("GET")
+
+	// Bug in gorilla.mux pervents us from using regex here.
+	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")
+	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(signupCompleteOAuth)).Methods("GET")
+
 	mainrouter.Handle("/verify_email", api.AppHandlerIndependent(verifyEmail)).Methods("GET")
 	mainrouter.Handle("/find_team", api.AppHandlerIndependent(findTeam)).Methods("GET")
 	mainrouter.Handle("/signup_team", api.AppHandlerIndependent(signup)).Methods("GET")
@@ -178,6 +188,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("login", "Login")
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = teamName
+	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -264,6 +275,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	page.Props["TeamId"] = props["id"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
+	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -438,4 +450,190 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["TeamName"] = teamName
 	page.Props["IsReset"] = strconv.FormatBool(isResetLink)
 	page.Render(c, w)
+}
+
+func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	service := params["service"]
+	teamName := params["team"]
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	hash := r.URL.Query().Get("h")
+
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if api.IsVerifyHashRequired(nil, team, hash) {
+		data := r.URL.Query().Get("d")
+		props := model.MapFromJson(strings.NewReader(data))
+
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+			c.Err = model.NewAppError("signupWithOAuth", "The signup link does not appear to be valid", "")
+			return
+		}
+
+		t, err := strconv.ParseInt(props["time"], 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+			c.Err = model.NewAppError("signupWithOAuth", "The signup link has expired", "")
+			return
+		}
+
+		if team.Id != props["id"] {
+			c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", data)
+			return
+		}
+	}
+
+	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
+
+	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri)
+}
+
+func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	service := params["service"]
+
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+	teamName := r.FormValue("team")
+
+	uri := c.GetSiteURL() + "/signup/" + service + "/complete?team=" + teamName
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("signupCompleteOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	// Make sure team exists
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if body, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+		c.Err = err
+		return
+	} else {
+		var user *model.User
+		if service == model.USER_AUTH_SERVICE_GITLAB {
+			glu := model.GitLabUserFromJson(body)
+			user = model.UserFromGitLabUser(glu)
+		}
+
+		if user == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", "Could not create user out of "+service+" user object", "")
+			return
+		}
+
+		if result := <-api.Srv.Store.User().GetByAuth(team.Id, user.AuthData, service); result.Err == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", "This "+service+" account has already been used to sign up for team "+team.DisplayName, "email="+user.Email)
+			return
+		}
+
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, user.Email); result.Err == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", "Team "+team.DisplayName+" already has a user with the email address attached to your "+service+" account", "email="+user.Email)
+			return
+		}
+
+		user.TeamId = team.Id
+
+		page := NewHtmlTemplatePage("signup_user_oauth", "Complete User Sign Up")
+		page.Props["User"] = user.ToJson()
+		page.Props["TeamName"] = team.Name
+		page.Props["TeamDisplayName"] = team.DisplayName
+		page.Render(c, w)
+	}
+}
+
+func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	service := params["service"]
+	teamName := params["team"]
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("loginWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	// Make sure team exists
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	redirectUri := c.GetSiteURL() + "/login/" + service + "/complete"
+
+	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri)
+}
+
+func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	service := params["service"]
+
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+	teamName := r.FormValue("team")
+
+	uri := c.GetSiteURL() + "/login/" + service + "/complete?team=" + teamName
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("loginCompleteOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	// Make sure team exists
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if body, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+		c.Err = err
+		return
+	} else {
+		authData := ""
+		if service == model.USER_AUTH_SERVICE_GITLAB {
+			glu := model.GitLabUserFromJson(body)
+			authData = glu.GetAuthData()
+		}
+
+		if len(authData) == 0 {
+			c.Err = model.NewAppError("loginCompleteOAuth", "Could not parse auth data out of "+service+" user object", "")
+			return
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByAuth(team.Id, authData, service); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			user = result.Data.(*model.User)
+			api.Login(c, w, r, user, "")
+
+			if c.Err != nil {
+				return
+			}
+
+			root(c, w, r)
+		}
+	}
 }

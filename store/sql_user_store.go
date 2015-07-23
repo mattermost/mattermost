@@ -24,6 +24,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Username").SetMaxSize(64)
 		table.ColMap("Password").SetMaxSize(128)
 		table.ColMap("AuthData").SetMaxSize(128)
+		table.ColMap("AuthService").SetMaxSize(32)
 		table.ColMap("Email").SetMaxSize(128)
 		table.ColMap("Nickname").SetMaxSize(64)
 		table.ColMap("FirstName").SetMaxSize(64)
@@ -57,6 +58,8 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 			panic("Failed to set last name from nickname " + err.Error())
 		}
 	}
+
+	us.CreateColumnIfNotExists("Users", "AuthService", "AuthData", "varchar(32)", "") // for OAuth Client
 }
 
 //func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
@@ -358,6 +361,28 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId=? AND Email=?", teamId, email); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetByEmail", "We couldn't find the existing account", "teamId="+teamId+", email="+email+", "+err.Error())
+		}
+
+		result.Data = &user
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetByAuth(teamId string, authData string, authService string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		user := model.User{}
+
+		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId=? AND AuthData=? AND AuthService=?", teamId, authData, authService); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetByAuth", "We couldn't find the existing account", "teamId="+teamId+", authData="+authData+", authService="+authService+", "+err.Error())
 		}
 
 		result.Data = &user

@@ -20,6 +20,7 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	"image/png"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -80,36 +81,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hash := r.URL.Query().Get("h")
 
-	shouldVerifyHash := true
-
-	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 {
-		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(team.AllowedDomains, "@", " ", -1), ",", " ", -1))))
-
-		matched := false
-		for _, d := range domains {
-			if strings.HasSuffix(user.Email, "@"+d) {
-				matched = true
-				break
-			}
-		}
-
-		if matched {
-			shouldVerifyHash = false
-		} else {
-			c.Err = model.NewAppError("createUser", "The signup link does not appear to be valid", "allowed domains failed")
-			return
-		}
-	}
-
-	if team.Type == model.TEAM_OPEN {
-		shouldVerifyHash = false
-	}
-
-	if len(hash) > 0 {
-		shouldVerifyHash = true
-	}
-
-	if shouldVerifyHash {
+	if IsVerifyHashRequired(user, team, hash) {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
@@ -133,6 +105,10 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
+	if len(user.AuthData) > 0 && len(user.AuthService) > 0 {
+		user.EmailVerified = true
+	}
+
 	ruser := CreateUser(c, team, user)
 	if c.Err != nil {
 		return
@@ -140,6 +116,38 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(ruser.ToJson()))
 
+}
+
+func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool {
+	shouldVerifyHash := true
+
+	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 && user != nil {
+		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(team.AllowedDomains, "@", " ", -1), ",", " ", -1))))
+
+		matched := false
+		for _, d := range domains {
+			if strings.HasSuffix(user.Email, "@"+d) {
+				matched = true
+				break
+			}
+		}
+
+		if matched {
+			shouldVerifyHash = false
+		} else {
+			return true
+		}
+	}
+
+	if team.Type == model.TEAM_OPEN {
+		shouldVerifyHash = false
+	}
+
+	if len(hash) > 0 {
+		shouldVerifyHash = true
+	}
+
+	return shouldVerifyHash
 }
 
 func CreateValet(c *Context, team *model.Team) *model.User {
@@ -233,80 +241,77 @@ func FireAndForgetVerifyEmail(userId, name, email, teamDisplayName, teamURL stri
 	}()
 }
 
-func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
-
-	extraInfo := ""
-	var result store.StoreResult
-
-	if len(props["id"]) != 0 {
-		extraInfo = props["id"]
-		if result = <-Srv.Store.User().Get(props["id"]); result.Err != nil {
-			c.Err = result.Err
-			return
+func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, password, deviceId string) *model.User {
+	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		user := result.Data.(*model.User)
+		if checkUserPassword(c, user, password) {
+			Login(c, w, r, user, deviceId)
+			return user
 		}
 	}
 
+	return nil
+}
+
+func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, name, password, deviceId string) *model.User {
 	var team *model.Team
-	if result.Data == nil && len(props["email"]) != 0 && len(props["name"]) != 0 {
-		extraInfo = props["email"] + " in " + props["name"]
 
-		if nr := <-Srv.Store.Team().GetByName(props["name"]); nr.Err != nil {
-			c.Err = nr.Err
-			return
-		} else {
-			team = nr.Data.(*model.Team)
+	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		team = result.Data.(*model.Team)
+	}
 
-			if result = <-Srv.Store.User().GetByEmail(team.Id, props["email"]); result.Err != nil {
-				c.Err = result.Err
-				return
-			}
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		user := result.Data.(*model.User)
+
+		if checkUserPassword(c, user, password) {
+			Login(c, w, r, user, deviceId)
+			return user
 		}
 	}
 
-	if result.Data == nil {
-		c.Err = model.NewAppError("login", "Login failed because we couldn't find a valid account", extraInfo)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
+	return nil
+}
+
+func checkUserPassword(c *Context, user *model.User, password string) bool {
+	if !model.ComparePassword(user.Password, password) {
+		c.LogAuditWithUserId(user.Id, "fail")
+		c.Err = model.NewAppError("checkUserPassword", "Login failed because of invalid password", "user_id="+user.Id)
+		c.Err.StatusCode = http.StatusForbidden
+		return false
 	}
+	return true
+}
 
-	user := result.Data.(*model.User)
-
-	if team == nil {
-		if tResult := <-Srv.Store.Team().Get(user.TeamId); tResult.Err != nil {
-			c.Err = tResult.Err
-			return
-		} else {
-			team = tResult.Data.(*model.Team)
-		}
-	}
-
+// User MUST be validated before calling Login
+func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 	c.LogAuditWithUserId(user.Id, "attempt")
 
-	if !model.ComparePassword(user.Password, props["password"]) {
-		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = model.NewAppError("login", "Login failed because of invalid password", extraInfo)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
 	if !user.EmailVerified && !utils.Cfg.EmailSettings.ByPassEmail {
-		c.Err = model.NewAppError("login", "Login failed because email address has not been verified", extraInfo)
+		c.Err = model.NewAppError("Login", "Login failed because email address has not been verified", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if user.DeleteAt > 0 {
-		c.Err = model.NewAppError("login", "Login failed because your account has been set to inactive.  Please contact an administrator.", extraInfo)
+		c.Err = model.NewAppError("Login", "Login failed because your account has been set to inactive.  Please contact an administrator.", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
-	session := &model.Session{UserId: user.Id, TeamId: team.Id, Roles: user.Roles, DeviceId: props["device_id"]}
+	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, DeviceId: deviceId}
 
 	maxAge := model.SESSION_TIME_WEB_IN_SECS
 
-	if len(props["device_id"]) > 0 {
+	if len(deviceId) > 0 {
 		session.SetExpireInDays(model.SESSION_TIME_MOBILE_IN_DAYS)
 		maxAge = model.SESSION_TIME_MOBILE_IN_SECS
 	} else {
@@ -357,12 +362,41 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, sessionCookie)
-	user.Sanitize(map[string]bool{})
 
 	c.Session = *session
 	c.LogAuditWithUserId(user.Id, "success")
+}
 
-	w.Write([]byte(result.Data.(*model.User).ToJson()))
+func login(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	if len(props["password"]) == 0 {
+		c.Err = model.NewAppError("login", "Password field must not be blank", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	var user *model.User
+	if len(props["id"]) != 0 {
+		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
+	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
+		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
+	} else {
+		c.Err = model.NewAppError("login", "Either user id or team name and user email must be provided", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if c.Err != nil {
+		return
+	}
+
+	if user != nil {
+		user.Sanitize(map[string]bool{})
+	} else {
+		user = &model.User{}
+	}
+	w.Write([]byte(user.ToJson()))
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -793,6 +827,13 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	tchan := Srv.Store.Team().Get(user.TeamId)
 
+	if user.AuthData != "" {
+		c.LogAudit("failed - tried to update user password who was logged in through oauth")
+		c.Err = model.NewAppError("updatePassword", "Update password failed because the user is logged in through an OAuth service", "auth_service="+user.AuthService)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
 	if !model.ComparePassword(user.Password, currentPassword) {
 		c.Err = model.NewAppError("updatePassword", "Update password failed because of invalid password", "")
 		c.Err.StatusCode = http.StatusForbidden
@@ -1211,4 +1252,73 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(statuses)))
 		return
 	}
+}
+
+func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri string) {
+
+	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	clientId := utils.Cfg.SSOSettings[service].Id
+	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
+	state := model.HashPassword(clientId)
+
+	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri+"?team="+teamName) + "&state=" + url.QueryEscape(state)
+	http.Redirect(w, r, authUrl, http.StatusFound)
+}
+
+func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.AppError) {
+	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
+	}
+
+	if !model.ComparePassword(state, utils.Cfg.SSOSettings[service].Id) {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
+	}
+
+	p := url.Values{}
+	p.Set("client_id", utils.Cfg.SSOSettings[service].Id)
+	p.Set("client_secret", utils.Cfg.SSOSettings[service].Secret)
+	p.Set("code", code)
+	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
+	p.Set("redirect_uri", redirectUri)
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings[service].TokenEndpoint, strings.NewReader(p.Encode()))
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	var ar *model.AccessResponse
+	if resp, err := client.Do(req); err != nil {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
+	} else {
+		ar = model.AccessResponseFromJson(resp.Body)
+	}
+
+	if ar.TokenType != model.ACCESS_TOKEN_TYPE {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
+	}
+
+	if len(ar.AccessToken) == 0 {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
+	}
+
+	p = url.Values{}
+	p.Set("access_token", ar.AccessToken)
+	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings[service].UserApiEndpoint, strings.NewReader(""))
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
+
+	if resp, err := client.Do(req); err != nil {
+		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
+	} else {
+		return resp.Body, nil
+	}
+
 }
