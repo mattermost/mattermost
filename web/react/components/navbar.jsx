@@ -191,7 +191,7 @@ module.exports = React.createClass({
                         </button>;
         var right_sidebar_collapse_button= currentId == null ? null :
                         <button type="button" className="navbar-toggle menu-toggle pull-right" data-toggle="collapse" data-target="#sidebar-nav" onClick={this.toggleRightSidebar}>
-                            <span dangerouslySetInnerHTML={{__html: " <svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='4px' height='16px' viewBox='0 0 8 32' enable-background='new 0 0 8 32' xml:space='preserve'> <g> <circle cx='4' cy='4.062' r='4'/> <circle cx='4' cy='16' r='4'/> <circle cx='4' cy='28' r='4'/> </g> </svg>"}} />
+                            <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                         </button>;
 
 
