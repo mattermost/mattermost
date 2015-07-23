@@ -104,10 +104,10 @@ RootPost = React.createClass({
                         <p>{message}</p>
                         { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
-                                postId={post.id}
+                                filenames={post.filenames}
+                                modalId={"rhs_view_image_modal_" + post.id}
                                 channelId={post.channel_id}
-                                userId={post.user_id}
-                                filenames={post.filenames} />
+                                userId={post.user_id} />
                         : "" }
                     </div>
                 </div>
@@ -163,10 +163,10 @@ CommentPost = React.createClass({
                         <p>{message}</p>
                         { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
-                                postId={post.id}
+                                filenames={post.filenames}
+                                modalId={"rhs_comment_view_image_modal_" + post.id}
                                 channelId={post.channel_id}
-                                userId={post.user_id}
-                                filenames={post.filenames} />
+                                userId={post.user_id} />
                         : "" }
                     </div>
                 </div>

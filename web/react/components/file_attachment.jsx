@@ -8,7 +8,7 @@ module.exports = React.createClass({
     propTypes: {
         filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
         index: React.PropTypes.number.isRequired,
-        imageModalId: React.PropTypes.string.isRequired,
+        modalId: React.PropTypes.string.isRequired,
         handleImageClick: React.PropTypes.func
     },
     componentDidMount: function() {
@@ -66,7 +66,7 @@ module.exports = React.createClass({
         if (type === "image") {
             thumbnail = (
                 <a className="post-image__thumbnail" href="#" onClick={this.props.handleImageClick}
-                    data-img-id={this.props.index} data-toggle="modal" data-target={"#" + this.props.imageModalId }>
+                    data-img-id={this.props.index} data-toggle="modal" data-target={"#" + this.props.modalId }>
                     <div ref={filename} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}/>
                 </a>
             );
