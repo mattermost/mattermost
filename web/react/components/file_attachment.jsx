@@ -78,11 +78,6 @@ module.exports = React.createClass({
             );
         }
 
-        var containerClassName = "post-image__column";
-        if (type !== "image") {
-            containerClassName += " custom-file";
-        }
-
         // TODO fix the race condition here where the file size may arrive before the rest of the page is rendered
         // asynchronously request the size of the file so that we can display it next to the thumbnail
         utils.getFileSize(fileInfo.path + "." + fileInfo.ext, function(self, _filename) {
@@ -94,7 +89,7 @@ module.exports = React.createClass({
         }(this, filename));
 
         return (
-            <div className={containerClassName} key={filename}>
+            <div className="post-image__column" key={filename}>
                 {thumbnail}
                 <div className="post-image__details">
                     <div className="post-image__name">{fileInfo.name}</div>

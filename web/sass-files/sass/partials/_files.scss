@@ -120,9 +120,6 @@
   margin: 5px 10px 5px 0;
   display: flex;
   border: 1px solid lightgrey;
-  &.custom-file {
-    // TODO remove this class if it doesn't end up getting used any more
-  }
   .post__load {
     height: 100%;
     width: 100%;
