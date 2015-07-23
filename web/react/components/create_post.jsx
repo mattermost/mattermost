@@ -210,20 +210,34 @@ module.exports = React.createClass({
         var channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
             var draft = PostStore.getCurrentDraft();
-            this.setState({
-                channelId: channelId, messageText: draft['message'], initialText: draft['message'], submitting: false,
-                serverError: null, postError: null, previews: draft['previews'], uploadsInProgress: draft['uploadsInProgress']
-            });
+
+            var previews = [];
+            var messageText = '';
+            var uploadsInProgress = 0;
+            if (draft && draft['previews'] && draft['message']) {
+                previews = draft['previews'];
+                messageText = draft['message'];
+                uploadsInProgress = draft['uploadsInProgress'];
+            }
+
+            this.setState({channelId: channelId, messageText: messageText, initialText: messageText, submitting: false, serverError: null, postError: null, previews: previews, uploadsInProgress: uploadsInProgress});
         }
     },
     getInitialState: function() {
         PostStore.clearDraftUploads();
+        PostStore.clearPendingPosts(ChannelStore.getCurrentId());
 
         var draft = PostStore.getCurrentDraft();
-        return {
-            channelId: ChannelStore.getCurrentId(), messageText: draft['message'], uploadsInProgress: draft['uploadsInProgress'],
-            previews: draft['previews'], submitting: false, initialText: draft['message']
-        };
+        var previews = [];
+        var messageText = '';
+        var uploadsInProgress = 0;
+        if (draft && draft["previews"] && draft["message"]) {
+            previews = draft['previews'];
+            messageText = draft['message'];
+            uploadsInProgress = draft['uploadsInProgress'];
+        }
+
+        return { channelId: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews, submitting: false, initialText: messageText};
     },
     getFileCount: function(channelId) {
         if (channelId === this.state.channelId) {

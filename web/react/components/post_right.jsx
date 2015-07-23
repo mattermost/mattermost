@@ -11,6 +11,7 @@ var SearchBox =require('./search_bar.jsx');
 var CreateComment = require( './create_comment.jsx' );
 var Constants = require('../utils/constants.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
+var client = require('../utils/client.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 RhsHeaderPost = React.createClass({
@@ -118,10 +119,36 @@ RootPost = React.createClass({
 });
 
 CommentPost = React.createClass({
+    retryComment: function(e) {
+        e.preventDefault();
+
+        var post = this.props.post;
+        client.createPost(post, post.channel_id,
+            function(data) {
+                AsyncClient.getPosts(true);
+
+                var member = ChannelStore.getMember(post.channel_id);
+                member.msg_count = channel.total_msg_count;
+                member.last_viewed_at = (new Date).getTime();
+                ChannelStore.setChannelMember(member);
+            }.bind(this),
+            function(err) {
+                post.did_fail = true;
+                PostStore.updatePendingPost(post);
+                this.forceUpdate();
+            }.bind(this)
+        );
+
+        post.did_fail = false;
+        post.is_loading = true;
+        PostStore.updatePendingPost(post);
+        this.forceUpdate();
+    },
     render: function() {
         var post = this.props.post;
 
         var commentClass = "post";
+        var post = this.props.post;
 
         var currentUserCss = "";
         if (UserStore.getCurrentId() === post.user_id) {
@@ -138,6 +165,16 @@ CommentPost = React.createClass({
         var message = utils.textToJsx(post.message);
         var timestamp = UserStore.getCurrentUser().update_at;
 
+        var loading;
+        var postClass = "";
+        if (post.did_fail) {
+            postClass += " post-fail";
+            loading = <a className="post-retry pull-right" href="#" onClick={this.retryComment}>Retry</a>;
+        } else if (post.is_loading) {
+            postClass += " post-waiting";
+            loading = <img className="post-loading-gif pull-right" src="/static/images/load.gif"/>;
+        }
+
         return (
             <div className={commentClass + " " + currentUserCss}>
                 <div className="post-profile-img__container">
@@ -148,7 +185,7 @@ CommentPost = React.createClass({
                         <li className="post-header-col"><strong><UserProfile userId={post.user_id} /></strong></li>
                         <li className="post-header-col"><time className="post-right-comment-time">{ utils.displayDateTime(post.create_at) }</time></li>
                         <li className="post-header-col post-header__reply">
-                        { isOwner ?
+                        { isOwner && !post.did_fail && !post.is_loading ?
                         <div className="dropdown" onClick={function(e){$('.post-list-holder-by-time').scrollTop($(".post-list-holder-by-time").scrollTop() + 50);}}>
                             <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                             <ul className="dropdown-menu" role="menu">
@@ -160,7 +197,7 @@ CommentPost = React.createClass({
                         </li>
                     </ul>
                     <div className="post-body">
-                        <p>{message}</p>
+                        <p className={postClass}>{loading}{message}</p>
                         { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
                                 filenames={post.filenames}
@@ -176,7 +213,17 @@ CommentPost = React.createClass({
 });
 
 function getStateFromStores() {
-  return { post_list: PostStore.getSelectedPost() };
+    var post_list = PostStore.getSelectedPost();
+    if (!post_list || post_list.order.length < 1) return { post_list: {} };
+
+    var channel_id = post_list.posts[post_list.order[0]].channel_id;
+    var pending_post_list = PostStore.getPendingPosts(channel_id);
+
+    if (pending_post_list) {
+        for (var pid in pending_post_list.posts) { post_list.posts[pid] = pending_post_list.posts[pid] };
+    }
+
+    return { post_list: post_list };
 }
 
 module.exports = React.createClass({

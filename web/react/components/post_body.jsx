@@ -38,7 +38,7 @@ module.exports = React.createClass({
             }
 
             var message = ""
-            if(parentPost.message) {
+            if (parentPost.message) {
                 message = utils.replaceHtmlEntities(parentPost.message)
             } else if (parentPost.filenames.length) {
                 message = parentPost.filenames[0].split('/').pop();

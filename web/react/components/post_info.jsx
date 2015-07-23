@@ -22,16 +22,19 @@ module.exports = React.createClass({
 
         var comments = "";
         var lastCommentClass = this.props.isLastComment ? " comment-icon__container__show" : " comment-icon__container__hide";
-        if (this.props.commentCount >= 1) {
+        if (this.props.commentCount >= 1  && !post.did_fail && !post.is_loading) {
             comments = <a href="#" className={"comment-icon__container theme" + lastCommentClass} onClick={this.props.handleCommentClick}><span className="comment-icon" dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON }} />{this.props.commentCount}</a>;
         }
+
+        var show_dropdown = isOwner || (this.props.allowReply === "true" && type != "Comment");
+        if (post.did_fail || post.is_loading) show_dropdown = false;
 
         return (
             <ul className="post-header post-info">
                 <li className="post-header-col"><time className="post-profile-time">{ utils.displayDateTime(post.create_at) }</time></li>
                     <li className="post-header-col post-header__reply">
                         <div className="dropdown">
-                        { isOwner || (this.props.allowReply === "true" && type != "Comment") ?
+                        { show_dropdown ?
                             <div>
                                 <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
