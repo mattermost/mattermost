@@ -71,48 +71,45 @@
   width:300px;
   height:300px;
 }
+
+@mixin file-icon($path) {
+  background: url($path);
+  background-position: center;
+  background-repeat: no-repeat;
+  @include background-size(auto 100%);
+}
 .file-icon {
   width: 100%;
   height: 100%;
   &.audio {
-    background: url("../images/icons/audio.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/audio.png");
   }
   &.video {
-    background: url("../images/icons/video.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/video.png");
   }
   &.ppt {
-    background: url("../images/icons/ppt.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/ppt.png");
   }
   &.generic {
-    background: url("../images/icons/generic.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/generic.png");
   }
   &.code {
-    background: url("../images/icons/code.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/code.png");
   }
   &.excel {
-    background: url("../images/icons/excel.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/excel.png");
   }
   &.word {
-    background: url("../images/icons/word.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/word.png");
   }
   &.pdf {
-    background: url("../images/icons/pdf.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/pdf.png");
   }
   &.patch {
-    background: url("../images/icons/patch.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/patch.png");
   }
   &.image {
-    background: url("../images/icons/image.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/image.png");
   }
 }
 .post-image__column {
