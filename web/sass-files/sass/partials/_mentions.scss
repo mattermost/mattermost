@@ -10,6 +10,7 @@
 .mentions--top {
 	position: absolute;
 	z-index: 1060;
+	@extend %popover-box-shadow;
 	.mentions-box {
  		width: 100%;
  		height: 100%;

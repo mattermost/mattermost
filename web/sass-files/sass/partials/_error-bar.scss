@@ -1,0 +1,25 @@
+.error-bar {
+    background-color: #0099FF;
+    text-align:center;
+    position: relative;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 9999;
+    padding: 5px 30px;
+    &__close {
+        position: absolute;
+        right: 0;
+        top: 0;
+        color: #FFF;
+        font-size: 20px;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 0 10px;
+        &:hover {
+            color: #FFF;
+            text-decoration: none;
+        }
+    }
+}
