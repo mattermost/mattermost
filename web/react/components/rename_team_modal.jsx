@@ -44,11 +44,14 @@ module.exports = React.createClass({
     onNameChange: function() {
         this.setState({ name: this.refs.name.getDOMNode().value })
     },
+    handleClose: function() {
+        this.setState({ name: this.props.teamDisplayName, name_error: "", server_error: ""});
+    },
     componentDidMount: function() {
-        var self = this;
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
-            self.setState({ name: self.props.teamDisplayName, name_error: "", server_error: ""});
-        });
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $(this.refs.modal.getDOMNode()).off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         return { name: this.props.teamDisplayName };

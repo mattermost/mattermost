@@ -11,6 +11,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
+var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
@@ -96,16 +97,18 @@ var NotificationsTab = React.createClass({
         );
     },
     handleClose: function() {
-        this.setState({server_error: null});
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+
+        this.setState(assign({},getNotificationsStateFromStores(),{server_error: null}));
     },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
-
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
-
         $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     _onChange: function() {
@@ -510,15 +513,10 @@ var SecurityTab = React.createClass({
         $("#user_settings1").modal('hide');
     },
     handleClose: function() {
-        if(this.props.activeSection === 'password') {
-            this.refs.curPass.getDOMNode().value = "";
-            this.refs.newPass.getDOMNode().value = "";
-            this.refs.reNewPass.getDOMNode().value = "";
-
-            this.setState({current_password: '', new_password: '', confirm_password: ''});
-        }
-
-        this.setState({server_error: null, password_error: null});
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
     },
     componentDidMount: function() {
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
@@ -542,7 +540,7 @@ var SecurityTab = React.createClass({
                 <div className="form-group">
                     <label className="col-sm-5 control-label">Current Password</label>
                     <div className="col-sm-7">
-                        <input ref="curPass" className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
+                        <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
                     </div>
                 </div>
             );
@@ -550,7 +548,7 @@ var SecurityTab = React.createClass({
                 <div className="form-group">
                     <label className="col-sm-5 control-label">New Password</label>
                     <div className="col-sm-7">
-                        <input ref="newPass" className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
+                        <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
                     </div>
                 </div>
             );
@@ -558,7 +556,7 @@ var SecurityTab = React.createClass({
                 <div className="form-group">
                     <label className="col-sm-5 control-label">Retype New Password</label>
                     <div className="col-sm-7">
-                        <input ref="reNewPass" className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
+                        <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
                     </div>
                 </div>
             );
@@ -760,7 +758,11 @@ var GeneralTab = React.createClass({
         this.props.updateSection(section);
     },
     handleClose: function() {
-        this.setState({client_error: null, server_error: null, email_error: null});
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+
+        this.setState(assign({}, this.getInitialState(), {client_error: null, server_error: null, email_error: null}));
     },
     componentDidMount: function() {
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
@@ -1012,7 +1014,7 @@ var AppearanceTab = React.createClass({
         this.setState({ theme: hex.toLowerCase() });
     },
     handleClose: function() {
-        this.setState({server_error: null});    
+        this.setState({server_error: null});
     },
     componentDidMount: function() {
         if (this.props.activeSection === "theme") {

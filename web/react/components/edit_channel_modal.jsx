@@ -30,15 +30,19 @@ module.exports = React.createClass({
     handleUserInput: function(e) {
         this.setState({ description: e.target.value });
     },
+    handleClose: function() {
+        this.setState({description: "", server_error: ""});
+    },
     componentDidMount: function() {
         var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
             var button = e.relatedTarget;
             self.setState({ description: $(button).attr('data-desc'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), server_error: "" });
         });
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function() {
-            self.setState({description: ""});
-        })
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose)
+    },
+    componentWillUnmount: function() {
+        $(this.refs.modal.getDOMNode()).off('hidden.bs.modal', this.handleClose)
     },
     getInitialState: function() {
         return { description: "", title: "", channel_id: "" };
