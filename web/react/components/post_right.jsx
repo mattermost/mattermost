@@ -56,18 +56,19 @@ RhsHeaderPost = React.createClass({
 
 RootPost = React.createClass({
     render: function() {
-        var message = utils.textToJsx(this.props.post.message);
-        var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
-        var timestamp = UserStore.getProfile(this.props.post.user_id).update_at;
-        var channel = ChannelStore.get(this.props.post.channel_id);
+        var post = this.props.post;
+        var message = utils.textToJsx(post.message);
+        var isOwner = UserStore.getCurrentId() == post.user_id;
+        var timestamp = UserStore.getProfile(post.user_id).update_at;
+        var channel = ChannelStore.get(post.channel_id);
 
         var type = "Post";
-        if (this.props.post.root_id.length > 0) {
+        if (post.root_id.length > 0) {
             type = "Comment";
         }
 
         var currentUserCss = "";
-        if (UserStore.getCurrentId() === this.props.post.user_id) {
+        if (UserStore.getCurrentId() === post.user_id) {
             currentUserCss = "current--user";
         }
 
@@ -79,20 +80,20 @@ RootPost = React.createClass({
             <div className={"post post--root " + currentUserCss}>
                 <div className="post-right-channel__name">{ channelName }</div>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
-                        <li className="post-header-col"><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
-                        <li className="post-header-col"><time className="post-right-root-time">{ utils.displayDate(this.props.post.create_at)+' '+utils.displayTime(this.props.post.create_at)  }</time></li>
+                        <li className="post-header-col"><strong><UserProfile userId={post.user_id} /></strong></li>
+                        <li className="post-header-col"><time className="post-right-root-time">{ utils.displayDate(post.create_at)+' '+utils.displayTime(post.create_at)  }</time></li>
                         <li className="post-header-col post-header__reply">
                             <div className="dropdown">
                             { isOwner ?
                                 <div>
                                 <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
-                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
-                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
+                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
+                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
                                 </ul>
                                 </div>
                             : "" }
@@ -101,12 +102,12 @@ RootPost = React.createClass({
                     </ul>
                     <div className="post-body">
                         <p>{message}</p>
-                        { this.props.post.filenames && this.props.post.filenames.length > 0 ?
+                        { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
-                                postId={this.props.post.id}
-                                channelId={this.props.post.channel_id}
-                                userId={this.props.post.user_id}
-                                filenames={this.props.post.filenames} />
+                                postId={post.id}
+                                channelId={post.channel_id}
+                                userId={post.user_id}
+                                filenames={post.filenames} />
                         : "" }
                     </div>
                 </div>
@@ -118,39 +119,41 @@ RootPost = React.createClass({
 
 CommentPost = React.createClass({
     render: function() {
+        var post = this.props.post;
+
         var commentClass = "post";
 
         var currentUserCss = "";
-        if (UserStore.getCurrentId() === this.props.post.user_id) {
+        if (UserStore.getCurrentId() === post.user_id) {
             currentUserCss = "current--user";
         }
 
-        var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
+        var isOwner = UserStore.getCurrentId() == post.user_id;
 
         var type = "Post"
-        if (this.props.post.root_id.length > 0) {
+        if (post.root_id.length > 0) {
             type = "Comment"
         }
 
-        var message = utils.textToJsx(this.props.post.message);
+        var message = utils.textToJsx(post.message);
         var timestamp = UserStore.getCurrentUser().update_at;
 
         return (
             <div className={commentClass + " " + currentUserCss}>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
-                        <li className="post-header-col"><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
-                        <li className="post-header-col"><time className="post-right-comment-time">{ utils.displayDateTime(this.props.post.create_at) }</time></li>
+                        <li className="post-header-col"><strong><UserProfile userId={post.user_id} /></strong></li>
+                        <li className="post-header-col"><time className="post-right-comment-time">{ utils.displayDateTime(post.create_at) }</time></li>
                         <li className="post-header-col post-header__reply">
                         { isOwner ?
                         <div className="dropdown" onClick={function(e){$('.post-list-holder-by-time').scrollTop($(".post-list-holder-by-time").scrollTop() + 50);}}>
                             <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                             <ul className="dropdown-menu" role="menu">
-                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
-                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={0}>Delete</a></li>
+                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
+                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={0}>Delete</a></li>
                             </ul>
                         </div>
                         : "" }
@@ -158,12 +161,12 @@ CommentPost = React.createClass({
                     </ul>
                     <div className="post-body">
                         <p>{message}</p>
-                        { this.props.post.filenames && this.props.post.filenames.length > 0 ?
+                        { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
-                                postId={this.props.post.id}
-                                channelId={this.props.post.channel_id}
-                                userId={this.props.post.user_id}
-                                filenames={this.props.post.filenames} />
+                                postId={post.id}
+                                channelId={post.channel_id}
+                                userId={post.user_id}
+                                filenames={post.filenames} />
                         : "" }
                     </div>
                 </div>
