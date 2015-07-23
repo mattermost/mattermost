@@ -461,3 +461,21 @@ body.ios {
 		}
 	}
 }
+
+.post-waiting {
+    color:lightgrey;
+}
+
+.post-loading-gif {
+    height:10px;
+    width:10px;
+    margin-top:6px;
+}
+
+.post-fail {
+    color:red;
+}
+
+.post-retry {
+    color:darkgrey;
+}

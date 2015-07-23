@@ -20,8 +20,16 @@ function getStateFromStores() {
 
     if (channel == null) channel = {};
 
+    var post_list = PostStore.getCurrentPosts();
+    var pending_post_list = PostStore.getPendingPosts(channel.id);
+
+    if (pending_post_list) {
+        post_list.order = pending_post_list.order.concat(post_list.order);
+        for (var pid in pending_post_list.posts) { post_list.posts[pid] = pending_post_list.posts[pid] };
+    }
+
     return {
-        post_list: PostStore.getCurrentPosts(),
+        post_list: post_list,
         channel: channel
     };
 }
@@ -186,8 +194,16 @@ module.exports = React.createClass({
         if (msg.action == "posted") {
             var post = JSON.parse(msg.props.post);
 
-            var post_list = PostStore.getPosts(msg.channel_id);
-            if (!post_list) return;
+            if (post.pending_post_id !== "") {
+                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
+            }
+
+            post.pending_post_id = "";
+
+            postList.posts[post.id] = post;
+            if (postList.order.indexOf(post.id) === -1) {
+                postList.order.unshift(post.id);
+            }
 
             post_list.posts[post.id] = post;
             if (post_list.order.indexOf(post.id) === -1) {
@@ -456,7 +472,9 @@ module.exports = React.createClass({
                     );
                 }
 
-                if (post.create_at > last_viewed && !rendered_last_viewed) {
+                var userId = UserStore.getCurrentId();
+
+                if (post.user_id !== userId && post.create_at > last_viewed && !rendered_last_viewed) {
                     rendered_last_viewed = true;
                     postCtls.push(
                         <div key="unviewed" className="new-separator">

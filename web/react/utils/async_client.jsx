@@ -377,6 +377,8 @@ module.exports.getPosts = function(force, id, maxPosts) {
                         post_list: data
                     });
 
+                    PostStore.removeNonFailedPendingPosts(channelId);
+
                     module.exports.getProfiles();
                 },
                 function(err) {

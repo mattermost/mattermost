@@ -14,21 +14,22 @@ const (
 )
 
 type Post struct {
-	Id         string      `json:"id"`
-	CreateAt   int64       `json:"create_at"`
-	UpdateAt   int64       `json:"update_at"`
-	DeleteAt   int64       `json:"delete_at"`
-	UserId     string      `json:"user_id"`
-	ChannelId  string      `json:"channel_id"`
-	RootId     string      `json:"root_id"`
-	ParentId   string      `json:"parent_id"`
-	OriginalId string      `json:"original_id"`
-	Message    string      `json:"message"`
-	ImgCount   int64       `json:"img_count"`
-	Type       string      `json:"type"`
-	Props      StringMap   `json:"props"`
-	Hashtags   string      `json:"hashtags"`
-	Filenames  StringArray `json:"filenames"`
+	Id            string      `json:"id"`
+	CreateAt      int64       `json:"create_at"`
+	UpdateAt      int64       `json:"update_at"`
+	DeleteAt      int64       `json:"delete_at"`
+	UserId        string      `json:"user_id"`
+	ChannelId     string      `json:"channel_id"`
+	RootId        string      `json:"root_id"`
+	ParentId      string      `json:"parent_id"`
+	OriginalId    string      `json:"original_id"`
+	Message       string      `json:"message"`
+	ImgCount      int64       `json:"img_count"`
+	Type          string      `json:"type"`
+	Props         StringMap   `json:"props"`
+	Hashtags      string      `json:"hashtags"`
+	Filenames     StringArray `json:"filenames"`
+	PendingPostId string      `json:"pending_post_id" db:"-"`
 }
 
 func (o *Post) ToJson() string {

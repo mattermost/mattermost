@@ -59,23 +59,35 @@ module.exports = React.createClass({
             postClass += " post-comment";
         }
 
+        var loading;
+        if (post.did_fail) {
+            postClass += " post-fail";
+            loading = <a className="post-retry pull-right" href="#" onClick={this.props.retryPost}>Retry</a>;
+        } else if (post.is_loading) {
+            postClass += " post-waiting";
+            loading = <img className="post-loading-gif pull-right" src="/static/images/load.gif"/>;
+        }
+
         var embed;
         if (filenames.length === 0 && this.state.links) {
             embed = utils.getEmbed(this.state.links[0]);
         }
 
+        var fileAttachmentHolder = '';
+        if (filenames && filenames.length > 0) {
+            fileAttachmentHolder = (<FileAttachmentList
+                                        filenames={filenames}
+                                        modalId={'view_image_modal_' + post.id}
+                                        channelId={post.channel_id}
+                                        userId={post.user_id} />);
+        }
+
         return (
             <div className="post-body">
-                { comment }
-                <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
-                { filenames && filenames.length > 0 ?
-                    <FileAttachmentList
-                        filenames={filenames}
-                        modalId={"view_image_modal_" + post.id}
-                        channelId={post.channel_id}
-                        userId={post.user_id} />
-                : "" }
-                { embed }
+                {comment}
+                <p key={post.id+"_message"} className={postClass}>{loading}<span>{inner}</span></p>
+                {fileAttachmentHolder}
+                {embed}
             </div>
         );
     }

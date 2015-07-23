@@ -19,7 +19,6 @@ var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
 var ADD_MENTION_EVENT = 'add_mention';
 
 var PostStore = assign({}, EventEmitter.prototype, {
-
     emitChange: function emitChange() {
         this.emit(CHANGE_EVENT);
     },
@@ -102,6 +101,62 @@ var PostStore = assign({}, EventEmitter.prototype, {
     },
     storePosts: function storePosts(channelId, posts) {
         this.pStorePosts(channelId, posts);
+        this.emitChange();
+    },
+    storePendingPost: function(post) {
+        var post_list = this.getPendingPosts(post.channel_id);
+        if (!post_list) {
+            post_list = {posts: {}, order: []};
+        }
+
+        post_list.posts[post.pending_post_id] = post;
+        post_list.order.unshift(post.pending_post_id);
+        this._storePendingPosts(post.channel_id, post_list);
+        this.emitChange();
+    },
+    _storePendingPosts: function(channelId, posts) {
+        BrowserStore.setItem("pending_posts_" + channelId, posts);
+    },
+    getPendingPosts: function(channelId) {
+        return BrowserStore.getItem("pending_posts_" + channelId);
+    },
+    removePendingPost: function(channelId, pending_post_id) {
+        this._removePendingPost(channelId, pending_post_id);
+        this.emitChange();
+    },
+    _removePendingPost: function(channelId, pending_post_id) {
+        var post_list = this.getPendingPosts(channelId);
+        if (!post_list) return;
+
+        if (pending_post_id in post_list.posts) delete post_list.posts[pending_post_id];
+        var index = post_list.order.indexOf(pending_post_id);
+        if (index >= 0) post_list.order.splice(index, 1);
+
+        this._storePendingPosts(channelId, post_list);
+    },
+    clearPendingPosts: function(channelId) {
+        BrowserStore.removeItem("pending_posts_" + channelId)
+    },
+    removeNonFailedPendingPosts: function(channelId) {
+        var post_list = this.getPendingPosts(channelId);
+        if (!post_list) return;
+
+        var posts = post_list.posts;
+
+        for (var id in posts) {
+            if (!posts[id].did_fail) this._removePendingPost(channelId, id);
+        }
+    },
+    updatePendingPost: function(post) {
+        var post_list = this.getPendingPosts(post.channel_id);
+        if (!post_list) {
+            post_list = {posts: {}, order: []};
+        }
+
+        if (post_list.order.indexOf(post.pending_post_id) === -1) return;
+
+        post_list.posts[post.pending_post_id] = post;
+        this._storePendingPosts(post.channel_id, post_list);
         this.emitChange();
     },
     pStorePosts: function pStorePosts(channelId, posts) {

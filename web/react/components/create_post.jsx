@@ -65,10 +65,17 @@ module.exports = React.createClass({
             post.channel_id = this.state.channelId;
             post.filenames = this.state.previews;
 
-            client.createPost(post, ChannelStore.getCurrent(),
+            var time = utils.getTimestamp();
+            post.pending_post_id = user_id + ":"+ time;
+            post.user_id = user_id;
+            post.create_at = time;
+            post.root_id = this.state.rootId;
+            post.parent_id = this.state.parentId;
+
+            var channel = ChannelStore.getCurrent();
+
+            client.createPost(post, channel,
                 function(data) {
-                    PostStore.storeDraft(data.channel_id, null);
-                    this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
                     this.resizePostHolder();
                     AsyncClient.getPosts(true);
 
@@ -79,13 +86,25 @@ module.exports = React.createClass({
                     ChannelStore.setChannelMember(member);
                 }.bind(this),
                 function(err) {
-                    var state = {};
-                    state.serverError = err.message;
+                    var state = {}
+
+                    if (err.message === "Invalid RootId parameter") {
+                        if ($('#post_deleted').length > 0) $('#post_deleted').modal('show');
+                        PostStore.removePendingPost(post.pending_post_id);
+                    } else {
+                        post.did_fail = true;
+                        PostStore.updatePendingPost(post);
+                    }
 
                     state.submitting = false;
                     this.setState(state);
                 }.bind(this)
             );
+
+            post.is_loading = true;
+            PostStore.storePendingPost(post);
+            PostStore.storeDraft(channel.id, user_id, null);
+            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
         }
 
         $('.post-list-holder-by-time').perfectScrollbar('update');
