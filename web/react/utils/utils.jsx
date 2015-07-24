@@ -22,8 +22,6 @@ module.exports.cleanUpUrlable = function(input) {
     return cleaned;
 };
 
-
-
 module.exports.isTestDomain = function() {
 
     if ((/^localhost/).test(window.location.hostname))
@@ -837,4 +835,12 @@ module.exports.getDisplayName = function(user) {
             return user.username;
         }
     }
+};
+
+//IE10 does not set window.location.origin automatically so this must be called instead when using it
+module.exports.getWindowLocationOrigin = function() {
+    if (!window.location.origin) {
+        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+    return window.location.origin;
 };

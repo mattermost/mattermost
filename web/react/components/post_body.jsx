@@ -32,7 +32,7 @@ module.exports = React.createClass({
                 if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
                     fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
                 }
-                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
+                fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
                 if (type === "image") {
                     $('<img/>').attr('src', fileInfo.path+'_thumb.jpg').load(function(path, name){ return function() {
@@ -112,7 +112,7 @@ module.exports = React.createClass({
                 if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
                     fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
                 }
-                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
+                fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
                 if (type === "image") {
                     if (i < Constants.MAX_DISPLAY_FILES) {

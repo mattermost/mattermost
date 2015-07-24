@@ -98,7 +98,7 @@ RootPost = React.createClass({
                 if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
                     fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
                 }
-                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
+                fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
                 if (ftype === "image") {
                     var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
@@ -208,7 +208,7 @@ CommentPost = React.createClass({
                 if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
                     fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
                 }
-                fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
+                fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
                 if (type === "image") {
                     var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
