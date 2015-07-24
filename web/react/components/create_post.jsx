@@ -275,7 +275,7 @@ module.exports = React.createClass({
                 messageText = draft['message'];
                 uploadsInProgress = draft['uploadsInProgress'];
             }
-            this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
+            this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, limit_error: null, server_error: null, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
         }
     },
     _onActiveThreadChanged: function(rootId, parentId) {

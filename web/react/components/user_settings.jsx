@@ -11,6 +11,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
+var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
@@ -95,11 +96,20 @@ var NotificationsTab = React.createClass({
             }.bind(this)
         );
     },
+    handleClose: function() {
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+
+        this.setState(assign({},getNotificationsStateFromStores(),{server_error: null}));
+    },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     _onChange: function() {
         var newState = getNotificationsStateFromStores();
@@ -502,6 +512,18 @@ var SecurityTab = React.createClass({
     handleDevicesOpen: function() {
         $("#user_settings1").modal('hide');
     },
+    handleClose: function() {
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
+    },
+    componentDidMount: function() {
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+    },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };
     },
@@ -751,6 +773,19 @@ var GeneralTab = React.createClass({
         this.submitActive = false
         this.props.updateSection(section);
     },
+    handleClose: function() {
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+
+        this.setState(assign({}, this.getInitialState(), {client_error: null, server_error: null, email_error: null}));
+    },
+    componentDidMount: function() {
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+    },
     getInitialState: function() {
         var user = this.props.user;
 
@@ -994,16 +1029,23 @@ var AppearanceTab = React.createClass({
         var hex = utils.rgb2hex(e.target.style.backgroundColor);
         this.setState({ theme: hex.toLowerCase() });
     },
+    handleClose: function() {
+        this.setState({server_error: null});
+    },
     componentDidMount: function() {
         if (this.props.activeSection === "theme") {
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentDidUpdate: function() {
         if (this.props.activeSection === "theme") {
             $('.color-btn').removeClass('active-border');
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = UserStore.getCurrentUser();
