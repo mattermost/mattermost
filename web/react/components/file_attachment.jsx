@@ -83,18 +83,9 @@ module.exports = React.createClass({
 
         var thumbnail;
         if (type === "image") {
-            thumbnail = (
-                <a className="post-image__thumbnail" href="#" onClick={this.props.handleImageClick}
-                    data-img-id={this.props.index} data-toggle="modal" data-target={"#" + this.props.modalId }>
-                    <div ref={filename} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}/>
-                </a>
-            );
+            thumbnail = <div ref={filename} className="post__load" style={{backgroundImage: 'url(/static/images/load.gif)'}}/>;
         } else {
-            thumbnail = (
-                <a href={fileInfo.path + (fileInfo.ext ? "." + fileInfo.ext : "")} download={fileInfo.name + (fileInfo.ext ? "." + fileInfo.ext : "")}>
-                    <div className={"file-icon "+utils.getIconClassName(type)}/>
-                </a>
-            );
+            thumbnail = <div className={"file-icon "+utils.getIconClassName(type)}/>;
         }
 
         if (!this.state.fileSize) {
@@ -108,7 +99,10 @@ module.exports = React.createClass({
 
         return (
             <div className="post-image__column" key={filename}>
-                {thumbnail}
+                <a className="post-image__thumbnail" href="#" onClick={this.props.handleImageClick}
+                    data-img-id={this.props.index} data-toggle="modal" data-target={"#" + this.props.modalId }>
+                    {thumbnail}
+                </a>
                 <div className="post-image__details">
                     <div className="post-image__name">{fileInfo.name}</div>
                     <div>
