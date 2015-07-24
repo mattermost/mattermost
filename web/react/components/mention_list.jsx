@@ -31,24 +31,16 @@ module.exports = React.createClass({
                     e.stopPropagation();
                     e.preventDefault();
 
-                    var tempSelectedMention = -1;
                     if (e.which === 38) {    
                         if (self.getSelection(self.state.selectedMention - 1))
                             self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
-                        else {
-                            while (self.getSelection(++tempSelectedMention))
-                                ; //Need to find the top of the list
-                            self.setState({ selectedMention: tempSelectedMention - 1, selectedUsername: self.refs['mention' + (tempSelectedMention - 1)].props.username });
-                        }
                     }
                     else if (e.which === 40) {
                         if (self.getSelection(self.state.selectedMention + 1))
                             self.setState({ selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username });
-                        else
-                            self.setState({ selectedMention: 0, selectedUsername: self.refs.mention0.props.username });
                     }
 
-                    self.scrollToMention(e.which, tempSelectedMention);
+                    self.scrollToMention(e.which);
                 }
             }
         );
@@ -124,15 +116,15 @@ module.exports = React.createClass({
     isEmpty: function() {
         return (!this.refs.mention0);
     },
-    scrollToMention: function(keyPressed, ifLoopUp) {
+    scrollToMention: function(keyPressed) {
         var direction = keyPressed === 38 ? "up" : "down";
         var scrollAmount = 0;
 
-        if (direction === "up" && ifLoopUp !== -1)
+        /*if (direction === "up" && ifLoopUp !== -1)
             scrollAmount = $("#mentionsbox").height() * 100; //Makes sure that it scrolls all the way to the bottom
         else if (direction === "down" && this.state.selectedMention === 0)
-            scrollAmount = 0;
-        else if (direction === "up") 
+            scrollAmount = 0;*/
+        if (direction === "up") 
             scrollAmount = "-=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
         else if (direction === "down")
             scrollAmount = "+=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
