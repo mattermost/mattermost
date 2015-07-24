@@ -9,6 +9,9 @@ module.exports = React.createClass({
     handleClose: function() {
       var townSquare = ChannelStore.getByName("town-square");
       utils.switchChannel(townSquare);
+
+      $(this.refs.title.getDOMNode()).text("")
+      $(this.refs.body.getDOMNode()).text("");
     },
     componentDidMount: function() {
       $(this.getDOMNode()).on('hidden.bs.modal',this.handleClose);
@@ -26,10 +29,10 @@ module.exports = React.createClass({
                       <div className="modal-content">
                         <div className="modal-header">
                           <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                          <h4 className="modal-title" />
+                          <h4 ref="title" className="modal-title" />
                         </div>
                         <div className="modal-body">
-                            <p />
+                            <p ref="body" />
                         </div>
                         <div className="modal-footer">
                           <button type="button" className="btn btn-primary" data-dismiss="modal">Okay</button>
