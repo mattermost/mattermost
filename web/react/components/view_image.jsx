@@ -31,18 +31,13 @@ module.exports = React.createClass({
             return;
         };
 
-        var src = "";
-        if (this.props.imgCount > 0) {
-            src = this.props.filenames[id];
-        } else {
-            var fileInfo = utils.splitFileLocation(this.props.filenames[id]);
-            // This is a temporary patch to fix issue with old files using absolute paths
-            if (fileInfo.path.indexOf("/api/v1/files/get") !== -1) {
-                fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-            }
-            fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
-            src = fileInfo['path'] + '_preview.jpg';
+        var fileInfo = utils.splitFileLocation(this.props.filenames[id]);
+        // This is a temporary patch to fix issue with old files using absolute paths
+        if (fileInfo.path.indexOf("/api/v1/files/get") !== -1) {
+            fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
         }
+        fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
+        var src = fileInfo['path'] + '_preview.jpg';
 
         var self = this;
         var img = new Image();
@@ -141,16 +136,13 @@ module.exports = React.createClass({
             for (var id in this.state.images) {
                 var info = utils.splitFileLocation(this.props.filenames[id]);
                 var preview_filename = "";
-                if (this.props.imgCount > 0) {
-                    preview_filename = this.props.filenames[this.state.imgId];
-                } else {
-                    // This is a temporary patch to fix issue with old files using absolute paths
-                    if (info.path.indexOf("/api/v1/files/get") !== -1) {
-                        info.path = info.path.split("/api/v1/files/get")[1];
-                    }
-                    info.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + info.path;
-                    preview_filename = info['path'] + '_preview.jpg';
+
+                // This is a temporary patch to fix issue with old files using absolute paths
+                if (info.path.indexOf("/api/v1/files/get") !== -1) {
+                    info.path = info.path.split("/api/v1/files/get")[1];
                 }
+                info.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + info.path;
+                preview_filename = info['path'] + '_preview.jpg';
 
                 var imgClass = "hidden";
                 if (this.state.loaded[id] && this.state.imgId == id) imgClass = "";
