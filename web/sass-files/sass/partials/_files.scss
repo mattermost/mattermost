@@ -14,10 +14,6 @@
     position: relative;
     border: 1px solid #DDD;
     @include clearfix;
-    &.custom-file {
-      width: 85px;
-      height: 100px;
-    }
     &:hover .remove-preview:after {
       @include opacity(1);
     }
@@ -73,10 +69,10 @@
 }
 
 @mixin file-icon($path) {
-  background: url($path);
+  background: #fff url($path);
   background-position: center;
   background-repeat: no-repeat;
-  @include background-size(auto 100%);
+  @include background-size(60px auto);
 }
 .file-icon {
   width: 100%;
@@ -142,11 +138,11 @@
     width: 50%;
     height: 100%;
     background: white;
-    border-left: 1px solid lightgrey;
-    font-size: small;
-    padding: 5px 5px;
+    border-left: 1px solid #ddd;
+    font-size: 13px;
+    padding: 7px;
     .post-image__name {
-      font-weight: 600;
+      margin-bottom: 3px;
     }
     .post-image__type {
       color: grey;
