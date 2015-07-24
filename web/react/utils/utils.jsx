@@ -533,6 +533,19 @@ module.exports.getFileType = function(ext) {
     return "other";
 };
 
+module.exports.getPreviewImagePathForFileType = function(fileType) {
+    fileType = fileType.toLowerCase();
+
+    var icon;
+    if (fileType in Constants.ICON_FROM_TYPE) {
+        icon = Constants.ICON_FROM_TYPE[fileType];
+    } else {
+        icon = Constants.ICON_FROM_TYPE["other"];
+    }
+
+    return "/static/images/icons/" + icon + ".png";
+};
+
 module.exports.getIconClassName = function(fileType) {
     fileType = fileType.toLowerCase();
 

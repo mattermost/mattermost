@@ -31,17 +31,14 @@ module.exports = React.createClass({
             return;
         };
 
-        var fileInfo = utils.splitFileLocation(this.props.filenames[id]);
-        // This is a temporary patch to fix issue with old files using absolute paths
-        if (fileInfo.path.indexOf("/api/v1/files/get") !== -1) {
-            fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-        }
-        fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
-        var src = fileInfo['path'] + '_preview.jpg';
+        var filename = this.props.filenames[id];
+
+        var fileInfo = utils.splitFileLocation(filename);
+        var fileType = utils.getFileType(fileInfo.ext);
 
         var self = this;
         var img = new Image();
-        img.load(src,
+        img.load(this.getPreviewImagePath(filename),
             function(){
                 var progress = self.state.progress;
                 progress[id] = img.completedPercentage;
@@ -134,20 +131,17 @@ module.exports = React.createClass({
             bgClass = "black-bg";
         } else if (this.state.viewed) {
             for (var id in this.state.images) {
-                var info = utils.splitFileLocation(this.props.filenames[id]);
-                var preview_filename = "";
-
-                // This is a temporary patch to fix issue with old files using absolute paths
-                if (info.path.indexOf("/api/v1/files/get") !== -1) {
-                    info.path = info.path.split("/api/v1/files/get")[1];
-                }
-                info.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + info.path;
-                preview_filename = info['path'] + '_preview.jpg';
+                var filename = this.props.filenames[id];
+                var fileInfo = utils.splitFileLocation(filename);
 
                 var imgClass = "hidden";
                 if (this.state.loaded[id] && this.state.imgId == id) imgClass = "";
 
-                img[info['path']] = <a key={info['path']} className={imgClass} href={info.path+"."+info.ext} target="_blank"><img ref="image" src={preview_filename}/></a>;
+                img[fileInfo.path] = (
+                    <a key={fileInfo.path} className={imgClass} href={fileInfo.path+"."+fileInfo.ext} target="_blank">
+                        <img ref="image" src={this.getPreviewImagePath(filename)}/>
+                    </a>
+                );
             }
         }
 
@@ -197,5 +191,22 @@ module.exports = React.createClass({
                 </div>
             </div>
         );
+    },
+    getPreviewImagePath: function(filename) {
+        var fileInfo = utils.splitFileLocation(filename);
+        var fileType = utils.getFileType(fileInfo.ext);
+
+        if (fileType === "image") {
+            // This is a temporary patch to fix issue with old files using absolute paths
+            if (fileInfo.path.indexOf("/api/v1/files/get") !== -1) {
+                fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
+            }
+            fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
+
+            return fileInfo.path + '_preview.jpg';
+        } else {
+            // only images have proper previews, so just use a placeholder icon for non-images
+            return utils.getPreviewImagePathForFileType(fileType);
+        }
     }
 });
