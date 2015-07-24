@@ -140,6 +140,9 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
 		page.Render(c, w)
@@ -155,6 +158,9 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckBrowserCompatability(c, r) {
 		return
 	}
+
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 	page := NewHtmlTemplatePage("signup_team", "Signup")
 	page.Render(c, w)
@@ -177,6 +183,9 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team = tResult.Data.(*model.Team)
 	}
 
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+
 	// If we are already logged into this team then go to home
 	if len(c.Session.UserId) != 0 && c.Session.TeamId == team.Id {
 		page := NewHtmlTemplatePage("home", "Home")
@@ -194,6 +203,9 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func signupTeamConfirm(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
+
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 	page := NewHtmlTemplatePage("signup_team_confirm", "Signup Email Sent")
 	page.Props["Email"] = email
@@ -216,6 +228,9 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("signupTeamComplete", "The signup link has expired", "")
 		return
 	}
+
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 	page := NewHtmlTemplatePage("signup_team_complete", "Complete Team Sign Up")
 	page.Props["Email"] = props["email"]
@@ -267,6 +282,9 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
+
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 	page := NewHtmlTemplatePage("signup_user_complete", "Complete User Sign Up")
 	page.Props["Email"] = props["email"]
@@ -340,6 +358,9 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team = tResult.Data.(*model.Team)
 	}
 
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+
 	page := NewHtmlTemplatePage("channel", "")
 	page.Title = name + " - " + team.DisplayName + " " + page.SiteName
 	page.Props["TeamDisplayName"] = team.DisplayName
@@ -395,12 +416,17 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		isVerified = "false"
 	}
 
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+
 	page := NewHtmlTemplatePage("verify", "Email Verified")
 	page.Props["IsVerified"] = isVerified
 	page.Render(c, w)
 }
 
 func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 	page := NewHtmlTemplatePage("find_team", "Find Team")
 	page.Render(c, w)
 }
@@ -441,6 +467,9 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if team != nil {
 		teamDisplayName = team.DisplayName
 	}
+
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 	page := NewHtmlTemplatePage("password_reset", "")
 	page.Title = "Reset Password - " + page.SiteName
@@ -550,6 +579,9 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		}
 
 		user.TeamId = team.Id
+
+		w.Header().Set("X-FRAME-OPTIONS", "DENY")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 		page := NewHtmlTemplatePage("signup_user_oauth", "Complete User Sign Up")
 		page.Props["User"] = user.ToJson()
