@@ -83,17 +83,17 @@ cover: install
 	rm -Rf $(DIST_RESULTS)
 	mkdir -p $(DIST_RESULTS)
 
-	@go test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/api.cover.out github.com/mattermost/platform/api
-	@go test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/model.cover.out github.com/mattermost/platform/model
-	@go test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/store.cover.out github.com/mattermost/platform/store
-	@go test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/utils.cover.out github.com/mattermost/platform/utils
-	@go test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/web.cover.out github.com/mattermost/platform/web
+	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/api.cover.out github.com/mattermost/platform/api
+	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/model.cover.out github.com/mattermost/platform/model
+	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/store.cover.out github.com/mattermost/platform/store
+	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/utils.cover.out github.com/mattermost/platform/utils
+	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/web.cover.out github.com/mattermost/platform/web
 
 	cd $(DIST_RESULTS) && \
 	echo "mode: set" > coverage.out && cat *.cover.out | grep -v mode: | sort -r | \
 	awk '{if($$1 != last) {print $$0;last=$$1}}' >> coverage.out
 
-	cd $(DIST_RESULTS) && go tool cover -html=coverage.out -o=coverage.html
+	cd $(DIST_RESULTS) && $(GO) tool cover -html=coverage.out -o=coverage.html
 
 	rm -f $(DIST_RESULTS)/*.cover.out
 	
