@@ -44,6 +44,11 @@
     form {
         margin-bottom: 0.8em;
     }
+    .form__hint {
+        font-size: 0.95em;
+        color: #999;
+        margin: 10px 0;
+    }
     .external-link {
         position: absolute;
         bottom: 0;
@@ -61,10 +66,56 @@
     .form-control {
         height: em(38px);
     }
+    .signup-custom__container {
+        margin-top: 3em;
+    }
+    .or__container {
+        height: 1px;
+        background: #dddddd;
+        text-align: center;
+        margin: 2em 0;
+        span {
+            width: 33px;
+            top: -10px;
+            position: relative;
+            line-height: 20px;
+            font-weight: 600;
+            background: #fff;
+            display: inline-block;
+        }
+    }
     .btn {
         padding: em(7px) em(15px);
         font-weight: 600;
         font-size: em(13px);
+        &.btn-custom-login {
+            display: block;
+            min-width: 200px;
+            width: 200px;
+            padding: 0 1em;
+            margin: 1em auto;
+            height: 40px;
+            line-height: 35px;
+            color: #fff;
+            @include border-radius(2px);
+            &.gitlab {
+                background: #554488;
+                &:hover {
+                    background: darken(#554488, 10%);
+                }
+                span {
+                    vertical-align: middle;
+                }
+                .icon {
+                    background: url("../images/gitlabLogo.png");
+                    width: 18px;
+                    height: 18px;
+                    margin-right: 8px;
+                    @include background-size(100% 100%);
+                    display: inline-block;
+                }
+            }
+        }
         &.btn-default {
             color: #444;
         }
@@ -90,9 +141,20 @@
     }
     .has-error {
         .control-label {
-            margin-top: 5px;
+            background: #f2f2f2;
+            padding: 0.7em 1em;
+            @include border-radius(3px);
+            margin: 1em 0 0;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: normal;
+            color: #999;
+            width: 100%;
+            &:before {
+              @extend .fa;
+              content: "\f071";
+              margin-right: 4px;
+              color: #aaa;
+            }
         }
     }
     .reset-form {

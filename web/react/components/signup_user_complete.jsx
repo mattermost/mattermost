@@ -117,24 +117,23 @@ module.exports = React.createClass({
 
         var signup_message;
         if (auth_services.indexOf("gitlab") >= 0) {
-            signup_message = <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team} <a href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}>{"or sign up with GitLab."}</a></p>;
-        } else {
-            signup_message = <p>{"Choose your username and password for the " + this.props.teamDisplayName + " " + strings.Team + "."}</p>;
+            signup_message = <div className="signup-custom__container"><a className="btn btn-custom-login gitlab" href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}><span className="icon" />{"with GitLab"}</a>
+            <div className="or__container"><span>or</span></div></div>;
         }
 
         return (
             <div>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
-                <h4>Welcome to { config.SiteName }</h4>
+                <h3 className="text-center">Signup to { config.SiteName }</h3>
                 <div className="form-group form-group--small">
                     <span></span>
                 </div>
                 { signup_message }
-                <p>Your username can be made of lowercase letters and numbers.</p>
                 <label className="control-label">Username</label>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" />
                 { name_error }
+                <p className="form__hint">{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others"}</p>
                 </div>
                 { email }
                 <label className="control-label">Password</label>
@@ -142,7 +141,6 @@ module.exports = React.createClass({
                 <input type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
                 { password_error }
                 </div>
-                <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others"}</p>
                 <p className={ this.state.original_email == "" ? "hidden" : ""}>{ yourEmailIs } You’ll use this address to sign in to {config.SiteName}.</p>
                 <div className="checkbox"><label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service. </label></div>
                 <p><button onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
