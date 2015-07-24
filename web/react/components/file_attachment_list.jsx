@@ -35,7 +35,6 @@ module.exports = React.createClass({
                     userId={this.props.userId}
                     modalId={modalId}
                     startId={this.state.startImgId}
-                    imgCount={0}
                     filenames={filenames} />
             </div>
         );
