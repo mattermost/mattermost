@@ -4,12 +4,7 @@ GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 
-ifeq ($(shell which godep),)
-	GODEP=$(GOPATH)/bin/godep
-else
-	GODEP=godep
-endif
-GO=$(GODEP) go
+GO=$(GOPATH)/bin/godep go
 
 ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
