@@ -23,6 +23,9 @@
         font-weight: 600;
         margin: 0 0 1.3em 0;
         font-size: 1.4em;
+        &.extra-margin {
+            margin-bottom: 2.5em;
+        }
     }
     h4 {
         font-size: em(18px);
@@ -65,9 +68,6 @@
     }
     .form-control {
         height: em(38px);
-    }
-    .signup-custom__container {
-        margin-top: 3em;
     }
     .or__container {
         height: 1px;

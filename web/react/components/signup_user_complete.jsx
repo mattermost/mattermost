@@ -117,14 +117,14 @@ module.exports = React.createClass({
 
         var signup_message;
         if (auth_services.indexOf("gitlab") >= 0) {
-            signup_message = <div className="signup-custom__container"><a className="btn btn-custom-login gitlab" href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}><span className="icon" />{"with GitLab"}</a>
+            signup_message = <div><a className="btn btn-custom-login gitlab" href={"/"+this.props.teamName+"/signup/gitlab"+window.location.search}><span className="icon" />{"with GitLab"}</a>
             <div className="or__container"><span>or</span></div></div>;
         }
 
         return (
             <div>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
-                <h3 className="text-center">Signup to { config.SiteName }</h3>
+                <h3 className="text-center extra-margin">Signup to { config.SiteName }</h3>
                 <div className="form-group form-group--small">
                     <span></span>
                 </div>
