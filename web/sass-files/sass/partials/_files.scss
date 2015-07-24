@@ -71,60 +71,55 @@
   width:300px;
   height:300px;
 }
+
+@mixin file-icon($path) {
+  background: url($path);
+  background-position: center;
+  background-repeat: no-repeat;
+  @include background-size(auto 100%);
+}
 .file-icon {
   width: 100%;
   height: 100%;
   &.audio {
-    background: url("../images/icons/audio.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/audio.png");
   }
   &.video {
-    background: url("../images/icons/video.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/video.png");
   }
   &.ppt {
-    background: url("../images/icons/ppt.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/ppt.png");
   }
   &.generic {
-    background: url("../images/icons/generic.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/generic.png");
   }
   &.code {
-    background: url("../images/icons/code.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/code.png");
   }
   &.excel {
-    background: url("../images/icons/excel.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/excel.png");
   }
   &.word {
-    background: url("../images/icons/word.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/word.png");
   }
   &.pdf {
-    background: url("../images/icons/pdf.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/pdf.png");
   }
   &.patch {
-    background: url("../images/icons/patch.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/patch.png");
   }
   &.image {
-    background: url("../images/icons/image.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/image.png");
   }
 }
 .post-image__column {
   position: relative;
-  width: 120px;
+  width: 240px;
   height: 100px;
   float: left;
   margin: 5px 10px 5px 0;
-  &.custom-file {
-    width: 85px;
-    height: 100px;
-  }
+  display: flex;
+  border: 1px solid lightgrey;
   .post__load {
     height: 100%;
     width: 100%;
@@ -133,12 +128,33 @@
     background-position: center;
   }
   .post__image {
-    height: 100%;
     width: 100%;
-    border: 1px solid #E2E2E2;
+    height: 100%;
     background-color: #FFF;
     background-repeat: no-repeat;
     background-position: top left;
+  }
+  .post-image__thumbnail {
+    width: 50%;
+    height: 100%;
+  }
+  .post-image__details {
+    width: 50%;
+    height: 100%;
+    background: white;
+    border-left: 1px solid lightgrey;
+    font-size: small;
+    padding: 5px 5px;
+    .post-image__name {
+      font-weight: 600;
+    }
+    .post-image__type {
+      color: grey;
+    }
+    .post-image__size {
+      margin-left: 4px;
+      color: grey;
+    }
   }
   a {
     text-decoration: none;
