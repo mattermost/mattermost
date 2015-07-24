@@ -133,6 +133,7 @@ module.exports = React.createClass({
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                 <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" />
                 { name_error }
+                <p className="form__hint">Your username can be made of lowercase letters and numbers.</p>
                 <p className="form__hint">{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others"}</p>
                 </div>
                 { email }
