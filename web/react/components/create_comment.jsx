@@ -5,6 +5,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient =require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var PostStore = require('../stores/post_store.jsx');
 var Textbox = require('./textbox.jsx');
 var MsgTyping = require('./msg_typing.jsx');
 var FileUpload = require('./file_upload.jsx');
@@ -39,10 +40,11 @@ module.exports = React.createClass({
         post.parent_id = this.props.parentId;
         post.filenames = this.state.previews;
 
-        this.setState({ submitting: true });
+        this.setState({ submitting: true, limit_error: null });
 
         client.createPost(post, ChannelStore.getCurrent(),
             function(data) {
+                PostStore.storeCommentDraft(this.props.rootId, null);
                 this.setState({ messageText: '', submitting: false, post_error: null, server_error: null });
                 this.clearPreviews();
                 AsyncClient.getPosts(true, this.props.channelId);
@@ -82,16 +84,33 @@ module.exports = React.createClass({
         }
     },
     handleUserInput: function(messageText) {
+        var draft = PostStore.getCommentDraft(this.props.rootId);
+        if (!draft) {
+            draft = { previews: [], uploadsInProgress: 0};
+        }
+        draft.message = messageText;
+        PostStore.storeCommentDraft(this.props.rootId, draft);
+
         $(".post-right__scroll").scrollTop($(".post-right__scroll")[0].scrollHeight);
         $(".post-right__scroll").perfectScrollbar('update');
         this.setState({messageText: messageText});
     },
     handleFileUpload: function(newPreviews) {
+        var draft = PostStore.getCommentDraft(this.props.rootId);
+        if (!draft) {
+            draft = { message: '', uploadsInProgress: 0, previews: []}
+        }
+
         $(".post-right__scroll").scrollTop($(".post-right__scroll")[0].scrollHeight);
         $(".post-right__scroll").perfectScrollbar('update');
-        var oldPreviews = this.state.previews;
+        var previews = this.state.previews.concat(newPreviews);
         var num = this.state.uploadsInProgress;
-        this.setState({previews: oldPreviews.concat(newPreviews), uploadsInProgress:num-1});
+
+        draft.previews = previews;
+        draft.uploadsInProgress = num-1;
+        PostStore.storeCommentDraft(this.props.rootId, draft);
+
+        this.setState({previews: previews, uploadsInProgress: num-1});
     },
     handleUploadError: function(err) {
         this.setState({ server_error: err });
@@ -107,10 +126,43 @@ module.exports = React.createClass({
                 break;
             }
         }
+
+        var draft = PostStore.getCommentDraft();
+        if (!draft) {
+            draft = { message: '', uploadsInProgress: 0};
+        }
+        draft.previews = previews;
+        PostStore.storeCommentDraft(draft);
+
         this.setState({previews: previews});
     },
     getInitialState: function() {
-        return { messageText: '', uploadsInProgress: 0, previews: [], submitting: false };
+        PostStore.clearCommentDraftUploads();
+
+        var draft = PostStore.getCommentDraft(this.props.rootId);
+        messageText = '';
+        uploadsInProgress = 0;
+        previews = [];
+        if (draft) {
+            messageText = draft.message;
+            uploadsInProgress = draft.uploadsInProgress;
+            previews = draft.previews
+        }
+        return { messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews, submitting: false };
+    },
+    componentWillReceiveProps: function(newProps) {
+        if(newProps.rootId !== this.props.rootId) {
+            var draft = PostStore.getCommentDraft(newProps.rootId);
+            messageText = '';
+            uploadsInProgress = 0;
+            previews = [];
+            if (draft) {
+                messageText = draft.message;
+                uploadsInProgress = draft.uploadsInProgress;
+                previews = draft.previews
+            }
+            this.setState({ messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews });
+        }
     },
     setUploads: function(val) {
         var oldInProgress = this.state.uploadsInProgress
@@ -125,6 +177,13 @@ module.exports = React.createClass({
 
         var numToUpload = newInProgress - oldInProgress;
         if (numToUpload <= 0) return 0;
+
+        var draft = PostStore.getCommentDraft(this.props.rootId);
+        if (!draft) {
+            draft = { message: '', previews: []};
+        }
+        draft.uploadsInProgress = newInProgress;
+        PostStore.storeCommentDraft(this.props.rootId, draft);
 
         this.setState({uploadsInProgress: newInProgress});
 

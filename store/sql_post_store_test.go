@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"strings"
 	"testing"
 	"time"
@@ -444,9 +445,11 @@ func TestPostStoreSearch(t *testing.T) {
 		t.Fatal("returned wrong serach result")
 	}
 
-	r2 := (<-store.Post().Search(teamId, userId, "new york", false)).Data.(*model.PostList)
-	if len(r2.Order) != 2 && r2.Order[0] != o2.Id {
-		t.Fatal("returned wrong serach result")
+	if utils.Cfg.SqlSettings.DriverName == "mysql" {
+		r2 := (<-store.Post().Search(teamId, userId, "new york", false)).Data.(*model.PostList)
+		if len(r2.Order) >= 1 && r2.Order[0] != o2.Id {
+			t.Fatal("returned wrong serach result")
+		}
 	}
 
 	r3 := (<-store.Post().Search(teamId, userId, "new", false)).Data.(*model.PostList)
@@ -459,9 +462,11 @@ func TestPostStoreSearch(t *testing.T) {
 		t.Fatal("returned wrong serach result")
 	}
 
-	r5 := (<-store.Post().Search(teamId, userId, "matter*", false)).Data.(*model.PostList)
-	if len(r5.Order) != 1 && r5.Order[0] != o1.Id {
-		t.Fatal("returned wrong serach result")
+	if utils.Cfg.SqlSettings.DriverName == "mysql" {
+		r5 := (<-store.Post().Search(teamId, userId, "matter*", false)).Data.(*model.PostList)
+		if len(r5.Order) != 1 && r5.Order[0] != o1.Id {
+			t.Fatal("returned wrong serach result")
+		}
 	}
 
 	r6 := (<-store.Post().Search(teamId, userId, "#hashtag", true)).Data.(*model.PostList)

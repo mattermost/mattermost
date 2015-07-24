@@ -246,7 +246,7 @@ TeamURLPage = React.createClass({
                 <h2>{utils.toTitleCase(strings.Team) + " URL"}</h2>
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                <div className="row">
-                    <div className="col-sm-9">
+                    <div className="col-sm-11">
                         <div className="input-group">
                             <span className="input-group-addon">{ window.location.origin + "/" }</span>
                             <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.name} autoFocus={true} onFocus={this.handleFocus}/>

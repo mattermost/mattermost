@@ -111,7 +111,7 @@ RootPost = React.createClass({
                 } else {
                     postFiles.push(
                         <div className="post-image__column custom-file" key={fileInfo.path}>
-                            <a href={fileInfo.path+"."+ext} download={fileInfo.name+"."+ext}>
+                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
                                 <div className={"file-icon "+utils.getIconClassName(ftype)}/>
                             </a>
                         </div>
@@ -293,6 +293,8 @@ module.exports = React.createClass({
         });
     },
     componentDidUpdate: function() {
+        $(".post-right__scroll").scrollTop($(".post-right__scroll")[0].scrollHeight);
+        $(".post-right__scroll").perfectScrollbar('update');
         this.resize();
     },
     componentWillUnmount: function() {
@@ -351,6 +353,7 @@ module.exports = React.createClass({
         $(".post-right__scroll").css("height", height + "px");
         $(".post-right__scroll").scrollTop(100000);
         $(".post-right__scroll").perfectScrollbar();
+        $(".post-right__scroll").perfectScrollbar('update');
     },
     render: function() {
 

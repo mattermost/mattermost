@@ -89,6 +89,11 @@
 			"Rev": "6fd0f867fef40c540fa05c59f86396de10a632a6"
 		},
 		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-56-gdc50b6a",
+			"Rev": "dc50b6ad2d3ee836442cf3389009c7cd1e64bb43"
+		},
+		{
 			"ImportPath": "github.com/mssola/user_agent",
 			"Comment": "v0.4.1-2-g35c7f18",
 			"Rev": "35c7f18f5261cc18c698a461053c119aebaf8542"

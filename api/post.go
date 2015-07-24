@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -406,6 +407,36 @@ func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {
 					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
+
+					// attempt to fill in a message body if the post doesn't have any text
+					if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 && len(post.Filenames) > 0 {
+						// extract the filenames from their paths and determine what type of files are attached
+						filenames := make([]string, len(post.Filenames))
+						onlyImages := true
+						for i, filename := range post.Filenames {
+							var err error
+							if filenames[i], err = url.QueryUnescape(filepath.Base(filename)); err != nil {
+								// this should never error since filepath was escaped using url.QueryEscape
+								filenames[i] = filepath.Base(filename)
+							}
+
+							ext := filepath.Ext(filename)
+							onlyImages = onlyImages && model.IsFileExtImage(ext)
+						}
+						filenamesString := strings.Join(filenames, ", ")
+
+						var attachmentPrefix string
+						if onlyImages {
+							attachmentPrefix = "Image"
+						} else {
+							attachmentPrefix = "File"
+						}
+						if len(post.Filenames) > 1 {
+							attachmentPrefix += "s"
+						}
+
+						bodyPage.Props["PostMessage"] = fmt.Sprintf("%s: %s sent", attachmentPrefix, filenamesString)
+					}
 
 					if err := utils.SendMail(profileMap[id].Email, subjectPage.Render(), bodyPage.Render()); err != nil {
 						l4g.Error("Failed to send mention email successfully email=%v err=%v", profileMap[id].Email, err)

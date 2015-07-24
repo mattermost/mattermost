@@ -6,7 +6,6 @@ package store
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
 )
 
 type SqlTeamStore struct {
@@ -42,6 +41,7 @@ func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
+	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
@@ -66,7 +66,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(team); err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'Name'") {
+			if IsUniqueConstraintError(err.Error(), "Name", "teams_name_key") {
 				result.Err = model.NewAppError("SqlTeamStore.Save", "A team with that domain already exists", "id="+team.Id+", "+err.Error())
 			} else {
 				result.Err = model.NewAppError("SqlTeamStore.Save", "We couldn't save the team", "id="+team.Id+", "+err.Error())
@@ -129,8 +129,8 @@ func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) StoreChannel
 	go func() {
 		result := StoreResult{}
 
-		if _, err := s.GetMaster().Exec("UPDATE Teams SET DisplayName = ? WHERE Id = ?", name, teamId); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.UpdateDisplayName", "We couldn't update the team name", "team_id="+teamId)
+		if _, err := s.GetMaster().Exec("UPDATE Teams SET DisplayName = :Name WHERE Id = :Id", map[string]interface{}{"Name": name, "Id": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.UpdateName", "We couldn't update the team name", "team_id="+teamId)
 		} else {
 			result.Data = teamId
 		}
@@ -171,7 +171,7 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 
 		team := model.Team{}
 
-		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name=?", name); err != nil {
+		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetByName", "We couldn't find the existing team", "name="+name+", "+err.Error())
 		}
 
@@ -191,7 +191,7 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 		result := StoreResult{}
 
 		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, Users WHERE Teams.Id = Users.TeamId AND Users.Email = ?", email); err != nil {
+		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, Users WHERE Teams.Id = Users.TeamId AND Users.Email = :Email", map[string]interface{}{"Email": email}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForEmail", "We encounted a problem when looking up teams", "email="+email+", "+err.Error())
 		}
 

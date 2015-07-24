@@ -6,6 +6,8 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 
+var Constants = require('../utils/constants.jsx');
+
 function getStateFromStores() {
     return { teams: UserStore.getTeams() };
 }
@@ -75,7 +77,7 @@ var NavbarDropdown = React.createClass({
             <ul className="nav navbar-nav navbar-right">
                 <li className="dropdown">
                     <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                        <span className="dropdown__icon" dangerouslySetInnerHTML={{__html: " <svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='4px' height='16px' viewBox='0 0 8 32' enable-background='new 0 0 8 32' xml:space='preserve'> <g> <circle cx='4' cy='4.062' r='4'/> <circle cx='4' cy='16' r='4'/> <circle cx='4' cy='28' r='4'/> </g> </svg>"}} />
+                        <span className="dropdown__icon" dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                     </a>
                     <ul className="dropdown-menu" role="menu">
                         <li><a href="#" data-toggle="modal" data-target="#user_settings1">Account Settings</a></li>
@@ -101,13 +103,13 @@ module.exports = React.createClass({
 
     getDefaultProps: function() {
         return {
-            teamName: config.SiteName
+            teamDisplayName: config.SiteName
         };
     },
 
     render: function() {
-        var teamDisplayName = this.props.teamDisplayName ? this.props.teamDisplayName : config.SiteName;
-        var me = UserStore.getCurrentUser()
+        var me = UserStore.getCurrentUser();
+
         if (!me) {
             return null;
         }
@@ -118,11 +120,11 @@ module.exports = React.createClass({
                     { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                     :
-                    <div />
+                    null
                     }
                     <div className="header__info">
                         <div className="user__name">{ '@' + me.username}</div>
-                        <div className="team__name">{ teamDisplayName }</div>
+                        <div className="team__name">{ this.props.teamDisplayName }</div>
                     </div>
                 </a>
                 <NavbarDropdown teamType={this.props.teamType} />

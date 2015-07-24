@@ -22,7 +22,8 @@ function getStateFromStores() {
 
     return {
         post_list: PostStore.getCurrentPosts(),
-        channel: channel
+        channel: channel,
+        activeThreadRootId: ""
     };
 }
 
@@ -51,6 +52,7 @@ module.exports = React.createClass({
         ChannelStore.addChangeListener(this._onChange);
         UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
+        PostStore.addActiveThreadChangedListener(this._onActiveThreadChanged);
 
         $(".post-list-holder-by-time").perfectScrollbar();
 
@@ -131,6 +133,7 @@ module.exports = React.createClass({
         ChannelStore.removeChangeListener(this._onChange);
         UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
+        PostStore.removeActiveThreadChangedListener(this._onActiveThreadChanged);
         $('body').off('click.userpopover');
     },
     resize: function() {
@@ -228,6 +231,9 @@ module.exports = React.createClass({
             if (!this.refs[id]) continue;
             this.refs[id].forceUpdateInfo();
         }
+    },
+    _onActiveThreadChanged: function(rootId, parentId) {
+        this.setState({"activeThreadRootId": rootId});
     },
     getMorePosts: function(e) {
         e.preventDefault();
@@ -348,8 +354,8 @@ module.exports = React.createClass({
                 if (ChannelStore.isDefault(channel)) {
                     more_messages = (
                         <div className="channel-intro">
-                            <h4 className="channel-intro-title">Welcome</h4>
-                            <p>
+                            <h4 className="channel-intro__title">Beginning of {ui_name}</h4>
+                            <p className="channel-intro__content">
                                 Welcome to {ui_name}!
                                 <br/><br/>
                                 {"This is the first channel " + strings.Team + "mates see when they"}
@@ -366,27 +372,27 @@ module.exports = React.createClass({
                 } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
                     more_messages = (
                         <div className="channel-intro">
-                            <h4 className="channel-intro-title">Welcome</h4>
-                            <p>
+                            <h4 className="channel-intro__title">Beginning of {ui_name}</h4>
+                            <p className="channel-intro__content">
                                 {"This is the start of " + ui_name + ", a channel for conversations you’d prefer out of more focused channels."}
                                 <br/>
-                                <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={ui_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
                             </p>
+                            <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={ui_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
                         </div>
                     );
                 } else {
                     var ui_type = channel.type === 'P' ? "private group" : "channel";
                     more_messages = (
                         <div className="channel-intro">
-                            <h4 className="channel-intro-title">Welcome</h4>
-                            <p>
+                            <h4 className="channel-intro__title">Beginning of {ui_name}</h4>
+                            <p className="channel-intro__content">
                                 { creator_name != "" ? "This is the start of the " + ui_name + " " + ui_type + ", created by " + creator_name + " on " + utils.displayDate(channel.create_at) + "."
                                 : "This is the start of the " + ui_name + " " + ui_type + ", created on "+ utils.displayDate(channel.create_at) + "." }
                                 { channel.type === 'P' ? " Only invited members can see this private group." : " Any member can join and read this channel." }
                                 <br/>
-                                <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
-                                <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#channel_invite"><i className="fa fa-user-plus"></i>Invite others to this {ui_type}</a>
                             </p>
+                            <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
+                            <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#channel_invite"><i className="fa fa-user-plus"></i>Invite others to this {ui_type}</a>
                         </div>
                     );
                 }
@@ -420,7 +426,14 @@ module.exports = React.createClass({
                 // it is the last comment if it is last post in the channel or the next post has a different root post
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
-                var postCtl = <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id} posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} />;
+                // check if this is part of the thread that we're currently replying to
+                var isActiveThread = this.state.activeThreadRootId && (post.id === this.state.activeThreadRootId || post.root_id === this.state.activeThreadRootId);
+
+                var postCtl = (
+                    <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id}
+                        posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment} isActiveThread={isActiveThread}
+                    />
+                );
 
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {

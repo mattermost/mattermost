@@ -28,7 +28,7 @@ function getCountsStateFromStores() {
         } else {
             if (channelMember.mention_count > 0) {
                 count += channelMember.mention_count;
-            } else if (channel.total_msg_count - channelMember.msg_count > 0) {
+            } else if (channelMember.notify_level !== "quiet" && channel.total_msg_count - channelMember.msg_count > 0) {
                 count += 1;
             }
         }
@@ -191,7 +191,7 @@ module.exports = React.createClass({
                         </button>;
         var right_sidebar_collapse_button= currentId == null ? null :
                         <button type="button" className="navbar-toggle menu-toggle pull-right" data-toggle="collapse" data-target="#sidebar-nav" onClick={this.toggleRightSidebar}>
-                            <span className="dropdown__icon"></span>
+                            <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                         </button>;
 
 

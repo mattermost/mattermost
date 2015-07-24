@@ -64,7 +64,7 @@ module.exports = React.createClass({
                                 <div>{"URL: " + currentAudit.action.replace("/api/v1", "")}</div>
                             </div>
                             :
-                            <a href="#" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
+                            <a href="#" className="theme" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
                             }
                         </div>
                         {i < this.state.audits.length - 1 ?

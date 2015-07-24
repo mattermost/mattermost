@@ -1,0 +1,25 @@
+.command-box {
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    border: $border-gray;
+    bottom: 38px;
+    @extend %popover-box-shadow;
+}
+
+.command-name {
+    position: relative;
+    width: 100%;
+    background-color: #fff;
+    height: 37px;
+    line-height: 37px;
+    padding: 2px 10px 2px 5px;
+    z-index: 101;
+    &:hover {
+        background-color: #e8eaed;
+    }
+}
+
+.command-desc {
+    color: #a7a8ab;
+}

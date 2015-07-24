@@ -69,7 +69,9 @@ module.exports = React.createClass({
                     { name_error }
                 </div>
                 { server_error }
-                <button className="btn btn-md btn-primary" type="submit">Sign up for Free</button>
+                <div className="form-group">
+                    <button className="btn btn-md btn-primary" type="submit">Sign up for Free</button>
+                </div>
                 <div className="form-group form-group--small">
                     <span><a href="/find_team">{"Find my " + strings.Team}</a></span>
                 </div>

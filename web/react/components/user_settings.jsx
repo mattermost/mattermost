@@ -11,6 +11,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
+var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
@@ -95,11 +96,20 @@ var NotificationsTab = React.createClass({
             }.bind(this)
         );
     },
+    handleClose: function() {
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+
+        this.setState(assign({},getNotificationsStateFromStores(),{server_error: null}));
+    },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     _onChange: function() {
         var newState = getNotificationsStateFromStores();
@@ -449,7 +459,7 @@ var SecurityTab = React.createClass({
     submitPassword: function(e) {
         e.preventDefault();
 
-        var user = UserStore.getCurrentUser();
+        var user = this.props.user;
         var currentPassword = this.state.current_password;
         var newPassword = this.state.new_password;
         var confirmPassword = this.state.confirm_password;
@@ -502,6 +512,18 @@ var SecurityTab = React.createClass({
     handleDevicesOpen: function() {
         $("#user_settings1").modal('hide');
     },
+    handleClose: function() {
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
+    },
+    componentDidMount: function() {
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+    },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };
     },
@@ -513,53 +535,69 @@ var SecurityTab = React.createClass({
         var self = this;
         if (this.props.activeSection === 'password') {
             var inputs = [];
+            var submit = null;
 
-            inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">Current Password</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
+            if (this.props.user.auth_service === "") {
+                inputs.push(
+                    <div className="form-group">
+                        <label className="col-sm-5 control-label">Current Password</label>
+                        <div className="col-sm-7">
+                            <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
+                        </div>
                     </div>
-                </div>
-            );
-            inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">New Password</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
+                );
+                inputs.push(
+                    <div className="form-group">
+                        <label className="col-sm-5 control-label">New Password</label>
+                        <div className="col-sm-7">
+                            <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
+                        </div>
                     </div>
-                </div>
-            );
-            inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">Retype New Password</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
+                );
+                inputs.push(
+                    <div className="form-group">
+                        <label className="col-sm-5 control-label">Retype New Password</label>
+                        <div className="col-sm-7">
+                            <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
+                        </div>
                     </div>
-                </div>
-            );
+                );
+
+                submit = this.submitPassword;
+            } else {
+                inputs.push(
+                    <div className="form-group">
+                        <label className="col-sm-12">Log in occurs through GitLab. Please see your GitLab account settings page to update your password.</label>
+                    </div>
+                );
+            }
 
             passwordSection = (
                 <SettingItemMax
                     title="Password"
                     inputs={inputs}
-                    submit={this.submitPassword}
+                    submit={submit}
                     server_error={server_error}
                     client_error={password_error}
                     updateSection={function(e){self.props.updateSection("");e.preventDefault();}}
                 />
             );
         } else {
-            var d = new Date(this.props.user.last_password_update);
-            var hour = d.getHours() % 12 ? String(d.getHours() % 12) : "12";
-            var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
-            var timeOfDay = d.getHours() >= 12 ? " pm" : " am";
-            var dateStr = "Last updated " + Constants.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " at " + hour + ":" + min + timeOfDay;
+            var describe;
+            if (this.props.user.auth_service === "") {
+                var d = new Date(this.props.user.last_password_update);
+                var hour = d.getHours() % 12 ? String(d.getHours() % 12) : "12";
+                var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
+                var timeOfDay = d.getHours() >= 12 ? " pm" : " am";
+                describe = "Last updated " + Constants.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " at " + hour + ":" + min + timeOfDay;
+            } else {
+                describe = "Log in done through GitLab"
+            }
 
             passwordSection = (
                 <SettingItemMin
                     title="Password"
-                    describe={dateStr}
+                    describe={describe}
                     updateSection={function(){self.props.updateSection("password");}}
                 />
             );
@@ -577,9 +615,9 @@ var SecurityTab = React.createClass({
                     { passwordSection }
                     <div className="divider-dark"/>
                     <br></br>
-                    <a data-toggle="modal" className="security-links" data-target="#access-history" href="#" onClick={this.handleHistoryOpen}><i className="fa fa-clock-o"></i>View Access History</a>
+                    <a data-toggle="modal" className="security-links theme" data-target="#access-history" href="#" onClick={this.handleHistoryOpen}><i className="fa fa-clock-o"></i>View Access History</a>
                     <b>   </b>
-                    <a data-toggle="modal" className="security-links" data-target="#activity-log" href="#" onClick={this.handleDevicesOpen}><i className="fa fa-globe"></i>View and Logout of Active Devices</a>
+                    <a data-toggle="modal" className="security-links theme" data-target="#activity-log" href="#" onClick={this.handleDevicesOpen}><i className="fa fa-globe"></i>View and Logout of Active Devices</a>
                 </div>
             </div>
         );
@@ -734,6 +772,19 @@ var GeneralTab = React.createClass({
         this.setState({client_error:""})
         this.submitActive = false
         this.props.updateSection(section);
+    },
+    handleClose: function() {
+        $(this.getDOMNode()).find(".form-control").each(function() {
+            this.value = "";
+        });
+
+        this.setState(assign({}, this.getInitialState(), {client_error: null, server_error: null, email_error: null}));
+    },
+    componentDidMount: function() {
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = this.props.user;
@@ -978,16 +1029,23 @@ var AppearanceTab = React.createClass({
         var hex = utils.rgb2hex(e.target.style.backgroundColor);
         this.setState({ theme: hex.toLowerCase() });
     },
+    handleClose: function() {
+        this.setState({server_error: null});
+    },
     componentDidMount: function() {
         if (this.props.activeSection === "theme") {
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
+        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentDidUpdate: function() {
         if (this.props.activeSection === "theme") {
             $('.color-btn').removeClass('active-border');
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
+    },
+    componentWillUnmount: function() {
+        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = UserStore.getCurrentUser();

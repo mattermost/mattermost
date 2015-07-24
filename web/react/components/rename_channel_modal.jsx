@@ -89,12 +89,19 @@ module.exports = React.createClass({
         this.refs.channel_name.getDOMNode().value = channel_name;
         this.setState({ channel_name: channel_name })
     },
+    handleClose: function() {
+        this.setState({display_name: "", channel_name: "", display_name_error: "", server_error: "", name_error: ""});
+    },
     componentDidMount: function() {
         var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
             var button = $(e.relatedTarget);
             self.setState({ display_name: button.attr('data-display'), title: button.attr('data-name'), channel_id: button.attr('data-channelid') });
         });
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $(this.refs.modal.getDOMNode()).off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         return { display_name: "", channel_name: "", channel_id: "" };
