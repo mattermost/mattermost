@@ -74,7 +74,7 @@ module.exports = React.createClass({
                     for (var i = 0; i < level; i++)
                         hashText += "#";
 
-                    return hashText + text + "";
+                    return hashText + text;
                 };
                 customMarkedRenderer.codespan = function(code) {
                     return code;

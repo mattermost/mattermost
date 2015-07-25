@@ -104,6 +104,58 @@ module.exports.notifyMe = function(title, body, channel) {
       }
 
       if (permission === "granted") {
+        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+
+        if (useMarkdown) {
+            var customMarkedRenderer = new Marked.Renderer();
+            customMarkedRenderer.code = function(code, language) {
+                return code;
+            };
+            customMarkedRenderer.blockquote = function(quote) {
+                return quote;
+            };
+            customMarkedRenderer.list = function(body, ordered) {
+                return body;
+            };
+            customMarkedRenderer.listitem = function(text) {
+                return text + " ";
+            };
+            customMarkedRenderer.paragraph = function(text) {
+                return text + " ";
+            };
+            customMarkedRenderer.heading = function(text, level) {
+                var hashText = "";
+                for (var i = 0; i < level; i++)
+                    hashText += "#";
+
+                return hashText + text;
+            };
+            customMarkedRenderer.codespan = function(code) {
+                return code;
+            };
+            customMarkedRenderer.del = function(text) {
+                return text;
+            };
+            customMarkedRenderer.strong = function(text) {
+                return text;
+            };
+            customMarkedRenderer.em = function(text) {
+                return text;
+            };
+            customMarkedRenderer.link = function(href, title, text) {
+                return " " + href + " ";
+            };
+            customMarkedRenderer.image = function(href, title, text) {
+                return " " + href + " ";
+            };
+
+            body = Marked(body, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
+
+            if (body.indexOf("<p>") === 0) {
+                body = body.slice(3);
+            }
+        }
+
         var notification = new Notification(title,
             { body: body, tag: body, icon: '/static/images/icon50x50.gif' }
         );
@@ -401,7 +453,7 @@ module.exports.textToJsx = function(text, options) {
             for (var i = 0; i < level; i++)
                 hashText += "#";
 
-            return hashText + text + "";
+            return hashText + text;
         };
         customMarkedRenderer.codespan = function(code) {
             return "<pre>" + code + "</pre>";
