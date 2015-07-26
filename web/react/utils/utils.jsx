@@ -517,8 +517,8 @@ module.exports.textToJsx = function(text, options) {
                 // do both a non-case sensitive and case senstive check
                 var mClass = implicitKeywords.indexOf('@'+name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@'+name) !== -1 ? mentionClass : "";
 
-                var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.match(puncStartRegex) ? word.match(puncStartRegex) : "");
-                var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.match(puncEndRegex) ? word.match(puncEndRegex) : "");
+                var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
+                var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
 
                 if (searchTerm === name) {
                     highlightSearchClass = " search-highlight";
@@ -546,8 +546,8 @@ module.exports.textToJsx = function(text, options) {
                 else
                     inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
             } else if (trimWord.match(hashRegex)) {
-                var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.match(puncStartRegex) ? word.match(puncStartRegex) : "");
-                var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.match(puncEndRegex) ? word.match(puncEndRegex) : "");
+                var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
+                var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
                 var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
@@ -563,8 +563,8 @@ module.exports.textToJsx = function(text, options) {
                     inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
             } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
-                var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.match(puncStartRegex) ? word.match(puncStartRegex) : "");
-                var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.match(puncEndRegex) ? word.match(puncEndRegex) : "");
+                var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
+                var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
 
                 if (trimWord.charAt(0) === '@') {
                     if (searchTerm === trimWord.substring(1).toLowerCase()) {
