@@ -100,7 +100,7 @@
 		},
 		{
 			"ImportPath": "github.com/nfnt/resize",
-			"Rev": "f2d1b73023c55bdfb4fa2ed385d2bec95bce3692"
+			"Rev": "dc93e1b98c579d90ee2fa15c1fd6dac34f6e7899"
 		},
 		{
 			"ImportPath": "github.com/stretchr/objx",
