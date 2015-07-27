@@ -161,9 +161,11 @@ module.exports = React.createClass({
 
                 invite_sections[index] = (
                     <div key={"key" + index}>
+                    { index ?
                     <div>
                         <button type="button" className="btn btn-link remove__member" onClick={this.removeInviteFields.bind(this, index)}><span className="fa fa-trash"></span></button>
                     </div>
+                    : "" }
                     <div className={ email_error ? "form-group invite has-error" : "form-group invite" }>
                         <input onKeyUp={this.displayNameKeyUp} type="text" ref={"email"+index} className="form-control" placeholder="email@domain.com" maxLength="64" />
                         { email_error }
