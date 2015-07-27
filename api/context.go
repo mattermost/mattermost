@@ -100,6 +100,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version)
+	w.Header().Set("X-FRAME-OPTIONS", "DENY")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 
 	sessionId := ""
 
