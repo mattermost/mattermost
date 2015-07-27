@@ -624,6 +624,16 @@ var SecurityTab = React.createClass({
     }
 });
 
+var checkServerError = function(error) {
+    var duplicateRegex = /Duplicate entry \'[a-zA-Z0-9_\.\-]+\' for key \'Username\'/;
+
+    if(duplicateRegex.test(error.detailed_error)) {
+        return "This username is already taken. Please pick a different one."
+    } else {
+        return error;
+    }
+}
+
 var GeneralTab = React.createClass({
     submitActive: false,
     submitUsername: function(e) {
@@ -709,7 +719,7 @@ var GeneralTab = React.createClass({
             }.bind(this),
             function(err) {
                 state = this.getInitialState();
-                state.server_error = err;
+                state.server_error = checkServerError(err)
                 this.setState(state);
             }.bind(this)
         );
