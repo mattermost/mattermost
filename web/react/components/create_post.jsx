@@ -32,7 +32,7 @@ module.exports = React.createClass({
         post.message = this.state.messageText;
 
         // if this is a reply, trim off any carets from the beginning of a message
-        if (this.state.rootId && post.message.startsWith("^")) {
+        if (this.state.rootId && post.message[0] === "^") {
             post.message = post.message.replace(/^\^+\s*/g, "");
         }
 
