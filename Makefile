@@ -1,4 +1,4 @@
-.PHONY: all test clean build install run stop cover dist cleandb travis
+.PHONY: all test clean build install run stop cover dist cleandb travis docker
 
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
@@ -23,6 +23,9 @@ DIST_RESULTS=$(DIST_ROOT)/results
 
 BENCH=.
 TESTS=.
+
+DOCKERNAME ?= mm-dev
+DOCKER_CONTAINER_NAME ?= mm-test
 
 all: travis
 
@@ -193,6 +196,12 @@ stop:
 		kill $$PID; \
 	done
 
+	@if [ $(shell docker ps -a | grep -ci ${DOCKER_CONTAINER_NAME}) -eq 1 ]; then \
+		echo removing dev docker container; \
+		docker stop ${DOCKER_CONTAINER_NAME} > /dev/null; \
+		docker rm -v ${DOCKER_CONTAINER_NAME} > /dev/null; \
+	fi
+
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
@@ -243,3 +252,12 @@ dist: install
 	rm $(DIST_PATH)/web/templates/*.bak
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
+
+docker-build: stop dist
+	cp $(DIST_PATH).tar.gz docker/dev
+	cd docker/dev && docker build -t ${DOCKERNAME} .
+	rm docker/dev/mattermost.tar.gz
+
+docker-run: docker-build
+	docker run --name ${DOCKER_CONTAINER_NAME} -d --publish 8065:80 ${DOCKERNAME}
+

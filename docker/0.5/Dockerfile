@@ -82,10 +82,11 @@ RUN wget http://download.redis.io/redis-stable.tar.gz; \
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Copy over files
-ADD . /go/src/github.com/mattermost/platform
+ADD https://github.com/mattermost/platform/archive/v0.50.tar.gz /go/src/github.com/mattermost/
+RUN mkdir /go/src/github.com/mattermost/platform && tar -zxvf /go/src/github.com/mattermost/v0.50.tar.gz -C /go/src/github.com/mattermost/platform --strip-components=1
 
 # Insert postfix config
-ADD ./docker/main.cf /etc/postfix/
+ADD ./main.cf /etc/postfix/
 
 RUN go get github.com/tools/godep
 RUN cd /go/src/github.com/mattermost/platform; godep restore
@@ -94,9 +95,6 @@ RUN cd /go/src/github.com/mattermost/platform/web/react; npm install
 
 RUN chmod +x /go/src/github.com/mattermost/platform/docker/docker-entry.sh
 ENTRYPOINT /go/src/github.com/mattermost/platform/docker/docker-entry.sh
-
-# Create default storage directory
-RUN mkdir /mattermost/
 
 # Ports
 EXPOSE 80
