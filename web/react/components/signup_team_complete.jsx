@@ -587,25 +587,23 @@ PasswordPage = React.createClass({
 
                 var props = this.props;
 
-                setTimeout(function() {
-                    $('#sign-up-button').button('reset');
-                    props.state.wizard = "finished";
-                    props.updateParent(props.state, true);
+                $('#sign-up-button').button('reset');
+                props.state.wizard = "finished";
+                props.updateParent(props.state, true);
 
-                    window.location.href = utils.getWindowLocationOrigin() + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
+                window.location.href = window.location.origin + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
 
-                    // client.loginByEmail(teamSignup.team.domain, teamSignup.team.email, teamSignup.user.password,
-                    //     function(data) {
-                    //         TeamStore.setLastName(teamSignup.team.domain);
-                    //         UserStore.setLastEmail(teamSignup.team.email);
-                    //         UserStore.setCurrentUser(data);
-                    //         window.location.href = '/channels/town-square';
-                    //     }.bind(ctl),
-                    //     function(err) {
-                    //         this.setState({name_error: err.message});
-                    //     }.bind(ctl)
-                    // );
-                }, 5000);
+                // client.loginByEmail(teamSignup.team.domain, teamSignup.team.email, teamSignup.user.password,
+                //     function(data) {
+                //         TeamStore.setLastName(teamSignup.team.domain);
+                //         UserStore.setLastEmail(teamSignup.team.email);
+                //         UserStore.setCurrentUser(data);
+                //         window.location.href = '/channels/town-square';
+                //     }.bind(ctl),
+                //     function(err) {
+                //         this.setState({name_error: err.message});
+                //     }.bind(ctl)
+                // );
             }.bind(this),
             function(err) {
                 this.setState({server_error: err.message});
