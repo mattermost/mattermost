@@ -248,7 +248,7 @@ TeamURLPage = React.createClass({
                <div className="row">
                     <div className="col-sm-11">
                         <div className="input-group">
-                            <span className="input-group-addon">{ window.location.origin + "/" }</span>
+                            <span className="input-group-addon">{ utils.getWindowLocationOrigin() + "/" }</span>
                             <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.name} autoFocus={true} onFocus={this.handleFocus}/>
                         </div>
                     </div>
@@ -566,7 +566,7 @@ PasswordPage = React.createClass({
                     props.state.wizard = "finished";
                     props.updateParent(props.state, true);
 
-                    window.location.href = window.location.origin + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
+                    window.location.href = utils.getWindowLocationOrigin() + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
 
                     // client.loginByEmail(teamSignup.team.domain, teamSignup.team.email, teamSignup.user.password,
                     //     function(data) {

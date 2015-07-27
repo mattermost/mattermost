@@ -839,8 +839,9 @@ module.exports.getDisplayName = function(user) {
 
 //IE10 does not set window.location.origin automatically so this must be called instead when using it
 module.exports.getWindowLocationOrigin = function() {
-    if (!window.location.origin) {
-        window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    var windowLocationOrigin = window.location.origin;
+    if (!windowLocationOrigin) {
+        windowLocationOrigin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
     }
-    return window.location.origin;
+    return windowLocationOrigin;
 };
