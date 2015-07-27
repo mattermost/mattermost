@@ -157,9 +157,9 @@ module.exports = React.createClass({
     onSocketChange: function(msg) {
         if (msg.action === 'posted') {
             if (ChannelStore.getCurrentId() === msg.channel_id) {
-                AsyncClient.getChannels(true, window.isActive);
+                if (window.isActive) AsyncClient.updateLastViewedAt();
             } else {
-                AsyncClient.getChannels(true);
+                AsyncClient.getChannel(msg.channel_id);
             }
 
             if (UserStore.getCurrentId() !== msg.user_id) {
@@ -213,13 +213,13 @@ module.exports = React.createClass({
                     utils.ding();
                 }
             }
-        } else if (msg.action === 'viewed') {
-            if (ChannelStore.getCurrentId() != msg.channel_id) {
-                AsyncClient.getChannels(true);
+        } else if (msg.action === "viewed") {
+            if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
+                AsyncClient.getChannel(msg.channel_id);
             }
         } else if (msg.action === 'user_added') {
             if (UserStore.getCurrentId() === msg.user_id) {
-                AsyncClient.getChannels(true);
+                AsyncClient.getChannel(msg.channel_id);
             }
         } else if (msg.action === 'user_removed') {
             if (msg.user_id === UserStore.getCurrentId()) {

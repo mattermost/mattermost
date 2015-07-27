@@ -146,11 +146,38 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
 
     return extra;
   },
+  _storeChannel: function(channel) {
+    var channels = this._getChannels();
+    var found;
+
+    for (var i = 0; i < channels.length; i++) {
+      if (channels[i].id == channel.id) {
+        channels[i] = channel;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+        channels.push(channel);
+        channels.sort(function(a,b) {
+          if (a.display_name < b.display_name) return -1;
+          if (a.display_name > b.display_name) return 1;
+          return 0;
+        });
+    }
+    this._storeChannels(channels);
+  },
   _storeChannels: function(channels) {
     BrowserStore.setItem("channels", channels);
   },
   _getChannels: function() {
     return BrowserStore.getItem("channels", []);
+  },
+  _storeChannelMember: function(channelMember) {
+    var members = this._getChannelMembers();
+    members[channelMember.channel_id] = channelMember;
+    this._storeChannelMembers(members);
   },
   _storeChannelMembers: function(channelMembers) {
     BrowserStore.setItem("channel_members", channelMembers);
@@ -197,6 +224,14 @@ ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {
     case ActionTypes.RECIEVED_CHANNELS:
       ChannelStore._storeChannels(action.channels);
       ChannelStore._storeChannelMembers(action.members);
+      var currentId = ChannelStore.getCurrentId();
+      if (currentId) ChannelStore.resetCounts(currentId);
+      ChannelStore.emitChange();
+      break;
+
+    case ActionTypes.RECIEVED_CHANNEL:
+      ChannelStore._storeChannel(action.channel);
+      ChannelStore._storeChannelMember(action.member);
       var currentId = ChannelStore.getCurrentId();
       if (currentId) ChannelStore.resetCounts(currentId);
       ChannelStore.emitChange();

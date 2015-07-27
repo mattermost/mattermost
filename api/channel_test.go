@@ -320,6 +320,27 @@ func TestGetChannel(t *testing.T) {
 	if _, err := Client.UpdateLastViewedAt(channel2.Id); err != nil {
 		t.Fatal(err)
 	}
+
+	if resp, err := Client.GetChannel(channel1.Id, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		data := resp.Data.(*model.ChannelData)
+		if data.Channel.DisplayName != channel1.DisplayName {
+			t.Fatal("name didn't match")
+		}
+
+		// test etag caching
+		if cache_result, err := Client.GetChannel(channel1.Id, resp.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(*model.ChannelData) != nil {
+			t.Log(cache_result.Data)
+			t.Fatal("cache should be empty")
+		}
+	}
+
+	if _, err := Client.GetChannel("junk", ""); err == nil {
+		t.Fatal("should have failed - bad channel id")
+	}
 }
 
 func TestGetMoreChannel(t *testing.T) {

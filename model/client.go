@@ -390,6 +390,15 @@ func (c *Client) GetChannels(etag string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
+	if r, err := c.DoGet("/channels/"+id+"/", "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelDataFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 	if r, err := c.DoGet("/channels/more", "", etag); err != nil {
 		return nil, err

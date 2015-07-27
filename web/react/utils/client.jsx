@@ -554,6 +554,21 @@ module.exports.getChannels = function(success, error) {
     });
 };
 
+module.exports.getChannel = function(id, success, error) {
+    $.ajax({
+        url: "/api/v1/channels/" + id + "/",
+        dataType: 'json',
+        type: 'GET',
+        success: success,
+        error: function(xhr, status, err) {
+            e = handleError("getChannel", xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_channel_get');
+};
+
 module.exports.getMoreChannels = function(success, error) {
     $.ajax({
         url: "/api/v1/channels/more",

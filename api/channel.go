@@ -23,6 +23,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	sr.Handle("/update_desc", ApiUserRequired(updateChannelDesc)).Methods("POST")
 	sr.Handle("/update_notify_level", ApiUserRequired(updateNotifyLevel)).Methods("POST")
+	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequired(getChannel)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(joinChannel)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leaveChannel)).Methods("POST")
@@ -275,7 +276,7 @@ func updateChannelDesc(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	// user is already in the newtork
+	// user is already in the team
 
 	if result := <-Srv.Store.Channel().GetChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
 		if result.Err.Message == "No channels were found" {
@@ -300,7 +301,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	// user is already in the newtork
+	// user is already in the team
 
 	if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
@@ -546,6 +547,37 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	result := make(map[string]string)
 	result["id"] = id
 	w.Write([]byte(model.MapToJson(result)))
+}
+
+func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	//pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	cchan := Srv.Store.Channel().Get(id)
+	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+
+	if cresult := <-cchan; cresult.Err != nil {
+		c.Err = cresult.Err
+		return
+	} else if cmresult := <-cmchan; cmresult.Err != nil {
+		c.Err = cmresult.Err
+		return
+	} else {
+		data := &model.ChannelData{}
+		data.Channel = cresult.Data.(*model.Channel)
+		member := cmresult.Data.(model.ChannelMember)
+		data.Member = &member
+
+		if HandleEtag(data.Etag(), w, r) {
+			return
+		} else {
+			w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
+			w.Header().Set("Expires", "-1")
+			w.Write([]byte(data.ToJson()))
+		}
+	}
+
 }
 
 func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {

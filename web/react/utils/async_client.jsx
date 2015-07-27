@@ -81,6 +81,30 @@ module.exports.getChannels = function(force, updateLastViewed, checkVersion) {
     }
 }
 
+module.exports.getChannel = function(id) {
+    if (isCallInProgress("getChannel"+id)) return;
+
+        callTracker["getChannel"+id] = utils.getTimestamp();
+        client.getChannel(id,
+            function(data, textStatus, xhr) {
+                callTracker["getChannel"+id] = 0;
+
+                if (xhr.status === 304 || !data) return;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_CHANNEL,
+                    channel: data.channel,
+                    member: data.member
+                });
+
+            },
+            function(err) {
+                callTracker["getChannel"+id] = 0;
+                dispatchError(err, "getChannel");
+            }
+        );
+}
+
 module.exports.updateLastViewedAt = function() {
     if (isCallInProgress("updateLastViewed")) return;
 

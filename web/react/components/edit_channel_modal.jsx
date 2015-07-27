@@ -14,7 +14,7 @@ module.exports = React.createClass({
         Client.updateChannelDesc(data,
             function(data) {
                 this.setState({ server_error: "" });
-                AsyncClient.getChannels(true);
+                AsyncClient.getChannel(this.state.channel_id);
                 $(this.refs.modal.getDOMNode()).modal('hide');
             }.bind(this),
             function(err) {
