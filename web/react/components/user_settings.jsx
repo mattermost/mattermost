@@ -721,13 +721,15 @@ var GeneralTab = React.createClass({
 
         if(!this.submitActive) return;
 
-        if(this.state.picture.type !== "image/jpeg") {
-            this.setState({client_error: "Only JPG images may be used for profile pictures"});
+        var picture = this.state.picture;
+
+        if(picture.type !== "image/jpeg" && picture.type !== "image/png") {
+            this.setState({client_error: "Only JPG or PNG images may be used for profile pictures"});
             return;
         }
 
         formData = new FormData();
-        formData.append('image', this.state.picture, this.state.picture.name);
+        formData.append('image', picture, picture.name);
 
         client.uploadProfileImage(formData,
             function(data) {

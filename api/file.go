@@ -142,7 +142,7 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 				go func() {
 					var thumbnail image.Image
 					if imgConfig.Width > int(utils.Cfg.ImageSettings.ThumbnailWidth) {
-						thumbnail = resize.Resize(utils.Cfg.ImageSettings.ThumbnailWidth, utils.Cfg.ImageSettings.ThumbnailHeight, img, resize.NearestNeighbor)
+						thumbnail = resize.Resize(utils.Cfg.ImageSettings.ThumbnailWidth, utils.Cfg.ImageSettings.ThumbnailHeight, img, resize.Lanczos3)
 					} else {
 						thumbnail = img
 					}
@@ -164,7 +164,7 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 				go func() {
 					var preview image.Image
 					if imgConfig.Width > int(utils.Cfg.ImageSettings.PreviewWidth) {
-						preview = resize.Resize(utils.Cfg.ImageSettings.PreviewWidth, utils.Cfg.ImageSettings.PreviewHeight, img, resize.NearestNeighbor)
+						preview = resize.Resize(utils.Cfg.ImageSettings.PreviewWidth, utils.Cfg.ImageSettings.PreviewHeight, img, resize.Lanczos3)
 					} else {
 						preview = img
 					}
