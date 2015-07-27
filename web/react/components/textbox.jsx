@@ -36,7 +36,6 @@ module.exports = React.createClass({
 
         this.resize();
         this.processMentions();
-        this.updateTextdiv();
     },
     componentWillUnmount: function() {
         PostStore.removeAddMentionListener(this._onChange);
@@ -87,7 +86,6 @@ module.exports = React.createClass({
             this.processMentions();
             this.doProcessMentions = false;
         }
-        this.updateTextdiv();
         this.resize();
     },
     componentWillReceiveProps: function(nextProps) {
@@ -116,17 +114,6 @@ module.exports = React.createClass({
                 exclude_list: excludeList
             });
         }, 1);
-    },
-    updateTextdiv: function() {
-        var html = utils.insertHtmlEntities(this.refs.message.getDOMNode().value);
-        for (var k in this.mentions) {
-            var m = this.mentions[k];
-            var re = new RegExp('( |^)@' + m + '( |$|\n)', 'm');
-            html = html.replace(re, '$1<span class="mention">@'+m+'</span>$2');
-        }
-        var re2 = new RegExp('(^$)(?![.\n])', 'gm');
-        html = html.replace(re2, '<br/><br/>');
-        $(this.refs.textdiv.getDOMNode()).html(html);
     },
     handleChange: function() {
         this.props.onUserInput(this.refs.message.getDOMNode().value);
@@ -181,7 +168,7 @@ module.exports = React.createClass({
         }
     },
     processMentions: function() {
-        /* First, find all the possible mentions, highlight them in the HTML and add
+        /* First, find all the possible mentions and add
             them all to a list of mentions */
         var text = utils.insertHtmlEntities(this.refs.message.getDOMNode().value);
 
@@ -192,9 +179,7 @@ module.exports = React.createClass({
         var matches = text.match(re1);
 
         if (!matches) {
-            $(this.refs.textdiv.getDOMNode()).text(text);
             this.updateMentionTab(null, []);
-            this.mentions = [];
             return;
         }
 
@@ -207,7 +192,7 @@ module.exports = React.createClass({
         }
 
         /* Figure out what the user is currently typing. If it's a mention then we don't
-            want to highlight it and add it to the mention list yet, so we remove it if
+            want to add it to the mention list yet, so we remove it if
             there is only one occurence of that mention so far. */
         var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
 
@@ -225,14 +210,13 @@ module.exports = React.createClass({
             typingMention = text.substring(atIndex+1, caret);
         }
 
-        var re3 = new RegExp('@' + typingMention + '( |$|\n)', 'g');
+        var re2 = new RegExp('@' + typingMention + '( |$|\n)', 'g');
 
-        if ((text.match(re3) || []).length === 1 && mentions.indexOf(typingMention) !== -1) {
+        if ((text.match(re2) || []).length === 1 && mentions.indexOf(typingMention) !== -1) {
             mentions.splice(mentions.indexOf(typingMention), 1);
         }
 
         this.updateMentionTab(null, mentions);
-        this.mentions = mentions;
     },
     checkForNewMention: function(text) {
         var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
@@ -287,15 +271,9 @@ module.exports = React.createClass({
         elm.value = cmd;
         this.handleChange();
     },
-    scroll: function() {
-        var e = this.refs.message.getDOMNode();
-        var d = this.refs.textdiv.getDOMNode();
-        $(d).scrollTop($(e).scrollTop());
-    },
     resize: function() {
         var e = this.refs.message.getDOMNode();
         var w = this.refs.wrapper.getDOMNode();
-        var d = this.refs.textdiv.getDOMNode();
 
         var lht = parseInt($(e).css('lineHeight'),10);
         var lines = e.scrollHeight / lht;
@@ -303,15 +281,11 @@ module.exports = React.createClass({
 
         if (e.scrollHeight - mod < 167) {
             $(e).css({'height':'auto','overflow-y':'hidden'}).height(e.scrollHeight - mod);
-            $(d).css({'height':'auto','overflow-y':'hidden'}).height(e.scrollHeight - mod);
             $(w).css({'height':'auto'}).height(e.scrollHeight+2);
         } else {
             $(e).css({'height':'auto','overflow-y':'scroll'}).height(167);
-            $(d).css({'height':'auto','overflow-y':'scroll'}).height(167);
             $(w).css({'height':'auto'}).height(167);
         }
-
-        $(d).scrollTop($(e).scrollTop());
     },
     handleFocus: function() {
         var elm = this.refs.message.getDOMNode();
@@ -332,8 +306,7 @@ module.exports = React.createClass({
         return (
             <div ref="wrapper" className="textarea-wrapper">
                 <CommandList ref='commands' addCommand={this.addCommand} channelId={this.props.channelId} />
-                <div className="form-control textarea-div" ref="textdiv"/>
-                <textarea id={this.props.id} ref="message" className={"form-control custom-textarea " + this.state.connection} spellCheck="true" autoComplete="off" autoCorrect="off" rows="1" placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onScroll={this.scroll} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
+                <textarea id={this.props.id} ref="message" className={"form-control custom-textarea " + this.state.connection} spellCheck="true" autoComplete="off" autoCorrect="off" rows="1" placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
             </div>
         );
     }
