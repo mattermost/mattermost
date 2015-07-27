@@ -80,19 +80,25 @@ WelcomePage = React.createClass({
             <div>
                 <p>
                     <img className="signup-team-logo" src="/static/images/logo.png" />
-                    <h2>Welcome!</h2>
-                    <h3>{"Let's set up your " + strings.Team + " on " + config.SiteName + "."}</h3>
+                    <h3 className="sub-heading">Welcome to:</h3>
+                    <h1 className="margin--top-none">{config.SiteName}</h1>
                 </p>
+                <p className="margin--less">Let's setup your new team</p>
                 <p>
                     Please confirm your email address:<br />
-                    <span className="black">{ this.props.state.team.email }</span><br />
+                    <div className="inner__content">
+                        <div className="block--gray">{ this.props.state.team.email }</div>
+                    </div>
+                </p>
+                <p className="margin--extra color--light">
+                    Your account will administer the new team site. <br />
+                    You can add other administrators later.
                 </p>
                 <div className="form-group">
                     <button className="btn-primary btn form-group" type="submit" onClick={this.submitNext}><i className="glyphicon glyphicon-ok"></i>Yes, this address is correct</button>
                     { storage_error }
                 </div>
                 <hr />
-                <p>If this is not correct, you can switch to a different email. We'll send you a new invite right away.</p>
                 <div className={ this.state.use_diff ? "" : "hidden" }>
                     <div className={ email_error ? "form-group has-error" : "form-group" }>
                         <div className="row">
@@ -105,7 +111,7 @@ WelcomePage = React.createClass({
                     { server_error }
                     <button className="btn btn-md btn-primary" type="button" onClick={this.handleDiffSubmit} type="submit">Use this instead</button>
                 </div>
-                <button type="button" onClick={this.handleDiffEmail} className={ this.state.use_diff ? "btn-default btn hidden" : "btn-default btn" }>Use a different address</button>
+                <a href="#" onClick={this.handleDiffEmail} className={ this.state.use_diff ? "hidden" : "" }>Use a different email</a>
             </div>
         );
     }
@@ -158,9 +164,11 @@ TeamDisplayNamePage = React.createClass({
                 </div>
                 { name_error }
                 </div>
-                <p>{"Your " + strings.Team + " name shows in menus and headings. It may include the name of your " + strings.Company + ", but it's not required."}</p>
-                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <div>{"Name your " + strings.Team + " in any language. Your " + strings.Team + " name shows in menus and headings."}</div>
+                <button type="submit" className="btn btn-primary margin--extra" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <div className="margin--extra">
+                    <a href="#" onClick={this.submitBack}>Back to previous step</a>
+                </div>
             </form>
             </div>
         );
@@ -255,10 +263,16 @@ TeamURLPage = React.createClass({
                 </div>
                 { name_error }
                 </div>
-                <p className="black">{"Pick something short and memorable for your " + strings.Team + "'s web address."}</p>
-                <p>{"Your " + strings.Team + " URL can only contain lowercase letters, numbers and dashes. Also, it needs to start with a letter and cannot end in a dash."}</p>
-                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <p>{"Choose the web address of your new " + strings.Team + ":"}</p>
+                <ul className="color--light">
+                    <li>Short and memorable is best</li>
+                    <li>Use lower case letters, numbers and dashes</li>
+                    <li>Must start with a letter and can't end in a dash</li>
+                </ul>
+                <button type="submit" className="btn btn-primary margin--extra" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <div className="margin--extra">
+                    <a href="#" onClick={this.submitBack}>Back to previous step</a>
+                </div>
             </form>
             </div>
         );
@@ -461,14 +475,16 @@ SendInivtesPage = React.createClass({
         return (
             <div>
                 <form>
-                <img className="signup-team-logo" src="/static/images/logo.png" />
-                <h2>Send Invitations</h2>
-                { emails }
-                <div className="form-group"><button type="button" className="btn-default btn" onClick={this.submitAddInvite}>Add Invitation</button></div>
-                <div className="form btn-default-group"><button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;<button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button></div>
-            </form>
-                <p>{"If you'd prefer, you can send invitations after you finish setting up the "+ strings.Team + "."}</p>
-                <div><a href="#" onClick={this.submitSkip}>Skip this step</a></div>
+                    <img className="signup-team-logo" src="/static/images/logo.png" />
+                    <h2>Invite Team Members</h2>
+                    { emails }
+                    <div className="form-group text-right"><a href="#" onClick={this.submitAddInvite}>Add Invitation</a></div>
+                    <div className="form-group"><button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button></div>
+                </form>
+                <p className="color--light">if you prefer, you can invite team members later<br /> and <a href="#" onClick={this.submitSkip}>skip this step</a> for now.</p>
+                <div className="margin--extra">
+                    <a href="#" onClick={this.submitBack}>Back to previous step</a>
+                </div>
             </div>
         );
     }
@@ -512,19 +528,24 @@ UsernamePage = React.createClass({
             <div>
                 <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
-                <h2>Choose a username</h2>
-                <div className={ name_error ? "form-group has-error" : "form-group" }>
-                <div className="row">
-                    <div className="col-sm-9">
-                        <input autoFocus={true} type="text" ref="name" className="form-control" placeholder="" defaultValue={this.props.state.user.username} maxLength="128" />
+                <h2 className="margin--less">Your username</h2>
+                <h5 className="color--light">Select a memorable username that makes it easy for teammates to identify you:</h5>
+                <div className="inner__content margin--extra">
+                    <div className={ name_error ? "form-group has-error" : "form-group" }>
+                    <div className="row">
+                        <div className="col-sm-11">
+                            <h5><strong>Choose your username</strong></h5>
+                            <input autoFocus={true} type="text" ref="name" className="form-control" placeholder="" defaultValue={this.props.state.user.username} maxLength="128" />
+                            <div className="color--light form__hint">Usernames must begin with a letter and contain 3 to 15 characters made up of lowercase letters, numbers, and the symbols '.', '-' and '_'</div>
+                        </div>
+                    </div>
+                    { name_error }
                     </div>
                 </div>
-                { name_error }
+                <button type="submit" className="btn btn-primary margin--extra" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
+                <div className="margin--extra">
+                    <a href="#" onClick={this.submitBack}>Back to previous step</a>
                 </div>
-                <p>{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others."}</p>
-                <p>It can be made of lowercase letters and numbers.</p>
-                <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                <button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
             </form>
             </div>
         );
@@ -600,24 +621,32 @@ PasswordPage = React.createClass({
             <div>
                 <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
-                <h2>Choose a password</h2>
-                <p>You'll use your email address ({this.props.state.team.email}) and password to log into {config.SiteName}.</p>
-                <div className={ name_error ? "form-group has-error" : "form-group" }>
-                <div className="row">
-                    <div className="col-sm-9">
-                        <input autoFocus={true} type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
+                <h2 className="margin--less">Your password</h2>
+                <h5 className="color--light">Select a password that you'll use to login with your email address:</h5>
+                <div className="inner__content margin--extra">
+                    <h5><strong>Email</strong></h5>
+                    <div className="block--gray form-group">{this.props.state.team.email}</div>
+                    <div className={ name_error ? "form-group has-error" : "form-group" }>
+                    <div className="row">
+                        <div className="col-sm-11">
+                            <h5><strong>Choose your password</strong></h5>
+                            <input autoFocus={true} type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
+                            <div className="color--light form__hint">Passwords must contain 5 to 50 characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.</div>
+                        </div>
                     </div>
-                </div>
-                    { name_error }
+                        { name_error }
+                    </div>
                 </div>
                 <div className="form-group checkbox">
                     <label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service.</label>
                 </div>
                 <div className="form-group">
-                    <button type="button" className="btn btn-default" onClick={this.submitBack}><i className="glyphicon glyphicon-chevron-left"></i> Back</button>&nbsp;
-                    <button type="submit" className="btn-primary btn" id="finish-button" data-loading-text={"<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> Creating "+strings.Team+"..."} onClick={this.submitNext}>Finish</button>
+                    <button type="submit" className="btn btn-primary margin--extra" id="finish-button" data-loading-text={"<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> Creating "+strings.Team+"..."} onClick={this.submitNext}>Finish</button>
                 </div>
                 <p>By proceeding to create your account and use { config.SiteName }, you agree to our <a href={ config.TermsLink }>Terms of Service</a> and <a href={ config.PrivacyLink }>Privacy Policy</a>. If you do not agree, you cannot use {config.SiteName}.</p>
+                <div className="margin--extra">
+                    <a href="#" onClick={this.submitBack}>Back to previous step</a>
+                </div>
             </form>
             </div>
         );

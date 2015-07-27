@@ -426,13 +426,15 @@
     }
     body {
         &.white {
-            .row.content {
+            .inner__wrap {
+            >.row.content {
                 margin-bottom: -185px;
+            }
             }
         }
     }
     .footer, .footer-pane, .footer-push {
-        height: auto;
+        height: 187px;
     }
     .footer-pane {
         .footer-link {

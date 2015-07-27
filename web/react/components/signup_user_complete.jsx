@@ -104,8 +104,8 @@ module.exports = React.createClass({
         var yourEmailIs = this.state.user.email == "" ? "" : <span>Your email address is { this.state.user.email }.  </span>
 
         var email = (
-                <div className={ this.state.original_email == "" ? "" : "hidden"} >
-                <label className="control-label">Email</label>
+                <div className={ this.state.original_email == "" ? "margin--extra" : "hidden"} >
+                <h5><strong>What's your email address?</strong></h5>
                 <div className={ email_error ? "form-group has-error" : "form-group" }>
                 <input type="email" ref="email" className="form-control" defaultValue={ this.state.user.email } placeholder="" maxLength="128" />
                 { email_error }
@@ -124,29 +124,34 @@ module.exports = React.createClass({
         return (
             <div>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
-                <h3 className="text-center extra-margin">Signup to { config.SiteName }</h3>
-                <div className="form-group form-group--small">
-                    <span></span>
-                </div>
+                <h5 className="margin--less">Welcome to:</h5>
+                <h2 className="signup-team__name"> "teamDisplayName" </h2>
+                <h2 className="signup-team__subdomain">on { config.SiteName }</h2>
+                <h4 className="color--light">Let's create your account</h4>
                 { signup_message }
-                <label className="control-label">Username</label>
-                <div className={ name_error ? "form-group has-error" : "form-group" }>
-                <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" />
-                { name_error }
-                <p className="form__hint">Your username can be made of lowercase letters and numbers.</p>
-                <p className="form__hint">{"Pick something " + strings.Team + "mates will recognize. Your username is how you will appear to others"}</p>
-                </div>
-                { email }
-                <label className="control-label">Password</label>
-                <div className={ password_error ? "form-group has-error" : "form-group" }>
-                <input type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
-                { password_error }
-                </div>
-                <p className={ this.state.original_email == "" ? "hidden" : ""}>{ yourEmailIs } You’ll use this address to sign in to {config.SiteName}.</p>
-                <div className="checkbox"><label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service. </label></div>
-                <p><button onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
+                <div className="inner__content">
+                    { email }
+                    <p className={ this.state.original_email == "" ? "hidden" : ""}>{ yourEmailIs } You’ll use this address to sign in to {config.SiteName}.</p>
+                    <div className="margin--extra">
+                        <h5><strong>Choose your username</strong></h5>
+                        <div className={ name_error ? "form-group has-error" : "form-group" }>
+                        <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" />
+                        { name_error }
+                        <p className="form__hint">Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'"</p>
+                        </div>
+                    </div>
+                    <div className="margin--extra">
+                        <h5><strong>Choose your password</strong></h5>
+                        <div className={ password_error ? "form-group has-error" : "form-group" }>
+                        <input type="password" ref="password" className="form-control" placeholder="" maxLength="128" />
+                        { password_error }
+                        </div>
+                    </div>
+                    <div className="checkbox"><label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service. </label></div>
+                    </div>
+                <p className="margin--extra"><button onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
                 { server_error }
-                <p>By proceeding to create your account and use { config.SiteName }, you agree to our <a href={ config.TermsLink }>Terms of Service</a> and <a href={ config.PrivacyLink }>Privacy Policy</a>. If you do not agree, you cannot use {config.SiteName}.</p>
+                <p>By creating an account and using Mattermost you are agreeing to our <a href={ config.TermsLink }>Terms of Service</a>. If you do not agree, you cannot use this service.</p>
             </div>
         );
     }
