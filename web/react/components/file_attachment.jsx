@@ -12,7 +12,7 @@ module.exports = React.createClass({
         handleImageClick: React.PropTypes.func
     },
     getInitialState: function() {
-        return {fileSize: 0};
+        return {fileSize: -1};
     },
     componentDidMount: function() {
         var filename = this.props.filenames[this.props.index];
@@ -80,13 +80,18 @@ module.exports = React.createClass({
             thumbnail = <div className={"file-icon "+utils.getIconClassName(type)}/>;
         }
 
-        if (!this.state.fileSize) {
+        if (this.state.fileSize < 0) {
             var self = this;
 
             // asynchronously request the size of the file so that we can display it next to the thumbnail
             utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
                 self.setState({fileSize: fileSize});
             });
+        }
+
+        var fileSizeString = "";
+        if (this.state.fileSize >= 0) {
+            fileSizeString = utils.fileSizeToString(this.state.fileSize);
         }
 
         return (
@@ -99,7 +104,7 @@ module.exports = React.createClass({
                     <div className="post-image__name">{fileInfo.name}</div>
                     <div>
                         <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
-                        <span className="post-image__size">{this.state.fileSize ? utils.fileSizeToString(this.state.fileSize) : ""}</span>
+                        <span className="post-image__size">{this.fileSizeString}</span>
                     </div>
                 </div>
             </div>
