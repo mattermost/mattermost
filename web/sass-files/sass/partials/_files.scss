@@ -114,7 +114,8 @@
   height: 100px;
   float: left;
   margin: 5px 10px 5px 0;
-  display: flex;
+  @include display-flex;
+  display: -ms-flexbox;
   border: 1px solid lightgrey;
   .post__load {
     height: 100%;
@@ -159,7 +160,8 @@
 }
 
 .file-details__container {
-    display: flex;
+    @include display-flex;
+    display: -ms-flexbox;
 
     .file-details {
         width: 320px;
