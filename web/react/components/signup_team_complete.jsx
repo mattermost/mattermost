@@ -42,11 +42,15 @@ WelcomePage = React.createClass({
             state.email_error = "";
         }
 
-        client.signupTeam(email, this.props.state.team.name,
+        client.signupTeam(email,
             function(data) {
-                this.props.state.wizard = "finished";
-                this.props.updateParent(this.props.state);
-                window.location.href = "/signup_team_confirm/?email=" + encodeURI(email);
+                if (data["follow_link"]) {
+                    window.location.href = data["follow_link"];
+                } else {
+                    this.props.state.wizard = "finished";
+                    this.props.updateParent(this.props.state);
+                    window.location.href = "/signup_team_confirm/?email=" + encodeURIComponent(team.email);
+                }
             }.bind(this),
             function(err) {
                 this.state.server_error = err.message;
