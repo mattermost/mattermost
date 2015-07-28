@@ -5,6 +5,7 @@ var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
     displayName: "FileAttachment",
+    canSetState: false,
     propTypes: {
         filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
         index: React.PropTypes.number.isRequired,
@@ -15,6 +16,8 @@ module.exports = React.createClass({
         return {fileSize: -1};
     },
     componentDidMount: function() {
+        this.canSetState = true;
+
         var filename = this.props.filenames[this.props.index];
 
         var self = this;
@@ -49,6 +52,10 @@ module.exports = React.createClass({
                 }}(fileInfo.path, filename));
             }
         }
+    },
+    componentWillUnmount: function() {
+        // keep track of when this component is mounted so that we can asynchronously change state without worrying about whether or not we're mounted
+        this.canSetState = false;
     },
     shouldComponentUpdate: function(nextProps, nextState) {
         // the only time this object should update is when it receives an updated file size which we can usually handle without re-rendering
@@ -85,7 +92,9 @@ module.exports = React.createClass({
 
             // asynchronously request the size of the file so that we can display it next to the thumbnail
             utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
-                self.setState({fileSize: fileSize});
+                if (self.canSetState) {
+                    self.setState({fileSize: fileSize});
+                }
             });
         }
 
@@ -104,7 +113,7 @@ module.exports = React.createClass({
                     <div className="post-image__name">{fileInfo.name}</div>
                     <div>
                         <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
-                        <span className="post-image__size">{this.fileSizeString}</span>
+                        <span className="post-image__size">{fileSizeString}</span>
                     </div>
                 </div>
             </div>
