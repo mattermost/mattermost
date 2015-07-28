@@ -1,6 +1,6 @@
-**Mattermost Preview**  
+**Mattermost Alpha**  
 **Team Communication Service**  
-**Version 0.5.0**
+**Development Build**
 
 
 About Mattermost
@@ -22,7 +22,7 @@ Learn More
 Installing the Mattermost
 =========================
 
-You're installing "Mattermost Preview", a pre-released 0.5.0 version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our 1.0.0 version release. 
+You're installing "Mattermost Alpha", a pre-released version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our production release. 
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org 
 

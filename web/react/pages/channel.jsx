@@ -34,6 +34,7 @@ var MentionList = require('../components/mention_list.jsx');
 var ChannelInfoModal = require('../components/channel_info_modal.jsx');
 var AccessHistoryModal = require('../components/access_history_modal.jsx');
 var ActivityLogModal = require('../components/activity_log_modal.jsx');
+var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx')
 
 
 var Constants = require('../utils/constants.jsx');
@@ -215,6 +216,11 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     React.render(
         <ActivityLogModal />,
         document.getElementById('activity_log_modal')
+    );
+
+    React.render(
+        <RemovedFromChannelModal />,
+        document.getElementById('removed_from_channel_modal')
     );
 
 };

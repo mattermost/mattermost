@@ -710,6 +710,11 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_REMOVED)
+		message.Add("channel_id",id)
+		message.Add("remover", c.Session.UserId)
+		PublishAndForget(message)
+
 		c.LogAudit("name=" + channel.Name + " user_id=" + userId)
 
 		result := make(map[string]string)
