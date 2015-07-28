@@ -126,7 +126,7 @@ module.exports = React.createClass({
                 } else if (i < Constants.MAX_DISPLAY_FILES) {
                     postFiles.push(
                         <div className="post-image__column custom-file" key={fileInfo.name+i}>
-                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
+                            <a href={fileInfo.path + (fileInfo.ext ? "." + fileInfo.ext : "")} download={fileInfo.name + (fileInfo.ext ? "." + fileInfo.ext : "")}>
                                 <div className={"file-icon "+utils.getIconClassName(type)}/>
                             </a>
                         </div>
