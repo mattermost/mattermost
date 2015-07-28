@@ -5,6 +5,7 @@ GOFLAGS ?= $(GOFLAGS:)
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 
 GO=$(GOPATH)/bin/godep go
+ESLINT=web/react/node_modules/eslint/bin/eslint.js
 
 ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
@@ -61,6 +62,10 @@ install:
 	fi
 
 	@cd web/react/ && npm install
+
+check: install
+	@echo Running ESLint...
+	@$(ESLINT) web/react/components/*
 
 test: install
 	@mkdir -p logs
