@@ -894,3 +894,16 @@ module.exports.fileSizeToString = function(bytes) {
         return bytes + "B";
     }
 };
+
+// Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
+module.exports.getFileUrl = function(filename) {
+    var url = filename;
+
+    // This is a temporary patch to fix issue with old files using absolute paths
+    if (url.indexOf("/api/v1/files/get") != -1) {
+        url = filename.split("/api/v1/files/get")[1];
+    }
+    url = module.exports.getWindowLocationOrigin() + "/api/v1/files/get" + url;
+
+    return url;
+};

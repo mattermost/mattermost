@@ -71,15 +71,7 @@ module.exports = React.createClass({
         var filename = filenames[this.props.index];
 
         var fileInfo = utils.splitFileLocation(filename);
-        if (Object.keys(fileInfo).length === 0) return null;
-
         var type = utils.getFileType(fileInfo.ext);
-
-        // This is a temporary patch to fix issue with old files using absolute paths
-        if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
-            fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-        }
-        fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
         var thumbnail;
         if (type === "image") {
@@ -92,7 +84,7 @@ module.exports = React.createClass({
             var self = this;
 
             // asynchronously request the size of the file so that we can display it next to the thumbnail
-            utils.getFileSize(fileInfo.path + "." + fileInfo.ext, function(fileSize) {
+            utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
                 self.setState({fileSize: fileSize});
             });
         }
