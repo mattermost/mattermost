@@ -121,17 +121,6 @@ func AccessDataFromJson(data io.Reader) *AccessData {
 	}
 }
 
-func AccessResponseFromJson(data io.Reader) *AccessResponse {
-	decoder := json.NewDecoder(data)
-	var ar AccessResponse
-	err := decoder.Decode(&ar)
-	if err == nil {
-		return &ar
-	} else {
-		return nil
-	}
-}
-
 func (ar *AccessResponse) ToJson() string {
 	b, err := json.Marshal(ar)
 	if err != nil {
