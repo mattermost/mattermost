@@ -344,8 +344,6 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func InviteMembers(c *Context, team *model.Team, user *model.User, invites []string) {
 	for _, invite := range invites {
 		if len(invite) > 0 {
-			teamURL := ""
-			teamURL = c.GetTeamURLFromTeam(team)
 
 			sender := user.GetDisplayName()
 
@@ -356,10 +354,10 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				senderRole = "member"
 			}
 
-			subjectPage := NewServerTemplatePage("invite_subject", teamURL)
+			subjectPage := NewServerTemplatePage("invite_subject", c.GetSiteURL())
 			subjectPage.Props["SenderName"] = sender
 			subjectPage.Props["TeamDisplayName"] = team.DisplayName
-			bodyPage := NewServerTemplatePage("invite_body", teamURL)
+			bodyPage := NewServerTemplatePage("invite_body", c.GetSiteURL())
 			bodyPage.Props["TeamDisplayName"] = team.DisplayName
 			bodyPage.Props["SenderName"] = sender
 			bodyPage.Props["SenderStatus"] = senderRole
