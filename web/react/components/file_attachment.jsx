@@ -7,9 +7,13 @@ module.exports = React.createClass({
     displayName: "FileAttachment",
     canSetState: false,
     propTypes: {
+        // a list of file pathes displayed by the parent FileAttachmentList
         filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+        // the index of this attachment preview in the parent FileAttachmentList
         index: React.PropTypes.number.isRequired,
+        // the identifier of the modal dialog used to preview files
         modalId: React.PropTypes.string.isRequired,
+        // handler for when the thumbnail is clicked
         handleImageClick: React.PropTypes.func
     },
     getInitialState: function() {
@@ -20,12 +24,8 @@ module.exports = React.createClass({
 
         var filename = this.props.filenames[this.props.index];
 
-        var self = this;
-
         if (filename) {
             var fileInfo = utils.splitFileLocation(filename);
-            if (Object.keys(fileInfo).length === 0) return;
-
             var type = utils.getFileType(fileInfo.ext);
 
             // This is a temporary patch to fix issue with old files using absolute paths
@@ -35,6 +35,7 @@ module.exports = React.createClass({
             fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
 
             if (type === "image") {
+                var self = this;
                 $('<img/>').attr('src', fileInfo.path+'_thumb.jpg').load(function(path, name){ return function() {
                     $(this).remove();
                     if (name in self.refs) {
@@ -87,6 +88,7 @@ module.exports = React.createClass({
             thumbnail = <div className={"file-icon "+utils.getIconClassName(type)}/>;
         }
 
+        var fileSizeString = "";
         if (this.state.fileSize < 0) {
             var self = this;
 
@@ -96,10 +98,7 @@ module.exports = React.createClass({
                     self.setState({fileSize: fileSize});
                 }
             });
-        }
-
-        var fileSizeString = "";
-        if (this.state.fileSize >= 0) {
+        } else {
             fileSizeString = utils.fileSizeToString(this.state.fileSize);
         }
 

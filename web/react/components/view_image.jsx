@@ -5,6 +5,8 @@ var Client = require('../utils/client.jsx');
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
+    displayName: "ViewImageModal",
+    canSetState: false,
     handleNext: function() {
         var id = this.state.imgId + 1;
         if (id > this.props.filenames.length-1) {
@@ -90,6 +92,12 @@ module.exports = React.createClass({
                 $(self.refs.imageFooter.getDOMNode()).removeClass("footer--show");
             }
         );
+
+        // keep track of whether or not this component is mounted so we can safely set the state asynchronously
+        this.canSetState = true;
+    },
+    componentWillUnmount: function() {
+        this.canSetState = false;
     },
     getPublicLink: function(e) {
         data = {};
@@ -130,6 +138,7 @@ module.exports = React.createClass({
             var fileType = utils.getFileType(fileInfo.ext);
 
             if (fileType === "image") {
+                // image files just show a preview of the file
                 content = (
                     <a href={fileUrl} target="_blank">
                         <img ref="image" src={this.getPreviewImagePath(filename)}/>
@@ -160,13 +169,16 @@ module.exports = React.createClass({
                     var self = this;
 
                     utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
-                        var fileSizes = self.state.fileSizes;
-                        fileSizes[filename] = fileSize;
-                        self.setState(fileSizes);
+                        if (self.canSetState) {
+                            var fileSizes = self.state.fileSizes;
+                            fileSizes[filename] = fileSize;
+                            self.setState(fileSizes);
+                        }
                     });
                 }
             }
         } else {
+            // display a progress indicator when the preview for an image is still loading
             var percentage = Math.floor(this.state.progress[this.state.imgId]);
             content = (
                 <div>
@@ -216,6 +228,7 @@ module.exports = React.createClass({
             </div>
         );
     },
+    // Returns the path to a preview image that can be used to represent a file.
     getPreviewImagePath: function(filename) {
         var fileInfo = utils.splitFileLocation(filename);
         var fileType = utils.getFileType(fileInfo.ext);

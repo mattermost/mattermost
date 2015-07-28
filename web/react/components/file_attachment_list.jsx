@@ -8,9 +8,13 @@ var Constants = require('../utils/constants.jsx');
 module.exports = React.createClass({
     displayName: "FileAttachmentList",
     propTypes: {
+        // a list of file pathes displayed by this
         filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+        // the identifier of the modal dialog used to preview files
         modalId: React.PropTypes.string.isRequired,
+        // the channel that this is part of
         channelId: React.PropTypes.string,
+        // the user that owns the post that this is attached to
         userId: React.PropTypes.string
     },
     getInitialState: function() {
