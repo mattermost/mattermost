@@ -40,7 +40,7 @@ module.exports = React.createClass({
 
         this.setState({name_error: "", email_error: "", password_error: "", server_error: ""});
 
-        this.state.user.allow_marketing = this.refs.email_service.getDOMNode().checked;
+        this.state.user.allow_marketing = true;
 
         client.createUser(this.state.user, this.state.data, this.state.hash,
             function(data) {
@@ -125,7 +125,7 @@ module.exports = React.createClass({
             <div>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h5 className="margin--less">Welcome to:</h5>
-                <h2 className="signup-team__name"> "teamDisplayName" </h2>
+                <h2 className="signup-team__name">{ this.props.teamDisplayName }</h2>
                 <h2 className="signup-team__subdomain">on { config.SiteName }</h2>
                 <h4 className="color--light">Let's create your account</h4>
                 { signup_message }
@@ -147,7 +147,6 @@ module.exports = React.createClass({
                         { password_error }
                         </div>
                     </div>
-                    <div className="checkbox"><label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service. </label></div>
                     </div>
                 <p className="margin--extra"><button onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
                 { server_error }

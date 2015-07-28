@@ -105,7 +105,7 @@ module.exports = React.createClass({
             <div className="signup-team__container">
                 <h5 className="margin--less">Sign in to:</h5>
                 <h2 className="signup-team__name">{ teamDisplayName }</h2>
-                <h2 className="signup-team__subdomain">on { teamName }</h2>
+                <h2 className="signup-team__subdomain">on { config.SiteName }</h2>
                 <form onSubmit={this.handleSubmit}>
                     <div className={server_error ? 'form-group has-error' : 'form-group'}>
                         { server_error }
