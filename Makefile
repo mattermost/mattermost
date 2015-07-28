@@ -66,6 +66,10 @@ install:
 check: install
 	@echo Running ESLint...
 	@$(ESLINT) web/react/components/*
+	@$(ESLINT) web/react/dispatcher/*
+	@$(ESLINT) web/react/pages/*
+	@$(ESLINT) web/react/stores/*
+	@$(ESLINT) web/react/utils/*
 
 test: install
 	@mkdir -p logs
