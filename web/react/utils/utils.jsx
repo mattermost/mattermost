@@ -546,10 +546,13 @@ module.exports.getIconClassName = function(fileType) {
 
 module.exports.splitFileLocation = function(fileLocation) {
     var fileSplit = fileLocation.split('.');
-    if (fileSplit.length < 2) return {};
 
-    var ext = fileSplit[fileSplit.length-1];
-    fileSplit.splice(fileSplit.length-1,1)
+    var ext = "";
+    if (fileSplit.length > 1) {
+        ext = fileSplit[fileSplit.length - 1];
+        fileSplit.splice(fileSplit.length - 1, 1);
+    }
+
     var filePath = fileSplit.join('.');
     var filename = filePath.split('/')[filePath.split('/').length-1];
 
