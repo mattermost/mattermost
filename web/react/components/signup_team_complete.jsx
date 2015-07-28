@@ -134,6 +134,7 @@ TeamDisplayNamePage = React.createClass({
 
         this.props.state.wizard = "team_url";
         this.props.state.team.display_name = display_name;
+        this.props.state.team.name = utils.cleanUpUrlable(display_name);
         this.props.updateParent(this.props.state);
     },
     getInitialState: function() {
@@ -563,15 +564,15 @@ PasswordPage = React.createClass({
 
         var password = this.refs.password.getDOMNode().value.trim();
         if (!password || password.length < 5) {
-            this.setState({name_error: "Please enter at least 5 characters"});
+            this.setState({password_error: "Please enter at least 5 characters"});
             return;
         }
 
-        this.setState({name_error: ""});
+        this.setState({password_error: null, server_error: null});
         $('#finish-button').button('loading');
         var teamSignup = JSON.parse(JSON.stringify(this.props.state));
         teamSignup.user.password = password;
-        teamSignup.user.allow_marketing = this.refs.email_service.getDOMNode().checked;
+        teamSignup.user.allow_marketing = true;
         delete teamSignup.wizard;
         var ctl = this;
 
@@ -603,7 +604,7 @@ PasswordPage = React.createClass({
                 }, 5000);
             }.bind(this),
             function(err) {
-                this.setState({name_error: err.message});
+                this.setState({server_error: err.message});
                 $('#sign-up-button').button('reset');
             }.bind(this)
         );
@@ -615,7 +616,8 @@ PasswordPage = React.createClass({
 
         client.track('signup', 'signup_team_07_password');
 
-        var name_error = this.state.name_error ? <label className="control-label">{ this.state.name_error }</label> : null;
+        var password_error = this.state.password_error ? <label className="control-label">{ this.state.password_error }</label> : null;
+        var server_error = this.state.server_error ? <label className="control-label">{ this.state.server_error }</label> : null;
 
         return (
             <div>
@@ -626,7 +628,7 @@ PasswordPage = React.createClass({
                 <div className="inner__content margin--extra">
                     <h5><strong>Email</strong></h5>
                     <div className="block--gray form-group">{this.props.state.team.email}</div>
-                    <div className={ name_error ? "form-group has-error" : "form-group" }>
+                    <div className={ password_error ? "form-group has-error" : "form-group" }>
                     <div className="row">
                         <div className="col-sm-11">
                             <h5><strong>Choose your password</strong></h5>
@@ -634,11 +636,9 @@ PasswordPage = React.createClass({
                             <div className="color--light form__hint">Passwords must contain 5 to 50 characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.</div>
                         </div>
                     </div>
-                        { name_error }
+                        { password_error }
+                        { server_error }
                     </div>
-                </div>
-                <div className="form-group checkbox">
-                    <label><input type="checkbox" ref="email_service" /> It's ok to send me occassional email with updates about the {config.SiteName} service.</label>
                 </div>
                 <div className="form-group">
                     <button type="submit" className="btn btn-primary margin--extra" id="finish-button" data-loading-text={"<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> Creating "+strings.Team+"..."} onClick={this.submitNext}>Finish</button>
@@ -669,9 +669,6 @@ module.exports = React.createClass({
             props.wizard = "welcome";
             props.team = {};
             props.team.email = this.props.email;
-            props.team.display_name = this.props.name;
-            props.team.company_name = this.props.name;
-            props.team.name = utils.cleanUpUrlable(this.props.name);
             props.team.allowed_domains = "";
             props.invites = [];
             props.invites.push("");

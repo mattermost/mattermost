@@ -20,21 +20,12 @@ module.exports = React.createClass({
             state.email_error = "";
         }
 
-        team.display_name = this.refs.name.getDOMNode().value.trim();
-        if (!team.display_name) {
-            state.name_error = "This field is required";
-            state.inValid = true;
-        }
-        else {
-            state.name_error = "";
-        }
-
         if (state.inValid) {
             this.setState(state);
             return;
         }
 
-        client.signupTeam(team.email, team.display_name,
+        client.signupTeam(team.email,
             function(data) {
                 if (data["follow_link"]) {
                     window.location.href = data["follow_link"];
@@ -55,7 +46,6 @@ module.exports = React.createClass({
     render: function() {
 
         var email_error = this.state.email_error ? <label className='control-label'>{ this.state.email_error }</label> : null;
-        var name_error = this.state.name_error ? <label className='control-label'>{ this.state.name_error }</label> : null;
         var server_error = this.state.server_error ? <div className={ "form-group has-error" }><label className='control-label'>{ this.state.server_error }</label></div> : null;
 
         return (
@@ -63,10 +53,6 @@ module.exports = React.createClass({
                 <div className={ email_error ? "form-group has-error" : "form-group" }>
                     <input autoFocus={true} type="email" ref="email" className="form-control" placeholder="Email Address" maxLength="128" />
                     { email_error }
-                </div>
-                <div className={ name_error ? "form-group has-error" : "form-group" }>
-                    <input type="text" ref="name" className="form-control" placeholder={utils.toTitleCase(strings.Company) + " Name"} maxLength="64" />
-                    { name_error }
                 </div>
                 { server_error }
                 <div className="form-group">

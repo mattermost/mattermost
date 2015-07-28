@@ -3,9 +3,9 @@
 
 var SignupTeamComplete =require('../components/signup_team_complete.jsx');
 
-global.window.setup_signup_team_complete_page = function(email, name, data, hash) {
+global.window.setup_signup_team_complete_page = function(email, data, hash) {
     React.render(
-        <SignupTeamComplete name={name} email={email} hash={hash} data={data}/>,
+        <SignupTeamComplete email={email} hash={hash} data={data}/>,
         document.getElementById('signup-team-complete')
     );
 };
