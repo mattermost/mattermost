@@ -2,7 +2,7 @@
 
 1. [GO](#go)
 2. [Javascript](#javascript)
-3. [React/JSX](#jsx)
+3. [React-JSX](#react-jsx)
 
 
 ## Go
@@ -122,7 +122,11 @@ function wrongGetStr(stuff) {
 }
 ```
 
-## React/JSX
+## React-JSX
+
+Part of the buld process is running ESLint. ESLint is the final athority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
+
+Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
 
 This is an abriged version of the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#airbnb-reactjsx-style-guide). Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
 
