@@ -36,6 +36,13 @@
 
     <script type="text/javascript" src="https://cloudfront.loggly.com/js/loggly.tracker.js" async></script>
     <script id="config" type="text/javascript" src="/static/config/config.js"></script>
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script type="text/javascript">
+        if (self === top) {
+            var blocker = document.getElementById("antiClickjack");
+            blocker.parentNode.removeChild(blocker);
+        }
+    </script>
     <script>
         if (config == null) {
             config = {};
