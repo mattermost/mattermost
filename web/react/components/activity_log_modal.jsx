@@ -102,8 +102,9 @@ module.exports = React.createClass({
                         <div className="modal-content">
                             <div className="modal-header">
                                 <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 className="modal-title" id="myModalLabel">Active Devices</h4>
+                                <h4 className="modal-title" id="myModalLabel">Active Sessions</h4>
                             </div>
+                            <p className="session-help-text">Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the "Logout" button below to end a session.</p>
                             <div ref="modalBody" className="modal-body">
                                 <form role="form">
                                 { activityList }
