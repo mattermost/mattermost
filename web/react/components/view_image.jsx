@@ -36,29 +36,36 @@ module.exports = React.createClass({
         var fileInfo = utils.splitFileLocation(filename);
         var fileType = utils.getFileType(fileInfo.ext);
 
-        var self = this;
-        var img = new Image();
-        img.load(this.getPreviewImagePath(filename),
-            function(){
-                var progress = self.state.progress;
-                progress[id] = img.completedPercentage;
-                self.setState({ progress: progress });
-        });
-        img.onload = function(imgid) {
-            return function() {
-                var loaded = self.state.loaded;
-                loaded[imgid] = true;
-                self.setState({ loaded: loaded });
-                $(self.refs.image.getDOMNode()).css("max-height",imgHeight);
-            };
-        }(id);
-        var images = this.state.images;
-        images[id] = img;
-        this.setState({ images: images });
+        if (fileType === "image") {
+            var self = this;
+            var img = new Image();
+            img.load(this.getPreviewImagePath(filename),
+                function(){
+                    var progress = self.state.progress;
+                    progress[id] = img.completedPercentage;
+                    self.setState({ progress: progress });
+            });
+            img.onload = function(imgid) {
+                return function() {
+                    var loaded = self.state.loaded;
+                    loaded[imgid] = true;
+                    self.setState({ loaded: loaded });
+                    $(self.refs.image.getDOMNode()).css("max-height",imgHeight);
+                };
+            }(id);
+            var images = this.state.images;
+            images[id] = img;
+            this.setState({ images: images });
+        } else {
+            // there's nothing to load for non-image files
+            var loaded = this.state.loaded;
+            loaded[id] = true;
+            this.setState({ loaded: loaded });
+        }
     },
     componentDidUpdate: function() {
-        if (this.refs.image) {
-            if (this.state.loaded[this.state.imgId]) {
+        if (this.state.loaded[this.state.imgId]) {
+            if (this.refs.imageWrap) {
                 $(this.refs.imageWrap.getDOMNode()).removeClass("default");
             }
         }
@@ -104,55 +111,73 @@ module.exports = React.createClass({
             loaded.push(false);
             progress.push(0);
         }
-        return { imgId: this.props.startId, viewed: false, loaded: loaded, progress: progress, images: {} };
+        return { imgId: this.props.startId, viewed: false, loaded: loaded, progress: progress, images: {}, fileSizes: {} };
     },
     render: function() {
         if (this.props.filenames.length < 1 || this.props.filenames.length-1 < this.state.imgId) {
             return <div/>;
         }
 
-        var fileInfo = utils.splitFileLocation(this.props.filenames[this.state.imgId]);
+        var filename = this.props.filenames[this.state.imgId];
+        var fileUrl = utils.getFileUrl(filename);
 
-        var name = fileInfo['name'] + '.' + fileInfo['ext'];
+        var name = decodeURIComponent(utils.getFileName(filename));
 
-        var loading = "";
+        var content;
         var bgClass = "";
-        var img = {};
-        if (!this.state.loaded[this.state.imgId]) {
+        if (this.state.loaded[this.state.imgId]) {
+            var fileInfo = utils.splitFileLocation(filename);
+            var fileType = utils.getFileType(fileInfo.ext);
+
+            if (fileType === "image") {
+                content = (
+                    <a href={fileUrl} target="_blank">
+                        <img ref="image" src={this.getPreviewImagePath(filename)}/>
+                    </a>
+                );
+            } else {
+                // non-image files include a section providing details about the file
+                var infoString = "File type " + fileInfo.ext.toUpperCase();
+                if (this.state.fileSizes[filename] && this.state.fileSizes[filename] >= 0) {
+                    infoString += ", Size " + utils.fileSizeToString(this.state.fileSizes[filename]);
+                }
+
+                content = (
+                    <div className="file-details__container">
+                        <a className={"file-details__preview"} href={fileUrl} target="_blank">
+                            <span className="file-details__preview-helper" />
+                            <img ref="image" src={this.getPreviewImagePath(filename)} />
+                        </a>
+                        <div className="file-details">
+                            <div className="file-details__name">{name}</div>
+                            <div className="file-details__info">{infoString}</div>
+                        </div>
+                    </div>
+                );
+
+                // asynchronously request the actual size of this file
+                if (!(filename in this.state.fileSizes)) {
+                    var self = this;
+
+                    utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
+                        var fileSizes = self.state.fileSizes;
+                        fileSizes[filename] = fileSize;
+                        self.setState(fileSizes);
+                    });
+                }
+            }
+        } else {
             var percentage = Math.floor(this.state.progress[this.state.imgId]);
-            loading = (
-                <div key={name+"_loading"}>
-                    <img ref="placeholder" className="loader-image" src="/static/images/load.gif" />
+            content = (
+                <div>
+                    <img className="loader-image" src="/static/images/load.gif" />
                     { percentage > 0 ?
                     <span className="loader-percent" >{"Previewing " + percentage + "%"}</span>
                     : ""}
                 </div>
             );
             bgClass = "black-bg";
-        } else if (this.state.viewed) {
-            for (var id in this.state.images) {
-                var filename = this.props.filenames[id];
-                var fileInfo = utils.splitFileLocation(filename);
-
-                var imgClass = "hidden";
-                if (this.state.loaded[id] && this.state.imgId == id) imgClass = "";
-
-                img[fileInfo.path] = (
-                    <a key={fileInfo.path} className={imgClass} href={fileInfo.path+"."+fileInfo.ext} target="_blank">
-                        <img ref="image" src={this.getPreviewImagePath(filename)}/>
-                    </a>
-                );
-            }
         }
-
-        var imgFragment = React.addons.createFragment(img);
-
-        // This is a temporary patch to fix issue with old files using absolute paths
-        var download_link = this.props.filenames[this.state.imgId];
-        if (download_link.indexOf("/api/v1/files/get") !== -1) {
-            download_link = download_link.split("/api/v1/files/get")[1];
-        }
-        download_link = utils.getWindowLocationOrigin() + "/api/v1/files/get" + download_link;
 
         return (
             <div className="modal fade image_modal" ref="modal" id={this.props.modalId} tabIndex="-1" role="dialog" aria-hidden="true">
@@ -161,7 +186,7 @@ module.exports = React.createClass({
                         <div ref="imageBody" className="modal-body image-body">
                             <div ref="imageWrap" className={"image-wrapper default " + bgClass}>
                                 <div className="modal-close" data-dismiss="modal"></div>
-                                {imgFragment}
+                                {content}
                                 <div ref="imageFooter" className="modal-button-bar">
                                     <span className="pull-left text">{"Image "+(this.state.imgId+1)+" of "+this.props.filenames.length}</span>
                                     <div className="image-links">
@@ -171,10 +196,9 @@ module.exports = React.createClass({
                                                 <span className="text"> | </span>
                                             </div>
                                         : "" }
-                                        <a href={download_link} download={decodeURIComponent(name)} className="text">Download</a>
+                                        <a href={fileUrl} download={name} className="text">Download</a>
                                     </div>
                                 </div>
-                                {loading}
                             </div>
                             { this.props.filenames.length > 1 ?
                             <a className="modal-prev-bar" href="#" onClick={this.handlePrev}>

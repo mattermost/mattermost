@@ -157,3 +157,35 @@
     color: grey;
   }
 }
+
+.file-details__container {
+    display: flex;
+
+    .file-details {
+        width: 320px;
+        height: 270px;
+        padding: 14px;
+        text-align: left;
+        vertical-align: top;
+
+        .file-details__name {
+            font-size: 16px;
+        }
+        .file-details__info {
+            color: grey;
+        }
+    }
+    .file-details__preview {
+        width: 320px;
+        height: 270px;
+        border-right: 1px solid #ddd;
+        vertical-align: center;
+
+        // helper to center the image icon in the preview window
+        .file-details__preview-helper {
+            height: 100%;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    }
+}

@@ -110,7 +110,7 @@ module.exports = React.createClass({
                     {thumbnail}
                 </a>
                 <div className="post-image__details">
-                    <div className="post-image__name">{fileInfo.name}</div>
+                    <div className="post-image__name">{decodeURIComponent(utils.getFileName(filename))}</div>
                     <div>
                         <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
                         <span className="post-image__size">{fileSizeString}</span>

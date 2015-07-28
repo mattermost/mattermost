@@ -907,3 +907,9 @@ module.exports.getFileUrl = function(filename) {
 
     return url;
 };
+
+// Gets the name of a file (including extension) from a given url or file path.
+module.exports.getFileName = function(path) {
+    var split = path.split('/');
+    return split[split.length - 1];
+};
