@@ -635,11 +635,13 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
 	}
 
+	width := int(utils.Cfg.ImageSettings.ProfileWidth)
+	height := int(utils.Cfg.ImageSettings.ProfileHeight)
 	color := colors[int64(seed)%int64(len(colors))]
-	dstImg := image.NewRGBA(image.Rect(0, 0, int(utils.Cfg.ImageSettings.ProfileWidth), int(utils.Cfg.ImageSettings.ProfileHeight)))
+	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
 	srcImg := image.White
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
-	size := float64(62)
+	size := float64((width + height) / 4)
 
 	c := freetype.NewContext()
 	c.SetFont(font)
@@ -648,7 +650,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(int(utils.Cfg.ImageSettings.ProfileWidth)/2-45, int(utils.Cfg.ImageSettings.ProfileHeight)/2+20)
+	pt := freetype.Pt(width/6, height*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewAppError("createProfileImage", "Could not add user initial to default profile picture", err.Error())
