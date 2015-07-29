@@ -84,9 +84,9 @@ func (s SqlChannelStore) Save(channel *model.Channel) StoreChannel {
 				dupChannel := model.Channel{}
 				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 				if dupChannel.DeleteAt > 0 {
-					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that handle was previously created", "id="+channel.Id+", "+err.Error())
 				} else {
-					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that handle already exists", "id="+channel.Id+", "+err.Error())
 				}
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "We couldn't save the channel", "id="+channel.Id+", "+err.Error())
@@ -122,9 +122,9 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 				dupChannel := model.Channel{}
 				s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 				if dupChannel.DeleteAt > 0 {
-					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name was previously created", "id="+channel.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that handle was previously created", "id="+channel.Id+", "+err.Error())
 				} else {
-					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that name already exists", "id="+channel.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that handle already exists", "id="+channel.Id+", "+err.Error())
 				}
 			} else {
 				result.Err = model.NewAppError("SqlChannelStore.Update", "We encounted an error updating the channel", "id="+channel.Id+", "+err.Error())
