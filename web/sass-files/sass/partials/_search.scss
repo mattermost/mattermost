@@ -16,13 +16,13 @@
 	fill: #FFF;
 	position: absolute;
 	left: 0;
-	font-size: 33px;
-	width: 45px;
+	font-size: 35px;
+	width: 49px;
 	@include single-transition(all, 0.2s, linear);
 	@include translateX(0px);
 	text-align: center;
-	padding-right: 2px;
-	line-height: 42px;
+	padding-left: 1px;
+	line-height: 40px;
 	display: none;
 }
 .sidebar__search-icon {
