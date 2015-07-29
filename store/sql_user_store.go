@@ -187,7 +187,7 @@ func (us SqlUserStore) UpdateLastPictureUpdate(userId string) StoreChannel {
 
 		curTime := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = ?, UpdateAt = ? WHERE Id = ?", curTime, curTime, userId); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "We couldn't update the update_at", "user_id="+userId)
 		} else {
 			result.Data = userId

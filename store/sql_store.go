@@ -224,7 +224,7 @@ func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName st
 func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, fullText bool) {
 
 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-		_, err := ss.GetMaster().SelectStr("SELECT to_regclass($1)", indexName)
+		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if err == nil {
 			return

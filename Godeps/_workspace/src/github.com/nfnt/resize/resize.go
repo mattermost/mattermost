@@ -167,7 +167,7 @@ func Resize(width, height uint, img image.Image, interp InterpolationFunction) i
 		// accessing the YCbCr arrays in a tight loop is slow.
 		// converting the image to ycc increases performance by 2x.
 		temp := newYCC(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
-		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
+		result := newYCC(image.Rect(0, 0, int(width), int(height)), image.YCbCrSubsampleRatio444)
 
 		coeffs, offset, filterLength := createWeights8(temp.Bounds().Dy(), taps, blur, scaleX, kernel)
 		in := imageYCbCrToYCC(input)
@@ -409,7 +409,7 @@ func resizeNearest(width, height uint, scaleX, scaleY float64, img image.Image, 
 		// accessing the YCbCr arrays in a tight loop is slow.
 		// converting the image to ycc increases performance by 2x.
 		temp := newYCC(image.Rect(0, 0, input.Bounds().Dy(), int(width)), input.SubsampleRatio)
-		result := newYCC(image.Rect(0, 0, int(width), int(height)), input.SubsampleRatio)
+		result := newYCC(image.Rect(0, 0, int(width), int(height)), image.YCbCrSubsampleRatio444)
 
 		coeffs, offset, filterLength := createWeightsNearest(temp.Bounds().Dy(), taps, blur, scaleX)
 		in := imageYCbCrToYCC(input)

@@ -38,7 +38,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
 
 	// These execs are for upgrading currently created databases to full utf8mb4 compliance
-	// Will be removed as seen fit for upgrading 
+	// Will be removed as seen fit for upgrading
 	s.GetMaster().Exec("ALTER TABLE Posts charset=utf8mb4")
 	s.GetMaster().Exec("ALTER TABLE Posts MODIFY COLUMN Message varchar(4000) CHARACTER SET utf8mb4")
 }
@@ -80,14 +80,14 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 			time := model.GetMillis()
 
 			if post.Type != model.POST_JOIN_LEAVE {
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = ?, TotalMsgCount = TotalMsgCount + 1 WHERE Id = ?", time, post.ChannelId)
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt, TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = ? WHERE Id = ?", time, post.ChannelId)
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			}
 
 			if len(post.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", time, post.RootId)
+				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId})
 			}
 
 			result.Data = post
@@ -126,10 +126,10 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 			result.Err = model.NewAppError("SqlPostStore.Update", "We couldn't update the Post", "id="+editPost.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = ?  WHERE Id = ?", time, editPost.ChannelId)
+			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": editPost.ChannelId})
 
 			if len(editPost.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", time, editPost.RootId)
+				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": editPost.RootId})
 			}
 
 			// mark the old post as deleted

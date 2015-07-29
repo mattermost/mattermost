@@ -46,7 +46,7 @@ func Test_CorrectResize(t *testing.T) {
 	}
 }
 
-func Test_SameColor(t *testing.T) {
+func Test_SameColorWithRGBA(t *testing.T) {
 	img := image.NewRGBA(image.Rect(0, 0, 20, 20))
 	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
 		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
@@ -56,9 +56,99 @@ func Test_SameColor(t *testing.T) {
 	out := Resize(10, 10, img, Lanczos3)
 	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
 		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
-			color := img.At(x, y).(color.RGBA)
+			color := out.At(x, y).(color.NRGBA)
 			if color.R != 0x80 || color.G != 0x80 || color.B != 0x80 || color.A != 0xFF {
-				t.Fail()
+				t.Errorf("%+v", color)
+			}
+		}
+	}
+}
+
+func Test_SameColorWithNRGBA(t *testing.T) {
+	img := image.NewNRGBA(image.Rect(0, 0, 20, 20))
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			img.SetNRGBA(x, y, color.NRGBA{0x80, 0x80, 0x80, 0xFF})
+		}
+	}
+	out := Resize(10, 10, img, Lanczos3)
+	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
+		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
+			color := out.At(x, y).(color.NRGBA)
+			if color.R != 0x80 || color.G != 0x80 || color.B != 0x80 || color.A != 0xFF {
+				t.Errorf("%+v", color)
+			}
+		}
+	}
+}
+
+func Test_SameColorWithRGBA64(t *testing.T) {
+	img := image.NewRGBA64(image.Rect(0, 0, 20, 20))
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			img.SetRGBA64(x, y, color.RGBA64{0x8000, 0x8000, 0x8000, 0xFFFF})
+		}
+	}
+	out := Resize(10, 10, img, Lanczos3)
+	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
+		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
+			color := out.At(x, y).(color.NRGBA64)
+			if color.R != 0x8000 || color.G != 0x8000 || color.B != 0x8000 || color.A != 0xFFFF {
+				t.Errorf("%+v", color)
+			}
+		}
+	}
+}
+
+func Test_SameColorWithNRGBA64(t *testing.T) {
+	img := image.NewNRGBA64(image.Rect(0, 0, 20, 20))
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			img.SetNRGBA64(x, y, color.NRGBA64{0x8000, 0x8000, 0x8000, 0xFFFF})
+		}
+	}
+	out := Resize(10, 10, img, Lanczos3)
+	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
+		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
+			color := out.At(x, y).(color.NRGBA64)
+			if color.R != 0x8000 || color.G != 0x8000 || color.B != 0x8000 || color.A != 0xFFFF {
+				t.Errorf("%+v", color)
+			}
+		}
+	}
+}
+
+func Test_SameColorWithGray(t *testing.T) {
+	img := image.NewGray(image.Rect(0, 0, 20, 20))
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			img.SetGray(x, y, color.Gray{0x80})
+		}
+	}
+	out := Resize(10, 10, img, Lanczos3)
+	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
+		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
+			color := out.At(x, y).(color.Gray)
+			if color.Y != 0x80 {
+				t.Errorf("%+v", color)
+			}
+		}
+	}
+}
+
+func Test_SameColorWithGray16(t *testing.T) {
+	img := image.NewGray16(image.Rect(0, 0, 20, 20))
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			img.SetGray16(x, y, color.Gray16{0x8000})
+		}
+	}
+	out := Resize(10, 10, img, Lanczos3)
+	for y := out.Bounds().Min.Y; y < out.Bounds().Max.Y; y++ {
+		for x := out.Bounds().Min.X; x < out.Bounds().Max.X; x++ {
+			color := out.At(x, y).(color.Gray16)
+			if color.Y != 0x8000 {
+				t.Errorf("%+v", color)
 			}
 		}
 	}

@@ -7,6 +7,7 @@ var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
+var BrowserStore = require('../stores/browser_store.jsx')
 var utils = require('../utils/utils.jsx');
 var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
@@ -196,6 +197,19 @@ module.exports = React.createClass({
         } else if (msg.action == "user_added") {
             if (UserStore.getCurrentId() === msg.user_id) {
                 AsyncClient.getChannels(true);
+            }
+        } else if(msg.action === "user_removed") {
+            if(msg.user_id === UserStore.getCurrentId()) {
+                AsyncClient.getChannels(true);
+
+                if(msg.props.channel_id === ChannelStore.getCurrentId() && $('#removed_from_channel').length > 0) {
+                    var sentState = {};
+                    sentState.channelName = ChannelStore.getCurrent().display_name;
+                    sentState.remover = UserStore.getProfile(msg.props.remover).username;
+
+                    BrowserStore.setItem('channel-removed-state',sentState);
+                    $('#removed_from_channel').modal('show');
+                }
             }
         }
     },

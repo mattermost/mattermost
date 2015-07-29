@@ -16,6 +16,7 @@ const (
 	ACTION_VIEWED       = "viewed"
 	ACTION_NEW_USER     = "new_user"
 	ACTION_USER_ADDED   = "user_added"
+	ACTION_USER_REMOVED = "user_removed"
 )
 
 type Message struct {

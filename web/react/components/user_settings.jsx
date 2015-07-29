@@ -617,7 +617,7 @@ var SecurityTab = React.createClass({
                     <br></br>
                     <a data-toggle="modal" className="security-links theme" data-target="#access-history" href="#" onClick={this.handleHistoryOpen}><i className="fa fa-clock-o"></i>View Access History</a>
                     <b>   </b>
-                    <a data-toggle="modal" className="security-links theme" data-target="#activity-log" href="#" onClick={this.handleDevicesOpen}><i className="fa fa-globe"></i>View and Logout of Active Devices</a>
+                    <a data-toggle="modal" className="security-links theme" data-target="#activity-log" href="#" onClick={this.handleDevicesOpen}><i className="fa fa-globe"></i>View and Logout of Active Sessions</a>
                 </div>
             </div>
         );
