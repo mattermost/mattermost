@@ -75,7 +75,7 @@ var NavbarDropdown = React.createClass({
 
         return (
             <ul className="nav navbar-nav navbar-right">
-                <li className="dropdown" id="myDropdown">
+                <li className="dropdown">
                     <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                         <span className="dropdown__icon" dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                     </a>
@@ -108,8 +108,6 @@ module.exports = React.createClass({
     },
 
     toggleDropdown: function(e) {
-        e.preventDefault();
-        e.stopPropagation();
         $('.team__header').find('.dropdown-toggle').trigger('click');
     },
 
