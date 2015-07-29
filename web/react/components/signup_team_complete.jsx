@@ -591,7 +591,7 @@ PasswordPage = React.createClass({
                 props.state.wizard = "finished";
                 props.updateParent(props.state, true);
 
-                window.location.href = window.location.origin + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
+                window.location.href = utils.getWindowLocationOrigin() + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
 
                 // client.loginByEmail(teamSignup.team.domain, teamSignup.team.email, teamSignup.user.password,
                 //     function(data) {
