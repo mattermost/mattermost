@@ -352,27 +352,26 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	resend := r.URL.Query().Get("resend")
-	name := r.URL.Query().Get("name")
+	name := r.URL.Query().Get("teamname")
 	email := r.URL.Query().Get("email")
 	hashedId := r.URL.Query().Get("hid")
 	userId := r.URL.Query().Get("uid")
 
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(name); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
 	if resend == "true" {
-
-		teamId := ""
-		if result := <-api.Srv.Store.Team().GetByName(name); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			teamId = result.Data.(*model.Team).Id
-		}
-
-		if result := <-api.Srv.Store.User().GetByEmail(teamId, email); result.Err != nil {
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
 			user := result.Data.(*model.User)
-			api.FireAndForgetVerifyEmail(user.Id, strings.Split(user.Nickname, " ")[0], user.Email, name, c.GetTeamURL())
+			api.FireAndForgetVerifyEmail(user.Id, user.Nickname, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
@@ -396,6 +395,8 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	page := NewHtmlTemplatePage("verify", "Email Verified")
 	page.Props["IsVerified"] = isVerified
+	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
+	page.Props["UserEmail"] = email
 	page.Render(c, w)
 }
 

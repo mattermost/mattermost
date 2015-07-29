@@ -3,11 +3,9 @@
 
 var EmailVerify = require('../components/email_verify.jsx');
 
-global.window.setup_verify_page = function(is_verified) {
-
+global.window.setupVerifyPage = function setupVerifyPage(isVerified, teamURL, userEmail) {
     React.render(
-        <EmailVerify isVerified={is_verified} />,
+        <EmailVerify isVerified={isVerified} teamURL={teamURL} userEmail={userEmail} />,
         document.getElementById('verify')
     );
-
 };
