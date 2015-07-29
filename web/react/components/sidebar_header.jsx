@@ -107,6 +107,10 @@ module.exports = React.createClass({
         };
     },
 
+    toggleDropdown: function(e) {
+        $('.team__header').find('.dropdown-toggle').trigger('click');
+    },
+
     render: function() {
         var me = UserStore.getCurrentUser();
 
@@ -116,7 +120,7 @@ module.exports = React.createClass({
 
         return (
             <div className="team__header theme">
-                <a className="settings_link" href="#" data-toggle="modal" data-target="#user_settings1">
+                <a href="#" onClick={this.toggleDropdown}>
                     { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                     :

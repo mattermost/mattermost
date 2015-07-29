@@ -1,23 +1,37 @@
 .search-bar__container {
 	padding: 8px 8px 8px 0;
 }
-.sidebar__collapse {
-	width: auto;
-	height: auto;
+.search__clear {
+	display: none;
 	position: absolute;
-	top: 1px;
-	right: 15px;
-	cursor: pointer;
-	padding: 1em 0;
+	right: 0;
+	line-height: 45px;
+	margin-right: 13px;
 	z-index: 5;
+	cursor: pointer;
+}
+.sidebar__collapse {
+	cursor: pointer;
+	z-index: 5;
+	fill: #FFF;
+	position: absolute;
+	left: 0;
+	font-size: 33px;
+	width: 45px;
+	@include single-transition(all, 0.2s, linear);
+	@include translateX(0px);
+	text-align: center;
+	padding-right: 2px;
+	line-height: 42px;
 	display: none;
 }
 .sidebar__search-icon {
 	position: absolute;
-	left: 15px;
-	top: 18px;
-	font-size: 16px;
-	@include opacity(0.8);
+	top: 15px;
+	margin-left: 10px;
+	font-size: 14px;
+	color: #fff;
+	color: rgba(#fff, 0.5);
 	display: none;
 }
 .search__form {
@@ -30,9 +44,8 @@
 	.sidebar--right & {
 		width: 100%;
 	}
-	.search-bar-box {
+	.search-bar {
 		height: 40px;
-		border: 1px solid #ddd;
 		padding-right: 30px;
 		box-shadow: none;
 		.search-bar__container & {

@@ -36,6 +36,9 @@ module.exports = React.createClass({
             }
         }
     },
+    clearFocus: function(e) {
+        $('.search-bar__container').removeClass('focused');
+    },
     handleClose: function(e) {
         e.preventDefault();
 
@@ -57,6 +60,7 @@ module.exports = React.createClass({
     },
     handleUserFocus: function(e) {
         e.target.select();
+        $('.search-bar__container').addClass('focused');
     },
     performSearch: function(terms, isMentionSearch) {
         if (terms.length) {
@@ -92,13 +96,14 @@ module.exports = React.createClass({
     render: function() {
         return (
             <div>
-                <div className="sidebar__collapse" onClick={this.handleClose}>Cancel</div>
-                <span className="glyphicon glyphicon-search sidebar__search-icon"></span>
+                <div className="sidebar__collapse" onClick={this.handleClose}><span className="fa fa-angle-left"></span></div>
+                <span onClick={this.clearFocus} className="search__clear">Cancel</span>
                 <form role="form" className="search__form relative-div" onSubmit={this.handleSubmit}>
+                    <span className="glyphicon glyphicon-search sidebar__search-icon"></span>
                     <input
                         type="text"
                         ref="search"
-                        className="form-control search-bar-box"
+                        className="form-control search-bar"
                         placeholder="Search"
                         value={this.state.search_term}
                         onFocus={this.handleUserFocus}
