@@ -153,7 +153,7 @@ module.exports = React.createClass({
         if (isDirect) {
             if (this.state.users.length > 1) {
                 var contact = this.state.users[((this.state.users[0].id === currentId) ? 1 : 0)];
-                channelTitle = <UserProfile userId={contact.id} overwriteName={contact.nickname || contact.username} />;
+                channelTitle = contact.nickname || contact.username;
             }
         }
 
@@ -161,13 +161,13 @@ module.exports = React.createClass({
             <table className="channel-header alt">
                 <tr>
                     <th>
-                        { !isDirect ?
                         <div className="channel-header__info">
                             <div className="dropdown">
                                 <a href="#" className="dropdown-toggle theme" type="button" id="channel_header_dropdown" data-toggle="dropdown" aria-expanded="true">
                                     <strong className="heading">{channelTitle} </strong>
                                     <span className="glyphicon glyphicon-chevron-down header-dropdown__icon"></span>
                                 </a>
+                                { !isDirect ?
                                 <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_dropdown">
                                     <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#channel_info" data-channelid={channel.id} href="#">View Info</a></li>
                                     { !ChannelStore.isDefault(channel) ?
@@ -193,12 +193,14 @@ module.exports = React.createClass({
                                         : null
                                     }
                                 </ul>
+                                :
+                                <ul className="dropdown-menu" role="menu" aria-labelledby="channel_header_dropdown">
+                                    <li role="presentation"><a role="menuitem" href="#" data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set Channel Description...</a></li>
+                                </ul>
+                                }
                             </div>
                             <div data-toggle="popover" data-content={popoverContent} className="description">{description}</div>
                         </div>
-                    :
-                        <a href="#"><strong className="heading">{channelTitle}</strong></a>
-                    }
                     </th>
                     <th><PopoverListMembers members={this.state.users} channelId={channel.id} /></th>
                     <th className="search-bar__container"><NavbarSearchBox /></th>

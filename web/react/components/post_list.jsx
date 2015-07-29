@@ -309,11 +309,14 @@ module.exports = React.createClass({
 
         var more_messages = <p className="beginning-messages-text">Beginning of Channel</p>;
 
+        var userStyle = { color: UserStore.getCurrentUser().props.theme }
+
         if (channel != null) {
             if (order.length > 0 && order.length % Constants.POST_CHUNK_SIZE === 0) {
                 more_messages = <a ref="loadmore" className="more-messages-text theme" href="#" onClick={this.getMorePosts}>Load more messages</a>;
             } else if (channel.type === 'D') {
                 var teammate = utils.getDirectTeammate(channel.id)
+
 
                 if (teammate) {
                     var teammate_name = teammate.nickname.length > 0 ? teammate.nickname : teammate.username;
@@ -329,6 +332,7 @@ module.exports = React.createClass({
                                 {"This is the start of your private message history with " + teammate_name + "." }<br/>
                                 {"Private messages and files shared here are not shown to people outside this area."}
                             </p>
+                            <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
                         </div>
                     );
                 } else {
@@ -342,7 +346,6 @@ module.exports = React.createClass({
                 var ui_name = channel.display_name
                 var members = ChannelStore.getCurrentExtraInfo().members;
                 var creator_name = "";
-                var userStyle = { color: UserStore.getCurrentUser().props.theme }
 
                 for (var i = 0; i < members.length; i++) {
                     if (members[i].roles.indexOf('admin') > -1) {
