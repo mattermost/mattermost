@@ -54,7 +54,8 @@
         "PreviewWidth": 1024,
         "PreviewHeight": 0,
         "ProfileWidth": 128,
-        "ProfileHeight": 128
+        "ProfileHeight": 128,
+        "InitialFont": "luximbi.ttf"
     },
     "EmailSettings": {
         "ByPassEmail" : true,

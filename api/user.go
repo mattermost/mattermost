@@ -626,7 +626,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 
 	initial := string(strings.ToUpper(username)[0])
 
-	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + "luximbi.ttf")
+	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + utils.Cfg.ImageSettings.InitialFont)
 	if err != nil {
 		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
 	}
