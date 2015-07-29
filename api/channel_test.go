@@ -6,6 +6,7 @@ package api
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 	"net/http"
 	"testing"
 	"time"
@@ -543,9 +544,72 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	rget := Client.Must(Client.GetChannelExtraInfo(channel1.Id)).Data.(*model.ChannelExtra)
-	if rget.Id != channel1.Id {
+	rget := Client.Must(Client.GetChannelExtraInfo(channel1.Id, ""))
+	data := rget.Data.(*model.ChannelExtra)
+	if data.Id != channel1.Id {
 		t.Fatal("couldnt't get extra info")
+	}
+
+	//
+	// Testing etag caching
+	//
+
+	currentEtag := rget.Etag
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if cache_result.Data.(*model.ChannelExtra) != nil {
+		t.Log(cache_result.Data)
+		t.Fatal("response should be empty")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
+	Client2 := model.NewClient("http://localhost:" + utils.Cfg.ServiceSettings.Port + "/api/v1")
+
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "tester2@test.com", Nickname: "Tester 2", Password: "pwd"}
+	user2 = Client2.Must(Client2.CreateUser(user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	Client2.LoginByEmail(team.Name, user2.Email, "pwd")
+	Client2.Must(Client2.JoinChannel(channel1.Id))
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if cache_result.Data.(*model.ChannelExtra) == nil {
+		t.Log(cache_result.Data)
+		t.Fatal("response should not be empty")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if cache_result.Data.(*model.ChannelExtra) != nil {
+		t.Log(cache_result.Data)
+		t.Fatal("response should be empty")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
+	Client2.Must(Client2.LeaveChannel(channel1.Id))
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if cache_result.Data.(*model.ChannelExtra) == nil {
+		t.Log(cache_result.Data)
+		t.Fatal("response should not be empty")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if cache_result.Data.(*model.ChannelExtra) != nil {
+		t.Log(cache_result.Data)
+		t.Fatal("response should be empty")
+	} else {
+		currentEtag = cache_result.Etag
 	}
 }
 

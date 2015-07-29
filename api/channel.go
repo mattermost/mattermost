@@ -570,6 +570,11 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel := cresult.Data.(*model.Channel)
 		member := cmresult.Data.(model.ChannelMember)
 		extraMembers := ecmresult.Data.([]model.ExtraMember)
+		extraEtag := channel.ExtraEtag()
+
+		if HandleEtag(extraEtag, w, r) {
+			return
+		}
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "getChannelExtraInfo") {
 			return
@@ -586,6 +591,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		data := model.ChannelExtra{Id: channel.Id, Members: extraMembers}
+		w.Header().Set(model.HEADER_ETAG_SERVER, extraEtag)
 		w.Header().Set("Expires", "-1")
 		w.Write([]byte(data.ToJson()))
 	}
@@ -711,7 +717,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_REMOVED)
-		message.Add("channel_id",id)
+		message.Add("channel_id", id)
 		message.Add("remover", c.Session.UserId)
 		PublishAndForget(message)
 

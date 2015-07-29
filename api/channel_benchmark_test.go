@@ -189,7 +189,7 @@ func BenchmarkGetChannelExtraInfo(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			Client.Must(Client.GetChannelExtraInfo(channels[j].Id))
+			Client.Must(Client.GetChannelExtraInfo(channels[j].Id, ""))
 		}
 	}
 }

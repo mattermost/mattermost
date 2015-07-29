@@ -197,6 +197,16 @@ func TestChannelStoreGetByName(t *testing.T) {
 func TestChannelMemberStore(t *testing.T) {
 	Setup()
 
+	c1 := model.Channel{}
+	c1.TeamId = model.NewId()
+	c1.DisplayName = "NameName"
+	c1.Name = "a" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	c1 = *Must(store.Channel().Save(&c1)).(*model.Channel)
+
+	c1t1 := (<-store.Channel().Get(c1.Id)).Data.(*model.Channel)
+	t1 := c1t1.ExtraUpdateAt
+
 	u1 := model.User{}
 	u1.TeamId = model.NewId()
 	u1.Email = model.NewId()
@@ -210,16 +220,23 @@ func TestChannelMemberStore(t *testing.T) {
 	Must(store.User().Save(&u2))
 
 	o1 := model.ChannelMember{}
-	o1.ChannelId = model.NewId()
+	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
 	o1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
 	Must(store.Channel().SaveMember(&o1))
 
 	o2 := model.ChannelMember{}
-	o2.ChannelId = o1.ChannelId
+	o2.ChannelId = c1.Id
 	o2.UserId = u2.Id
 	o2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
 	Must(store.Channel().SaveMember(&o2))
+
+	c1t2 := (<-store.Channel().Get(c1.Id)).Data.(*model.Channel)
+	t2 := c1t2.ExtraUpdateAt
+
+	if t2 <= t1 {
+		t.Fatal("Member update time incorrect")
+	}
 
 	members := (<-store.Channel().GetMembers(o1.ChannelId)).Data.([]model.ChannelMember)
 	if len(members) != 2 {
@@ -231,6 +248,13 @@ func TestChannelMemberStore(t *testing.T) {
 	members = (<-store.Channel().GetMembers(o1.ChannelId)).Data.([]model.ChannelMember)
 	if len(members) != 1 {
 		t.Fatal("should have removed 1 member")
+	}
+
+	c1t3 := (<-store.Channel().Get(c1.Id)).Data.(*model.Channel)
+	t3 := c1t3.ExtraUpdateAt
+
+	if t3 <= t2 || t3 <= t1 {
+		t.Fatal("Member update time incorrect on delete")
 	}
 
 	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId)).Data.(model.ChannelMember)
@@ -245,6 +269,12 @@ func TestChannelMemberStore(t *testing.T) {
 
 	if err := (<-store.Channel().SaveMember(&o1)).Err; err == nil {
 		t.Fatal("Should have been a duplicate")
+	}
+
+	c1t4 := (<-store.Channel().Get(c1.Id)).Data.(*model.Channel)
+	t4 := c1t4.ExtraUpdateAt
+	if t4 != t3 {
+		t.Fatal("Should not update time upon failure")
 	}
 }
 
