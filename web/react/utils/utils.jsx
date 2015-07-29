@@ -913,3 +913,47 @@ module.exports.getFileName = function(path) {
     var split = path.split('/');
     return split[split.length - 1];
 };
+
+module.exports.loadThumbnails = function(filenames, self) {
+    if (filenames) {
+        var re1 = new RegExp(' ', 'g');
+        var re2 = new RegExp('\\(', 'g');
+        var re3 = new RegExp('\\)', 'g');
+        for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
+            var fileInfo = module.exports.splitFileLocation(filenames[i]);
+            if (Object.keys(fileInfo).length === 0) continue;
+
+            var type = module.exports.getFileType(fileInfo.ext);
+
+            // This is a temporary patch to fix issue with old files using absolute paths
+            if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
+                fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
+            }
+            fileInfo.path = module.exports.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
+
+            if (type === "image") {
+                $('<img/>').attr('src', fileInfo.path+'_thumb.jpg').load(function(path, name){ return function() {
+                    $(this).remove();
+                    if (name in self.refs) {
+                        var imgDiv = self.refs[name].getDOMNode();
+                        $(imgDiv).removeClass('post__load');
+                        $(imgDiv).addClass('post__image');
+
+                        var width = this.width || $(this).width();
+                        var height = this.height || $(this).height();
+
+                        if (width < Constants.THUMBNAIL_WIDTH
+                                && height < Constants.THUMBNAIL_HEIGHT) {
+                            $(imgDiv).addClass('small');
+                        } else {
+                            $(imgDiv).addClass('normal');
+                        }
+
+                        var url = path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
+                        $(imgDiv).css('background-image', 'url('+url+'_thumb.jpg)');
+                    }
+                }}(fileInfo.path, filenames[i]));
+            }
+        }
+    }
+}

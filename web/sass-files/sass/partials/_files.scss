@@ -129,7 +129,12 @@
     height: 100%;
     background-color: #FFF;
     background-repeat: no-repeat;
-    background-position: top left;
+    &.small {
+        background-position: center;
+    }
+    &.normal {
+        background-position: top left;
+    }
   }
   .post-image__thumbnail {
     width: 50%;
