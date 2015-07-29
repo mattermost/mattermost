@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"code.google.com/p/freetype-go/freetype"
 	l4g "code.google.com/p/log4go"
-	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
@@ -591,12 +590,6 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var (
-	dpi      = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
-	fontfile = flag.String("fontfile", utils.FindDir("web/static/fonts")+"/luximbi.ttf", "filename of the ttf font")
-	size     = flag.Float64("size", 62, "font size in points")
-)
-
 func createProfileImage(username string, userId string) ([]byte, *model.AppError) {
 	colors := []color.NRGBA{
 		{197, 8, 126, 255},
@@ -631,26 +624,9 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	h.Write([]byte(userId))
 	seed := h.Sum32()
 
-	initials := ""
-	parts := strings.Split(username, " ")
+	initial := string(strings.ToUpper(username)[0])
 
-	for _, v := range parts {
-		if len(v) > 0 {
-			initials += string(strings.ToUpper(v)[0])
-		}
-	}
-
-	if len(initials) == 0 {
-		initials = "^"
-	}
-
-	if len(initials) > 2 {
-		initials = initials[0:2]
-	}
-
-	flag.Parse()
-
-	fontBytes, err := ioutil.ReadFile(*fontfile)
+	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + "luximbi.ttf")
 	if err != nil {
 		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
 	}
@@ -663,17 +639,17 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	dstImg := image.NewRGBA(image.Rect(0, 0, int(utils.Cfg.ImageSettings.ProfileWidth), int(utils.Cfg.ImageSettings.ProfileHeight)))
 	srcImg := image.White
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
+	size := float64(62)
 
 	c := freetype.NewContext()
-	c.SetDPI(*dpi)
 	c.SetFont(font)
-	c.SetFontSize(*size)
+	c.SetFontSize(size)
 	c.SetClip(dstImg.Bounds())
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
 	pt := freetype.Pt(int(utils.Cfg.ImageSettings.ProfileWidth)/2-45, int(utils.Cfg.ImageSettings.ProfileHeight)/2+20)
-	_, err = c.DrawString(initials, pt)
+	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewAppError("createProfileImage", "Could not add user initial to default profile picture", err.Error())
 	}

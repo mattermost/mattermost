@@ -3,6 +3,10 @@
 	"GoVersion": "go1.4",
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/freetype-go/freetype",
+			"Rev": "46c3056cafbb4da11c4087a892c7d2bfa4224a8f"
+		},
+		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
 			"Comment": "null-15",
 			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
