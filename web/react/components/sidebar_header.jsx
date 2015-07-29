@@ -68,10 +68,10 @@ var NavbarDropdown = React.createClass({
             for (var i = 0; i < this.state.teams.length; i++) {
                 var teamName = this.state.teams[i];
 
-                teams.push(<li key={ teamName }><a href={window.location.origin + "/" + teamName }>Switch to { teamName }</a></li>);
+                teams.push(<li key={ teamName }><a href={utils.getWindowLocationOrigin() + "/" + teamName }>Switch to { teamName }</a></li>);
             }
         }
-        teams.push(<li><a href={window.location.origin + "/signup_team" }>Create a New Team</a></li>);
+        teams.push(<li><a href={utils.getWindowLocationOrigin() + "/signup_team" }>Create a New Team</a></li>);
 
         return (
             <ul className="nav navbar-nav navbar-right">

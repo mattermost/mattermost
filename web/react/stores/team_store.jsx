@@ -11,6 +11,12 @@ var BrowserStore = require('../stores/browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
 
+var utils;
+function getWindowLocationOrigin() {
+    if (!utils) utils = require('../utils/utils.jsx');
+    return utils.getWindowLocationOrigin();
+}
+
 var TeamStore = assign({}, EventEmitter.prototype, {
   emitChange: function() {
     this.emit(CHANGE_EVENT);
@@ -58,7 +64,7 @@ var TeamStore = assign({}, EventEmitter.prototype, {
       return null;
   },
   getCurrentTeamUrl: function() {
-      return window.location.origin + "/" + this.getCurrent().name;
+      return getWindowLocationOrigin() + "/" + this.getCurrent().name;
   },
   storeTeam: function(team) {
       var teams = this._getTeams();
