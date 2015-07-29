@@ -5,15 +5,15 @@
 	.navbar-default {
 		position: absolute;
 		border: none;
-		min-height: 50px;
+		min-height: 45px;
 		background: $primary-color;
 		.navbar-nav {
 			> li {
 				> a {
-					height: 50px;
+					height: 45px;
 					padding: 0 1.3em;
 					i {
-						line-height: 50px;
+						line-height: 45px;
 					}
 				}
 			}
@@ -24,8 +24,8 @@
 			border-radius: 0;
 			margin: 0;
 			padding: 0 10px;
-			line-height: 53px;
-			height: 50px;
+			line-height: 48px;
+			height: 44px;
 			z-index: 5;
 			fill: #fff;
 			.icon-bar {
@@ -38,8 +38,8 @@
 		}
 		.navbar-brand {
 			padding: 0 0.5em;
-			height: 50px;
-			line-height: 50px;
+			height: 45px;
+			line-height: 45px;
 			float: none;
 			font-size: 16px;
 			.heading {

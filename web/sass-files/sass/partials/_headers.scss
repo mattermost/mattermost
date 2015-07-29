@@ -85,6 +85,7 @@
 .sidebar--left, .sidebar--menu {
 	.team__header {
 		position: relative;
+		padding: 10px;
 		@include legacy-pie-clearfix;
 		&:before {
 			@include single-transition(all, 0.05s, linear);
@@ -98,7 +99,7 @@
 		}
 		&:hover {
 			&:before {
-				background: rgba(black, 0.05);
+				background: rgba(black, 0.1);
 			}
 			.user__name {
 				color: #fff;
@@ -145,7 +146,7 @@
 		}
 		.header__info {
 			color: #fff;
-			padding: 10px 10px 10px 14px;
+			padding-left: 4px;
 			z-index: 1;
 			position: relative;
 		}
