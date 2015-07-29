@@ -709,7 +709,7 @@ var GeneralTab = React.createClass({
             }.bind(this),
             function(err) {
                 state = this.getInitialState();
-                state.server_error = err;
+                state.server_error = err.message;
                 this.setState(state);
             }.bind(this)
         );
