@@ -282,12 +282,26 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 }
 
 func checkUserPassword(c *Context, user *model.User, password string) bool {
+
+	if user.FailedAttempts >= utils.Cfg.ServiceSettings.AllowedLoginAttempts {
+		c.LogAuditWithUserId(user.Id, "fail")
+		c.Err = model.NewAppError("checkUserPassword", "Your account is locked because of too many failed password attempts. Please reset your password.", "user_id="+user.Id)
+		c.Err.StatusCode = http.StatusForbidden
+		return false
+	}
+
 	if !model.ComparePassword(user.Password, password) {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = model.NewAppError("checkUserPassword", "Login failed because of invalid password", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
+
+		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+			c.LogError(result.Err)
+		}
+
 		return false
 	}
+
 	return true
 }
 

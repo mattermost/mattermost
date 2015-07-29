@@ -128,6 +128,28 @@ func TestUserStoreUpdateLastActivityAt(t *testing.T) {
 
 }
 
+func TestUserStoreUpdateFailedPasswordAttempts(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	if err := (<-store.User().UpdateFailedPasswordAttempts(u1.Id, 3)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 := <-store.User().Get(u1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.User).FailedAttempts != 3 {
+			t.Fatal("LastActivityAt not updated correctly")
+		}
+	}
+
+}
+
 func TestUserStoreUpdateUserAndSessionActivity(t *testing.T) {
 	Setup()
 

@@ -22,41 +22,17 @@
 			"Rev": "f90152b7e0ae845938ce1258d90072fd116131ac"
 		},
 		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/query",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/rest",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/restxml",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
-			"ImportPath": "github.com/awslabs/aws-sdk-go/service/route53",
-			"Rev": "44bfbd5e852715e1acfcd49da3f5688e4b5377ac"
-		},
-		{
 			"ImportPath": "github.com/braintree/manners",
 			"Comment": "0.3.1-2-g5280e25",
 			"Rev": "5280e250f2795914acbeb2bf3b55dd5a2d1fba52"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "a47585eaae68b1d14b02940d2af1b9194f3caa9c"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "a47585eaae68b1d14b02940d2af1b9194f3caa9c"
 		},
 		{
 			"ImportPath": "github.com/go-gorp/gorp",
@@ -75,6 +51,10 @@
 		{
 			"ImportPath": "github.com/goamz/goamz/s3",
 			"Rev": "ad637a587dd8314770a1084481dd7b5d4fa1232f"
+		},
+		{
+			"ImportPath": "github.com/golang/groupcache/lru",
+			"Rev": "604ed5785183e59ae2789449d89e73f3a2a77987"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -115,6 +95,10 @@
 			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
 		},
 		{
+			"ImportPath": "github.com/throttled/throttled",
+			"Rev": "fe4c91d601f05354c8a7feba917ab9d3b634f68d"
+		},
+		{
 			"ImportPath": "github.com/vaughan0/go-ini",
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
@@ -127,19 +111,9 @@
 			"Rev": "eb11b45157c1b71f30b3cec66306f1cd779a689e"
 		},
 		{
-			"ImportPath": "gopkg.in/bufio.v1",
-			"Comment": "v1",
-			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
-		},
-		{
 			"ImportPath": "gopkg.in/fsnotify.v1",
 			"Comment": "v1.2.0",
 			"Rev": "96c060f6a6b7e0d6f75fddd10efeaca3e5d1bcb0"
-		},
-		{
-			"ImportPath": "gopkg.in/redis.v2",
-			"Comment": "v2.3.2",
-			"Rev": "e6179049628164864e6e84e973cfb56335748dea"
 		}
 	]
 }

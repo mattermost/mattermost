@@ -18,18 +18,19 @@ const (
 )
 
 type ServiceSettings struct {
-	SiteName         string
-	Mode             string
-	AllowTesting     bool
-	UseSSL           bool
-	Port             string
-	Version          string
-	InviteSalt       string
-	PublicLinkSalt   string
-	ResetSalt        string
-	AnalyticsUrl     string
-	UseLocalStorage  bool
-	StorageDirectory string
+	SiteName             string
+	Mode                 string
+	AllowTesting         bool
+	UseSSL               bool
+	Port                 string
+	Version              string
+	InviteSalt           string
+	PublicLinkSalt       string
+	ResetSalt            string
+	AnalyticsUrl         string
+	UseLocalStorage      bool
+	StorageDirectory     string
+	AllowedLoginAttempts int
 }
 
 type SSOSetting struct {
@@ -89,6 +90,14 @@ type EmailSettings struct {
 	ApplePushCertPrivate string
 }
 
+type RateLimitSettings struct {
+	UseRateLimiter   bool
+	PerSec           int
+	MemoryStoreSize  int
+	VaryByRemoteAddr bool
+	VaryByHeader     string
+}
+
 type PrivacySettings struct {
 	ShowEmailAddress bool
 	ShowPhoneNumber  bool
@@ -110,15 +119,16 @@ type TeamSettings struct {
 }
 
 type Config struct {
-	LogSettings     LogSettings
-	ServiceSettings ServiceSettings
-	SqlSettings     SqlSettings
-	AWSSettings     AWSSettings
-	ImageSettings   ImageSettings
-	EmailSettings   EmailSettings
-	PrivacySettings PrivacySettings
-	TeamSettings    TeamSettings
-	SSOSettings     map[string]SSOSetting
+	LogSettings       LogSettings
+	ServiceSettings   ServiceSettings
+	SqlSettings       SqlSettings
+	AWSSettings       AWSSettings
+	ImageSettings     ImageSettings
+	EmailSettings     EmailSettings
+	RateLimitSettings RateLimitSettings
+	PrivacySettings   PrivacySettings
+	TeamSettings      TeamSettings
+	SSOSettings       map[string]SSOSetting
 }
 
 func (o *Config) ToJson() string {

@@ -21,7 +21,8 @@
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
         "AnalyticsUrl": "",
         "UseLocalStorage": true,
-        "StorageDirectory": "./data/"
+        "StorageDirectory": "./data/",
+        "AllowedLoginAttempts": 3
     },
     "SSOSettings": {
         "gitlab": {
@@ -67,6 +68,13 @@
         "ApplePushServer": "",
         "ApplePushCertPublic": "",
         "ApplePushCertPrivate": ""
+    },
+    "RateLimitSettings": {
+        "UseRateLimiter": true,
+        "PerSec": 10,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByHeader": ""
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
