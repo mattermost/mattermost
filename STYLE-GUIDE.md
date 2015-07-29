@@ -9,20 +9,20 @@
 
 All go code must follow the golang official [Style Guide](https://golang.org/doc/effective_go.html)
 
-In addition all code must be run though the official go formater tool [gofmt](https://golang.org/cmd/gofmt/)
+In addition all code must be run though the official go formatter tool [gofmt](https://golang.org/cmd/gofmt/)
 
 
 ## Javascript
 
-Part of the buld process is running ESLint. ESLint is the final athority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
+Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
 
 Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
 
-The following is an abriged version of the [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript/blob/master/README.md#airbnb-javascript-style-guide-), with modifications. Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
+The following is an abridged version of the [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript/blob/master/README.md#airbnb-javascript-style-guide-), with modifications. Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
 
 ### Whitespace
 
-- Indentaiton is four spaces
+- Indentation is four spaces
 - Use a space before the leading brace
 - Use one space between the comma and the next argument in a bracketed list. No other space.
 - Use whitespace to make code more readable.
@@ -62,23 +62,25 @@ var x = 1
 ### Variables
 
 - Declarations must always use var, let or const.
-- Perfer let or const over var.
+- Prefer let or const over var.
+- camelCase for all variable names.
 
 ```javascript
 // Correct
-let x = 4;
+let myVariable = 4;
 
 // OK
-var x = 4;
+var myVariable = 4;
 
 // Incorrect
-x = 4;
+myVariable = 4;
+var my_variable = 4;
 ```
 
 ### Blocks
 
-- Braces must be used on all multi-line blocks.
-- Braces must start on the same line as the statment starting the block.
+- Braces must be used on all blocks.
+- Braces must start on the same line as the statement starting the block.
 - Else and else if must be on the same line as the if block closing brace.
 
 ```javascript
@@ -124,16 +126,16 @@ function wrongGetStr(stuff) {
 
 ## React-JSX
 
-Part of the buld process is running ESLint. ESLint is the final athority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
+Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
 
 Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
 
-This is an abriged version of the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#airbnb-reactjsx-style-guide). Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
+This is an abridged version of the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#airbnb-reactjsx-style-guide). Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
 
 ### General
 
 - Include only one React component per file.
-- Use class \<name\> extends React.Componet over React.createClass unless you need mixins
+- Use class \<name\> extends React.Component over React.createClass unless you need mixins
 - CapitalCamelCase with .jsx extension for component filenames.
 - Filenames should be the component name.
 
@@ -153,7 +155,7 @@ This is an abriged version of the [Airbnb React/JSX Style Guide](https://github.
 <Tag propertyOne="1" />
 ```
 
-### Nameing
+### Naming
 
 - Property names use camelCase.
 - React component names use CapitalCamelCase.
