@@ -56,7 +56,7 @@ func TestCreateChannel(t *testing.T) {
 
 	rchannel.Data.(*model.Channel).Id = ""
 	if _, err := Client.CreateChannel(rchannel.Data.(*model.Channel)); err != nil {
-		if err.Message != "A channel with that name already exists" {
+		if err.Message != "A channel with that handle already exists" {
 			t.Fatal(err)
 		}
 	}
@@ -67,7 +67,7 @@ func TestCreateChannel(t *testing.T) {
 
 	Client.DeleteChannel(savedId)
 	if _, err := Client.CreateChannel(rchannel.Data.(*model.Channel)); err != nil {
-		if err.Message != "A channel with that name was previously created" {
+		if err.Message != "A channel with that handle was previously created" {
 			t.Fatal(err)
 		}
 	}
