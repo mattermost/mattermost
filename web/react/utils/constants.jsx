@@ -55,6 +55,7 @@ module.exports = {
   DEFAULT_CHANNEL: 'town-square',
   OFFTOPIC_CHANNEL: 'off-topic',
   POST_CHUNK_SIZE: 60,
+  MAX_POST_CHUNKS: 3,
   RESERVED_TEAM_NAMES: [
     "www",
     "web",

@@ -8,6 +8,7 @@
 var BrowserStore = require('../stores/browser_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
+var ChannelStore = require('../stores/channel_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
@@ -15,7 +16,7 @@ module.exports = React.createClass({
 
         /* Start initial aysnc loads */
         AsyncClient.getMe();
-        AsyncClient.getPosts(true);
+        AsyncClient.getPosts(true, ChannelStore.getCurrentId(), Constants.POST_CHUNK_SIZE);
         AsyncClient.getChannels(true, true);
         AsyncClient.getChannelExtraInfo(true);
         AsyncClient.findTeams();
