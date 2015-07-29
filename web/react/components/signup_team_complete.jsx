@@ -481,12 +481,12 @@ SendInivtesPage = React.createClass({
             <div>
                 <form>
                     <img className="signup-team-logo" src="/static/images/logo.png" />
-                    <h2>Invite Team Members</h2>
+                    <h2>{"Invite " + utils.toTitleCase(strings.Team) + " Members"}</h2>
                     { emails }
                     <div className="form-group text-right"><a href="#" onClick={this.submitAddInvite}>Add Invitation</a></div>
                     <div className="form-group"><button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button></div>
                 </form>
-                <p className="color--light">if you prefer, you can invite team members later<br /> and <a href="#" onClick={this.submitSkip}>skip this step</a> for now.</p>
+                <p className="color--light">{"if you prefer, you can invite " + strings.Team + " members later"}<br /> and <a href="#" onClick={this.submitSkip}>skip this step</a> for now.</p>
                 <div className="margin--extra">
                     <a href="#" onClick={this.submitBack}>Back to previous step</a>
                 </div>
@@ -534,7 +534,7 @@ UsernamePage = React.createClass({
                 <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h2 className="margin--less">Your username</h2>
-                <h5 className="color--light">Select a memorable username that makes it easy for teammates to identify you:</h5>
+                <h5 className="color--light">{"Select a memorable username that makes it easy for " + strings.Team + "mates to identify you:"}</h5>
                 <div className="inner__content margin--extra">
                     <div className={ name_error ? "form-group has-error" : "form-group" }>
                     <div className="row">
