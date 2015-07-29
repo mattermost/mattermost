@@ -465,17 +465,17 @@ var SecurityTab = React.createClass({
         var confirmPassword = this.state.confirm_password;
 
         if (currentPassword === '') {
-            this.setState({ password_error: "Please enter your current password" });
+            this.setState({password_error: 'Please enter your current password', server_error: ''});
             return;
         }
 
         if (newPassword.length < 5) {
-            this.setState({ password_error: "New passwords must be at least 5 characters" });
+            this.setState({password_error: 'New passwords must be at least 5 characters', server_error: ''});
             return;
         }
 
-        if (newPassword != confirmPassword) {
-            this.setState({ password_error: "The new passwords you entered do not match" });
+        if (newPassword !== confirmPassword) {
+            this.setState({password_error: 'The new passwords you entered do not match', server_error: ''});
             return;
         }
 
@@ -488,11 +488,16 @@ var SecurityTab = React.createClass({
             function(data) {
                 this.props.updateSection("");
                 AsyncClient.getMe();
-                this.setState({ current_password: '', new_password: '', confirm_password: '' });
+                this.setState({current_password: '', new_password: '', confirm_password: ''});
             }.bind(this),
             function(err) {
-                state = this.getInitialState();
-                state.server_error = err;
+                var state = this.getInitialState();
+                if (err.message) {
+                    state.server_error = err.message;
+                } else {
+                    state.server_error = err;
+                }
+                state.password_error = '';
                 this.setState(state);
             }.bind(this)
         );
