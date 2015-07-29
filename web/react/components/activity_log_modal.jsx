@@ -4,6 +4,8 @@
 var UserStore = require('../stores/user_store.jsx');
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var LoadingScreen = require('./loading_screen.jsx');
+var utils = require('../utils/utils.jsx');
 
 function getStateFromStoresForSessions() {
     return {
@@ -29,7 +31,9 @@ module.exports = React.createClass({
     },
     componentDidMount: function() {
         UserStore.addSessionsChangeListener(this._onChange);
-        AsyncClient.getSessions();
+        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function (e) {
+            AsyncClient.getSessions();
+        });
 
         var self = this;
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
@@ -40,7 +44,10 @@ module.exports = React.createClass({
         UserStore.removeSessionsChangeListener(this._onChange);
     },
     _onChange: function() {
-        this.setState(getStateFromStoresForSessions());
+        var newState = getStateFromStoresForSessions();
+        if (!utils.areStatesEqual(newState.sessions, this.state.sessions)) {
+            this.setState(newState);
+        }
     },
     handleMoreInfo: function(index) {
         var newMoreInfo = this.state.moreInfo;
@@ -106,10 +113,16 @@ module.exports = React.createClass({
                             </div>
                             <p className="session-help-text">Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the "Logout" button below to end a session.</p>
                             <div ref="modalBody" className="modal-body">
+                                { !this.state.sessions.loading ?
+                                <div>
                                 <form role="form">
                                 { activityList }
                                 </form>
                                 { server_error }
+                                </div>
+                                :
+                                <LoadingScreen />
+                                }
                             </div>
                         </div>
                     </div>

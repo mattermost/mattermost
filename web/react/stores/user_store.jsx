@@ -164,13 +164,13 @@ var UserStore = assign({}, EventEmitter.prototype, {
     BrowserStore.setItem("sessions", sessions);
   },
   getSessions: function() {
-    return BrowserStore.getItem("sessions", []);
+    return BrowserStore.getItem("sessions", {loading: true});
   },
   setAudits: function(audits) {
     BrowserStore.setItem("audits", audits);
   },
   getAudits: function() {
-    return BrowserStore.getItem("audits", []);
+    return BrowserStore.getItem("audits", {loading: true});
   },
   setTeams: function(teams) {
     BrowserStore.setItem("teams", teams);
