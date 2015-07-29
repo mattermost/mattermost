@@ -261,7 +261,10 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
-	w.Write(f)
+
+	if r.Method != "HEAD" {
+		w.Write(f)
+	}
 }
 
 func asyncGetFile(path string, fileData chan []byte) {
