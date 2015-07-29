@@ -75,7 +75,7 @@ var NavbarDropdown = React.createClass({
 
         return (
             <ul className="nav navbar-nav navbar-right">
-                <li className="dropdown">
+                <li className="dropdown" id="myDropdown">
                     <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                         <span className="dropdown__icon" dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                     </a>
@@ -107,6 +107,12 @@ module.exports = React.createClass({
         };
     },
 
+    toggleDropdown: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $('.team__header').find('.dropdown-toggle').trigger('click');
+    },
+
     render: function() {
         var me = UserStore.getCurrentUser();
 
@@ -116,7 +122,7 @@ module.exports = React.createClass({
 
         return (
             <div className="team__header theme">
-                <a className="settings_link" href="#" data-toggle="modal" data-target="#user_settings1">
+                <a href="#" onClick={this.toggleDropdown}>
                     { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                     :
