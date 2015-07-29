@@ -341,13 +341,13 @@ module.exports.updateTeamDisplayName = function(data, success, error) {
     module.exports.track('api', 'api_teams_update_name');
 };
 
-module.exports.signupTeam = function(email, display_name, success, error) {
+module.exports.signupTeam = function(email, success, error) {
     $.ajax({
         url: "/api/v1/teams/signup",
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({email: email, display_name: display_name}),
+        data: JSON.stringify({email: email}),
         success: success,
         error: function(xhr, status, err) {
             e = handleError("singupTeam", xhr, status, err);

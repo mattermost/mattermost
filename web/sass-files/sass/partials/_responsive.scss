@@ -426,13 +426,15 @@
     }
     body {
         &.white {
-            .row.content {
+            .inner__wrap {
+            >.row.content {
                 margin-bottom: -185px;
+            }
             }
         }
     }
     .footer, .footer-pane, .footer-push {
-        height: auto;
+        height: 187px;
     }
     .footer-pane {
         .footer-link {
@@ -446,28 +448,39 @@
         }
     }
     .search-bar__container {
-        padding: 10px 8px 13px;
+        padding: 0;
+        height: 45px;
         background: $primary-color;
         color: #fff;
+        &.focused {
+            .sidebar__collapse {
+                @include translateX(-45px);
+            }
+            .search__form {
+                padding-left: 10px;
+                padding-right: 67px;
+            }
+            .search__clear {
+                display: block;
+            }
+        }
         .search__form {
             border: none;
-            padding: 0 60px 0 35px;
+            padding: 7px 20px 0 45px;
+            height: 45px;
+            position: relative;
+            @include single-transition(all, 0.2s, linear);
             .form-control {
-                line-height: normal;
-                background: none;
+                border: none;
+                padding: 0 10px 0 31px;
+                background: rgba(black, 0.2);
+                @include border-radius(3px);
                 color: #fff;
-                border-radius: 0;
-                padding: 0;
-                border-bottom: 1px solid #FFF;
-                border-bottom: 1px solid rgba(#fff, 0.4);
-                &:focus {
-                    border-bottom: 1px solid rgba(#fff, 0.8);
-                }
             }
             input[type=text] {
-                    @include input-placeholder {
+                @include input-placeholder {
                     color: #fff;
-                    color: rgba(#fff, 0.6);
+                    color: rgba(#fff, 0.5);
                 }
             }
         }
@@ -547,11 +560,6 @@
         }
         .sidebar--right__close {
             display: none;
-        }
-        .search__form {
-            .glyphicon {
-                color: #fff;
-            }
         }
     }
     .inner__wrap {
@@ -648,7 +656,7 @@
             display: block;
         }
         .access__report {
-              margin: 0 0 15px 15px;
+            margin: 0 0 15px 15px;
         }
         .access__date {
             div {

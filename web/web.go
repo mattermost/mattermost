@@ -219,7 +219,6 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 	page := NewHtmlTemplatePage("signup_team_complete", "Complete Team Sign Up")
 	page.Props["Email"] = props["email"]
-	page.Props["DisplayName"] = props["display_name"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
 	page.Render(c, w)

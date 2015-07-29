@@ -101,6 +101,12 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version)
 
+	// Instruct the browser not to display us in an iframe for anti-clickjacking
+	if !h.isApi {
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+	}
+
 	sessionId := ""
 
 	// attempt to parse the session token from the header

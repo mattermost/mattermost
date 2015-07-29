@@ -22,8 +22,6 @@ module.exports.cleanUpUrlable = function(input) {
     return cleaned;
 };
 
-
-
 module.exports.isTestDomain = function() {
 
     if ((/^localhost/).test(window.location.hostname))
@@ -546,10 +544,13 @@ module.exports.getIconClassName = function(fileType) {
 
 module.exports.splitFileLocation = function(fileLocation) {
     var fileSplit = fileLocation.split('.');
-    if (fileSplit.length < 2) return {};
 
-    var ext = fileSplit[fileSplit.length-1];
-    fileSplit.splice(fileSplit.length-1,1)
+    var ext = "";
+    if (fileSplit.length > 1) {
+        ext = fileSplit[fileSplit.length - 1];
+        fileSplit.splice(fileSplit.length - 1, 1);
+    }
+
     var filePath = fileSplit.join('.');
     var filename = filePath.split('/')[filePath.split('/').length-1];
 
@@ -837,4 +838,13 @@ module.exports.getDisplayName = function(user) {
             return user.username;
         }
     }
+};
+
+//IE10 does not set window.location.origin automatically so this must be called instead when using it
+module.exports.getWindowLocationOrigin = function() {
+    var windowLocationOrigin = window.location.origin;
+    if (!windowLocationOrigin) {
+        windowLocationOrigin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+    return windowLocationOrigin;
 };

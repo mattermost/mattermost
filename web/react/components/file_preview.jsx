@@ -24,7 +24,7 @@ module.exports = React.createClass({
             if (filename.indexOf("/api/v1/files/get") != -1) {
                 filename = filename.split("/api/v1/files/get")[1];
             }
-            filename = window.location.origin + "/api/v1/files/get" + filename;
+            filename = utils.getWindowLocationOrigin() + "/api/v1/files/get" + filename;
 
             if (type === "image") {
                 previews.push(

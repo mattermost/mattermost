@@ -16,7 +16,9 @@
     "jest-cli": "~0.1.17",
     "reactify": "^0.15.2",
     "uglify-js": "~2.4.15",
-    "watchify": "^2.1.1"
+    "watchify": "^2.1.1",
+    "eslint": "^0.24.1",
+    "eslint-plugin-react": "^3.0.0"
   },
   "scripts": {
     "start": "watchify --extension=jsx -o ../static/js/bundle.js -v -d ./**/*.jsx",

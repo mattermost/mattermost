@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SignupUserComplete =require('../components/signup_user_complete.jsx');
+var SignupUserComplete = require('../components/signup_user_complete.jsx');
 
 global.window.setup_signup_user_complete_page = function(email, name, ui_name, id, data, hash, auth_services) {
     React.render(
