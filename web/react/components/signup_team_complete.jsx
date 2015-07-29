@@ -620,8 +620,8 @@ PasswordPage = React.createClass({
 
         client.track('signup', 'signup_team_07_password');
 
-        var password_error = this.state.password_error ? <label className="control-label">{ this.state.password_error }</label> : null;
-        var server_error = this.state.server_error ? <label className="control-label">{ this.state.server_error }</label> : null;
+        var password_error = this.state.password_error ? <div className="form-group has-error"><label className="control-label">{ this.state.password_error }</label></div> : null;
+        var server_error = this.state.server_error ? <div className="form-group has-error"><label className="control-label">{ this.state.server_error }</label></div> : null;
 
         return (
             <div>
