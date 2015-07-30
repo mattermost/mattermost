@@ -377,7 +377,7 @@ module.exports = React.createClass({
                         <div className="channel-intro">
                             <h4 className="channel-intro__title">Beginning of {ui_name}</h4>
                             <p className="channel-intro__content">
-                                {"This is the start of " + ui_name + ", a channel for conversations you’d prefer out of more focused channels."}
+                                {"This is the start of " + ui_name + ", a channel for non-work-related conversations."}
                                 <br/>
                             </p>
                             <a className="intro-links" href="#" style={userStyle} data-toggle="modal" data-target="#edit_channel" data-desc={channel.description} data-title={ui_name} data-channelid={channel.id}><i className="fa fa-pencil"></i>Set a description</a>
