@@ -83,7 +83,7 @@ module.exports = React.createClass({
                         <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                     </div>
                     : null }
-                    <div className={"post__content" + (this.props.isActiveThread ? " active-thread__content" : "")}>
+                    <div className="post__content">
                         <PostHeader ref="header" post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
                         <PostBody post={post} sameRoot={this.props.sameRoot} parentPost={parentPost} posts={posts} handleCommentClick={this.handleCommentClick} />
                         <PostInfo ref="info" post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} allowReply="true" />
