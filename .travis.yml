@@ -36,4 +36,4 @@ deploy:
   file: dist/mattermost.tar.gz
   skip_cleanup: true
   on:
-    repo: mattermost/platform
+    tags: true
