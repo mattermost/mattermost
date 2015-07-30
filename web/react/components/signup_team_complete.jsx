@@ -87,7 +87,7 @@ WelcomePage = React.createClass({
                     <h3 className="sub-heading">Welcome to:</h3>
                     <h1 className="margin--top-none">{config.SiteName}</h1>
                 </p>
-                <p className="margin--less">Let's setup your new team</p>
+                <p className="margin--less">Let's set up your new team</p>
                 <p>
                     Please confirm your email address:<br />
                     <div className="inner__content">
