@@ -161,7 +161,13 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			}
 
 			if count, err := us.GetMaster().Update(user); err != nil {
-				result.Err = model.NewAppError("SqlUserStore.Update", "We encounted an error updating the account", "user_id="+user.Id+", "+err.Error())
+				if IsUniqueConstraintError(err.Error(), "Email", "users_email_teamid_key") {
+					result.Err = model.NewAppError("SqlUserStore.Update", "This email is already taken. Please choose another", "user_id="+user.Id+", "+err.Error())
+				} else if IsUniqueConstraintError(err.Error(), "Username", "users_username_teamid_key") {
+					result.Err = model.NewAppError("SqlUserStore.Update", "This username is already taken. Please choose another.", "user_id="+user.Id+", "+err.Error())
+				} else {
+					result.Err = model.NewAppError("SqlUserStore.Update", "We encounted an error updating the account", "user_id="+user.Id+", "+err.Error())
+				}
 			} else if count != 1 {
 				result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't update the account", fmt.Sprintf("user_id=%v, count=%v", user.Id, count))
 			} else {
