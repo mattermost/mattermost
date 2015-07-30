@@ -1,38 +1,39 @@
 language: go
-
 go:
-  - 1.4.2
-
+- 1.4.2
 before_install:
-  - gem install compass
-  - "sudo apt-get update -qq"
-
-  - "sudo apt-get remove mysql-common mysql-server-5.5 mysql-server-core-5.5 mysql-client-5.5 mysql-client-core-5.5"
-  - "sudo apt-get autoremove"
-  - "sudo apt-get install libaio1"
-  - "wget -O mysql-5.6.17.deb http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.17-debian6.0-x86_64.deb"
-  - "sudo dpkg -i mysql-5.6.17.deb"
-  - "sudo cp /opt/mysql/server-5.6/support-files/mysql.server /etc/init.d/mysql.server"
-  - "sudo ln -s /opt/mysql/server-5.6/bin/* /usr/bin/"
-  # some config values were changed since 5.5
-  - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
-  - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
-  - "sudo sed -i'' 's/basedir[^=]\\+=.*$/basedir = \\/opt\\/mysql\\/server-5.6/' /etc/mysql/my.cnf"
-  - "sudo /etc/init.d/mysql.server start"
-
+- gem install compass
+- sudo apt-get update -qq
+- sudo apt-get remove mysql-common mysql-server-5.5 mysql-server-core-5.5 mysql-client-5.5
+  mysql-client-core-5.5
+- sudo apt-get autoremove
+- sudo apt-get install libaio1
+- wget -O mysql-5.6.17.deb http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.17-debian6.0-x86_64.deb
+- sudo dpkg -i mysql-5.6.17.deb
+- sudo cp /opt/mysql/server-5.6/support-files/mysql.server /etc/init.d/mysql.server
+- sudo ln -s /opt/mysql/server-5.6/bin/* /usr/bin/
+- sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf
+- sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf
+- sudo sed -i'' 's/basedir[^=]\+=.*$/basedir = \/opt\/mysql\/server-5.6/' /etc/mysql/my.cnf
+- sudo /etc/init.d/mysql.server start
 install:
-  - export PATH=$PATH:$HOME/gopath/bin
-  - go get github.com/tools/godep
-  - godep restore
-
+- export PATH=$PATH:$HOME/gopath/bin
+- go get github.com/tools/godep
+- godep restore
 before_script:
-  - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
-  - mysql -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mostest' ;"  -uroot
-  - mysql -e "GRANT ALL ON mattermost_test.* TO 'mmuser'@'%' ;" -uroot
-
+- mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
+- mysql -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mostest' ;"  -uroot
+- mysql -e "GRANT ALL ON mattermost_test.* TO 'mmuser'@'%' ;" -uroot
 services:
-  - redis-server
-
+- redis-server
 addons:
   hosts:
-    - 127.0.0.1 dockerhost
+  - 127.0.0.1 dockerhost
+deploy:
+  provider: releases
+  api_key:
+    secure: ma8Y0oimU+LB6LTAh8to2E1/ghaDPhcsAFXBrODsHpd4JgxA6HYoEwSEBCJFHSpu/JteclsxSTfp9hcuzw/IOtlwlSAiVoBZ60s24MRKTIAQNtrJ4QrX5wyfAZi+Bcuk/E8NynmoIW5qpaElSAdjgocyjAJIQ5ChMEztglL0cAEBXQRWbWMqSZ0hVLPrKDCIkWIyv3pFxqdLOxktkzxW07r2dlT0hppXR3dCaPJo0nelArS2H3LdN/3Iv6cAddfS27RaZkqDj/PDh6OZr4EguC99TxlVNChIr7nPr3/OiAssbkvEnhlSLeABFO9+7KfutL2WhAjpFXTjtPVq6Qalc8UW0K0gxq//sVfhb1MzjenmdOf06uB2bilQ8kgwHo7dDdRZBqqAtxQ6Q0Ht3SFMj6v/1zVD3s+YX/kWCEbUTHm6r2G/eF794ozcJyU+6j1L8hm6mvf8Mr9XCqBfgpZy6FCLX+9OKdMvX2jY8reo3Xz1PA9R6yzhN08vjku+jW+fsoYrBLd0fY1UGK2uOuvBByCeJzXupd3YpBMjEyRupVxqEj7K0GWOJeml65mkqKSNsHdDSeSjMpb8mwneZyTbdjsxCFQRLcLgpAajFrkk4G2Yz3KfhXSo29XKEGX+EbY5NuP8KmDsBsguPI0zfwv/co0hAY8PIIcehxcdoR9Vb2c=
+  file: dist/mattermost.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true

@@ -11,6 +11,12 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
 
+ifeq ($(TRAVIS_BUILD_NUMBER),)
+	BUILD_NUMBER := dev
+else
+	BUILD_NUMBER := $(TRAVIS_BUILD_NUMBER)
+endif
+
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
 DIST_RESULTS=$(DIST_ROOT)/results
@@ -29,6 +35,7 @@ travis:
 	@cd web/react/ && npm install
 
 	@$(GO) build $(GOFLAGS) ./...
+	@$(GO) install $(GOFLAGS) -a ./...
 
 	@mkdir -p logs
 
@@ -37,6 +44,38 @@ travis:
 	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
 	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+
+	mkdir -p $(DIST_PATH)/bin
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
+
+	cp -RL config $(DIST_PATH)/config
+	touch $(DIST_PATH)/config/build.txt
+	echo $(BUILD_NUMBER) | tee -a $(DIST_PATH)/config/build.txt
+
+	mkdir -p $(DIST_PATH)/logs
+
+	mkdir -p web/static/js
+	cd web/react && npm run build
+
+	cd web/sass-files && compass compile
+
+	mkdir -p $(DIST_PATH)/web
+	cp -RL web/static $(DIST_PATH)/web
+	cp -RL web/templates $(DIST_PATH)/web
+
+	mkdir -p $(DIST_PATH)/api
+	cp -RL api/templates $(DIST_PATH)/api
+
+	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
+
+	@sed -i'.bak' 's|react-with-addons-0.13.1.js|react-with-addons-0.13.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|jquery-1.11.1.js|jquery-1.11.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|bootstrap-3.3.1.js|bootstrap-3.3.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|perfect-scrollbar.js|perfect-scrollbar.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
+	rm $(DIST_PATH)/web/templates/*.bak
+
+	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
 build:
 	@$(GO) build $(GOFLAGS) ./...
