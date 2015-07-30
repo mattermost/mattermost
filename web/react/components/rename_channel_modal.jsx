@@ -96,7 +96,7 @@ module.exports = React.createClass({
         var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
             var button = $(e.relatedTarget);
-            self.setState({ display_name: button.attr('data-display'), title: button.attr('data-name'), channel_id: button.attr('data-channelid') });
+            self.setState({ display_name: button.attr('data-display'), channel_name: button.attr('data-name'), channel_id: button.attr('data-channelid') });
         });
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose);
     },
