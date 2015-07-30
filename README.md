@@ -19,8 +19,8 @@ Learn More
 <li/>Make a pull request: http://www.mattermost.org/contribute-to-mattermost/</li>
 </ul>
 
-Installing the Mattermost
-=========================
+Installing Mattermost
+=====================
 
 You're installing "Mattermost Alpha", a pre-released version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our production release. 
 
