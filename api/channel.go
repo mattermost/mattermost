@@ -554,27 +554,31 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	sc := Srv.Store.Channel().Get(id)
-	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, 20)
-
+	var channel *model.Channel
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
 		return
-	} else if cmresult := <-scm; cmresult.Err != nil {
+	} else {
+		channel = cresult.Data.(*model.Channel)
+	}
+
+	extraEtag := channel.ExtraEtag()
+	if HandleEtag(extraEtag, w, r) {
+		return
+	}
+
+	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	ecm := Srv.Store.Channel().GetExtraMembers(id, 20)
+
+	if cmresult := <-scm; cmresult.Err != nil {
 		c.Err = cmresult.Err
 		return
 	} else if ecmresult := <-ecm; ecmresult.Err != nil {
 		c.Err = ecmresult.Err
 		return
 	} else {
-		channel := cresult.Data.(*model.Channel)
 		member := cmresult.Data.(model.ChannelMember)
 		extraMembers := ecmresult.Data.([]model.ExtraMember)
-		extraEtag := channel.ExtraEtag()
-
-		if HandleEtag(extraEtag, w, r) {
-			return
-		}
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "getChannelExtraInfo") {
 			return
