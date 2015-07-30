@@ -285,7 +285,10 @@ module.exports.getPosts = function(force, id, maxPosts) {
         // if we already have more than POST_CHUNK_SIZE posts,
         //   let's get the amount we have but rounded up to next multiple of POST_CHUNK_SIZE,
         //   with a max at maxPosts
-        var numPosts = post_list && post_list.order.length > 0 ? Math.min(maxPosts, Constants.POST_CHUNK_SIZE * Math.ceil(post_list.order.length / Constants.POST_CHUNK_SIZE)) : Constants.POST_CHUNK_SIZE;
+        var numPosts = Math.min(maxPosts, Constants.POST_CHUNK_SIZE);
+        if (post_list && post_list.order.length > 0) {
+            numPosts = Math.min(maxPosts, Constants.POST_CHUNK_SIZE * Math.ceil(post_list.order.length / Constants.POST_CHUNK_SIZE));
+        }
 
         if (channelId != null) {
             callTracker["getPosts_"+channelId] = utils.getTimestamp();
