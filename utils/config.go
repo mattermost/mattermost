@@ -74,6 +74,7 @@ type ImageSettings struct {
 	PreviewHeight   uint
 	ProfileWidth    uint
 	ProfileHeight   uint
+	InitialFont     string
 }
 
 type EmailSettings struct {

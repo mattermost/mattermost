@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	"code.google.com/p/freetype-go/freetype"
 	l4g "code.google.com/p/log4go"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -21,6 +22,7 @@ import (
 	_ "image/jpeg"
 	"image/png"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -589,7 +591,6 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createProfileImage(username string, userId string) ([]byte, *model.AppError) {
-
 	colors := []color.NRGBA{
 		{197, 8, 126, 255},
 		{227, 207, 18, 255},
@@ -623,13 +624,41 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 	h.Write([]byte(userId))
 	seed := h.Sum32()
 
+	initial := string(strings.ToUpper(username)[0])
+
+	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + utils.Cfg.ImageSettings.InitialFont)
+	if err != nil {
+		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
+	}
+	font, err := freetype.ParseFont(fontBytes)
+	if err != nil {
+		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
+	}
+
+	width := int(utils.Cfg.ImageSettings.ProfileWidth)
+	height := int(utils.Cfg.ImageSettings.ProfileHeight)
 	color := colors[int64(seed)%int64(len(colors))]
-	img := image.NewRGBA(image.Rect(0, 0, int(utils.Cfg.ImageSettings.ProfileWidth), int(utils.Cfg.ImageSettings.ProfileHeight)))
-	draw.Draw(img, img.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
+	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
+	srcImg := image.White
+	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
+	size := float64((width + height) / 4)
+
+	c := freetype.NewContext()
+	c.SetFont(font)
+	c.SetFontSize(size)
+	c.SetClip(dstImg.Bounds())
+	c.SetDst(dstImg)
+	c.SetSrc(srcImg)
+
+	pt := freetype.Pt(width/6, height*2/3)
+	_, err = c.DrawString(initial, pt)
+	if err != nil {
+		return nil, model.NewAppError("createProfileImage", "Could not add user initial to default profile picture", err.Error())
+	}
 
 	buf := new(bytes.Buffer)
 
-	if imgErr := png.Encode(buf, img); imgErr != nil {
+	if imgErr := png.Encode(buf, dstImg); imgErr != nil {
 		return nil, model.NewAppError("createProfileImage", "Could not encode default profile image", imgErr.Error())
 	} else {
 		return buf.Bytes(), nil
