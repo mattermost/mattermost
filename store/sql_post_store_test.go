@@ -445,12 +445,12 @@ func TestPostStoreSearch(t *testing.T) {
 		t.Fatal("returned wrong serach result")
 	}
 
-	if utils.Cfg.SqlSettings.DriverName == "mysql" {
-		r2 := (<-store.Post().Search(teamId, userId, "new york", false)).Data.(*model.PostList)
-		if len(r2.Order) >= 1 && r2.Order[0] != o2.Id {
-			t.Fatal("returned wrong serach result")
-		}
-	}
+	// if utils.Cfg.SqlSettings.DriverName == "mysql" {
+	// 	r2 := (<-store.Post().Search(teamId, userId, "new york", false)).Data.(*model.PostList)
+	// 	if len(r2.Order) >= 1 && r2.Order[0] != o2.Id {
+	// 		t.Fatal("returned wrong serach result")
+	// 	}
+	// }
 
 	r3 := (<-store.Post().Search(teamId, userId, "new", false)).Data.(*model.PostList)
 	if len(r3.Order) != 2 && r3.Order[0] != o1.Id {

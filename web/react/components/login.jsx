@@ -103,13 +103,9 @@ module.exports = React.createClass({
 
         return (
             <div className="signup-team__container">
-                <div>
-                    <span className="signup-team__name">{ teamDisplayName }</span>
-                    <br/>
-                    <span className="signup-team__subdomain">/{ teamName }/</span>
-                    <br/>
-                    <br/>
-                </div>
+                <h5 className="margin--less">Sign in to:</h5>
+                <h2 className="signup-team__name">{ teamDisplayName }</h2>
+                <h2 className="signup-team__subdomain">on { config.SiteName }</h2>
                 <form onSubmit={this.handleSubmit}>
                     <div className={server_error ? 'form-group has-error' : 'form-group'}>
                         { server_error }
@@ -124,13 +120,13 @@ module.exports = React.createClass({
                         <button type="submit" className="btn btn-primary">Sign in</button>
                     </div>
                     { login_message }
-                    <div className="form-group form-group--small">
+                    <div className="form-group margin--extra form-group--small">
                         <span><a href="/find_team">{"Find other " + strings.TeamPlural}</a></span>
                     </div>
                     <div className="form-group">
                         <a href={"/" + teamName + "/reset_password"}>I forgot my password</a>
                     </div>
-                    <div className="external-link">
+                    <div className="margin--extra">
                         <span>{"Want to create your own " + strings.Team + "?"} <a href="/" className="signup-team-login">Sign up now</a></span>
                     </div>
                 </form>

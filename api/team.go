@@ -35,15 +35,9 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	m := model.MapFromJson(r.Body)
 	email := strings.ToLower(strings.TrimSpace(m["email"]))
-	displayName := strings.TrimSpace(m["display_name"])
 
 	if len(email) == 0 {
 		c.SetInvalidParam("signupTeam", "email")
-		return
-	}
-
-	if len(displayName) == 0 {
-		c.SetInvalidParam("signupTeam", "display_name")
 		return
 	}
 
@@ -53,7 +47,6 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := make(map[string]string)
 	props["email"] = email
-	props["display_name"] = displayName
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(props)

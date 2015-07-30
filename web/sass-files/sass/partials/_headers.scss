@@ -84,8 +84,32 @@
 // Team Header in Sidebar
 .sidebar--left, .sidebar--menu {
 	.team__header {
+		position: relative;
 		padding: 10px;
 		@include legacy-pie-clearfix;
+		&:before {
+			@include single-transition(all, 0.05s, linear);
+			content: "";
+			background: none;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			position: absolute;
+		}
+		&:hover {
+			&:before {
+				background: rgba(black, 0.1);
+			}
+			.user__name {
+				color: #fff;
+			}
+			.navbar-right {
+				.dropdown-toggle {
+					@include opacity(1);
+				}
+			}
+		}
 		a {
 			color: #fff;
 		}
@@ -94,12 +118,11 @@
 			position: absolute;
 			top: 10px;
 			right: 22px;
+			z-index: 5;
 			.dropdown-toggle {
+				@include single-transition(all, 0.1s, linear);
 				padding: 10px;
 				@include opacity(0.8);
-				&:hover {
-					@include opacity(1);
-				}
 			}
 			.dropdown-menu {
 				li a {
@@ -124,6 +147,8 @@
 		.header__info {
 			color: #fff;
 			padding-left: 4px;
+			z-index: 1;
+			position: relative;
 		}
 		.team__name, .user__name {
 			display: block;
@@ -137,9 +162,11 @@
 			text-decoration: none;
 		}
 		.user__name {
+			@include single-transition(all, 0.1s, linear);
 			font-size: 14px;
 			font-weight: 400;
 			color: #eee;
+			color: rgba(#fff, 0.8);
 		}
 		> .nav {
 			> li {
@@ -250,10 +277,10 @@
 	vertical-align: top;
 	display: inline-block;
 	width: 15px;
-	margin: 9px 4px 3px 0;
+	margin: 9px 6px 3px 0;
 	&:hover {
 		svg {
-			fill: #888;
+			fill: #777;
 		}
 	}
 	a {
@@ -263,6 +290,6 @@
 	svg {
 		vertical-align: top;
 		margin-top: 8px;
-		fill: #AAA;
+		fill: #aaa;
 	}
 }

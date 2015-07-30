@@ -40,7 +40,7 @@ module.exports = React.createClass({
             if (fileInfo.path.indexOf("/api/v1/files/get") !== -1) {
                 fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
             }
-            fileInfo.path = window.location.origin + "/api/v1/files/get" + fileInfo.path;
+            fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
             src = fileInfo['path'] + '_preview.jpg';
         }
 
@@ -148,7 +148,7 @@ module.exports = React.createClass({
                     if (info.path.indexOf("/api/v1/files/get") !== -1) {
                         info.path = info.path.split("/api/v1/files/get")[1];
                     }
-                    info.path = window.location.origin + "/api/v1/files/get" + info.path;
+                    info.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + info.path;
                     preview_filename = info['path'] + '_preview.jpg';
                 }
 
@@ -166,7 +166,7 @@ module.exports = React.createClass({
         if (download_link.indexOf("/api/v1/files/get") !== -1) {
             download_link = download_link.split("/api/v1/files/get")[1];
         }
-        download_link = window.location.origin + "/api/v1/files/get" + download_link;
+        download_link = utils.getWindowLocationOrigin() + "/api/v1/files/get" + download_link;
 
         return (
             <div className="modal fade image_modal" ref="modal" id={this.props.modalId} tabIndex="-1" role="dialog" aria-hidden="true">

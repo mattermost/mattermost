@@ -68,10 +68,10 @@ var NavbarDropdown = React.createClass({
             for (var i = 0; i < this.state.teams.length; i++) {
                 var teamName = this.state.teams[i];
 
-                teams.push(<li key={ teamName }><a href={window.location.origin + "/" + teamName }>Switch to { teamName }</a></li>);
+                teams.push(<li key={ teamName }><a href={utils.getWindowLocationOrigin() + "/" + teamName }>Switch to { teamName }</a></li>);
             }
         }
-        teams.push(<li><a href={window.location.origin + "/signup_team" }>Create a New Team</a></li>);
+        teams.push(<li><a href={utils.getWindowLocationOrigin() + "/signup_team" }>Create a New Team</a></li>);
 
         return (
             <ul className="nav navbar-nav navbar-right">
@@ -107,6 +107,10 @@ module.exports = React.createClass({
         };
     },
 
+    toggleDropdown: function(e) {
+        $('.team__header').find('.dropdown-toggle').trigger('click');
+    },
+
     render: function() {
         var me = UserStore.getCurrentUser();
 
@@ -116,7 +120,7 @@ module.exports = React.createClass({
 
         return (
             <div className="team__header theme">
-                <a className="settings_link" href="#" data-toggle="modal" data-target="#user_settings1">
+                <a href="#" onClick={this.toggleDropdown}>
                     { me.last_picture_update ?
                     <img className="user__picture" src={"/api/v1/users/" + me.id + "/image?time=" + me.update_at} />
                     :

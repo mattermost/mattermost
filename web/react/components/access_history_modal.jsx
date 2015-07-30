@@ -3,7 +3,8 @@
 
 var UserStore = require('../stores/user_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
-var Utils = require('../utils/utils.jsx');
+var LoadingScreen = require('./loading_screen.jsx');
+var utils = require('../utils/utils.jsx');
 
 function getStateFromStoresForAudits() {
     return {
@@ -14,7 +15,9 @@ function getStateFromStoresForAudits() {
 module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addAuditsChangeListener(this._onChange);
-        AsyncClient.getAudits();
+        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function (e) {
+            AsyncClient.getAudits();
+        });
 
         var self = this;
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
@@ -25,7 +28,10 @@ module.exports = React.createClass({
         UserStore.removeAuditsChangeListener(this._onChange);
     },
     _onChange: function() {
-        this.setState(getStateFromStoresForAudits());
+        var newState = getStateFromStoresForAudits();
+        if (!utils.areStatesEqual(newState.audits, this.state.audits)) {
+            this.setState(newState);
+        }
     },
     handleMoreInfo: function(index) {
         var newMoreInfo = this.state.moreInfo;
@@ -87,9 +93,13 @@ module.exports = React.createClass({
                                 <h4 className="modal-title" id="myModalLabel">Access History</h4>
                             </div>
                             <div ref="modalBody" className="modal-body">
+                                { !this.state.audits.loading ?
                                 <form role="form">
                                 { accessList }
                                 </form>
+                                :
+                                <LoadingScreen />
+                                }
                             </div>
                         </div>
                     </div>
