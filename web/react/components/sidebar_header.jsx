@@ -29,6 +29,8 @@ var NavbarDropdown = React.createClass({
     },
     componentWillUnmount: function() {
         UserStore.removeTeamsChangeListener(this._onChange);
+
+        $(this.refs.dropdown.getDOMNode()).off('hide.bs.dropdown');
     },
     _onChange: function() {
         if (this.isMounted()) {
