@@ -275,11 +275,24 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	subjectPage := NewServerTemplatePage("find_teams_subject", c.GetSiteURL())
 	bodyPage := NewServerTemplatePage("find_teams_body", c.GetSiteURL())
 
-	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-		l4g.Error("An error occured while sending an email in emailTeams err=%v", err)
-	}
+	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
+		c.Err = result.Err
+	} else {
+		teams := result.Data.([]*model.Team)
 
-	w.Write([]byte(model.MapToJson(m)))
+		// the template expects Props to be a map with team names as the keys
+		props := make(map[string]string)
+		for _, team := range teams {
+			props[team.Name] = team.Name
+		}
+		bodyPage.Props = props
+
+		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+			l4g.Error("An error occured while sending an email in emailTeams err=%v", err)
+		}
+
+		w.Write([]byte(model.MapToJson(m)))
+	}
 }
 
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
