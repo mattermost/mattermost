@@ -371,7 +371,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			user := result.Data.(*model.User)
-			api.FireAndForgetVerifyEmail(user.Id, user.Nickname, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+			api.FireAndForgetVerifyEmail(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}

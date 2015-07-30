@@ -193,7 +193,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
 			}
 		} else {
-			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.Nickname, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -223,7 +223,7 @@ func fireAndForgetWelcomeEmail(name, email, teamDisplayName, link string) {
 	}()
 }
 
-func FireAndForgetVerifyEmail(userId, userNickname, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+func FireAndForgetVerifyEmail(userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
@@ -231,7 +231,6 @@ func FireAndForgetVerifyEmail(userId, userNickname, userEmail, teamName, teamDis
 		subjectPage := NewServerTemplatePage("verify_subject", teamURL)
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage := NewServerTemplatePage("verify_body", teamURL)
-		bodyPage.Props["Nickname"] = userNickname
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["VerifyUrl"] = link
 
