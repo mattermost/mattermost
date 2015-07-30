@@ -22,7 +22,7 @@
         "AnalyticsUrl": "",
         "UseLocalStorage": true,
         "StorageDirectory": "./data/",
-        "AllowedLoginAttempts": 3
+        "AllowedLoginAttempts": 10
     },
     "SSOSettings": {
         "gitlab": {

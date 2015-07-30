@@ -300,9 +300,14 @@ func checkUserPassword(c *Context, user *model.User, password string) bool {
 		}
 
 		return false
+	} else {
+		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+			c.LogError(result.Err)
+		}
+
+		return true
 	}
 
-	return true
 }
 
 // User MUST be validated before calling Login
