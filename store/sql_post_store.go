@@ -401,7 +401,7 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 				            Id = ChannelId AND TeamId = $1
 				                AND UserId = $2
 				                AND DeleteAt = 0)
-				    AND %s @@  plainto_tsquery($3)
+				    AND %s @@  to_tsquery($3)
 				    ORDER BY CreateAt DESC
 				LIMIT 100`, searchType)
 
