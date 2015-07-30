@@ -465,7 +465,6 @@ module.exports = React.createClass({
                 postCtls.push(postCtl);
                 previousPostDay = currentPostDay;
             }
-            postCtls.push(<br />);
         } else {
             postCtls.push(<LoadingScreen position="absolute" />);
         }

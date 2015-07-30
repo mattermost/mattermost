@@ -437,6 +437,66 @@ module.exports.searchForTerm = function(term) {
     });
 }
 
+/* Options:
+      - disable: Parses out *'s and other format specifiers in the text, but doesn't convert to html
+*/
+module.exports.customMarkedRenderer = function(options) {
+    var customMarkedRenderer = new Marked.Renderer();
+
+    customMarkedRenderer.heading = function(text, level) {
+        var hashText = '';
+        for (var i = 0; i < level; i++) {
+            hashText += '#';
+        }
+        return hashText + text;
+    };
+    customMarkedRenderer.codespan = function(code) {
+        return '<pre>' + code + '</pre>';
+    };
+    customMarkedRenderer.del = function(text) {
+        return '<s>' + text + '</s>';
+    };
+    customMarkedRenderer.link = function(href, title, text) {
+        return href;
+    };
+    customMarkedRenderer.image = function(href, title, text) {
+        return href;
+    };
+
+    if (options) {
+        if (options.disable) {
+            customMarkedRenderer.code = function(code, language) {
+                return code;
+            };
+            customMarkedRenderer.blockquote = function(quote) {
+                return quote;
+            };
+            customMarkedRenderer.list = function(body, ordered) {
+                return body;
+            };
+            customMarkedRenderer.listitem = function(text) {
+                return text + ' ';
+            };
+            customMarkedRenderer.paragraph = function(text) {
+                return text + ' ';
+            };
+            customMarkedRenderer.strong = function(text) {
+                return text;
+            };
+            customMarkedRenderer.em = function(text) {
+                return text;
+            };
+            customMarkedRenderer.del = function(text) {
+                return text;
+            };
+            customMarkedRenderer.codespan = function(code) {
+                return code;
+            };
+        }
+    }
+    return customMarkedRenderer;
+};
+
 var oldExplicitMentionRegex = /(?:<mention>)([\s\S]*?)(?:<\/mention>)/g;
 var puncStartRegex = /^((?![@#])[^A-Za-z0-9_<>])+/g;
 var puncEndRegex = /([^A-Za-z0-9_<>])+$/g;
@@ -447,28 +507,7 @@ module.exports.textToJsx = function(text, options) {
     var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
     if (useMarkdown) {
-        var customMarkedRenderer = new Marked.Renderer();
-        customMarkedRenderer.heading = function(text, level) {
-            var hashText = "";
-            for (var i = 0; i < level; i++)
-                hashText += "#";
-
-            return hashText + text;
-        };
-        customMarkedRenderer.codespan = function(code) {
-            return "<pre>" + code + "</pre>";
-        };
-        customMarkedRenderer.del = function(text) {
-            return "<s>" + text + "</s>";
-        };
-        customMarkedRenderer.link = function(href, title, text) {
-            return " " + href + " ";
-        };
-        customMarkedRenderer.image = function(href, title, text) {
-            return " " + href + " ";
-        };
-
-        text = Marked(text, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
+        text = Marked(text, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
     }
 
     if (options && options['singleline']) {
@@ -478,7 +517,7 @@ module.exports.textToJsx = function(text, options) {
 
     var searchTerm = ""
     if (options && options['searchTerm']) {
-        searchTerm = options['searchTerm'].toLowerCase()
+        searchTerm = options['searchTerm'].toLowerCase();
     }
 
     var mentionClass = "mention-highlight";
@@ -601,7 +640,7 @@ module.exports.textToJsx = function(text, options) {
     }
 
     return inner;
-}
+};
 
 module.exports.getFileType = function(ext) {
     ext = ext.toLowerCase();
