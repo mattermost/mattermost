@@ -271,7 +271,7 @@ TeamURLPage = React.createClass({
                 <p>{"Choose the web address of your new " + strings.Team + ":"}</p>
                 <ul className="color--light">
                     <li>Short and memorable is best</li>
-                    <li>Use lower case letters, numbers and dashes</li>
+                    <li>Use lowercase letters, numbers and dashes</li>
                     <li>Must start with a letter and can't end in a dash</li>
                 </ul>
                 <button type="submit" className="btn btn-primary margin--extra" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button>
