@@ -53,6 +53,7 @@ module.exports = React.createClass({
                                 activeTab={this.state.active_tab}
                                 activeSection={this.state.active_section}
                                 updateSection={this.updateSection}
+                                updateTab={this.updateTab}
                             />
                         </div>
                     </div>
