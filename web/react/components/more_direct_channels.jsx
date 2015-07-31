@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var ChannelStore = require('../stores/channel_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
@@ -35,7 +36,7 @@ module.exports = React.createClass({
                 );
             } else {
                 return (
-                    <li key={channel.name} className={active}><a className={"sidebar-channel " + titleClass} href={"/channels/"+channel.name}>{badge}{channel.display_name}</a></li>
+                    <li key={channel.name} className={active}><a className={"sidebar-channel " + titleClass} href={TeamStore.getCurrentTeamUrl() + "/channels/"+channel.name}>{badge}{channel.display_name}</a></li>
                 );
             }
         });
