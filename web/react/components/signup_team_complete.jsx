@@ -511,7 +511,7 @@ UsernamePage = React.createClass({
             this.setState({name_error: 'This username is reserved, please choose a new one.'});
             return;
         } else if (username_error) {
-            this.setState({name_error: "Username must begin with a letter, and contain between 3 to 15 characters made up of numbers, lowercase letters, and the symbols '.', '-', and '_'"});
+            this.setState({name_error: "Username must begin with a letter, and contain 3 to 15 characters in total, which may be numbers, lowercase letters, or any of the symbols '.', '-', or '_'"});
             return;
         }
 
