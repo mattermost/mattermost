@@ -748,6 +748,7 @@ var GeneralTab = React.createClass({
 
         var formData = new FormData();
         formData.append('image', picture, picture.name);
+        this.setState({loadingPicture: true});
 
         client.uploadProfileImage(formData,
             function() {
@@ -779,11 +780,10 @@ var GeneralTab = React.createClass({
     },
     updatePicture: function(e) {
         if (e.target.files && e.target.files[0]) {
-            this.setState({ picture: e.target.files[0] });
+            this.setState({picture: e.target.files[0]});
 
             this.submitActive = true;
             this.setState({client_error: null});
-
         } else {
             this.setState({picture: null});
         }
@@ -810,8 +810,8 @@ var GeneralTab = React.createClass({
     getInitialState: function() {
         var user = this.props.user;
 
-        return { username: user.username, first_name: user.first_name, last_name: user.last_name, nickname: user.nickname,
-                 email: user.email, picture: null };
+        return {username: user.username, first_name: user.first_name, last_name: user.last_name, nickname: user.nickname,
+                 email: user.email, picture: null, loadingPicture: false};
     },
     render: function() {
         var user = this.props.user;
@@ -1002,6 +1002,7 @@ var GeneralTab = React.createClass({
                     picture={this.state.picture}
                     pictureChange={this.updatePicture}
                     submitActive={this.submitActive}
+                    loadingPicture={this.state.loadingPicture}
                 />
             );
         } else {

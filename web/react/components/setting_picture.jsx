@@ -44,7 +44,11 @@ module.exports = React.createClass({
                             {server_error}
                             {client_error}
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>Select<input ref='input' accept='.jpg,.png,.bmp' type='file' onChange={this.props.pictureChange}/></span>
+                            {!this.props.loadingPicture ?
                             <a className={this.props.submitActive ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-inactive disabled'} onClick={this.props.submit}>Save</a>
+                            :
+                            <img className="spinner" src="/static/images/load.gif"/>
+                            }
                             <a className='btn btn-sm theme' href='#' onClick={self.props.updateSection}>Cancel</a>
                         </li>
                     </ul>
