@@ -589,7 +589,7 @@ var SecurityTab = React.createClass({
                     submit={submit}
                     server_error={server_error}
                     client_error={password_error}
-                    updateSection={function(e){self.props.updateSection("");e.preventDefault();}}
+                    updateSection={function(e){self.props.updateSection("");self.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});e.preventDefault();}}
                 />
             );
         } else {
