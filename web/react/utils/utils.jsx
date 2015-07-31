@@ -416,7 +416,7 @@ module.exports.textToJsx = function(text, options) {
     var lines = text.split("\n");
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
-        var words = line.split(/(?=\W)/);
+        var words = line.split(" ");
         var highlightSearchClass = "";
         for (var z = 0; z < words.length; z++) {
             var word = words[z];
@@ -444,7 +444,7 @@ module.exports.textToJsx = function(text, options) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix}</span>);
+                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
                 var link = match.link;
@@ -452,7 +452,7 @@ module.exports.textToJsx = function(text, options) {
                 var prefix = word.substring(0,word.indexOf(match.text));
                 var suffix = word.substring(word.indexOf(match.text)+match.text.length);
 
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix}</span>);
+                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
 
             } else if (trimWord.match(hashRegex)) {
                 var suffix = word.match(puncEndRegex);
@@ -463,7 +463,7 @@ module.exports.textToJsx = function(text, options) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix}</span>);
+                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
             } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
                 var suffix = word.match(puncEndRegex);
@@ -473,15 +473,15 @@ module.exports.textToJsx = function(text, options) {
                     if (searchTerm === trimWord.substring(1).toLowerCase()) {
                         highlightSearchClass = " search-highlight";
                     }
-                    inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix}</span>);
+                    inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
                 } else {
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix}</span>);
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
                 }
 
             } else if (word === "") {
                 // if word is empty dont include a span
             } else {
-                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span></span>);
+                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span> </span>);
             }
             highlightSearchClass = "";
         }
