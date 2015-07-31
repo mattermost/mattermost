@@ -24,13 +24,18 @@ module.exports = React.createClass({
         }
     },
     getInitialState: function() {
-        return { };
+        return {copiedLink: false};
     },
     handleClick: function() {
         this.setState({copiedLink: true});
     },
     render: function() {
         var currentUser = UserStore.getCurrentUser();
+        var copyLinkConfirm = null;
+
+        if (this.state.copiedLink) {
+            copyLinkConfirm = <p className='copy-link-confirm'>Link copied to clipboard.</p>;
+        }
 
         if (currentUser != null) {
             return (
@@ -49,11 +54,7 @@ module.exports = React.createClass({
                         <div className='modal-footer'>
                           <button type='button' className='btn btn-default' data-dismiss='modal'>Close</button>
                           <button data-copy-btn='true' type='button' className='btn btn-primary pull-left' onClick={this.handleClick} data-clipboard-text={this.state.value}>Copy Link</button>
-                          {this.state.copiedLink ?
-                            <p className='copy-link-confirm'>Link copied to clipboard.</p>
-                          :
-                            null
-                          }
+                          {copyLinkConfirm}
                         </div>
                       </div>
                    </div>
