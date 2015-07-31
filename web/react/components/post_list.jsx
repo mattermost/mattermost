@@ -29,12 +29,15 @@ function getStateFromStores() {
 module.exports = React.createClass({
     displayName: "PostList",
     scrollPosition: 0,
-    preventScrollTrigger: false,
+    preventScrollTrigger: false,   // Can't think of an intuitive name, but when true,
+                                   // scrollPosition is affected by the 'on scroll' event below
     gotMorePosts: false,
     oldScrollHeight: 0,
     oldZoom: 0,
     scrolledToNew: false,
     componentDidMount: function() {
+
+        // Add CSS required to have the theme colors
         var user = UserStore.getCurrentUser();
         if (user.props && user.props.theme) {
             utils.changeCss('div.theme', 'background-color:'+user.props.theme+';');
@@ -55,11 +58,13 @@ module.exports = React.createClass({
             $('.team__header').addClass('theme--gray');
         }
 
+        // Start our Store listeners
         PostStore.addChangeListener(this._onChange);
         ChannelStore.addChangeListener(this._onChange);
         UserStore.addStatusesChangeListener(this._onTimeChange);
         SocketStore.addChangeListener(this._onSocketChange);
 
+        // Initialize perfect scrollbar
         $(".post-list-holder-by-time").perfectScrollbar();
 
         this.resize();
@@ -68,6 +73,8 @@ module.exports = React.createClass({
         this.scrollPosition = $(post_holder).scrollTop() + $(post_holder).innerHeight();
         this.oldScrollHeight = post_holder.scrollHeight;
         this.oldZoom = (window.outerWidth - 8) / window.innerWidth;
+
+        /*************** End of 'run on mount' code, Start of event listeners *****************/
 
         var self = this;
         $(window).resize(function(){
