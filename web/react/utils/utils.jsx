@@ -507,7 +507,7 @@ module.exports.textToJsx = function(text, options) {
     var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
     if (useMarkdown) {
-        text = Marked(text, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
+        text = Marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
     }
 
     if (options && options['singleline']) {
