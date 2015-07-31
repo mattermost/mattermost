@@ -212,7 +212,7 @@ module.exports = React.createClass({
                                 <span>People invited automatically join Town Square channel.</span>
                             </div>
                             <div className="modal-footer">
-                              <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                              <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
                               <button onClick={this.handleSubmit} type="button" className="btn btn-primary">Send Invitations</button>
                             </div>
                           </div>
