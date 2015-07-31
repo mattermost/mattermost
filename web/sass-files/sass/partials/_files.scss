@@ -14,10 +14,6 @@
     position: relative;
     border: 1px solid #DDD;
     @include clearfix;
-    &.custom-file {
-      width: 85px;
-      height: 100px;
-    }
     &:hover .remove-preview:after {
       @include opacity(1);
     }
@@ -71,60 +67,56 @@
   width:300px;
   height:300px;
 }
+
+@mixin file-icon($path) {
+  background: #fff url($path);
+  background-position: center;
+  background-repeat: no-repeat;
+  @include background-size(60px auto);
+}
 .file-icon {
   width: 100%;
   height: 100%;
   &.audio {
-    background: url("../images/icons/audio.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/audio.png");
   }
   &.video {
-    background: url("../images/icons/video.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/video.png");
   }
   &.ppt {
-    background: url("../images/icons/ppt.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/ppt.png");
   }
   &.generic {
-    background: url("../images/icons/generic.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/generic.png");
   }
   &.code {
-    background: url("../images/icons/code.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/code.png");
   }
   &.excel {
-    background: url("../images/icons/excel.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/excel.png");
   }
   &.word {
-    background: url("../images/icons/word.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/word.png");
   }
   &.pdf {
-    background: url("../images/icons/pdf.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/pdf.png");
   }
   &.patch {
-    background: url("../images/icons/patch.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/patch.png");
   }
   &.image {
-    background: url("../images/icons/image.png");
-    @include background-size(100% 100%);
+    @include file-icon("../images/icons/image.png");
   }
 }
 .post-image__column {
   position: relative;
-  width: 120px;
+  width: 240px;
   height: 100px;
   float: left;
   margin: 5px 10px 5px 0;
-  &.custom-file {
-    width: 85px;
-    height: 100px;
-  }
+  @include display-flex;
+  display: -ms-flexbox;
+  border: 1px solid lightgrey;
   .post__load {
     height: 100%;
     width: 100%;
@@ -133,15 +125,69 @@
     background-position: center;
   }
   .post__image {
-    height: 100%;
     width: 100%;
-    border: 1px solid #E2E2E2;
+    height: 100%;
     background-color: #FFF;
     background-repeat: no-repeat;
     background-position: top left;
+  }
+  .post-image__thumbnail {
+    width: 50%;
+    height: 100%;
+  }
+  .post-image__details {
+    width: 50%;
+    height: 100%;
+    background: white;
+    border-left: 1px solid #ddd;
+    font-size: 13px;
+    padding: 7px;
+    .post-image__name {
+      margin-bottom: 3px;
+    }
+    .post-image__type {
+      color: grey;
+    }
+    .post-image__size {
+      margin-left: 4px;
+      color: grey;
+    }
   }
   a {
     text-decoration: none;
     color: grey;
   }
+}
+
+.file-details__container {
+    @include display-flex;
+    display: -ms-flexbox;
+
+    .file-details {
+        width: 320px;
+        height: 270px;
+        padding: 14px;
+        text-align: left;
+        vertical-align: top;
+
+        .file-details__name {
+            font-size: 16px;
+        }
+        .file-details__info {
+            color: grey;
+        }
+    }
+    .file-details__preview {
+        width: 320px;
+        height: 270px;
+        border-right: 1px solid #ddd;
+        vertical-align: center;
+
+        // helper to center the image icon in the preview window
+        .file-details__preview-helper {
+            height: 100%;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    }
 }

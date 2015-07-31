@@ -10,7 +10,7 @@ var utils = require('../utils/utils.jsx');
 var SearchBox =require('./search_bar.jsx');
 var CreateComment = require( './create_comment.jsx' );
 var Constants = require('../utils/constants.jsx');
-var ViewImageModal = require('./view_image.jsx');
+var FileAttachmentList = require('./file_attachment_list.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 RhsHeaderPost = React.createClass({
@@ -55,28 +55,20 @@ RhsHeaderPost = React.createClass({
 });
 
 RootPost = React.createClass({
-    handleImageClick: function(e) {
-        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'))});
-    },
-    getInitialState: function() {
-        return { startImgId: 0 };
-    },
     render: function() {
-
-        var postImageModalId = "rhs_view_image_modal_" + this.props.post.id;
-        var message = utils.textToJsx(this.props.post.message);
-        var filenames = this.props.post.filenames;
-        var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
-        var timestamp = UserStore.getProfile(this.props.post.user_id).update_at;
-        var channel = ChannelStore.get(this.props.post.channel_id);
+        var post = this.props.post;
+        var message = utils.textToJsx(post.message);
+        var isOwner = UserStore.getCurrentId() == post.user_id;
+        var timestamp = UserStore.getProfile(post.user_id).update_at;
+        var channel = ChannelStore.get(post.channel_id);
 
         var type = "Post";
-        if (this.props.post.root_id.length > 0) {
+        if (post.root_id.length > 0) {
             type = "Comment";
         }
 
         var currentUserCss = "";
-        if (UserStore.getCurrentId() === this.props.post.user_id) {
+        if (UserStore.getCurrentId() === post.user_id) {
             currentUserCss = "current--user";
         }
 
@@ -84,60 +76,24 @@ RootPost = React.createClass({
             channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
         }
 
-        if (filenames) {
-            var postFiles = [];
-            var images = [];
-            var re1 = new RegExp(' ', 'g');
-            var re2 = new RegExp('\\(', 'g');
-            var re3 = new RegExp('\\)', 'g');
-            for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-                var fileInfo = utils.splitFileLocation(filenames[i]);
-                var ftype = utils.getFileType(fileInfo.ext);
-
-                // This is a temporary patch to fix issue with old files using absolute paths
-                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
-                    fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-                }
-                fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
-
-                if (ftype === "image") {
-                    var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
-                    postFiles.push(
-                        <div className="post-image__column" key={fileInfo.path}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={fileInfo.path} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
-                        </div>
-                    );
-                    images.push(filenames[i]);
-                } else {
-                    postFiles.push(
-                        <div className="post-image__column custom-file" key={fileInfo.path}>
-                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
-                                <div className={"file-icon "+utils.getIconClassName(ftype)}/>
-                            </a>
-                        </div>
-                    );
-                }
-            }
-        }
-
         return (
             <div className={"post post--root " + currentUserCss}>
                 <div className="post-right-channel__name">{ channelName }</div>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
-                        <li className="post-header-col"><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
-                        <li className="post-header-col"><time className="post-right-root-time">{ utils.displayDate(this.props.post.create_at)+' '+utils.displayTime(this.props.post.create_at)  }</time></li>
+                        <li className="post-header-col"><strong><UserProfile userId={post.user_id} /></strong></li>
+                        <li className="post-header-col"><time className="post-right-root-time">{ utils.displayDate(post.create_at)+' '+utils.displayTime(post.create_at)  }</time></li>
                         <li className="post-header-col post-header__reply">
                             <div className="dropdown">
                             { isOwner ?
                                 <div>
                                 <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                                 <ul className="dropdown-menu" role="menu">
-                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
-                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
+                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
+                                    <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
                                 </ul>
                                 </div>
                             : "" }
@@ -146,19 +102,12 @@ RootPost = React.createClass({
                     </ul>
                     <div className="post-body">
                         <p>{message}</p>
-                        { filenames.length > 0 ?
-                            <div className="post-image__columns">
-                                { postFiles }
-                            </div>
-                        : "" }
-                        { images.length > 0 ?
-                            <ViewImageModal
-                            channelId={this.props.post.channel_id}
-                            userId={this.props.post.user_id}
-                            modalId={postImageModalId}
-                            startId={this.state.startImgId}
-                            imgCount={this.props.post.img_count}
-                            filenames={images} />
+                        { post.filenames && post.filenames.length > 0 ?
+                            <FileAttachmentList
+                                filenames={post.filenames}
+                                modalId={"rhs_view_image_modal_" + post.id}
+                                channelId={post.channel_id}
+                                userId={post.user_id} />
                         : "" }
                     </div>
                 </div>
@@ -169,86 +118,42 @@ RootPost = React.createClass({
 });
 
 CommentPost = React.createClass({
-    handleImageClick: function(e) {
-        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'))});
-    },
-    getInitialState: function() {
-        return { startImgId: 0 };
-    },
     render: function() {
+        var post = this.props.post;
 
         var commentClass = "post";
 
         var currentUserCss = "";
-        if (UserStore.getCurrentId() === this.props.post.user_id) {
+        if (UserStore.getCurrentId() === post.user_id) {
             currentUserCss = "current--user";
         }
 
-        var postImageModalId = "rhs_comment_view_image_modal_" + this.props.post.id;
-        var filenames = this.props.post.filenames;
-        var isOwner = UserStore.getCurrentId() == this.props.post.user_id;
+        var isOwner = UserStore.getCurrentId() == post.user_id;
 
         var type = "Post"
-        if (this.props.post.root_id.length > 0) {
+        if (post.root_id.length > 0) {
             type = "Comment"
         }
 
-        if (filenames) {
-            var postFiles = [];
-            var images = [];
-            var re1 = new RegExp(' ', 'g');
-            var re2 = new RegExp('\\(', 'g');
-            var re3 = new RegExp('\\)', 'g');
-            for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-
-                var fileInfo = utils.splitFileLocation(filenames[i]);
-                var type = utils.getFileType(fileInfo.ext);
-
-                // This is a temporary patch to fix issue with old files using absolute paths
-                if (fileInfo.path.indexOf("/api/v1/files/get") != -1) {
-                    fileInfo.path = fileInfo.path.split("/api/v1/files/get")[1];
-                }
-                fileInfo.path = utils.getWindowLocationOrigin() + "/api/v1/files/get" + fileInfo.path;
-
-                if (type === "image") {
-                    var url = fileInfo.path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
-                    postFiles.push(
-                        <div className="post-image__column" key={fileInfo.path}>
-                            <a href="#" onClick={this.handleImageClick} data-img-id={images.length.toString()} data-toggle="modal" data-target={"#" + postImageModalId }><div ref={fileInfo.path} className="post__image" style={{backgroundImage: 'url(' + url + '_thumb.jpg)'}}></div></a>
-                        </div>
-                    );
-                    images.push(filenames[i]);
-                } else {
-                    postFiles.push(
-                        <div className="post-image__column custom-file" key={fileInfo.path}>
-                            <a href={fileInfo.path+"."+fileInfo.ext} download={fileInfo.name+"."+fileInfo.ext}>
-                                <div className={"file-icon "+utils.getIconClassName(type)}/>
-                            </a>
-                        </div>
-                    );
-                }
-            }
-        }
-
-        var message = utils.textToJsx(this.props.post.message);
+        var message = utils.textToJsx(post.message);
         var timestamp = UserStore.getCurrentUser().update_at;
 
         return (
             <div className={commentClass + " " + currentUserCss}>
                 <div className="post-profile-img__container">
-                    <img className="post-profile-img" src={"/api/v1/users/" + this.props.post.user_id + "/image?time=" + timestamp} height="36" width="36" />
+                    <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
                 </div>
                 <div className="post__content">
                     <ul className="post-header">
-                        <li className="post-header-col"><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
-                        <li className="post-header-col"><time className="post-right-comment-time">{ utils.displayDateTime(this.props.post.create_at) }</time></li>
+                        <li className="post-header-col"><strong><UserProfile userId={post.user_id} /></strong></li>
+                        <li className="post-header-col"><time className="post-right-comment-time">{ utils.displayDateTime(post.create_at) }</time></li>
                         <li className="post-header-col post-header__reply">
                         { isOwner ?
                         <div className="dropdown" onClick={function(e){$('.post-list-holder-by-time').scrollTop($(".post-list-holder-by-time").scrollTop() + 50);}}>
                             <a href="#" className="dropdown-toggle theme" type="button" data-toggle="dropdown" aria-expanded="false" />
                             <ul className="dropdown-menu" role="menu">
-                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={this.props.post.message} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id}>Edit</a></li>
-                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={this.props.post.id} data-channelid={this.props.post.channel_id} data-comments={0}>Delete</a></li>
+                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#edit_post" data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
+                                <li role="presentation"><a href="#" role="menuitem" data-toggle="modal" data-target="#delete_post" data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={0}>Delete</a></li>
                             </ul>
                         </div>
                         : "" }
@@ -256,19 +161,12 @@ CommentPost = React.createClass({
                     </ul>
                     <div className="post-body">
                         <p>{message}</p>
-                        { filenames.length > 0 ?
-                            <div className="post-image__columns">
-                                { postFiles }
-                            </div>
-                        : "" }
-                        { images.length > 0 ?
-                            <ViewImageModal
-                            channelId={this.props.post.channel_id}
-                            userId={this.props.post.user_id}
-                            modalId={postImageModalId}
-                            startId={this.state.startImgId}
-                            imgCount={this.props.post.img_count}
-                            filenames={images} />
+                        { post.filenames && post.filenames.length > 0 ?
+                            <FileAttachmentList
+                                filenames={post.filenames}
+                                modalId={"rhs_comment_view_image_modal_" + post.id}
+                                channelId={post.channel_id}
+                                userId={post.user_id} />
                         : "" }
                     </div>
                 </div>

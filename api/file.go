@@ -33,7 +33,7 @@ func InitFile(r *mux.Router) {
 
 	sr := r.PathPrefix("/files").Subrouter()
 	sr.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
-	sr.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET")
+	sr.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET", "HEAD")
 	sr.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
 }
 
@@ -261,7 +261,10 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
-	w.Write(f)
+
+	if r.Method != "HEAD" {
+		w.Write(f)
+	}
 }
 
 func asyncGetFile(path string, fileData chan []byte) {
