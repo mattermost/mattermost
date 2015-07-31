@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var utils = require('../utils/utils.jsx');
+var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
     displayName: "FileAttachment",
@@ -43,6 +44,16 @@ module.exports = React.createClass({
 
                         $(imgDiv).removeClass('post__load');
                         $(imgDiv).addClass('post__image');
+
+                        var width = this.width || $(this).width();
+                        var height = this.height || $(this).height();
+
+                        if (width < Constants.THUMBNAIL_WIDTH
+                                && height < Constants.THUMBNAIL_HEIGHT) {
+                            $(imgDiv).addClass('small');
+                        } else {
+                            $(imgDiv).addClass('normal');
+                        }
 
                         var re1 = new RegExp(' ', 'g');
                         var re2 = new RegExp('\\(', 'g');
