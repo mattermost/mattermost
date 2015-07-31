@@ -195,7 +195,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
 			}
 		} else {
-			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.FirstName, ruser.Email, team.DisplayName, c.GetTeamURLFromTeam(team))
+			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -225,19 +225,18 @@ func fireAndForgetWelcomeEmail(name, email, teamDisplayName, link string) {
 	}()
 }
 
-func FireAndForgetVerifyEmail(userId, name, email, teamDisplayName, teamURL string) {
+func FireAndForgetVerifyEmail(userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
-		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s", teamURL, userId, model.HashPassword(userId))
+		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
 
 		subjectPage := NewServerTemplatePage("verify_subject", teamURL)
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage := NewServerTemplatePage("verify_body", teamURL)
-		bodyPage.Props["Nickname"] = name
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["VerifyUrl"] = link
 
-		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+		if err := utils.SendMail(userEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error("Failed to send verification email successfully err=%v", err)
 		}
 	}()
