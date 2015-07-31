@@ -863,7 +863,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !model.ComparePassword(user.Password, currentPassword) {
-		c.Err = model.NewAppError("updatePassword", "Update password failed because of invalid password", "")
+		c.Err = model.NewAppError("updatePassword", "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again.", "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
