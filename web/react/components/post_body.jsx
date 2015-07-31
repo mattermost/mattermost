@@ -84,7 +84,11 @@ module.exports = React.createClass({
         return (
             <div className="post-body">
                 { comment }
+                {useMarkdown ?
                 <div key={post.id+"_message"} className={postClass}><span>{inner}</span></div>
+                :
+                <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
+                }
                 { filenames && filenames.length > 0 ?
                     <FileAttachmentList
                         filenames={filenames}

@@ -97,7 +97,7 @@ module.exports.getCookie = function(name) {
 }
 
 module.exports.notifyMe = function(title, body, channel) {
-  if ("Notification" in window && Notification.permission !== 'denied') {
+    if ("Notification" in window && Notification.permission !== 'denied') {
     Notification.requestPermission(function (permission) {
       if (Notification.permission !== permission) {
           Notification.permission = permission;
@@ -107,53 +107,7 @@ module.exports.notifyMe = function(title, body, channel) {
         var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
 
         if (useMarkdown) {
-            var customMarkedRenderer = new Marked.Renderer();
-            customMarkedRenderer.code = function(code, language) {
-                return code;
-            };
-            customMarkedRenderer.blockquote = function(quote) {
-                return quote;
-            };
-            customMarkedRenderer.list = function(body, ordered) {
-                return body;
-            };
-            customMarkedRenderer.listitem = function(text) {
-                return text + " ";
-            };
-            customMarkedRenderer.paragraph = function(text) {
-                return text + " ";
-            };
-            customMarkedRenderer.heading = function(text, level) {
-                var hashText = "";
-                for (var i = 0; i < level; i++)
-                    hashText += "#";
-
-                return hashText + text;
-            };
-            customMarkedRenderer.codespan = function(code) {
-                return code;
-            };
-            customMarkedRenderer.del = function(text) {
-                return text;
-            };
-            customMarkedRenderer.strong = function(text) {
-                return text;
-            };
-            customMarkedRenderer.em = function(text) {
-                return text;
-            };
-            customMarkedRenderer.link = function(href, title, text) {
-                return " " + href + " ";
-            };
-            customMarkedRenderer.image = function(href, title, text) {
-                return " " + href + " ";
-            };
-
-            body = Marked(body, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: customMarkedRenderer});
-
-            if (body.indexOf("<p>") === 0) {
-                body = body.slice(3);
-            }
+            body = Marked(body, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer({disable: true})});
         }
 
         var notification = new Notification(title,
@@ -539,17 +493,32 @@ module.exports.textToJsx = function(text, options) {
         var highlightSearchClass = "";
         for (var z = 0; z < words.length; z++) {
             var word = words[z];
-            var trimWord = word.replace(endTagRegex, '').replace(startTagRegex, '').replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            var trimWord;
+            if (useMarkdown) {
+                trimWord = word.replace(endTagRegex, '').replace(startTagRegex, '').replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            } else {
+                trimWord = word.replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            }
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
 
-            var prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
-            var suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
-            var prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
-            var suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+            var prefix;
+            var suffix;
+            var prefixSpan;
+            var suffixSpan;
+            if (useMarkdown) {
+                prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
+                suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
+                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
+                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+            } else {
+                prefix = word.match(puncStartRegex);
+                suffix = word.match(puncEndRegex);
+                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}>{prefix}</span>) : null;
+                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}>{suffix} </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+            }
 
             if ((trimWord.toLowerCase().indexOf(searchTerm) > -1 || word.toLowerCase().indexOf(searchTerm) > -1) && searchTerm != "") {
-
                 highlightSearchClass = " search-highlight";
             }
 
