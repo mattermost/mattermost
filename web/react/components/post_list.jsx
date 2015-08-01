@@ -29,12 +29,14 @@ function getStateFromStores() {
 module.exports = React.createClass({
     displayName: "PostList",
     scrollPosition: 0,
-    preventScrollTrigger: false,   // Can't think of an intuitive name, but when true,
-                                   // scrollPosition is affected by the 'on scroll' event below
+    preventScrollTrigger: false,    // Can't think of an intuitive name, but when true,
+                                    // scrollPosition is affected by the 'on scroll' event below
     gotMorePosts: false,
     oldScrollHeight: 0,
     oldZoom: 0,
-    scrolledToNew: false,
+    scrolledToNew: false,           // Signifies we've already scrolled to the "new message" bar
+                                    // one time, don't want to do it again even if the bar
+                                    // doesn't go away
     componentDidMount: function() {
 
         // Add CSS required to have the theme colors
@@ -69,6 +71,10 @@ module.exports = React.createClass({
 
         this.resize();
 
+        // Set initial values of these component properties, will be updated on every re-render
+        // scrollPosition - scroll point of bottom of current viewport
+        // oldScrollHeight - bottom scroll point possible of viewport
+        // oldZoom - represents "browser zoom"
         var post_holder = $(".post-list-holder-by-time")[0];
         this.scrollPosition = $(post_holder).scrollTop() + $(post_holder).innerHeight();
         this.oldScrollHeight = post_holder.scrollHeight;
@@ -83,10 +89,19 @@ module.exports = React.createClass({
             // this only kind of works, detecting zoom in browsers is a nightmare
             var newZoom = (window.outerWidth - 8) / window.innerWidth;
 
-            if (self.scrollPosition >= post_holder.scrollHeight || (self.oldScrollHeight != post_holder.scrollHeight && self.scrollPosition >= self.oldScrollHeight) || self.oldZoom != newZoom) self.resize();
+            // We resize if :
+            // 1. We are scrolled below the max scroll
+            // 2. ???
+            // 3. We changed zoom sizes
+            if (self.scrollPosition >= post_holder.scrollHeight ||
+                (self.oldScrollHeight !== post_holder.scrollHeight && self.scrollPosition >= self.oldScrollHeight) ||
+                self.oldZoom !== newZoom) {
+                self.resize();
+            }
 
             self.oldZoom = newZoom;
 
+            // Sets the size of the viewport, doesn't affect the overflowed component
             if ($('#create_post').length > 0) {
                 var height = $(window).height() - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
                 $(".post-list-holder-by-time").css("height", height + "px");
@@ -94,7 +109,7 @@ module.exports = React.createClass({
         });
 
         // scrollPosistion records and holds every position that the user has been at
-        // Disabled by preventScrollTrigger
+        // unless preventScrollTrigger is enabled, then it skips one reading
         // Consider storing this in localStorage instead
         $(post_holder).scroll(function(e){
             if (!self.preventScrollTrigger) {
@@ -174,7 +189,6 @@ module.exports = React.createClass({
                 this.state.channel.id === newState.channel.id &&
                 this.state.post_list.order.length !== newState.post_list.order.length &&
                 newState.post_list.order.length > Constants.POST_CHUNK_SIZE) {
-                // Thus marking the end of the conditional
                 this.gotMorePosts = true;
             }
             if (this.state.channel.id !== newState.channel.id) {
