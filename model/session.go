@@ -14,6 +14,8 @@ const (
 	SESSION_TIME_WEB_IN_SECS    = 60 * 60 * 24 * SESSION_TIME_WEB_IN_DAYS
 	SESSION_TIME_MOBILE_IN_DAYS = 30
 	SESSION_TIME_MOBILE_IN_SECS = 60 * 60 * 24 * SESSION_TIME_MOBILE_IN_DAYS
+	SESSION_TIME_OAUTH_IN_DAYS  = 365
+	SESSION_TIME_OAUTH_IN_SECS  = 60 * 60 * 24 * SESSION_TIME_OAUTH_IN_DAYS
 	SESSION_CACHE_IN_SECS       = 60 * 10
 	SESSION_CACHE_SIZE          = 10000
 	SESSION_PROP_PLATFORM       = "platform"
@@ -32,6 +34,7 @@ type Session struct {
 	DeviceId       string    `json:"device_id"`
 	Roles          string    `json:"roles"`
 	Props          StringMap `json:"props"`
+	AccessToken    string    `json:"access_token"`
 }
 
 func (me *Session) ToJson() string {
@@ -71,6 +74,7 @@ func (me *Session) PreSave() {
 
 func (me *Session) Sanitize() {
 	me.Id = ""
+	me.AccessToken = ""
 }
 
 func (me *Session) IsExpired() bool {
