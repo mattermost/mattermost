@@ -131,5 +131,5 @@ To contribute to this open source project please review the Mattermost Contribut
 License
 -------
 
-Mattermost is licensed under an "Apache-wrapped AGPL" model, which means you can run and link to the system using Configuration Files and Admin Tools licensed under Apache, version 2.0, as described in the LICENSE file, as an explicit exception to the terms of the GNU Affero General Public License (AGPL) that applies to most of the remaining source files. See individual files for details.
+Mattermost is licensed under an "Apache-wrapped AGPL" model inspired by MongoDB. Similar to MongoDB, you can run and link to the system using Configuration Files and Admin Tools licensed under Apache, version 2.0, as described in the LICENSE file, as an explicit exception to the terms of the GNU Affero General Public License (AGPL) that applies to most of the remaining source files. See individual files for details.
 
