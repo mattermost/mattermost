@@ -93,6 +93,9 @@ module.exports = React.createClass({
             }
         });
 
+        // scrollPosistion records and holds every position that the user has been at
+        // Disabled by preventScrollTrigger
+        // Consider storing this in localStorage instead
         $(post_holder).scroll(function(e){
             if (!self.preventScrollTrigger) {
                 self.scrollPosition = $(post_holder).scrollTop() + $(post_holder).innerHeight();
@@ -154,13 +157,11 @@ module.exports = React.createClass({
         if (this.gotMorePosts) {
             this.gotMorePosts = false;
             $(post_holder).scrollTop($(post_holder).scrollTop() + (post_holder.scrollHeight-this.oldScrollHeight) );
+        } else if ($("#new_message")[0] && !this.scrolledToNew) {
+            $(post_holder).scrollTop($(post_holder).scrollTop() + $("#new_message").offset().top - 63);
+            this.scrolledToNew = true;
         } else {
-            if ($("#new_message")[0] && !this.scrolledToNew) {
-                $(post_holder).scrollTop($(post_holder).scrollTop() + $("#new_message").offset().top - 63);
-                this.scrolledToNew = true;
-            } else {
-                $(post_holder).scrollTop(post_holder.scrollHeight);
-            }
+            $(post_holder).scrollTop(post_holder.scrollHeight);
         }
         $(post_holder).perfectScrollbar('update');
     },
@@ -168,10 +169,13 @@ module.exports = React.createClass({
         var newState = getStateFromStores();
 
         if (!utils.areStatesEqual(newState, this.state)) {
-            if (this.state.post_list && this.state.post_list.order) {
-                if (this.state.channel.id === newState.channel.id && this.state.post_list.order.length != newState.post_list.order.length && newState.post_list.order.length > Constants.POST_CHUNK_SIZE) {
-                    this.gotMorePosts = true;
-                }
+            if (this.state.post_list &&
+                this.state.post_list.order &&
+                this.state.channel.id === newState.channel.id &&
+                this.state.post_list.order.length !== newState.post_list.order.length &&
+                newState.post_list.order.length > Constants.POST_CHUNK_SIZE) {
+                // Thus marking the end of the conditional
+                this.gotMorePosts = true;
             }
             if (this.state.channel.id !== newState.channel.id) {
                 this.scrolledToNew = false;
