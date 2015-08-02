@@ -15,13 +15,13 @@ function getStateFromStoresForAudits() {
 module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addAuditsChangeListener(this._onChange);
-        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function (e) {
+        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function(e) {
             AsyncClient.getAudits();
         });
 
         var self = this;
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
-            self.setState({ moreInfo: [] });
+            self.setState({moreInfo: []});
         });
     },
     componentWillUnmount: function() {
@@ -36,7 +36,7 @@ module.exports = React.createClass({
     handleMoreInfo: function(index) {
         var newMoreInfo = this.state.moreInfo;
         newMoreInfo[index] = true;
-        this.setState({ moreInfo: newMoreInfo });
+        this.setState({moreInfo: newMoreInfo});
     },
     getInitialState: function() {
         var initialState = getStateFromStoresForAudits();
@@ -57,24 +57,28 @@ module.exports = React.createClass({
                 newDate = (<div> {currentHistoryDate.toDateString()} </div>);
             }
 
+            if (!currentAudit.session_id && currentAudit.action.search('/users/login') !== -1) {
+                currentAudit.session_id = 'N/A (Login attempt)';
+            }
+
             accessList[i] = (
-                <div className="access-history__table">
-                    <div className="access__date">{newDate}</div>
-                    <div className="access__report">
-                        <div className="report__time">{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'})}</div>
-                        <div className="report__info">
-                            <div>{"IP: " + currentAudit.ip_address}</div>
-                            { this.state.moreInfo[i] ?
+                <div className='access-history__table'>
+                    <div className='access__date'>{newDate}</div>
+                    <div className='access__report'>
+                        <div className='report__time'>{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})}</div>
+                        <div className='report__info'>
+                            <div>{'IP: ' + currentAudit.ip_address}</div>
+                            {this.state.moreInfo[i] ?
                             <div>
-                                <div>{"Session ID: " + currentAudit.session_id}</div>
-                                <div>{"URL: " + currentAudit.action.replace("/api/v1", "")}</div>
+                                <div>{'Session ID: ' + currentAudit.session_id}</div>
+                                <div>{'URL: ' + currentAudit.action.replace(/\/api\/v[1-9]/, '')}</div>
                             </div>
                             :
-                            <a href="#" className="theme" onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
+                            <a href='#' className='theme' onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
                             }
                         </div>
                         {i < this.state.audits.length - 1 ?
-                        <div className="divider-light"/>
+                        <div className='divider-light'/>
                         :
                         null
                         }
@@ -85,17 +89,17 @@ module.exports = React.createClass({
 
         return (
             <div>
-                <div className="modal fade" ref="modal" id="access-history" tabIndex="-1" role="dialog" aria-hidden="true">
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 className="modal-title" id="myModalLabel">Access History</h4>
+                <div className='modal fade' ref='modal' id='access-history' tabIndex='-1' role='dialog' aria-hidden='true'>
+                    <div className='modal-dialog modal-lg'>
+                        <div className='modal-content'>
+                            <div className='modal-header'>
+                                <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+                                <h4 className='modal-title' id='myModalLabel'>Access History</h4>
                             </div>
-                            <div ref="modalBody" className="modal-body">
-                                { !this.state.audits.loading ?
-                                <form role="form">
-                                { accessList }
+                            <div ref='modalBody' className='modal-body'>
+                                {!this.state.audits.loading ?
+                                <form role='form'>
+                                {accessList}
                                 </form>
                                 :
                                 <LoadingScreen />

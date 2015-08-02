@@ -16,10 +16,10 @@ var ServerTemplates *template.Template
 
 type ServerTemplatePage Page
 
-func NewServerTemplatePage(templateName, teamURL string) *ServerTemplatePage {
+func NewServerTemplatePage(templateName, siteURL string) *ServerTemplatePage {
 	props := make(map[string]string)
 	props["AnalyticsUrl"] = utils.Cfg.ServiceSettings.AnalyticsUrl
-	return &ServerTemplatePage{TemplateName: templateName, SiteName: utils.Cfg.ServiceSettings.SiteName, FeedbackEmail: utils.Cfg.EmailSettings.FeedbackEmail, TeamURL: teamURL, Props: props}
+	return &ServerTemplatePage{TemplateName: templateName, SiteName: utils.Cfg.ServiceSettings.SiteName, FeedbackEmail: utils.Cfg.EmailSettings.FeedbackEmail, SiteURL: siteURL, Props: props}
 }
 
 func (me *ServerTemplatePage) Render() string {

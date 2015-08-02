@@ -1,0 +1,10 @@
+sudo: false
+language: go
+
+go:
+    - 1.2
+    - tip
+
+install: go get -t ./...
+
+script: go test -v -short ./...

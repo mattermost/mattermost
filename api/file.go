@@ -33,7 +33,7 @@ func InitFile(r *mux.Router) {
 
 	sr := r.PathPrefix("/files").Subrouter()
 	sr.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
-	sr.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET")
+	sr.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET", "HEAD")
 	sr.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
 }
 
@@ -140,11 +140,18 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 
 				// Create thumbnail
 				go func() {
+					thumbWidth := float64(utils.Cfg.ImageSettings.ThumbnailWidth)
+					thumbHeight := float64(utils.Cfg.ImageSettings.ThumbnailHeight)
+					imgWidth := float64(imgConfig.Width)
+					imgHeight := float64(imgConfig.Height)
+
 					var thumbnail image.Image
-					if imgConfig.Width > int(utils.Cfg.ImageSettings.ThumbnailWidth) {
-						thumbnail = resize.Resize(utils.Cfg.ImageSettings.ThumbnailWidth, utils.Cfg.ImageSettings.ThumbnailHeight, img, resize.Lanczos3)
-					} else {
+					if imgHeight < thumbHeight && imgWidth < thumbWidth {
 						thumbnail = img
+					} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
+						thumbnail = resize.Resize(0, utils.Cfg.ImageSettings.ThumbnailHeight, img, resize.Lanczos3)
+					} else {
+						thumbnail = resize.Resize(utils.Cfg.ImageSettings.ThumbnailWidth, 0, img, resize.Lanczos3)
 					}
 
 					buf := new(bytes.Buffer)
@@ -261,7 +268,10 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
-	w.Write(f)
+
+	if r.Method != "HEAD" {
+		w.Write(f)
+	}
 }
 
 func asyncGetFile(path string, fileData chan []byte) {

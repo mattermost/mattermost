@@ -58,7 +58,7 @@ module.exports = React.createClass({
                     }.bind(this),
                     function(err) {
                         if (err.message == "Login failed because email address has not been verified") {
-                            window.location.href = "/verify_email?email="+ encodeURIComponent(this.state.user.email) + "&domain=" + encodeURIComponent(this.props.teamName);
+                            window.location.href = "/verify_email?email="+ encodeURIComponent(this.state.user.email) + "&teamname=" + encodeURIComponent(this.props.teamName);
                         } else {
                             this.state.server_error = err.message;
                             this.setState(this.state);
@@ -107,7 +107,7 @@ module.exports = React.createClass({
                 <div className={ this.state.original_email == "" ? "margin--extra" : "hidden"} >
                 <h5><strong>What's your email address?</strong></h5>
                 <div className={ email_error ? "form-group has-error" : "form-group" }>
-                <input type="email" ref="email" className="form-control" defaultValue={ this.state.user.email } placeholder="" maxLength="128" />
+                <input type="email" ref="email" className="form-control" defaultValue={ this.state.user.email } placeholder="" maxLength="128" autoFocus={true} />
                 { email_error }
                 </div>
                 </div>
@@ -123,6 +123,7 @@ module.exports = React.createClass({
 
         return (
             <div>
+                <form>
                 <img className="signup-team-logo" src="/static/images/logo.png" />
                 <h5 className="margin--less">Welcome to:</h5>
                 <h2 className="signup-team__name">{ this.props.teamDisplayName }</h2>
@@ -148,9 +149,10 @@ module.exports = React.createClass({
                         </div>
                     </div>
                     </div>
-                <p className="margin--extra"><button onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
+                <p className="margin--extra"><button type='submit' onClick={this.handleSubmit} className="btn-primary btn">Create Account</button></p>
                 { server_error }
                 <p>By creating an account and using Mattermost you are agreeing to our <a href={ config.TermsLink }>Terms of Service</a>. If you do not agree, you cannot use this service.</p>
+                </form>
             </div>
         );
     }

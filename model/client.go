@@ -457,8 +457,8 @@ func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetChannelExtraInfo(id string) (*Result, *AppError) {
-	if r, err := c.DoGet("/channels/"+id+"/extra_info", "", ""); err != nil {
+func (c *Client) GetChannelExtraInfo(id string, etag string) (*Result, *AppError) {
+	if r, err := c.DoGet("/channels/"+id+"/extra_info", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

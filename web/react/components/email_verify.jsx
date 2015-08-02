@@ -11,7 +11,7 @@ module.exports = React.createClass({
         var resend = "";
         if (this.props.isVerified === "true") {
             title = config.SiteName + " Email Verified";
-            body = <p>Your email has been verified! Click <a href="/">here</a> to log in.</p>;
+            body = <p>Your email has been verified! Click <a href={this.props.teamURL + "?email=" + this.props.userEmail}>here</a> to log in.</p>;
         } else {
             title = config.SiteName + " Email Not Verified";
             body = <p>Please verify your email address. Check your inbox for an email.</p>;

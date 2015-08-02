@@ -63,7 +63,7 @@ module.exports = React.createClass({
                     { server_error }
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button type="button" className="btn btn-primary" onClick={this.handleEdit}>Save</button>
                   </div>
                 </div>

@@ -13,7 +13,7 @@ module.exports = React.createClass({
 
         var message = "";
         if (members.length === 0)
-            message = <span>No users to add or manage.</span>;
+            message = <span>No users to add.</span>;
 
         return (
             <div className="member-list-holder">

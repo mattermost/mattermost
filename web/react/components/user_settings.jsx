@@ -638,8 +638,8 @@ var GeneralTab = React.createClass({
         var username = this.state.username.trim();
 
         var username_error = utils.isValidUsername(username);
-        if (username_error === "Cannot use a reserved word as a username.") {
-            this.setState({client_error: "This username is reserved, please choose a new one." });
+        if (username_error === 'Cannot use a reserved word as a username.') {
+            this.setState({client_error: 'This username is reserved, please choose a new one.' });
             return;
         } else if (username_error) {
             this.setState({client_error: "Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'." });
@@ -647,7 +647,7 @@ var GeneralTab = React.createClass({
         }
 
         if (user.username === username) {
-            this.setState({client_error: "You must submit a new username"});
+            this.setState({client_error: 'You must submit a new username'});
             return;
         }
 
@@ -662,7 +662,7 @@ var GeneralTab = React.createClass({
         var nickname = this.state.nickname.trim();
 
         if (user.nickname === nickname) {
-            this.setState({client_error: "You must submit a new nickname"})
+            this.setState({client_error: 'You must submit a new nickname'})
             return;
         }
 
@@ -678,7 +678,7 @@ var GeneralTab = React.createClass({
         var lastName = this.state.last_name.trim();
 
         if (user.first_name === firstName && user.last_name === lastName) {
-            this.setState({client_error: "You must submit a new first or last name"})
+            this.setState({client_error: 'You must submit a new first or last name'})
             return;
         }
 
@@ -698,7 +698,7 @@ var GeneralTab = React.createClass({
         }
 
         if (email === '' || !utils.isEmail(email)) {
-            this.setState({ email_error: "Please enter a valid email address" });
+            this.setState({ email_error: 'Please enter a valid email address' });
             return;
         }
 
@@ -708,16 +708,16 @@ var GeneralTab = React.createClass({
     },
     submitUser: function(user) {
         client.updateUser(user,
-            function(data) {
-                this.updateSection("");
+            function() {
+                this.updateSection('');
                 AsyncClient.getMe();
             }.bind(this),
             function(err) {
                 state = this.getInitialState();
-                if(err.message) {
+                if (err.message) {
                     state.server_error = err.message;
                 } else {
-                    state.server_error = err
+                    state.server_error = err;
                 }
                 this.setState(state);
             }.bind(this)
@@ -726,22 +726,26 @@ var GeneralTab = React.createClass({
     submitPicture: function(e) {
         e.preventDefault();
 
-        if (!this.state.picture) return;
-
-        if(!this.submitActive) return;
-
-        var picture = this.state.picture;
-
-        if(picture.type !== "image/jpeg" && picture.type !== "image/png") {
-            this.setState({client_error: "Only JPG or PNG images may be used for profile pictures"});
+        if (!this.state.picture) {
             return;
         }
 
-        formData = new FormData();
+        if (!this.submitActive) {
+            return;
+        }
+
+        var picture = this.state.picture;
+
+        if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
+            this.setState({client_error: 'Only JPG or PNG images may be used for profile pictures'});
+            return;
+        }
+
+        var formData = new FormData();
         formData.append('image', picture, picture.name);
 
         client.uploadProfileImage(formData,
-            function(data) {
+            function() {
                 this.submitActive = false;
                 AsyncClient.getMe();
                 window.location.reload();
@@ -754,39 +758,39 @@ var GeneralTab = React.createClass({
         );
     },
     updateUsername: function(e) {
-        this.setState({ username: e.target.value });
+        this.setState({username: e.target.value});
     },
     updateFirstName: function(e) {
-        this.setState({ first_name: e.target.value });
+        this.setState({first_name: e.target.value});
     },
     updateLastName: function(e) {
-        this.setState({ last_name: e.target.value});
+        this.setState({last_name: e.target.value});
     },
     updateNickname: function(e) {
         this.setState({nickname: e.target.value});
     },
     updateEmail: function(e) {
-        this.setState({ email: e.target.value});
+        this.setState({email: e.target.value});
     },
     updatePicture: function(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({ picture: e.target.files[0] });
 
             this.submitActive = true;
-            this.setState({client_error:null})
+            this.setState({client_error: null});
 
         } else {
-            this.setState({ picture: null });
+            this.setState({picture: null});
         }
     },
     updateSection: function(section) {
-        this.setState({client_error:""})
-        this.submitActive = false
+        this.setState({client_error:''});
+        this.submitActive = false;
         this.props.updateSection(section);
     },
     handleClose: function() {
-        $(this.getDOMNode()).find(".form-control").each(function() {
-            this.value = "";
+        $(this.getDOMNode()).find('.form-control').each(function() {
+            this.value = '';
         });
 
         this.setState(assign({}, this.getInitialState(), {client_error: null, server_error: null, email_error: null}));
@@ -812,43 +816,45 @@ var GeneralTab = React.createClass({
 
         var nameSection;
         var self = this;
+        var inputs = [];
 
         if (this.props.activeSection === 'name') {
-            var inputs = [];
-
             inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">First Name</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="text" onChange={this.updateFirstName} value={this.state.first_name}/>
+                <div className='form-group'>
+                    <label className='col-sm-5 control-label'>First Name</label>
+                    <div className='col-sm-7'>
+                        <input className='form-control' type='text' onChange={this.updateFirstName} value={this.state.first_name}/>
                     </div>
                 </div>
             );
 
             inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">Last Name</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="text" onChange={this.updateLastName} value={this.state.last_name}/>
+                <div className='form-group'>
+                    <label className='col-sm-5 control-label'>Last Name</label>
+                    <div className='col-sm-7'>
+                        <input className='form-control' type='text' onChange={this.updateLastName} value={this.state.last_name}/>
                     </div>
                 </div>
             );
 
             nameSection = (
                 <SettingItemMax
-                    title="Full Name"
+                    title='Full Name'
                     inputs={inputs}
                     submit={this.submitName}
                     server_error={server_error}
                     client_error={client_error}
-                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                    updateSection={function(e) {
+                        self.updateSection('');
+                        e.preventDefault();
+                    }}
                 />
             );
         } else {
-            var full_name = "";
+            var full_name = '';
 
             if (user.first_name && user.last_name) {
-                full_name = user.first_name + " " + user.last_name;
+                full_name = user.first_name + ' ' + user.last_name;
             } else if (user.first_name) {
                 full_name = user.first_name;
             } else if (user.last_name) {
@@ -857,107 +863,119 @@ var GeneralTab = React.createClass({
 
             nameSection = (
                 <SettingItemMin
-                    title="Full Name"
+                    title='Full Name'
                     describe={full_name}
-                    updateSection={function(){self.updateSection("name");}}
+                    updateSection={function() {
+                        self.updateSection('name');
+                    }}
                 />
             );
         }
 
         var nicknameSection;
         if (this.props.activeSection === 'nickname') {
-            var inputs = [];
 
             inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">{utils.isMobile() ? "": "Nickname"}</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="text" onChange={this.updateNickname} value={this.state.nickname}/>
+                <div className='form-group'>
+                    <label className='col-sm-5 control-label'>{utils.isMobile() ? '' : 'Nickname'}</label>
+                    <div className='col-sm-7'>
+                        <input className='form-control' type='text' onChange={this.updateNickname} value={this.state.nickname}/>
                     </div>
                 </div>
             );
 
             nicknameSection = (
                 <SettingItemMax
-                    title="Nickname"
+                    title='Nickname'
                     inputs={inputs}
                     submit={this.submitNickname}
                     server_error={server_error}
                     client_error={client_error}
-                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                    updateSection={function(e) {
+                        self.updateSection('');
+                        e.preventDefault();
+                    }}
                 />
             );
         } else {
             nicknameSection = (
                 <SettingItemMin
-                    title="Nickname"
+                    title='Nickname'
                     describe={UserStore.getCurrentUser().nickname}
-                    updateSection={function(){self.updateSection("nickname");}}
+                    updateSection={function() {
+                        self.updateSection('nickname');
+                    }}
                 />
             );
         }
 
         var usernameSection;
         if (this.props.activeSection === 'username') {
-            var inputs = [];
-
             inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">{utils.isMobile() ? "": "Username"}</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="text" onChange={this.updateUsername} value={this.state.username}/>
+                <div className='form-group'>
+                    <label className='col-sm-5 control-label'>{utils.isMobile() ? '': 'Username'}</label>
+                    <div className='col-sm-7'>
+                        <input className='form-control' type='text' onChange={this.updateUsername} value={this.state.username}/>
                     </div>
                 </div>
             );
 
             usernameSection = (
                 <SettingItemMax
-                    title="Username"
+                    title='Username'
                     inputs={inputs}
                     submit={this.submitUsername}
                     server_error={server_error}
                     client_error={client_error}
-                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                    updateSection={function(e) {
+                        self.updateSection('');
+                        e.preventDefault();
+                    }}
                 />
             );
         } else {
             usernameSection = (
                 <SettingItemMin
-                    title="Username"
+                    title='Username'
                     describe={UserStore.getCurrentUser().username}
-                    updateSection={function(){self.updateSection("username");}}
+                    updateSection={function() {
+                        self.updateSection('username');
+                    }}
                 />
             );
         }
         var emailSection;
         if (this.props.activeSection === 'email') {
-            var inputs = [];
-
             inputs.push(
-                <div className="form-group">
-                    <label className="col-sm-5 control-label">Primary Email</label>
-                    <div className="col-sm-7">
-                        <input className="form-control" type="text" onChange={this.updateEmail} value={this.state.email}/>
+                <div className='form-group'>
+                    <label className='col-sm-5 control-label'>Primary Email</label>
+                    <div className='col-sm-7'>
+                        <input className='form-control' type='text' onChange={this.updateEmail} value={this.state.email}/>
                     </div>
                 </div>
             );
 
             emailSection = (
                 <SettingItemMax
-                    title="Email"
+                    title='Email'
                     inputs={inputs}
                     submit={this.submitEmail}
                     server_error={server_error}
                     client_error={email_error}
-                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                    updateSection={function(e) {
+                        self.updateSection('');
+                        e.preventDefault();
+                    }}
                 />
             );
         } else {
             emailSection = (
                 <SettingItemMin
-                    title="Email"
+                    title='Email'
                     describe={UserStore.getCurrentUser().email}
-                    updateSection={function(){self.updateSection("email");}}
+                    updateSection={function() {
+                        self.updateSection('email');
+                    }}
                 />
             );
         }
@@ -966,56 +984,59 @@ var GeneralTab = React.createClass({
         if (this.props.activeSection === 'picture') {
             pictureSection = (
                 <SettingPicture
-                    title="Profile Picture"
+                    title='Profile Picture'
                     submit={this.submitPicture}
-                    src={"/api/v1/users/" + user.id + "/image?time=" + user.last_picture_update}
+                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update}
                     server_error={server_error}
                     client_error={client_error}
-                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
+                    updateSection={function(e) {
+                        self.updateSection('');
+                        e.preventDefault();
+                    }}
                     picture={this.state.picture}
                     pictureChange={this.updatePicture}
                     submitActive={this.submitActive}
                 />
             );
-
         } else {
-            var minMessage = "Click Edit to upload an image.";
+            var minMessage = 'Click \'Edit\' to upload an image.';
             if (user.last_picture_update) {
-                minMessage = "Image last updated " + utils.displayDate(user.last_picture_update)
+                minMessage = 'Image last updated ' + utils.displayDate(user.last_picture_update);
             }
             pictureSection = (
                 <SettingItemMin
-                    title="Profile Picture"
+                    title='Profile Picture'
                     describe={minMessage}
-                    updateSection={function(){self.updateSection("picture");}}
+                    updateSection={function() {
+                        self.updateSection('picture');
+                    }}
                 />
             );
         }
         return (
             <div>
-                <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title" ref="title"><i className="modal-back"></i>General Settings</h4>
+                <div className='modal-header'>
+                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>General Settings</h4>
                 </div>
-                <div className="user-settings">
-                    <h3 className="tab-header">General Settings</h3>
-                    <div className="divider-dark first"/>
+                <div className='user-settings'>
+                    <h3 className='tab-header'>General Settings</h3>
+                    <div className='divider-dark first'/>
                     {nameSection}
-                    <div className="divider-light"/>
+                    <div className='divider-light'/>
                     {usernameSection}
-                    <div className="divider-light"/>
+                    <div className='divider-light'/>
                     {nicknameSection}
-                    <div className="divider-light"/>
+                    <div className='divider-light'/>
                     {emailSection}
-                    <div className="divider-light"/>
+                    <div className='divider-light'/>
                     {pictureSection}
-                    <div className="divider-dark"/>
+                    <div className='divider-dark'/>
                 </div>
             </div>
         );
     }
 });
-
 
 var AppearanceTab = React.createClass({
     submitTheme: function(e) {

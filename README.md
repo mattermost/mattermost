@@ -1,5 +1,5 @@
-**Mattermost Alpha**  
-**Team Communication Service**  
+**Mattermost Alpha**
+**Team Communication Service**
 **Development Build**
 
 
@@ -19,12 +19,12 @@ Learn More
 <li/>Make a pull request: http://www.mattermost.org/contribute-to-mattermost/</li>
 </ul>
 
-Installing the Mattermost
-=========================
+Installing Mattermost
+=====================
 
-You're installing "Mattermost Alpha", a pre-released version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our production release. 
+You're installing "Mattermost Alpha", a pre-released version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our production release.
 
-That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org 
+That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org
 
 Local Machine Setup (Docker)
 -----------------------------
@@ -77,7 +77,7 @@ Local Machine Setup (Docker)
 ### Notes ###
 If your ISP blocks port 25 then you may install locally but email will not be sent.
 
-If you want to work with the latest bits in the repo you can run the cmd  
+If you want to work with the latest bits in the repo you can run the cmd
 `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:latest`
 
 You can update to the latest bits by running  
@@ -113,13 +113,23 @@ AWS Elastic Beanstalk Setup (Docker)
 	14. Wait for beanstalk to update the environment.
 	15. Try it out by entering the domain of the form \*.elasticbeanstalk.com found at the top of the dashboard into your browser. You can also map your own domain if you wish. 
 
-Contributing 
------------- 
- 
-To contribute to this open source project please review the Mattermost Contribution Guidelines at http://www.mattermost.org/contribute-to-mattermost/. 
+Configuration Settings
+----------------------
+
+There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in ./config/config.json or ./config/config/config_docker.json if you're running a docker instance.
+
+* *EmailSettings*:*ByPassEmail* - If this is set to true, then users on the system will not need to verify their email addresses when signing up. In addition, no emails will ever be sent.
+* *ServiceSettings*:*UseLocalStorage* - If this is set to true, then your Mattermost server will store uploaded files in the storage directory specified by *StorageDirectory*. *StorageDirectory* must be set if *UseLocalStorage* is set to true.
+* *ServiceSettings*:*StorageDirectory* - The file path where files will be stored locally if *UseLocalStorage* is set to true. The operating system user that is running the Mattermost application must have read and write privileges to this directory.
+* *AWSSettings*:*S3*\* - If *UseLocalStorage* is set to false, and the S3 settings are configured here, then Mattermost will store files in the provided S3 bucket.
+
+Contributing
+------------
+
+To contribute to this open source project please review the Mattermost Contribution Guidelines at http://www.mattermost.org/contribute-to-mattermost/.
 
 License
 -------
 
-Mattermost is licensed under an "Apache-wrapped AGPL" model, which means you can run and link to the system using Configuration Files and Admin Tools licensed under Apache, version 2.0, as described in the LICENSE file, as an explicit exception to the terms of the GNU Affero General Public License (AGPL) that applies to most of the remaining source files. See individual files for details.
+Mattermost is licensed under an "Apache-wrapped AGPL" model inspired by MongoDB. Similar to MongoDB, you can run and link to the system using Configuration Files and Admin Tools licensed under Apache, version 2.0, as described in the LICENSE file, as an explicit exception to the terms of the GNU Affero General Public License (AGPL) that applies to most of the remaining source files. See individual files for details.
 

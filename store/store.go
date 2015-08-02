@@ -89,6 +89,7 @@ type UserStore interface {
 	GetByUsername(teamId string, username string) StoreChannel
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
+	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 }
 
 type SessionStore interface {

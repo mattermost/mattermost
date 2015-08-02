@@ -59,6 +59,8 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 	}
 
 	us.CreateColumnIfNotExists("Users", "AuthService", "AuthData", "varchar(32)", "") // for OAuth Client
+
+	us.CreateColumnIfNotExists("Users", "FailedAttempts", "LastPictureUpdate", "int(11)", "0")
 }
 
 //func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
@@ -150,6 +152,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			user.LastActivityAt = oldUser.LastActivityAt
 			user.LastPingAt = oldUser.LastPingAt
 			user.EmailVerified = oldUser.EmailVerified
+			user.FailedAttempts = oldUser.FailedAttempts
 
 			if !allowActiveUpdate {
 				user.Roles = oldUser.Roles
@@ -271,8 +274,27 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdatePassword", "We couldn't update the user password", "id="+userId+", "+err.Error())
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := us.GetMaster().Exec("UPDATE Users SET FailedAttempts = :FailedAttempts WHERE Id = :UserId", map[string]interface{}{"FailedAttempts": attempts, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.UpdateFailedPasswordAttempts", "We couldn't update the failed_attempts", "user_id="+userId)
 		} else {
 			result.Data = userId
 		}

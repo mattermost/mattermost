@@ -32,7 +32,7 @@ type Page struct {
 	Title         string
 	SiteName      string
 	FeedbackEmail string
-	TeamURL       string
+	SiteURL       string
 	Props         map[string]string
 }
 

@@ -275,11 +275,24 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	subjectPage := NewServerTemplatePage("find_teams_subject", c.GetSiteURL())
 	bodyPage := NewServerTemplatePage("find_teams_body", c.GetSiteURL())
 
-	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
-		l4g.Error("An error occured while sending an email in emailTeams err=%v", err)
-	}
+	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
+		c.Err = result.Err
+	} else {
+		teams := result.Data.([]*model.Team)
 
-	w.Write([]byte(model.MapToJson(m)))
+		// the template expects Props to be a map with team names as the keys
+		props := make(map[string]string)
+		for _, team := range teams {
+			props[team.Name] = team.Name
+		}
+		bodyPage.Props = props
+
+		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+			l4g.Error("An error occured while sending an email in emailTeams err=%v", err)
+		}
+
+		w.Write([]byte(model.MapToJson(m)))
+	}
 }
 
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -331,8 +344,6 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func InviteMembers(c *Context, team *model.Team, user *model.User, invites []string) {
 	for _, invite := range invites {
 		if len(invite) > 0 {
-			teamURL := ""
-			teamURL = c.GetTeamURLFromTeam(team)
 
 			sender := user.GetDisplayName()
 
@@ -343,10 +354,10 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				senderRole = "member"
 			}
 
-			subjectPage := NewServerTemplatePage("invite_subject", teamURL)
+			subjectPage := NewServerTemplatePage("invite_subject", c.GetSiteURL())
 			subjectPage.Props["SenderName"] = sender
 			subjectPage.Props["TeamDisplayName"] = team.DisplayName
-			bodyPage := NewServerTemplatePage("invite_body", teamURL)
+			bodyPage := NewServerTemplatePage("invite_body", c.GetSiteURL())
 			bodyPage.Props["TeamDisplayName"] = team.DisplayName
 			bodyPage.Props["SenderName"] = sender
 			bodyPage.Props["SenderStatus"] = senderRole

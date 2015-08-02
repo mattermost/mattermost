@@ -17,11 +17,20 @@ var NavbarDropdown = React.createClass({
         e.preventDefault();
         client.logout();
     },
+    blockToggle: false,
     componentDidMount: function() {
         UserStore.addTeamsChangeListener(this._onChange);
+
+        var self = this;
+        $(this.refs.dropdown.getDOMNode()).on('hide.bs.dropdown', function(e) {
+            self.blockToggle = true;
+            setTimeout(function(){self.blockToggle = false;}, 100);
+        });
     },
     componentWillUnmount: function() {
         UserStore.removeTeamsChangeListener(this._onChange);
+
+        $(this.refs.dropdown.getDOMNode()).off('hide.bs.dropdown');
     },
     _onChange: function() {
         if (this.isMounted()) {
@@ -75,7 +84,7 @@ var NavbarDropdown = React.createClass({
 
         return (
             <ul className="nav navbar-nav navbar-right">
-                <li className="dropdown">
+                <li ref="dropdown" className="dropdown">
                     <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                         <span className="dropdown__icon" dangerouslySetInnerHTML={{__html: Constants.MENU_ICON }} />
                     </a>
@@ -108,7 +117,11 @@ module.exports = React.createClass({
     },
 
     toggleDropdown: function(e) {
-        $('.team__header').find('.dropdown-toggle').trigger('click');
+        if (this.refs.dropdown.blockToggle) {
+            this.refs.dropdown.blockToggle = false;
+            return;
+        }
+        $('.team__header').find('.dropdown-toggle').dropdown('toggle');
     },
 
     render: function() {
@@ -131,7 +144,7 @@ module.exports = React.createClass({
                         <div className="team__name">{ this.props.teamDisplayName }</div>
                     </div>
                 </a>
-                <NavbarDropdown teamType={this.props.teamType} />
+                <NavbarDropdown ref="dropdown" teamType={this.props.teamType} />
             </div>
         );
     }

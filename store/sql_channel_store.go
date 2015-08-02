@@ -36,6 +36,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("Channels", "ExtraUpdateAt", "TotalMsgCount", "bigint(20)", "0")
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
@@ -133,6 +134,25 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 			result.Err = model.NewAppError("SqlChannelStore.Update", "We couldn't update the channel", "id="+channel.Id)
 		} else {
 			result.Data = channel
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		channel.ExtraUpdated()
+
+		if count, err := s.GetMaster().Update(channel); err != nil || count != 1 {
+			result.Err = model.NewAppError("SqlChannelStore.extraUpdated", "Problem updating members last updated time", "id="+channel.Id+", "+err.Error())
 		}
 
 		storeChannel <- result
@@ -288,20 +308,31 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		member.PreSave()
-		if result.Err = member.IsValid(); result.Err != nil {
-			storeChannel <- result
-			return
-		}
-
-		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err.Error(), "ChannelId", "channelmembers_pkey") {
-				result.Err = model.NewAppError("SqlChannelStore.SaveMember", "A channel member with that id already exists", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
-			} else {
-				result.Err = model.NewAppError("SqlChannelStore.SaveMember", "We couldn't save the channel member", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
-			}
+		// Grab the channel we are saving this member to
+		if cr := <-s.Get(member.ChannelId); cr.Err != nil {
+			result.Err = cr.Err
 		} else {
-			result.Data = member
+			channel := cr.Data.(*model.Channel)
+
+			member.PreSave()
+			if result.Err = member.IsValid(); result.Err != nil {
+				storeChannel <- result
+				return
+			}
+
+			if err := s.GetMaster().Insert(member); err != nil {
+				if IsUniqueConstraintError(err.Error(), "ChannelId", "channelmembers_pkey") {
+					result.Err = model.NewAppError("SqlChannelStore.SaveMember", "A channel member with that id already exists", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
+				} else {
+					result.Err = model.NewAppError("SqlChannelStore.SaveMember", "We couldn't save the channel member", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
+				}
+			} else {
+				result.Data = member
+				// If sucessfull record members have changed in channel
+				if mu := <-s.extraUpdated(channel); mu.Err != nil {
+					result.Err = mu.Err
+				}
+			}
 		}
 
 		storeChannel <- result
@@ -383,9 +414,21 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+		// Grab the channel we are saving this member to
+		if cr := <-s.Get(channelId); cr.Err != nil {
+			result.Err = cr.Err
+		} else {
+			channel := cr.Data.(*model.Channel)
+
+			_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+			if err != nil {
+				result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+			} else {
+				// If sucessfull record members have changed in channel
+				if mu := <-s.extraUpdated(channel); mu.Err != nil {
+					result.Err = mu.Err
+				}
+			}
 		}
 
 		storeChannel <- result

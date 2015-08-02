@@ -427,9 +427,9 @@
     body {
         &.white {
             .inner__wrap {
-            >.row.content {
-                margin-bottom: -185px;
-            }
+                >.row.content {
+                    margin-bottom: -185px;
+                }
             }
         }
     }
@@ -447,6 +447,9 @@
             }
         }
     }
+    .search__clear {
+        display: block;
+    }
     .search-bar__container {
         padding: 0;
         height: 45px;
@@ -457,15 +460,17 @@
                 @include translateX(-45px);
             }
             .search__form {
-                padding-left: 10px;
-                padding-right: 67px;
+                @include translateX(-45px);
+                padding-left: 55px;
+                padding-right: 24px;
             }
             .search__clear {
-                display: block;
+                @include translateX(0px);
             }
         }
         .search__form {
             border: none;
+            @include translateX(0px);
             padding: 7px 20px 0 49px;
             height: 45px;
             position: relative;

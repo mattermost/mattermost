@@ -18,7 +18,6 @@ module.exports = {
     RECIEVED_POST_SELECTED: null,
     RECIEVED_MENTION_DATA: null,
     RECIEVED_ADD_MENTION: null,
-    RECEIVED_ACTIVE_THREAD_CHANGED: null,
 
     RECIEVED_PROFILES: null,
     RECIEVED_ME: null,
@@ -52,9 +51,12 @@ module.exports = {
   MAX_DISPLAY_FILES: 5,
   MAX_UPLOAD_FILES: 5,
   MAX_FILE_SIZE: 50000000, // 50 MB
+  THUMBNAIL_WIDTH: 128,
+  THUMBNAIL_HEIGHT: 100,
   DEFAULT_CHANNEL: 'town-square',
   OFFTOPIC_CHANNEL: 'off-topic',
   POST_CHUNK_SIZE: 60,
+  MAX_POST_CHUNKS: 3,
   RESERVED_TEAM_NAMES: [
     "www",
     "web",

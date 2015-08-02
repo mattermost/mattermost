@@ -533,6 +533,19 @@ module.exports.getFileType = function(ext) {
     return "other";
 };
 
+module.exports.getPreviewImagePathForFileType = function(fileType) {
+    fileType = fileType.toLowerCase();
+
+    var icon;
+    if (fileType in Constants.ICON_FROM_TYPE) {
+        icon = Constants.ICON_FROM_TYPE[fileType];
+    } else {
+        icon = Constants.ICON_FROM_TYPE["other"];
+    }
+
+    return "/static/images/icons/" + icon + ".png";
+};
+
 module.exports.getIconClassName = function(fileType) {
     fileType = fileType.toLowerCase();
 
@@ -556,6 +569,23 @@ module.exports.splitFileLocation = function(fileLocation) {
 
     return {'ext': ext, 'name': filename, 'path': filePath};
 }
+
+// Asynchronously gets the size of a file by requesting its headers. If successful, it calls the
+// provided callback with the file size in bytes as the argument.
+module.exports.getFileSize = function(url, callback) {
+    var request = new XMLHttpRequest();
+
+    request.open('HEAD', url, true);
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) {
+            if (callback) {
+                callback(parseInt(request.getResponseHeader("content-length")));
+            }
+        }
+    };
+
+    request.send();
+};
 
 module.exports.toTitleCase = function(str) {
     return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
@@ -720,7 +750,7 @@ module.exports.switchChannel = function(channel, teammate_name) {
 
     AsyncClient.getChannels(true, true, true);
     AsyncClient.getChannelExtraInfo(true);
-    AsyncClient.getPosts(true, channel.id);
+    AsyncClient.getPosts(true, channel.id, Constants.POST_CHUNK_SIZE);
 
     $('.inner__wrap').removeClass('move--right');
     $('.sidebar--left').removeClass('move--right');
@@ -847,4 +877,39 @@ module.exports.getWindowLocationOrigin = function() {
         windowLocationOrigin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
     }
     return windowLocationOrigin;
+}
+
+// Converts a file size in bytes into a human-readable string of the form "123MB".
+module.exports.fileSizeToString = function(bytes) {
+    // it's unlikely that we'll have files bigger than this
+    if (bytes > 1024 * 1024 * 1024 * 1024) {
+        return Math.floor(bytes / (1024 * 1024 * 1024 * 1024)) + "TB";
+    } else if (bytes > 1024 * 1024 * 1024) {
+        return Math.floor(bytes / (1024 * 1024 * 1024)) + "GB";
+    } else if (bytes > 1024 * 1024) {
+        return Math.floor(bytes / (1024 * 1024)) + "MB";
+    } else if (bytes > 1024) {
+        return Math.floor(bytes / 1024) + "KB";
+    } else {
+        return bytes + "B";
+    }
+};
+
+// Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
+module.exports.getFileUrl = function(filename) {
+    var url = filename;
+
+    // This is a temporary patch to fix issue with old files using absolute paths
+    if (url.indexOf("/api/v1/files/get") != -1) {
+        url = filename.split("/api/v1/files/get")[1];
+    }
+    url = module.exports.getWindowLocationOrigin() + "/api/v1/files/get" + url;
+
+    return url;
+};
+
+// Gets the name of a file (including extension) from a given url or file path.
+module.exports.getFileName = function(path) {
+    var split = path.split('/');
+    return split[split.length - 1];
 };
