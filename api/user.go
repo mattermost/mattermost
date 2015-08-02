@@ -178,10 +178,6 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 		user.AddProp("theme", utils.Cfg.TeamSettings.DefaultThemeColor)
 	}
 
-	if len(user.Props["enable_markdown"]) == 0 {
-		user.AddProp("enable_markdown", "false")
-	}
-
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		c.Err = result.Err
 		return nil
