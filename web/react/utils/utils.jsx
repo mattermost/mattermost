@@ -750,7 +750,7 @@ module.exports.switchChannel = function(channel, teammate_name) {
 
     AsyncClient.getChannels(true, true, true);
     AsyncClient.getChannelExtraInfo(true);
-    AsyncClient.getPosts(true, channel.id);
+    AsyncClient.getPosts(true, channel.id, Constants.POST_CHUNK_SIZE);
 
     $('.inner__wrap').removeClass('move--right');
     $('.sidebar--left').removeClass('move--right');
