@@ -60,7 +60,7 @@ func (us SqlUserStore) UpgradeSchemaIfNeeded() {
 
 	us.CreateColumnIfNotExists("Users", "AuthService", "AuthData", "varchar(32)", "") // for OAuth Client
 
-	us.CreateColumnIfNotExists("Users", "FailedAttempts", "FailedAttempts", "int(11)", "0")
+	us.CreateColumnIfNotExists("Users", "FailedAttempts", "LastPictureUpdate", "int(11)", "0")
 }
 
 //func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
