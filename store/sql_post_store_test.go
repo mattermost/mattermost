@@ -483,4 +483,9 @@ func TestPostStoreSearch(t *testing.T) {
 	if len(r8.Order) != 0 {
 		t.Fatal("returned wrong serach result")
 	}
+
+	r9 := (<-store.Post().Search(teamId, userId, "mattermost jersey", false)).Data.(*model.PostList)
+	if len(r9.Order) != 2 {
+		t.Fatal("returned wrong search result")
+	}
 }
