@@ -18,7 +18,6 @@ var SEARCH_TERM_CHANGE_EVENT = 'search_term_change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
 var ADD_MENTION_EVENT = 'add_mention';
-var ACTIVE_THREAD_CHANGED_EVENT = 'active_thread_changed';
 
 var PostStore = assign({}, EventEmitter.prototype, {
 
@@ -92,18 +91,6 @@ var PostStore = assign({}, EventEmitter.prototype, {
 
   removeAddMentionListener: function(callback) {
     this.removeListener(ADD_MENTION_EVENT, callback);
-  },
-
-  emitActiveThreadChanged: function(rootId, parentId) {
-    this.emit(ACTIVE_THREAD_CHANGED_EVENT, rootId, parentId);
-  },
-
-  addActiveThreadChangedListener: function(callback) {
-    this.on(ACTIVE_THREAD_CHANGED_EVENT, callback);
-  },
-
-  removeActiveThreadChangedListener: function(callback) {
-    this.removeListener(ACTIVE_THREAD_CHANGED_EVENT, callback);
   },
 
   getCurrentPosts: function() {
@@ -211,10 +198,6 @@ PostStore.dispatchToken = AppDispatcher.register(function(payload) {
     case ActionTypes.RECIEVED_ADD_MENTION:
       PostStore.emitAddMention(action.id, action.username);
       break;
-    case ActionTypes.RECEIVED_ACTIVE_THREAD_CHANGED:
-      PostStore.emitActiveThreadChanged(action.root_id, action.parent_id);
-      break;
-
     default:
   }
 });
