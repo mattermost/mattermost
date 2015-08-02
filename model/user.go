@@ -51,6 +51,7 @@ type User struct {
 	NotifyProps        StringMap `json:"notify_props"`
 	LastPasswordUpdate int64     `json:"last_password_update"`
 	LastPictureUpdate  int64     `json:"last_picture_update"`
+	FailedAttempts     int       `json:"failed_attempts"`
 }
 
 type GitLabUser struct {
