@@ -1157,7 +1157,7 @@ var AppearanceTab = React.createClass({
                     <h3 className="tab-header">Appearance Settings</h3>
                     <div className="divider-dark first"/>
                     {themeSection}
-                    <div className="divider-dark"/> : "" }
+                    <div className="divider-dark"/>
                 </div>
             </div>
         );

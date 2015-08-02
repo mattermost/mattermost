@@ -9,7 +9,7 @@ var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
 var Autolinker = require('autolinker');
-var Marked = require('marked');
+var marked = require('marked');
 
 module.exports.isEmail = function(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -104,10 +104,10 @@ module.exports.notifyMe = function(title, body, channel) {
       }
 
       if (permission === "granted") {
-        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+        var useMarkdown = config.AllowMarkdown;
 
         if (useMarkdown) {
-            body = Marked(body, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer({disable: true})});
+            body = marked(body, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer({disable: true})});
         }
 
         var notification = new Notification(title,
@@ -395,7 +395,7 @@ module.exports.searchForTerm = function(term) {
       - disable: Parses out *'s and other format specifiers in the text, but doesn't convert to html
 */
 module.exports.customMarkedRenderer = function(options) {
-    var customMarkedRenderer = new Marked.Renderer();
+    var customMarkedRenderer = new marked.Renderer();
 
     customMarkedRenderer.heading = function(text, level) {
         var hashText = '';
@@ -458,10 +458,10 @@ var startTagRegex = /(<\s*\w.*?>)+/g;
 var endTagRegex = /(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)+/g;
 
 module.exports.textToJsx = function(text, options) {
-    var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+    var useMarkdown = config.AllowMarkdown;
 
     if (useMarkdown) {
-        text = Marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
+        text = marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
     }
 
     if (options && options['singleline']) {

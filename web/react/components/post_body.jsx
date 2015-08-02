@@ -4,7 +4,7 @@
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
-var Marked = require('marked');
+var marked = require('marked');
 
 module.exports = React.createClass({
     componentWillReceiveProps: function(nextProps) {
@@ -20,7 +20,7 @@ module.exports = React.createClass({
         var filenames = this.props.post.filenames;
         var parentPost = this.props.parentPost;
         var inner = utils.textToJsx(this.state.message);
-        var useMarkdown = config.AllowMarkdown && UserStore.getCurrentUser().props.enable_markdown === "true" ? true : false;
+        var useMarkdown = config.AllowMarkdown;
 
         var comment = "";
         var reply = "";
@@ -53,23 +53,17 @@ module.exports = React.createClass({
             }
 
             if (useMarkdown) {
-                message = Marked(message, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: utils.customMarkedRenderer({disable: true})});
-
-                if (message.indexOf("<p>") === 0) {
-                    message = message.slice(3);
-                }
-
+                message = marked(message, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: utils.customMarkedRenderer({disable: true})});
                 comment = (
                     <p className="post-link">
                         <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick} dangerouslySetInnerHTML={{__html: message}} /></span>
                     </p>
                 );
-            }
-            else {
+            } else {
                 comment = (
                     <p className="post-link">
                         <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{message}</a></span>
-                    </p> 
+                    </p>
                 );
             }
 
