@@ -140,11 +140,18 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 
 				// Create thumbnail
 				go func() {
+					thumbWidth := float64(utils.Cfg.ImageSettings.ThumbnailWidth)
+					thumbHeight := float64(utils.Cfg.ImageSettings.ThumbnailHeight)
+					imgWidth := float64(imgConfig.Width)
+					imgHeight := float64(imgConfig.Height)
+
 					var thumbnail image.Image
-					if imgConfig.Width > int(utils.Cfg.ImageSettings.ThumbnailWidth) {
-						thumbnail = resize.Resize(utils.Cfg.ImageSettings.ThumbnailWidth, utils.Cfg.ImageSettings.ThumbnailHeight, img, resize.Lanczos3)
-					} else {
+					if imgHeight < thumbHeight && imgWidth < thumbWidth {
 						thumbnail = img
+					} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
+						thumbnail = resize.Resize(0, utils.Cfg.ImageSettings.ThumbnailHeight, img, resize.Lanczos3)
+					} else {
+						thumbnail = resize.Resize(utils.Cfg.ImageSettings.ThumbnailWidth, 0, img, resize.Lanczos3)
 					}
 
 					buf := new(bytes.Buffer)
