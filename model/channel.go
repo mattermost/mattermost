@@ -27,6 +27,7 @@ type Channel struct {
 	Description   string `json:"description"`
 	LastPostAt    int64  `json:"last_post_at"`
 	TotalMsgCount int64  `json:"total_msg_count"`
+	ExtraUpdateAt int64  `json:"extra_update_at"`
 }
 
 func (o *Channel) ToJson() string {
@@ -50,7 +51,11 @@ func ChannelFromJson(data io.Reader) *Channel {
 }
 
 func (o *Channel) Etag() string {
-	return Etag(o.Id, o.LastPostAt)
+	return Etag(o.Id, o.UpdateAt)
+}
+
+func (o *Channel) ExtraEtag() string {
+	return Etag(o.Id, o.ExtraUpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
@@ -97,8 +102,13 @@ func (o *Channel) PreSave() {
 
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
+	o.ExtraUpdateAt = o.CreateAt
 }
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
+}
+
+func (o *Channel) ExtraUpdated() {
+	o.ExtraUpdateAt = GetMillis()
 }

@@ -554,20 +554,29 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	sc := Srv.Store.Channel().Get(id)
-	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, 20)
-
+	var channel *model.Channel
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
 		return
-	} else if cmresult := <-scm; cmresult.Err != nil {
+	} else {
+		channel = cresult.Data.(*model.Channel)
+	}
+
+	extraEtag := channel.ExtraEtag()
+	if HandleEtag(extraEtag, w, r) {
+		return
+	}
+
+	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	ecm := Srv.Store.Channel().GetExtraMembers(id, 20)
+
+	if cmresult := <-scm; cmresult.Err != nil {
 		c.Err = cmresult.Err
 		return
 	} else if ecmresult := <-ecm; ecmresult.Err != nil {
 		c.Err = ecmresult.Err
 		return
 	} else {
-		channel := cresult.Data.(*model.Channel)
 		member := cmresult.Data.(model.ChannelMember)
 		extraMembers := ecmresult.Data.([]model.ExtraMember)
 
@@ -586,6 +595,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		data := model.ChannelExtra{Id: channel.Id, Members: extraMembers}
+		w.Header().Set(model.HEADER_ETAG_SERVER, extraEtag)
 		w.Header().Set("Expires", "-1")
 		w.Write([]byte(data.ToJson()))
 	}
@@ -711,7 +721,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_REMOVED)
-		message.Add("channel_id",id)
+		message.Add("channel_id", id)
 		message.Add("remover", c.Session.UserId)
 		PublishAndForget(message)
 
