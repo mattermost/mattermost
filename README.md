@@ -116,7 +116,7 @@ AWS Elastic Beanstalk Setup (Docker)
 Configuration Settings
 ----------------------
 
-There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in ./config/config.json or ./config/config/config_docker.json if you're running a docker instance.
+There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in ./config/config.json or [./docker/0.6/config_docker.json](./docker/0.6/config_docker.json)  if you're running a docker instance.
 
 * *EmailSettings*:*ByPassEmail* - If this is set to true, then users on the system will not need to verify their email addresses when signing up. In addition, no emails will ever be sent.
 * *ServiceSettings*:*UseLocalStorage* - If this is set to true, then your Mattermost server will store uploaded files in the storage directory specified by *StorageDirectory*. *StorageDirectory* must be set if *UseLocalStorage* is set to true.
