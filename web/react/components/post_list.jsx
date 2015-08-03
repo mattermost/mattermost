@@ -91,7 +91,7 @@ module.exports = React.createClass({
 
             // We resize if :
             // 1. We are scrolled below the max scroll
-            // 2. ???
+            // 2. Edge case similar to offscreen resizing
             // 3. We changed zoom sizes
             if (self.scrollPosition >= post_holder.scrollHeight ||
                 (self.oldScrollHeight !== post_holder.scrollHeight && self.scrollPosition >= self.oldScrollHeight) ||
