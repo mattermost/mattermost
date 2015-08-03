@@ -183,10 +183,10 @@ module.exports = React.createClass({
                 var notifyText = post.message.replace(repRegex, '\n').replace(/\n+/g, ' ').replace('<mention>', '').replace('</mention>', '');
 
                 if (notifyText.length > 50) {
-                    notifyText = msg.substring(0,49) + '...';
+                    notifyText = notifyText.substring(0, 49) + '...';
                 }
 
-                if (msg.length === 0) {
+                if (notifyText.length === 0) {
                     if (msgProps.image) {
                         utils.notifyMe(title, username + ' uploaded an image', channel);
                     } else if (msgProps.otherFile) {
@@ -195,17 +195,17 @@ module.exports = React.createClass({
                         utils.notifyMe(title, username + ' did something new', channel);
                     }
                 } else {
-                    utils.notifyMe(title, username + ' wrote: ' + msg, channel);
+                    utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
                 }
                 if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
                     utils.ding();
                 }
             }
-        } else if (msg.action == 'viewed') {
+        } else if (msg.action === 'viewed') {
             if (ChannelStore.getCurrentId() != msg.channel_id) {
                 AsyncClient.getChannels(true);
             }
-        } else if (msg.action == 'user_added') {
+        } else if (msg.action === 'user_added') {
             if (UserStore.getCurrentId() === msg.user_id) {
                 AsyncClient.getChannels(true);
             }
@@ -231,7 +231,7 @@ module.exports = React.createClass({
                 var teammate_username = utils.getDirectTeammate(channel.id).username;
                 document.title = teammate_username + ' ' + document.title.substring(document.title.lastIndexOf('-'));
             } else {
-                document.title = channel.display_name + ' ' + document.title.substring(document.title.lastIndexOf('-'))
+                document.title = channel.display_name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
             }
         }
     },
