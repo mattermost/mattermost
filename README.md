@@ -1,5 +1,5 @@
-**Mattermost Alpha**
-**Team Communication Service**
+**Mattermost Alpha**  
+**Team Communication Service**  
 **Development Build**
 
 
@@ -26,6 +26,9 @@ You're installing "Mattermost Alpha", a pre-released version intended for an ear
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org
 
+Notes: 
+- For Alpha, Docker is intentionally setup as a single container, since production deployment not yet recommended.
+
 Local Machine Setup (Docker)
 -----------------------------
 
@@ -37,7 +40,7 @@ Local Machine Setup (Docker)
 2. Get your Docker IP address with `boot2docker ip`
 3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost`
 4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash\_profile
-5. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`. 
+5. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`. 
 6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser
 
 ### Ubuntu ###
@@ -52,7 +55,10 @@ Local Machine Setup (Docker)
 	newgrp docker
 	```
 
-2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
+2. Start docker container:
+
+	`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
+
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Arch ###
@@ -69,39 +75,36 @@ Local Machine Setup (Docker)
 2. Start docker container:
 
 	``` bash
-	docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium
+	docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform
 	```
 
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
 
-### Notes ###
-If your ISP blocks port 25 then you may install locally but email will not be sent.
+### Additional Notes ###
+- If you want to work with the latest bits in the repository (i.e. not a stable release) you can run the cmd
+`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:dev`
 
-If you want to work with the latest bits in the repo you can run the cmd
-`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:latest`
+- You can update to the latest bits by running:  
+`docker pull mattermost/platform:dev`
 
-You can update to the latest bits by running  
-`docker pull mattermost/platform:latest`
+- If you wish to remove mattermost-dev use:   
+	`docker stop mattermost-dev`
+	`docker rm -v mattermost-dev`
 
-If you wish to remove mattermost-dev use the following commands  
-
-1. `docker stop mattermost-dev`
-2. `docker rm -v mattermost-dev`
-
-If you wish to gain access to the container use the following commands
-1. `docker exec -ti mattermost-dev /bin/bash`
+- If you wish to gain access to a shell on the container use:
+	`docker exec -ti mattermost-dev /bin/bash`
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
 
-1. Create a new elastic beanstalk docker application using the Dockerrun.aws.json file provided. 
+1. Create a new elastic beanstalk docker application using the [Dockerrun.aws.json](docker/0.6/Dockerrun.aws.json) file provided. 
 	1. From the AWS console select Elastic Beanstalk
 	2. Select "Create New Application" from the top right.
 	3. Name the application and press next
 	4. Select "Create a web server" environment.
-	5. If asked, select create and IAM role and instance profile and press next.
-	6. For predefined configuration select docker. For environment type select single instance. 
-	7. For application source, select upload your own and upload Dockerrun.aws.json from docker/Dockerrun.aws.json. Everything else may be left at default.
+	5. If asked, select create an IAM role and instance profile and press next.
+	6. For predefined configuration select under Generic: Docker. For environment type select single instance. 
+	7. For application source, select upload your own and upload Dockerrun.aws.json from [docker/0.6/Dockerrun.aws.json](docker/0.6/Dockerrun.aws.json). Everything else may be left at default.
 	8. Select an environment name, this is how you will refer to your environment. Make sure the URL is available then press next.
 	9. The options on the additional resources page may be left at default unless you wish to change them. Press Next.
 	10. On the configuration details place. Select an instance type of t2.small or larger.
@@ -116,7 +119,7 @@ AWS Elastic Beanstalk Setup (Docker)
 Configuration Settings
 ----------------------
 
-There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in ./config/config.json or ./config/config/config_docker.json if you're running a docker instance.
+There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in [config/config.json](config/config.json) or [docker/0.6/config_docker.json](docker/0.6/config_docker.json) /config/config/config\_docker.json if you're running a docker instance.
 
 * *EmailSettings*:*ByPassEmail* - If this is set to true, then users on the system will not need to verify their email addresses when signing up. In addition, no emails will ever be sent.
 * *ServiceSettings*:*UseLocalStorage* - If this is set to true, then your Mattermost server will store uploaded files in the storage directory specified by *StorageDirectory*. *StorageDirectory* must be set if *UseLocalStorage* is set to true.
@@ -127,6 +130,8 @@ Contributing
 ------------
 
 To contribute to this open source project please review the Mattermost Contribution Guidelines at http://www.mattermost.org/contribute-to-mattermost/.
+
+To seup your machine for development of mattermost see: [Developer Machine Setup](scripts/README_DEV.md)
 
 License
 -------
