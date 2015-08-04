@@ -69,6 +69,12 @@ travis:
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
 
+	cp APACHE-2.0.txt $(DIST_PATH)
+	cp GNU-AGPL-3.0.txt $(DIST_PATH)
+	cp LICENSE.txt $(DIST_PATH)
+	cp NOTICE.txt $(DIST_PATH)
+	cp README.md $(DIST_PATH)
+
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
 
 	@sed -i'.bak' 's|react-with-addons-0.13.1.js|react-with-addons-0.13.1.min.js|g' $(DIST_PATH)/web/templates/head.html
@@ -241,6 +247,12 @@ dist: install
 
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
+
+	cp APACHE-2.0.txt $(DIST_PATH)
+	cp GNU-AGPL-3.0.txt $(DIST_PATH)
+	cp LICENSE.txt $(DIST_PATH)
+	cp NOTICE.txt $(DIST_PATH)
+	cp README.md $(DIST_PATH)
 
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
 
