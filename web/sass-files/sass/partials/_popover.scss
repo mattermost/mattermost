@@ -7,3 +7,10 @@
 	margin: 0 0 10px;
 	@include border-radius(128px);
 }
+
+.user-popover__email {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: block;
+}

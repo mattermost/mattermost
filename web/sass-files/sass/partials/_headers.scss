@@ -110,6 +110,20 @@
 				}
 			}
 		}
+		&.theme--black {
+			&:hover {
+				&:before {
+					background: rgba(white, 0.2);
+				}
+			}
+		}
+		&.theme--gray {
+			&:hover {
+				&:before {
+					background: rgba(white, 0.1);
+				}
+			}
+		}
 		a {
 			color: #fff;
 		}

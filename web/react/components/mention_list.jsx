@@ -20,6 +20,10 @@ module.exports = React.createClass({
         PostStore.addMentionDataChangeListener(this._onChange);
         var self = this;
 
+        $('.post-right__scroll').scroll(function(){
+            self.forceUpdate();
+        });
+
         $('body').on('keydown.mentionlist', '#'+this.props.id,
             function(e) {
                 if (!self.isEmpty() && self.state.mentionText != '-1' && (e.which === 13 || e.which === 9)) {
@@ -32,7 +36,7 @@ module.exports = React.createClass({
                     e.preventDefault();
 
                     var tempSelectedMention = -1;
-                    if (e.which === 38) {    
+                    if (e.which === 38) {
                         if (self.getSelection(self.state.selectedMention - 1))
                             self.setState({ selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username });
                         else {
@@ -106,13 +110,13 @@ module.exports = React.createClass({
         this.setState({ selectedMention: listId, selectedUsername: this.refs['mention' + listId].props.username });
     },
     getSelection: function(listId) {
-        if (!this.refs['mention' + listId]) 
+        if (!this.refs['mention' + listId])
             return false;
         else
             return true;
     },
     addCurrentMention: function() {
-        if (!this.getSelection(this.state.selectedMention)) 
+        if (!this.getSelection(this.state.selectedMention))
             this.addFirstMention();
         else
             this.refs['mention' + this.state.selectedMention].handleClick();
@@ -132,7 +136,7 @@ module.exports = React.createClass({
             scrollAmount = $("#mentionsbox").height() * 100; //Makes sure that it scrolls all the way to the bottom
         else if (direction === "down" && this.state.selectedMention === 0)
             scrollAmount = 0;
-        else if (direction === "up") 
+        else if (direction === "up")
             scrollAmount = "-=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);
         else if (direction === "down")
             scrollAmount = "+=" + ($('#'+this.refs['mention' + this.state.selectedMention].props.id +"_mentions").innerHeight() - 5);

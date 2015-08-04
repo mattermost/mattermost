@@ -15,10 +15,13 @@
 	}
 	.remove__member {
 		float: right;
-		color: #E56565;
+		color: #999;
 		font-size: 20px;
 		line-height: 0;
 		padding: 6px;
+		&:hover {
+			color: #E56565;
+		}
 	}
 	.modal-dialog {
 		max-width: 95%;
@@ -151,10 +154,9 @@
 		height: 100%;
 		margin: 0 auto;
 		.image-wrapper {
-			background: #FFF;
 			position: relative;
 			max-width: 90%;
-			min-height: 50px;
+			min-height: 100px;
 			min-width: 320px;
 			@include border-radius(3px);
 			display: table;
@@ -182,6 +184,7 @@
 				z-index: 9999;
 			}
 			> a {
+				background: #FFF;
 				display: table-cell;
 				vertical-align: middle;
 			}

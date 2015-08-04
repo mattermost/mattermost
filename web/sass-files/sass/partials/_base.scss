@@ -61,6 +61,10 @@ div.theme {
   }
 }
 
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+  cursor: auto;
+}
+
 .form-group {
   &.form-group--small {
     margin-bottom: 10px;

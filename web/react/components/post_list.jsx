@@ -37,14 +37,24 @@ module.exports = React.createClass({
     componentDidMount: function() {
         var user = UserStore.getCurrentUser();
         if (user.props && user.props.theme) {
-            utils.changeCss('a.theme', 'color:'+user.props.theme+'; fill:'+user.props.theme+'!important;');
             utils.changeCss('div.theme', 'background-color:'+user.props.theme+';');
             utils.changeCss('.btn.btn-primary', 'background: ' + user.props.theme+';');
-            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, -10)  +';');
             utils.changeCss('.modal .modal-header', 'background: ' + user.props.theme+';');
             utils.changeCss('.mention', 'background: ' + user.props.theme+';');
             utils.changeCss('.mention-link', 'color: ' + user.props.theme+';');
             utils.changeCss('@media(max-width: 768px){.search-bar__container', 'background: ' + user.props.theme+';}');
+        }
+        if (user.props.theme != "#000000" && user.props.theme != "#585858"){
+            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, -10)  +';');
+            utils.changeCss('a.theme', 'color:'+user.props.theme+'; fill:'+user.props.theme+'!important;');
+        }
+        else if (user.props.theme == "#000000"){
+            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, +50)  +';');
+            $('.team__header').addClass('theme--black');
+        }
+        else if (user.props.theme == "#585858"){
+            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, +10)  +';');
+            $('.team__header').addClass('theme--gray');
         }
 
         PostStore.addChangeListener(this._onChange);
