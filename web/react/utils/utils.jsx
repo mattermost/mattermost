@@ -398,11 +398,7 @@ module.exports.customMarkedRenderer = function(options) {
     var customMarkedRenderer = new marked.Renderer();
 
     customMarkedRenderer.heading = function(text, level) {
-        var hashText = '';
-        for (var i = 0; i < level; i++) {
-            hashText += '#';
-        }
-        return hashText + text;
+        return '<h' + level + '>' + text + '</h' + level + '>';
     };
     customMarkedRenderer.codespan = function(code) {
         return '<pre>' + code + '</pre>';
@@ -464,6 +460,8 @@ module.exports.textToJsx = function(text, options) {
         text = marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
     }
 
+    console.log(text);
+
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
         text = text.replace(repRegex, " ");
@@ -501,7 +499,7 @@ module.exports.textToJsx = function(text, options) {
             }
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
-
+            console.log(word);
             var prefix;
             var suffix;
             var prefixSpan;
