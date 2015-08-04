@@ -59,7 +59,7 @@ var PopoverListMembers = React.createClass({
 
         return (
             <div id="member_popover" data-toggle="popover" data-content={popoverHtml} data-original-title="Members" >
-                <div id="member_tooltip" title="View Channel Members">
+                <div id="member_tooltip" data-toggle="tooltip" data-placement="left" title="View Channel Members">
                     {count} <span className="glyphicon glyphicon-user" aria-hidden="true"></span>
                 </div>
             </div>
