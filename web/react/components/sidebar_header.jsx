@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
 
 function getStateFromStores() {
-    return { teams: UserStore.getTeams() };
+    return {teams: UserStore.getTeams(), currentTeam: TeamStore.getCurrent()};
 }
 
 var NavbarDropdown = React.createClass({
@@ -19,7 +19,8 @@ var NavbarDropdown = React.createClass({
     },
     blockToggle: false,
     componentDidMount: function() {
-        UserStore.addTeamsChangeListener(this._onChange);
+        UserStore.addTeamsChangeListener(this.onListenerChange);
+        TeamStore.addChangeListener(this.onListenerChange);
 
         var self = this;
         $(this.refs.dropdown.getDOMNode()).on('hide.bs.dropdown', function(e) {
@@ -28,11 +29,12 @@ var NavbarDropdown = React.createClass({
         });
     },
     componentWillUnmount: function() {
-        UserStore.removeTeamsChangeListener(this._onChange);
+        UserStore.removeTeamsChangeListener(this.onListenerChange);
+        TeamStore.removeChangeListener(this.onListenerChange);
 
         $(this.refs.dropdown.getDOMNode()).off('hide.bs.dropdown');
     },
-    _onChange: function() {
+    onListenerChange: function() {
         if (this.isMounted()) {
             var newState = getStateFromStores();
             if (!utils.areStatesEqual(newState, this.state)) {
@@ -73,12 +75,13 @@ var NavbarDropdown = React.createClass({
         var teams = [];
 
         teams.push(<li className="divider" key="div"></li>);
-        if (this.state.teams.length > 1) {
-            for (var i = 0; i < this.state.teams.length; i++) {
-                var teamName = this.state.teams[i];
-
-                teams.push(<li key={ teamName }><a href={utils.getWindowLocationOrigin() + "/" + teamName }>Switch to { teamName }</a></li>);
-            }
+        if (this.state.teams.length > 1 && this.state.currentTeam) {
+            var curTeamName = this.state.currentTeam.name;
+            this.state.teams.forEach(function(teamName) {
+                if (teamName !== curTeamName) {
+                    teams.push(<li key={ teamName }><a href={utils.getWindowLocationOrigin() + "/" + teamName }>Switch to { teamName }</a></li>);
+                }
+            });
         }
         teams.push(<li><a href={utils.getWindowLocationOrigin() + "/signup_team" }>Create a New Team</a></li>);
 
