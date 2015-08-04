@@ -110,8 +110,8 @@ module.exports = React.createClass({
                             </button>
                         <h4 className="modal-title">New Channel</h4>
                         </div>
-                        <div className="modal-body">
-                            <form role="form">
+                        <form role="form">
+                            <div className="modal-body">
                                 <div className={ this.state.display_name_error ? "form-group has-error" : "form-group" }>
                                     <label className='control-label'>Display Name</label>
                                     <input onKeyUp={this.displayNameKeyUp} type="text" ref="display_name" className="form-control" placeholder="Enter display name" maxLength="64" />
@@ -127,12 +127,12 @@ module.exports = React.createClass({
                                     <textarea className="form-control no-resize" ref="channel_desc" rows="3" placeholder="Description" maxLength="1024"></textarea>
                                 </div>
                                 { server_error }
-                            </form>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
-                            <button onClick={this.handleSubmit} type="button" className="btn btn-primary">Create New Channel</button>
-                        </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                                <button onClick={this.handleSubmit} type="submit" className="btn btn-primary">Create New Channel</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
