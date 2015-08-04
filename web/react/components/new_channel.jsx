@@ -106,7 +106,7 @@ module.exports = React.createClass({
                         <div className="modal-header">
                             <button type="button" className="close" data-dismiss="modal">
                                 <span aria-hidden="true">&times;</span>
-                                <span className="sr-only">Close</span>
+                                <span className="sr-only">Cancel</span>
                             </button>
                         <h4 className="modal-title">New Channel</h4>
                         </div>
@@ -129,7 +129,7 @@ module.exports = React.createClass({
                                 { server_error }
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                                <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
                                 <button onClick={this.handleSubmit} type="submit" className="btn btn-primary">Create New Channel</button>
                             </div>
                         </form>
