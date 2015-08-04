@@ -15,6 +15,8 @@ import (
 	"github.com/nfnt/resize"
 	_ "golang.org/x/image/bmp"
 	"image"
+	"image/color"
+	"image/draw"
 	_ "image/gif"
 	"image/jpeg"
 	"io"
@@ -137,6 +139,12 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 					l4g.Error("Unable to decode image config channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
 					return
 				}
+
+				// Remove transparency due to JPEG's lack of support of it
+				temp := image.NewRGBA(img.Bounds())
+				draw.Draw(temp, temp.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+				draw.Draw(temp, temp.Bounds(), img, img.Bounds().Min, draw.Over)
+				img = temp
 
 				// Create thumbnail
 				go func() {
