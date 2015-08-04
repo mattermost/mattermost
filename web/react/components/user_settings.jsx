@@ -102,6 +102,8 @@ var NotificationsTab = React.createClass({
         });
 
         this.setState(assign({},getNotificationsStateFromStores(),{server_error: null}));
+
+        this.props.updateTab('general');
     },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
@@ -110,6 +112,7 @@ var NotificationsTab = React.createClass({
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
         $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        this.props.updateSection('');
     },
     _onChange: function() {
         var newState = getNotificationsStateFromStores();
@@ -522,12 +525,14 @@ var SecurityTab = React.createClass({
             this.value = "";
         });
         this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
+        this.props.updateTab('general');
     },
     componentDidMount: function() {
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        this.props.updateSection('');
     },
     getInitialState: function() {
         return { current_password: '', new_password: '', confirm_password: '' };
@@ -794,6 +799,7 @@ var GeneralTab = React.createClass({
         });
 
         this.setState(assign({}, this.getInitialState(), {client_error: null, server_error: null, email_error: null}));
+        this.props.updateSection('');
     },
     componentDidMount: function() {
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
@@ -1063,6 +1069,7 @@ var AppearanceTab = React.createClass({
     },
     handleClose: function() {
         this.setState({server_error: null});
+        this.props.updateTab('general');
     },
     componentDidMount: function() {
         if (this.props.activeSection === "theme") {
@@ -1078,6 +1085,7 @@ var AppearanceTab = React.createClass({
     },
     componentWillUnmount: function() {
         $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        this.props.updateSection('');
     },
     getInitialState: function() {
         var user = UserStore.getCurrentUser();
@@ -1146,10 +1154,11 @@ var AppearanceTab = React.createClass({
                 </div>
             </div>
         );
-     }
+    }
 });
 
 module.exports = React.createClass({
+    displayName: 'UserSettings',
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
     },
@@ -1175,19 +1184,19 @@ module.exports = React.createClass({
         } else if (this.props.activeTab === 'security') {
             return (
                 <div>
-                    <SecurityTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
+                    <SecurityTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} updateTab={this.props.updateTab} />
                 </div>
             );
         } else if (this.props.activeTab === 'notifications') {
             return (
                 <div>
-                    <NotificationsTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
+                    <NotificationsTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} updateTab={this.props.updateTab} />
                 </div>
             );
         } else if (this.props.activeTab === 'appearance') {
             return (
                 <div>
-                    <AppearanceTab activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
+                    <AppearanceTab activeSection={this.props.activeSection} updateSection={this.props.updateSection} updateTab={this.props.updateTab} />
                 </div>
             );
         } else {
