@@ -1,5 +1,5 @@
-**Mattermost Alpha**
-**Team Communication Service**
+**Mattermost Alpha**  
+**Team Communication Service**  
 **Development Build**
 
 
@@ -25,6 +25,9 @@ Installing Mattermost
 You're installing "Mattermost Alpha", a pre-released version intended for an early look at what we're building. While SpinPunch runs this version internally, it's not recommended for production deployments since we can't guarantee API stability or backwards compatibility until our production release.
 
 That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org
+
+Notes: 
+- For Alpha, Docker is interntionally setup as a single container, since production deployment not yet recommended.
 
 Local Machine Setup (Docker)
 -----------------------------
@@ -52,7 +55,10 @@ Local Machine Setup (Docker)
 	newgrp docker
 	```
 
-2. Run `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
+2. Start docker container:
+
+	`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:helium`
+
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser
 
 ### Arch ###
@@ -74,22 +80,21 @@ Local Machine Setup (Docker)
 
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
 
-### Notes ###
-If your ISP blocks port 25 then you may install locally but email will not be sent.
+### Additional Notes ###
+- If your ISP blocks port 25 then you may install locally but email will not be sent.
 
-If you want to work with the latest bits in the repo you can run the cmd
+- If you want to work with the latest bits in the repo (i.e. not a stable release) you can run the cmd
 `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:latest`
 
-You can update to the latest bits by running  
+- You can update to the latest bits by running:  
 `docker pull mattermost/platform:latest`
 
-If you wish to remove mattermost-dev use the following commands  
+- If you wish to remove mattermost-dev use:   
+	`docker stop mattermost-dev`
+	`docker rm -v mattermost-dev`
 
-1. `docker stop mattermost-dev`
-2. `docker rm -v mattermost-dev`
-
-If you wish to gain access to the container use the following commands
-1. `docker exec -ti mattermost-dev /bin/bash`
+- If you wish to gain access to the container use:
+	`docker exec -ti mattermost-dev /bin/bash`
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
