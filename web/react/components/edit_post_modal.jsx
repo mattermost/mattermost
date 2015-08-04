@@ -71,7 +71,7 @@ module.exports = React.createClass({
         var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
 
         return (
-            <div className="modal fade edit-modal" ref="modal" id="edit_post" role="dialog" aria-hidden="true">
+            <div className="modal fade edit-modal" ref="modal" id="edit_post" role="dialog" tabIndex="-1" aria-hidden="true">
               <div className="modal-dialog modal-push-down">
                 <div className="modal-content">
                   <div className="modal-header">
