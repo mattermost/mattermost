@@ -460,8 +460,6 @@ module.exports.textToJsx = function(text, options) {
         text = marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
     }
 
-    console.log(text);
-
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
         text = text.replace(repRegex, " ");
@@ -499,7 +497,7 @@ module.exports.textToJsx = function(text, options) {
             }
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
-            console.log(word);
+
             var prefix;
             var suffix;
             var prefixSpan;
@@ -534,7 +532,7 @@ module.exports.textToJsx = function(text, options) {
 
                 if (useMarkdown) {
                     prefixSpan ? inner.push(prefixSpan) : null;
-                    inner.push(<span key={word+i+z+"word_span"}><a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: "@" + name}} onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)} /></span>);
+                    inner.push(<span key={word+i+z+"word_span"}><a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>{"@" + name}</a></span>);
                     suffixSpan ? inner.push(suffixSpan) : null;
                 }
                 else
@@ -550,7 +548,7 @@ module.exports.textToJsx = function(text, options) {
 
                 if (useMarkdown) {
                     prefixSpan ? inner.push(prefixSpan) : null;
-                    inner.push(<span key={word+i+z+"_span"}><a key={name+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link} dangerouslySetInnerHTML={{__html: match.text}} /></span>);
+                    inner.push(<span key={word+i+z+"_span"}><a key={name+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a></span>);
                     suffixSpan ? inner.push(suffixSpan) : null;
                 }
                 else
@@ -564,7 +562,7 @@ module.exports.textToJsx = function(text, options) {
 
                 if (useMarkdown) {
                     prefixSpan ? inner.push(prefixSpan) : null;
-                    inner.push(<span key={word+i+z+"_span"}><a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)} dangerouslySetInnerHTML={{__html: trimWord}} /></span>);
+                    inner.push(<span key={word+i+z+"_span"}><a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a></span>);
                     suffixSpan ? inner.push(suffixSpan) : null;
                 }
                 else
@@ -577,7 +575,7 @@ module.exports.textToJsx = function(text, options) {
                     }
                     if (useMarkdown) {
                         prefixSpan ? inner.push(prefixSpan) : null;
-                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}><a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#" dangerouslySetInnerHTML={{__html: trimWord}} /></span>);
+                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}><a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a></span>);
                         suffixSpan ? inner.push(suffixSpan) : null;
                     }
                     else
@@ -585,7 +583,7 @@ module.exports.textToJsx = function(text, options) {
                 } else {
                     if (useMarkdown) {
                         prefixSpan ? inner.push(prefixSpan) : null;
-                        inner.push(<span key={word+i+z+"_span"}><span className={mentionClass + highlightSearchClass} dangerouslySetInnerHTML={{__html: trimWord}} /></span>);
+                        inner.push(<span key={word+i+z+"_span"}><span className={mentionClass + highlightSearchClass}>{trimWord}</span></span>);
                         suffixSpan ? inner.push(suffixSpan) : null;
                     }
                     else

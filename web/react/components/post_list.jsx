@@ -197,7 +197,7 @@ module.exports = React.createClass({
                 var post = post_list.posts[msg.props.post_id];
                 post.message = msg.props.message;
 
-                post.lastEditDate = new Date();
+                post.lastEditDate = Date.now();
 
                 post_list.posts[post.id] = post;
 

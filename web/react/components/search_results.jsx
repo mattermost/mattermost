@@ -84,7 +84,7 @@ var SearchItem = React.createClass({
             channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
         }
 
-        var searchItemKey = (new Date()).toString();
+        var searchItemKey = Date.now().toString();
 
         return (
             <div className="search-item-container post" onClick={this.handleClick}>
@@ -133,7 +133,7 @@ module.exports = React.createClass({
         if (this.isMounted()) {
             var newState = getStateFromStores();
             if (!utils.areStatesEqual(newState, this.state)) {
-                newState.last_edit_time = new Date();
+                newState.last_edit_time = Date.now();
                 this.setState(newState);
             }
         }

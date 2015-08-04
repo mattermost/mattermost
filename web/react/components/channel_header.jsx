@@ -103,7 +103,7 @@ module.exports = React.createClass({
     onListenerChange: function() {
         var newState = getStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
-            newState.last_edit_time = new Date();
+            newState.last_edit_time = Date.now();
             this.setState(newState);
         }
         $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
