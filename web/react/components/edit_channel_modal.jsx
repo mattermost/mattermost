@@ -51,7 +51,7 @@ module.exports = React.createClass({
         var server_error = this.state.server_error ? <div className='form-group has-error'><br/><label className='control-label'>{ this.state.server_error }</label></div> : null;
 
         return (
-            <div className="modal fade" ref="modal" id="edit_channel" role="dialog" aria-hidden="true">
+            <div className="modal fade" ref="modal" id="edit_channel" role="dialog" tabIndex="-1" aria-hidden="true">
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
