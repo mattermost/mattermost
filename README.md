@@ -131,7 +131,7 @@ Contributing
 
 To contribute to this open source project please review the Mattermost Contribution Guidelines at http://www.mattermost.org/contribute-to-mattermost/.
 
-To seup your machine for development of mattermost see: [Developer Machine Setup](scripts/README_DEV.md)
+To setup your machine for development of mattermost see: [Developer Machine Setup](scripts/README_DEV.md)
 
 License
 -------
