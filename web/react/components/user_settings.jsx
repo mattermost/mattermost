@@ -463,22 +463,22 @@ var SecurityTab = React.createClass({
         e.preventDefault();
 
         var user = this.props.user;
-        var currentPassword = this.state.current_password;
-        var newPassword = this.state.new_password;
-        var confirmPassword = this.state.confirm_password;
+        var currentPassword = this.state.currentPassword;
+        var newPassword = this.state.newPassword;
+        var confirmPassword = this.state.confirmPassword;
 
         if (currentPassword === '') {
-            this.setState({password_error: 'Please enter your current password', server_error: ''});
+            this.setState({passwordError: 'Please enter your current password', serverError: ''});
             return;
         }
 
         if (newPassword.length < 5) {
-            this.setState({password_error: 'New passwords must be at least 5 characters', server_error: ''});
+            this.setState({passwordError: 'New passwords must be at least 5 characters', serverError: ''});
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            this.setState({password_error: 'The new passwords you entered do not match', server_error: ''});
+            this.setState({passwordError: 'The new passwords you entered do not match', serverError: ''});
             return;
         }
 
@@ -488,43 +488,43 @@ var SecurityTab = React.createClass({
         data.new_password = newPassword;
 
         client.updatePassword(data,
-            function(data) {
-                this.props.updateSection("");
+            function() {
+                this.props.updateSection('');
                 AsyncClient.getMe();
-                this.setState({current_password: '', new_password: '', confirm_password: ''});
+                this.setState({currentPassword: '', newPassword: '', confirmPassword: ''});
             }.bind(this),
             function(err) {
                 var state = this.getInitialState();
                 if (err.message) {
-                    state.server_error = err.message;
+                    state.serverError = err.message;
                 } else {
-                    state.server_error = err;
+                    state.serverError = err;
                 }
-                state.password_error = '';
+                state.passwordError = '';
                 this.setState(state);
             }.bind(this)
         );
     },
     updateCurrentPassword: function(e) {
-        this.setState({ current_password: e.target.value });
+        this.setState({currentPassword: e.target.value});
     },
     updateNewPassword: function(e) {
-        this.setState({ new_password: e.target.value });
+        this.setState({newPassword: e.target.value});
     },
     updateConfirmPassword: function(e) {
-        this.setState({ confirm_password: e.target.value });
+        this.setState({confirmPassword: e.target.value});
     },
     handleHistoryOpen: function() {
-        $("#user_settings1").modal('hide');
+        $('#user_settings1').modal('hide');
     },
     handleDevicesOpen: function() {
-        $("#user_settings1").modal('hide');
+        $('#user_settings1').modal('hide');
     },
     handleClose: function() {
-        $(this.getDOMNode()).find(".form-control").each(function() {
-            this.value = "";
+        $(this.getDOMNode()).find('.form-control').each(function() {
+            this.value = '';
         });
-        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
+        this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
         this.props.updateTab('general');
     },
     componentDidMount: function() {
@@ -535,40 +535,41 @@ var SecurityTab = React.createClass({
         this.props.updateSection('');
     },
     getInitialState: function() {
-        return { current_password: '', new_password: '', confirm_password: '' };
+        return {currentPassword: '', newPassword: '', confirmPassword: ''};
     },
     render: function() {
-        var server_error = this.state.server_error ? this.state.server_error : null;
-        var password_error = this.state.password_error ? this.state.password_error : null;
+        var serverError = this.state.serverError ? this.state.serverError : null;
+        var passwordError = this.state.passwordError ? this.state.passwordError : null;
 
+        var updateSectionStatus;
         var passwordSection;
         var self = this;
         if (this.props.activeSection === 'password') {
             var inputs = [];
             var submit = null;
 
-            if (this.props.user.auth_service === "") {
+            if (this.props.user.auth_service === '') {
                 inputs.push(
-                    <div className="form-group">
-                        <label className="col-sm-5 control-label">Current Password</label>
-                        <div className="col-sm-7">
-                            <input className="form-control" type="password" onChange={this.updateCurrentPassword} value={this.state.current_password}/>
+                    <div className='form-group'>
+                        <label className='col-sm-5 control-label'>Current Password</label>
+                        <div className='col-sm-7'>
+                            <input className='form-control' type='password' onChange={this.updateCurrentPassword} value={this.state.currentPassword}/>
                         </div>
                     </div>
                 );
                 inputs.push(
-                    <div className="form-group">
-                        <label className="col-sm-5 control-label">New Password</label>
-                        <div className="col-sm-7">
-                            <input className="form-control" type="password" onChange={this.updateNewPassword} value={this.state.new_password}/>
+                    <div className='form-group'>
+                        <label className='col-sm-5 control-label'>New Password</label>
+                        <div className='col-sm-7'>
+                            <input className='form-control' type='password' onChange={this.updateNewPassword} value={this.state.newPassword}/>
                         </div>
                     </div>
                 );
                 inputs.push(
-                    <div className="form-group">
-                        <label className="col-sm-5 control-label">Retype New Password</label>
-                        <div className="col-sm-7">
-                            <input className="form-control" type="password" onChange={this.updateConfirmPassword} value={this.state.confirm_password}/>
+                    <div className='form-group'>
+                        <label className='col-sm-5 control-label'>Retype New Password</label>
+                        <div className='col-sm-7'>
+                            <input className='form-control' type='password' onChange={this.updateConfirmPassword} value={this.state.confirmPassword}/>
                         </div>
                     </div>
                 );
@@ -576,58 +577,68 @@ var SecurityTab = React.createClass({
                 submit = this.submitPassword;
             } else {
                 inputs.push(
-                    <div className="form-group">
-                        <label className="col-sm-12">Log in occurs through GitLab. Please see your GitLab account settings page to update your password.</label>
+                    <div className='form-group'>
+                        <label className='col-sm-12'>Log in occurs through GitLab. Please see your GitLab account settings page to update your password.</label>
                     </div>
                 );
             }
 
+            updateSectionStatus = function(e) {
+                self.props.updateSection('');
+                self.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
+                e.preventDefault();
+            };
+
             passwordSection = (
                 <SettingItemMax
-                    title="Password"
+                    title='Password'
                     inputs={inputs}
                     submit={submit}
-                    server_error={server_error}
-                    client_error={password_error}
-                    updateSection={function(e){self.props.updateSection("");self.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});e.preventDefault();}}
+                    server_error={serverError}
+                    client_error={passwordError}
+                    updateSection={updateSectionStatus}
                 />
             );
         } else {
             var describe;
-            if (this.props.user.auth_service === "") {
+            if (this.props.user.auth_service === '') {
                 var d = new Date(this.props.user.last_password_update);
-                var hour = d.getHours() % 12 ? String(d.getHours() % 12) : "12";
-                var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
-                var timeOfDay = d.getHours() >= 12 ? " pm" : " am";
-                describe = "Last updated " + Constants.MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " at " + hour + ":" + min + timeOfDay;
+                var hour = d.getHours() % 12 ? String(d.getHours() % 12) : '12';
+                var min = d.getMinutes() < 10 ? '0' + d.getMinutes() : String(d.getMinutes());
+                var timeOfDay = d.getHours() >= 12 ? ' pm' : ' am';
+                describe = 'Last updated ' + Constants.MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' at ' + hour + ':' + min + timeOfDay;
             } else {
-                describe = "Log in done through GitLab"
+                describe = 'Log in done through GitLab';
             }
+
+            updateSectionStatus = function() {
+                self.props.updateSection('password');
+            };
 
             passwordSection = (
                 <SettingItemMin
-                    title="Password"
+                    title='Password'
                     describe={describe}
-                    updateSection={function(){self.props.updateSection("password");}}
+                    updateSection={updateSectionStatus}
                 />
             );
         }
 
         return (
             <div>
-                <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title" ref="title"><i className="modal-back"></i>Security Settings</h4>
+                <div className='modal-header'>
+                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>Security Settings</h4>
                 </div>
-                <div className="user-settings">
-                    <h3 className="tab-header">Security Settings</h3>
-                    <div className="divider-dark first"/>
-                    { passwordSection }
-                    <div className="divider-dark"/>
+                <div className='user-settings'>
+                    <h3 className='tab-header'>Security Settings</h3>
+                    <div className='divider-dark first'/>
+                    {passwordSection}
+                    <div className='divider-dark'/>
                     <br></br>
-                    <a data-toggle="modal" className="security-links theme" data-target="#access-history" href="#" onClick={this.handleHistoryOpen}><i className="fa fa-clock-o"></i>View Access History</a>
-                    <b>   </b>
-                    <a data-toggle="modal" className="security-links theme" data-target="#activity-log" href="#" onClick={this.handleDevicesOpen}><i className="fa fa-globe"></i>View and Logout of Active Sessions</a>
+                    <a data-toggle='modal' className='security-links theme' data-target='#access-history' href='#' onClick={this.handleHistoryOpen}><i className='fa fa-clock-o'></i>View Access History</a>
+                    <b> </b>
+                    <a data-toggle='modal' className='security-links theme' data-target='#activity-log' href='#' onClick={this.handleDevicesOpen}><i className='fa fa-globe'></i>View and Logout of Active Sessions</a>
                 </div>
             </div>
         );
