@@ -86,7 +86,7 @@
     "TeamSettings": {
         "MaxUsersPerTeam": 150,
         "AllowPublicLink": true,
-        "AllowValet": false,
+        "AllowValetDefault": false,
         "TermsLink": "/static/help/configure_links.html",
         "PrivacyLink": "/static/help/configure_links.html",
         "AboutLink": "/static/help/configure_links.html",
