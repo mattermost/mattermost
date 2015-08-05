@@ -20,6 +20,13 @@ module.exports = React.createClass({
         PostStore.addMentionDataChangeListener(this.onListenerChange);
         var self = this;
 
+        $('.post-right__scroll').scroll(function(){
+            console.log('sad');
+            if($('.mentions--top').length){
+                $('#reply_mention_tab .mentions--top').css({ bottom: $(window).height() - $('.post-right__scroll #reply_textbox').offset().top });
+            }
+        });
+
         $('body').on('keydown.mentionlist', '#' + this.props.id,
             function(e) {
                 if (!self.isEmpty() && self.state.mentionText !== '-1' && (e.which === 13 || e.which === 9)) {
