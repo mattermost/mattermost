@@ -53,7 +53,7 @@ module.exports = React.createClass({
         channel.team_id = cu.team_id;
 
         channel.description = this.refs.channel_desc.getDOMNode().value.trim();
-        channel.type = this.state.channel_type;
+        channel.type = this.state.channelType;
 
         var self = this;
         client.createChannel(channel,
