@@ -166,6 +166,11 @@ module.exports = React.createClass({
            );
         }
 
+        var termsDisclaimer = null;
+        if (config.ShowTermsDuringSignup) {
+            termsDisclaimer = <p>By creating an account and using Mattermost you are agreeing to our <a href={config.TermsLink}>Terms of Service</a>. If you do not agree, you cannot use this service.</p>;
+        }
+
         return (
             <div>
                 <form>
@@ -196,7 +201,7 @@ module.exports = React.createClass({
                     </div>
                     <p className='margin--extra'><button type='submit' onClick={this.handleSubmit} className='btn-primary btn'>Create Account</button></p>
                     {serverError}
-                    <p>By creating an account and using Mattermost you are agreeing to our <a href={ config.TermsLink }>Terms of Service</a>. If you do not agree, you cannot use this service.</p>
+                    {termsDisclaimer}
                 </form>
             </div>
         );
