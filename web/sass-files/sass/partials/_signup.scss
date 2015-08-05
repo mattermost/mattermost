@@ -58,6 +58,9 @@
         &.input-group--limit {
             table-layout: fixed;
             width: 100%;
+            .tooltip-inner {
+                word-wrap: break-word;
+            }
             .form-control {
                 text-align: left;
                 display: table-cell;
