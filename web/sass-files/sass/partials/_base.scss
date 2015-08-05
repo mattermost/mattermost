@@ -49,6 +49,12 @@ div.theme {
   background-color: $primary-color;
 }
 
+.tooltip {
+  .tooltip-inner {
+    word-break: break-word;
+  }
+}
+
 .nopadding {
  padding: 0;
  margin: 0;

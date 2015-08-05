@@ -28,6 +28,7 @@ module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
         $("#profile_" + this.uniqueId).popover({placement : 'right', container: 'body', trigger: 'hover', html: true, delay: { "show": 200, "hide": 100 }});
+        $('body').tooltip( {selector: '[data-toggle=tooltip]', trigger: 'hover click'} );
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
