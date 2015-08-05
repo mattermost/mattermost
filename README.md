@@ -37,8 +37,9 @@ Local Machine Setup (Docker)
 2. Get your Docker IP address with: `boot2docker ip`
 3. Add a line to your /etc/hosts that goes: `<Docker IP> dockerhost`
 4. Run: `boot2docker shellinit` and copy the export statements to your ~/.bash\_profile.
-5. Run: `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
-6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser.
+5. Run: `source ~/.bash_profile` to reload your ~/.bash\_profile.
+6. Run: `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
+7. When docker is done fetching the image, open http://dockerhost:8065/ in your browser.
 
 ### Ubuntu ###
 1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summary below:
