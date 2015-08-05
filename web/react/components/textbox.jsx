@@ -35,7 +35,7 @@ module.exports = React.createClass({
         ErrorStore.addChangeListener(this._onError);
 
         this.resize();
-        this.processMentions();
+        this.updateMentionTab(null);
     },
     componentWillUnmount: function() {
         PostStore.removeAddMentionListener(this._onChange);
@@ -83,7 +83,7 @@ module.exports = React.createClass({
             this.caret = -1;
         }
         if (this.doProcessMentions) {
-            this.processMentions();
+            this.updateMentionTab(null);
             this.doProcessMentions = false;
         }
         this.resize();
@@ -103,15 +103,14 @@ module.exports = React.createClass({
     getInitialState: function() {
         return { mentionText: '-1', mentions: [], connection: "", timerInterrupt: null };
     },
-    updateMentionTab: function(mentionText, excludeList) {
+    updateMentionTab: function(mentionText) {
         var self = this;
         // using setTimeout so dispatch isn't called during an in progress dispatch
         setTimeout(function() {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_MENTION_DATA,
                 id: self.props.id,
-                mention_text: mentionText,
-                exclude_list: excludeList
+                mention_text: mentionText
             });
         }, 1);
     },
@@ -167,57 +166,6 @@ module.exports = React.createClass({
             this.doProcessMentions = true;
         }
     },
-    processMentions: function() {
-        /* First, find all the possible mentions and add
-            them all to a list of mentions */
-        var text = utils.insertHtmlEntities(this.refs.message.getDOMNode().value);
-
-        var profileMap = UserStore.getProfilesUsernameMap();
-
-        var re1 = /@([a-z0-9_]+)( |$|\n)/gi;
-
-        var matches = text.match(re1);
-
-        if (!matches) {
-            this.updateMentionTab(null, []);
-            return;
-        }
-
-        var mentions = [];
-        for (var i = 0; i < matches.length; i++) {
-            var m = matches[i].substring(1,matches[i].length).trim();
-            if ((m in profileMap && mentions.indexOf(m) === -1) || Constants.SPECIAL_MENTIONS.indexOf(m) !== -1) {
-                mentions.push(m);
-            }
-        }
-
-        /* Figure out what the user is currently typing. If it's a mention then we don't
-            want to add it to the mention list yet, so we remove it if
-            there is only one occurence of that mention so far. */
-        var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
-
-        var text = this.props.messageText;
-
-        var preText = text.substring(0, caret);
-
-        var atIndex = preText.lastIndexOf('@');
-        var spaceIndex = preText.lastIndexOf(' ');
-        var newLineIndex = preText.lastIndexOf('\n');
-
-        var typingMention = "";
-        if (atIndex > spaceIndex && atIndex > newLineIndex) {
-
-            typingMention = text.substring(atIndex+1, caret);
-        }
-
-        var re2 = new RegExp('@' + typingMention + '( |$|\n)', 'g');
-
-        if ((text.match(re2) || []).length === 1 && mentions.indexOf(typingMention) !== -1) {
-            mentions.splice(mentions.indexOf(typingMention), 1);
-        }
-
-        this.updateMentionTab(null, mentions);
-    },
     checkForNewMention: function(text) {
         var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
 
@@ -227,7 +175,7 @@ module.exports = React.createClass({
 
         // The @ character not typed, so nothing to do.
         if (atIndex === -1) {
-            this.updateMentionTab('-1', null);
+            this.updateMentionTab('-1');
             return;
         }
 
@@ -236,13 +184,13 @@ module.exports = React.createClass({
 
         // If there is a space after the last @, nothing to do.
         if (lastSpace > atIndex || lastCharSpace > atIndex) {
-            this.updateMentionTab('-1', null);
+            this.updateMentionTab('-1');
             return;
         }
 
         // Get the name typed so far.
         var name = preText.substring(atIndex+1, preText.length).toLowerCase();
-        this.updateMentionTab(name, null);
+        this.updateMentionTab(name);
     },
     addMention: function(name) {
         var caret = utils.getCaretPosition(this.refs.message.getDOMNode());

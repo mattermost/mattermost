@@ -193,7 +193,7 @@ PostStore.dispatchToken = AppDispatcher.register(function(payload) {
       PostStore.emitSelectedPostChange(action.from_search);
       break;
     case ActionTypes.RECIEVED_MENTION_DATA:
-      PostStore.emitMentionDataChange(action.id, action.mention_text, action.exclude_list);
+      PostStore.emitMentionDataChange(action.id, action.mention_text);
       break;
     case ActionTypes.RECIEVED_ADD_MENTION:
       PostStore.emitAddMention(action.id, action.username);
