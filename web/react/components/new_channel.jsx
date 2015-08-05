@@ -107,6 +107,11 @@ module.exports = React.createClass({
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
+        var channelTerm = 'Channel';
+        if (this.state.channelType === 'P') {
+            channelTerm = 'Group';
+        }
+
         return (
             <div className='modal fade' id='new_channel' ref='modal' tabIndex='-1' role='dialog' aria-hidden='true'>
                 <div className='modal-dialog'>
@@ -116,7 +121,7 @@ module.exports = React.createClass({
                                 <span aria-hidden='true'>&times;</span>
                                 <span className='sr-only'>Cancel</span>
                             </button>
-                            <h4 className='modal-title'>New Channel</h4>
+                            <h4 className='modal-title'>New {channelTerm}</h4>
                         </div>
                         <form role='form'>
                             <div className='modal-body'>
