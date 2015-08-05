@@ -34,7 +34,7 @@ module.exports = React.createClass({
         var channelType = ChannelStore.getCurrent() && ChannelStore.getCurrent().type === 'P' ? "private group" : "channel"
 
         return (
-            <div className="modal fade" ref="modal" id="delete_channel" role="dialog" aria-hidden="true">
+            <div className="modal fade" ref="modal" id="delete_channel" role="dialog" tabIndex="-1" aria-hidden="true">
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">

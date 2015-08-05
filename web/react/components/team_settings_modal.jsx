@@ -29,7 +29,7 @@ module.exports = React.createClass({
         tabs.push({name: "feature", ui_name: "Features", icon: "glyphicon glyphicon-wrench"});
 
         return (
-            <div className="modal fade" ref="modal" id="team_settings" role="dialog" aria-hidden="true">
+            <div className="modal fade" ref="modal" id="team_settings" role="dialog" tabIndex="-1" aria-hidden="true">
               <div className="modal-dialog settings-modal">
                 <div className="modal-content">
                   <div className="modal-header">
