@@ -21,7 +21,8 @@
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
         "AnalyticsUrl": "",
         "UseLocalStorage": true,
-        "StorageDirectory": "/mattermost/data/"
+        "StorageDirectory": "/mattermost/data/",
+        "AllowedLoginAttempts": 10
     },
     "SSOSettings": {
         "gitlab": {
@@ -49,8 +50,8 @@
         "S3Region": ""
     },
     "ImageSettings": {
-        "ThumbnailWidth": 200,
-        "ThumbnailHeight": 0,
+        "ThumbnailWidth": 120,
+        "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
         "PreviewHeight": 0,
         "ProfileWidth": 128,
@@ -69,6 +70,13 @@
         "ApplePushCertPublic": "",
         "ApplePushCertPrivate": ""
     },
+    "RateLimitSettings": {
+        "UseRateLimiter": true,
+        "PerSec": 10,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByHeader": ""
+    },
     "PrivacySettings": {
         "ShowEmailAddress": true,
         "ShowPhoneNumber": true,
@@ -78,7 +86,7 @@
     "TeamSettings": {
         "MaxUsersPerTeam": 150,
         "AllowPublicLink": true,
-        "AllowValet": false,
+        "AllowValetDefault": false,
         "TermsLink": "/static/help/configure_links.html",
         "PrivacyLink": "/static/help/configure_links.html",
         "AboutLink": "/static/help/configure_links.html",
