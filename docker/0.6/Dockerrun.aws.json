@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "mattermost/platform:lithium-rc2",
+    "Name": "mattermost/platform:0.6",
     "Update": "true"
   },
   "Ports": [
