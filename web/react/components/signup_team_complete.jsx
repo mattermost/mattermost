@@ -248,6 +248,8 @@ TeamURLPage = React.createClass({
     },
     render: function() {
 
+        $('body').tooltip( {selector: '[data-toggle=tooltip]', trigger: 'hover click'} );
+
         client.track('signup', 'signup_team_03_url');
 
         var name_error = this.state.name_error ? <label className="control-label">{ this.state.name_error }</label> : null;
@@ -260,8 +262,8 @@ TeamURLPage = React.createClass({
                 <div className={ name_error ? "form-group has-error" : "form-group" }>
                <div className="row">
                     <div className="col-sm-11">
-                        <div className="input-group">
-                            <span className="input-group-addon">{ utils.getWindowLocationOrigin() + "/" }</span>
+                        <div className="input-group input-group--limit">
+                            <span data-toggle="tooltip" title={ utils.getWindowLocationOrigin() + "/" } className="input-group-addon">{ utils.getWindowLocationOrigin() + "/" }</span>
                             <input type="text" ref="name" className="form-control" placeholder="" maxLength="128" defaultValue={this.props.state.team.name} autoFocus={true} onFocus={this.handleFocus}/>
                         </div>
                     </div>

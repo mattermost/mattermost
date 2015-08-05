@@ -114,8 +114,7 @@
   height: 100px;
   float: left;
   margin: 5px 10px 5px 0;
-  @include display-flex;
-  display: -ms-flexbox;
+  display: table;
   border: 1px solid lightgrey;
   .post__load {
     height: 100%;
@@ -137,10 +136,14 @@
     }
   }
   .post-image__thumbnail {
+    display: table-cell;
+    vertical-align: top;
     width: 50%;
     height: 100%;
   }
   .post-image__details {
+    display: table-cell;
+    vertical-align: top;
     width: 50%;
     height: 100%;
     background: white;

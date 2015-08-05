@@ -54,6 +54,28 @@
         margin-bottom: 1em;
     }
 
+    .input-group {
+        &.input-group--limit {
+            table-layout: fixed;
+            width: 100%;
+            .tooltip-inner {
+                word-wrap: break-word;
+            }
+            .form-control {
+                text-align: left;
+                display: table-cell;
+                width: 100%;
+            }
+            .input-group-addon {
+                text-align: left;
+                width: 50%;
+                display: table-cell;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+
     .inner__content {
         padding: 0 15px;
         margin: 30px 0 20px;
