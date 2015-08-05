@@ -21,7 +21,6 @@ module.exports = React.createClass({
         var self = this;
 
         $('.post-right__scroll').scroll(function(){
-            console.log('sad');
             if($('.mentions--top').length){
                 $('#reply_mention_tab .mentions--top').css({ bottom: $(window).height() - $('.post-right__scroll #reply_textbox').offset().top });
             }
