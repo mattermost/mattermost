@@ -31,6 +31,9 @@ var config = {
     ReportProblemLink: "/static/help/configure_links.html",
     HomeLink: "",
 
+    // Toggle whether or not users are shown a message about agreeing to the Terms of Service during the signup process
+    ShowTermsDuringSignup: false,
+
     ThemeColors: ["#2389d7", "#008a17", "#dc4fad", "#ac193d", "#0072c6", "#d24726", "#ff8f32", "#82ba00", "#03b3b2", "#008299", "#4617b4", "#8c0095", "#004b8b", "#004b8b", "#570000", "#380000", "#585858", "#000000"]
 };
 
