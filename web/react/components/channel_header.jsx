@@ -103,7 +103,6 @@ module.exports = React.createClass({
     onListenerChange: function() {
         var newState = getStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
-            newState.last_edit_time = Date.now();
             this.setState(newState);
         }
         $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
@@ -157,7 +156,7 @@ module.exports = React.createClass({
         }
 
         var channel = this.state.channel;
-        var description = utils.textToJsx(channel.description, {singleline: true, noMentionHighlight: true});
+        var description = utils.textToJsx(channel.description, {singleline: true, noMentionHighlight: true, noMarkdown: true});
         var popoverContent = React.renderToString(<MessageWrapper message={channel.description}/>);
         var channelTitle = channel.display_name;
         var currentId = UserStore.getCurrentId();
@@ -180,11 +179,6 @@ module.exports = React.createClass({
         if (channel.type === 'P') {
             channelTerm = 'Group';
         }
-        channelDescKey = "";
-        if (this.state.last_edit_time) {
-            channelDescKey += this.state.last_edit_time.toString();
-        }
-        channelDescKey += this.state.channel.id;
 
         return (
             <table className='channel-header alt'>
@@ -228,7 +222,7 @@ module.exports = React.createClass({
                                 </ul>
                                 }
                             </div>
-                            <div key={channelDescKey} data-toggle='popover' data-content={popoverContent} className='description'>{description}</div>
+                            <div data-toggle='popover' data-content={popoverContent} className='description'>{description}</div>
                         </div>
                     </th>
                     <th><PopoverListMembers members={this.state.users} channelId={channel.id} /></th>

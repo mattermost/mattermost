@@ -400,6 +400,9 @@ module.exports.customMarkedRenderer = function(options) {
     customMarkedRenderer.heading = function(text, level) {
         return '<h' + level + '>' + text + '</h' + level + '>';
     };
+    customMarkedRenderer.code = function(code, language) {
+        return '<pre>' + code + '</pre>';
+    };
     customMarkedRenderer.codespan = function(code) {
         return '<pre>' + code + '</pre>';
     };
@@ -415,6 +418,12 @@ module.exports.customMarkedRenderer = function(options) {
 
     if (options) {
         if (options.disable) {
+            customMarkedRenderer.heading = function(text, level) {
+                return text;
+            };
+            customMarkedRenderer.hr = function() {
+                return '';
+            };
             customMarkedRenderer.code = function(code, language) {
                 return code;
             };
@@ -436,6 +445,9 @@ module.exports.customMarkedRenderer = function(options) {
             customMarkedRenderer.em = function(text) {
                 return text;
             };
+            customMarkedRenderer.br = function() {
+                return '\n';
+            };
             customMarkedRenderer.del = function(text) {
                 return text;
             };
@@ -454,7 +466,7 @@ var startTagRegex = /(<\s*\w.*?>)+/g;
 var endTagRegex = /(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)+/g;
 
 module.exports.textToJsx = function(text, options) {
-    var useMarkdown = config.AllowMarkdown;
+    var useMarkdown = config.AllowMarkdown && (!options || !options.noMarkdown);
 
     if (useMarkdown) {
         text = marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
@@ -544,7 +556,7 @@ module.exports.textToJsx = function(text, options) {
                 prefix = word.substring(0,word.indexOf(match.text));
                 suffix = word.substring(word.indexOf(match.text)+match.text.length);
                 prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
-                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : inner.push(<span key={word+i+z+"suf_span"}> </span>);
+                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : <span key={word+i+z+"suf_span"}> </span>;
 
                 if (useMarkdown) {
                     prefixSpan ? inner.push(prefixSpan) : null;
