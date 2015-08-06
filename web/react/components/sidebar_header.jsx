@@ -64,7 +64,7 @@ var NavbarDropdown = React.createClass({
             if (this.props.teamType === 'O') {
                 teamLink = (
                     <li>
-                        <a href='#' data-toggle='modal' data-target='#get_link' data-title='Team Invite' data-value={location.origin + '/signup_user_complete/?id=' + currentUser.team_id}>Get Team Invite Link</a>
+                        <a href='#' data-toggle='modal' data-target='#get_link' data-title='Team Invite' data-value={utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id}>Get Team Invite Link</a>
                     </li>
                 );
             }

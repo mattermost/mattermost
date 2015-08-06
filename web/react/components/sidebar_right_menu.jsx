@@ -3,6 +3,7 @@
 
 var UserStore = require('../stores/user_store.jsx');
 var client = require('../utils/client.jsx');
+var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
     handleLogoutClick: function(e) {
@@ -29,7 +30,7 @@ module.exports = React.createClass({
             if (this.props.teamType == "O") {
                 team_link = (
                     <li>
-                        <a href="#" data-toggle="modal" data-target="#get_link" data-title="Team Invite" data-value={location.origin+"/signup_user_complete/?id="+currentUser.team_id}><i className="glyphicon glyphicon-link"></i>Get Team Invite Link</a>
+                        <a href="#" data-toggle="modal" data-target="#get_link" data-title="Team Invite" data-value={utils.getWindowLocationOrigin()+"/signup_user_complete/?id="+currentUser.team_id}><i className="glyphicon glyphicon-link"></i>Get Team Invite Link</a>
                     </li>
                 );
             }
