@@ -279,32 +279,24 @@ module.exports.getAudits = function(userId, success, error) {
     });
 };
 
-module.exports.getMeSynchronous = function(success, error) {
-
-    var current_user = null;
+module.exports.getMe = function(success, error) {
 
     $.ajax({
-        async: false,
         url: "/api/v1/users/me",
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: function(data, textStatus, xhr) {
-            current_user = data;
-            if (success) success(data, textStatus, xhr);
-        },
+        success: success,
         error: function(xhr, status, err) {
             var ieChecker = window.navigator.userAgent; // This and the condition below is used to check specifically for browsers IE10 & 11 to suppress a 200 'OK' error from appearing on login
             if (xhr.status != 200 || !(ieChecker.indexOf("Trident/7.0") > 0 || ieChecker.indexOf("Trident/6.0") > 0)) {
                 if (error) {
-                    e = handleError("getMeSynchronous", xhr, status, err);
+                    e = handleError("getMe", xhr, status, err);
                     error(e);
                 };
             };
         }
     });
-
-    return current_user;
 };
 
 module.exports.inviteMembers = function(data, success, error) {
