@@ -175,6 +175,11 @@ module.exports = React.createClass({
             }
         }
 
+        var channelTerm = 'Channel';
+        if (channel.type === 'P') {
+            channelTerm = 'Group';
+        }
+
         return (
             <table className='channel-header alt'>
                 <tr>
@@ -196,18 +201,18 @@ module.exports = React.createClass({
                                         <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_members' href='#'>Manage Members</a></li>
                                         : null
                                     }
-                                    <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set Channel Description...</a></li>
+                                    <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set {channelTerm} Description...</a></li>
                                     <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#channel_notifications' data-title={channel.display_name} data-channelid={channel.id}>Notification Preferences</a></li>
                                     {isAdmin && !ChannelStore.isDefault(channel) ?
-                                        <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#rename_channel' data-display={channel.display_name} data-name={channel.name} data-channelid={channel.id}>Rename Channel...</a></li>
+                                        <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#rename_channel' data-display={channel.display_name} data-name={channel.name} data-channelid={channel.id}>Rename {channelTerm}...</a></li>
                                         : null
                                     }
                                     {isAdmin && !ChannelStore.isDefault(channel) ?
-                                        <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#delete_channel' data-title={channel.display_name} data-channelid={channel.id}>Delete Channel...</a></li>
+                                        <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#delete_channel' data-title={channel.display_name} data-channelid={channel.id}>Delete {channelTerm}...</a></li>
                                         : null
                                     }
                                     {!ChannelStore.isDefault(channel) ?
-                                        <li role='presentation'><a role='menuitem' href='#' onClick={this.handleLeave}>Leave Channel</a></li>
+                                        <li role='presentation'><a role='menuitem' href='#' onClick={this.handleLeave}>Leave {channelTerm}</a></li>
                                         : null
                                     }
                                 </ul>
