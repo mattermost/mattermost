@@ -319,7 +319,6 @@ module.exports = React.createClass({
             } else if (channel.type === 'D') {
                 var teammate = utils.getDirectTeammate(channel.id)
 
-
                 if (teammate) {
                     var teammate_name = teammate.nickname.length > 0 ? teammate.nickname : teammate.username;
                     more_messages = (
@@ -407,7 +406,7 @@ module.exports = React.createClass({
         var postCtls = [];
 
         if (posts) {
-            var previousPostDay = posts[order[order.length-1]] ? utils.getDateForUnixTicks(posts[order[order.length-1]].create_at): new Date();
+            var previousPostDay = new Date(0);
             var currentPostDay;
 
             for (var i = order.length-1; i >= 0; i--) {
