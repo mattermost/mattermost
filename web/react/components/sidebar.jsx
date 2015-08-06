@@ -56,7 +56,6 @@ function getStateFromStores() {
             var channelMember = members[channel.id];
             var msgCount = channel.total_msg_count - channelMember.msg_count;
             if (msgCount > 0) {
-                channel.unread = msgCount;
                 showDirectChannels.push(channel);
             } else if (currentId === channel.id) {
                 showDirectChannels.push(channel);
@@ -70,6 +69,7 @@ function getStateFromStores() {
             tempChannel.display_name = utils.getDisplayName(teammate);
             tempChannel.status = UserStore.getStatus(teammate.id);
             tempChannel.last_post_at = 0;
+            tempChannel.total_msg_count = 0;
             readDirectChannels.push(tempChannel);
         }
     }
@@ -240,98 +240,94 @@ module.exports = React.createClass({
     },
     render: function() {
         var members = this.state.members;
-        var newsActive = window.location.pathname === '/' ? 'active' : '';
+        var activeId = this.state.active_id;
         var badgesActive = false;
-        var self = this;
-        var channelItems = this.state.channels.map(function(channel) {
-            if (channel.type != 'O') {
-                return '';
-            }
 
+        function createChannelElement(channel) {
             var channelMember = members[channel.id];
-            var active = channel.id === self.state.active_id ? 'active' : '';
+            var active = channel.id === activeId ? 'active' : '';
 
-            var msgCount = channel.total_msg_count - channelMember.msg_count;
+            var unread = false;
+            if (channelMember) {
+                var msgCount = channel.total_msg_count - channelMember.msg_count;
+                unread = (msgCount > 0 && channelMember.notify_level !== 'quiet') || channelMember.mention_count > 0;
+            }
+
             var titleClass = '';
-            if (msgCount > 0 && channelMember.notify_level !== 'quiet') {
+            if (unread) {
                 titleClass = 'unread-title';
             }
 
-            var badge = '';
-            if (channelMember.mention_count > 0) {
-                badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
-                badgesActive = true;
-                titleClass = 'unread-title';
-            }
-
-            return (
-                <li key={channel.id} className={active}><a className={'sidebar-channel ' + titleClass} href='#' onClick={function(e){e.preventDefault(); utils.switchChannel(channel);}}>{badge}{channel.display_name}</a></li>
-            );
-        });
-
-        var privateChannelItems = this.state.channels.map(function(channel) {
-            if (channel.type !== 'P') {
-                return '';
-            }
-
-            var channelMember = members[channel.id];
-            var active = channel.id === self.state.active_id ? 'active' : '';
-
-            var msgCount = channel.total_msg_count - channelMember.msg_count;
-            var titleClass = ''
-            if (msgCount > 0 && channelMember.notify_level !== 'quiet') {
-                titleClass = 'unread-title'
-            }
-
-            var badge = '';
-            if (channelMember.mention_count > 0) {
-                badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
-                badgesActive = true;
-                titleClass = 'unread-title';
-            }
-
-            return (
-                <li key={channel.id} className={active}><a className={'sidebar-channel ' + titleClass} href='#' onClick={function(e){e.preventDefault(); utils.switchChannel(channel);}}>{badge}{channel.display_name}</a></li>
-            );
-        });
-
-        var directMessageItems = this.state.showDirectChannels.map(function(channel) {
-            var badge = '';
-            var titleClass = '';
-
-            var statusIcon = '';
-            if (channel.status === 'online') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
-            } else if (channel.status === 'away') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
-            } else {
-                statusIcon = Constants.OFFLINE_ICON_SVG;
-            }
-
-            if (!channel.fake) {
-                var active = channel.id === self.state.active_id ? 'active' : '';
-
-                if (channel.unread) {
-                    badge = <span className='badge pull-right small'>{channel.unread}</span>;
+            var badge = null;
+            if (channelMember) {
+                if (channel.type === 'D') {
+                    // direct message channels show badges for any number of unread posts
+                    var msgCount = channel.total_msg_count - channelMember.msg_count;
+                    if (msgCount > 0) {
+                        badge = <span className='badge pull-right small'>{msgCount}</span>;
+                        badgesActive = true;
+                    }
+                } else if (channelMember.mention_count > 0) {
+                    // public and private channels only show badges for mentions
+                    badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
                     badgesActive = true;
-                    titleClass = 'unread-title';
                 }
-
-                function handleClick(e) {
-                    e.preventDefault();
-                    utils.switchChannel(channel, channel.teammate_username);
-                }
-
-                return (
-                    <li key={channel.name} className={active}><a className={'sidebar-channel ' + titleClass} href='#' onClick={handleClick}><span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} /> {badge}{channel.display_name}</a></li>
-                );
-            } else {
-                return (
-                    <li key={channel.name} className={active}><a className={'sidebar-channel ' + titleClass} href={TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name}><span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} /> {badge}{channel.display_name}</a></li>
-                );
             }
-        });
 
+            // set up status icon for direct message channels
+            var status = null;
+            if (channel.type === 'D') {
+                var statusIcon = '';
+                if (channel.status === 'online') {
+                    statusIcon = Constants.ONLINE_ICON_SVG;
+                } else if (channel.status === 'away') {
+                    statusIcon = Constants.ONLINE_ICON_SVG;
+                } else {
+                    statusIcon = Constants.OFFLINE_ICON_SVG;
+                }
+                status = <span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} />;
+            }
+
+            // set up click handler to switch channels (or create a new channel for non-existant ones)
+            var clickHandler = null;
+            var href;
+            if (!channel.fake) {
+                clickHandler = function(e) {
+                    e.preventDefault();
+                    utils.switchChannel(channel);
+                };
+                href = '#';
+            } else {
+                href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+            }
+
+            return (
+                <li key={channel.name} className={active}>
+                    <a className={'sidebar-channel ' + titleClass} href={href} onClick={clickHandler}>
+                        {status}
+                        {badge}
+                        {channel.display_name}
+                    </a>
+                </li>
+            );
+        };
+
+        // create elements for all 3 types of channels
+        var channelItems = this.state.channels.filter(
+            function(channel) {
+                return channel.type === 'O';
+            }
+        ).map(createChannelElement);
+
+        var privateChannelItems = this.state.channels.filter(
+            function(channel) {
+                return channel.type === 'P';
+            }
+        ).map(createChannelElement);
+
+        var directMessageItems = this.state.showDirectChannels.map(createChannelElement);
+
+        // update the favicon to show if there are any notifications
         var link = document.createElement('link');
         link.type = 'image/x-icon';
         link.rel = 'shortcut icon';
@@ -348,13 +344,6 @@ module.exports = React.createClass({
         }
         head.appendChild(link);
 
-        if (channelItems.length == 0) {
-            <li><small>Loading...</small></li>
-        }
-
-        if (privateChannelItems.length == 0) {
-            <li><small>Loading...</small></li>
-        }
         return (
             <div>
                 <SidebarHeader teamDisplayName={this.props.teamDisplayName} teamType={this.props.teamType} />
