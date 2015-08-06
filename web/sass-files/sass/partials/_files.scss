@@ -4,7 +4,8 @@
   max-height: 110px;
   height: 110px;
   white-space: nowrap;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   .preview-div {
     display: inline-block;
     width: 120px;
@@ -28,9 +29,9 @@
     }
   }
   .preview-img {
-      display: block;
-      height: auto;
-      max-width: 100%;
+    display: block;
+    height: auto;
+    max-width: 100%;
   }
   .remove-preview {
     position: absolute;
@@ -129,10 +130,10 @@
     background-color: #FFF;
     background-repeat: no-repeat;
     &.small {
-        background-position: center;
+      background-position: center;
     }
     &.normal {
-        background-position: top left;
+      background-position: top left;
     }
   }
   .post-image__thumbnail {
@@ -140,6 +141,8 @@
     vertical-align: top;
     width: 50%;
     height: 100%;
+    cursor: zoom-in;
+    cursor: -webkit-zoom-in;
   }
   .post-image__details {
     display: table-cell;
@@ -168,34 +171,34 @@
 }
 
 .file-details__container {
-    @include display-flex;
-    display: -ms-flexbox;
+  @include display-flex;
+  display: -ms-flexbox;
 
-    .file-details {
-        width: 320px;
-        height: 270px;
-        padding: 14px;
-        text-align: left;
-        vertical-align: top;
+  .file-details {
+    width: 320px;
+    height: 270px;
+    padding: 14px;
+    text-align: left;
+    vertical-align: top;
 
-        .file-details__name {
-            font-size: 16px;
-        }
-        .file-details__info {
-            color: grey;
-        }
+    .file-details__name {
+      font-size: 16px;
     }
-    .file-details__preview {
-        width: 320px;
-        height: 270px;
-        border-right: 1px solid #ddd;
-        vertical-align: center;
+    .file-details__info {
+      color: grey;
+    }
+  }
+  .file-details__preview {
+    width: 320px;
+    height: 270px;
+    border-right: 1px solid #ddd;
+    vertical-align: center;
 
         // helper to center the image icon in the preview window
         .file-details__preview-helper {
-            height: 100%;
-            display: inline-block;
-            vertical-align: middle;
+          height: 100%;
+          display: inline-block;
+          vertical-align: middle;
         }
+      }
     }
-}

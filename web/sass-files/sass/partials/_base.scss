@@ -49,6 +49,12 @@ div.theme {
   background-color: $primary-color;
 }
 
+.tooltip {
+  .tooltip-inner {
+    word-break: break-word;
+  }
+}
+
 .nopadding {
  padding: 0;
  margin: 0;
@@ -59,6 +65,10 @@ div.theme {
   &.no-resize {
     resize: none;
   }
+}
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+  cursor: auto;
 }
 
 .form-group {

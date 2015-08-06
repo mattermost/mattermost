@@ -28,6 +28,7 @@ module.exports = React.createClass({
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
         $("#profile_" + this.uniqueId).popover({placement : 'right', container: 'body', trigger: 'hover', html: true, delay: { "show": 200, "hide": 100 }});
+        $('body').tooltip( {selector: '[data-toggle=tooltip]', trigger: 'hover click'} );
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
@@ -57,7 +58,7 @@ module.exports = React.createClass({
         if (!config.ShowEmail) {
             data_content += "<div class='text-nowrap'>Email not shared</div>";
         } else {
-            data_content += "<div><a href='mailto:" + this.state.profile.email + "' class='text-nowrap text-lowercase'>" + this.state.profile.email + "</a></div>";
+            data_content += "<div data-toggle='tooltip' title= '" + this.state.profile.email + "'><a href='mailto:" + this.state.profile.email + "' class='text-nowrap text-lowercase user-popover__email'>" + this.state.profile.email + "</a></div>";
         }
 
         return (
