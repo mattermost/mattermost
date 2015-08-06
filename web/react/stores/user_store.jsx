@@ -17,7 +17,7 @@ var CHANGE_EVENT_STATUSES = 'change_statuses';
 
 var UserStore = assign({}, EventEmitter.prototype, {
 
-    _current_id: null,
+    gCurrentId: null,
 
     emitChange: function(userId) {
         this.emit(CHANGE_EVENT, userId);
@@ -65,21 +65,22 @@ var UserStore = assign({}, EventEmitter.prototype, {
         this.removeListener(CHANGE_EVENT_STATUSES, callback);
     },
     setCurrentId: function(id) {
-        this._current_id = id;
+        this.gCurrentId = id;
         if (id == null) {
-            BrowserStore.removeGlobalItem("current_user_id");
+            BrowserStore.removeGlobalItem('current_user_id');
         } else {
-            BrowserStore.setGlobalItem("current_user_id", id);
+            BrowserStore.setGlobalItem('current_user_id', id);
         }
     },
     getCurrentId: function() {
-        var current_id = this._current_id;
+        var currentId = this.gCurrentId;
 
-        if (current_id == null) {
-            current_id = BrowserStore.getGlobalItem("current_user_id");
+        if (currentId == null) {
+            currentId = BrowserStore.getGlobalItem('current_user_id');
+            this.gCurrentId = currentId;
         }
 
-        return current_id;
+        return currentId;
     },
     getCurrentUser: function(skipFetch) {
         if (this.getCurrentId(skipFetch) == null) {
@@ -93,10 +94,10 @@ var UserStore = assign({}, EventEmitter.prototype, {
         this.saveProfile(user);
     },
     getLastEmail: function() {
-        return BrowserStore.getItem("last_email", '');
+        return BrowserStore.getItem('last_email', '');
     },
     setLastEmail: function(email) {
-        BrowserStore.setItem("last_email", email);
+        BrowserStore.setItem('last_email', email);
     },
     removeCurrentUser: function() {
         this.setCurrentId(null);
@@ -118,11 +119,11 @@ var UserStore = assign({}, EventEmitter.prototype, {
         return this._getProfiles();
     },
     getActiveOnlyProfiles: function() {
-        active = {};
-        current = this._getProfiles();
+        var active = {};
+        var current = this._getProfiles();
 
         for (var key in current) {
-            if (current[key].delete_at == 0) {
+            if (current[key].delete_at === 0) {
                 active[key] = current[key];
             }
         }
@@ -135,73 +136,85 @@ var UserStore = assign({}, EventEmitter.prototype, {
         this._storeProfiles(ps);
     },
     _storeProfiles: function(profiles) {
-        BrowserStore.setItem("profiles", profiles);
+        BrowserStore.setItem('profiles', profiles);
         var profileUsernameMap = {};
         for (var id in profiles) {
             profileUsernameMap[profiles[id].username] = profiles[id];
         }
-        BrowserStore.setItem("profileUsernameMap", profileUsernameMap);
+        BrowserStore.setItem('profileUsernameMap', profileUsernameMap);
     },
     _getProfiles: function() {
-        return BrowserStore.getItem("profiles", {});
+        return BrowserStore.getItem('profiles', {});
     },
     _getProfilesUsernameMap: function() {
-        return BrowserStore.getItem("profileUsernameMap", {});
+        return BrowserStore.getItem('profileUsernameMap', {});
     },
     setSessions: function(sessions) {
-        BrowserStore.setItem("sessions", sessions);
+        BrowserStore.setItem('sessions', sessions);
     },
     getSessions: function() {
-        return BrowserStore.getItem("sessions", {loading: true});
+        return BrowserStore.getItem('sessions', {loading: true});
     },
     setAudits: function(audits) {
-        BrowserStore.setItem("audits", audits);
+        BrowserStore.setItem('audits', audits);
     },
     getAudits: function() {
-        return BrowserStore.getItem("audits", {loading: true});
+        return BrowserStore.getItem('audits', {loading: true});
     },
     setTeams: function(teams) {
-        BrowserStore.setItem("teams", teams);
+        BrowserStore.setItem('teams', teams);
     },
     getTeams: function() {
-        return BrowserStore.getItem("teams", []);
+        return BrowserStore.getItem('teams', []);
     },
     getCurrentMentionKeys: function() {
         var user = this.getCurrentUser();
 
         var keys = [];
 
-        if (!user)
+        if (!user || !user.notify_props) {
             return keys;
+        }
 
-        if (user.notify_props && user.notify_props.mention_keys) keys = keys.concat(user.notify_props.mention_keys.split(','));
-        if (user.first_name && user.notify_props.first_name === "true") keys.push(user.first_name);
-        if (user.notify_props.all === "true") keys.push('@all');
-        if (user.notify_props.channel === "true") keys.push('@channel');
+        if (user.notify_props.mention_keys) {
+            keys = keys.concat(user.notify_props.mention_keys.split(','));
+        }
+
+        if (user.notify_props.first_name === 'true' && user.first_name) {
+            keys.push(user.first_name);
+        }
+
+        if (user.notify_props.all === 'true') {
+            keys.push('@all');
+        }
+
+        if (user.notify_props.channel === 'true') {
+            keys.push('@channel');
+        }
 
         return keys;
     },
     getLastVersion: function() {
-        return BrowserStore.getItem("last_version", '');
+        return BrowserStore.getItem('last_version', '');
     },
     setLastVersion: function(version) {
-        BrowserStore.setItem("last_version", version);
+        BrowserStore.setItem('last_version', version);
     },
     setStatuses: function(statuses) {
         this._setStatuses(statuses);
         this.emitStatusesChange();
     },
     _setStatuses: function(statuses) {
-        BrowserStore.setItem("statuses", statuses);
+        BrowserStore.setItem('statuses', statuses);
     },
-    setStatus: function(user_id, status) {
+    setStatus: function(userId, status) {
         var statuses = this.getStatuses();
-        statuses[user_id] = status;
+        statuses[userId] = status;
         this._setStatuses(statuses);
         this.emitStatusesChange();
     },
     getStatuses: function() {
-        return BrowserStore.getItem("statuses", {});
+        return BrowserStore.getItem('statuses', {});
     },
     getStatus: function(id) {
         return this.getStatuses()[id];
@@ -211,11 +224,13 @@ var UserStore = assign({}, EventEmitter.prototype, {
 UserStore.dispatchToken = AppDispatcher.register(function(payload) {
     var action = payload.action;
 
-    switch(action.type) {
+    switch (action.type) {
         case ActionTypes.RECIEVED_PROFILES:
-            for(var id in action.profiles) {
+            for (var id in action.profiles) {
                 // profiles can have incomplete data, so don't overwrite current user
-                if (id === UserStore.getCurrentId()) continue;
+                if (id === UserStore.getCurrentId()) {
+                    continue;
+                }
                 var profile = action.profiles[id];
                 UserStore.saveProfile(profile);
                 UserStore.emitChange(profile.id);
