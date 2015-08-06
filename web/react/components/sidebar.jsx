@@ -163,7 +163,10 @@ module.exports = React.createClass({
             }
 
             if (UserStore.getCurrentId() !== msg.user_id) {
-                var mentions = msg.props.mentions ? JSON.parse(msg.props.mentions) : [];
+                var mentions = [];
+                if (msg.props.mentions) {
+                    mentions = JSON.parse(msg.props.mentions);
+                }
                 var channel = ChannelStore.get(msg.channel_id);
 
                 var user = UserStore.getCurrentUser();
@@ -181,7 +184,10 @@ module.exports = React.createClass({
                     username = UserStore.getProfile(msg.user_id).username;
                 }
 
-                var title = channel ? channel.display_name : 'Posted';
+                var title = 'Posted';
+                if (channel) {
+                    title = channel.display_name;
+                }
 
                 var repRegex = new RegExp('<br>', 'g');
                 var post = JSON.parse(msg.props.post);
@@ -283,7 +289,11 @@ module.exports = React.createClass({
 
         function createChannelElement(channel) {
             var channelMember = members[channel.id];
-            var active = channel.id === activeId ? 'active' : '';
+
+            var linkClass = '';
+            if (channel.id === self.state.active_id) {
+                linkClass = 'active';
+            }
 
             var unread = false;
             if (channelMember) {
@@ -345,7 +355,7 @@ module.exports = React.createClass({
             }
 
             return (
-                <li key={channel.name} ref={channel.name} className={active}>
+                <li key={channel.name} ref={channel.name} className={linkClass}>
                     <a className={'sidebar-channel ' + titleClass} href={href} onClick={clickHandler}>
                         {status}
                         {badge}
@@ -387,6 +397,17 @@ module.exports = React.createClass({
         }
         head.appendChild(link);
 
+        var directMessageMore = null;
+        if (this.state.hideDirectChannels.length > 0) {
+            directMessageMore = (
+                <li>
+                    <a href='#' data-toggle='modal' className='nav-more' data-target='#more_direct_channels' data-channels={JSON.stringify(this.state.hideDirectChannels)}>
+                        {'More ('+this.state.hideDirectChannels.length+')'}
+                    </a>
+                </li>
+            );
+        }
+
         return (
             <div>
                 <SidebarHeader teamDisplayName={this.props.teamDisplayName} teamType={this.props.teamType} />
@@ -409,9 +430,7 @@ module.exports = React.createClass({
                     <ul className='nav nav-pills nav-stacked'>
                         <li><h4>Private Messages</h4></li>
                         {directMessageItems}
-                        { this.state.hideDirectChannels.length > 0 ?
-                            <li><a href='#' data-toggle='modal' className='nav-more' data-target='#more_direct_channels' data-channels={JSON.stringify(this.state.hideDirectChannels)}>{'More ('+this.state.hideDirectChannels.length+')'}</a></li>
-                        : '' }
+                        {directMessageMore}
                     </ul>
                 </div>
             </div>
