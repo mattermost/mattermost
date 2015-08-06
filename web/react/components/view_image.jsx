@@ -93,11 +93,22 @@ module.exports = React.createClass({
             }
         );
 
+        $(this.getDOMNode()).on('keyup', function(e) {
+            if(!e) {
+                return;
+            } else if (e.keyCode === 39) {
+                self.handleNext();
+            } else if (e.keyCode === 37) {
+                self.handlePrev();
+            }
+        });
+
         // keep track of whether or not this component is mounted so we can safely set the state asynchronously
         this.canSetState = true;
     },
     componentWillUnmount: function() {
         this.canSetState = false;
+        $(this.getDOMNode()).off('keyup');
     },
     getPublicLink: function(e) {
         data = {};
