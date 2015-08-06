@@ -1,6 +1,6 @@
 # Mattermost Style Guide
 
-1. [GO](#go)
+1. [Go](#go)
 2. [Javascript](#javascript)
 3. [React-JSX](#react-jsx)
 
@@ -159,7 +159,7 @@ This is an abridged version of the [Airbnb React/JSX Style Guide](https://github
 
 - Property names use camelCase.
 - React component names use CapitalCamelCase.
-- Do not use an understore for internal methods in a react component. 
+- Do not use an underscore for internal methods in a react component. 
 
 ```xml
 // Correct
