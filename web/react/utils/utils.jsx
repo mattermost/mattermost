@@ -104,12 +104,6 @@ module.exports.notifyMe = function(title, body, channel) {
       }
 
       if (permission === "granted") {
-        var useMarkdown = config.AllowMarkdown;
-
-        if (useMarkdown) {
-            body = marked(body, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer({disable: true})});
-        }
-
         var notification = new Notification(title,
             { body: body, tag: body, icon: '/static/images/icon50x50.gif' }
         );
@@ -422,7 +416,7 @@ module.exports.customMarkedRenderer = function(options) {
                 return text;
             };
             customMarkedRenderer.hr = function() {
-                return '';
+                return '\n';
             };
             customMarkedRenderer.code = function(code, language) {
                 return code;

@@ -53,7 +53,7 @@ module.exports = React.createClass({
             }
 
             if (useMarkdown) {
-                message = marked(message, {sanitize: true, gfm: true, breaks: true, tables: false, smartypants: true, renderer: utils.customMarkedRenderer({disable: true})});
+                message = marked(message, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: utils.customMarkedRenderer({disable: true})});
                 comment = (
                     <p className="post-link">
                         <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick} dangerouslySetInnerHTML={{__html: message}} /></span>

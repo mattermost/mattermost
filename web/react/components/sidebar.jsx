@@ -11,6 +11,7 @@ var BrowserStore = require('../stores/browser_store.jsx');
 var utils = require('../utils/utils.jsx');
 var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
+var marked = require('marked');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -195,6 +196,11 @@ module.exports = React.createClass({
                         utils.notifyMe(title, username + ' did something new', channel);
                     }
                 } else {
+                    var useMarkdown = config.AllowMarkdown;
+                    if (useMarkdown) {
+                        notifyText = marked(notifyText, {sanitize: false, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: utils.customMarkedRenderer({disable: true})});
+                    }
+                    notifyText = utils.replaceHtmlEntities(notifyText);
                     utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
                 }
                 if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
