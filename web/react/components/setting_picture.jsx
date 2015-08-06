@@ -20,8 +20,14 @@ module.exports = React.createClass({
         }
     },
     render: function() {
-        var client_error = this.props.client_error ? <div className='form-group has-error'><label className='control-label'>{ this.props.client_error }</label></div> : null;
-        var server_error = this.props.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.props.server_error }</label></div> : null;
+        var clientError = null;
+        if (this.props.client_error) {
+            clientError = <div className='form-group has-error'><label className='control-label'>{this.props.client_error}</label></div>;
+        }
+        var serverError = null;
+        if (this.props.server_error) {
+            serverError = <div className='form-group has-error'><label className='control-label'>{this.props.server_error}</label></div>;
+        }
 
         var img = null;
         if (this.props.picture) {
@@ -30,8 +36,20 @@ module.exports = React.createClass({
             img = (<img ref='image' className='profile-img' src={this.props.src}/>);
         }
 
-        var self = this;
+        var confirmButton;
+        if (this.props.loadingPicture) {
+            confirmButton = <img className='spinner' src='/static/images/load.gif'/>;
+        } else {
+            var confirmButtonClass = 'btn btn-sm';
+            if (this.props.submitActive) {
+                confirmButtonClass += ' btn-primary';
+            } else {
+                confirmButtonClass += ' btn-inactive disabled';
+            }
+            confirmButton = <a className={confirmButtonClass} onClick={this.props.submit}>Save</a>;
+        }
 
+        var self = this;
         return (
             <ul className='section-max'>
                 <li className='col-xs-12 section-title'>{this.props.title}</li>
@@ -41,10 +59,10 @@ module.exports = React.createClass({
                             {img}
                         </li>
                         <li className='setting-list-item'>
-                            {server_error}
-                            {client_error}
+                            {serverError}
+                            {clientError}
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>Select<input ref='input' accept='.jpg,.png,.bmp' type='file' onChange={this.props.pictureChange}/></span>
-                            <a className={this.props.submitActive ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-inactive disabled'} onClick={this.props.submit}>Save</a>
+                            {confirmButton}
                             <a className='btn btn-sm theme' href='#' onClick={self.props.updateSection}>Cancel</a>
                         </li>
                     </ul>
