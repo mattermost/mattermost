@@ -132,11 +132,17 @@ module.exports = React.createClass({
         $('.nav-pills__container').perfectScrollbar();
 
         this.updateTitle();
+        this.updateUnreadIndicators();
+
+        $('.nav-pills__container').on('scroll', null, this.onScroll);
     },
     componentDidUpdate: function() {
         this.updateTitle();
+        this.updateUnreadIndicators();
     },
     componentWillUnmount: function() {
+        $('.nav-pills__container').off('scroll', null, this.onScroll);
+
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
@@ -235,6 +241,28 @@ module.exports = React.createClass({
             }
         }
     },
+    onScroll: function(e) {
+        this.updateUnreadIndicators();
+    },
+    updateUnreadIndicators: function() {
+        var container = $(this.refs.container.getDOMNode());
+
+        if (this.firstUnreadChannel) {
+            var firstUnreadElement = $(this.refs[this.firstUnreadChannel].getDOMNode());
+
+            if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
+                console.log("off top");
+            }
+        }
+
+        if (this.lastUnreadChannel) {
+            var lastUnreadElement = $(this.refs[this.lastUnreadChannel].getDOMNode());
+
+            if (lastUnreadElement.position().top > container.height()) {
+                console.log("off bottom");
+            }
+        }
+    },
     getInitialState: function() {
         return getStateFromStores();
     },
@@ -242,6 +270,11 @@ module.exports = React.createClass({
         var members = this.state.members;
         var activeId = this.state.active_id;
         var badgesActive = false;
+
+        // keep track of the first and last unread channels so we can use them to set the unread indicators
+        var self = this;
+        this.firstUnreadChannel = null;
+        this.lastUnreadChannel = null;
 
         function createChannelElement(channel) {
             var channelMember = members[channel.id];
@@ -256,6 +289,11 @@ module.exports = React.createClass({
             var titleClass = '';
             if (unread) {
                 titleClass = 'unread-title';
+
+                if (!self.firstUnreadChannel) {
+                    self.firstUnreadChannel = channel.name;
+                }
+                self.lastUnreadChannel = channel.name;
             }
 
             var badge = null;
@@ -302,7 +340,7 @@ module.exports = React.createClass({
             }
 
             return (
-                <li key={channel.name} className={active}>
+                <li key={channel.name} ref={channel.name} className={active}>
                     <a className={'sidebar-channel ' + titleClass} href={href} onClick={clickHandler}>
                         {status}
                         {badge}
@@ -349,7 +387,7 @@ module.exports = React.createClass({
                 <SidebarHeader teamDisplayName={this.props.teamDisplayName} teamType={this.props.teamType} />
                 <SearchBox />
 
-                <div className='nav-pills__container'>
+                <div ref='container' className='nav-pills__container'>
                     <ul className='nav nav-pills nav-stacked'>
                         <li><h4>Channels<a className='add-channel-btn' href='#' data-toggle='modal' data-target='#new_channel' data-channeltype='O'>+</a></h4></li>
                         {channelItems}
