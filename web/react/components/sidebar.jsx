@@ -134,14 +134,14 @@ module.exports = React.createClass({
         this.updateTitle();
         this.updateUnreadIndicators();
 
-        $('.nav-pills__container').on('scroll', null, this.onScroll);
+        $('.nav-pills__container').on('scroll', this.onScroll);
     },
     componentDidUpdate: function() {
         this.updateTitle();
         this.updateUnreadIndicators();
     },
     componentWillUnmount: function() {
-        $('.nav-pills__container').off('scroll', null, this.onScroll);
+        $('.nav-pills__container').off('scroll', this.onScroll);
 
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
@@ -251,7 +251,9 @@ module.exports = React.createClass({
             var firstUnreadElement = $(this.refs[this.firstUnreadChannel].getDOMNode());
 
             if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
-                console.log("off top");
+                $(this.refs.topUnreadIndicator.getDOMNode()).css('display', 'initial');
+            } else {
+                $(this.refs.topUnreadIndicator.getDOMNode()).css('display', 'none');
             }
         }
 
@@ -259,7 +261,10 @@ module.exports = React.createClass({
             var lastUnreadElement = $(this.refs[this.lastUnreadChannel].getDOMNode());
 
             if (lastUnreadElement.position().top > container.height()) {
-                console.log("off bottom");
+                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('bottom', '0');
+                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'initial');
+            } else {
+                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'none');
             }
         }
     },
@@ -386,6 +391,9 @@ module.exports = React.createClass({
             <div>
                 <SidebarHeader teamDisplayName={this.props.teamDisplayName} teamType={this.props.teamType} />
                 <SearchBox />
+
+                <div ref='topUnreadIndicator' className='nav-pills__unread-indicator nav-pills__unread-indicator-top' style={{display: 'none'}}>Unread post(s) above</div>
+                <div ref='bottomUnreadIndicator' className='nav-pills__unread-indicator nav-pills__unread-indicator-bottom' style={{display: 'none'}}>Unread post(s) below</div>
 
                 <div ref='container' className='nav-pills__container'>
                     <ul className='nav nav-pills nav-stacked'>

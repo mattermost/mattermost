@@ -35,7 +35,29 @@
         height: 100%;
         position: relative;
         overflow: auto;
+
     }
+
+    .nav-pills__unread-indicator {
+        position: absolute;
+        left: 0;
+        right: 0;
+        width: 70%;
+        background-color: darken($primary-color, 5%);
+        color: white;
+        margin: 0 auto;
+        padding: 2px;
+        text-align: center;
+        z-index: 1;
+    }
+
+    .nav-pills__unread-indicator-top {
+        top: 56px;
+    }
+    .nav-pills__unread-indicator-bottom {
+        bottom: 0px;
+    }
+
     .nav {
         &.nav-stacked {
             > li+li {
