@@ -9,6 +9,7 @@ var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
 var Autolinker = require('autolinker');
+var marked = require('marked');
 
 module.exports.isEmail = function(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -95,9 +96,8 @@ module.exports.getCookie = function(name) {
   if (parts.length == 2) return parts.pop().split(";").shift();
 }
 
-
 module.exports.notifyMe = function(title, body, channel) {
-  if ("Notification" in window && Notification.permission !== 'denied') {
+    if ("Notification" in window && Notification.permission !== 'denied') {
     Notification.requestPermission(function (permission) {
       if (Notification.permission !== permission) {
           Notification.permission = permission;
@@ -385,11 +385,86 @@ module.exports.searchForTerm = function(term) {
     });
 }
 
+/* Options:
+      - disable: Parses out *'s and other format specifiers in the text, but doesn't convert to html
+*/
+module.exports.customMarkedRenderer = function(options) {
+    var customMarkedRenderer = new marked.Renderer();
+
+    customMarkedRenderer.heading = function(text, level) {
+        return '<h' + level + '>' + text + '</h' + level + '>';
+    };
+    customMarkedRenderer.code = function(code, language) {
+        return '<pre>' + code + '</pre>';
+    };
+    customMarkedRenderer.codespan = function(code) {
+        return '<pre>' + code + '</pre>';
+    };
+    customMarkedRenderer.del = function(text) {
+        return '<s>' + text + '</s>';
+    };
+    customMarkedRenderer.link = function(href, title, text) {
+        return href;
+    };
+    customMarkedRenderer.image = function(href, title, text) {
+        return href;
+    };
+
+    if (options) {
+        if (options.disable) {
+            customMarkedRenderer.heading = function(text, level) {
+                return text;
+            };
+            customMarkedRenderer.hr = function() {
+                return '\n';
+            };
+            customMarkedRenderer.code = function(code, language) {
+                return code;
+            };
+            customMarkedRenderer.blockquote = function(quote) {
+                return quote;
+            };
+            customMarkedRenderer.list = function(body, ordered) {
+                return body;
+            };
+            customMarkedRenderer.listitem = function(text) {
+                return text + ' ';
+            };
+            customMarkedRenderer.paragraph = function(text) {
+                return text + ' ';
+            };
+            customMarkedRenderer.strong = function(text) {
+                return text;
+            };
+            customMarkedRenderer.em = function(text) {
+                return text;
+            };
+            customMarkedRenderer.br = function() {
+                return '\n';
+            };
+            customMarkedRenderer.del = function(text) {
+                return text;
+            };
+            customMarkedRenderer.codespan = function(code) {
+                return code;
+            };
+        }
+    }
+    return customMarkedRenderer;
+};
+
 var oldExplicitMentionRegex = /(?:<mention>)([\s\S]*?)(?:<\/mention>)/g;
-var puncStartRegex = /^((?![@#])\W)+/g;
-var puncEndRegex = /(\W)+$/g;
+var puncStartRegex = /^((?![@#])[^A-Za-z0-9_<>])+/g;
+var puncEndRegex = /([^A-Za-z0-9_<>])+$/g;
+var startTagRegex = /(<\s*\w.*?>)+/g;
+var endTagRegex = /(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)+/g;
 
 module.exports.textToJsx = function(text, options) {
+    var useMarkdown = config.AllowMarkdown && (!options || !options.noMarkdown);
+
+    if (useMarkdown) {
+        text = marked(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
+    }
 
     if (options && options['singleline']) {
         var repRegex = new RegExp("\n", "g");
@@ -398,7 +473,7 @@ module.exports.textToJsx = function(text, options) {
 
     var searchTerm = ""
     if (options && options['searchTerm']) {
-        searchTerm = options['searchTerm'].toLowerCase()
+        searchTerm = options['searchTerm'].toLowerCase();
     }
 
     var mentionClass = "mention-highlight";
@@ -420,12 +495,32 @@ module.exports.textToJsx = function(text, options) {
         var highlightSearchClass = "";
         for (var z = 0; z < words.length; z++) {
             var word = words[z];
-            var trimWord = word.replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            var trimWord;
+            if (useMarkdown) {
+                trimWord = word.replace(endTagRegex, '').replace(startTagRegex, '').replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            } else {
+                trimWord = word.replace(puncStartRegex, '').replace(puncEndRegex, '').trim();
+            }
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
 
-            if ((trimWord.toLowerCase().indexOf(searchTerm) > -1 || word.toLowerCase().indexOf(searchTerm) > -1) && searchTerm != "") {
+            var prefix;
+            var suffix;
+            var prefixSpan;
+            var suffixSpan;
+            if (useMarkdown) {
+                prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
+                suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
+                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
+                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+            } else {
+                prefix = word.match(puncStartRegex);
+                suffix = word.match(puncEndRegex);
+                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}>{prefix}</span>) : null;
+                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}>{suffix} </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+            }
 
+            if ((trimWord.toLowerCase().indexOf(searchTerm) > -1 || word.toLowerCase().indexOf(searchTerm) > -1) && searchTerm != "") {
                 highlightSearchClass = " search-highlight";
             }
 
@@ -437,60 +532,86 @@ module.exports.textToJsx = function(text, options) {
                 // do both a non-case sensitive and case senstive check
                 var mClass = implicitKeywords.indexOf('@'+name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@'+name) !== -1 ? mentionClass : "";
 
-                var suffix = word.match(puncEndRegex);
-                var prefix = word.match(puncStartRegex);
-
                 if (searchTerm === name) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
+                if (useMarkdown) {
+                    prefixSpan ? inner.push(prefixSpan) : null;
+                    inner.push(<span key={word+i+z+"word_span"}><a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>{"@" + name}</a></span>);
+                    suffixSpan ? inner.push(suffixSpan) : null;
+                }
+                else
+                    inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
                 var link = match.link;
 
-                var prefix = word.substring(0,word.indexOf(match.text));
-                var suffix = word.substring(word.indexOf(match.text)+match.text.length);
+                prefix = word.substring(0,word.indexOf(match.text));
+                suffix = word.substring(word.indexOf(match.text)+match.text.length);
+                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
+                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : <span key={word+i+z+"suf_span"}> </span>;
 
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
-
+                if (useMarkdown) {
+                    prefixSpan ? inner.push(prefixSpan) : null;
+                    inner.push(<span key={word+i+z+"_span"}><a key={name+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a></span>);
+                    suffixSpan ? inner.push(suffixSpan) : null;
+                }
+                else
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
             } else if (trimWord.match(hashRegex)) {
-                var suffix = word.match(puncEndRegex);
-                var prefix = word.match(puncStartRegex);
                 var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
                     highlightSearchClass = " search-highlight";
                 }
 
-                inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
+                if (useMarkdown) {
+                    prefixSpan ? inner.push(prefixSpan) : null;
+                    inner.push(<span key={word+i+z+"_span"}><a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a></span>);
+                    suffixSpan ? inner.push(suffixSpan) : null;
+                }
+                else
+                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
 
             } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
-                var suffix = word.match(puncEndRegex);
-                var prefix = word.match(puncStartRegex);
-
                 if (trimWord.charAt(0) === '@') {
                     if (searchTerm === trimWord.substring(1).toLowerCase()) {
                         highlightSearchClass = " search-highlight";
                     }
-                    inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
+                    if (useMarkdown) {
+                        prefixSpan ? inner.push(prefixSpan) : null;
+                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}><a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a></span>);
+                        suffixSpan ? inner.push(suffixSpan) : null;
+                    }
+                    else
+                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
                 } else {
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
+                    if (useMarkdown) {
+                        prefixSpan ? inner.push(prefixSpan) : null;
+                        inner.push(<span key={word+i+z+"_span"}><span className={mentionClass + highlightSearchClass}>{trimWord}</span></span>);
+                        suffixSpan ? inner.push(suffixSpan) : null;
+                    }
+                    else
+                        inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
                 }
 
             } else if (word === "") {
                 // if word is empty dont include a span
             } else {
-                inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span> </span>);
+                if (useMarkdown)
+                    inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass} dangerouslySetInnerHTML={{__html: word}} /> </span>);
+                else
+                    inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span> </span>);
             }
             highlightSearchClass = "";
         }
-        if (i != lines.length-1)
+        if (!useMarkdown && i != lines.length-1)
             inner.push(<br key={"br_"+i+z}/>);
     }
 
     return inner;
-}
+};
 
 module.exports.getFileType = function(ext) {
     ext = ext.toLowerCase();

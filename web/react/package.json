@@ -8,6 +8,7 @@
     "object-assign": "^1.0.0",
     "react": "^0.12.0",
     "autolinker": "^0.15.2",
+    "marked": "^0.3.4",
     "react-zeroclipboard-mixin": "^0.1.0"
   },
   "devDependencies": {

@@ -160,7 +160,7 @@ CommentPost = React.createClass({
                         </li>
                     </ul>
                     <div className="post-body">
-                        <p>{message}</p>
+                        <div>{message}</div>
                         { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
                                 filenames={post.filenames}
@@ -273,11 +273,20 @@ module.exports = React.createClass({
             root_post = post_list.posts[selected_post.root_id];
         }
 
+        var rootPostKey = root_post.id
+        if (root_post.lastEditDate != undefined)
+            rootPostKey += root_post.lastEditDate;
+
         var posts_array = [];
 
         for (var postId in post_list.posts) {
             var cpost = post_list.posts[postId];
             if (cpost.root_id == root_post.id) {
+                var cpostKey = cpost.id
+                if (cpost.lastEditDate != undefined)
+                    cpostKey += cpost.lastEditDate;
+
+                cpost.cpostKey = cpostKey;
                 posts_array.push(cpost);
             }
         }
@@ -300,10 +309,10 @@ module.exports = React.createClass({
                 <div className="sidebar-right__body">
                     <RhsHeaderPost fromSearch={this.props.fromSearch} isMentionSearch={this.props.isMentionSearch} />
                     <div className="post-right__scroll">
-                        <RootPost post={root_post} commentCount={posts_array.length}/>
+                        <RootPost key={rootPostKey} post={root_post} commentCount={posts_array.length}/>
                         <div className="post-right-comments-container">
                         { posts_array.map(function(cpost) {
-                                return <CommentPost ref={cpost.id} key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
+                                return <CommentPost ref={cpost.id} key={cpost.cpostKey} post={cpost} selected={ (cpost.id == selected_post.id) } />
                         })}
                         </div>
                         <div className="post-create__container">

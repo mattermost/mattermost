@@ -4,6 +4,7 @@
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
+var marked = require('marked');
 
 module.exports = React.createClass({
     componentWillReceiveProps: function(nextProps) {
@@ -19,6 +20,7 @@ module.exports = React.createClass({
         var filenames = this.props.post.filenames;
         var parentPost = this.props.parentPost;
         var inner = utils.textToJsx(this.state.message);
+        var useMarkdown = config.AllowMarkdown;
 
         var comment = "";
         var reply = "";
@@ -50,11 +52,20 @@ module.exports = React.createClass({
                 }
             }
 
-            comment = (
-                <p className="post-link">
-                    <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{message}</a></span>
-                </p>
-            );
+            if (useMarkdown) {
+                message = marked(message, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: utils.customMarkedRenderer({disable: true})});
+                comment = (
+                    <p className="post-link">
+                        <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick} dangerouslySetInnerHTML={{__html: message}} /></span>
+                    </p>
+                );
+            } else {
+                comment = (
+                    <p className="post-link">
+                        <span>Commented on {name}{apostrophe} message: <a className="theme" onClick={this.props.handleCommentClick}>{message}</a></span>
+                    </p>
+                );
+            }
 
             postClass += " post-comment";
         }
@@ -67,7 +78,11 @@ module.exports = React.createClass({
         return (
             <div className="post-body">
                 { comment }
+                {useMarkdown ?
+                <div key={post.id+"_message"} className={postClass}><span>{inner}</span></div>
+                :
                 <p key={post.id+"_message"} className={postClass}><span>{inner}</span></p>
+                }
                 { filenames && filenames.length > 0 ?
                     <FileAttachmentList
                         filenames={filenames}
