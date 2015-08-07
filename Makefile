@@ -101,14 +101,6 @@ install:
 		docker start mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-redis) -eq 0 ]; then \
-		echo starting mattermost-redis; \
-		docker run --name mattermost-redis -p 6379:6379 -d redis > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-redis) -eq 0 ]; then \
-		echo restarting mattermost-redis; \
-		docker start mattermost-redis > /dev/null; \
-	fi
-
 	@cd web/react/ && npm install
 
 check: install
@@ -157,12 +149,6 @@ clean:
 		echo stopping mattermost-mysql; \
 		docker stop mattermost-mysql > /dev/null; \
 		docker rm -v mattermost-mysql > /dev/null; \
-	fi
-
-	@if [ $(shell docker ps -a | grep -ci mattermost-redis) -eq 1 ]; then \
-		echo stopping mattermost-redis; \
-		docker stop mattermost-redis > /dev/null; \
-		docker rm -v mattermost-redis > /dev/null; \
 	fi
 
 	rm -rf web/react/node_modules
@@ -216,12 +202,6 @@ cleandb:
 		docker stop mattermost-mysql > /dev/null; \
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
-
-	@if [ $(shell docker ps -a | grep -ci mattermost-redis) -eq 1 ]; then \
-		docker stop mattermost-redis > /dev/null; \
-		docker rm -v mattermost-redis > /dev/null; \
-	fi
-
 dist: install
 
 	@$(GO) build $(GOFLAGS) -i -a ./...
