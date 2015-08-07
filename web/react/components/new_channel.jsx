@@ -143,7 +143,7 @@ module.exports = React.createClass({
                             </div>
                             <div className='modal-footer'>
                                 <button type='button' className='btn btn-default' data-dismiss='modal'>Cancel</button>
-                                <button onClick={this.handleSubmit} type='submit' className='btn btn-primary'>Create New Channel</button>
+                                <button onClick={this.handleSubmit} type='submit' className='btn btn-primary'>Create New {channelTerm}</button>
                             </div>
                         </form>
                     </div>
