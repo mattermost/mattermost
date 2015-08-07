@@ -133,16 +133,12 @@ module.exports = React.createClass({
 
         this.updateTitle();
         this.updateUnreadIndicators();
-
-        $('.nav-pills__container').on('scroll', this.onScroll);
     },
     componentDidUpdate: function() {
         this.updateTitle();
         this.updateUnreadIndicators();
     },
     componentWillUnmount: function() {
-        $('.nav-pills__container').off('scroll', this.onScroll);
-
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
@@ -416,7 +412,7 @@ module.exports = React.createClass({
                 <div ref='topUnreadIndicator' className='nav-pills__unread-indicator nav-pills__unread-indicator-top' style={{display: 'none'}}>Unread post(s) above</div>
                 <div ref='bottomUnreadIndicator' className='nav-pills__unread-indicator nav-pills__unread-indicator-bottom' style={{display: 'none'}}>Unread post(s) below</div>
 
-                <div ref='container' className='nav-pills__container'>
+                <div ref='container' className='nav-pills__container' onScroll={this.onScroll}>
                     <ul className='nav nav-pills nav-stacked'>
                         <li><h4>Channels<a className='add-channel-btn' href='#' data-toggle='modal' data-target='#new_channel' data-channeltype='O'>+</a></h4></li>
                         {channelItems}
