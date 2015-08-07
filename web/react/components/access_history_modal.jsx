@@ -13,22 +13,23 @@ function getStateFromStoresForAudits() {
 }
 
 module.exports = React.createClass({
+    displayName: 'AccessHistoryModal',
     componentDidMount: function() {
-        UserStore.addAuditsChangeListener(this._onChange);
-        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function(e) {
+        UserStore.addAuditsChangeListener(this.onListenerChange);
+        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function() {
             AsyncClient.getAudits();
         });
 
         var self = this;
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function() {
             $('#user_settings1').modal('show');
             self.setState({moreInfo: []});
         });
     },
     componentWillUnmount: function() {
-        UserStore.removeAuditsChangeListener(this._onChange);
+        UserStore.removeAuditsChangeListener(this.onListenerChange);
     },
-    _onChange: function() {
+    onListenerChange: function() {
         var newState = getStateFromStoresForAudits();
         if (!utils.areStatesEqual(newState.audits, this.state.audits)) {
             this.setState(newState);
@@ -62,6 +63,16 @@ module.exports = React.createClass({
                 currentAudit.session_id = 'N/A (Login attempt)';
             }
 
+            var moreInfo = (<a href='#' className='theme' onClick={this.handleMoreInfo.bind(this, i)}>More info</a>);
+            if (this.state.moreInfo[i]) {
+                moreInfo = (
+                    <div>
+                        <div>{'Session ID: ' + currentAudit.session_id}</div>
+                        <div>{'URL: ' + currentAudit.action.replace(/\/api\/v[1-9]/, '')}</div>
+                    </div>
+                );
+            }
+
             accessList[i] = (
                 <div className='access-history__table'>
                     <div className='access__date'>{newDate}</div>
@@ -69,14 +80,7 @@ module.exports = React.createClass({
                         <div className='report__time'>{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})}</div>
                         <div className='report__info'>
                             <div>{'IP: ' + currentAudit.ip_address}</div>
-                            {this.state.moreInfo[i] ?
-                            <div>
-                                <div>{'Session ID: ' + currentAudit.session_id}</div>
-                                <div>{'URL: ' + currentAudit.action.replace(/\/api\/v[1-9]/, '')}</div>
-                            </div>
-                            :
-                            <a href='#' className='theme' onClick={this.handleMoreInfo.bind(this, i)}>More info</a>
-                            }
+                            {moreInfo}
                         </div>
                         {i < this.state.audits.length - 1 ?
                         <div className='divider-light'/>

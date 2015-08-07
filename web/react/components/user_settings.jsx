@@ -524,12 +524,13 @@ var SecurityTab = React.createClass({
         $(this.getDOMNode()).find('.form-control').each(function() {
             this.value = '';
         });
+        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
 
         if (!this.state.willReturn) {
             this.props.updateTab('general');
+        } else {
+            this.setState({willReturn: false});
         }
-
-        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null, willReturn: false});
     },
     componentDidMount: function() {
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
