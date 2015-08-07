@@ -22,7 +22,7 @@ module.exports = React.createClass({
     handleSubmit: function(e) {
         e.preventDefault();
 
-        if (this.state.uploadsInProgress > 0) return;
+        if (this.state.uploadsInProgress.length > 0) return;
 
         if (this.state.submitting) return;
 
@@ -118,7 +118,7 @@ module.exports = React.createClass({
         if (!draft) {
             draft = {}
             draft['previews'] = [];
-            draft['uploadsInProgress'] = 0;
+            draft['uploadsInProgress'] = [];
         }
         draft['message'] = messageText;
         PostStore.storeCurrentDraft(draft);
@@ -128,30 +128,52 @@ module.exports = React.createClass({
         $(".post-list-holder-by-time").css("height", height + "px");
         $(window).trigger('resize');
     },
-    handleFileUpload: function(newPreviews, channel_id) {
+    handleUploadStart: function(filenames, channel_id) {
         var draft = PostStore.getDraft(channel_id);
         if (!draft) {
-            draft = {}
+            draft = {};
             draft['message'] = '';
-            draft['uploadsInProgress'] = 0;
+            draft['uploadsInProgress'] = [];
             draft['previews'] = [];
         }
 
-        if (channel_id === this.state.channel_id) {
-            var num = this.state.uploadsInProgress;
-            var oldPreviews = this.state.previews;
-            var previews = oldPreviews.concat(newPreviews);
+        draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(filenames);
+        PostStore.storeDraft(channel_id, draft);
 
-            draft['previews'] = previews;
-            draft['uploadsInProgress'] = num-1;
-            PostStore.storeCurrentDraft(draft);
-
-            this.setState({previews: previews, uploadsInProgress:num-1});
-        } else {
-            draft['previews'] = draft['previews'].concat(newPreviews);
-            draft['uploadsInProgress'] = draft['uploadsInProgress'] > 0 ? draft['uploadsInProgress'] - 1 : 0;
-            PostStore.storeDraft(channel_id, draft);
+        this.setState({uploadsInProgress: draft['uploadsInProgress']});
+    },
+    handleFileUploadComplete: function(filenames, channel_id) {
+        var draft = PostStore.getDraft(channel_id);
+        if (!draft) {
+            draft = {};
+            draft['message'] = '';
+            draft['uploadsInProgress'] = [];
+            draft['previews'] = [];
         }
+
+        // remove each finished file from uploads
+        for (var i = 0; i < filenames.length; i++) {
+            var filename = filenames[i];
+
+            // filenames returned by the server include a path while stored uploads only have the actual file name
+            var index = -1;
+            for (var j = 0; j < draft['uploadsInProgress'].length; j++) {
+                var upload = draft['uploadsInProgress'][j];
+                if (upload.indexOf(filename, upload.length - filename.length)) {
+                    index = j;
+                    break;
+                }
+            }
+
+            if (index != -1) {
+                draft['uploadsInProgress'].splice(index, 1);
+            }
+        }
+
+        draft['previews'] = draft['previews'].concat(filenames);
+        PostStore.storeDraft(channel_id, draft);
+
+        this.setState({uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
     },
     handleUploadError: function(err) {
         this.setState({ server_error: err });
@@ -168,7 +190,7 @@ module.exports = React.createClass({
         if (!draft) {
             draft = {}
             draft['message'] = '';
-            draft['uploadsInProgress'] = 0;
+            draft['uploadsInProgress'] = [];
         }
         draft['previews'] = previews;
         PostStore.storeCurrentDraft(draft);
@@ -187,7 +209,7 @@ module.exports = React.createClass({
             var draft = PostStore.getCurrentDraft();
             var previews = [];
             var messageText = '';
-            var uploadsInProgress = 0;
+            var uploadsInProgress = [];
             if (draft) {
                 previews = draft['previews'];
                 messageText = draft['message'];
@@ -206,42 +228,27 @@ module.exports = React.createClass({
             previews = draft['previews'];
             messageText = draft['message'];
         }
-        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: 0, previews: previews, submitting: false, initialText: messageText };
+        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: [], previews: previews, submitting: false, initialText: messageText };
     },
-    setUploads: function(val) {
-        var oldInProgress = this.state.uploadsInProgress
-        var newInProgress = oldInProgress + val;
-
-        if (newInProgress + this.state.previews.length > Constants.MAX_UPLOAD_FILES) {
-            newInProgress = Constants.MAX_UPLOAD_FILES - this.state.previews.length;
-            this.setState({limit_error: "Uploads limited to " + Constants.MAX_UPLOAD_FILES + " files maximum. Please use additional posts for more files."});
+    getFileCount: function(channel_id) {
+        if (channel_id === this.state.channel_id) {
+            return this.state.previews.length + this.state.uploadsInProgress.length;
         } else {
-            this.setState({limit_error: null});
+            var draft = PostStore.getDraft(channel_id);
+
+            if (draft) {
+                return draft['previews'].length + draft['uploadsInProgress'].length;
+            } else {
+                return 0;
+            }
         }
-
-        var numToUpload = newInProgress - oldInProgress;
-        if (numToUpload <= 0) return 0;
-
-        var draft = PostStore.getCurrentDraft();
-        if (!draft) {
-            draft = {}
-            draft['message'] = '';
-            draft['previews'] = [];
-        }
-        draft['uploadsInProgress'] = newInProgress;
-        PostStore.storeCurrentDraft(draft);
-        this.setState({uploadsInProgress: newInProgress});
-
-        return numToUpload;
     },
     render: function() {
-
         var server_error = this.state.server_error ? <div className='has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
         var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;
-        var limit_error = this.state.limit_error ? <div className='has-error'><label className='control-label'>{this.state.limit_error}</label></div> : null;
 
         var preview = <div/>;
-        if (this.state.previews.length > 0 || this.state.uploadsInProgress > 0) {
+        if (this.state.previews.length > 0 || this.state.uploadsInProgress.length > 0) {
             preview = (
                 <FilePreview
                     files={this.state.previews}
@@ -263,14 +270,14 @@ module.exports = React.createClass({
                             id="post_textbox"
                             ref="textbox" />
                         <FileUpload
-                            setUploads={this.setUploads}
-                            onFileUpload={this.handleFileUpload}
+                            getFileCount={this.getFileCount}
+                            onUploadStart={this.handleUploadStart}
+                            onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError} />
                     </div>
                     <div className={post_error ? 'post-create-footer has-error' : 'post-create-footer'}>
                         { post_error }
                         { server_error }
-                        { limit_error }
                         { preview }
                         <MsgTyping channelId={this.state.channel_id} parentId=""/>
                     </div>

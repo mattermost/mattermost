@@ -155,7 +155,7 @@ var PostStore = assign({}, EventEmitter.prototype, {
     clearDraftUploads: function clearDraftUploads() {
         BrowserStore.actionOnItemsWithPrefix('draft_', function clearUploads(key, value) {
             if (value) {
-                value.uploadsInProgress = 0;
+                value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
             }
         });
@@ -163,7 +163,7 @@ var PostStore = assign({}, EventEmitter.prototype, {
     clearCommentDraftUploads: function clearCommentDraftUploads() {
         BrowserStore.actionOnItemsWithPrefix('comment_draft_', function clearUploads(key, value) {
             if (value) {
-                value.uploadsInProgress = 0;
+                value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
             }
         });

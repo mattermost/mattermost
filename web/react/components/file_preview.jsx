@@ -43,13 +43,13 @@ module.exports = React.createClass({
             }
         }.bind(this));
 
-        for (var i = 0; i < this.props.uploadsInProgress; i++) {
+        this.props.uploadsInProgress.forEach(function(filename) {
             previews.push(
                 <div className="preview-div">
                     <img className="spinner" src="/static/images/load.gif"/>
                 </div>
             );
-        }
+        }.bind(this));
 
         return (
             <div className="preview-container">

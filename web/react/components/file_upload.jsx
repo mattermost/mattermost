@@ -10,6 +10,8 @@ module.exports = React.createClass({
         var element = $(this.refs.fileInput.getDOMNode());
         var files = element.prop('files');
 
+        var channel_id = ChannelStore.getCurrentId();
+
         this.props.onUploadError(null);
 
         // This looks redundant, but must be done this way due to
@@ -21,15 +23,17 @@ module.exports = React.createClass({
             }
         }
 
-        var numToUpload = this.props.setUploads(numFiles);
+        var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channel_id), numFiles);
+
+        if (numFiles > numToUpload) {
+            this.props.onUploadError("Uploads limited to " + Constants.MAX_UPLOAD_FILES + " files maximum. Please use additional posts for more files.");
+        }
 
         for (var i = 0; i < files.length && i < numToUpload; i++) {
             if (files[i].size > Constants.MAX_FILE_SIZE) {
                 this.props.onUploadError("Files must be no more than " + Constants.MAX_FILE_SIZE/1000000 + " MB");
                 continue;
             }
-
-            var channel_id = ChannelStore.getCurrentId();
 
             // Prepare data to be uploaded.
             formData = new FormData();
@@ -42,10 +46,11 @@ module.exports = React.createClass({
                     this.props.onFileUpload(parsedData['filenames'], channel_id);
                 }.bind(this),
                 function(err) {
-                    this.props.setUploads(-1);
                     this.props.onUploadError(err);
                 }.bind(this)
             );
+
+            this.props.onUploadStart([files[i].name], channel_id);
         }
 
         // clear file input for all modern browsers
@@ -87,7 +92,11 @@ module.exports = React.createClass({
                     }
                 }
 
-                var numToUpload = self.props.setUploads(numItems);
+                var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(channel_id), numItems);
+
+                if (numItems > numToUpload) {
+                    self.props.onUploadError("Uploads limited to " + Constants.MAX_UPLOAD_FILES + " files maximum. Please use additional posts for more files.");
+                }
 
                 for (var i = 0; i < items.length && i < numToUpload; i++) {
                     if (items[i].type.indexOf("image") !== -1) {
@@ -105,17 +114,20 @@ module.exports = React.createClass({
                         var d = new Date();
                         var hour = d.getHours() < 10 ? "0" + d.getHours() : String(d.getHours());
                         var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
-                        formData.append('files', file, "Image Pasted at "+d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()+" "+hour+"-"+min+"." + ext);
+                        var name = "Image Pasted at "+d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()+" "+hour+"-"+min+"." + ext;
+                        formData.append('files', file, name);
 
                         client.uploadFile(formData,
                             function(data) {
                                 parsedData = $.parseJSON(data);
                                 self.props.onFileUpload(parsedData['filenames'], channel_id);
-                            }.bind(this),
+                            },
                             function(err) {
                                 self.props.onUploadError(err);
-                            }.bind(this)
+                            }
                         );
+
+                        self.props.onUploadStart([name], channel_id);
                     }
                 }
             }
