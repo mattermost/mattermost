@@ -513,17 +513,23 @@ var SecurityTab = React.createClass({
         this.setState({confirmPassword: e.target.value});
     },
     handleHistoryOpen: function() {
-        $('#user_settings1').modal('hide');
+        this.setState({willReturn: true});
+        $("#user_settings1").modal('hide');
     },
     handleDevicesOpen: function() {
-        $('#user_settings1').modal('hide');
+        this.setState({willReturn: true});
+        $("#user_settings1").modal('hide');
     },
     handleClose: function() {
         $(this.getDOMNode()).find('.form-control').each(function() {
             this.value = '';
         });
-        this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
-        this.props.updateTab('general');
+
+        if (!this.state.willReturn) {
+            this.props.updateTab('general');
+        }
+
+        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null, willReturn: false});
     },
     componentDidMount: function() {
         $('#user_settings1').on('hidden.bs.modal', this.handleClose);
@@ -533,7 +539,7 @@ var SecurityTab = React.createClass({
         this.props.updateSection('');
     },
     getInitialState: function() {
-        return {currentPassword: '', newPassword: '', confirmPassword: ''};
+        return { current_password: '', new_password: '', confirm_password: '', willReturn: false };
     },
     render: function() {
         var serverError = this.state.serverError ? this.state.serverError : null;
