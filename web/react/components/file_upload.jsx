@@ -84,7 +84,45 @@ module.exports = React.createClass({
         var inputDiv = this.refs.input.getDOMNode();
         var self = this;
 
+<<<<<<< HEAD
         document.addEventListener('paste', function(e) {
+=======
+        $('body').on('dragover', '.app__content', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            //e.target.style
+            console.log("HERE!: drag center");
+        });
+        $('body').on('dragover', '.sidebar--right', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            //e.target.style
+            console.log("HERE!: drag right");
+        });
+        $('body').on('dragenter', '.app__content', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            //e.target.style
+            console.log("HERE!: dragenter center");
+        });
+        $('body').on('dragenter', '.sidebar--right', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            //e.target.style
+            console.log("HERE!: dragenter right");
+        });
+        $('body').on('drop', '.app__content', function(e) {
+            if (e.originalEvent.dataTransfer)
+            e.preventDefault();
+            console.log("HERE!: drop center");
+        });
+        $('body').on('drop', '.sidebar--right', function(e) {
+            e.preventDefault();
+            console.log("HERE!: drop right");
+        });
+
+        document.addEventListener("paste", function(e) {
+>>>>>>> Added handlers for dragging and dropping files onto the center pane or RHS
             var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
 
             if (textarea !== e.target && !$.contains(textarea, e.target)) {

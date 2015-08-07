@@ -125,6 +125,12 @@ module.exports = React.createClass({
             }
         });
 
+        //$('body').on('drop drag')
+        /*window.document.addEventListener("drop", function(e) {
+            e.preventDefault();
+            var centerPostList = $(inputDiv.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode).find('.post-list')[0];
+            console.log("HERE!: " + centerPostList);
+        });*/
     },
     componentDidUpdate: function() {
         this.resize();
