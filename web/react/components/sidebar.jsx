@@ -133,12 +133,16 @@ module.exports = React.createClass({
 
         this.updateTitle();
         this.updateUnreadIndicators();
+
+        $(window).on('resize', this.onResize);
     },
     componentDidUpdate: function() {
         this.updateTitle();
         this.updateUnreadIndicators();
     },
     componentWillUnmount: function() {
+        $(window).off('resize', this.onResize);
+
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
@@ -244,6 +248,9 @@ module.exports = React.createClass({
         }
     },
     onScroll: function(e) {
+        this.updateUnreadIndicators();
+    },
+    onResize: function(e) {
         this.updateUnreadIndicators();
     },
     updateUnreadIndicators: function() {
