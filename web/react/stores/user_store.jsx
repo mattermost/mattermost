@@ -82,8 +82,8 @@ var UserStore = assign({}, EventEmitter.prototype, {
 
         return currentId;
     },
-    getCurrentUser: function(skipFetch) {
-        if (this.getCurrentId(skipFetch) == null) {
+    getCurrentUser: function() {
+        if (this.getCurrentId() == null) {
             return null;
         }
 
