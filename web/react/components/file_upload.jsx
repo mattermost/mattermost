@@ -80,49 +80,77 @@ module.exports = React.createClass({
             }
         } catch(e) {}
     },
+    handleDrop: function(e) {
+        this.props.onUploadError(null);
+
+        var files = e.originalEvent.dataTransfer.files;
+        if (files.length) {
+            var numFiles = files.length;
+            var numToUpload = this.props.setUploads(numFiles);
+
+            for (var i = 0; i < numFiles && i < numToUpload; i++) {
+                var file = files[i];
+                var channelId = this.props.channelId || ChannelStore.getCurrentId();
+
+                var formData = new FormData();
+                formData.append('channel_id', channelId);
+                formData.append('files', file, file.name);
+
+                client.uploadFile(formData,
+                    function(data) {
+                        var parsedData = $.parseJSON(data);
+                        this.props.onFileUpload(parsedData.filenames, channelId);
+                    }.bind(this),
+                    function(err) {
+                        this.props.onUploadError(err);
+                    }.bind(this)
+                );
+            }
+        }
+    },
     componentDidMount: function() {
         var inputDiv = this.refs.input.getDOMNode();
         var self = this;
 
-<<<<<<< HEAD
-        document.addEventListener('paste', function(e) {
-=======
-        $('body').on('dragover', '.app__content', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            //e.target.style
-            console.log("HERE!: drag center");
-        });
-        $('body').on('dragover', '.sidebar--right', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            //e.target.style
-            console.log("HERE!: drag right");
-        });
-        $('body').on('dragenter', '.app__content', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            //e.target.style
-            console.log("HERE!: dragenter center");
-        });
-        $('body').on('dragenter', '.sidebar--right', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            //e.target.style
-            console.log("HERE!: dragenter right");
-        });
-        $('body').on('drop', '.app__content', function(e) {
-            if (e.originalEvent.dataTransfer)
-            e.preventDefault();
-            console.log("HERE!: drop center");
-        });
-        $('body').on('drop', '.sidebar--right', function(e) {
-            e.preventDefault();
-            console.log("HERE!: drop right");
-        });
+        if (this.props.postType === 'post') {
+            $('body').on('dragover', '.app__content', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            $('body').on('dragenter', '.app__content', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            $('body').on('dragend dragleave', '.app__content', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            $('body').on('drop', '.app__content', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.handleDrop(e);
+            });
+        } else if (this.props.postType === 'comment') {
+            $('body').on('dragover', '.sidebar--right', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            $('body').on('dragenter', '.sidebar--right', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            $('body').on('dragend dragleave', '.sidebar--right', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            $('body').on('drop', '.sidebar--right', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.handleDrop(e);
+            });
+        }
 
-        document.addEventListener("paste", function(e) {
->>>>>>> Added handlers for dragging and dropping files onto the center pane or RHS
+        document.addEventListener('paste', function(e) {
             var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
 
             if (textarea !== e.target && !$.contains(textarea, e.target)) {
