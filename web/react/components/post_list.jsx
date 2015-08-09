@@ -280,6 +280,10 @@ module.exports = React.createClass({
                 }
             );
     },
+    handleDragEnter: function() {
+        console.log("HERE ENTER");
+        this.setState({fileDrag: true});
+    },
     getInitialState: function() {
         return getStateFromStores();
     },
@@ -461,9 +465,14 @@ module.exports = React.createClass({
             postCtls.push(<LoadingScreen position="absolute" />);
         }
 
+        var fileDragOverlay = '';
+        if (this.state.fileDrag) {
+            fileDragOverlay = 'post-list-file-overlay';
+        }
+
         return (
             <div ref="postlist" className="post-list-holder-by-time">
-                <div className="post-list__table">
+                <div className={"post-list__table " + fileDragOverlay} onDragEnter={this.handleDragEnter}>
                     <div className="post-list__content">
                         { more_messages }
                         { postCtls }

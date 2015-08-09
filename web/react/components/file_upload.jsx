@@ -113,39 +113,31 @@ module.exports = React.createClass({
         var self = this;
 
         if (this.props.postType === 'post') {
-            $('body').on('dragover', '.app__content', function(e) {
+            $('body').on('dragover', '.post-list__table', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
             });
-            $('body').on('dragenter', '.app__content', function(e) {
+            $('body').on('dragenter', '.post-list__table', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
             });
-            $('body').on('dragend dragleave', '.app__content', function(e) {
+            $('body').on('dragleave', '.post-list__table', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
             });
-            $('body').on('drop', '.app__content', function(e) {
+            $('body').on('drop', '.post-list__table', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
                 self.handleDrop(e);
             });
         } else if (this.props.postType === 'comment') {
             $('body').on('dragover', '.sidebar--right', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
             });
             $('body').on('dragenter', '.sidebar--right', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
             });
-            $('body').on('dragend dragleave', '.sidebar--right', function(e) {
+            $('body').on('dragleave', '.sidebar--right', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
             });
             $('body').on('drop', '.sidebar--right', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
                 self.handleDrop(e);
             });
         }

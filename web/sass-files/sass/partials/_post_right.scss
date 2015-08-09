@@ -1,5 +1,11 @@
 .post-right__container {
 
+	.post-right-file-overlay {
+		width: 100%;
+		height: 100%;
+		background:rgba(255,255,255,0.5);
+	}
+
 	.post-right-root-message {
 		padding: 1em 1em 0;
 	}
