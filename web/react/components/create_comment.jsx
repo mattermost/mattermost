@@ -95,7 +95,7 @@ module.exports = React.createClass({
         $(".post-right__scroll").perfectScrollbar('update');
         this.setState({messageText: messageText});
     },
-    handleUploadStart: function(filenames, channel_id) {
+    handleUploadStart: function(clientIds, channel_id) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
         if (!draft) {
             draft = {};
@@ -104,12 +104,12 @@ module.exports = React.createClass({
             draft['previews'] = [];
         }
 
-        draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(filenames);
+        draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(clientIds);
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         this.setState({uploadsInProgress: draft['uploadsInProgress']});
     },
-    handleFileUploadComplete: function(filenames, channel_id) {
+    handleFileUploadComplete: function(filenames, clientIds, channel_id) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
         if (!draft) {
             draft = {};
@@ -119,18 +119,8 @@ module.exports = React.createClass({
         }
 
         // remove each finished file from uploads
-        for (var i = 0; i < filenames.length; i++) {
-            var filename = filenames[i];
-
-            // filenames returned by the server include a path while stored uploads only have the actual file name
-            var index = -1;
-            for (var j = 0; j < draft['uploadsInProgress'].length; j++) {
-                var upload = draft['uploadsInProgress'][j];
-                if (upload.indexOf(filename, upload.length - filename.length)) {
-                    index = j;
-                    break;
-                }
-            }
+        for (var i = 0; i < clientIds.length; i++) {
+            var index = draft['uploadsInProgress'].indexOf(clientIds[i]);
 
             if (index != -1) {
                 draft['uploadsInProgress'].splice(index, 1);
@@ -148,20 +138,20 @@ module.exports = React.createClass({
     clearPreviews: function() {
         this.setState({previews: []});
     },
-    removePreview: function(filename) {
+    removePreview: function(id) {
         var previews = this.state.previews;
         var uploadsInProgress = this.state.uploadsInProgress;
 
-        // this can be either an uploaded file or an in progress upload that we need to remove
-        var index = previews.indexOf(filename);
+        // id can either be the path of an uploaded file or the client id of an in progress upload
+        var index = previews.indexOf(id);
         if (index !== -1) {
             previews.splice(index, 1);
         } else {
-            index = uploadsInProgress.indexOf(filename);
+            index = uploadsInProgress.indexOf(id);
 
             if (index !== -1) {
                 uploadsInProgress.splice(index, 1);
-                this.refs.fileUpload.cancelUpload(filename);
+                this.refs.fileUpload.cancelUpload(id);
             }
         }
 

@@ -39,19 +39,23 @@ module.exports = React.createClass({
                 continue;
             }
 
+            // generate a unique id that can be used by other components to refer back to this file upload
+            var clientId = utils.generateId();
+
             // Prepare data to be uploaded.
             formData = new FormData();
             formData.append('channel_id', channel_id);
             formData.append('files', files[i], files[i].name);
+            formData.append('client_ids', clientId);
 
             var request = client.uploadFile(formData,
                 function(data) {
                     parsedData = $.parseJSON(data);
-                    this.props.onFileUpload(parsedData['filenames'], channel_id);
+                    this.props.onFileUpload(parsedData['filenames'], parsedData['client_ids'], channel_id);
 
                     var requests = this.state.requests;
-                    for (var i = 0; i < parsedData['filenames'].length; i++) {
-                        delete requests[utils.getFileName(parsedData['filenames'][i])];
+                    for (var i = 0; i < parsedData['client_ids'].length; i++) {
+                        delete requests[parsedData['client_ids'][i]];
                     }
                     this.setState({requests: requests});
                 }.bind(this),
@@ -61,10 +65,10 @@ module.exports = React.createClass({
             );
 
             var requests = this.state.requests;
-            requests[files[i].name] = request;
+            requests[clientId] = request;
             this.setState({requests: requests});
 
-            this.props.onUploadStart([files[i].name], channel_id);
+            this.props.onUploadStart([clientId], channel_id);
         }
 
         // clear file input for all modern browsers
@@ -123,6 +127,9 @@ module.exports = React.createClass({
 
                         var channel_id = ChannelStore.getCurrentId();
 
+                        // generate a unique id that can be used by other components to refer back to this file upload
+                        var clientId = utils.generateId();
+
                         formData = new FormData();
                         formData.append('channel_id', channel_id);
                         var d = new Date();
@@ -130,15 +137,16 @@ module.exports = React.createClass({
                         var min = d.getMinutes() < 10 ? "0" + d.getMinutes() : String(d.getMinutes());
                         var name = "Image Pasted at "+d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()+" "+hour+"-"+min+"." + ext;
                         formData.append('files', file, name);
+                        formData.append('client_ids', clientId);
 
-                        client.uploadFile(formData,
+                        var request = client.uploadFile(formData,
                             function(data) {
                                 parsedData = $.parseJSON(data);
-                                self.props.onFileUpload(parsedData['filenames'], channel_id);
+                                self.props.onFileUpload(parsedData['filenames'], parsedData['client_ids'], channel_id);
 
                                 var requests = self.state.requests;
-                                for (var i = 0; i < parsedData['filenames'].length; i++) {
-                                    delete requests[utils.getFileName(parsedData['filenames'][i])];
+                                for (var i = 0; i < parsedData['client_ids'].length; i++) {
+                                    delete requests[parsedData['client_ids'][i]];
                                 }
                                 self.setState({requests: requests});
                             },
@@ -148,23 +156,23 @@ module.exports = React.createClass({
                         );
 
                         var requests = self.state.requests;
-                        requests[files[i].name] = request;
+                        requests[clientId] = request;
                         self.setState({requests: requests});
 
-                        self.props.onUploadStart([name], channel_id);
+                        self.props.onUploadStart([clientId], channel_id);
                     }
                 }
             }
         });
     },
-    cancelUpload: function(filename) {
+    cancelUpload: function(clientId) {
         var requests = this.state.requests;
-        var request = requests[filename];
+        var request = requests[clientId];
 
         if (request) {
             request.abort();
 
-            delete requests[filename];
+            delete requests[clientId];
             this.setState({requests: requests});
         }
     },
