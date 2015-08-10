@@ -22,13 +22,12 @@ module.exports = React.createClass({
     handleSubmit: function(e) {
         e.preventDefault();
 
-        if (this.state.uploadsInProgress.length > 0) return;
-
-        if (this.state.submitting) return;
+        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
+            return;
+        }
 
         var post = {};
         post.filenames = [];
-
         post.message = this.state.messageText;
 
         if (post.message.trim().length === 0 && this.state.previews.length === 0) {
@@ -36,55 +35,52 @@ module.exports = React.createClass({
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({ post_error: 'Post length must be less than '+Constants.CHARACTER_LIMIT+' characters.' });
+            this.setState({postError: 'Post length must be less than ' + Constants.CHARACTER_LIMIT + ' characters.'});
             return;
         }
 
-        this.setState({ submitting: true, limit_error: null });
+        this.setState({submitting: true, serverError: null});
 
-        var user_id = UserStore.getCurrentId();
-
-        if (post.message.indexOf("/") == 0) {
+        if (post.message.indexOf('/') === 0) {
             client.executeCommand(
-                this.state.channel_id,
+                this.state.channelId,
                 post.message,
                 false,
                 function(data) {
                     PostStore.storeDraft(data.channel_id, null);
-                    this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
+                    this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
                     if (data.goto_location.length > 0) {
                         window.location.href = data.goto_location;
                     }
                 }.bind(this),
-                function(err){
-                    var state = {}
-                    state.server_error = err.message;
+                function(err) {
+                    var state = {};
+                    state.serverError = err.message;
                     state.submitting = false;
                     this.setState(state);
                 }.bind(this)
             );
         } else {
-            post.channel_id = this.state.channel_id;
+            post.channel_id = this.state.channelId;
             post.filenames = this.state.previews;
 
             client.createPost(post, ChannelStore.getCurrent(),
                 function(data) {
                     PostStore.storeDraft(data.channel_id, null);
-                    this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
+                    this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
                     this.resizePostHolder();
                     AsyncClient.getPosts(true);
 
-                    var channel = ChannelStore.get(this.state.channel_id);
-                    var member = ChannelStore.getMember(this.state.channel_id);
+                    var channel = ChannelStore.get(this.state.channelId);
+                    var member = ChannelStore.getMember(this.state.channelId);
                     member.msg_count = channel.total_msg_count;
-                    member.last_viewed_at = (new Date).getTime();
+                    member.last_viewed_at = Date.now();
                     ChannelStore.setChannelMember(member);
-
                 }.bind(this),
                 function(err) {
-                    var state = {}
-                    state.server_error = err.message;
+                    var state = {};
+                    state.serverError = err.message;
 
                     state.submitting = false;
                     this.setState(state);
@@ -92,21 +88,21 @@ module.exports = React.createClass({
             );
         }
 
-        $(".post-list-holder-by-time").perfectScrollbar('update');
+        $('.post-list-holder-by-time').perfectScrollbar('update');
     },
     componentDidUpdate: function() {
         this.resizePostHolder();
     },
     postMsgKeyPress: function(e) {
-        if (e.which == 13 && !e.shiftKey && !e.altKey) {
+        if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             this.refs.textbox.getDOMNode().blur();
             this.handleSubmit(e);
         }
 
-        var t = new Date().getTime();
+        var t = Date.now();
         if ((t - this.lastTime) > 5000) {
-            SocketStore.sendMessage({channel_id: this.state.channel_id, action: "typing", props: {"parent_id": ""}, state: {} });
+            SocketStore.sendMessage({channelId: this.state.channelId, action: 'typing', props: {'parent_id': ''}, state: {}});
             this.lastTime = t;
         }
     },
@@ -116,7 +112,7 @@ module.exports = React.createClass({
 
         var draft = PostStore.getCurrentDraft();
         if (!draft) {
-            draft = {}
+            draft = {};
             draft['previews'] = [];
             draft['uploadsInProgress'] = [];
         }
@@ -125,11 +121,11 @@ module.exports = React.createClass({
     },
     resizePostHolder: function() {
         var height = $(window).height() - $(this.refs.topDiv.getDOMNode()).height() - $('#error_bar').outerHeight() - 50;
-        $(".post-list-holder-by-time").css("height", height + "px");
+        $('.post-list-holder-by-time').css('height', height + 'px');
         $(window).trigger('resize');
     },
-    handleUploadStart: function(clientIds, channel_id) {
-        var draft = PostStore.getDraft(channel_id);
+    handleUploadStart: function(clientIds, channelId) {
+        var draft = PostStore.getDraft(channelId);
         if (!draft) {
             draft = {};
             draft['message'] = '';
@@ -138,12 +134,12 @@ module.exports = React.createClass({
         }
 
         draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(clientIds);
-        PostStore.storeDraft(channel_id, draft);
+        PostStore.storeDraft(channelId, draft);
 
         this.setState({uploadsInProgress: draft['uploadsInProgress']});
     },
-    handleFileUploadComplete: function(filenames, clientIds, channel_id) {
-        var draft = PostStore.getDraft(channel_id);
+    handleFileUploadComplete: function(filenames, clientIds, channelId) {
+        var draft = PostStore.getDraft(channelId);
         if (!draft) {
             draft = {};
             draft['message'] = '';
@@ -155,18 +151,18 @@ module.exports = React.createClass({
         for (var i = 0; i < clientIds.length; i++) {
             var index = draft['uploadsInProgress'].indexOf(clientIds[i]);
 
-            if (index != -1) {
+            if (index !== -1) {
                 draft['uploadsInProgress'].splice(index, 1);
             }
         }
 
         draft['previews'] = draft['previews'].concat(filenames);
-        PostStore.storeDraft(channel_id, draft);
+        PostStore.storeDraft(channelId, draft);
 
         this.setState({uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
     },
     handleUploadError: function(err, clientId) {
-        var draft = PostStore.getDraft(this.state.channel_id);
+        var draft = PostStore.getDraft(this.state.channelId);
         if (!draft) {
             draft = {};
             draft['message'] = '';
@@ -175,13 +171,13 @@ module.exports = React.createClass({
         }
 
         var index = draft['uploadsInProgress'].indexOf(clientId);
-        if (index != -1) {
+        if (index !== -1) {
             draft['uploadsInProgress'].splice(index, 1);
         }
 
-        PostStore.storeDraft(this.state.channel_id, draft);
+        PostStore.storeDraft(this.state.channelId, draft);
 
-        this.setState({uploadsInProgress: draft['uploadsInProgress'], server_error: err});
+        this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
     },
     removePreview: function(id) {
         var previews = this.state.previews;
@@ -202,7 +198,7 @@ module.exports = React.createClass({
 
         var draft = PostStore.getCurrentDraft();
         if (!draft) {
-            draft = {}
+            draft = {};
             draft['message'] = '';
             draft['uploadsInProgress'] = [];
         }
@@ -220,8 +216,8 @@ module.exports = React.createClass({
         ChannelStore.removeChangeListener(this._onChange);
     },
     _onChange: function() {
-        var channel_id = ChannelStore.getCurrentId();
-        if (this.state.channel_id != channel_id) {
+        var channelId = ChannelStore.getCurrentId();
+        if (this.state.channelId !== channelId) {
             var draft = PostStore.getCurrentDraft();
             var previews = [];
             var messageText = '';
@@ -231,7 +227,10 @@ module.exports = React.createClass({
                 messageText = draft['message'];
                 uploadsInProgress = draft['uploadsInProgress'];
             }
-            this.setState({ channel_id: channel_id, messageText: messageText, initialText: messageText, submitting: false, limit_error: null, server_error: null, post_error: null, previews: previews, uploadsInProgress: uploadsInProgress });
+            this.setState({
+                channelId: channelId, messageText: messageText, initialText: messageText, submitting: false,
+                serverError: null, postError: null, previews: previews, uploadsInProgress: uploadsInProgress
+            });
         }
     },
     getInitialState: function() {
@@ -244,13 +243,13 @@ module.exports = React.createClass({
             previews = draft['previews'];
             messageText = draft['message'];
         }
-        return { channel_id: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: [], previews: previews, submitting: false, initialText: messageText };
+        return {channelId: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: [], previews: previews, submitting: false, initialText: messageText};
     },
-    getFileCount: function(channel_id) {
-        if (channel_id === this.state.channel_id) {
+    getFileCount: function(channelId) {
+        if (channelId === this.state.channelId) {
             return this.state.previews.length + this.state.uploadsInProgress.length;
         } else {
-            var draft = PostStore.getDraft(channel_id);
+            var draft = PostStore.getDraft(channelId);
 
             if (draft) {
                 return draft['previews'].length + draft['uploadsInProgress'].length;
@@ -260,10 +259,21 @@ module.exports = React.createClass({
         }
     },
     render: function() {
-        var server_error = this.state.server_error ? <div className='has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
-        var post_error = this.state.post_error ? <label className='control-label'>{this.state.post_error}</label> : null;
+        var serverError = null;
+        if (this.state.serverError) {
+            serverError = (
+                <div className='has-error'>
+                    <label className='control-label'>{this.state.serverError}</label>
+                </div>
+            );
+        }
 
-        var preview = <div/>;
+        var postError = null;
+        if (this.state.postError) {
+            postError = <label className='control-label'>{this.state.postError}</label>;
+        }
+
+        var preview = null;
         if (this.state.previews.length > 0 || this.state.uploadsInProgress.length > 0) {
             preview = (
                 <FilePreview
@@ -273,18 +283,23 @@ module.exports = React.createClass({
             );
         }
 
+        var postFooterClassName = 'post-create-footer';
+        if (postError) {
+            postFooterClassName += ' has-error';
+        }
+
         return (
-            <form id="create_post" ref="topDiv" role="form" onSubmit={this.handleSubmit}>
-                <div className="post-create">
-                    <div className="post-create-body">
+            <form id='create_post' ref='topDiv' role='form' onSubmit={this.handleSubmit}>
+                <div className='post-create'>
+                    <div className='post-create-body'>
                         <Textbox
                             onUserInput={this.handleUserInput}
                             onKeyPress={this.postMsgKeyPress}
                             messageText={this.state.messageText}
-                            createMessage="Write a message..."
-                            channelId={this.state.channel_id}
-                            id="post_textbox"
-                            ref="textbox" />
+                            createMessage='Write a message...'
+                            channelId={this.state.channelId}
+                            id='post_textbox'
+                            ref='textbox' />
                         <FileUpload
                             ref='fileUpload'
                             getFileCount={this.getFileCount}
@@ -292,11 +307,11 @@ module.exports = React.createClass({
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError} />
                     </div>
-                    <div className={post_error ? 'post-create-footer has-error' : 'post-create-footer'}>
-                        { post_error }
-                        { server_error }
-                        { preview }
-                        <MsgTyping channelId={this.state.channel_id} parentId=""/>
+                    <div className={postFooterClassName}>
+                        {postError}
+                        {serverError}
+                        {preview}
+                        <MsgTyping channelId={this.state.channelId} parentId=''/>
                     </div>
                 </div>
             </form>
