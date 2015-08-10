@@ -23,6 +23,15 @@ module.exports = React.createClass({
         this.setState({imgId: id});
         this.loadImage(id);
     },
+    handleKeyPress: function handleKeyPress(e) {
+        if (!e) {
+            return;
+        } else if (e.keyCode === 39) {
+            this.handleNext();
+        } else if (e.keyCode === 37) {
+            this.handlePrev();
+        }
+    },
     componentWillReceiveProps: function(nextProps) {
         this.setState({imgId: nextProps.startId});
     },
@@ -93,22 +102,14 @@ module.exports = React.createClass({
             }
         );
 
-        $(this.getDOMNode()).on('keyup', function(e) {
-            if (!e) {
-                return;
-            } else if (e.keyCode === 39) {
-                self.handleNext();
-            } else if (e.keyCode === 37) {
-                self.handlePrev();
-            }
-        });
+        $(window).on('keyup', this.handleKeyPress);
 
         // keep track of whether or not this component is mounted so we can safely set the state asynchronously
         this.canSetState = true;
     },
     componentWillUnmount: function() {
         this.canSetState = false;
-        $(this.getDOMNode()).off('keyup');
+        $(window).off('keyup', this.handleKeyPress);
     },
     getPublicLink: function() {
         var data = {};
