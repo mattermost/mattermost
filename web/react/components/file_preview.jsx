@@ -45,8 +45,9 @@ module.exports = React.createClass({
 
         this.props.uploadsInProgress.forEach(function(filename) {
             previews.push(
-                <div className="preview-div">
+                <div className="preview-div" data-filename={filename}>
                     <img className="spinner" src="/static/images/load.gif"/>
+                    <a className="remove-preview" onClick={this.handleRemove}><i className="glyphicon glyphicon-remove"/></a>
                 </div>
             );
         }.bind(this));

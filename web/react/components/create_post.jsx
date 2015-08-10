@@ -180,12 +180,21 @@ module.exports = React.createClass({
     },
     removePreview: function(filename) {
         var previews = this.state.previews;
-        for (var i = 0; i < previews.length; i++) {
-            if (previews[i] === filename) {
-                previews.splice(i, 1);
-                break;
+        var uploadsInProgress = this.state.uploadsInProgress;
+
+        // this can be either an uploaded file or an in progress upload that we need to remove
+        var index = previews.indexOf(filename);
+        if (index !== -1) {
+            previews.splice(index, 1);
+        } else {
+            index = uploadsInProgress.indexOf(filename);
+
+            if (index !== -1) {
+                uploadsInProgress.splice(index, 1);
+                this.refs.fileUpload.cancelUpload(filename);
             }
         }
+
         var draft = PostStore.getCurrentDraft();
         if (!draft) {
             draft = {}
@@ -193,8 +202,10 @@ module.exports = React.createClass({
             draft['uploadsInProgress'] = [];
         }
         draft['previews'] = previews;
+        draft['uploadsInProgress'] = uploadsInProgress;
         PostStore.storeCurrentDraft(draft);
-        this.setState({previews: previews});
+
+        this.setState({previews: previews, uploadsInProgress: uploadsInProgress});
     },
     componentDidMount: function() {
         ChannelStore.addChangeListener(this._onChange);
@@ -270,6 +281,7 @@ module.exports = React.createClass({
                             id="post_textbox"
                             ref="textbox" />
                         <FileUpload
+                            ref='fileUpload'
                             getFileCount={this.getFileCount}
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}

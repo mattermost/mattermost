@@ -4,8 +4,12 @@
 var client = require('../utils/client.jsx');
 var Constants = require('../utils/constants.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
+    getInitialState: function() {
+        return {requests: {}};
+    },
     handleChange: function() {
         var element = $(this.refs.fileInput.getDOMNode());
         var files = element.prop('files');
@@ -40,15 +44,25 @@ module.exports = React.createClass({
             formData.append('channel_id', channel_id);
             formData.append('files', files[i], files[i].name);
 
-            client.uploadFile(formData,
+            var request = client.uploadFile(formData,
                 function(data) {
                     parsedData = $.parseJSON(data);
                     this.props.onFileUpload(parsedData['filenames'], channel_id);
+
+                    var requests = this.state.requests;
+                    for (var i = 0; i < parsedData['filenames'].length; i++) {
+                        delete requests[utils.getFileName(parsedData['filenames'][i])];
+                    }
+                    this.setState({requests: requests});
                 }.bind(this),
                 function(err) {
                     this.props.onUploadError(err);
                 }.bind(this)
             );
+
+            var requests = this.state.requests;
+            requests[files[i].name] = request;
+            this.setState({requests: requests});
 
             this.props.onUploadStart([files[i].name], channel_id);
         }
@@ -121,17 +135,38 @@ module.exports = React.createClass({
                             function(data) {
                                 parsedData = $.parseJSON(data);
                                 self.props.onFileUpload(parsedData['filenames'], channel_id);
+
+                                var requests = self.state.requests;
+                                for (var i = 0; i < parsedData['filenames'].length; i++) {
+                                    delete requests[utils.getFileName(parsedData['filenames'][i])];
+                                }
+                                self.setState({requests: requests});
                             },
                             function(err) {
                                 self.props.onUploadError(err);
                             }
                         );
 
+                        var requests = self.state.requests;
+                        requests[files[i].name] = request;
+                        self.setState({requests: requests});
+
                         self.props.onUploadStart([name], channel_id);
                     }
                 }
             }
         });
+    },
+    cancelUpload: function(filename) {
+        var requests = this.state.requests;
+        var request = requests[filename];
+
+        if (request) {
+            request.abort();
+
+            delete requests[filename];
+            this.setState({requests: requests});
+        }
     },
     render: function() {
         return (
