@@ -50,5 +50,4 @@ deploy:
    skip_cleanup: true
    detect_encoding: true
    on:
-     repo: mattermost/platform
      branch: master
