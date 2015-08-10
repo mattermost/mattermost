@@ -60,7 +60,7 @@ module.exports = React.createClass({
                     this.setState({requests: requests});
                 }.bind(this),
                 function(err) {
-                    this.props.onUploadError(err);
+                    this.props.onUploadError(err, clientId);
                 }.bind(this)
             );
 
@@ -151,7 +151,7 @@ module.exports = React.createClass({
                                 self.setState({requests: requests});
                             },
                             function(err) {
-                                self.props.onUploadError(err);
+                                self.props.onUploadError(err, clientId);
                             }
                         );
 

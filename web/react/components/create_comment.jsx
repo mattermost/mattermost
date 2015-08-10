@@ -132,8 +132,23 @@ module.exports = React.createClass({
 
         this.setState({uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
     },
-    handleUploadError: function(err) {
-        this.setState({ server_error: err });
+    handleUploadError: function(err, clientId) {
+        var draft = PostStore.getCommentDraft(this.props.rootId);
+        if (!draft) {
+            draft = {};
+            draft['message'] = '';
+            draft['uploadsInProgress'] = [];
+            draft['previews'] = [];
+        }
+
+        var index = draft['uploadsInProgress'].indexOf(clientId);
+        if (index != -1) {
+            draft['uploadsInProgress'].splice(index, 1);
+        }
+
+        PostStore.storeCommentDraft(this.props.rootId, draft);
+
+        this.setState({uploadsInProgress: draft['uploadsInProgress'], server_error: err});
     },
     clearPreviews: function() {
         this.setState({previews: []});
