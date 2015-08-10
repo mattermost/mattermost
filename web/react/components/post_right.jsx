@@ -286,8 +286,9 @@ module.exports = React.createClass({
         }
 
         var rootPostKey = root_post.id
-        if (root_post.lastEditDate != undefined)
+        if (root_post.lastEditDate) {
             rootPostKey += root_post.lastEditDate;
+        }
 
         var posts_array = [];
 
@@ -295,8 +296,9 @@ module.exports = React.createClass({
             var cpost = post_list.posts[postId];
             if (cpost.root_id == root_post.id) {
                 var cpostKey = cpost.id
-                if (cpost.lastEditDate != undefined)
+                if (cpost.lastEditDate) {
                     cpostKey += cpost.lastEditDate;
+                }
 
                 cpost.cpostKey = cpostKey;
                 posts_array.push(cpost);

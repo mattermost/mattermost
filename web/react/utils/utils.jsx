@@ -634,6 +634,8 @@ module.exports.textToJsx = function(textToChange, options) {
         }
         if (!useTextFormatting && i !== lines.length - 1) {
             inner.push(<br key={'br_' + i}/>);
+        } else if (useTextFormatting && !codeFlag && i < lines.length - 2) {
+            inner.push(<br key={'br_' + i}/>);
         }
     }
 

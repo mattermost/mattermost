@@ -434,8 +434,9 @@ module.exports = React.createClass({
                 var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i-1]].root_id != post.root_id);
 
                 var postKey = post.id;
-                if (post.lastEditDate != undefined)
+                if (post.lastEditDate) {
                     postKey += post.lastEditDate;
+                }
 
                 var postCtl = (
                     <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={postKey}

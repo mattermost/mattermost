@@ -194,18 +194,6 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
-    // top-level paragraph
-    if (top && (cap = this.rules.paragraph.exec(src))) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'paragraph',
-        text: cap[1].charAt(cap[1].length - 1) === '\n'
-          ? cap[1].slice(0, -1)
-          : cap[1]
-      });
-      continue;
-    }
-
     // text
     if (cap = this.rules.text.exec(src)) {
       // Top-level should never reach here.
@@ -240,7 +228,7 @@ var inline = {
   nolink: /^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/,
   strong: /^\*((?:\*\*|[\s\S])+?)\*/,
   em: /^\b_((?:[^_]|__)+?)_\b/,
-  code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
+  code: /^(`{1})\s*([^\r?\n|\r]*?[^`])\s*\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
@@ -394,13 +382,6 @@ InlineLexer.prototype.output = function(src) {
       continue;
     }
 
-    // br
-    if (cap = this.rules.br.exec(src)) {
-      src = src.substring(cap[0].length);
-      out += this.renderer.br();
-      continue;
-    }
-
     // text
     if (cap = this.rules.text.exec(src)) {
       src = src.substring(cap[0].length);
@@ -484,15 +465,6 @@ function Renderer(options) {
 }
 
 Renderer.prototype.code = function(code, lang, escaped) {
-  return '<pre>' + code + '</pre>';
-  /*if (this.options.highlight) {
-    var out = this.options.highlight(code, lang);
-    if (out != null && out !== code) {
-      escaped = true;
-      code = out;
-    }
-  }
-
   if (!lang) {
     return '<pre><code>'
       + (escaped ? code : escape(code, true))
@@ -504,7 +476,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
     + escape(lang, true)
     + '">'
     + (escaped ? code : escape(code, true))
-    + '\n</code></pre>\n';*/
+    + '\n</code></pre>\n';
 };
 
 Renderer.prototype.blockquote = function(quote) {
