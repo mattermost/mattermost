@@ -81,7 +81,7 @@ module.exports = React.createClass({
             this.setState({selectedMention: 0, selectedUsername: ''});
         }
     },
-    onListenerChange: function(id, mentionText, excludeList) {
+    onListenerChange: function(id, mentionText) {
         if (id !== this.props.id) {
             return;
         }
@@ -89,9 +89,6 @@ module.exports = React.createClass({
         var newState = this.state;
         if (mentionText != null) {
             newState.mentionText = mentionText;
-        }
-        if (excludeList != null) {
-            newState.excludeUsers = excludeList;
         }
 
         this.setState(newState);
@@ -149,15 +146,6 @@ module.exports = React.createClass({
             scrollTop: scrollAmount
         }, 75);
     },
-    alreadyMentioned: function(username) {
-        var excludeUsers = this.state.excludeUsers;
-        for (var i = 0; i < excludeUsers.length; i++) {
-            if (excludeUsers[i] === username) {
-                return true;
-            }
-        }
-        return false;
-    },
     getInitialState: function() {
         return {excludeUsers: [], mentionText: '-1', selectedMention: 0, selectedUsername: ''};
     },
@@ -201,9 +189,6 @@ module.exports = React.createClass({
         var index = 0;
 
         for (var i = 0; i < users.length && index < MAX_ITEMS_IN_LIST; i++) {
-            if (this.alreadyMentioned(users[i].username)) {
-                continue;
-            }
             if ((users[i].first_name && users[i].first_name.lastIndexOf(mentionText, 0) === 0) ||
                     (users[i].last_name && users[i].last_name.lastIndexOf(mentionText, 0) === 0) ||
                     users[i].username.lastIndexOf(mentionText, 0) === 0) {
