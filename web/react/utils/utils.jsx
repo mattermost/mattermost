@@ -403,49 +403,49 @@ module.exports.customMarkedRenderer = function(options) {
         customTextRenderer.codespan = function(code) {
             return code;
         };
-        customTextRenderer.link = function(href, title, text) {
+        customTextRenderer.link = function(href) {
             return href;
         };
-        customTextRenderer.image = function(href, title, text) {
+        customTextRenderer.image = function(href) {
             return href;
         };
     } else {
-        customTextRenderer.link = function(href, title, text) {
+        customTextRenderer.link = function(href) {
             return href;
         };
-        customTextRenderer.image = function(href, title, text) {
+        customTextRenderer.image = function(href) {
             return href;
         };
     }
     return customTextRenderer;
 };
 
-var oldExplicitMentionRegex = /(?:<mention>)([\s\S]*?)(?:<\/mention>)/g;
 var puncStartRegex = /^((?![@#])[^A-Za-z0-9_<>])+/g;
 var puncEndRegex = /([^A-Za-z0-9_<>])+$/g;
 var startTagRegex = /(<\s*\w.*?>)+/g;
 var endTagRegex = /(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)+/g;
 
-module.exports.textToJsx = function(text, options) {
+module.exports.textToJsx = function(textToChange, options) {
     var useTextFormatting = config.AllowTextFormatting && (!options || !options.noTextFormatting);
+    var text = textToChange;
 
     if (useTextFormatting) {
         text = formatText(text, {sanitize: true, mangle: false, gfm: true, breaks: true, tables: false, smartypants: true, renderer: module.exports.customMarkedRenderer()});
     }
 
-    if (options && options['singleline']) {
-        var repRegex = new RegExp("\n", "g");
-        text = text.replace(repRegex, " ");
+    if (options && options.singleline) {
+        var repRegex = new RegExp('\n', 'g');
+        text = text.replace(repRegex, ' ');
     }
 
-    var searchTerm = ""
-    if (options && options['searchTerm']) {
-        searchTerm = options['searchTerm'].toLowerCase();
+    var searchTerm = '';
+    if (options && options.searchTerm) {
+        searchTerm = options.searchTerm.toLowerCase();
     }
 
-    var mentionClass = "mention-highlight";
-    if (options && options['noMentionHighlight']) {
-        mentionClass = "";
+    var mentionClass = 'mention-highlight';
+    if (options && options.noMentionHighlight) {
+        mentionClass = '';
     }
 
     var inner = [];
@@ -457,11 +457,11 @@ module.exports.textToJsx = function(text, options) {
 
     var implicitKeywords = UserStore.getCurrentMentionKeys();
 
-    var lines = text.split("\n");
+    var lines = text.split('\n');
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
-        var words = line.split(" ");
-        var highlightSearchClass = "";
+        var words = line.split(' ');
+        var highlightSearchClass = '';
         for (var z = 0; z < words.length; z++) {
             var word = words[z];
             var trimWord;
@@ -472,25 +472,46 @@ module.exports.textToJsx = function(text, options) {
             }
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
+            var mClass;
 
-            var prefix;
-            var suffix;
-            var prefixSpan;
-            var suffixSpan;
+            var prefix = '';
+            var suffix = '';
+            var prefixSpan = null;
+            var suffixSpan = <span key={word + i + z + 'suf_span'}> </span>;
             if (useTextFormatting) {
-                prefix = (word.match(startTagRegex) ? word.match(startTagRegex) : "") + (word.replace(startTagRegex, '').match(puncStartRegex) ? word.replace(startTagRegex, '').match(puncStartRegex) : "");
-                suffix = (word.match(endTagRegex) ? word.match(endTagRegex) : "") + (word.replace(endTagRegex, '').match(puncEndRegex) ? word.replace(endTagRegex, '').match(puncEndRegex) : "");
-                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
-                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+                if (word.match(startTagRegex)) {
+                    prefix += word.match(startTagRegex);
+                }
+                if (word.replace(startTagRegex, '').match(puncStartRegex)) {
+                    prefix += word.replace(startTagRegex, '').match(puncStartRegex);
+                }
+
+                if (word.match(endTagRegex)) {
+                    suffix += word.match(endTagRegex);
+                }
+                if (word.replace(endTagRegex, '').match(puncEndRegex)) {
+                    suffix += word.replace(endTagRegex, '').match(puncEndRegex);
+                }
+
+                if (prefix) {
+                    prefixSpan = <span key={word + i + z + 'pre_span'}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>;
+                }
+                if (suffix) {
+                    suffixSpan = <span key={word + i + z + 'suf_span'}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>;
+                }
             } else {
                 prefix = word.match(puncStartRegex);
                 suffix = word.match(puncEndRegex);
-                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}>{prefix}</span>) : null;
-                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}>{suffix} </span>) : (<span key={word+i+z+"suf_span"}> </span>);
+                if (prefix) {
+                    prefixSpan = <span key={word + i + z + 'pre_span'}>{prefix}</span>;
+                }
+                if (suffix) {
+                    suffixSpan = <span key={word + i + z + 'suf_span'}>{suffix} </span>;
+                }
             }
 
-            if ((trimWord.toLowerCase().indexOf(searchTerm) > -1 || word.toLowerCase().indexOf(searchTerm) > -1) && searchTerm != "") {
-                highlightSearchClass = " search-highlight";
+            if ((trimWord.toLowerCase().indexOf(searchTerm) > -1 || word.toLowerCase().indexOf(searchTerm) > -1) && searchTerm !== '') {
+                highlightSearchClass = ' search-highlight';
             }
 
             if (useTextFormatting && (codeFlag || word.indexOf('<code>') !== -1)) {
@@ -498,94 +519,122 @@ module.exports.textToJsx = function(text, options) {
                 codeFlag = true;
 
                 if (word.indexOf('</code>') !== -1) {
-                    inner.push(<span key={word+i+z+"_span"} className={highlightSearchClass} dangerouslySetInnerHTML={{__html: codeString}} />);
+                    inner.push(<span key={word + i + z + '_span'} className={highlightSearchClass} dangerouslySetInnerHTML={{__html: codeString}} />);
                     codeString = '';
                     codeFlag = false;
                 }
             } else if (explicitMention &&
-                (UserStore.getProfileByUsername(explicitMention[1]) ||
-                Constants.SPECIAL_MENTIONS.indexOf(explicitMention[1]) !== -1))
-            {
+                      (UserStore.getProfileByUsername(explicitMention[1]) ||
+                      Constants.SPECIAL_MENTIONS.indexOf(explicitMention[1]) !== -1)) {
                 var name = explicitMention[1];
+
                 // do both a non-case sensitive and case senstive check
-                var mClass = implicitKeywords.indexOf('@'+name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@'+name) !== -1 ? mentionClass : "";
+                mClass = '';
+                if (implicitKeywords.indexOf('@' + name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@' + name) !== -1) {
+                    mClass = mentionClass;
+                }
 
                 if (searchTerm === name) {
-                    highlightSearchClass = " search-highlight";
+                    highlightSearchClass = ' search-highlight';
                 }
 
                 if (useTextFormatting) {
-                    prefixSpan ? inner.push(prefixSpan) : null;
-                    inner.push(<span key={word+i+z+"word_span"}><a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>{"@" + name}</a></span>);
-                    suffixSpan ? inner.push(suffixSpan) : null;
+                    if (prefixSpan) {
+                        inner.push(prefixSpan);
+                    }
+                    inner.push(<span key={word + i + z + 'word_span'}><a className={mClass + highlightSearchClass + ' mention-link'} key={name + i + z + '_link'} href='#' onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>{'@' + name}</a></span>);
+                    if (suffixSpan) {
+                        inner.push(suffixSpan);
+                    }
+                } else {
+                    inner.push(<span key={name + i + z + '_span'}>{prefix}<a className={mClass + highlightSearchClass + ' mention-link'} key={name + i + z + '_link'} href='#' onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
                 }
-                else
-                    inner.push(<span key={name+i+z+"_span"}>{prefix}<a className={mClass + highlightSearchClass + " mention-link"} key={name+i+z+"_link"} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(name)}>@{name}</a>{suffix} </span>);
             } else if (testUrlMatch(word).length) {
                 var match = testUrlMatch(word)[0];
                 var link = match.link;
 
-                prefix = word.substring(0,word.indexOf(match.text));
-                suffix = word.substring(word.indexOf(match.text)+match.text.length);
-                prefixSpan = prefix ? (<span key={word+i+z+"pre_span"}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>) : null;
-                suffixSpan = suffix ? (<span key={word+i+z+"suf_span"}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>) : <span key={word+i+z+"suf_span"}> </span>;
+                prefix = word.substring(0, word.indexOf(match.text));
+                suffix = word.substring(word.indexOf(match.text) + match.text.length);
+                if (prefix) {
+                    prefixSpan = <span key={word + i + z + 'pre_span'}><span dangerouslySetInnerHTML={{__html: prefix}} /></span>;
+                }
+                if (suffix) {
+                    suffixSpan = <span key={word + i + z + 'suf_span'}><span dangerouslySetInnerHTML={{__html: suffix}} /> </span>;
+                } else {
+                    suffixSpan = <span key={word + i + z + 'suf_span'}> </span>;
+                }
 
                 if (useTextFormatting) {
-                    prefixSpan ? inner.push(prefixSpan) : null;
-                    inner.push(<span key={word+i+z+"_span"}><a key={name+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a></span>);
-                    suffixSpan ? inner.push(suffixSpan) : null;
+                    if (prefixSpan) {
+                        inner.push(prefixSpan);
+                    }
+                    inner.push(<span key={word + i + z + '_span'}><a key={name + i + z + '_link'} className={'theme' + highlightSearchClass} target='_blank' href={link}>{match.text}</a></span>);
+                    if (suffixSpan) {
+                        inner.push(suffixSpan);
+                    }
+                } else {
+                    inner.push(<span key={word + i + z + '_span'}>{prefix}<a key={word + i + z + '_link'} className={'theme' + highlightSearchClass} target='_blank' href={link}>{match.text}</a>{suffix} </span>);
                 }
-                else
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_link"} className={"theme" + highlightSearchClass} target="_blank" href={link}>{match.text}</a>{suffix} </span>);
             } else if (trimWord.match(hashRegex)) {
-                var mClass = implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1 ? mentionClass : "";
+                mClass = '';
+                if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
+                    mClass = mentionClass;
+                }
 
                 if (searchTerm === trimWord.substring(1).toLowerCase() || searchTerm === trimWord.toLowerCase()) {
-                    highlightSearchClass = " search-highlight";
+                    highlightSearchClass = ' search-highlight';
                 }
 
                 if (useTextFormatting) {
-                    prefixSpan ? inner.push(prefixSpan) : null;
-                    inner.push(<span key={word+i+z+"_span"}><a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a></span>);
-                    suffixSpan ? inner.push(suffixSpan) : null;
+                    if (prefixSpan) {
+                        inner.push(prefixSpan);
+                    }
+                    inner.push(<span key={word + i + z + '_span'}><a key={word + i + z + '_hash'} className={'theme ' + mClass + highlightSearchClass} href='#' onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a></span>);
+                    if (suffixSpan) {
+                        inner.push(suffixSpan);
+                    }
+                } else {
+                    inner.push(<span key={word + i + z + '_span'}>{prefix}<a key={word + i + z + '_hash'} className={'theme ' + mClass + highlightSearchClass} href='#' onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
                 }
-                else
-                    inner.push(<span key={word+i+z+"_span"}>{prefix}<a key={word+i+z+"_hash"} className={"theme " + mClass + highlightSearchClass} href="#" onClick={function(value) { return function() { module.exports.searchForTerm(value); } }(trimWord)}>{trimWord}</a>{suffix} </span>);
-
             } else if (implicitKeywords.indexOf(trimWord) !== -1 || implicitKeywords.indexOf(trimWord.toLowerCase()) !== -1) {
                 if (trimWord.charAt(0) === '@') {
                     if (searchTerm === trimWord.substring(1).toLowerCase()) {
-                        highlightSearchClass = " search-highlight";
+                        highlightSearchClass = ' search-highlight';
                     }
                     if (useTextFormatting) {
-                        prefixSpan ? inner.push(prefixSpan) : null;
-                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}><a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a></span>);
-                        suffixSpan ? inner.push(suffixSpan) : null;
+                        if (prefixSpan) {
+                            inner.push(prefixSpan);
+                        }
+                        inner.push(<span key={word + i + z + '_span'}><a className={mentionClass + highlightSearchClass} key={name + i + z + '_link'} href='#'>{trimWord}</a></span>);
+                        if (suffixSpan) {
+                            inner.push(suffixSpan);
+                        }
+                    } else {
+                        inner.push(<span key={word + i + z + '_span'}>{prefix}<a className={mentionClass + highlightSearchClass} key={name + i + z + '_link'} href='#'>{trimWord}</a>{suffix} </span>);
                     }
-                    else
-                        inner.push(<span key={word+i+z+"_span"} key={name+i+z+"_span"}>{prefix}<a className={mentionClass + highlightSearchClass} key={name+i+z+"_link"} href="#">{trimWord}</a>{suffix} </span>);
+                } else if (useTextFormatting) {
+                    if (prefixSpan) {
+                        inner.push(prefixSpan);
+                    }
+                    inner.push(<span key={word + i + z + '_span'}><span className={mentionClass + highlightSearchClass}>{trimWord}</span></span>);
+                    if (suffixSpan) {
+                        inner.push(suffixSpan);
+                    }
                 } else {
-                    if (useTextFormatting) {
-                        prefixSpan ? inner.push(prefixSpan) : null;
-                        inner.push(<span key={word+i+z+"_span"}><span className={mentionClass + highlightSearchClass}>{trimWord}</span></span>);
-                        suffixSpan ? inner.push(suffixSpan) : null;
-                    }
-                    else
-                        inner.push(<span key={word+i+z+"_span"}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
+                    inner.push(<span key={word + i + z + '_span'}>{prefix}<span className={mentionClass + highlightSearchClass}>{module.exports.replaceHtmlEntities(trimWord)}</span>{suffix} </span>);
                 }
-
-            } else if (word === "") {
-                // if word is empty dont include a span
-            } else {
-                if (useTextFormatting)
-                    inner.push(<span key={word+i+z+"_span"} className={highlightSearchClass} dangerouslySetInnerHTML={{__html: word + ' '}} />);
-                else
-                    inner.push(<span key={word+i+z+"_span"}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span> </span>);
+            } else if (word !== '') {
+                if (useTextFormatting) {
+                    inner.push(<span key={word + i + z + '_span'} className={highlightSearchClass} dangerouslySetInnerHTML={{__html: word + ' '}} />);
+                } else {
+                    inner.push(<span key={word + i + z + '_span'}><span className={highlightSearchClass}>{module.exports.replaceHtmlEntities(word)}</span> </span>);
+                }
             }
-            highlightSearchClass = "";
+            highlightSearchClass = '';
         }
-        if (!useTextFormatting && i != lines.length-1)
-            inner.push(<br key={"br_"+i+z}/>);
+        if (!useTextFormatting && i !== lines.length - 1) {
+            inner.push(<br key={'br_' + i}/>);
+        }
     }
 
     return inner;
