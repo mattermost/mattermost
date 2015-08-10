@@ -68,7 +68,7 @@ module.exports = React.createClass({
 
                 $('#' + this.props.modalId).modal('hide');
                 window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + this.state.channel_name;
-                AsyncClient.getChannels(true);
+                AsyncClient.getChannel(channel.id);
             }.bind(this),
             function(err) {
                 state.server_error = err.message;

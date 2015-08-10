@@ -157,9 +157,12 @@ module.exports = React.createClass({
     onSocketChange: function(msg) {
         if (msg.action === 'posted') {
             if (ChannelStore.getCurrentId() === msg.channel_id) {
-                if (window.isActive) AsyncClient.updateLastViewedAt();
+                if (window.isActive) {
+                    AsyncClient.updateLastViewedAt();
+                }
             } else {
-                AsyncClient.getChannel(msg.channel_id);
+                console.log('hit');
+                AsyncClient.getChannels();
             }
 
             if (UserStore.getCurrentId() !== msg.user_id) {
@@ -213,7 +216,7 @@ module.exports = React.createClass({
                     utils.ding();
                 }
             }
-        } else if (msg.action === "viewed") {
+        } else if (msg.action === 'viewed') {
             if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
                 AsyncClient.getChannel(msg.channel_id);
             }

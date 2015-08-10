@@ -281,6 +281,39 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 	return storeChannel
 }
 
+type channelIdWithCount struct {
+	Id            string
+	TotalMsgCount int64
+}
+
+func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []channelIdWithCount
+		_, err := s.GetReplica().Select(&data, "SELECT Id, TotalMsgCount FROM Channels WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId) AND TeamId = :TeamId AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetChannelCounts", "We couldn't get the channel counts", "teamId="+teamId+", userId="+userId+", err="+err.Error())
+		} else {
+			counts := &model.ChannelCounts{Counts: make(map[string]int64)}
+			for i := range data {
+				v := data[i]
+				counts.Counts[v.Id] = v.TotalMsgCount
+			}
+
+			result.Data = counts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) GetByName(teamId string, name string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

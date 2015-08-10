@@ -50,6 +50,7 @@ type ChannelStore interface {
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
+	GetChannelCounts(teamId string, userId string) StoreChannel
 
 	SaveMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel

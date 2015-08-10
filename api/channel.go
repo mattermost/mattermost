@@ -18,6 +18,7 @@ func InitChannel(r *mux.Router) {
 	sr := r.PathPrefix("/channels").Subrouter()
 	sr.Handle("/", ApiUserRequiredActivity(getChannels, false)).Methods("GET")
 	sr.Handle("/more", ApiUserRequired(getMoreChannels)).Methods("GET")
+	sr.Handle("/counts", ApiUserRequiredActivity(getChannelCounts, false)).Methods("GET")
 	sr.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	sr.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
@@ -310,6 +311,22 @@ func getMoreChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		data := result.Data.(*model.ChannelList)
+		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
+		w.Write([]byte(data.ToJson()))
+	}
+}
+
+func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	// user is already in the team
+
+	if result := <-Srv.Store.Channel().GetChannelCounts(c.Session.TeamId, c.Session.UserId); result.Err != nil {
+		c.Err = model.NewAppError("getChannelCounts", "Unable to get channel counts from the database", result.Err.Message)
+		return
+	} else if HandleEtag(result.Data.(*model.ChannelCounts).Etag(), w, r) {
+		return
+	} else {
+		data := result.Data.(*model.ChannelCounts)
 		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
 		w.Write([]byte(data.ToJson()))
 	}
