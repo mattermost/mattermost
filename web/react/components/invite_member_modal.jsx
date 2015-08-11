@@ -35,6 +35,10 @@ module.exports = React.createClass({
         });
     },
     handleSubmit: function(e) {
+        if (!this.state.emailEnabled) {
+            return;
+        }
+
         var inviteIds = this.state.inviteIds;
         var count = inviteIds.length;
         var invites = [];
@@ -147,11 +151,17 @@ module.exports = React.createClass({
             idCount: 0,
             emailErrors: {},
             firstNameErrors: {},
-            lastNameErrors: {}
+            lastNameErrors: {},
+            emailEnabled: Client.isEmailEnabledSynchronous()
         };
     },
     render: function() {
         var currentUser = UserStore.getCurrentUser();
+
+        var inputDisabled = '';
+        if (!this.state.emailEnabled) {
+            inputDisabled = 'disabled';
+        }
 
         if (currentUser != null) {
             var inviteSections = [];
@@ -195,13 +205,13 @@ module.exports = React.createClass({
                     nameFields = (<div className='row--invite'>
                                     <div className='col-sm-6'>
                                         <div className={firstNameClass}>
-                                            <input type='text' className='form-control' ref={'first_name' + index} placeholder='First name' maxLength='64' />
+                                            <input type='text' className='form-control' ref={'first_name' + index} placeholder='First name' maxLength='64' disabled={!this.state.emailEnabled}/>
                                             {firstNameError}
                                         </div>
                                     </div>
                                     <div className='col-sm-6'>
                                         <div className={lastNameClass}>
-                                            <input type='text' className='form-control' ref={'last_name' + index} placeholder='Last name' maxLength='64' />
+                                            <input type='text' className='form-control' ref={'last_name' + index} placeholder='Last name' maxLength='64' disabled={!this.state.emailEnabled}/>
                                             {lastNameError}
                                         </div>
                                     </div>
@@ -212,7 +222,7 @@ module.exports = React.createClass({
                     <div key={'key' + index}>
                     {removeButton}
                     <div className={emailClass}>
-                        <input onKeyUp={this.displayNameKeyUp} type='text' ref={'email' + index} className='form-control' placeholder='email@domain.com' maxLength='64' />
+                        <input onKeyUp={this.displayNameKeyUp} type='text' ref={'email' + index} className='form-control' placeholder='email@domain.com' maxLength='64' disabled={!this.state.emailEnabled}/>
                         {emailError}
                     </div>
                     {nameFields}
@@ -223,6 +233,45 @@ module.exports = React.createClass({
             var serverError = null;
             if (this.state.serverError) {
                 serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+            }
+
+            var content = null;
+            var sendButton = null;
+            if (this.state.emailEnabled) {
+                content = (
+                    <div>
+                        {serverError}
+                        <button type='button' className='btn btn-default' onClick={this.addInviteFields}>Add another</button>
+                        <br/>
+                        <br/>
+                        <span>People invited automatically join Town Square channel.</span>
+                    </div>
+                );
+
+                sendButton = <button onClick={this.handleSubmit} type='button' className='btn btn-primary'>Send Invitations</button>
+            } else {
+                var teamInviteLink = null;
+                if (currentUser && this.props.teamType === 'O') {
+                    var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id;
+                    var link = <a href='#' data-toggle='modal' data-target='#get_link' data-title='Team Invite' data-value={linkUrl} onClick={
+                        function() {
+                            $('#invite_member').modal('hide');
+                        }
+                    }>Team Invite Link</a>;
+
+                    teamInviteLink = (
+                        <p>
+                            You can also invite people using the {link}.
+                        </p>
+                    );
+                }
+
+                content = (
+                    <div>
+                        <p>Email is currently disabled for your team, and email invitations cannot be sent. Contact your system administrator to enable email and email invitations.</p>
+                        {teamInviteLink}
+                    </div>
+                );
             }
 
             return (
@@ -238,15 +287,11 @@ module.exports = React.createClass({
                                 <form role='form'>
                                     {inviteSections}
                                 </form>
-                                {serverError}
-                                <button type='button' className='btn btn-default' onClick={this.addInviteFields}>Add another</button>
-                                <br/>
-                                <br/>
-                                <span>People invited automatically join Town Square channel.</span>
+                                {content}
                             </div>
                             <div className='modal-footer'>
                               <button type='button' className='btn btn-default' data-dismiss='modal'>Cancel</button>
-                              <button onClick={this.handleSubmit} type='button' className='btn btn-primary'>Send Invitations</button>
+                              {sendButton}
                             </div>
                           </div>
                        </div>

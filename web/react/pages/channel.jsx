@@ -99,7 +99,7 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <MemberInviteModal />,
+        <MemberInviteModal teamType={team_type} />,
         document.getElementById('invite_member_modal')
     );
 
