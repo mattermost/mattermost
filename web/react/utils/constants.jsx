@@ -38,7 +38,7 @@ module.exports = {
   }),
   SPECIAL_MENTIONS: ['all', 'channel'],
   CHARACTER_LIMIT: 4000,
-  IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png'],
+  IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg'],
   AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac'],
   VIDEO_TYPES: ['mp4', 'avi', 'webm', 'mkv', 'wmv', 'mpg', 'mov', 'flv'],
   SPREADSHEET_TYPES: ['ppt', 'pptx', 'csv'],
