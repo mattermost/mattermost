@@ -284,7 +284,7 @@ module.exports = React.createClass({
     },
     render: function() {
         var members = this.state.members;
-        var activeId = this.state.active_id;
+        var activeId = this.state.activeId;
         var badgesActive = false;
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
@@ -296,7 +296,7 @@ module.exports = React.createClass({
             var channelMember = members[channel.id];
 
             var linkClass = '';
-            if (channel.id === self.state.active_id) {
+            if (channel.id === activeId) {
                 linkClass = 'active';
             }
 
