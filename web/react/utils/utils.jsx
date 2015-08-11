@@ -913,3 +913,24 @@ module.exports.getFileName = function(path) {
     var split = path.split('/');
     return split[split.length - 1];
 };
+
+// Generates a RFC-4122 version 4 compliant globally unique identifier.
+module.exports.generateId = function() {
+    // implementation taken from http://stackoverflow.com/a/2117523
+    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+
+    id = id.replace(/[xy]/g, function(c) {
+        var r = Math.floor(Math.random() * 16);
+
+        var v;
+        if (c === 'x') {
+            v = r;
+        } else {
+            v = r & 0x3 | 0x8;
+        }
+
+        return v.toString(16);
+    });
+
+    return id;
+};

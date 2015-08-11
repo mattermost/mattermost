@@ -754,7 +754,7 @@ module.exports.getProfiles = function(success, error) {
 };
 
 module.exports.uploadFile = function(formData, success, error) {
-    $.ajax({
+    var request = $.ajax({
         url: "/api/v1/files/upload",
         type: 'POST',
         data: formData,
@@ -763,12 +763,16 @@ module.exports.uploadFile = function(formData, success, error) {
         processData: false,
         success: success,
         error: function(xhr, status, err) {
-            e = handleError("uploadFile", xhr, status, err);
-            error(e);
+            if (err !== 'abort') {
+                e = handleError("uploadFile", xhr, status, err);
+                error(e);
+            }
         }
     });
 
     module.exports.track('api', 'api_files_upload');
+
+    return request;
 };
 
 module.exports.getPublicLink = function(data, success, error) {

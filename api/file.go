@@ -71,7 +71,9 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	files := m.File["files"]
 
 	resStruct := &model.FileUploadResponse{
-		Filenames: []string{}}
+		Filenames: []string{},
+		ClientIds: []string{},
+	}
 
 	imageNameList := []string{}
 	imageDataList := [][]byte{}
@@ -111,6 +113,10 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		fileUrl := "/" + channelId + "/" + c.Session.UserId + "/" + uid + "/" + encName
 		resStruct.Filenames = append(resStruct.Filenames, fileUrl)
+	}
+
+	for _, clientId := range props["client_ids"] {
+		resStruct.ClientIds = append(resStruct.ClientIds, clientId)
 	}
 
 	fireAndForgetHandleImages(imageNameList, imageDataList, c.Session.TeamId, channelId, c.Session.UserId)

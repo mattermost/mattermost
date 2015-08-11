@@ -10,7 +10,12 @@ var Constants = require('../utils/constants.jsx');
 module.exports = React.createClass({
     handleRemove: function(e) {
         var previewDiv = e.target.parentNode.parentNode;
-        this.props.onRemove(previewDiv.getAttribute('data-filename'));
+
+        if (previewDiv.hasAttribute('data-filename')) {
+            this.props.onRemove(previewDiv.getAttribute('data-filename'));
+        } else if (previewDiv.hasAttribute('data-client-id')) {
+            this.props.onRemove(previewDiv.getAttribute('data-client-id'));
+        }
     },
     render: function() {
         var previews = [];
@@ -43,13 +48,14 @@ module.exports = React.createClass({
             }
         }.bind(this));
 
-        for (var i = 0; i < this.props.uploadsInProgress; i++) {
+        this.props.uploadsInProgress.forEach(function(clientId) {
             previews.push(
-                <div className="preview-div">
+                <div className="preview-div" data-client-id={clientId}>
                     <img className="spinner" src="/static/images/load.gif"/>
+                    <a className="remove-preview" onClick={this.handleRemove}><i className="glyphicon glyphicon-remove"/></a>
                 </div>
             );
-        }
+        }.bind(this));
 
         return (
             <div className="preview-container">

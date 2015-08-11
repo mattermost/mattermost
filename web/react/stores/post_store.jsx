@@ -132,30 +132,33 @@ var PostStore = assign({}, EventEmitter.prototype, {
     getSearchTerm: function getSearchTerm() {
         return BrowserStore.getItem('search_term');
     },
+    getEmptyDraft: function getEmptyDraft(draft) {
+        return {message: '', uploadsInProgress: [], previews: []};
+    },
     storeCurrentDraft: function storeCurrentDraft(draft) {
         var channelId = ChannelStore.getCurrentId();
         BrowserStore.setItem('draft_' + channelId, draft);
     },
     getCurrentDraft: function getCurrentDraft() {
         var channelId = ChannelStore.getCurrentId();
-        return BrowserStore.getItem('draft_' + channelId);
+        return PostStore.getDraft(channelId);
     },
     storeDraft: function storeDraft(channelId, draft) {
         BrowserStore.setItem('draft_' + channelId, draft);
     },
     getDraft: function getDraft(channelId) {
-        return BrowserStore.getItem('draft_' + channelId);
+        return BrowserStore.getItem('draft_' + channelId, PostStore.getEmptyDraft());
     },
     storeCommentDraft: function storeCommentDraft(parentPostId, draft) {
         BrowserStore.setItem('comment_draft_' + parentPostId, draft);
     },
     getCommentDraft: function getCommentDraft(parentPostId) {
-        return BrowserStore.getItem('comment_draft_' + parentPostId);
+        return BrowserStore.getItem('comment_draft_' + parentPostId, PostStore.getEmptyDraft());
     },
     clearDraftUploads: function clearDraftUploads() {
         BrowserStore.actionOnItemsWithPrefix('draft_', function clearUploads(key, value) {
             if (value) {
-                value.uploadsInProgress = 0;
+                value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
             }
         });
@@ -163,7 +166,7 @@ var PostStore = assign({}, EventEmitter.prototype, {
     clearCommentDraftUploads: function clearCommentDraftUploads() {
         BrowserStore.actionOnItemsWithPrefix('comment_draft_', function clearUploads(key, value) {
             if (value) {
-                value.uploadsInProgress = 0;
+                value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
             }
         });
