@@ -88,7 +88,6 @@ module.exports = React.createClass({
             );
         }
 
-        // Scrolling Code Was Here
     },
     componentDidUpdate: function() {
         this.resizePostHolder();

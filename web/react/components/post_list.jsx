@@ -167,11 +167,12 @@ module.exports = React.createClass({
                 post_list.order.unshift(post.id);
             }
 
-            this.holdPosition = false;
-
             if (this.state.channel.id === msg.channel_id) {
+                this.holdPosition = false;
                 this.setState({ post_list: post_list });
-            };
+            } else {
+                this.holdPosition = true;
+            }
 
             PostStore.storePosts(post.channel_id, post_list);
         } else if (msg.action == "post_edited") {
@@ -246,7 +247,6 @@ module.exports = React.createClass({
                 Constants.POST_CHUNK_SIZE,
                 function(data) {
                     $(self.refs.loadmore.getDOMNode()).text("Load more messages");
-                    console.log("here")
 
                     if (!data) return;
 

@@ -38,9 +38,6 @@ module.exports = React.createClass({
             }
         }
     },
-    resize: function() {
-        // Scrolling Code Was Here
-    },
     getInitialState: function() {
         return getStateFromStores();
     },
@@ -48,7 +45,6 @@ module.exports = React.createClass({
         if (! (this.state.search_visible || this.state.post_right_visible)) {
             $('.inner__wrap').removeClass('move--left').removeClass('move--right');
             $('.sidebar--right').removeClass('move--left');
-            // Scrolling Code Was Here
             return (
                 <div></div>
             );
@@ -58,7 +54,6 @@ module.exports = React.createClass({
         $('.sidebar--left').removeClass('move--right');
         $('.sidebar--right').addClass('move--left');
         $('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
-        // Scrolling Code Was Here
         setTimeout(function(){
             $('.sidebar__overlay').fadeOut("200", function(){
                 $(this).remove();
