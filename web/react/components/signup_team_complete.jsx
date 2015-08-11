@@ -428,23 +428,27 @@ SendInivtesPage = React.createClass({
         e.preventDefault();
 
         var valid = true;
-        var emails = [];
 
-        for (var i = 0; i < this.props.state.invites.length; i++) {
-            if (!this.refs['email_' + i].validate(this.props.state.team.email)) {
-                valid = false;
-            } else {
-                emails.push(this.refs['email_' + i].getValue());
+        if (this.state.emailEnabled) {
+            var emails = [];
+
+            for (var i = 0; i < this.props.state.invites.length; i++) {
+                if (!this.refs['email_' + i].validate(this.props.state.team.email)) {
+                    valid = false;
+                } else {
+                    emails.push(this.refs['email_' + i].getValue());
+                }
+            }
+
+            if (valid) {
+                this.props.state.invites = emails;
             }
         }
 
-        if (!valid) {
-            return;
+        if (valid) {
+            this.props.state.wizard = "username";
+            this.props.updateParent(this.props.state);
         }
-
-        this.props.state.wizard = "username";
-        this.props.state.invites = emails;
-        this.props.updateParent(this.props.state);
     },
     submitAddInvite: function (e) {
         e.preventDefault();
@@ -461,22 +465,43 @@ SendInivtesPage = React.createClass({
         this.props.updateParent(this.props.state);
     },
     getInitialState: function() {
-        return { };
+        return {
+            emailEnabled: client.isEmailEnabledSynchronous()
+        };
     },
     render: function() {
-
         client.track('signup', 'signup_team_05_send_invites');
 
         var name_error = this.state.name_error ? <label className="control-label">{ this.state.name_error }</label> : null;
 
-        var emails = [];
+        var content = null;
+        var bottomContent = null;
 
-        for (var i = 0; i < this.props.state.invites.length; i++) {
-            if (i == 0) {
-                emails.push(<EmailItem focus={true} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
-            } else {
-                emails.push(<EmailItem focus={false} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+        if (this.state.emailEnabled) {
+            var emails = [];
+
+            for (var i = 0; i < this.props.state.invites.length; i++) {
+                if (i == 0) {
+                    emails.push(<EmailItem focus={true} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+                } else {
+                    emails.push(<EmailItem focus={false} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+                }
             }
+
+            content = (
+                <div>
+                    {emails}
+                    <div className="form-group text-right"><a href="#" onClick={this.submitAddInvite}>Add Invitation</a></div>
+                </div>
+            );
+
+            bottomContent = (
+                <p className="color--light">{"if you prefer, you can invite " + strings.Team + " members later"}<br /> and <a href="#" onClick={this.submitSkip}>skip this step</a> for now.</p>
+            );
+        } else {
+            content = (
+                <div className='form-group color--light'>Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.</div>
+            );
         }
 
         return (
@@ -484,11 +509,10 @@ SendInivtesPage = React.createClass({
                 <form>
                     <img className="signup-team-logo" src="/static/images/logo.png" />
                     <h2>{"Invite " + utils.toTitleCase(strings.Team) + " Members"}</h2>
-                    { emails }
-                    <div className="form-group text-right"><a href="#" onClick={this.submitAddInvite}>Add Invitation</a></div>
+                    {content}
                     <div className="form-group"><button type="submit" className="btn-primary btn" onClick={this.submitNext}>Next<i className="glyphicon glyphicon-chevron-right"></i></button></div>
                 </form>
-                <p className="color--light">{"if you prefer, you can invite " + strings.Team + " members later"}<br /> and <a href="#" onClick={this.submitSkip}>skip this step</a> for now.</p>
+                {bottomContent}
                 <div className="margin--extra">
                     <a href="#" onClick={this.submitBack}>Back to previous step</a>
                 </div>
