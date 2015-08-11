@@ -408,6 +408,15 @@ func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
+	if r, err := c.DoGet("/channels/counts", "", etag); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelCountsFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) JoinChannel(id string) (*Result, *AppError) {
 	if r, err := c.DoPost("/channels/"+id+"/join", ""); err != nil {
 		return nil, err

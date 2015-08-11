@@ -387,6 +387,40 @@ func TestGetMoreChannel(t *testing.T) {
 	}
 }
 
+func TestGetChannelCounts(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	if result, err := Client.GetChannelCounts(""); err != nil {
+		t.Fatal(err)
+	} else {
+		counts := result.Data.(*model.ChannelCounts)
+
+		if len(counts.Counts) != 4 {
+			t.Fatal("wrong number of channel counts")
+		}
+
+		if len(counts.UpdateTimes) != 4 {
+			t.Fatal("wrong number of channel update times")
+		}
+	}
+
+}
+
 func TestJoinChannel(t *testing.T) {
 	Setup()
 
