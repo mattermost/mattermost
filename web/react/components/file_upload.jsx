@@ -101,9 +101,6 @@ module.exports = React.createClass({
                 for (var i = 0; i < items.length; i++) {
                     if (items[i].type.indexOf('image') !== -1) {
                         var ext = items[i].type.split('/')[1].toLowerCase();
-                        if (ext === 'jpeg') {
-                            ext = 'jpg';
-                        }
 
                         if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
                             continue;
@@ -124,9 +121,6 @@ module.exports = React.createClass({
                         var file = items[i].getAsFile();
 
                         var ext = items[i].type.split('/')[1].toLowerCase();
-                        if (ext === 'jpeg') {
-                            ext = 'jpg';
-                        }
 
                         if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
                             continue;
