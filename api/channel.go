@@ -24,7 +24,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	sr.Handle("/update_desc", ApiUserRequired(updateChannelDesc)).Methods("POST")
 	sr.Handle("/update_notify_level", ApiUserRequired(updateNotifyLevel)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequired(getChannel)).Methods("GET")
+	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(joinChannel)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leaveChannel)).Methods("POST")
