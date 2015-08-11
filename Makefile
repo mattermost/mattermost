@@ -245,10 +245,8 @@ dist: install
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
-docker-build: stop dist
-	cp $(DIST_PATH).tar.gz docker/dev
-	cd docker/dev && docker build -t ${DOCKERNAME} .
-	rm docker/dev/mattermost.tar.gz
+docker-build: stop
+	docker build -t ${DOCKERNAME} -f docker/local/Dockerfile .
 
 docker-run: docker-build
 	docker run --name ${DOCKER_CONTAINER_NAME} -d --publish 8065:80 ${DOCKERNAME}
