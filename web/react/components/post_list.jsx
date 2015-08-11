@@ -124,6 +124,7 @@ module.exports = React.createClass({
                 $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--comment');
             }
         });
+
     },
     componentDidUpdate: function() {
         this.resize();
@@ -459,11 +460,6 @@ module.exports = React.createClass({
             }
         } else {
             postCtls.push(<LoadingScreen position="absolute" />);
-        }
-
-        var fileDragOverlay = '';
-        if (this.state.fileDrag) {
-            fileDragOverlay = 'post-list-file-overlay';
         }
 
         return (

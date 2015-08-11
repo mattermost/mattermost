@@ -84,13 +84,17 @@ module.exports = React.createClass({
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
-        if (files.length) {
+        if (!files.length) {
+            files = e.originalEvent.dataTransfer.getData('URL');
+        }
+        var channelId = this.props.channelId || ChannelStore.getCurrentId();
+
+        if (typeof files !== 'string' && files.length) {
             var numFiles = files.length;
             var numToUpload = this.props.setUploads(numFiles);
 
             for (var i = 0; i < numFiles && i < numToUpload; i++) {
                 var file = files[i];
-                var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
                 var formData = new FormData();
                 formData.append('channel_id', channelId);
