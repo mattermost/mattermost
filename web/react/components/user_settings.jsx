@@ -524,7 +524,7 @@ var SecurityTab = React.createClass({
         $(this.getDOMNode()).find('.form-control').each(function() {
             this.value = '';
         });
-        this.setState({current_password: '', new_password: '', confirm_password: '', server_error: null, password_error: null});
+        this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
 
         if (!this.state.willReturn) {
             this.props.updateTab('general');
@@ -540,7 +540,7 @@ var SecurityTab = React.createClass({
         this.props.updateSection('');
     },
     getInitialState: function() {
-        return { current_password: '', new_password: '', confirm_password: '', willReturn: false };
+        return {currentPassword: '', newPassword: '', confirmPassword: '', willReturn: false};
     },
     render: function() {
         var serverError = this.state.serverError ? this.state.serverError : null;
