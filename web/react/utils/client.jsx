@@ -862,8 +862,8 @@ module.exports.isEmailEnabledSynchronous = function() {
             enabled = !value;
         },
         error: function(xhr, status, err) {
-            if (status != 200) {
-                handleError("isEmailEnabled", xhr, status, err);
+            if (status !== '200') {
+                handleError('isEmailEnabled', xhr, status, err);
             }
         }
     });

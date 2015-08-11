@@ -43,14 +43,14 @@ var ActionTypes = Constants.ActionTypes;
 global.window.setup_channel_page = function(team_name, team_type, team_id, channel_name, channel_id) {
 
     AppDispatcher.handleViewAction({
-      type: ActionTypes.CLICK_CHANNEL,
-      name: channel_name,
-      id: channel_id
+        type: ActionTypes.CLICK_CHANNEL,
+        name: channel_name,
+        id: channel_id
     });
 
     AppDispatcher.handleViewAction({
-      type: ActionTypes.CLICK_TEAM,
-      id: team_id
+        type: ActionTypes.CLICK_TEAM,
+        id: team_id
     });
 
     React.render(
@@ -194,17 +194,17 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <MentionList id="post_textbox" />,
+        <MentionList id='post_textbox' />,
         document.getElementById('post_mention_tab')
     );
 
     React.render(
-        <MentionList id="reply_textbox" />,
+        <MentionList id='reply_textbox' />,
         document.getElementById('reply_mention_tab')
     );
 
     React.render(
-        <MentionList id="edit_textbox" />,
+        <MentionList id='edit_textbox' />,
         document.getElementById('edit_mention_tab')
     );
 
