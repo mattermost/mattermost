@@ -65,7 +65,10 @@ module.exports = React.createClass({
         SocketStore.addChangeListener(this._onSocketChange);
 
         // Timeout exists for the DOM to fully render before making changes
-        setTimeout(this.scrollWindow, 1)
+        setTimeout(this.scrollWindow, 1);
+
+        // Handle browser resizing
+        $(window).resize(this.onResize);
 
         // Highlight stylingx
         $('body').on('click.userpopover', function(e){
@@ -101,13 +104,10 @@ module.exports = React.createClass({
         });
     },
     componentWillUpdate: function() {
-        var container = $('.post-list-holder-by-time');
-        if (this.holdPosition) {
-            this.scrollHeightFromBottom = container[0].scrollHeight - container.scrollTop();
-        }
+        this.prepareScrollWindow();
     },
     componentDidUpdate: function() {
-        this.scrollWindow()
+        this.scrollWindow();
         $('.post-list__content div .post').removeClass('post--last');
         $('.post-list__content div:last-child .post').addClass('post--last');
     },
@@ -118,25 +118,40 @@ module.exports = React.createClass({
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
     },
+    prepareScrollWindow: function() {
+        var container = $('.post-list-holder-by-time');
+        if (this.holdPosition) {
+            this.scrollHeightFromBottom = container[0].scrollHeight - container.scrollTop();
+        }
+    },
     scrollWindow: function() {
         var container = $('.post-list-holder-by-time');
 
-        // If there's a new message, this jumps the window to that
+        // If there's a new message, jump the window to it
         // If there's no new message, we check if there is a scroll position to retrieve from the previous state
         // If we don't, then we just jump to the bottom
         if ($('#new_message').length) {
             container.scrollTop(container.scrollTop() + $('#new_message').offset().top - container.offset().top - $('.new-separator').height());
         } else if (this.holdPosition) {
             container.scrollTop(container[0].scrollHeight - this.scrollHeightFromBottom);
-            this.holdPosition = false;
         } else {
             container.scrollTop(container[0].scrollHeight - container.innerHeight());
         }
+        this.holdPosition = false;
+    },
+    onResize: function() {
+        this.holdPosition = true;
+        if ($('#create_post').length > 0) {
+            var height = $(window).height() - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
+            $(".post-list-holder-by-time").css("height", height + "px");
+        }
+        this.forceUpdate();
     },
     _onChange: function() {
         var newState = getStateFromStores();
 
         if (!utils.areStatesEqual(newState, this.state)) {
+            this.holdPosition = (newState.channel.id === this.state.channel.id); // If we're on a new channel, go to the bottom, otherwise hold your position
             this.setState(newState);
         }
     },

@@ -313,7 +313,6 @@ var getYoutubeEmbed = function(link) {
         var metadata = data.items[0].snippet;
         $('.video-uploader.'+youtubeId).html(metadata.channelTitle);
         $('.video-title.'+youtubeId).find('a').html(metadata.title);
-        // Scrolling Code Was Here
     };
 
     if(config.GoogleDeveloperKey) {
