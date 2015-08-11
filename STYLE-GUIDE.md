@@ -18,7 +18,7 @@ Part of the build process is running ESLint. ESLint is the final authority on al
 
 Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
 
-The following is an abridged version of the [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript/blob/master/README.md#airbnb-javascript-style-guide-), with modifications. Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
+The following is an abridged version of the [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript/tree/master/es5#airbnb-javascript-style-guide-), with modifications. Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
 
 ### Whitespace
 
