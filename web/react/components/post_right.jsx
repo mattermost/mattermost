@@ -243,10 +243,6 @@ module.exports = React.createClass({
             this.refs[id].forceUpdate();
         }
     },
-    handleDragEnter: function() {
-        console.log("HERE ENTER RIGHT");
-        this.setState({fileDrag: true});
-    },
     getInitialState: function() {
         return getStateFromStores();
     },
@@ -304,7 +300,7 @@ module.exports = React.createClass({
         }
 
         return (
-            <div className={"post-right__container" + fileDragOverlay} onDragEnter={this.handleDragEnter}>
+            <div className="post-right__container ">
                 <div className="search-bar__container sidebar--right__search-header">{searchForm}</div>
                 <div className="sidebar-right__body">
                     <RhsHeaderPost fromSearch={this.props.fromSearch} isMentionSearch={this.props.isMentionSearch} />

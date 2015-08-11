@@ -113,31 +113,33 @@ module.exports = React.createClass({
         var self = this;
 
         if (this.props.postType === 'post') {
-            $('body').on('dragover', '.post-list__table', function(e) {
+            $('body').on('dragover dragleave', '.app__content', function(e) {
                 e.preventDefault();
             });
-            $('body').on('dragenter', '.post-list__table', function(e) {
+            $('body').on('dragenter', '.app__content', function(e) {
                 e.preventDefault();
+                console.log('HERE');
+                $('.app__content').addClass('center-file-overlay');
+                $('.post-right__container').removeClass('right-file-overlay');
             });
-            $('body').on('dragleave', '.post-list__table', function(e) {
+            $('body').on('drop', '.app__content', function(e) {
                 e.preventDefault();
-            });
-            $('body').on('drop', '.post-list__table', function(e) {
-                e.preventDefault();
+                $('.app__content').removeClass('center-file-overlay');
                 self.handleDrop(e);
             });
         } else if (this.props.postType === 'comment') {
-            $('body').on('dragover', '.sidebar--right', function(e) {
+            $('body').on('dragover dragleave', '.post-right__container', function(e) {
                 e.preventDefault();
             });
-            $('body').on('dragenter', '.sidebar--right', function(e) {
+            $('body').on('dragenter', '.post-right__container', function(e) {
                 e.preventDefault();
+                console.log('HERE RIGHT');
+                $('.post-right__container').addClass('right-file-overlay');
+                $('.app__content').removeClass('center-file-overlay');
             });
-            $('body').on('dragleave', '.sidebar--right', function(e) {
+            $('body').on('drop', '.post-right__container', function(e) {
                 e.preventDefault();
-            });
-            $('body').on('drop', '.sidebar--right', function(e) {
-                e.preventDefault();
+                $('.post-right__container').removeClass('right-file-overlay');
                 self.handleDrop(e);
             });
         }
