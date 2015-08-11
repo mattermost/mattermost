@@ -462,6 +462,53 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	}
 }
 
+func TestChannelStoreGetChannelCounts(t *testing.T) {
+	Setup()
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "Channel1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
+	Must(store.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o1.Id
+	m2.UserId = model.NewId()
+	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
+	Must(store.Channel().SaveMember(&m2))
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o2.Id
+	m3.UserId = model.NewId()
+	m3.NotifyLevel = model.CHANNEL_NOTIFY_ALL
+	Must(store.Channel().SaveMember(&m3))
+
+	cresult := <-store.Channel().GetChannelCounts(o1.TeamId, m1.UserId)
+	counts := cresult.Data.(*model.ChannelCounts)
+
+	if len(counts.Counts) != 1 {
+		t.Fatal("wrong number of counts")
+	}
+
+	if len(counts.UpdateTimes) != 1 {
+		t.Fatal("wrong number of update times")
+	}
+}
+
 func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	Setup()
 
