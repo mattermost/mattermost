@@ -111,11 +111,6 @@ module.exports = React.createClass({
         this.setState({messageText: messageText});
 
         var draft = PostStore.getCurrentDraft();
-        if (!draft) {
-            draft = {};
-            draft['previews'] = [];
-            draft['uploadsInProgress'] = [];
-        }
         draft['message'] = messageText;
         PostStore.storeCurrentDraft(draft);
     },
@@ -126,12 +121,6 @@ module.exports = React.createClass({
     },
     handleUploadStart: function(clientIds, channelId) {
         var draft = PostStore.getDraft(channelId);
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-            draft['previews'] = [];
-        }
 
         draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(clientIds);
         PostStore.storeDraft(channelId, draft);
@@ -140,12 +129,6 @@ module.exports = React.createClass({
     },
     handleFileUploadComplete: function(filenames, clientIds, channelId) {
         var draft = PostStore.getDraft(channelId);
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-            draft['previews'] = [];
-        }
 
         // remove each finished file from uploads
         for (var i = 0; i < clientIds.length; i++) {
@@ -163,12 +146,6 @@ module.exports = React.createClass({
     },
     handleUploadError: function(err, clientId) {
         var draft = PostStore.getDraft(this.state.channelId);
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-            draft['previews'] = [];
-        }
 
         var index = draft['uploadsInProgress'].indexOf(clientId);
         if (index !== -1) {
@@ -197,11 +174,6 @@ module.exports = React.createClass({
         }
 
         var draft = PostStore.getCurrentDraft();
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-        }
         draft['previews'] = previews;
         draft['uploadsInProgress'] = uploadsInProgress;
         PostStore.storeCurrentDraft(draft);
@@ -219,17 +191,9 @@ module.exports = React.createClass({
         var channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
             var draft = PostStore.getCurrentDraft();
-            var previews = [];
-            var messageText = '';
-            var uploadsInProgress = [];
-            if (draft) {
-                previews = draft['previews'];
-                messageText = draft['message'];
-                uploadsInProgress = draft['uploadsInProgress'];
-            }
             this.setState({
-                channelId: channelId, messageText: messageText, initialText: messageText, submitting: false,
-                serverError: null, postError: null, previews: previews, uploadsInProgress: uploadsInProgress
+                channelId: channelId, messageText: draft['message'], initialText: draft['message'], submitting: false,
+                serverError: null, postError: null, previews: draft['previews'], uploadsInProgress: draft['uploadsInProgress']
             });
         }
     },
@@ -237,13 +201,10 @@ module.exports = React.createClass({
         PostStore.clearDraftUploads();
 
         var draft = PostStore.getCurrentDraft();
-        var previews = [];
-        var messageText = '';
-        if (draft) {
-            previews = draft['previews'];
-            messageText = draft['message'];
-        }
-        return {channelId: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: [], previews: previews, submitting: false, initialText: messageText};
+        return {
+            channelId: ChannelStore.getCurrentId(), messageText: draft['message'], uploadsInProgress: draft['uploadsInProgress'],
+            previews: draft['previews'], submitting: false, initialText: draft['message']
+        };
     },
     getFileCount: function(channelId) {
         if (channelId === this.state.channelId) {
@@ -251,11 +212,7 @@ module.exports = React.createClass({
         } else {
             var draft = PostStore.getDraft(channelId);
 
-            if (draft) {
-                return draft['previews'].length + draft['uploadsInProgress'].length;
-            } else {
-                return 0;
-            }
+            return draft['previews'].length + draft['uploadsInProgress'].length;
         }
     },
     render: function() {

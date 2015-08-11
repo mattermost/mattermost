@@ -89,9 +89,6 @@ module.exports = React.createClass({
     },
     handleUserInput: function(messageText) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
-        if (!draft) {
-            draft = {previews: [], uploadsInProgress: []};
-        }
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
@@ -101,12 +98,6 @@ module.exports = React.createClass({
     },
     handleUploadStart: function(clientIds, channelId) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-            draft['previews'] = [];
-        }
 
         draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(clientIds);
         PostStore.storeCommentDraft(this.props.rootId, draft);
@@ -115,12 +106,6 @@ module.exports = React.createClass({
     },
     handleFileUploadComplete: function(filenames, clientIds, channelId) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-            draft['previews'] = [];
-        }
 
         // remove each finished file from uploads
         for (var i = 0; i < clientIds.length; i++) {
@@ -138,12 +123,6 @@ module.exports = React.createClass({
     },
     handleUploadError: function(err, clientId) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
-        if (!draft) {
-            draft = {};
-            draft['message'] = '';
-            draft['uploadsInProgress'] = [];
-            draft['previews'] = [];
-        }
 
         var index = draft['uploadsInProgress'].indexOf(clientId);
         if (index !== -1) {
@@ -175,9 +154,6 @@ module.exports = React.createClass({
         }
 
         var draft = PostStore.getCommentDraft(this.props.rootId);
-        if (!draft) {
-            draft = {message: '', uploadsInProgress: []};
-        }
         draft.previews = previews;
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCommentDraft(this.props.rootId, draft);
@@ -188,28 +164,12 @@ module.exports = React.createClass({
         PostStore.clearCommentDraftUploads();
 
         var draft = PostStore.getCommentDraft(this.props.rootId);
-        var messageText = '';
-        var uploadsInProgress = [];
-        var previews = [];
-        if (draft) {
-            messageText = draft.message;
-            uploadsInProgress = draft.uploadsInProgress;
-            previews = draft.previews
-        }
-        return {messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews, submitting: false};
+        return {messageText: draft['message'], uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews'], submitting: false};
     },
     componentWillReceiveProps: function(newProps) {
         if (newProps.rootId !== this.props.rootId) {
             var draft = PostStore.getCommentDraft(newProps.rootId);
-            var messageText = '';
-            var uploadsInProgress = [];
-            var previews = [];
-            if (draft) {
-                messageText = draft.message;
-                uploadsInProgress = draft.uploadsInProgress;
-                previews = draft.previews
-            }
-            this.setState({messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews});
+            this.setState({messageText: draft['message'], uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
         }
     },
     getFileCount: function(channelId) {
