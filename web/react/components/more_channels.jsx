@@ -74,7 +74,7 @@ module.exports = React.createClass({
                     moreChannels = (
                         <table className='more-channel-table table'>
                             <tbody>
-                                {moreChannels.map(function cMap(channel) {
+                                {channels.map(function cMap(channel) {
                                     return (
                                         <tr key={channel.id}>
                                             <td>

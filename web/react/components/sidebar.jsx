@@ -161,7 +161,6 @@ module.exports = React.createClass({
                     AsyncClient.updateLastViewedAt();
                 }
             } else {
-                console.log('hit');
                 AsyncClient.getChannels();
             }
 

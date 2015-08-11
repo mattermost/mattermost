@@ -11,7 +11,8 @@ import (
 )
 
 type ChannelCounts struct {
-	Counts map[string]int64 `json:"counts"`
+	Counts      map[string]int64 `json:"counts"`
+	UpdateTimes map[string]int64 `json:"update_times"`
 }
 
 func (o *ChannelCounts) Etag() string {
@@ -20,9 +21,16 @@ func (o *ChannelCounts) Etag() string {
 		str += id + strconv.FormatInt(count, 10)
 	}
 
-	data := []byte(str)
+	md5Counts := md5.Sum([]byte(str))
 
-	return Etag(md5.Sum(data))
+	var update int64 = 0
+	for _, u := range o.UpdateTimes {
+		if u > update {
+			update = u
+		}
+	}
+
+	return Etag(md5Counts, update)
 }
 
 func (o *ChannelCounts) ToJson() string {

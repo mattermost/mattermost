@@ -99,11 +99,13 @@ function getChannels(force, updateLastViewed, checkVersion) {
                 }
 
                 var countMap = data.counts;
+                var updateAtMap = data.update_times;
 
                 for (var id in countMap) {
-                    var chan = ChannelStore.get(id);
+                    var c = ChannelStore.get(id);
                     var count = countMap[id];
-                    if (!chan || chan.total_msg_count !== count) {
+                    var updateAt = updateAtMap[id];
+                    if (!c || c.total_msg_count !== count || updateAt > c.update_at) {
                         getChannel(id);
                     }
                 }
