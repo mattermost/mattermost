@@ -417,6 +417,13 @@ func TestGetChannelCounts(t *testing.T) {
 		if len(counts.UpdateTimes) != 4 {
 			t.Fatal("wrong number of channel update times")
 		}
+
+		if cache_result, err := Client.GetChannelCounts(result.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(*model.ChannelCounts) != nil {
+			t.Log(cache_result.Data)
+			t.Fatal("cache should be empty")
+		}
 	}
 
 }
