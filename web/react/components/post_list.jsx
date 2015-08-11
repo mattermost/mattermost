@@ -439,7 +439,7 @@ module.exports = React.createClass({
                 currentPostDay = utils.getDateForUnixTicks(post.create_at);
                 if (currentPostDay.toDateString() != previousPostDay.toDateString()) {
                     postCtls.push(
-                        <div className="date-separator">
+                        <div key={currentPostDay.toDateString()} className="date-separator">
                             <hr className="separator__hr" />
                             <div className="separator__text">{currentPostDay.toDateString()}</div>
                         </div>
@@ -449,7 +449,7 @@ module.exports = React.createClass({
                 if (post.create_at > last_viewed && !rendered_last_viewed) {
                     rendered_last_viewed = true;
                     postCtls.push(
-                        <div className="new-separator">
+                        <div key="unviewed" className="new-separator">
                             <hr id="new_message" className="separator__hr" />
                             <div className="separator__text">New Messages</div>
                         </div>

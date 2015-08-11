@@ -322,7 +322,7 @@ module.exports.getMe = function() {
     if (isCallInProgress("getMe")) return;
 
     callTracker["getMe"] = utils.getTimestamp();
-    client.getMeSynchronous(
+    client.getMe(
         function(data, textStatus, xhr) {
             callTracker["getMe"] = 0;
 
