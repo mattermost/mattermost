@@ -281,7 +281,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string) StoreChan
 	return storeChannel
 }
 
-type channelIdWithCountandUpdateAt struct {
+type channelIdWithCountAndUpdateAt struct {
 	Id            string
 	TotalMsgCount int64
 	UpdateAt      int64
@@ -293,7 +293,7 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) StoreCha
 	go func() {
 		result := StoreResult{}
 
-		var data []channelIdWithCountandUpdateAt
+		var data []channelIdWithCountAndUpdateAt
 		_, err := s.GetReplica().Select(&data, "SELECT Id, TotalMsgCount, UpdateAt FROM Channels WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId) AND TeamId = :TeamId AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
