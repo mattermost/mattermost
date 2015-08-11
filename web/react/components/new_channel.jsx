@@ -60,8 +60,7 @@ module.exports = React.createClass({
                 $(this.refs.modal.getDOMNode()).modal('hide');
 
                 asyncClient.getChannel(data.id);
-                utils.updateTabTitle(channel.display_name);
-                utils.updateAddressBar(channel.name);
+                utils.switchChannel(data);
 
                 this.refs.display_name.getDOMNode().value = '';
                 this.refs.channel_name.getDOMNode().value = '';
