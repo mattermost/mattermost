@@ -849,3 +849,24 @@ module.exports.updateValetFeature = function(data, success, error) {
 
     module.exports.track('api', 'api_teams_update_valet_feature');
 };
+
+module.exports.isEmailEnabledSynchronous = function() {
+    var enabled = false;
+
+    $.ajax({
+        async: false,
+        url: '/api/v1/config/get/bypass_email',
+        dataType: 'json',
+        type: 'GET',
+        success: function(value) {
+            enabled = !value;
+        },
+        error: function(xhr, status, err) {
+            if (status != 200) {
+                handleError("isEmailEnabled", xhr, status, err);
+            }
+        }
+    });
+
+    return enabled;
+};
