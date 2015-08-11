@@ -102,7 +102,20 @@ function getStateFromStores() {
         }
         readDirectChannels = readDirectChannels.slice(index);
 
-        showDirectChannels.sort(function(a, b) {
+        showDirectChannels.sort(function directSort(a, b) {
+            if (a.display_name < b.display_name) {
+                return -1;
+            }
+            if (a.display_name > b.display_name) {
+                return 1;
+            }
+            return 0;
+        });
+    }
+
+    var channels = ChannelStore.getAll();
+    if (channels) {
+        channels.sort(function chanSort(a, b) {
             if (a.display_name < b.display_name) {
                 return -1;
             }
@@ -114,8 +127,8 @@ function getStateFromStores() {
     }
 
     return {
-        active_id: currentId,
-        channels: ChannelStore.getAll(),
+        activeId: currentId,
+        channels: channels,
         members: members,
         showDirectChannels: showDirectChannels,
         hideDirectChannels: readDirectChannels

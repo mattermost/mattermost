@@ -732,20 +732,19 @@ module.exports.isValidUsername = function (name) {
     return error;
 }
 
-module.exports.switchChannel = function(channel, teammate_name) {
+function switchChannel(channel, teammateName) {
     AppDispatcher.handleViewAction({
       type: ActionTypes.CLICK_CHANNEL,
       name: channel.name,
       id: channel.id
     });
 
-    var teamURL = window.location.href.split('/channels')[0];
-    history.replaceState('data', '', teamURL + '/channels/' + channel.name);
+    updateAddressBar(channel.name);
 
-    if (channel.type === 'D' && teammate_name) {
-        document.title = teammate_name + " " + document.title.substring(document.title.lastIndexOf("-"));
+    if (channel.type === 'D' && teammateName) {
+        updateTabTitle(teammateName);
     } else {
-        document.title = channel.display_name + " " + document.title.substring(document.title.lastIndexOf("-"));
+        updateTabTitle(channel.display_name);
     }
 
     AsyncClient.getChannels(true, true, true);
@@ -759,6 +758,18 @@ module.exports.switchChannel = function(channel, teammate_name) {
 
     return false;
 }
+module.exports.switchChannel = switchChannel;
+
+function updateTabTitle(name) {
+    document.title = name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
+}
+module.exports.updateTabTitle = updateTabTitle;
+
+function updateAddressBar(channelName) {
+    var teamURL = window.location.href.split('/channels')[0];
+    history.replaceState('data', '', teamURL + '/channels/' + channelName);
+}
+module.exports.updateAddressBar = updateAddressBar;
 
 module.exports.isMobile = function() {
   return screen.width <= 768;
