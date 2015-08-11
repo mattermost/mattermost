@@ -113,22 +113,9 @@ function getStateFromStores() {
         });
     }
 
-    var channels = ChannelStore.getAll();
-    if (channels) {
-        channels.sort(function chanSort(a, b) {
-            if (a.display_name.toLowerCase() < b.display_name.toLowerCase()) {
-                return -1;
-            }
-            if (a.display_name.toLowerCase() > b.display_name.toLowerCase()) {
-                return 1;
-            }
-            return 0;
-        });
-    }
-
     return {
         activeId: currentId,
-        channels: channels,
+        channels: ChannelStore.getAll(),
         members: members,
         showDirectChannels: showDirectChannels,
         hideDirectChannels: readDirectChannels
