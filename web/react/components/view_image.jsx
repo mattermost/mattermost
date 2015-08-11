@@ -6,6 +6,13 @@ var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
     displayName: 'ViewImageModal',
+    propTypes: {
+        filenames: React.PropTypes.array,
+        modalId: React.PropTypes.string,
+        channelId: React.PropTypes.string,
+        userId: React.PropTypes.string,
+        startId: React.PropTypes.number
+    },
     canSetState: false,
     handleNext: function() {
         var id = this.state.imgId + 1;
@@ -118,7 +125,11 @@ module.exports = React.createClass({
         data.filename = this.props.filenames[this.state.imgId];
         Client.getPublicLink(data,
             function(serverData) {
-                window.open(serverData.public_link);
+                if (utils.isMobile()) {
+                    window.location.href = serverData.public_link;
+                } else {
+                    window.open(serverData.public_link);
+                }
             },
             function() {
             }
@@ -145,7 +156,7 @@ module.exports = React.createClass({
     getInitialState: function() {
         var loaded = [];
         var progress = [];
-        for (var i = 0; i < this.props.filenames.length; i ++) {
+        for (var i = 0; i < this.props.filenames.length; i++) {
             loaded.push(false);
             progress.push(0);
         }
@@ -213,7 +224,7 @@ module.exports = React.createClass({
             content = (
                 <div>
                     <img className='loader-image' src='/static/images/load.gif' />
-                    { percentage > 0 ?
+                    {percentage > 0 ?
                     <span className='loader-percent' >{'Previewing ' + percentage + '%'}</span>
                     : ''}
                 </div>
