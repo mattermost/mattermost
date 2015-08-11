@@ -6,7 +6,9 @@ package model
 import (
 	"crypto/md5"
 	"encoding/json"
+	"fmt"
 	"io"
+	"sort"
 	"strconv"
 )
 
@@ -16,12 +18,19 @@ type ChannelCounts struct {
 }
 
 func (o *ChannelCounts) Etag() string {
+
+	ids := []string{}
+	for id, _ := range o.Counts {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+
 	str := ""
-	for id, count := range o.Counts {
-		str += id + strconv.FormatInt(count, 10)
+	for _, id := range ids {
+		str += id + strconv.FormatInt(o.Counts[id], 10)
 	}
 
-	md5Counts := md5.Sum([]byte(str))
+	md5Counts := fmt.Sprintf("%x", md5.Sum([]byte(str)))
 
 	var update int64 = 0
 	for _, u := range o.UpdateTimes {

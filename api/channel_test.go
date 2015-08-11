@@ -422,7 +422,7 @@ func TestGetChannelCounts(t *testing.T) {
 			t.Fatal(err)
 		} else if cache_result.Data.(*model.ChannelCounts) != nil {
 			t.Log(cache_result.Data)
-			t.Fatal("cache should be empty")
+			t.Fatal("result data should be empty")
 		}
 	}
 
