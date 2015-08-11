@@ -119,6 +119,7 @@ RootPost = React.createClass({
 
 CommentPost = React.createClass({
     render: function() {
+        console.log("YOU NEED TO REMOVE THE POST RIGHT ENTRY")
         var post = this.props.post;
 
         var commentClass = "post";
