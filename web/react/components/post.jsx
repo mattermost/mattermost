@@ -49,6 +49,11 @@ module.exports = React.createClass({
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = (new Date).getTime();
                 ChannelStore.setChannelMember(member);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_POST,
+                    post: data
+                });
             }.bind(this),
             function(err) {
                 post.state = Constants.POST_FAILED;
