@@ -13,6 +13,7 @@ var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
+    var soundNeeded = (!navigator || navigator.userAgent.toLowerCase().indexOf("firefox") === -1);
     var sound = (!user.notify_props || user.notify_props.desktop_sound == undefined) ? "true" : user.notify_props.desktop_sound;
     var desktop = (!user.notify_props || user.notify_props.desktop == undefined) ? "all" : user.notify_props.desktop;
     var email = (!user.notify_props || user.notify_props.email == undefined) ? "true" : user.notify_props.email;
@@ -58,7 +59,7 @@ function getNotificationsStateFromStores() {
         }
     }
 
-    return { notify_level: desktop, enable_email: email, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key, all_key: all_key, channel_key: channel_key };
+    return { notify_level: desktop, enable_email: email, soundNeeded: soundNeeded, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key, all_key: all_key, channel_key: channel_key };
 }
 
 
@@ -236,23 +237,35 @@ var NotificationsTab = React.createClass({
 
         var soundSection;
         if (this.props.activeSection === 'sound') {
-            var soundActive = ["",""];
-            if (this.state.enable_sound === "false") {
-                soundActive[1] = "active";
-            } else {
-                soundActive[0] = "active";
-            }
-
             var inputs = [];
 
-            inputs.push(
-                <div>
-                    <div className="btn-group" data-toggle="buttons-radio">
-                        <button className={"btn btn-default "+soundActive[0]} onClick={function(){self.handleSoundRadio("true")}}>On</button>
-                        <button className={"btn btn-default "+soundActive[1]} onClick={function(){self.handleSoundRadio("false")}}>Off</button>
+            if(this.state.soundNeeded) {
+                var soundActive = ["",""];
+                if (this.state.enable_sound === "false") {
+                    soundActive[1] = "active";
+                } else {
+                    soundActive[0] = "active";
+                }
+
+                inputs.push(
+                    <div>
+                        <div className="btn-group" data-toggle="buttons-radio">
+                            <button className={"btn btn-default "+soundActive[0]} onClick={function(){self.handleSoundRadio("true")}}>On</button>
+                            <button className={"btn btn-default "+soundActive[1]} onClick={function(){self.handleSoundRadio("false")}}>Off</button>
+                        </div>
                     </div>
-                </div>
-            );
+                );
+            } else {
+                inputs.push(
+                    <div>
+                        <div className='btn-group' data-toggle='buttons-radio'>
+                            <button className='btn btn-default' disabled>On</button>
+                            <button className='btn btn-default' disabled>Off</button>
+                        </div>
+                        <div><br/>Please disable notification sounds in your browser settings</div>
+                    </div>
+                )
+            }
 
             soundSection = (
                 <SettingItemMax
@@ -265,7 +278,9 @@ var NotificationsTab = React.createClass({
             );
         } else {
             var describe = "";
-            if (this.state.enable_sound === "false") {
+            if (!this.state.soundNeeded) {
+                describe = "See Inside"
+            } else if (this.state.enable_sound === "false") {
                 describe = "Off";
             } else {
                 describe = "On";
