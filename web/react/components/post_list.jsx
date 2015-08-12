@@ -28,7 +28,6 @@ function getStateFromStores() {
 
 module.exports = React.createClass({
     displayName: "PostList",
-    oldZoom: 0,
     holdPosition: true,            // The default state is to hold your scroll position
                                     // This behavior should NOT be taken advantage of, always set this to the desired state
 
