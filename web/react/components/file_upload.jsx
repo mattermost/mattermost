@@ -91,24 +91,49 @@ module.exports = React.createClass({
 
         if (typeof files !== 'string' && files.length) {
             var numFiles = files.length;
-            var numToUpload = this.props.setUploads(numFiles);
 
-            for (var i = 0; i < numFiles && i < numToUpload; i++) {
-                var file = files[i];
+            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId), numFiles);
 
+            if (numFiles > numToUpload) {
+                this.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
+            }
+
+            for (var i = 0; i < files.length && i < numToUpload; i++) {
+                if (files[i].size > Constants.MAX_FILE_SIZE) {
+                    this.props.onUploadError('Files must be no more than ' + Constants.MAX_FILE_SIZE / 1000000 + ' MB');
+                    continue;
+                }
+
+                // generate a unique id that can be used by other components to refer back to this file upload
+                var clientId = utils.generateId();
+
+                // Prepare data to be uploaded.
                 var formData = new FormData();
                 formData.append('channel_id', channelId);
-                formData.append('files', file, file.name);
+                formData.append('files', files[i], files[i].name);
+                formData.append('client_ids', clientId);
 
-                client.uploadFile(formData,
+                var request = client.uploadFile(formData,
                     function(data) {
                         var parsedData = $.parseJSON(data);
-                        this.props.onFileUpload(parsedData.filenames, channelId);
+                        this.props.onFileUpload(parsedData['filenames'], parsedData['client_ids'], channelId);
+
+                        var requests = this.state.requests;
+                        for (var i = 0; i < parsedData['client_ids'].length; i++) {
+                            delete requests[parsedData['client_ids'][i]];
+                        }
+                        this.setState({requests: requests});
                     }.bind(this),
                     function(err) {
-                        this.props.onUploadError(err);
+                        this.props.onUploadError(err, clientId);
                     }.bind(this)
                 );
+
+                var requests = this.state.requests;
+                requests[clientId] = request;
+                this.setState({requests: requests});
+
+                this.props.onUploadStart([clientId], channelId);
             }
         }
     },
