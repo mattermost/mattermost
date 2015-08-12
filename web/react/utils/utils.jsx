@@ -97,31 +97,31 @@ module.exports.getCookie = function(name) {
 }
 
 module.exports.notifyMe = function(title, body, channel) {
-    if ("Notification" in window && Notification.permission !== 'denied') {
-    Notification.requestPermission(function (permission) {
-      if (Notification.permission !== permission) {
-          Notification.permission = permission;
-      }
+    if ('Notification' in window && Notification.permission !== 'denied') {
+        Notification.requestPermission(function(permission) {
+            if (Notification.permission !== permission) {
+                Notification.permission = permission;
+            }
 
-      if (permission === "granted") {
-        var notification = new Notification(title,
-            { body: body, tag: body, icon: '/static/images/icon50x50.gif' }
-        );
-        notification.onclick = function() {
-          window.focus();
-          if (channel) {
-              module.exports.switchChannel(channel);
-          } else {
-              window.location.href = "/";
-          }
-        };
-        setTimeout(function(){
-          notification.close();
-        }, 5000);
-      }
-    });
-  }
-}
+            if (permission === 'granted') {
+                var notification = new Notification(title,
+                    {body: body, tag: body, icon: '/static/images/icon50x50.gif'}
+                );
+                notification.onclick = function() {
+                    window.focus();
+                    if (channel) {
+                        module.exports.switchChannel(channel);
+                    } else {
+                        window.location.href = '/';
+                    }
+                };
+                setTimeout(function() {
+                    notification.close();
+                }, 5000);
+            }
+        });
+    }
+};
 
 module.exports.ding = function() {
   var audio = new Audio('/static/images/ding.mp3');
