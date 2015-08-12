@@ -146,6 +146,7 @@ CommentPost = React.createClass({
             function(data) {
                 AsyncClient.getPosts(true);
 
+                var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = (new Date).getTime();

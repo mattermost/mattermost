@@ -76,7 +76,7 @@ module.exports = React.createClass({
             var channel = ChannelStore.get(this.state.channelId);
 
             PostStore.storePendingPost(post);
-            PostStore.storeDraft(channel.id, userId, null);
+            PostStore.storeDraft(channel.id, null);
             this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
             client.createPost(post, channel,
