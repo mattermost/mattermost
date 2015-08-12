@@ -296,6 +296,10 @@ module.exports = React.createClass({
 
         return (
             <div className="post-right__container">
+                <div className='right-file-overlay invisible'>
+                    <span className='right-file-help-text'>Drop a file to upload it.</span>
+                    <img className='right-file-help-picture' />
+                </div>
                 <div className="search-bar__container sidebar--right__search-header">{searchForm}</div>
                 <div className="sidebar-right__body">
                     <RhsHeaderPost fromSearch={this.props.fromSearch} isMentionSearch={this.props.isMentionSearch} />

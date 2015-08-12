@@ -1,5 +1,28 @@
 .post-right__container {
 
+	.right-file-overlay {
+		height: 100%;
+		width: 100%;
+		position: fixed;
+		z-index: 2147483646;
+		-moz-box-shadow: 0px 0px 3px #8a8a8a;
+		-webkit-box-shadow: 0px 0px 3px #8a8a8a;
+		box-shadow: 0px 0px 3px #8a8a8a;
+
+		.invisible {
+			visibility: hidden;
+		}
+		.visible {
+			visibility: visible;
+		}
+		.right-file-help-text {
+
+		}
+		.right-file-help-picture {
+
+		}
+	}
+
 	.post-right-root-message {
 		padding: 1em 1em 0;
 	}

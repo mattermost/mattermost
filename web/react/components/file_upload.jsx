@@ -144,26 +144,32 @@ module.exports = React.createClass({
         if (this.props.postType === 'post') {
             $('.app__content').dragster({
                 enter: function(dragsterEvent, e) {
-                    $('.app__content').addClass('center-file-overlay');
+                    $('.center-file-overlay').removeClass('invisible');
+                    $('.center-file-overlay').addClass('visible');
                 },
                 leave: function(dragsterEvent, e) {
-                    $('.app__content').removeClass('center-file-overlay');
+                    $('.center-file-overlay').removeClass('visible');
+                    $('.center-file-overlay').addClass('invisible');
                 },
                 drop: function(dragsterEvent, e) {
-                    $('.app__content').removeClass('center-file-overlay');
+                    $('.center-file-overlay').removeClass('visible');
+                    $('.center-file-overlay').addClass('invisible');
                     self.handleDrop(e);
                 }
             });
         } else if (this.props.postType === 'comment') {
             $('.post-right__container').dragster({
                 enter: function(dragsterEvent, e) {
-                    $('.post-right__container').addClass('right-file-overlay');
+                    $('.right-file-overlay').removeClass('invisible');
+                    $('.right-file-overlay').addClass('visible');
                 },
                 leave: function(dragsterEvent, e) {
-                    $('.post-right__container').removeClass('right-file-overlay');
+                    $('.right-file-overlay').removeClass('visible');
+                    $('.right-file-overlay').addClass('invisible');
                 },
                 drop: function(dragsterEvent, e) {
-                    $('.post-right__container').removeClass('right-file-overlay');
+                    $('.right-file-overlay').removeClass('visible');
+                    $('.right-file-overlay').addClass('invisible');
                     self.handleDrop(e);
                 }
             });
