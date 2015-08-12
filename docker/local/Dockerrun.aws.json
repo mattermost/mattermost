@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "mattermost/platform:dev",
+    "Name": "YOUR_DEV_INSTANCE_HERE",
     "Update": "true"
   },
   "Ports": [
