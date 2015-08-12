@@ -29,7 +29,7 @@ function getStateFromStores() {
 module.exports = React.createClass({
     displayName: "PostList",
     oldZoom: 0,
-    holdPosition: false,            // The default state is to scroll to the bottom on change
+    holdPosition: true,            // The default state is to hold your scroll position
                                     // This behavior should NOT be taken advantage of, always set this to the desired state
 
     scrollHeightFromBottom: 0,      // This represents the distance from the container's scrollHeight
@@ -137,7 +137,7 @@ module.exports = React.createClass({
         } else {
             container.scrollTop(container[0].scrollHeight - container.innerHeight());
         }
-        this.holdPosition = false;
+        this.holdPosition = true;
     },
     onResize: function() {
         this.holdPosition = true;
