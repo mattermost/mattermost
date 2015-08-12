@@ -7,6 +7,13 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
+    displayName: 'FileUpload',
+    propTypes: {
+        onUploadError: React.PropTypes.func,
+        getFileCount: React.PropTypes.func,
+        onFileUpload: React.PropTypes.func,
+        onUploadStart: React.PropTypes.func
+    },
     getInitialState: function() {
         return {requests: {}};
     },
@@ -21,7 +28,7 @@ module.exports = React.createClass({
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
         var numFiles = 0;
-        for(var i = 0; i < files.length; i++) {
+        for (var i = 0; i < files.length; i++) {
             if (files[i].size <= Constants.MAX_FILE_SIZE) {
                 numFiles++;
             }
@@ -51,11 +58,11 @@ module.exports = React.createClass({
             var request = client.uploadFile(formData,
                 function(data) {
                     var parsedData = $.parseJSON(data);
-                    this.props.onFileUpload(parsedData['filenames'], parsedData['client_ids'], channelId);
+                    this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                     var requests = this.state.requests;
-                    for (var i = 0; i < parsedData['client_ids'].length; i++) {
-                        delete requests[parsedData['client_ids'][i]];
+                    for (var i = 0; i < parsedData.client_ids.length; i++) {
+                        delete requests[parsedData.client_ids[i]];
                     }
                     this.setState({requests: requests});
                 }.bind(this),
@@ -100,12 +107,9 @@ module.exports = React.createClass({
             if (items) {
                 for (var i = 0; i < items.length; i++) {
                     if (items[i].type.indexOf('image') !== -1) {
-                        var ext = items[i].type.split('/')[1].toLowerCase();
-                        if (ext === 'jpeg') {
-                            ext = 'jpg';
-                        }
+                        var testExt = items[i].type.split('/')[1].toLowerCase();
 
-                        if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
+                        if (Constants.IMAGE_TYPES.indexOf(testExt) < 0) {
                             continue;
                         }
 
@@ -113,7 +117,7 @@ module.exports = React.createClass({
                     }
                 }
 
-                var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(channelId), numItems);
+                var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - self.props.getFileCount(ChannelStore.getCurrentId()), numItems);
 
                 if (numItems > numToUpload) {
                     self.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
@@ -124,9 +128,6 @@ module.exports = React.createClass({
                         var file = items[i].getAsFile();
 
                         var ext = items[i].type.split('/')[1].toLowerCase();
-                        if (ext === 'jpeg') {
-                            ext = 'jpg';
-                        }
 
                         if (Constants.IMAGE_TYPES.indexOf(ext) < 0) {
                             continue;
@@ -161,11 +162,11 @@ module.exports = React.createClass({
                         var request = client.uploadFile(formData,
                             function(data) {
                                 var parsedData = $.parseJSON(data);
-                                self.props.onFileUpload(parsedData['filenames'], parsedData['client_ids'], channelId);
+                                self.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                                 var requests = self.state.requests;
-                                for (var i = 0; i < parsedData['client_ids'].length; i++) {
-                                    delete requests[parsedData['client_ids'][i]];
+                                for (var i = 0; i < parsedData.client_ids.length; i++) {
+                                    delete requests[parsedData.client_ids[i]];
                                 }
                                 self.setState({requests: requests});
                             },
