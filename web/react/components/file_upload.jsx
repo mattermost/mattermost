@@ -14,7 +14,7 @@ module.exports = React.createClass({
         var element = $(this.refs.fileInput.getDOMNode());
         var files = element.prop('files');
 
-        var channelId = ChannelStore.getCurrentId();
+        var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         this.props.onUploadError(null);
 
@@ -192,14 +192,13 @@ module.exports = React.createClass({
                             continue;
                         }
 
-                        var channelId = ChannelStore.getCurrentId();
+                        var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
                         // generate a unique id that can be used by other components to refer back to this file upload
                         var clientId = utils.generateId();
 
                         var formData = new FormData();
                         formData.append('channel_id', channelId);
-
                         var d = new Date();
                         var hour;
                         if (d.getHours() < 10) {
