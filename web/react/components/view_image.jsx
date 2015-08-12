@@ -256,7 +256,7 @@ module.exports = React.createClass({
                                 <div className='modal-close' data-dismiss='modal'></div>
                                 {content}
                                 <div ref='imageFooter' className='modal-button-bar'>
-                                    <span className='pull-left text'>{'Image ' + (this.state.imgId + 1) + ' of ' + this.props.filenames.length}</span>
+                                    <span className='pull-left text'>{'File ' + (this.state.imgId + 1) + ' of ' + this.props.filenames.length}</span>
                                     <div className='image-links'>
                                         {publicLink}
                                         <a href={fileUrl} download={name} className='text'>Download</a>
