@@ -256,7 +256,7 @@ module.exports = React.createClass({
                         parent_id='invite_member'
                         title='Discard Invitations?'
                         message='You have unsent invitations, are you sure you want to discard them?'
-                        confirm_button='Yes, Discard/'
+                        confirm_button='Yes, Discard'
                     />
                 </div>
             );
