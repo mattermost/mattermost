@@ -64,7 +64,11 @@ module.exports = React.createClass({
         SocketStore.addChangeListener(this._onSocketChange);
 
         // Timeout exists for the DOM to fully render before making changes
-        setTimeout(this.scrollWindow, 1);
+        var self = this
+        setTimeout(function initialScroll() {
+            self.holdPosition = false;
+            self.scrollWindow();
+        }, 1);
 
         // Handle browser resizing
         $(window).resize(this.onResize);
