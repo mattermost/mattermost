@@ -13,7 +13,7 @@ var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
-    var soundNeeded = (!navigator || navigator.userAgent.toLowerCase().indexOf("firefox") === -1);
+    var soundNeeded = (!navigator || !navigator.userAgent || navigator.userAgent.toLowerCase().indexOf("firefox") === -1);
     var sound = (!user.notify_props || user.notify_props.desktop_sound == undefined) ? "true" : user.notify_props.desktop_sound;
     var desktop = (!user.notify_props || user.notify_props.desktop == undefined) ? "all" : user.notify_props.desktop;
     var email = (!user.notify_props || user.notify_props.email == undefined) ? "true" : user.notify_props.email;
