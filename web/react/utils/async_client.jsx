@@ -274,24 +274,32 @@ module.exports.search = function(terms) {
 
 module.exports.getPosts = function(force, id, maxPosts) {
     if (PostStore.getCurrentPosts() == null || force) {
-        var channelId = id ? id : ChannelStore.getCurrentId();
+        var channelId = id;
+        if (channelId == null) {
+            channelId = ChannelStore.getCurrentId();
+        }
 
-        if (isCallInProgress("getPosts_"+channelId)) return;
+        if (isCallInProgress('getPosts_' + channelId)) {
+            return;
+        }
 
-        var post_list = PostStore.getCurrentPosts();
+        var postList = PostStore.getCurrentPosts();
 
-        if (!maxPosts) { maxPosts = Constants.POST_CHUNK_SIZE * Constants.MAX_POST_CHUNKS };
+        var max = maxPosts;
+        if (max == null) {
+            max = Constants.POST_CHUNK_SIZE * Constants.MAX_POST_CHUNKS;
+        }
 
         // if we already have more than POST_CHUNK_SIZE posts,
         //   let's get the amount we have but rounded up to next multiple of POST_CHUNK_SIZE,
         //   with a max at maxPosts
-        var numPosts = Math.min(maxPosts, Constants.POST_CHUNK_SIZE);
-        if (post_list && post_list.order.length > 0) {
-            numPosts = Math.min(maxPosts, Constants.POST_CHUNK_SIZE * Math.ceil(post_list.order.length / Constants.POST_CHUNK_SIZE));
+        var numPosts = Math.min(max, Constants.POST_CHUNK_SIZE);
+        if (postList && postList.order.length > 0) {
+            numPosts = Math.min(max, Constants.POST_CHUNK_SIZE * Math.ceil(postList.order.length / Constants.POST_CHUNK_SIZE));
         }
 
         if (channelId != null) {
-            callTracker["getPosts_"+channelId] = utils.getTimestamp();
+            callTracker['getPosts_' + channelId] = utils.getTimestamp();
             client.getPosts(
                 channelId,
                 0,
@@ -305,15 +313,13 @@ module.exports.getPosts = function(force, id, maxPosts) {
                         post_list: data
                     });
 
-                    PostStore.removeNonFailedPendingPosts(channelId);
-
                     module.exports.getProfiles();
                 },
                 function(err) {
-                    dispatchError(err, "getPosts");
+                    dispatchError(err, 'getPosts');
                 },
                 function() {
-                    callTracker["getPosts_"+channelId] = 0;
+                    callTracker['getPosts_' + channelId] = 0;
                 }
             );
         }

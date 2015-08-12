@@ -50,20 +50,20 @@ module.exports = React.createClass({
             function(data) {
                 AsyncClient.getPosts(true);
 
+                var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = (new Date).getTime();
                 ChannelStore.setChannelMember(member);
             }.bind(this),
             function(err) {
-                post.did_fail = true;
+                post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
                 this.forceUpdate();
             }.bind(this)
         );
 
-        post.did_fail = false;
-        post.is_loading = true;
+        post.state = Constants.POST_LOADING;
         PostStore.updatePendingPost(post);
         this.forceUpdate();
     },
@@ -75,9 +75,9 @@ module.exports = React.createClass({
         var parentPost = this.props.parentPost;
         var posts = this.props.posts;
 
-        var type = "Post"
-        if (post.root_id.length > 0) {
-            type = "Comment"
+        var type = "Post";
+        if (post.root_id && post.root_id.length > 0) {
+            type = "Comment";
         }
 
         var commentCount = 0;

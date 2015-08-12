@@ -175,35 +175,15 @@ module.exports = React.createClass({
                 }
             }
             if (this.state.channel.id !== newState.channel.id) {
-                PostStore.clearPendingPosts(this.state.channel.id);
                 this.scrolledToNew = false;
             }
             this.setState(newState);
         }
     },
     _onSocketChange: function(msg) {
-        if (msg.action == "posted") {
+        if (msg.action === 'posted') {
             var post = JSON.parse(msg.props.post);
-
-            var post_list = PostStore.getPosts(msg.channel_id);
-            if (!post_list) return;
-
-            if (post.pending_post_id !== "") {
-                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
-            }
-
-            post.pending_post_id = "";
-
-            post_list.posts[post.id] = post;
-            if (post_list.order.indexOf(post.id) === -1) {
-                post_list.order.unshift(post.id);
-            }
-
-            if (this.state.channel.id === msg.channel_id) {
-                this.setState({ post_list: post_list });
-            };
-
-            PostStore.storePosts(post.channel_id, post_list);
+            PostStore.storePost(post);
         } else if (msg.action == "post_edited") {
             if (this.state.channel.id == msg.channel_id) {
                 var post_list = this.state.post_list;

@@ -66,33 +66,44 @@ module.exports = React.createClass({
             post.filenames = this.state.previews;
 
             var time = utils.getTimestamp();
-            post.pending_post_id = user_id + ":"+ time;
-            post.user_id = user_id;
+            var userId = UserStore.getCurrentId();
+            post.pending_post_id = userId + ':' + time;
+            post.user_id = userId;
             post.create_at = time;
             post.root_id = this.state.rootId;
             post.parent_id = this.state.parentId;
 
-            var channel = ChannelStore.getCurrent();
+            var channel = ChannelStore.get(this.state.channelId);
+
+            PostStore.storePendingPost(post);
+            PostStore.storeDraft(channel.id, userId, null);
+            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
             client.createPost(post, channel,
                 function(data) {
                     this.resizePostHolder();
                     AsyncClient.getPosts(true);
 
-                    var channel = ChannelStore.get(this.state.channelId);
-                    var member = ChannelStore.getMember(this.state.channelId);
+                    var member = ChannelStore.getMember(channel.id);
                     member.msg_count = channel.total_msg_count;
                     member.last_viewed_at = Date.now();
                     ChannelStore.setChannelMember(member);
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECIEVED_POST,
+                        post: data
+                    });
                 }.bind(this),
                 function(err) {
-                    var state = {}
+                    var state = {};
 
-                    if (err.message === "Invalid RootId parameter") {
-                        if ($('#post_deleted').length > 0) $('#post_deleted').modal('show');
+                    if (err.message === 'Invalid RootId parameter') {
+                        if ($('#post_deleted').length > 0) {
+                            $('#post_deleted').modal('show');
+                        }
                         PostStore.removePendingPost(post.pending_post_id);
                     } else {
-                        post.did_fail = true;
+                        post.state = Constants.POST_FAILED;
                         PostStore.updatePendingPost(post);
                     }
 
@@ -100,11 +111,6 @@ module.exports = React.createClass({
                     this.setState(state);
                 }.bind(this)
             );
-
-            post.is_loading = true;
-            PostStore.storePendingPost(post);
-            PostStore.storeDraft(channel.id, user_id, null);
-            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
         }
 
         $('.post-list-holder-by-time').perfectScrollbar('update');
@@ -214,10 +220,10 @@ module.exports = React.createClass({
             var previews = [];
             var messageText = '';
             var uploadsInProgress = 0;
-            if (draft && draft['previews'] && draft['message']) {
-                previews = draft['previews'];
-                messageText = draft['message'];
-                uploadsInProgress = draft['uploadsInProgress'];
+            if (draft && draft.previews && draft.message) {
+                previews = draft.previews;
+                messageText = draft.message;
+                uploadsInProgress = draft.uploadsInProgress;
             }
 
             this.setState({channelId: channelId, messageText: messageText, initialText: messageText, submitting: false, serverError: null, postError: null, previews: previews, uploadsInProgress: uploadsInProgress});
@@ -225,19 +231,18 @@ module.exports = React.createClass({
     },
     getInitialState: function() {
         PostStore.clearDraftUploads();
-        PostStore.clearPendingPosts(ChannelStore.getCurrentId());
 
         var draft = PostStore.getCurrentDraft();
         var previews = [];
         var messageText = '';
         var uploadsInProgress = 0;
-        if (draft && draft["previews"] && draft["message"]) {
-            previews = draft['previews'];
-            messageText = draft['message'];
-            uploadsInProgress = draft['uploadsInProgress'];
+        if (draft && draft.previews && draft.message) {
+            previews = draft.previews;
+            messageText = draft.message;
+            uploadsInProgress = draft.uploadsInProgress;
         }
 
-        return { channelId: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews, submitting: false, initialText: messageText};
+        return {channelId: ChannelStore.getCurrentId(), messageText: messageText, uploadsInProgress: uploadsInProgress, previews: previews, submitting: false, initialText: messageText};
     },
     getFileCount: function(channelId) {
         if (channelId === this.state.channelId) {

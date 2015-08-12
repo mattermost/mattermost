@@ -103,7 +103,38 @@ var PostStore = assign({}, EventEmitter.prototype, {
         this.pStorePosts(channelId, posts);
         this.emitChange();
     },
+    pStorePosts: function pStorePosts(channelId, posts) {
+        BrowserStore.setItem('posts_' + channelId, posts);
+    },
+    getPosts: function getPosts(channelId) {
+        return BrowserStore.getItem('posts_' + channelId);
+    },
+    storePost: function(post) {
+        this.pStorePost(post);
+        this.emitChange();
+    },
+    pStorePost: function(post) {
+        var postList = PostStore.getPosts(post.channel_id);
+        if (!postList) {
+            return;
+        }
+
+        if (post.pending_post_id !== '') {
+            this.removePendingPost(post.channel_id, post.pending_post_id);
+        }
+
+        post.pending_post_id = '';
+
+        postList.posts[post.id] = post;
+        if (postList.order.indexOf(post.id) === -1) {
+            postList.order.unshift(post.id);
+        }
+
+        this.pStorePosts(post.channel_id, postList);
+    },
     storePendingPost: function(post) {
+        post.state = Constants.POST_LOADING;
+
         var postList = this.getPendingPosts(post.channel_id);
         if (!postList) {
             postList = {posts: {}, order: []};
@@ -114,8 +145,29 @@ var PostStore = assign({}, EventEmitter.prototype, {
         this._storePendingPosts(post.channel_id, postList);
         this.emitChange();
     },
-    _storePendingPosts: function(channelId, posts) {
-        BrowserStore.setItem('pending_posts_' + channelId, posts);
+    _storePendingPosts: function(channelId, postList) {
+        var posts = postList.posts;
+
+        // sort failed posts to the bottom
+        postList.order.sort(function postSort(a, b) {
+            if (posts[a].state === Constants.POST_LOADING && posts[b].state === Constants.POST_FAILED) {
+                return 1;
+            }
+            if (posts[a].state === Constants.POST_FAILED && posts[b].state === Constants.POST_LOADING) {
+                return -1;
+            }
+
+            if (posts[a].create_at > posts[b].create_at) {
+                return -1;
+            }
+            if (posts[a].create_at < posts[b].create_at) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        BrowserStore.setItem('pending_posts_' + channelId, postList);
     },
     getPendingPosts: function(channelId) {
         return BrowserStore.getItem('pending_posts_' + channelId);
@@ -140,8 +192,10 @@ var PostStore = assign({}, EventEmitter.prototype, {
 
         this._storePendingPosts(channelId, postList);
     },
-    clearPendingPosts: function(channelId) {
-        BrowserStore.removeItem('pending_posts_' + channelId);
+    clearPendingPosts: function() {
+        BrowserStore.actionOnItemsWithPrefix('pending_posts_', function clearPending(key) {
+            BrowserStore.removeItem(key);
+        });
     },
     removeNonFailedPendingPosts: function(channelId) {
         var postList = this.getPendingPosts(channelId);
@@ -170,12 +224,6 @@ var PostStore = assign({}, EventEmitter.prototype, {
         postList.posts[post.pending_post_id] = post;
         this._storePendingPosts(post.channel_id, postList);
         this.emitChange();
-    },
-    pStorePosts: function pStorePosts(channelId, posts) {
-        BrowserStore.setItem('posts_' + channelId, posts);
-    },
-    getPosts: function getPosts(channelId) {
-        return BrowserStore.getItem('posts_' + channelId);
     },
     storeSearchResults: function storeSearchResults(results, isMentionSearch) {
         BrowserStore.setItem('search_results', results);
@@ -246,6 +294,10 @@ PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     switch (action.type) {
         case ActionTypes.RECIEVED_POSTS:
             PostStore.pStorePosts(action.id, action.post_list);
+            PostStore.emitChange();
+            break;
+        case ActionTypes.RECIEVED_POST:
+            PostStore.pStorePost(action.post);
             PostStore.emitChange();
             break;
         case ActionTypes.RECIEVED_SEARCH:

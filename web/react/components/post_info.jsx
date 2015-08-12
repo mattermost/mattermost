@@ -15,19 +15,19 @@ module.exports = React.createClass({
         var isOwner = UserStore.getCurrentId() == post.user_id;
         var isAdmin = UserStore.getCurrentUser().roles.indexOf("admin") > -1
 
-        var type = "Post"
-        if (post.root_id.length > 0) {
-            type = "Comment"
+        var type = "Post";
+        if (post.root_id && post.root_id.length > 0) {
+            type = "Comment";
         }
 
         var comments = "";
         var lastCommentClass = this.props.isLastComment ? " comment-icon__container__show" : " comment-icon__container__hide";
-        if (this.props.commentCount >= 1  && !post.did_fail && !post.is_loading) {
+        if (this.props.commentCount >= 1  && post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING) {
             comments = <a href="#" className={"comment-icon__container theme" + lastCommentClass} onClick={this.props.handleCommentClick}><span className="comment-icon" dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON }} />{this.props.commentCount}</a>;
         }
 
         var show_dropdown = isOwner || (this.props.allowReply === "true" && type != "Comment");
-        if (post.did_fail || post.is_loading) show_dropdown = false;
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) show_dropdown = false;
 
         return (
             <ul className="post-header post-info">

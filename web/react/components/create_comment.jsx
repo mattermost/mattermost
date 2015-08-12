@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
@@ -13,6 +14,7 @@ var FileUpload = require('./file_upload.jsx');
 var FilePreview = require('./file_preview.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
+var ActionTypes = Constants.ActionTypes;
 
 module.exports = React.createClass({
     lastTime: 0,
@@ -26,6 +28,8 @@ module.exports = React.createClass({
         if (this.state.submitting) {
             return;
         }
+
+        this.setState({submitting: true, serverError: null});
 
         var post = {};
         post.filenames = [];
@@ -47,17 +51,16 @@ module.exports = React.createClass({
         post.parent_id = this.props.rootId;
         post.filenames = this.state.previews;
         var time = utils.getTimestamp();
-        post.pending_post_id = user_id + ":"+ time;
+        post.pending_post_id = user_id + ':'+ time;
         post.user_id = user_id;
         post.create_at = time;
 
-        this.setState({submitting: true, serverError: null});
+        PostStore.storePendingPost(post);
+        PostStore.storeCommentDraft(this.props.rootId, null);
+        this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         client.createPost(post, ChannelStore.getCurrent(),
             function(data) {
-                PostStore.storeCommentDraft(this.props.rootId, null);
-                this.setState({messageText: '', submitting: false, postError: null, serverError: null});
-                this.clearPreviews();
                 AsyncClient.getPosts(true, this.props.channelId);
 
                 var channel = ChannelStore.get(this.props.channelId);
@@ -65,18 +68,22 @@ module.exports = React.createClass({
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = Date.now();
                 ChannelStore.setChannelMember(member);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_POST,
+                    post: data
+                });
             }.bind(this),
             function(err) {
                 var state = {};
-                state.serverError = err.message;
-                state.submitting = false;
 
                 if (err.message === 'Invalid RootId parameter') {
                     if ($('#post_deleted').length > 0) {
                         $('#post_deleted').modal('show');
                     }
+                    PostStore.removePendingPost(post.pending_post_id);
                 } else {
-                    post.did_fail = true;
+                    post.state = Constants.POST_FAILED;
                     PostStore.updatePendingPost(post);
                 }
 
@@ -84,11 +91,6 @@ module.exports = React.createClass({
                 this.setState(state);
             }.bind(this)
         );
-
-        post.is_loading = true;
-        PostStore.storePendingPost(post);
-        PostStore.storeCommentDraft(this.props.rootId, null);
-        this.setState({ messageText: '', submitting: false, post_error: null, previews: [], server_error: null, limit_error: null });
     },
     commentMsgKeyPress: function(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
@@ -148,9 +150,6 @@ module.exports = React.createClass({
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
-    },
-    clearPreviews: function() {
-        this.setState({previews: []});
     },
     removePreview: function(id) {
         var previews = this.state.previews;

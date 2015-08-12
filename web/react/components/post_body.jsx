@@ -4,6 +4,7 @@
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
+var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
     componentWillReceiveProps: function(nextProps) {
@@ -60,10 +61,10 @@ module.exports = React.createClass({
         }
 
         var loading;
-        if (post.did_fail) {
+        if (post.state === Constants.POST_FAILED) {
             postClass += " post-fail";
             loading = <a className="post-retry pull-right" href="#" onClick={this.props.retryPost}>Retry</a>;
-        } else if (post.is_loading) {
+        } else if (post.state === Constants.POST_LOADING) {
             postClass += " post-waiting";
             loading = <img className="post-loading-gif pull-right" src="/static/images/load.gif"/>;
         }
