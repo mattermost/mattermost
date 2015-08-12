@@ -190,26 +190,13 @@ module.exports = React.createClass({
             this.setState(newState);
         }
     },
-    _onSocketChange: function(msg) {
-        if (msg.action == "posted") {
-            var post = JSON.parse(msg.props.post);
-
-            if (post.pending_post_id !== "") {
-                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
-            }
-
-            post.pending_post_id = "";
-
-            postList.posts[post.id] = post;
-            if (postList.order.indexOf(post.id) === -1) {
-                postList.order.unshift(post.id);
-            }
-
-            post_list.posts[post.id] = post;
-            if (post_list.order.indexOf(post.id) === -1) {
-                post_list.order.unshift(post.id);
-            }
-
+    onSocketChange: function(msg) {
+        var postList;
+        var post;
+        if (msg.action === 'posted') {
+            post = JSON.parse(msg.props.post);
+            PostStore.storePost(post);
+        } else if (msg.action === 'post_edited') {
             if (this.state.channel.id === msg.channel_id) {
                 this.setState({ post_list: post_list });
             };

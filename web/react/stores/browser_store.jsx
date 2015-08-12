@@ -3,7 +3,9 @@
 
 var UserStore;
 function getPrefix() {
-    if (!UserStore) UserStore = require('./user_store.jsx');
+    if (!UserStore) {
+        UserStore = require('./user_store.jsx');
+    }
     return UserStore.getCurrentId() + '_';
 }
 
@@ -11,15 +13,15 @@ function getPrefix() {
 var BROWSER_STORE_VERSION = '.4';
 
 module.exports = {
-    _initialized: false,
+    initialized: false,
 
-    _initialize: function() {
-        var currentVersion = localStorage.getItem("local_storage_version");
+    initialize: function() {
+        var currentVersion = localStorage.getItem('local_storage_version');
         if (currentVersion !== BROWSER_STORE_VERSION) {
             this.clear();
-            localStorage.setItem("local_storage_version", BROWSER_STORE_VERSION);
+            localStorage.setItem('local_storage_version', BROWSER_STORE_VERSION);
         }
-        this._initialized = true;
+        this.initialized = true;
     },
 
     getItem: function(name, defaultValue) {
@@ -31,19 +33,25 @@ module.exports = {
     },
 
     removeItem: function(name) {
-        if (!this._initialized) this._initialize();
+        if (!this.initialized) {
+            this.initialize();
+        }
 
         localStorage.removeItem(getPrefix() + name);
     },
 
     setGlobalItem: function(name, value) {
-        if (!this._initialized) this._initialize();
+        if (!this.initialized) {
+            this.initialize();
+        }
 
         localStorage.setItem(name, JSON.stringify(value));
     },
 
     getGlobalItem: function(name, defaultValue) {
-        if (!this._initialized) this._initialize();
+        if (!this.initialized) {
+            this.initialize();
+        }
 
         var result = null;
         try {
@@ -58,7 +66,9 @@ module.exports = {
     },
 
     removeGlobalItem: function(name) {
-        if (!this._initialized) this._initialize();
+        if (!this.initialized) {
+            this.initialize();
+        }
 
         localStorage.removeItem(name);
     },
@@ -70,10 +80,12 @@ module.exports = {
 
     /**
      * Preforms the given action on each item that has the given prefix
-     * Signiture for action is action(key, value)
+     * Signature for action is action(key, value)
      */
-    actionOnItemsWithPrefix: function (prefix, action) {
-        if (!this._initialized) this._initialize();
+    actionOnItemsWithPrefix: function(prefix, action) {
+        if (!this.initialized) {
+            this.initialize();
+        }
 
         var globalPrefix = getPrefix();
         var globalPrefixiLen = globalPrefix.length;
@@ -87,14 +99,14 @@ module.exports = {
 
     isLocalStorageSupported: function() {
         try {
-            sessionStorage.setItem("testSession", '1');
-            sessionStorage.removeItem("testSession");
+            sessionStorage.setItem('testSession', '1');
+            sessionStorage.removeItem('testSession');
 
-            localStorage.setItem("testLocal", '1');
-            if (localStorage.getItem("testLocal") != '1') {
+            localStorage.setItem('testLocal', '1');
+            if (localStorage.getItem('testLocal') !== '1') {
                 return false;
             }
-            localStorage.removeItem("testLocal", '1');
+            localStorage.removeItem('testLocal', '1');
 
             return true;
         } catch (e) {

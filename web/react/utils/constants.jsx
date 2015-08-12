@@ -15,6 +15,7 @@ module.exports = {
     RECIEVED_CHANNEL_EXTRA_INFO: null,
 
     RECIEVED_POSTS: null,
+    RECIEVED_POST: null,
     RECIEVED_SEARCH: null,
     RECIEVED_POST_SELECTED: null,
     RECIEVED_MENTION_DATA: null,
@@ -62,6 +63,8 @@ module.exports = {
   GOOGLE_SERVICE: 'google',
   POST_CHUNK_SIZE: 60,
   MAX_POST_CHUNKS: 3,
+  POST_LOADING: "loading",
+  POST_FAILED: "failed",
   RESERVED_TEAM_NAMES: [
     "www",
     "web",
