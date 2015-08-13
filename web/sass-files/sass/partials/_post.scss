@@ -315,6 +315,21 @@ body.ios {
 		font-size: 0.97em;
 		white-space: pre-wrap;
 	}
+
+	.post-loading-gif {
+		height:10px;
+		width:10px;
+		margin-top:6px;
+	}
+
+	.post-fail {
+		color: #D58A8A;
+	}
+
+	.post-waiting {
+		color: #999;
+	}
+
 	.comment-icon__container {
 		margin-left: 7px;
 		fill: $primary-color;
@@ -460,22 +475,4 @@ body.ios {
 			width: 40px;
 		}
 	}
-}
-
-.post-waiting {
-    color:lightgrey;
-}
-
-.post-loading-gif {
-    height:10px;
-    width:10px;
-    margin-top:6px;
-}
-
-.post-fail {
-    color:red;
-}
-
-.post-retry {
-    color:darkgrey;
 }

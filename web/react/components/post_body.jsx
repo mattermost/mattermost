@@ -63,7 +63,7 @@ module.exports = React.createClass({
         var loading;
         if (post.state === Constants.POST_FAILED) {
             postClass += " post-fail";
-            loading = <a className="post-retry pull-right" href="#" onClick={this.props.retryPost}>Retry</a>;
+            loading = <a className="theme post-retry pull-right" href="#" onClick={this.props.retryPost}>Retry</a>;
         } else if (post.state === Constants.POST_LOADING) {
             postClass += " post-waiting";
             loading = <img className="post-loading-gif pull-right" src="/static/images/load.gif"/>;
