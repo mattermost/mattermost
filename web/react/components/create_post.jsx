@@ -145,16 +145,20 @@ module.exports = React.createClass({
         this.setState({uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
     },
     handleUploadError: function(err, clientId) {
-        var draft = PostStore.getDraft(this.state.channelId);
+        if (clientId !== -1) {
+            var draft = PostStore.getDraft(this.state.channelId);
 
-        var index = draft['uploadsInProgress'].indexOf(clientId);
-        if (index !== -1) {
-            draft['uploadsInProgress'].splice(index, 1);
+            var index = draft['uploadsInProgress'].indexOf(clientId);
+            if (index !== -1) {
+                draft['uploadsInProgress'].splice(index, 1);
+            }
+
+            PostStore.storeDraft(this.state.channelId, draft);
+
+            this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
+        } else {
+            this.setState({serverError: err});
         }
-
-        PostStore.storeDraft(this.state.channelId, draft);
-
-        this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
     },
     removePreview: function(id) {
         var previews = this.state.previews;

@@ -2,15 +2,15 @@
 // See License.txt for license information.
 
 module.exports = React.createClass({
-	displayName: 'FileUploadOverlay',
-	render: function() {
-		return (
-			<div className='center-file-overlay invisible'>
-				<div>
-					<i className='fa fa-upload'></i>
-					<span>Drop a file to upload it.</span>
-				</div>
-			</div>
-		);
-	}
+    displayName: 'FileUploadOverlay',
+    render: function() {
+        return (
+            <div className='file-overlay center-file-overlay invisible'>
+                <div>
+                    <i className='fa fa-upload'></i>
+                    <span>Drop a file to upload it.</span>
+                </div>
+            </div>
+        );
+    }
 });

@@ -91,9 +91,6 @@ module.exports = React.createClass({
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
-        if (!files.length) {
-            files = e.originalEvent.dataTransfer.getData('URL');
-        }
         var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         if (typeof files !== 'string' && files.length) {
@@ -142,6 +139,8 @@ module.exports = React.createClass({
 
                 this.props.onUploadStart([clientId], channelId);
             }
+        } else {
+            this.props.onUploadError('Invalid file upload', -1);
         }
     },
     componentDidMount: function() {
@@ -149,7 +148,7 @@ module.exports = React.createClass({
         var self = this;
 
         if (this.props.postType === 'post') {
-            $('.app__content').dragster({
+            $('.row.main').dragster({
                 enter: function(dragsterEvent, e) {
                     $('.center-file-overlay').removeClass('invisible');
                     $('.center-file-overlay').addClass('visible');
