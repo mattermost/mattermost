@@ -262,7 +262,9 @@ module.exports = React.createClass({
                             getFileCount={this.getFileCount}
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError} />
+                            onUploadError={this.handleUploadError}
+                            postType='post'
+                            channelId='' />
                     </div>
                     <div className={postFooterClassName}>
                         {postError}

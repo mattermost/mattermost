@@ -463,11 +463,19 @@ module.exports = React.createClass({
         }
 
         return (
-            <div ref="postlist" className="post-list-holder-by-time">
-                <div className="post-list__table">
-                    <div className="post-list__content">
-                        { more_messages }
-                        { postCtls }
+            <div>
+                <div className='file-overlay center-file-overlay invisible'>
+                    <div>
+                        <i className="fa fa-upload"></i>
+                        <span>Drop a file to upload it.</span>
+                    </div>
+                </div>
+                <div ref="postlist" className="post-list-holder-by-time">
+                    <div className="post-list__table">
+                        <div className="post-list__content">
+                            { more_messages }
+                            { postCtls }
+                        </div>
                     </div>
                 </div>
             </div>
