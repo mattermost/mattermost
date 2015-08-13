@@ -296,7 +296,7 @@ module.exports = React.createClass({
 
         return (
             <div className="post-right__container">
-                <div className='center-file-overlay right-file-overlay invisible'>
+                <div className='file-overlay right-file-overlay invisible'>
                     <div>
                         <i className="fa fa-upload"></i>
                         <span>Drop a file to upload it.</span>

@@ -464,7 +464,7 @@ module.exports = React.createClass({
 
         return (
             <div>
-                <div className='center-file-overlay invisible'>
+                <div className='file-overlay center-file-overlay invisible'>
                     <div>
                         <i className="fa fa-upload"></i>
                         <span>Drop a file to upload it.</span>
