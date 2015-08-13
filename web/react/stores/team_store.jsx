@@ -64,7 +64,10 @@ var TeamStore = assign({}, EventEmitter.prototype, {
       return null;
   },
   getCurrentTeamUrl: function() {
-      return getWindowLocationOrigin() + "/" + this.getCurrent().name;
+      if(this.getCurrent()) {
+          return getWindowLocationOrigin() + "/" + this.getCurrent().name;
+      }
+      return null;
   },
   storeTeam: function(team) {
       var teams = this._getTeams();
