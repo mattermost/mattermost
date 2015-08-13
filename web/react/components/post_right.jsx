@@ -296,9 +296,11 @@ module.exports = React.createClass({
 
         return (
             <div className="post-right__container">
-                <div className='right-file-overlay invisible'>
-                    <span className='right-file-help-text'>Drop a file to upload it.</span>
-                    <img className='right-file-help-picture' />
+                <div className='center-file-overlay right-file-overlay invisible'>
+                    <div>
+                        <i className="fa fa-upload"></i>
+                        <span>Drop a file to upload it.</span>
+                    </div>
                 </div>
                 <div className="search-bar__container sidebar--right__search-header">{searchForm}</div>
                 <div className="sidebar-right__body">
