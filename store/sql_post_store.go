@@ -419,15 +419,15 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 		// cannot escape it so we replace it.
 		terms = strings.Replace(terms, "@", " ", -1)
 
-		// Parse text for wildcards
-		if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
-			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
-			terms = strings.Replace(terms, "  ", " ", -1)
-		}
-
 		var posts []*model.Post
 
 		if utils.Cfg.SqlSettings.DriverName == "postgres" {
+
+			// Parse text for wildcards
+			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
+				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+			}
+
 			searchQuery := fmt.Sprintf(`SELECT
 				    *
 				FROM
