@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Navbar = require('../components/navbar.jsx');
 var Sidebar = require('../components/sidebar.jsx');
@@ -36,11 +35,13 @@ var AccessHistoryModal = require('../components/access_history_modal.jsx');
 var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx')
 
+var AsyncClient = require('../utils/async_client.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 global.window.setup_channel_page = function(team_name, team_type, team_id, channel_name, channel_id) {
+    AsyncClient.getConfig();
 
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,

@@ -4,6 +4,7 @@
 var client = require('./client.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var ConfigStore = require('../stores/config_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('./utils.jsx');
@@ -383,3 +384,28 @@ module.exports.getMyTeam = function() {
         }
     );
 }
+
+function getConfig() {
+    if (isCallInProgress('getConfig')) {
+        return;
+    }
+
+    callTracker['getConfig'] = utils.getTimestamp();
+    client.getConfig(
+        function(data, textStatus, xhr) {
+            callTracker['getConfig'] = 0;
+
+            if (data && xhr.status !== 304) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_CONFIG,
+                    settings: data
+                });
+            }
+        },
+        function(err) {
+            callTracker['getConfig'] = 0;
+            dispatchError(err, 'getConfig');
+        }
+    );
+}
+module.exports.getConfig = getConfig;
