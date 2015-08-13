@@ -12,7 +12,9 @@ module.exports = React.createClass({
         onUploadError: React.PropTypes.func,
         getFileCount: React.PropTypes.func,
         onFileUpload: React.PropTypes.func,
-        onUploadStart: React.PropTypes.func
+        onUploadStart: React.PropTypes.func,
+        channelId: React.PropTypes.string,
+        postType: React.PropTypes.string
     },
     getInitialState: function() {
         return {requests: {}};
@@ -61,8 +63,8 @@ module.exports = React.createClass({
                     this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                     var requests = this.state.requests;
-                    for (var i = 0; i < parsedData.client_ids.length; i++) {
-                        delete requests[parsedData.client_ids[i]];
+                    for (var j = 0; j < parsedData.client_ids.length; j++) {
+                        delete requests[parsedData.client_ids[j]];
                     }
                     this.setState({requests: requests});
                 }.bind(this),
@@ -120,11 +122,11 @@ module.exports = React.createClass({
                 var request = client.uploadFile(formData,
                     function(data) {
                         var parsedData = $.parseJSON(data);
-                        this.props.onFileUpload(parsedData['filenames'], parsedData['client_ids'], channelId);
+                        this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                         var requests = this.state.requests;
-                        for (var i = 0; i < parsedData['client_ids'].length; i++) {
-                            delete requests[parsedData['client_ids'][i]];
+                        for (var j = 0; j < parsedData.client_ids.length; j++) {
+                            delete requests[parsedData.client_ids[j]];
                         }
                         this.setState({requests: requests});
                     }.bind(this),
@@ -149,11 +151,11 @@ module.exports = React.createClass({
 
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
-                enter: function(dragsterEvent, e) {
+                enter: function() {
                     $('.center-file-overlay').removeClass('invisible');
                     $('.center-file-overlay').addClass('visible');
                 },
-                leave: function(dragsterEvent, e) {
+                leave: function() {
                     $('.center-file-overlay').removeClass('visible');
                     $('.center-file-overlay').addClass('invisible');
                 },
@@ -165,11 +167,11 @@ module.exports = React.createClass({
             });
         } else if (this.props.postType === 'comment') {
             $('.post-right__container').dragster({
-                enter: function(dragsterEvent, e) {
+                enter: function() {
                     $('.right-file-overlay').removeClass('invisible');
                     $('.right-file-overlay').addClass('visible');
                 },
-                leave: function(dragsterEvent, e) {
+                leave: function() {
                     $('.right-file-overlay').removeClass('visible');
                     $('.right-file-overlay').addClass('invisible');
                 },
@@ -254,8 +256,8 @@ module.exports = React.createClass({
                                 self.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                                 var requests = self.state.requests;
-                                for (var i = 0; i < parsedData.client_ids.length; i++) {
-                                    delete requests[parsedData.client_ids[i]];
+                                for (var j = 0; j < parsedData.client_ids.length; j++) {
+                                    delete requests[parsedData.client_ids[j]];
                                 }
                                 self.setState({requests: requests});
                             },
