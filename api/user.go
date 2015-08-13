@@ -1314,9 +1314,15 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 
 	clientId := utils.Cfg.SSOSettings[service].Id
 	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
+	scope := utils.Cfg.SSOSettings[service].Scope
 	state := model.HashPassword(clientId)
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri+"?team="+teamName) + "&state=" + url.QueryEscape(state)
+
+	if len(scope) > 0 {
+		authUrl += "&scope=" + utils.UrlEncode(scope)
+	}
+
 	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 

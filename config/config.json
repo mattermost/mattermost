@@ -29,9 +29,19 @@
             "Allow": false,
             "Secret" : "",
             "Id": "",
+            "Scope": "",
             "AuthEndpoint": "",
             "TokenEndpoint": "",
             "UserApiEndpoint": ""
+        },
+        "google": {
+            "Allow": true,
+            "Secret": "hWN1kiPeyihN6nHr36j0oDqx",
+            "Id": "974585606220-ek5q66olpagb069pkg9ok0d7h8djeov6.apps.googleusercontent.com",
+            "Scope": "email profile",
+            "AuthEndpoint": "https://accounts.google.com/o/oauth2/auth",
+            "TokenEndpoint": "https://www.googleapis.com/oauth2/v3/token",
+            "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
         }
     },
     "SqlSettings": {

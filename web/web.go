@@ -53,13 +53,13 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
 
-	// Bug in gorilla.mux pervents us from using regex here.
+	// Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")
 	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(loginCompleteOAuth)).Methods("GET")
 
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
-	// Bug in gorilla.mux pervents us from using regex here.
+	// Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/channels/{channelname}", api.UserRequired(getChannel)).Methods("GET")
 
 	// Anything added here must have an _ in it so it does not conflict with team names
@@ -67,7 +67,7 @@ func InitWeb() {
 	mainrouter.Handle("/signup_user_complete/", api.AppHandlerIndependent(signupUserComplete)).Methods("GET")
 	mainrouter.Handle("/signup_team_confirm/", api.AppHandlerIndependent(signupTeamConfirm)).Methods("GET")
 
-	// Bug in gorilla.mux pervents us from using regex here.
+	// Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")
 	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(signupCompleteOAuth)).Methods("GET")
 
@@ -532,6 +532,9 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		if service == model.USER_AUTH_SERVICE_GITLAB {
 			glu := model.GitLabUserFromJson(body)
 			user = model.UserFromGitLabUser(glu)
+		} else if service == model.USER_AUTH_SERVICE_GOOGLE {
+			gu := model.GoogleUserFromJson(body)
+			user = model.UserFromGoogleUser(gu)
 		}
 
 		if user == nil {
