@@ -18,7 +18,6 @@ func InitConfig(r *mux.Router) {
 
 	sr := r.PathPrefix("/config").Subrouter()
 	sr.Handle("/get_all", ApiAppHandler(getConfig)).Methods("GET")
-	sr.Handle("/get/bypass_email", ApiAppHandler(getBypassEmail)).Methods("GET")
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -32,8 +31,4 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write(bytes)
 	}
-}
-
-func getBypassEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(strconv.FormatBool(utils.Cfg.EmailSettings.ByPassEmail)))
 }

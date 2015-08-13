@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var utils = require('../utils/utils.jsx');
+var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
@@ -152,7 +153,7 @@ module.exports = React.createClass({
             emailErrors: {},
             firstNameErrors: {},
             lastNameErrors: {},
-            emailEnabled: Client.isEmailEnabledSynchronous()
+            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
         };
     },
     render: function() {
