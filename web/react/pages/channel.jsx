@@ -225,7 +225,8 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <FileUploadOverlay />,
+        <FileUploadOverlay 
+            overlayType='center' />,
         document.getElementById('file_upload_overlay')
     );
 

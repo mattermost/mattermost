@@ -11,6 +11,7 @@ var SearchBox =require('./search_bar.jsx');
 var CreateComment = require( './create_comment.jsx' );
 var Constants = require('../utils/constants.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
+var FileUploadOverlay = require('./file_upload_overlay.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 RhsHeaderPost = React.createClass({
@@ -296,12 +297,8 @@ module.exports = React.createClass({
 
         return (
             <div className="post-right__container">
-                <div className='file-overlay right-file-overlay invisible'>
-                    <div>
-                        <i className="fa fa-upload"></i>
-                        <span>Drop a file to upload it.</span>
-                    </div>
-                </div>
+                <FileUploadOverlay
+                    overlayType='right' />
                 <div className="search-bar__container sidebar--right__search-header">{searchForm}</div>
                 <div className="sidebar-right__body">
                     <RhsHeaderPost fromSearch={this.props.fromSearch} isMentionSearch={this.props.isMentionSearch} />

@@ -3,9 +3,19 @@
 
 module.exports = React.createClass({
     displayName: 'FileUploadOverlay',
+    propTypes: {
+        overlayType: React.PropTypes.string
+    },
     render: function() {
+        var overlayClass = 'file-overlay invisible';
+        if (this.props.overlayType === 'right') {
+            overlayClass += ' right-file-overlay';
+        } else if (this.props.overlayType === 'center') {
+            overlayClass += ' center-file-overlay';
+        }
+
         return (
-            <div className='file-overlay center-file-overlay invisible'>
+            <div className={overlayClass}>
                 <div>
                     <i className='fa fa-upload'></i>
                     <span>Drop a file to upload it.</span>
