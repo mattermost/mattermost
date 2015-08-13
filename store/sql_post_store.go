@@ -5,9 +5,12 @@ package store
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
 )
 
 type SqlPostStore struct {
@@ -361,7 +364,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts,
-			`SELECT 
+			`SELECT
 			    q2.*
 			FROM
 			    Posts q2
@@ -369,7 +372,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			    (SELECT DISTINCT
 			        q3.RootId
 			    FROM
-			        (SELECT 
+			        (SELECT
 			        RootId
 			    FROM
 			        Posts
@@ -415,6 +418,12 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 		// is reserved for calc'ing distances so you
 		// cannot escape it so we replace it.
 		terms = strings.Replace(terms, "@", " ", -1)
+
+		// Parse text for wildcards
+		if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
+			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+			terms = strings.Replace(terms, "  ", " ", -1)
+		}
 
 		var posts []*model.Post
 
