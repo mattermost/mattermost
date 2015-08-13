@@ -236,36 +236,24 @@ var NotificationsTab = React.createClass({
         }
 
         var soundSection;
-        if (this.props.activeSection === 'sound') {
+        if (this.props.activeSection === 'sound' && this.state.soundNeeded) {
+            var soundActive = ["",""];
+            if (this.state.enable_sound === "false") {
+                soundActive[1] = "active";
+            } else {
+                soundActive[0] = "active";
+            }
+
             var inputs = [];
 
-            if(this.state.soundNeeded) {
-                var soundActive = ["",""];
-                if (this.state.enable_sound === "false") {
-                    soundActive[1] = "active";
-                } else {
-                    soundActive[0] = "active";
-                }
-
-                inputs.push(
-                    <div>
-                        <div className="btn-group" data-toggle="buttons-radio">
-                            <button className={"btn btn-default "+soundActive[0]} onClick={function(){self.handleSoundRadio("true")}}>On</button>
-                            <button className={"btn btn-default "+soundActive[1]} onClick={function(){self.handleSoundRadio("false")}}>Off</button>
-                        </div>
+            inputs.push(
+                <div>
+                    <div className="btn-group" data-toggle="buttons-radio">
+                        <button className={"btn btn-default "+soundActive[0]} onClick={function(){self.handleSoundRadio("true")}}>On</button>
+                        <button className={"btn btn-default "+soundActive[1]} onClick={function(){self.handleSoundRadio("false")}}>Off</button>
                     </div>
-                );
-            } else {
-                inputs.push(
-                    <div>
-                        <div className='btn-group' data-toggle='buttons-radio'>
-                            <button className='btn btn-default' disabled>On</button>
-                            <button className='btn btn-default' disabled>Off</button>
-                        </div>
-                        <div><br/>Please disable notification sounds in your browser settings</div>
-                    </div>
-                )
-            }
+                </div>
+            );
 
             soundSection = (
                 <SettingItemMax
@@ -279,7 +267,7 @@ var NotificationsTab = React.createClass({
         } else {
             var describe = "";
             if (!this.state.soundNeeded) {
-                describe = "See Inside"
+                describe = "Please configure notification sounds in your browser settings"
             } else if (this.state.enable_sound === "false") {
                 describe = "Off";
             } else {
@@ -291,6 +279,7 @@ var NotificationsTab = React.createClass({
                     title="Desktop notification sounds"
                     describe={describe}
                     updateSection={function(){self.props.updateSection("sound");}}
+                    disableOpen = {!this.state.soundNeeded}
                 />
             );
         }

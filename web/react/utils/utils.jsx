@@ -124,7 +124,7 @@ module.exports.notifyMe = function(title, body, channel) {
 }
 
 module.exports.ding = function() {
-    if (!navigator || navigator.userAgent.toLowerCase().indexOf("firefox") === -1) {
+    if (!navigator || !navigator.userAgent || navigator.userAgent.toLowerCase().indexOf("firefox") === -1) {
         var audio = new Audio('/static/images/ding.mp3');
         audio.play();
     }
