@@ -6,6 +6,13 @@ var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
     displayName: 'ViewImageModal',
+    propTypes: {
+        filenames: React.PropTypes.array,
+        modalId: React.PropTypes.string,
+        channelId: React.PropTypes.string,
+        userId: React.PropTypes.string,
+        startId: React.PropTypes.number
+    },
     canSetState: false,
     handleNext: function() {
         var id = this.state.imgId + 1;
@@ -56,8 +63,8 @@ module.exports = React.createClass({
                     progress[id] = img.completedPercentage;
                     self.setState({progress: progress});
                 });
-            img.onload = function(imgid) {
-                return function() {
+            img.onload = function onload(imgid) {
+                return function onloadReturn() {
                     var loaded = self.state.loaded;
                     loaded[imgid] = true;
                     self.setState({loaded: loaded});
@@ -83,21 +90,21 @@ module.exports = React.createClass({
     },
     componentDidMount: function() {
         var self = this;
-        $('#' + this.props.modalId).on('shown.bs.modal', function() {
+        $('#' + this.props.modalId).on('shown.bs.modal', function onModalShow() {
             self.setState({viewed: true});
             self.loadImage(self.state.imgId);
         });
 
-        $(this.refs.modal.getDOMNode()).click(function(e) {
+        $(this.refs.modal.getDOMNode()).click(function onModalClick(e) {
             if (e.target === this || e.target === self.refs.imageBody.getDOMNode()) {
                 $('.image_modal').modal('hide');
             }
         });
 
         $(this.refs.imageWrap.getDOMNode()).hover(
-            function() {
+            function onModalHover() {
                 $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-            }, function() {
+            }, function offModalHover() {
                 $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
             }
         );
@@ -117,10 +124,14 @@ module.exports = React.createClass({
         data.user_id = this.props.userId;
         data.filename = this.props.filenames[this.state.imgId];
         Client.getPublicLink(data,
-            function(serverData) {
-                window.open(serverData.public_link);
+            function sucess(serverData) {
+                if (utils.isMobile()) {
+                    window.location.href = serverData.public_link;
+                } else {
+                    window.open(serverData.public_link);
+                }
             },
-            function() {
+            function error() {
             }
         );
     },
@@ -145,7 +156,7 @@ module.exports = React.createClass({
     getInitialState: function() {
         var loaded = [];
         var progress = [];
-        for (var i = 0; i < this.props.filenames.length; i ++) {
+        for (var i = 0; i < this.props.filenames.length; i++) {
             loaded.push(false);
             progress.push(0);
         }
@@ -198,7 +209,7 @@ module.exports = React.createClass({
                 if (!(filename in this.state.fileSizes)) {
                     var self = this;
 
-                    utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
+                    utils.getFileSize(utils.getFileUrl(filename), function fileSizeOp(fileSize) {
                         if (self.canSetState) {
                             var fileSizes = self.state.fileSizes;
                             fileSizes[filename] = fileSize;
@@ -210,14 +221,20 @@ module.exports = React.createClass({
         } else {
             // display a progress indicator when the preview for an image is still loading
             var percentage = Math.floor(this.state.progress[this.state.imgId]);
-            content = (
-                <div>
-                    <img className='loader-image' src='/static/images/load.gif' />
-                    { percentage > 0 ?
-                    <span className='loader-percent' >{'Previewing ' + percentage + '%'}</span>
-                    : ''}
-                </div>
-            );
+            if (percentage) {
+                content = (
+                    <div>
+                        <img className='loader-image' src='/static/images/load.gif' />
+                        <span className='loader-percent' >{'Previewing ' + percentage + '%'}</span>
+                    </div>
+                );
+            } else {
+                content = (
+                    <div>
+                        <img className='loader-image' src='/static/images/load.gif' />
+                    </div>
+                );
+            }
             bgClass = 'black-bg';
         }
 
