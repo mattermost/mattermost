@@ -107,6 +107,29 @@ body.ios {
 }
 
 #post-list {
+	.center-file-overlay {
+		top: 0px;
+		height: 100%;
+		width: 59.7%;
+		position: fixed;
+		z-index: 2147483646;
+		-moz-box-shadow: 0px 0px 3px #8a8a8a;
+		-webkit-box-shadow: 0px 0px 3px #8a8a8a;
+		box-shadow: 0px 0px 3px #8a8a8a;
+
+		.invisible {
+			visibility: hidden;
+		}
+		.visible {
+			visibility: visible;
+		}
+		.center-file-help-text {
+
+		}
+		.center-file-help-picture {
+
+		}
+	}
 	.post-list-holder-by-time {
 		background: #fff;
 		overflow-y: scroll;

@@ -194,11 +194,12 @@
     border-right: 1px solid #ddd;
     vertical-align: center;
 
-        // helper to center the image icon in the preview window
-        .file-details__preview-helper {
-          height: 100%;
-          display: inline-block;
-          vertical-align: middle;
-        }
-      }
+    // helper to center the image icon in the preview window
+    .file-details__preview-helper {
+      height: 100%;
+      display: inline-block;
+      vertical-align: middle;
     }
+  }
+}
+

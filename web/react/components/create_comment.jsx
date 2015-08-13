@@ -222,7 +222,9 @@ module.exports = React.createClass({
                             getFileCount={this.getFileCount}
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError} />
+                            onUploadError={this.handleUploadError}
+                            postType='comment'
+                            channelId={this.props.channelId} />
                     </div>
                     <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId}  />
                     <div className={postFooterClassName}>
