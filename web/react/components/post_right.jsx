@@ -56,7 +56,6 @@ RhsHeaderPost = React.createClass({
 
 RootPost = React.createClass({
     render: function() {
-        var allowTextFormatting = config.AllowTextFormatting;
         var post = this.props.post;
         var message = utils.textToJsx(post.message);
         var isOwner = UserStore.getCurrentId() == post.user_id;
@@ -75,11 +74,6 @@ RootPost = React.createClass({
 
         if (channel) {
             channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
-        }
-
-        var messageHolder = <p>{message}</p>;
-        if (allowTextFormatting) {
-            messageHolder = <div>{message}</div>;
         }
 
         return (
@@ -107,7 +101,7 @@ RootPost = React.createClass({
                         </li>
                     </ul>
                     <div className="post-body">
-                        {messageHolder}
+                        <p>{message}</p>
                         { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
                                 filenames={post.filenames}
@@ -125,7 +119,6 @@ RootPost = React.createClass({
 
 CommentPost = React.createClass({
     render: function() {
-        var allowTextFormatting = config.AllowTextFormatting;
         var post = this.props.post;
 
         var commentClass = "post";
@@ -144,11 +137,6 @@ CommentPost = React.createClass({
 
         var message = utils.textToJsx(post.message);
         var timestamp = UserStore.getCurrentUser().update_at;
-
-        var messageHolder = <p>{message}</p>;
-        if (allowTextFormatting) {
-            messageHolder = <div>{message}</div>;
-        }
 
         return (
             <div className={commentClass + " " + currentUserCss}>
@@ -172,7 +160,7 @@ CommentPost = React.createClass({
                         </li>
                     </ul>
                     <div className="post-body">
-                        {messageHolder}
+                        <p>{message}</p>
                         { post.filenames && post.filenames.length > 0 ?
                             <FileAttachmentList
                                 filenames={post.filenames}
@@ -285,22 +273,11 @@ module.exports = React.createClass({
             root_post = post_list.posts[selected_post.root_id];
         }
 
-        var rootPostKey = root_post.id
-        if (root_post.lastEditDate) {
-            rootPostKey += root_post.lastEditDate;
-        }
-
         var posts_array = [];
 
         for (var postId in post_list.posts) {
             var cpost = post_list.posts[postId];
             if (cpost.root_id == root_post.id) {
-                var cpostKey = cpost.id
-                if (cpost.lastEditDate) {
-                    cpostKey += cpost.lastEditDate;
-                }
-
-                cpost.cpostKey = cpostKey;
                 posts_array.push(cpost);
             }
         }
@@ -323,10 +300,10 @@ module.exports = React.createClass({
                 <div className="sidebar-right__body">
                     <RhsHeaderPost fromSearch={this.props.fromSearch} isMentionSearch={this.props.isMentionSearch} />
                     <div className="post-right__scroll">
-                        <RootPost key={rootPostKey} post={root_post} commentCount={posts_array.length}/>
+                        <RootPost post={root_post} commentCount={posts_array.length}/>
                         <div className="post-right-comments-container">
                         { posts_array.map(function(cpost) {
-                                return <CommentPost ref={cpost.id} key={cpost.cpostKey} post={cpost} selected={ (cpost.id == selected_post.id) } />
+                                return <CommentPost ref={cpost.id} key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
                         })}
                         </div>
                         <div className="post-create__container">
