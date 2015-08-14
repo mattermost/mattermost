@@ -390,15 +390,15 @@ module.exports.getPosts = function(force, id, maxPosts) {
     }
 }
 
-function getMe() {
-    if (isCallInProgress('getMe')) {
+function getMeSynchronous() {
+    if (isCallInProgress('getMeSynchronous')) {
         return;
     }
 
-    callTracker.getMe = utils.getTimestamp();
-    client.getMe(
+    callTracker.getMeSynchronous = utils.getTimestamp();
+    client.getMeSynchronous(
         function(data, textStatus, xhr) {
-            callTracker.getMe = 0;
+            callTracker.getMeSynchronous = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -409,11 +409,11 @@ function getMe() {
         },
         function(err) {
             callTracker.getMe = 0;
-            dispatchError(err, 'getMe');
+            dispatchError(err, 'getMeSynchronous');
         }
     );
 }
-module.exports.getMe = getMe;
+module.exports.getMeSynchronous = getMeSynchronous;
 
 module.exports.getStatuses = function() {
     if (isCallInProgress('getStatuses')) return;

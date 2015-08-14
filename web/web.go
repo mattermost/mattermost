@@ -496,7 +496,7 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
 
-	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri)
+	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri, "")
 }
 
 func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -505,26 +505,10 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
-	teamName := r.FormValue("team")
 
-	uri := c.GetSiteURL() + "/signup/" + service + "/complete?team=" + teamName
+	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
 
-	if len(teamName) == 0 {
-		c.Err = model.NewAppError("signupCompleteOAuth", "Invalid team name", "team_name="+teamName)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	// Make sure team exists
-	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	if body, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if body, team, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -566,6 +550,7 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 	teamName := params["team"]
+	loginHint := r.URL.Query().Get("login_hint")
 
 	if len(teamName) == 0 {
 		c.Err = model.NewAppError("loginWithOAuth", "Invalid team name", "team_name="+teamName)
@@ -581,7 +566,7 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectUri := c.GetSiteURL() + "/login/" + service + "/complete"
 
-	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri)
+	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri, loginHint)
 }
 
 func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -590,26 +575,10 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
-	teamName := r.FormValue("team")
 
-	uri := c.GetSiteURL() + "/login/" + service + "/complete?team=" + teamName
+	uri := c.GetSiteURL() + "/login/" + service + "/complete"
 
-	if len(teamName) == 0 {
-		c.Err = model.NewAppError("loginCompleteOAuth", "Invalid team name", "team_name="+teamName)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	// Make sure team exists
-	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-	}
-
-	if body, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if body, team, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -617,6 +586,9 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		if service == model.USER_AUTH_SERVICE_GITLAB {
 			glu := model.GitLabUserFromJson(body)
 			authData = glu.GetAuthData()
+		} else if service == model.USER_AUTH_SERVICE_GOOGLE {
+			gu := model.GoogleUserFromJson(body)
+			authData = gu.GetAuthData()
 		}
 
 		if len(authData) == 0 {

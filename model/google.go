@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const (
@@ -13,15 +14,20 @@ const (
 )
 
 type GoogleUser struct {
-	Id       string              `json:"id"`
-	Nickname string              `json:"nickname"`
-	Emails   []map[string]string `json:"emails"`
-	Names    map[string]string   `json:"name"`
+	Id          string              `json:"id"`
+	Nickname    string              `json:"nickname"`
+	DisplayName string              `json:"displayName"`
+	Emails      []map[string]string `json:"emails"`
+	Names       map[string]string   `json:"name"`
 }
 
 func UserFromGoogleUser(gu *GoogleUser) *User {
 	user := &User{}
-	user.Username = gu.Nickname
+	if len(gu.Nickname) > 0 {
+		user.Username = gu.Nickname
+	} else {
+		user.Username = strings.ToLower(strings.Replace(gu.DisplayName, " ", "", -1))
+	}
 	user.FirstName = gu.Names["givenName"]
 	user.LastName = gu.Names["familyName"]
 	user.Nickname = gu.Nickname

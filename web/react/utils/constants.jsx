@@ -58,6 +58,8 @@ module.exports = {
   THUMBNAIL_HEIGHT: 100,
   DEFAULT_CHANNEL: 'town-square',
   OFFTOPIC_CHANNEL: 'off-topic',
+  GITLAB_SERVICE: 'gitlab',
+  GOOGLE_SERVICE: 'google',
   POST_CHUNK_SIZE: 60,
   MAX_POST_CHUNKS: 3,
   RESERVED_TEAM_NAMES: [

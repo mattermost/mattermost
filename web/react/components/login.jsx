@@ -92,11 +92,18 @@ module.exports = React.createClass({
 
         var auth_services = JSON.parse(this.props.authServices);
 
-        var login_message;
-        if (auth_services.indexOf("gitlab") >= 0) {
-            login_message = (
+        var login_message = [];
+        if (auth_services.indexOf(Constants.GITLAB_SERVICE) >= 0) {
+            login_message.push(
                 <div className="form-group form-group--small">
                     <span><a href={"/"+teamName+"/login/gitlab"}>{"Log in with GitLab"}</a></span>
+                </div>
+            );
+        }
+        if (auth_services.indexOf(Constants.GOOGLE_SERVICE) >= 0) {
+            login_message.push(
+                <div className="form-group form-group--small">
+                    <span><a href={"/"+teamName+"/login/google"}>{"Log in with Google"}</a></span>
                 </div>
             );
         }

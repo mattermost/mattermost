@@ -54,14 +54,15 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
         id: team_id
     });
 
-    React.render(
-        <ErrorBar/>,
-        document.getElementById('error_bar')
-    );
-
+    // ChannelLoader must be rendered first
     React.render(
         <ChannelLoader/>,
         document.getElementById('channel_loader')
+    );
+
+    React.render(
+        <ErrorBar/>,
+        document.getElementById('error_bar')
     );
 
     React.render(
