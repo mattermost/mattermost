@@ -115,7 +115,6 @@
   height: 100px;
   float: left;
   margin: 5px 10px 5px 0;
-  display: table;
   border: 1px solid lightgrey;
   .post__load {
     height: 100%;
@@ -137,16 +136,16 @@
     }
   }
   .post-image__thumbnail {
-    display: table-cell;
-    vertical-align: top;
+    float: left;
     width: 50%;
     height: 100%;
     cursor: zoom-in;
     cursor: -webkit-zoom-in;
   }
   .post-image__details {
-    display: table-cell;
-    vertical-align: top;
+    float: left;
+    @include clearfix;
+    word-break: break-word;
     width: 50%;
     height: 100%;
     background: white;

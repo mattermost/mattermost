@@ -113,6 +113,14 @@ module.exports = React.createClass({
             fileSizeString = utils.fileSizeToString(this.state.fileSize);
         }
 
+        var filenameString = decodeURIComponent(utils.getFileName(filename));
+        if(filenameString.length > 35){
+            trimmedFilename = filenameString.substring(0, Math.min(35,filenameString.length)) + "...";
+        }
+        else {
+            trimmedFilename = decodeURIComponent(utils.getFileName(filename));;
+        }
+
         return (
             <div className="post-image__column" key={filename}>
                 <a className="post-image__thumbnail" href="#" onClick={this.props.handleImageClick}
@@ -120,7 +128,7 @@ module.exports = React.createClass({
                     {thumbnail}
                 </a>
                 <div className="post-image__details">
-                    <div className="post-image__name">{decodeURIComponent(utils.getFileName(filename))}</div>
+                    <div data-toggle="tooltip" title={decodeURIComponent(utils.getFileName(filename))} className="post-image__name">{trimmedFilename}</div>
                     <div>
                         <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
                         <span className="post-image__size">{fileSizeString}</span>
