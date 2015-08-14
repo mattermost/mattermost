@@ -880,3 +880,18 @@ module.exports.updateValetFeature = function(data, success, error) {
 
     module.exports.track('api', 'api_teams_update_valet_feature');
 };
+
+function getConfig(success, error) {
+    $.ajax({
+        url: '/api/v1/config/get_all',
+        dataType: 'json',
+        type: 'GET',
+        ifModified: true,
+        success: success,
+        error: function(xhr, status, err) {
+            var e = handleError('getConfig', xhr, status, err);
+            error(e);
+        }
+    });
+};
+module.exports.getConfig = getConfig;

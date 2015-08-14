@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Navbar = require('../components/navbar.jsx');
 var Sidebar = require('../components/sidebar.jsx');
@@ -36,21 +35,23 @@ var AccessHistoryModal = require('../components/access_history_modal.jsx');
 var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx')
 
+var AsyncClient = require('../utils/async_client.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 global.window.setup_channel_page = function(team_name, team_type, team_id, channel_name, channel_id) {
+    AsyncClient.getConfig();
 
     AppDispatcher.handleViewAction({
-      type: ActionTypes.CLICK_CHANNEL,
-      name: channel_name,
-      id: channel_id
+        type: ActionTypes.CLICK_CHANNEL,
+        name: channel_name,
+        id: channel_id
     });
 
     AppDispatcher.handleViewAction({
-      type: ActionTypes.CLICK_TEAM,
-      id: team_id
+        type: ActionTypes.CLICK_TEAM,
+        id: team_id
     });
 
     React.render(
@@ -99,7 +100,7 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <MemberInviteModal />,
+        <MemberInviteModal teamType={team_type} />,
         document.getElementById('invite_member_modal')
     );
 
@@ -194,17 +195,17 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <MentionList id="post_textbox" />,
+        <MentionList id='post_textbox' />,
         document.getElementById('post_mention_tab')
     );
 
     React.render(
-        <MentionList id="reply_textbox" />,
+        <MentionList id='reply_textbox' />,
         document.getElementById('reply_mention_tab')
     );
 
     React.render(
-        <MentionList id="edit_textbox" />,
+        <MentionList id='edit_textbox' />,
         document.getElementById('edit_mention_tab')
     );
 
