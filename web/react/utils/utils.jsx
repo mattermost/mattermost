@@ -124,7 +124,7 @@ module.exports.notifyMe = function(title, body, channel) {
 }
 
 module.exports.ding = function() {
-    if (!navigator || !navigator.userAgent || navigator.userAgent.toLowerCase().indexOf("firefox") === -1) {
+    if (!module.exports.checkBrowserType('firefox')) {
         var audio = new Audio('/static/images/ding.mp3');
         audio.play();
     }
@@ -936,3 +936,7 @@ module.exports.generateId = function() {
 
     return id;
 };
+
+module.exports.checkBrowserType = function(browser) {
+    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf(browser.toLowerCase()) > -1
+}
