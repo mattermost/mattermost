@@ -15,7 +15,6 @@ var config = {
     AllowInviteNames: true,
     RequireInviteNames: false,
     AllowSignupDomainsWizard: false,
-    AllowTextFormatting: true,
 
     // Google Developer Key (for Youtube API links)
     // Leave blank to disable
