@@ -224,6 +224,7 @@ module.exports = React.createClass({
                 </div>
             );
         }
+        var allowTextFormatting = config.AllowTextFormatting;
 
         var postError = null;
         if (this.state.postError) {
@@ -243,6 +244,10 @@ module.exports = React.createClass({
         var postFooterClassName = 'post-create-footer';
         if (postError) {
             postFooterClassName += ' has-error';
+        }
+        var extraInfo = <MsgTyping channelId={this.state.channel_id} parentId='' />;
+        if (this.state.messageText.split(' ').length > 1 && allowTextFormatting) {
+            extraInfo = <span className='msg-typing'>_<em>italics</em>_ *<strong>bold</strong>* `<code className='code-info'>code</code>`</span>;
         }
 
         return (
@@ -268,7 +273,7 @@ module.exports = React.createClass({
                         {postError}
                         {serverError}
                         {preview}
-                        <MsgTyping channelId={this.state.channelId} parentId=''/>
+                        {extraInfo}
                     </div>
                 </div>
             </form>

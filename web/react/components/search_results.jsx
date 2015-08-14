@@ -84,6 +84,8 @@ var SearchItem = React.createClass({
             channelName = (channel.type === 'D') ? "Private Message" : channel.display_name;
         }
 
+        var searchItemKey = Date.now().toString();
+
         return (
             <div className="search-item-container post" onClick={this.handleClick}>
                 <div className="search-channel__name">{ channelName }</div>
@@ -99,7 +101,7 @@ var SearchItem = React.createClass({
                             </time>
                         </li>
                     </ul>
-                    <div className="search-item-snippet"><span>{message}</span></div>
+                    <div key={this.props.key + searchItemKey} className="search-item-snippet"><span>{message}</span></div>
                 </div>
             </div>
         );
@@ -131,6 +133,7 @@ module.exports = React.createClass({
         if (this.isMounted()) {
             var newState = getStateFromStores();
             if (!utils.areStatesEqual(newState, this.state)) {
+                newState.last_edit_time = Date.now();
                 this.setState(newState);
             }
         }
@@ -152,6 +155,11 @@ module.exports = React.createClass({
         var noResults = (!results || !results.order || !results.order.length);
         var searchTerm = PostStore.getSearchTerm();
 
+        var searchItemKey = "";
+        if (this.state.last_edit_time) {
+            searchItemKey += this.state.last_edit_time.toString();
+        }
+
         return (
             <div className="sidebar--right__content">
                 <div className="search-bar__container sidebar--right__search-header">{searchForm}</div>
@@ -162,7 +170,7 @@ module.exports = React.createClass({
                         { noResults ? <div className="sidebar--right__subheader">No results</div>
                                     : results.order.map(function(id) {
                                           var post = results.posts[id];
-                                          return <SearchItem key={post.id} post={post} term={searchTerm} isMentionSearch={this.props.isMentionSearch} />
+                                          return <SearchItem key={searchItemKey + post.id} post={post} term={searchTerm} isMentionSearch={this.props.isMentionSearch} />
                                     }, this)
                         }
 

@@ -194,11 +194,19 @@ body.ios {
 			}
 		}
 		.msg-typing {
+			padding-bottom: 5px;
 			min-height: 20px;
 			line-height: 18px;
 			display: inline-block;
 			font-size: 13px;
 			color: #777;
+			.code-info {
+				padding-left: 2px;
+				padding-right: 2px;
+			}
+			.preformatted-info {
+				background-color: #E3E8E3;
+			}
 		}
 	}
 }
