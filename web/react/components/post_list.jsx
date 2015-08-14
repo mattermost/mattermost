@@ -65,10 +65,13 @@ module.exports = React.createClass({
 
         // Timeout exists for the DOM to fully render before making changes
         var self = this
-        setTimeout(function initialScroll() {
+        function initialScroll() {
             self.holdPosition = false;
             self.scrollWindow();
-        }, 1);
+            $(document).off('DOMContentLoaded', initialScroll)
+        }
+
+        $(document).on('DOMContentLoaded', initialScroll);
 
         // Handle browser resizing
         $(window).resize(this.onResize);
