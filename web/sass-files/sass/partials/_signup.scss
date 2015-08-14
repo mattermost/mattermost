@@ -186,6 +186,23 @@
                     display: inline-block;
                 }
             }
+            &.google {
+                background: #dd4b39;
+                &:hover {
+                    background: darken(#dd4b39, 10%);
+                }
+                span {
+                    vertical-align: middle;
+                }
+                .icon {
+                    background: url("../images/googleLogo.png");
+                    width: 18px;
+                    height: 18px;
+                    margin-right: 8px;
+                    @include background-size(100% 100%);
+                    display: inline-block;
+                }
+            }
         }
         &.btn-default {
             color: #444;
