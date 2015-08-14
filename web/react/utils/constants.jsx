@@ -10,6 +10,7 @@ module.exports = {
     CLICK_CHANNEL: null,
     CREATE_CHANNEL: null,
     RECIEVED_CHANNELS: null,
+    RECIEVED_CHANNEL: null,
     RECIEVED_MORE_CHANNELS: null,
     RECIEVED_CHANNEL_EXTRA_INFO: null,
 

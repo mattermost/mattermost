@@ -63,12 +63,14 @@ module.exports = React.createClass({
 
         Client.updateChannel(channel,
             function(data, text, req) {
+                $(this.refs.modal.getDOMNode()).modal('hide');
+
+                AsyncClient.getChannel(channel.id);
+                utils.updateTabTitle(channel.display_name);
+                utils.updateAddressBar(channel.name);
+
                 this.refs.display_name.getDOMNode().value = "";
                 this.refs.channel_name.getDOMNode().value = "";
-
-                $('#' + this.props.modalId).modal('hide');
-                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + this.state.channel_name;
-                AsyncClient.getChannels(true);
             }.bind(this),
             function(err) {
                 state.server_error = err.message;

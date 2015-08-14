@@ -102,7 +102,7 @@ function getStateFromStores() {
         }
         readDirectChannels = readDirectChannels.slice(index);
 
-        showDirectChannels.sort(function(a, b) {
+        showDirectChannels.sort(function directSort(a, b) {
             if (a.display_name < b.display_name) {
                 return -1;
             }
@@ -114,7 +114,7 @@ function getStateFromStores() {
     }
 
     return {
-        active_id: currentId,
+        activeId: currentId,
         channels: ChannelStore.getAll(),
         members: members,
         showDirectChannels: showDirectChannels,
@@ -157,9 +157,11 @@ module.exports = React.createClass({
     onSocketChange: function(msg) {
         if (msg.action === 'posted') {
             if (ChannelStore.getCurrentId() === msg.channel_id) {
-                AsyncClient.getChannels(true, window.isActive);
+                if (window.isActive) {
+                    AsyncClient.updateLastViewedAt();
+                }
             } else {
-                AsyncClient.getChannels(true);
+                AsyncClient.getChannels();
             }
 
             if (UserStore.getCurrentId() !== msg.user_id) {
@@ -214,12 +216,12 @@ module.exports = React.createClass({
                 }
             }
         } else if (msg.action === 'viewed') {
-            if (ChannelStore.getCurrentId() != msg.channel_id) {
-                AsyncClient.getChannels(true);
+            if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
+                AsyncClient.getChannel(msg.channel_id);
             }
         } else if (msg.action === 'user_added') {
             if (UserStore.getCurrentId() === msg.user_id) {
-                AsyncClient.getChannels(true);
+                AsyncClient.getChannel(msg.channel_id);
             }
         } else if (msg.action === 'user_removed') {
             if (msg.user_id === UserStore.getCurrentId()) {
@@ -282,7 +284,7 @@ module.exports = React.createClass({
     },
     render: function() {
         var members = this.state.members;
-        var activeId = this.state.active_id;
+        var activeId = this.state.activeId;
         var badgesActive = false;
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
@@ -294,7 +296,7 @@ module.exports = React.createClass({
             var channelMember = members[channel.id];
 
             var linkClass = '';
-            if (channel.id === self.state.active_id) {
+            if (channel.id === activeId) {
                 linkClass = 'active';
             }
 

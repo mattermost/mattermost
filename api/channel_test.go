@@ -320,6 +320,27 @@ func TestGetChannel(t *testing.T) {
 	if _, err := Client.UpdateLastViewedAt(channel2.Id); err != nil {
 		t.Fatal(err)
 	}
+
+	if resp, err := Client.GetChannel(channel1.Id, ""); err != nil {
+		t.Fatal(err)
+	} else {
+		data := resp.Data.(*model.ChannelData)
+		if data.Channel.DisplayName != channel1.DisplayName {
+			t.Fatal("name didn't match")
+		}
+
+		// test etag caching
+		if cache_result, err := Client.GetChannel(channel1.Id, resp.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(*model.ChannelData) != nil {
+			t.Log(cache_result.Data)
+			t.Fatal("cache should be empty")
+		}
+	}
+
+	if _, err := Client.GetChannel("junk", ""); err == nil {
+		t.Fatal("should have failed - bad channel id")
+	}
 }
 
 func TestGetMoreChannel(t *testing.T) {
@@ -364,6 +385,47 @@ func TestGetMoreChannel(t *testing.T) {
 		t.Log(cache_result.Data)
 		t.Fatal("cache should be empty")
 	}
+}
+
+func TestGetChannelCounts(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	channel2 := &model.Channel{DisplayName: "B Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+
+	if result, err := Client.GetChannelCounts(""); err != nil {
+		t.Fatal(err)
+	} else {
+		counts := result.Data.(*model.ChannelCounts)
+
+		if len(counts.Counts) != 4 {
+			t.Fatal("wrong number of channel counts")
+		}
+
+		if len(counts.UpdateTimes) != 4 {
+			t.Fatal("wrong number of channel update times")
+		}
+
+		if cache_result, err := Client.GetChannelCounts(result.Etag); err != nil {
+			t.Fatal(err)
+		} else if cache_result.Data.(*model.ChannelCounts) != nil {
+			t.Log(cache_result.Data)
+			t.Fatal("result data should be empty")
+		}
+	}
+
 }
 
 func TestJoinChannel(t *testing.T) {

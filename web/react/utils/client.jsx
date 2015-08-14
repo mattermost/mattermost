@@ -540,18 +540,34 @@ module.exports.updateLastViewedAt = function(channelId, success, error) {
     });
 };
 
-module.exports.getChannels = function(success, error) {
+function getChannels(success, error) {
     $.ajax({
-        url: "/api/v1/channels/",
+        url: '/api/v1/channels/',
         dataType: 'json',
         type: 'GET',
         success: success,
         ifModified: true,
         error: function(xhr, status, err) {
-            e = handleError("getChannels", xhr, status, err);
+            var e = handleError('getChannels', xhr, status, err);
             error(e);
         }
     });
+}
+module.exports.getChannels = getChannels;
+
+module.exports.getChannel = function(id, success, error) {
+    $.ajax({
+        url: "/api/v1/channels/" + id + "/",
+        dataType: 'json',
+        type: 'GET',
+        success: success,
+        error: function(xhr, status, err) {
+            e = handleError("getChannel", xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_channel_get');
 };
 
 module.exports.getMoreChannels = function(success, error) {
@@ -567,6 +583,21 @@ module.exports.getMoreChannels = function(success, error) {
         }
     });
 };
+
+function getChannelCounts(success, error) {
+    $.ajax({
+        url: '/api/v1/channels/counts',
+        dataType: 'json',
+        type: 'GET',
+        success: success,
+        ifModified: true,
+        error: function(xhr, status, err) {
+            var e = handleError('getChannelCounts', xhr, status, err);
+            error(e);
+        }
+    });
+}
+module.exports.getChannelCounts = getChannelCounts;
 
 module.exports.getChannelExtraInfo = function(id, success, error) {
     $.ajax({

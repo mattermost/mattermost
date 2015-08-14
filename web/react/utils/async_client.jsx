@@ -14,100 +14,171 @@ var ActionTypes = Constants.ActionTypes;
 // Used to track in progress async calls
 var callTracker = {};
 
-var dispatchError = function(err, method) {
+function dispatchError(err, method) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECIEVED_ERROR,
         err: err,
         method: method
     });
-};
+}
+module.exports.dispatchError = dispatchError;
 
-var isCallInProgress = function(callName) {
-    if (!(callName in callTracker)) return false;
+function isCallInProgress(callName) {
+    if (!(callName in callTracker)) {
+        return false;
+    }
 
-    if (callTracker[callName] === 0) return false;
+    if (callTracker[callName] === 0) {
+        return false;
+    }
 
     if (utils.getTimestamp() - callTracker[callName] > 5000) {
-        console.log("AsyncClient call " + callName + " expired after more than 5 seconds");
+        console.log('AsyncClient call ' + callName + ' expired after more than 5 seconds');
         return false;
     }
 
     return true;
-};
+}
 
-module.exports.dispatchError = dispatchError;
+function getChannels(force, updateLastViewed, checkVersion) {
+    var channels = ChannelStore.getAll();
 
-module.exports.getChannels = function(force, updateLastViewed, checkVersion) {
-    if (isCallInProgress("getChannels")) return;
+    if (channels.length === 0 || force) {
+        if (isCallInProgress('getChannels')) {
+            return;
+        }
 
-    if (ChannelStore.getAll().length == 0 || force) {
-        callTracker["getChannels"] = utils.getTimestamp();
+        callTracker.getChannels = utils.getTimestamp();
+
         client.getChannels(
             function(data, textStatus, xhr) {
-                callTracker["getChannels"] = 0;
-
-                if (updateLastViewed && ChannelStore.getCurrentId() != null) {
-                    module.exports.updateLastViewedAt();
-                }
+                callTracker.getChannels = 0;
 
                 if (checkVersion) {
-                    var serverVersion = xhr.getResponseHeader("X-Version-ID");
+                    var serverVersion = xhr.getResponseHeader('X-Version-ID');
 
                     if (!UserStore.getLastVersion()) {
                         UserStore.setLastVersion(serverVersion);
                     }
 
-                    if (serverVersion != UserStore.getLastVersion()) {
+                    if (serverVersion !== UserStore.getLastVersion()) {
                         UserStore.setLastVersion(serverVersion);
                         window.location.href = window.location.href;
-                        console.log("Detected version update refreshing the page");
+                        console.log('Detected version update refreshing the page');
                     }
                 }
 
-                if (xhr.status === 304 || !data) return;
+                if (xhr.status === 304 || !data) {
+                    return;
+                }
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECIEVED_CHANNELS,
                     channels: data.channels,
                     members: data.members
                 });
-
             },
             function(err) {
-                callTracker["getChannels"] = 0;
-                dispatchError(err, "getChannels");
+                callTracker.getChannels = 0;
+                dispatchError(err, 'getChannels');
+            }
+        );
+    } else {
+        if (isCallInProgress('getChannelCounts')) {
+            return;
+        }
+
+        callTracker.getChannelCounts = utils.getTimestamp();
+
+        client.getChannelCounts(
+            function(data, textStatus, xhr) {
+                callTracker.getChannelCounts = 0;
+
+                if (xhr.status === 304 || !data) {
+                    return;
+                }
+
+                var countMap = data.counts;
+                var updateAtMap = data.update_times;
+
+                for (var id in countMap) {
+                    var c = ChannelStore.get(id);
+                    var count = countMap[id];
+                    var updateAt = updateAtMap[id];
+                    if (!c || c.total_msg_count !== count || updateAt > c.update_at) {
+                        getChannel(id);
+                    }
+                }
+            },
+            function(err) {
+                callTracker.getChannelCounts = 0;
+                dispatchError(err, 'getChannelCounts');
             }
         );
     }
+
+    if (updateLastViewed && ChannelStore.getCurrentId() != null) {
+        module.exports.updateLastViewedAt();
+    }
 }
+module.exports.getChannels = getChannels;
+
+function getChannel(id) {
+    if (isCallInProgress('getChannel' + id)) {
+        return;
+    }
+
+    callTracker['getChannel' + id] = utils.getTimestamp();
+
+    client.getChannel(id,
+        function(data, textStatus, xhr) {
+            callTracker['getChannel' + id] = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_CHANNEL,
+                channel: data.channel,
+                member: data.member
+            });
+        },
+        function(err) {
+            callTracker['getChannel' + id] = 0;
+            dispatchError(err, 'getChannel');
+        }
+    );
+}
+module.exports.getChannel = getChannel;
 
 module.exports.updateLastViewedAt = function() {
-    if (isCallInProgress("updateLastViewed")) return;
+    if (isCallInProgress('updateLastViewed')) return;
 
     if (ChannelStore.getCurrentId() == null) return;
 
-    callTracker["updateLastViewed"] = utils.getTimestamp();
+    callTracker['updateLastViewed'] = utils.getTimestamp();
     client.updateLastViewedAt(
         ChannelStore.getCurrentId(),
         function(data) {
-            callTracker["updateLastViewed"] = 0;
+            callTracker['updateLastViewed'] = 0;
         },
         function(err) {
-            callTracker["updateLastViewed"] = 0;
-            dispatchError(err, "updateLastViewedAt");
+            callTracker['updateLastViewed'] = 0;
+            dispatchError(err, 'updateLastViewedAt');
         }
     );
 }
 
 module.exports.getMoreChannels = function(force) {
-    if (isCallInProgress("getMoreChannels")) return;
+    if (isCallInProgress('getMoreChannels')) return;
 
     if (ChannelStore.getMoreAll().loading || force) {
 
-        callTracker["getMoreChannels"] = utils.getTimestamp();
+        callTracker['getMoreChannels'] = utils.getTimestamp();
         client.getMoreChannels(
             function(data, textStatus, xhr) {
-                callTracker["getMoreChannels"] = 0;
+                callTracker['getMoreChannels'] = 0;
 
                 if (xhr.status === 304 || !data) return;
 
@@ -118,8 +189,8 @@ module.exports.getMoreChannels = function(force) {
                 });
             },
             function(err) {
-                callTracker["getMoreChannels"] = 0;
-                dispatchError(err, "getMoreChannels");
+                callTracker['getMoreChannels'] = 0;
+                dispatchError(err, 'getMoreChannels');
             }
         );
     }
@@ -129,15 +200,15 @@ module.exports.getChannelExtraInfo = function(force) {
     var channelId = ChannelStore.getCurrentId();
 
     if (channelId != null) {
-        if (isCallInProgress("getChannelExtraInfo_"+channelId)) return;
+        if (isCallInProgress('getChannelExtraInfo_'+channelId)) return;
         var minMembers = ChannelStore.getCurrent() && ChannelStore.getCurrent().type === 'D' ? 1 : 0;
 
         if (ChannelStore.getCurrentExtraInfo().members.length <= minMembers || force) {
-            callTracker["getChannelExtraInfo_"+channelId] = utils.getTimestamp();
+            callTracker['getChannelExtraInfo_'+channelId] = utils.getTimestamp();
             client.getChannelExtraInfo(
                 channelId,
                 function(data, textStatus, xhr) {
-                    callTracker["getChannelExtraInfo_"+channelId] = 0;
+                    callTracker['getChannelExtraInfo_'+channelId] = 0;
 
                     if (xhr.status === 304 || !data) return;
 
@@ -147,8 +218,8 @@ module.exports.getChannelExtraInfo = function(force) {
                     });
                 },
                 function(err) {
-                    callTracker["getChannelExtraInfo_"+channelId] = 0;
-                    dispatchError(err, "getChannelExtraInfo");
+                    callTracker['getChannelExtraInfo_'+channelId] = 0;
+                    dispatchError(err, 'getChannelExtraInfo');
                 }
             );
         }
@@ -156,12 +227,12 @@ module.exports.getChannelExtraInfo = function(force) {
 }
 
 module.exports.getProfiles = function() {
-    if (isCallInProgress("getProfiles")) return;
+    if (isCallInProgress('getProfiles')) return;
 
-    callTracker["getProfiles"] = utils.getTimestamp();
+    callTracker['getProfiles'] = utils.getTimestamp();
     client.getProfiles(
         function(data, textStatus, xhr) {
-            callTracker["getProfiles"] = 0;
+            callTracker['getProfiles'] = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -171,20 +242,20 @@ module.exports.getProfiles = function() {
             });
         },
         function(err) {
-            callTracker["getProfiles"] = 0;
-            dispatchError(err, "getProfiles");
+            callTracker['getProfiles'] = 0;
+            dispatchError(err, 'getProfiles');
         }
     );
 }
 
 module.exports.getSessions = function() {
-    if (isCallInProgress("getSessions")) return;
+    if (isCallInProgress('getSessions')) return;
 
-    callTracker["getSessions"] = utils.getTimestamp();
+    callTracker['getSessions'] = utils.getTimestamp();
     client.getSessions(
         UserStore.getCurrentId(),
         function(data, textStatus, xhr) {
-            callTracker["getSessions"] = 0;
+            callTracker['getSessions'] = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -194,20 +265,20 @@ module.exports.getSessions = function() {
             });
         },
         function(err) {
-            callTracker["getSessions"] = 0;
-            dispatchError(err, "getSessions");
+            callTracker['getSessions'] = 0;
+            dispatchError(err, 'getSessions');
         }
     );
 }
 
 module.exports.getAudits = function() {
-    if (isCallInProgress("getAudits")) return;
+    if (isCallInProgress('getAudits')) return;
 
-    callTracker["getAudits"] = utils.getTimestamp();
+    callTracker['getAudits'] = utils.getTimestamp();
     client.getAudits(
         UserStore.getCurrentId(),
         function(data, textStatus, xhr) {
-            callTracker["getAudits"] = 0;
+            callTracker['getAudits'] = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -217,22 +288,22 @@ module.exports.getAudits = function() {
             });
         },
         function(err) {
-            callTracker["getAudits"] = 0;
-            dispatchError(err, "getAudits");
+            callTracker['getAudits'] = 0;
+            dispatchError(err, 'getAudits');
         }
     );
 }
 
 module.exports.findTeams = function(email) {
-    if (isCallInProgress("findTeams_"+email)) return;
+    if (isCallInProgress('findTeams_'+email)) return;
 
     var user = UserStore.getCurrentUser();
     if (user) {
-        callTracker["findTeams_"+email] = utils.getTimestamp();
+        callTracker['findTeams_'+email] = utils.getTimestamp();
         client.findTeams(
             user.email,
             function(data, textStatus, xhr) {
-                callTracker["findTeams_"+email] = 0;
+                callTracker['findTeams_'+email] = 0;
 
                 if (xhr.status === 304 || !data) return;
 
@@ -242,21 +313,21 @@ module.exports.findTeams = function(email) {
                 });
             },
             function(err) {
-                callTracker["findTeams_"+email] = 0;
-                dispatchError(err, "findTeams");
+                callTracker['findTeams_'+email] = 0;
+                dispatchError(err, 'findTeams');
             }
         );
     }
 }
 
 module.exports.search = function(terms) {
-    if (isCallInProgress("search_"+String(terms))) return;
+    if (isCallInProgress('search_'+String(terms))) return;
 
-    callTracker["search_"+String(terms)] = utils.getTimestamp();
+    callTracker['search_'+String(terms)] = utils.getTimestamp();
     client.search(
         terms,
         function(data, textStatus, xhr) {
-            callTracker["search_"+String(terms)] = 0;
+            callTracker['search_'+String(terms)] = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -266,8 +337,8 @@ module.exports.search = function(terms) {
             });
         },
         function(err) {
-            callTracker["search_"+String(terms)] = 0;
-            dispatchError(err, "search");
+            callTracker['search_'+String(terms)] = 0;
+            dispatchError(err, 'search');
         }
     );
 }
@@ -276,7 +347,7 @@ module.exports.getPosts = function(force, id, maxPosts) {
     if (PostStore.getCurrentPosts() == null || force) {
         var channelId = id ? id : ChannelStore.getCurrentId();
 
-        if (isCallInProgress("getPosts_"+channelId)) return;
+        if (isCallInProgress('getPosts_'+channelId)) return;
 
         var post_list = PostStore.getCurrentPosts();
 
@@ -291,7 +362,7 @@ module.exports.getPosts = function(force, id, maxPosts) {
         }
 
         if (channelId != null) {
-            callTracker["getPosts_"+channelId] = utils.getTimestamp();
+            callTracker['getPosts_'+channelId] = utils.getTimestamp();
             client.getPosts(
                 channelId,
                 0,
@@ -308,23 +379,25 @@ module.exports.getPosts = function(force, id, maxPosts) {
                     module.exports.getProfiles();
                 },
                 function(err) {
-                    dispatchError(err, "getPosts");
+                    dispatchError(err, 'getPosts');
                 },
                 function() {
-                    callTracker["getPosts_"+channelId] = 0;
+                    callTracker['getPosts_'+channelId] = 0;
                 }
             );
         }
     }
 }
 
-module.exports.getMe = function() {
-    if (isCallInProgress("getMe")) return;
+function getMe() {
+    if (isCallInProgress('getMe')) {
+        return;
+    }
 
-    callTracker["getMe"] = utils.getTimestamp();
+    callTracker.getMe = utils.getTimestamp();
     client.getMe(
         function(data, textStatus, xhr) {
-            callTracker["getMe"] = 0;
+            callTracker.getMe = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -334,19 +407,20 @@ module.exports.getMe = function() {
             });
         },
         function(err) {
-            callTracker["getMe"] = 0;
-            dispatchError(err, "getMe");
+            callTracker.getMe = 0;
+            dispatchError(err, 'getMe');
         }
     );
 }
+module.exports.getMe = getMe;
 
 module.exports.getStatuses = function() {
-    if (isCallInProgress("getStatuses")) return;
+    if (isCallInProgress('getStatuses')) return;
 
-    callTracker["getStatuses"] = utils.getTimestamp();
+    callTracker['getStatuses'] = utils.getTimestamp();
     client.getStatuses(
         function(data, textStatus, xhr) {
-            callTracker["getStatuses"] = 0;
+            callTracker['getStatuses'] = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -356,19 +430,19 @@ module.exports.getStatuses = function() {
             });
         },
         function(err) {
-            callTracker["getStatuses"] = 0;
-            dispatchError(err, "getStatuses");
+            callTracker['getStatuses'] = 0;
+            dispatchError(err, 'getStatuses');
         }
     );
 }
 
 module.exports.getMyTeam = function() {
-    if (isCallInProgress("getMyTeam")) return;
+    if (isCallInProgress('getMyTeam')) return;
 
-    callTracker["getMyTeam"] = utils.getTimestamp();
+    callTracker['getMyTeam'] = utils.getTimestamp();
     client.getMyTeam(
         function(data, textStatus, xhr) {
-            callTracker["getMyTeam"] = 0;
+            callTracker['getMyTeam'] = 0;
 
             if (xhr.status === 304 || !data) return;
 
@@ -378,8 +452,8 @@ module.exports.getMyTeam = function() {
             });
         },
         function(err) {
-            callTracker["getMyTeam"] = 0;
-            dispatchError(err, "getMyTeam");
+            callTracker['getMyTeam'] = 0;
+            dispatchError(err, 'getMyTeam');
         }
     );
 }
