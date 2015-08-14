@@ -115,11 +115,11 @@ module.exports = React.createClass({
 
         var filenameString = decodeURIComponent(utils.getFileName(filename));
         var trimmedFilename;
-        if(filenameString.length > 35){
+        if (filenameString.length > 35) {
             trimmedFilename = filenameString.substring(0, Math.min(35,filenameString.length)) + "...";
         }
         else {
-            trimmedFilename = decodeURIComponent(utils.getFileName(filename));;
+            trimmedFilename = filenameString;
         }
 
         return (
@@ -129,7 +129,7 @@ module.exports = React.createClass({
                     {thumbnail}
                 </a>
                 <div className="post-image__details">
-                    <div data-toggle="tooltip" title={decodeURIComponent(utils.getFileName(filename))} className="post-image__name">{trimmedFilename}</div>
+                    <div data-toggle="tooltip" title={filenameString} className="post-image__name">{trimmedFilename}</div>
                     <div>
                         <span className="post-image__type">{fileInfo.ext.toUpperCase()}</span>
                         <span className="post-image__size">{fileSizeString}</span>
