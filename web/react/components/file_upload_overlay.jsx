@@ -7,7 +7,7 @@ module.exports = React.createClass({
         overlayType: React.PropTypes.string
     },
     render: function() {
-        var overlayClass = 'file-overlay invisible';
+        var overlayClass = 'file-overlay hidden';
         if (this.props.overlayType === 'right') {
             overlayClass += ' right-file-overlay';
         } else if (this.props.overlayType === 'center') {

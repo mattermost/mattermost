@@ -6,6 +6,7 @@
     border-right: $border-gray;
     padding: 0 0 2em 0;
     background: #fafafa;
+    z-index: 5;
     &.sidebar--padded {
         padding-top: 44px;
     }

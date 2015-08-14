@@ -152,32 +152,26 @@ module.exports = React.createClass({
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
                 enter: function() {
-                    $('.center-file-overlay').removeClass('invisible');
-                    $('.center-file-overlay').addClass('visible');
+                    $('.center-file-overlay').removeClass('hidden');
                 },
                 leave: function() {
-                    $('.center-file-overlay').removeClass('visible');
-                    $('.center-file-overlay').addClass('invisible');
+                    $('.center-file-overlay').addClass('hidden');
                 },
                 drop: function(dragsterEvent, e) {
-                    $('.center-file-overlay').removeClass('visible');
-                    $('.center-file-overlay').addClass('invisible');
+                    $('.center-file-overlay').addClass('hidden');
                     self.handleDrop(e);
                 }
             });
         } else if (this.props.postType === 'comment') {
             $('.post-right__container').dragster({
                 enter: function() {
-                    $('.right-file-overlay').removeClass('invisible');
-                    $('.right-file-overlay').addClass('visible');
+                    $('.right-file-overlay').removeClass('hidden');
                 },
                 leave: function() {
-                    $('.right-file-overlay').removeClass('visible');
-                    $('.right-file-overlay').addClass('invisible');
+                    $('.right-file-overlay').addClass('hidden');
                 },
                 drop: function(dragsterEvent, e) {
-                    $('.right-file-overlay').removeClass('visible');
-                    $('.right-file-overlay').addClass('invisible');
+                    $('.right-file-overlay').addClass('hidden');
                     self.handleDrop(e);
                 }
             });
