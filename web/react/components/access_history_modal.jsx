@@ -73,6 +73,11 @@ module.exports = React.createClass({
                 );
             }
 
+            var divider = null;
+            if (i < this.state.audits.length - 1) {
+                divider = (<div className='divider-light'></div>)
+            }
+
             accessList[i] = (
                 <div className='access-history__table'>
                     <div className='access__date'>{newDate}</div>
@@ -82,14 +87,17 @@ module.exports = React.createClass({
                             <div>{'IP: ' + currentAudit.ip_address}</div>
                             {moreInfo}
                         </div>
-                        {i < this.state.audits.length - 1 ?
-                        <div className='divider-light'/>
-                        :
-                        null
-                        }
+                        {divider}
                     </div>
                 </div>
             );
+        }
+
+        var content;
+        if (this.state.audits.loading) {
+            content = (<LoadingScreen />);
+        } else {
+            content = (<form role='form'>{accessList}</form>);
         }
 
         return (
@@ -102,13 +110,7 @@ module.exports = React.createClass({
                                 <h4 className='modal-title' id='myModalLabel'>Access History</h4>
                             </div>
                             <div ref='modalBody' className='modal-body'>
-                                {!this.state.audits.loading ?
-                                <form role='form'>
-                                {accessList}
-                                </form>
-                                :
-                                <LoadingScreen />
-                                }
+                                {content}
                             </div>
                         </div>
                     </div>
