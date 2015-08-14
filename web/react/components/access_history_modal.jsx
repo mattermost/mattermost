@@ -22,7 +22,7 @@ module.exports = React.createClass({
 
         var self = this;
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function() {
-            $('#user_settings1').modal('show');
+            $('#user_settings').modal('show');
             self.setState({moreInfo: []});
         });
     },

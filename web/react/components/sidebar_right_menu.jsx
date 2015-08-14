@@ -72,7 +72,7 @@ module.exports = React.createClass({
 
                 <div className='nav-pills__container'>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><a href='#' data-toggle='modal' data-target='#user_settings1'><i className='glyphicon glyphicon-cog'></i>Account Settings</a></li>
+                        <li><a href='#' data-toggle='modal' data-target='#user_settings'><i className='glyphicon glyphicon-cog'></i>Account Settings</a></li>
                         {teamSettingsLink}
                         {inviteLink}
                         {teamLink}

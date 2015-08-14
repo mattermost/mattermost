@@ -105,11 +105,11 @@ var NotificationsTab = React.createClass({
     },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     },
     _onChange: function() {
@@ -514,11 +514,11 @@ var SecurityTab = React.createClass({
     },
     handleHistoryOpen: function() {
         this.setState({willReturn: true});
-        $("#user_settings1").modal('hide');
+        $("#user_settings").modal('hide');
     },
     handleDevicesOpen: function() {
         this.setState({willReturn: true});
-        $("#user_settings1").modal('hide');
+        $("#user_settings").modal('hide');
     },
     handleClose: function() {
         $(this.getDOMNode()).find('.form-control').each(function() {
@@ -533,10 +533,10 @@ var SecurityTab = React.createClass({
         }
     },
     componentDidMount: function() {
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     },
     getInitialState: function() {
@@ -818,10 +818,10 @@ var GeneralTab = React.createClass({
         this.props.updateSection('');
     },
     componentDidMount: function() {
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = this.props.user;
@@ -1100,7 +1100,7 @@ var AppearanceTab = React.createClass({
         if (this.props.activeSection === "theme") {
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentDidUpdate: function() {
         if (this.props.activeSection === "theme") {
@@ -1109,7 +1109,7 @@ var AppearanceTab = React.createClass({
         }
     },
     componentWillUnmount: function() {
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     },
     getInitialState: function() {
