@@ -31,9 +31,9 @@ module.exports = React.createClass({
             var name = "...";
             if (profile != null) {
                 if (profile.username.slice(-1) === 's') {
-                    apostrophe = "'";
+                    apostrophe = '\'';
                 } else {
-                    apostrophe = "'s";
+                    apostrophe = '\'s';
                 }
                 name = <a className="theme" onClick={function(){ utils.searchForTerm(profile.username); }}>{profile.username}</a>;
             }
@@ -62,11 +62,11 @@ module.exports = React.createClass({
 
         var loading;
         if (post.state === Constants.POST_FAILED) {
-            postClass += " post-fail";
-            loading = <a className="theme post-retry pull-right" href="#" onClick={this.props.retryPost}>Retry</a>;
+            postClass += ' post-fail';
+            loading = <a className='theme post-retry pull-right' href='#' onClick={this.props.retryPost}>Retry</a>;
         } else if (post.state === Constants.POST_LOADING) {
-            postClass += " post-waiting";
-            loading = <img className="post-loading-gif pull-right" src="/static/images/load.gif"/>;
+            postClass += ' post-waiting';
+            loading = <img className='post-loading-gif pull-right' src='/static/images/load.gif'/>;
         }
 
         var embed;

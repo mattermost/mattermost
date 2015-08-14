@@ -74,9 +74,9 @@ module.exports = React.createClass({
         var parentPost = this.props.parentPost;
         var posts = this.props.posts;
 
-        var type = "Post";
+        var type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
-            type = "Comment";
+            type = 'Comment';
         }
 
         var commentCount = 0;
