@@ -69,6 +69,12 @@ module.exports = React.createClass({
         this.oldScrollHeight = post_holder.scrollHeight;
         this.oldZoom = (window.outerWidth - 8) / window.innerWidth;
 
+        $('.modal').on('show.bs.modal', function () {
+            $('.modal-body').css('overflow-y', 'auto');
+            $('.modal-body').css('max-height', $(window).height() * 0.7);
+        });
+
+        // Timeout exists for the DOM to fully render before making changes
         var self = this;
         $(window).resize(function(){
             $(post_holder).perfectScrollbar('update');
@@ -140,6 +146,7 @@ module.exports = React.createClass({
         UserStore.removeStatusesChangeListener(this._onTimeChange);
         SocketStore.removeChangeListener(this._onSocketChange);
         $('body').off('click.userpopover');
+        $('.modal').off('show.bs.modal')
     },
     resize: function() {
         var post_holder = $(".post-list-holder-by-time")[0];
