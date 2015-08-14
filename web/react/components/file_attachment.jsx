@@ -114,6 +114,7 @@ module.exports = React.createClass({
         }
 
         var filenameString = decodeURIComponent(utils.getFileName(filename));
+        var trimmedFilename;
         if(filenameString.length > 35){
             trimmedFilename = filenameString.substring(0, Math.min(35,filenameString.length)) + "...";
         }
