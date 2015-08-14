@@ -197,20 +197,6 @@ var PostStore = assign({}, EventEmitter.prototype, {
             BrowserStore.removeItem(key);
         });
     },
-    removeNonFailedPendingPosts: function(channelId) {
-        var postList = this.getPendingPosts(channelId);
-        if (!postList) {
-            return;
-        }
-
-        var posts = postList.posts;
-
-        for (var id in posts) {
-            if (!posts[id].did_fail) {
-                this._removePendingPost(channelId, id);
-            }
-        }
-    },
     updatePendingPost: function(post) {
         var postList = this.getPendingPosts(post.channel_id);
         if (!postList) {
