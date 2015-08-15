@@ -3,6 +3,8 @@
 
 var ChannelStore = require('../stores/channel_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
+var Client = require('../utils/client.jsx');
+var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
@@ -15,12 +17,12 @@ module.exports = React.createClass({
         });
     },
     getInitialState: function() {
-        return {channels: []};
+        return {channels: [], loadingDMChannel: -1};
     },
     render: function() {
         var self = this;
 
-        var directMessageItems = this.state.channels.map(function mapActivityToChannel(channel) {
+        var directMessageItems = this.state.channels.map(function mapActivityToChannel(channel, index) {
             var badge = '';
             var titleClass = '';
             var active = '';
@@ -41,14 +43,37 @@ module.exports = React.createClass({
                     utils.switchChannel(channel, channel.teammate_username);
                     $(self.refs.modal.getDOMNode()).modal('hide');
                 };
+            } else {
+                // It's a direct message channel that doesn't exist yet so let's create it now
+                var otherUserId = utils.getUserIdFromChannelName(channel);
 
-                return (
-                    <li key={channel.name} className={active}><a className={'sidebar-channel ' + titleClass} href='#' onClick={handleClick}>{badge}{channel.display_name}</a></li>
-                );
+                if (self.state.loadingDMChannel === index) {
+                    badge = <img className='channel-loading-gif pull-right' src='/static/images/load.gif'/>;
+                }
+
+                if (self.state.loadingDMChannel === -1) {
+                    handleClick = function clickHandler(e) {
+                        e.preventDefault();
+                        self.setState({loadingDMChannel: index});
+
+                        Client.createDirectChannel(channel, otherUserId,
+                            function success(data) {
+                                $(self.refs.modal.getDOMNode()).modal('hide');
+                                self.setState({loadingDMChannel: -1});
+                                AsyncClient.getChannel(data.id);
+                                utils.switchChannel(data);
+                            },
+                            function error() {
+                                self.setState({loadingDMChannel: -1});
+                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+                            }
+                        );
+                    };
+                }
             }
 
             return (
-                <li key={channel.name} className={active}><a className={'sidebar-channel ' + titleClass} href={TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name}>{badge}{channel.display_name}</a></li>
+                <li key={channel.name} className={active}><a className={'sidebar-channel ' + titleClass} href='#' onClick={handleClick}>{badge}{channel.display_name}</a></li>
             );
         });
 

@@ -286,7 +286,7 @@ module.exports = React.createClass({
     },
     getInitialState: function() {
         var newState = getStateFromStores();
-        newState.loadingPMChannel = -1;
+        newState.loadingDMChannel = -1;
 
         return newState;
     },
@@ -339,6 +339,8 @@ module.exports = React.createClass({
                     badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
                     badgesActive = true;
                 }
+            } else if (self.state.loadingDMChannel === index && channel.type === 'D') {
+                badge = <img className='channel-loading-gif pull-right' src='/static/images/load.gif'/>;
             }
 
             // set up status icon for direct message channels
@@ -352,12 +354,7 @@ module.exports = React.createClass({
                 } else {
                     statusIcon = Constants.OFFLINE_ICON_SVG;
                 }
-
-                if (self.state.loadingPMChannel === index) {
-                    status = <img className='channel-loading-gif' src='/static/images/load.gif'/>;
-                } else {
-                    status = <span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} />;
-                }
+                status = <span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} />;
             }
 
             // set up click handler to switch channels (or create a new channel for non-existant ones)
@@ -371,31 +368,27 @@ module.exports = React.createClass({
                     utils.switchChannel(channel);
                 };
             } else if (channel.fake && teamURL) {
-                // It's a direct message channel that doesn't exist yet so let's create it
-                var ids = channel.name.split('__');
-                var otherUserId = '';
-                if (ids[0] === UserStore.getCurrentId()) {
-                    otherUserId = ids[1];
-                } else {
-                    otherUserId = ids[0];
+                // It's a direct message channel that doesn't exist yet so let's create it now
+                var otherUserId = utils.getUserIdFromChannelName(channel);
+
+                if (self.state.loadingDMChannel === -1) {
+                    handleClick = function clickHandler(e) {
+                        e.preventDefault();
+                        self.setState({loadingDMChannel: index});
+
+                        Client.createDirectChannel(channel, otherUserId,
+                            function success(data) {
+                                self.setState({loadingDMChannel: -1});
+                                AsyncClient.getChannel(data.id);
+                                utils.switchChannel(data);
+                            },
+                            function error() {
+                                self.setState({loadingDMChannel: -1});
+                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+                            }
+                        );
+                    };
                 }
-
-                handleClick = function clickHandler(e) {
-                    e.preventDefault();
-                    self.setState({loadingPMChannel: index});
-
-                    Client.createPMChannelIfNotExists(channel, otherUserId,
-                        function success(data) {
-                            self.setState({loadingPMChannel: -1});
-                            AsyncClient.getChannel(data.id);
-                            utils.switchChannel(data);
-                        },
-                        function error() {
-                            self.setState({loadingPMChannel: -1});
-                            window.location.href = teamURL + '/channels/' + channel.name;
-                        }
-                    );
-                };
             }
 
             return (

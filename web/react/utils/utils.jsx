@@ -964,4 +964,17 @@ module.exports.generateId = function() {
 
 module.exports.isBrowserFirefox = function() {
     return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-}
+};
+
+// Used to get the id of the other user from a DM channel
+module.exports.getUserIdFromChannelName = function(channel) {
+    var ids = channel.name.split('__');
+    var otherUserId = '';
+    if (ids[0] === UserStore.getCurrentId()) {
+        otherUserId = ids[1];
+    } else {
+        otherUserId = ids[0];
+    }
+
+    return otherUserId;
+};

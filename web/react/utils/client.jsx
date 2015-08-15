@@ -438,7 +438,7 @@ module.exports.createChannel = function(channel, success, error) {
     module.exports.track('api', 'api_channels_create', channel.type, 'name', channel.name);
 };
 
-module.exports.createPMChannelIfNotExists = function(channel, userId, success, error) {
+module.exports.createDirectChannel = function(channel, userId, success, error) {
     $.ajax({
         url: '/api/v1/channels/create_direct',
         dataType: 'json',
@@ -447,7 +447,7 @@ module.exports.createPMChannelIfNotExists = function(channel, userId, success, e
         data: JSON.stringify({user_id: userId}),
         success: success,
         error: function(xhr, status, err) {
-            var e = handleError('createPMIfNotExists', xhr, status, err);
+            var e = handleError('createDirectChannel', xhr, status, err);
             error(e);
         }
     });
