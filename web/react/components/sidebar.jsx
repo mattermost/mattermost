@@ -3,6 +3,7 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
+var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var SocketStore = require('../stores/socket_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
@@ -70,6 +71,7 @@ function getStateFromStores() {
             tempChannel.status = UserStore.getStatus(teammate.id);
             tempChannel.last_post_at = 0;
             tempChannel.total_msg_count = 0;
+            tempChannel.type = 'D';
             readDirectChannels.push(tempChannel);
         }
     }
@@ -282,7 +284,10 @@ module.exports = React.createClass({
         }
     },
     getInitialState: function() {
-        return getStateFromStores();
+        var newState = getStateFromStores();
+        newState.loadingPMChannel = -1;
+
+        return newState;
     },
     render: function() {
         var members = this.state.members;
@@ -294,7 +299,7 @@ module.exports = React.createClass({
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
 
-        function createChannelElement(channel) {
+        function createChannelElement(channel, index) {
             var channelMember = members[channel.id];
 
             var linkClass = '';
@@ -345,21 +350,50 @@ module.exports = React.createClass({
                 } else {
                     statusIcon = Constants.OFFLINE_ICON_SVG;
                 }
-                status = <span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} />;
+
+                if (self.state.loadingPMChannel === index) {
+                    status = <img className='channel-loading-gif' src='/static/images/load.gif'/>;
+                } else {
+                    status = <span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} />;
+                }
             }
 
             // set up click handler to switch channels (or create a new channel for non-existant ones)
             var clickHandler = null;
             var href = '#';
             var teamURL = TeamStore.getCurrentTeamUrl();
+
             if (!channel.fake) {
                 clickHandler = function(e) {
                     e.preventDefault();
                     utils.switchChannel(channel);
                 };
-            }
-            if (channel.fake && teamURL){
-                href = teamURL + '/channels/' + channel.name;
+            } else if (channel.fake && teamURL) {
+                // It's a direct message channel that doesn't exist yet so let's create it
+                var ids = channel.name.split('__');
+                var otherUserId = '';
+                if (ids[0] === UserStore.getCurrentId()) {
+                    otherUserId = ids[1];
+                } else {
+                    otherUserId = ids[0];
+                }
+
+                clickHandler = function(e) {
+                    e.preventDefault();
+                    self.setState({loadingPMChannel: index});
+
+                    Client.createPMChannelIfNotExists(channel, otherUserId,
+                        function(data) {
+                            self.setState({loadingPMChannel: -1});
+                            AsyncClient.getChannel(data.id);
+                            utils.switchChannel(data);
+                        },
+                        function() {
+                            self.setState({loadingPMChannel: -1});
+                            window.location.href = teamURL + '/channels/' + channel.name;
+                        }
+                    );
+                };
             }
 
             return (
