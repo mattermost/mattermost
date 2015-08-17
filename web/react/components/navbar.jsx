@@ -6,8 +6,6 @@ var AsyncClient = require('../utils/async_client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
-
-var UserProfile = require('./user_profile.jsx');
 var MessageWrapper = require('./message_wrapper.jsx');
 var NotifyCounts = require('./notify_counts.jsx');
 
@@ -112,9 +110,9 @@ module.exports = React.createClass({
                 isDirect = true;
                 if (this.state.users.length > 1) {
                     if (this.state.users[0].id === currentId) {
-                        channelTitle = <UserProfile userId={this.state.users[1].id} />;
+                        channelTitle = UserStore.getProfile(this.state.users[1].id).username;
                     } else {
-                        channelTitle = <UserProfile userId={this.state.users[0].id} />;
+                        channelTitle = UserStore.getProfile(this.state.users[0].id).username;
                     }
                 }
             }
@@ -153,32 +151,36 @@ module.exports = React.createClass({
         }
 
         var channelMenuDropdown = null;
-        if (!isDirect && channel) {
+        if (channel) {
             var addMembersOption = null;
-            if (!ChannelStore.isDefault(channel)) {
+            if (!isDirect && !ChannelStore.isDefault(channel)) {
                 addMembersOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_invite' href='#'>Add Members</a></li>;
             }
 
             var manageMembersOption = null;
-            if (isAdmin && !ChannelStore.isDefault(channel)) {
+            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
                 manageMembersOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_members' href='#'>Manage Members</a></li>;
             }
 
             var setChannelDescriptionOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set Channel Description...</a></li>;
-            var notificationPreferenceOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#channel_notifications' data-title={channel.display_name} data-channelid={channel.id}>Notification Preferences</a></li>;
+
+            var notificationPreferenceOption = null;
+            if (!isDirect) {
+                notificationPreferenceOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#channel_notifications' data-title={channel.display_name} data-channelid={channel.id}>Notification Preferences</a></li>;
+            }
 
             var renameChannelOption = null;
-            if (isAdmin && !ChannelStore.isDefault(channel)) {
+            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
                 renameChannelOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#rename_channel' data-display={channel.display_name} data-name={channel.name} data-channelid={channel.id}>Rename Channel...</a></li>;
             }
 
             var deleteChannelOption = null;
-            if (isAdmin && !ChannelStore.isDefault(channel)) {
+            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
                 deleteChannelOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#delete_channel' data-title={channel.display_name} data-channelid={channel.id}>Delete Channel...</a></li>;
             }
 
             var leaveChannelOption = null;
-            if (!ChannelStore.isDefault(channel)) {
+            if (!isDirect && !ChannelStore.isDefault(channel)) {
                 leaveChannelOption = <li role='presentation'><a role='menuitem' href='#' onClick={this.handleLeave}>Leave Channel</a></li>;
             }
 
@@ -200,11 +202,7 @@ module.exports = React.createClass({
                                             </ul>
                                         </div>
                                     </div>);
-        } else if (isDirect && channel) {
-            channelMenuDropdown = (<div className='navbar-brand'>
-                                        <a href='#' className='heading'>{channelTitle}</a>
-                                    </div>);
-        } else if (!channel) {
+        } else {
             channelMenuDropdown = (<div className='navbar-brand'>
                                         <a href='/' className='heading'>{channelTitle}</a>
                                     </div>);
