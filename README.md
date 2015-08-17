@@ -24,7 +24,7 @@ You're installing "Mattermost Alpha", a pre-released version providing an early 
 That said, any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org
 
 Notes: 
-- For Alpha, Docker is intentionally setup as a single container, since production deployment not yet recommended.
+- For Alpha, Docker is intentionally setup as a single container, since production deployment is not yet recommended.
 
 Local Machine Setup (Docker)
 -----------------------------
