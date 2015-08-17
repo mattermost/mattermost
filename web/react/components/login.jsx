@@ -50,7 +50,7 @@ module.exports = React.createClass({
 
                 var redirect = utils.getUrlParameter("redirect");
                 if (redirect) {
-                    window.location.pathname = decodeURI(redirect);
+                    window.location.pathname = decodeURIComponent(redirect);
                 } else {
                     window.location.pathname = '/' + name + '/channels/town-square';
                 }
