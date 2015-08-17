@@ -18,18 +18,22 @@ var ActionTypes = Constants.ActionTypes;
 function getStateFromStores() {
     var channel = ChannelStore.getCurrent();
 
-    if (channel == null) channel = {};
+    if (channel == null) {
+        channel = {};
+    }
 
-    var post_list = PostStore.getCurrentPosts();
-    var pending_post_list = PostStore.getPendingPosts(channel.id);
+    var postList = PostStore.getCurrentPosts();
+    var pendingPostList = PostStore.getPendingPosts(channel.id);
 
-    if (pending_post_list) {
-        post_list.order = pending_post_list.order.concat(post_list.order);
-        for (var pid in pending_post_list.posts) { post_list.posts[pid] = pending_post_list.posts[pid] };
+    if (pendingPostList) {
+        postList.order = pendingPostList.order.concat(postList.order);
+        for (var pid in pendingPostList.posts) {
+            postList.posts[pid] = pendingPostList.posts[pid];
+        }
     }
 
     return {
-        post_list: post_list,
+        postList: postList,
         channel: channel
     };
 }
