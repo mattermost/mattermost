@@ -127,7 +127,7 @@ RootPost = React.createClass({
                             </div>
                         </li>
                     </ul>
-                    <div className="post-body">
+                    <div className='post-body'>
                         <p>{message}</p>
                         {fileAttachment}
                     </div>
@@ -144,13 +144,13 @@ CommentPost = React.createClass({
 
         var post = this.props.post;
         client.createPost(post, post.channel_id,
-            function(data) {
+            function success(data) {
                 AsyncClient.getPosts(true);
 
                 var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
                 member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = (new Date).getTime();
+                member.last_viewed_at = (new Date()).getTime();
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
@@ -158,7 +158,7 @@ CommentPost = React.createClass({
                     post: data
                 });
             }.bind(this),
-            function(err) {
+            function fail() {
                 post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
                 this.forceUpdate();
@@ -234,7 +234,7 @@ CommentPost = React.createClass({
                             {ownerOptions}
                         </li>
                     </ul>
-                    <div className="post-body">
+                    <div className='post-body'>
                         <p className={postClass}>{loading}{message}</p>
                         {fileAttachment}
                     </div>
@@ -245,27 +245,31 @@ CommentPost = React.createClass({
 });
 
 function getStateFromStores() {
-    var post_list = PostStore.getSelectedPost();
-    if (!post_list || post_list.order.length < 1) return { post_list: {} };
-
-    var channel_id = post_list.posts[post_list.order[0]].channel_id;
-    var pending_post_list = PostStore.getPendingPosts(channel_id);
-
-    if (pending_post_list) {
-        for (var pid in pending_post_list.posts) { post_list.posts[pid] = pending_post_list.posts[pid] };
+    var postList = PostStore.getSelectedPost();
+    if (!postList || postList.order.length < 1) {
+        return {postList: {}};
     }
 
-    return { post_list: post_list };
+    var channelId = postList.posts[postList.order[0]].channel_id;
+    var pendingPostList = PostStore.getPendingPosts(channelId);
+
+    if (pendingPostList) {
+        for (var pid in pendingPostList.posts) {
+            postList.posts[pid] = pendingPostList.posts[pid];
+        }
+    }
+
+    return {postList: postList};
 }
 
 module.exports = React.createClass({
     componentDidMount: function() {
-        PostStore.addSelectedPostChangeListener(this._onChange);
-        PostStore.addChangeListener(this._onChangeAll);
-        UserStore.addStatusesChangeListener(this._onTimeChange);
+        PostStore.addSelectedPostChangeListener(this.onChange);
+        PostStore.addChangeListener(this.onChangeAll);
+        UserStore.addStatusesChangeListener(this.onTimeChange);
         this.resize();
         var self = this;
-        $(window).resize(function(){
+        $(window).resize(function() {
             self.resize();
         });
     },
@@ -275,11 +279,11 @@ module.exports = React.createClass({
         this.resize();
     },
     componentWillUnmount: function() {
-        PostStore.removeSelectedPostChangeListener(this._onChange);
-        PostStore.removeChangeListener(this._onChangeAll);
-        UserStore.removeStatusesChangeListener(this._onTimeChange);
+        PostStore.removeSelectedPostChangeListener(this.onChange);
+        PostStore.removeChangeListener(this.onChangeAll);
+        UserStore.removeStatusesChangeListener(this.onTimeChange);
     },
-    _onChange: function() {
+    onChange: function() {
         if (this.isMounted()) {
             var newState = getStateFromStores();
             if (!utils.areStatesEqual(newState, this.state)) {
@@ -287,24 +291,22 @@ module.exports = React.createClass({
             }
         }
     },
-    _onChangeAll: function() {
+    onChangeAll: function() {
         if (this.isMounted()) {
-
             // if something was changed in the channel like adding a
             // comment or post then lets refresh the sidebar list
             var currentSelected = PostStore.getSelectedPost();
-            if (!currentSelected || currentSelected.order.length == 0) {
+            if (!currentSelected || currentSelected.order.length === 0) {
                 return;
             }
 
             var currentPosts = PostStore.getPosts(currentSelected.posts[currentSelected.order[0]].channel_id);
 
-            if (!currentPosts || currentPosts.order.length == 0) {
+            if (!currentPosts || currentPosts.order.length === 0) {
                 return;
             }
 
-
-            if (currentPosts.posts[currentPosts.order[0]].channel_id == currentSelected.posts[currentSelected.order[0]].channel_id) {
+            if (currentPosts.posts[currentPosts.order[0]].channel_id === currentSelected.posts[currentSelected.order[0]].channel_id) {
                 currentSelected.posts = {};
                 for (var postId in currentPosts.posts) {
                     currentSelected.posts[postId] = currentPosts.posts[postId];
@@ -316,9 +318,11 @@ module.exports = React.createClass({
             this.setState(getStateFromStores());
         }
     },
-    _onTimeChange: function() {
-        for (var id in this.state.post_list.posts) {
-            if (!this.refs[id]) continue;
+    onTimeChange: function() {
+        for (var id in this.state.postList.posts) {
+            if (!this.refs[id]) {
+                continue;
+            }
             this.refs[id].forceUpdate();
         }
     },
@@ -333,45 +337,47 @@ module.exports = React.createClass({
         $('.post-right__scroll').perfectScrollbar('update');
     },
     render: function() {
+        var postList = this.state.postList;
 
-        var post_list = this.state.post_list;
-
-        if (post_list == null) {
+        if (postList == null) {
             return (
                 <div></div>
             );
         }
 
-        var selected_post = post_list.posts[post_list.order[0]];
-        var root_post = null;
+        var selectedPost = postList.posts[postList.order[0]];
+        var rootPost = null;
 
-        if (selected_post.root_id == '') {
-            root_post = selected_post;
+        if (selectedPost.root_id === '') {
+            rootPost = selectedPost;
+        } else {
+            rootPost = postList.posts[selectedPost.root_id];
         }
-        else {
-            root_post = post_list.posts[selected_post.root_id];
-        }
 
-        var posts_array = [];
+        var postsArray = [];
 
-        for (var postId in post_list.posts) {
-            var cpost = post_list.posts[postId];
-            if (cpost.root_id == root_post.id) {
-                posts_array.push(cpost);
+        for (var postId in postList.posts) {
+            var cpost = postList.posts[postId];
+            if (cpost.root_id === rootPost.id) {
+                postsArray.push(cpost);
             }
         }
 
-        posts_array.sort(function(a,b) {
-            if (a.create_at < b.create_at)
+        postsArray.sort(function postSort(a, b) {
+            if (a.create_at < b.create_at) {
                 return -1;
-            if (a.create_at > b.create_at)
+            }
+            if (a.create_at > b.create_at) {
                 return 1;
+            }
             return 0;
         });
 
-        var results = this.state.results;
         var currentId = UserStore.getCurrentId();
-        var searchForm = currentId == null ? null : <SearchBox />;
+        var searchForm;
+        if (currentId != null) {
+            searchForm = <SearchBox />;
+        }
 
         return (
             <div className='post-right__container'>
@@ -380,15 +386,15 @@ module.exports = React.createClass({
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
                     <RhsHeaderPost fromSearch={this.props.fromSearch} isMentionSearch={this.props.isMentionSearch} />
-                    <div className="post-right__scroll">
-                        <RootPost post={root_post} commentCount={posts_array.length}/>
-                        <div className="post-right-comments-container">
-                        { posts_array.map(function(cpost) {
-                                return <CommentPost ref={cpost.id} key={cpost.id} post={cpost} selected={ (cpost.id == selected_post.id) } />
+                    <div className='post-right__scroll'>
+                        <RootPost post={rootPost} commentCount={postsArray.length}/>
+                        <div className='post-right-comments-container'>
+                        {postsArray.map(function mapPosts(comPost) {
+                            return <CommentPost ref={comPost.id} key={comPost.id} post={comPost} selected={(comPost.id === selectedPost.id)} />;
                         })}
                         </div>
                         <div className='post-create__container'>
-                            <CreateComment channelId={root_post.channel_id} rootId={root_post.id} />
+                            <CreateComment channelId={rootPost.channel_id} rootId={rootPost.id} />
                         </div>
                     </div>
                 </div>
