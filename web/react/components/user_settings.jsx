@@ -13,7 +13,7 @@ var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
-    var soundNeeded = !utils.checkBrowserType('firefox');
+    var soundNeeded = !utils.isBrowserFirefox();
     var sound = (!user.notify_props || user.notify_props.desktop_sound == undefined) ? "true" : user.notify_props.desktop_sound;
     var desktop = (!user.notify_props || user.notify_props.desktop == undefined) ? "all" : user.notify_props.desktop;
     var email = (!user.notify_props || user.notify_props.email == undefined) ? "true" : user.notify_props.email;

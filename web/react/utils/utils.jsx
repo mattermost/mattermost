@@ -124,7 +124,7 @@ module.exports.notifyMe = function(title, body, channel) {
 }
 
 module.exports.ding = function() {
-    if (!module.exports.checkBrowserType('firefox')) {
+    if (!module.exports.isBrowserFirefox()) {
         var audio = new Audio('/static/images/ding.mp3');
         audio.play();
     }
@@ -937,6 +937,6 @@ module.exports.generateId = function() {
     return id;
 };
 
-module.exports.checkBrowserType = function(browser) {
-    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf(browser.toLowerCase()) > -1
+module.exports.isBrowserFirefox = function() {
+    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 }
