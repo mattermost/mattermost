@@ -105,11 +105,11 @@ var NotificationsTab = React.createClass({
     },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
         UserStore.removeChangeListener(this._onChange);
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     },
     _onChange: function() {
@@ -513,27 +513,34 @@ var SecurityTab = React.createClass({
         this.setState({confirmPassword: e.target.value});
     },
     handleHistoryOpen: function() {
-        $('#user_settings1').modal('hide');
+        this.setState({willReturn: true});
+        $("#user_settings").modal('hide');
     },
     handleDevicesOpen: function() {
-        $('#user_settings1').modal('hide');
+        this.setState({willReturn: true});
+        $("#user_settings").modal('hide');
     },
     handleClose: function() {
         $(this.getDOMNode()).find('.form-control').each(function() {
             this.value = '';
         });
         this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
-        this.props.updateTab('general');
+
+        if (!this.state.willReturn) {
+            this.props.updateTab('general');
+        } else {
+            this.setState({willReturn: false});
+        }
     },
     componentDidMount: function() {
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     },
     getInitialState: function() {
-        return {currentPassword: '', newPassword: '', confirmPassword: ''};
+        return {currentPassword: '', newPassword: '', confirmPassword: '', willReturn: false};
     },
     render: function() {
         var serverError = this.state.serverError ? this.state.serverError : null;
@@ -811,10 +818,10 @@ var GeneralTab = React.createClass({
         this.props.updateSection('');
     },
     componentDidMount: function() {
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentWillUnmount: function() {
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     },
     getInitialState: function() {
         var user = this.props.user;
@@ -1093,7 +1100,7 @@ var AppearanceTab = React.createClass({
         if (this.props.activeSection === "theme") {
             $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
         }
-        $('#user_settings1').on('hidden.bs.modal', this.handleClose);
+        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     },
     componentDidUpdate: function() {
         if (this.props.activeSection === "theme") {
@@ -1102,7 +1109,7 @@ var AppearanceTab = React.createClass({
         }
     },
     componentWillUnmount: function() {
-        $('#user_settings1').off('hidden.bs.modal', this.handleClose);
+        $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     },
     getInitialState: function() {
