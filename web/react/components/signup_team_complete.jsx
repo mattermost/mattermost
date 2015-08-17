@@ -222,9 +222,9 @@ TeamURLPage = React.createClass({
 
         var cleanedName = utils.cleanUpUrlable(name);
 
-        var urlRegex = /^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
+        var urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
         if (cleanedName !== name || !urlRegex.test(name)) {
-            this.setState({nameError: 'Must be lowercase alphanumeric characters'});
+            this.setState({nameError: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."});
             return;
         } else if (cleanedName.length <= 3 || cleanedName.length > 15) {
             this.setState({nameError: 'Name must be 4 or more characters up to a maximum of 15'});
