@@ -651,6 +651,12 @@ func TestUserUpdateRoles(t *testing.T) {
 		t.Fatal("Should have errored, not admin")
 	}
 
+	name := make(map[string]string)
+	name["new_name"] = "NewName"
+	if _, err := Client.UpdateTeamDisplayName(name); err == nil {
+		t.Fatal("should have errored - user not admin yet")
+	}
+
 	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
@@ -689,6 +695,12 @@ func TestUserUpdateRoles(t *testing.T) {
 		if result.Data.(*model.User).Roles != "admin" {
 			t.Fatal("Roles did not update properly")
 		}
+	}
+
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+
+	if _, err := Client.UpdateTeamDisplayName(name); err != nil {
+		t.Fatal(err)
 	}
 }
 

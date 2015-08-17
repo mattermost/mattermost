@@ -961,18 +961,38 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user.Roles = new_roles
 
+	var ruser *model.User
 	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		c.LogAuditWithUserId(user.Id, "roles="+new_roles)
 
-		ruser := result.Data.([2]*model.User)[0]
-		options := utils.SanitizeOptions
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
-		w.Write([]byte(ruser.ToJson()))
+		ruser = result.Data.([2]*model.User)[0]
 	}
+
+	uchan := Srv.Store.Session().UpdateRoles(user.Id, new_roles)
+	gchan := Srv.Store.Session().GetSessions(user.Id)
+
+	if result := <-uchan; result.Err != nil {
+		// soft error since the user roles were still updated
+		l4g.Error(result.Err)
+	}
+
+	if result := <-gchan; result.Err != nil {
+		// soft error since the user roles were still updated
+		l4g.Error(result.Err)
+	} else {
+		sessions := result.Data.([]*model.Session)
+		for _, s := range sessions {
+			sessionCache.Remove(s.Id)
+		}
+	}
+
+	options := utils.SanitizeOptions
+	options["passwordupdate"] = false
+	ruser.Sanitize(options)
+	w.Write([]byte(ruser.ToJson()))
 }
 
 func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {

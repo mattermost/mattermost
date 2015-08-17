@@ -175,3 +175,22 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) Sto
 
 	return storeChannel
 }
+
+func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := me.GetMaster().Exec("UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId", map[string]interface{}{"Roles": roles, "UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlSessionStore.UpdateRoles", "We couldn't update the roles", "userId="+userId)
+		} else {
+			result.Data = userId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
