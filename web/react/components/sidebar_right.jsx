@@ -38,10 +38,6 @@ module.exports = React.createClass({
             }
         }
     },
-    resize: function() {
-        $(".post-list-holder-by-time").scrollTop(100000);
-        $(".post-list-holder-by-time").perfectScrollbar('update');
-    },
     getInitialState: function() {
         return getStateFromStores();
     },
@@ -49,7 +45,6 @@ module.exports = React.createClass({
         if (! (this.state.search_visible || this.state.post_right_visible)) {
             $('.inner__wrap').removeClass('move--left').removeClass('move--right');
             $('.sidebar--right').removeClass('move--left');
-            this.resize();
             return (
                 <div></div>
             );
@@ -59,7 +54,6 @@ module.exports = React.createClass({
         $('.sidebar--left').removeClass('move--right');
         $('.sidebar--right').addClass('move--left');
         $('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
-        this.resize();
         setTimeout(function(){
             $('.sidebar__overlay').fadeOut("200", function(){
                 $(this).remove();

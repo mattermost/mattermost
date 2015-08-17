@@ -88,7 +88,6 @@ module.exports = React.createClass({
             );
         }
 
-        $('.post-list-holder-by-time').perfectScrollbar('update');
     },
     componentDidUpdate: function() {
         this.resizePostHolder();
