@@ -14,7 +14,7 @@ const (
 
 type Command struct {
 	Command      string            `json:"command"`
-	Response     string            `json:"reponse"`
+	Response     string            `json:"response"`
 	GotoLocation string            `json:"goto_location"`
 	ChannelId    string            `json:"channel_id"`
 	Suggest      bool              `json:"-"`

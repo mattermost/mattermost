@@ -4,15 +4,15 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	l4g "code.google.com/p/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
-	"reflect"
-	"runtime"
-	"strconv"
-	"strings"
 )
 
 type commandHandler func(c *Context, command *model.Command) bool
@@ -41,7 +41,6 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	checkCommand(c, command)
-
 	if c.Err != nil {
 		return
 	} else {
@@ -56,8 +55,6 @@ func checkCommand(c *Context, command *model.Command) bool {
 		return false
 	}
 
-	tchan := Srv.Store.Team().Get(c.Session.TeamId)
-
 	if len(command.ChannelId) > 0 {
 		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, command.ChannelId, c.Session.UserId)
 
@@ -66,24 +63,9 @@ func checkCommand(c *Context, command *model.Command) bool {
 		}
 	}
 
-	allowValet := false
-	if tResult := <-tchan; tResult.Err != nil {
-		c.Err = model.NewAppError("checkCommand", "Could not find the team for this session, team_id="+c.Session.TeamId, "")
-		return false
-	} else {
-		allowValet = tResult.Data.(*model.Team).AllowValet
-	}
-
-	ec := runtime.FuncForPC(reflect.ValueOf(echoCommand).Pointer()).Name()
-
 	for _, v := range commands {
-		if !allowValet && ec == runtime.FuncForPC(reflect.ValueOf(v).Pointer()).Name() {
-			continue
-		}
 
-		if v(c, command) {
-			return true
-		} else if c.Err != nil {
+		if v(c, command) || c.Err != nil {
 			return true
 		}
 	}
@@ -112,55 +94,48 @@ func logoutCommand(c *Context, command *model.Command) bool {
 }
 
 func echoCommand(c *Context, command *model.Command) bool {
-
 	cmd := "/echo"
 
-	if strings.Index(command.Command, cmd) == 0 {
-		parts := strings.SplitN(command.Command, " ", 3)
-
-		channelName := ""
-		if len(parts) >= 2 {
-			channelName = parts[1]
-		}
-
-		message := ""
-		if len(parts) >= 3 {
-			message = parts[2]
-		}
-
-		if result := <-Srv.Store.Channel().GetChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
-			c.Err = result.Err
+	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
+		parameters := strings.SplitN(command.Command, " ", 2)
+		if len(parameters) != 2 || len(parameters[1]) == 0 {
 			return false
-		} else {
-			channels := result.Data.(*model.ChannelList)
+		}
+		message := strings.Trim(parameters[1], " ")
+		delay := 0
+		if endMsg := strings.LastIndex(message, "\""); string(message[0]) == "\"" && endMsg > 1 {
+			if checkDelay, err := strconv.Atoi(strings.Trim(message[endMsg:], " \"")); err == nil {
+				delay = checkDelay
+			}
+			message = message[1:endMsg]
+		} else if strings.Index(message, " ") > -1 {
+			delayIdx := strings.LastIndex(message, " ")
+			delayStr := strings.Trim(message[delayIdx:], " ")
 
-			for _, v := range channels.Channels {
-				if v.Type == model.CHANNEL_DIRECT {
-					continue
-				}
-
-				if v.Name == channelName && !command.Suggest {
-					post := &model.Post{}
-					post.ChannelId = v.Id
-					post.Message = message
-
-					if _, err := CreateValetPost(c, post); err != nil {
-						c.Err = err
-						return false
-					}
-
-					command.Response = model.RESP_EXECUTED
-					return true
-				}
-
-				if len(channelName) == 0 || (strings.Index(v.Name, channelName) == 0 && len(parts) < 3) {
-					command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd + " " + v.Name, Description: "Echo a message using Valet in a channel"})
-				}
+			if checkDelay, err := strconv.Atoi(delayStr); err == nil {
+				delay = checkDelay
+				message = message[:delayIdx]
 			}
 		}
 
+		// Fire off asynchronous process
+		go func() {
+			post := &model.Post{}
+			post.ChannelId = command.ChannelId
+			post.Message = message
+
+			time.Sleep(time.Duration(delay) * time.Second)
+
+			if _, err := CreatePost(c, post, false); err != nil {
+				l4g.Error("Unable to create /echo post, err=%v", err)
+			}
+		}()
+
+		command.Response = model.RESP_EXECUTED
+		return true
+
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo a message using Valet in a channel"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seoncds]"})
 	}
 
 	return false
