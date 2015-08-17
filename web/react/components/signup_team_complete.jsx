@@ -4,12 +4,16 @@
 var utils = require('../utils/utils.jsx');
 var ConfigStore = require('../stores/config_store.jsx');
 var client = require('../utils/client.jsx');
-var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var constants = require('../utils/constants.jsx');
 
 WelcomePage = React.createClass({
-    submitNext: function (e) {
+    displayName: 'WelcomePage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
+    submitNext: function(e) {
         if (!BrowserStore.isLocalStorageSupported()) {
             this.setState({storageError: 'This service requires local storage to be enabled. Please enable it or exit private browsing.'});
             return;
@@ -18,11 +22,11 @@ WelcomePage = React.createClass({
         this.props.state.wizard = 'team_display_name';
         this.props.updateParent(this.props.state);
     },
-    handleDiffEmail: function (e) {
+    handleDiffEmail: function(e) {
         e.preventDefault();
         this.setState({useDiff: true});
     },
-    handleDiffSubmit: function (e) {
+    handleDiffSubmit: function(e) {
         e.preventDefault();
 
         var state = {useDiff: true, serverError: ''};
@@ -36,21 +40,20 @@ WelcomePage = React.createClass({
             state.emailError = 'This service requires local storage to be enabled. Please enable it or exit private browsing.';
             this.setState(state);
             return;
-        } else {
-            state.emailError = '';
         }
+        state.emailError = '';
 
         client.signupTeam(email,
-            function(data) {
-                if (data['follow_link']) {
-                    window.location.href = data['follow_link'];
+            function success(data) {
+                if (data.follow_link) {
+                    window.location.href = data.follow_link;
                 } else {
                     this.props.state.wizard = 'finished';
                     this.props.updateParent(this.props.state);
-                    window.location.href = '/signup_team_confirm/?email=' + encodeURIComponent(team.email);
+                    window.location.href = '/signup_team_confirm/?email=' + encodeURIComponent(email);
                 }
             }.bind(this),
-            function(err) {
+            function error(err) {
                 this.state.serverError = err.message;
                 this.setState(this.state);
             }.bind(this)
@@ -134,7 +137,7 @@ WelcomePage = React.createClass({
                         {emailError}
                     </div>
                     {serverError}
-                    <button className='btn btn-md btn-primary' type='button' onClick={this.handleDiffSubmit} type='submit'>Use this instead</button>
+                    <button className='btn btn-md btn-primary' type='button' onClick={this.handleDiffSubmit}>Use this instead</button>
                 </div>
                 <a href='#' onClick={this.handleDiffEmail} className={differentEmailLinkClass}>Use a different email</a>
             </div>
@@ -143,23 +146,28 @@ WelcomePage = React.createClass({
 });
 
 TeamDisplayNamePage = React.createClass({
-    submitBack: function (e) {
+    displayName: 'TeamDisplayNamePage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
+    submitBack: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'welcome';
         this.props.updateParent(this.props.state);
     },
-    submitNext: function (e) {
+    submitNext: function(e) {
         e.preventDefault();
 
-        var display_name = this.refs.name.getDOMNode().value.trim();
-        if (!display_name) {
+        var displayName = this.refs.name.getDOMNode().value.trim();
+        if (!displayName) {
             this.setState({nameError: 'This field is required'});
             return;
         }
 
         this.props.state.wizard = 'team_url';
-        this.props.state.team.display_name = display_name;
-        this.props.state.team.name = utils.cleanUpUrlable(display_name);
+        this.props.state.team.display_name = displayName;
+        this.props.state.team.name = utils.cleanUpUrlable(displayName);
         this.props.updateParent(this.props.state);
     },
     getInitialState: function() {
@@ -167,7 +175,6 @@ TeamDisplayNamePage = React.createClass({
     },
     handleFocus: function(e) {
         e.preventDefault();
-
         e.currentTarget.select();
     },
     render: function() {
@@ -206,12 +213,17 @@ TeamDisplayNamePage = React.createClass({
 });
 
 TeamURLPage = React.createClass({
-    submitBack: function (e) {
+    displayName: 'TeamURLPage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
+    submitBack: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'team_display_name';
         this.props.updateParent(this.props.state);
     },
-    submitNext: function (e) {
+    submitNext: function(e) {
         e.preventDefault();
 
         var name = this.refs.name.getDOMNode().value.trim();
@@ -239,7 +251,7 @@ TeamURLPage = React.createClass({
         }
 
         client.findTeamByName(name,
-            function(data) {
+            function success(data) {
                 if (!data) {
                     if (config.AllowSignupDomainsWizard) {
                         this.props.state.wizard = 'allowed_domains';
@@ -255,7 +267,7 @@ TeamURLPage = React.createClass({
                     this.setState(this.state);
                 }
             }.bind(this),
-            function(err) {
+            function error(err) {
                 this.state.nameError = err.message;
                 this.setState(this.state);
             }.bind(this)
@@ -270,7 +282,7 @@ TeamURLPage = React.createClass({
         e.currentTarget.select();
     },
     render: function() {
-        $('body').tooltip( {selector: '[data-toggle=tooltip]', trigger: 'hover click'} );
+        $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
 
         client.track('signup', 'signup_team_03_url');
 
@@ -314,12 +326,17 @@ TeamURLPage = React.createClass({
 });
 
 AllowedDomainsPage = React.createClass({
-    submitBack: function (e) {
+    displayName: 'AllowedDomainsPage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
+    submitBack: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'team_url';
         this.props.updateParent(this.props.state);
     },
-    submitNext: function (e) {
+    submitNext: function(e) {
         e.preventDefault();
 
         if (this.refs.open_network.getDOMNode().checked) {
@@ -403,6 +420,10 @@ AllowedDomainsPage = React.createClass({
 });
 
 EmailItem = React.createClass({
+    displayName: 'EmailItem',
+    propTypes: {
+        focus: React.PropTypes.bool
+    },
     getInitialState: function() {
         return {};
     },
@@ -424,17 +445,16 @@ EmailItem = React.createClass({
             this.state.emailError = 'Please use a different email than the one used at signup';
             this.setState(this.state);
             return false;
-        } else {
-            this.state.emailError = '';
-            this.setState(this.state);
-            return true;
         }
+        this.state.emailError = '';
+        this.setState(this.state);
+        return true;
     },
     render: function() {
         var emailError = null;
         var emailDivClass = 'form-group';
         if (this.state.emailError) {
-            emailError = <label className='control-label'>{ this.state.emailError }</label>;
+            emailError = <label className='control-label'>{this.state.emailError}</label>;
             emailDivClass += ' has-error';
         }
 
@@ -448,7 +468,12 @@ EmailItem = React.createClass({
 });
 
 SendInivtesPage = React.createClass({
-    submitBack: function (e) {
+    displayName: 'SendInivtesPage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
+    submitBack: function(e) {
         e.preventDefault();
 
         if (config.AllowSignupDomainsWizard) {
@@ -459,7 +484,7 @@ SendInivtesPage = React.createClass({
 
         this.props.updateParent(this.props.state);
     },
-    submitNext: function (e) {
+    submitNext: function(e) {
         e.preventDefault();
 
         var valid = true;
@@ -485,7 +510,7 @@ SendInivtesPage = React.createClass({
             this.props.updateParent(this.props.state);
         }
     },
-    submitAddInvite: function (e) {
+    submitAddInvite: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'send_invites';
         if (!this.props.state.invites) {
@@ -494,7 +519,7 @@ SendInivtesPage = React.createClass({
         this.props.state.invites.push('');
         this.props.updateParent(this.props.state);
     },
-    submitSkip: function (e) {
+    submitSkip: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'username';
         this.props.updateParent(this.props.state);
@@ -533,7 +558,7 @@ SendInivtesPage = React.createClass({
             );
         } else {
             content = (
-                <div className='form-group color--light'>Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.</div>
+                <div className='form-group color--light'>{'Email is currently disabled for your ' + strings.Team + ', and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}</div>
             );
         }
 
@@ -557,6 +582,11 @@ SendInivtesPage = React.createClass({
 });
 
 UsernamePage = React.createClass({
+    displayName: 'UsernamePage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
     submitBack: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'send_invites';
@@ -622,12 +652,17 @@ UsernamePage = React.createClass({
 });
 
 PasswordPage = React.createClass({
-    submitBack: function (e) {
+    displayName: 'PasswordPage',
+    propTypes: {
+        state: React.PropTypes.object,
+        updateParent: React.PropTypes.func
+    },
+    submitBack: function(e) {
         e.preventDefault();
         this.props.state.wizard = 'username';
         this.props.updateParent(this.props.state);
     },
-    submitNext: function (e) {
+    submitNext: function(e) {
         e.preventDefault();
 
         var password = this.refs.password.getDOMNode().value.trim();
@@ -642,10 +677,11 @@ PasswordPage = React.createClass({
         teamSignup.user.password = password;
         teamSignup.user.allow_marketing = true;
         delete teamSignup.wizard;
-        var ctl = this;
+
+        // var ctl = this;
 
         client.createTeamFromSignup(teamSignup,
-            function(data) {
+            function success() {
                 client.track('signup', 'signup_team_08_complete');
 
                 var props = this.props;
@@ -668,7 +704,7 @@ PasswordPage = React.createClass({
                 //     }.bind(ctl)
                 // );
             }.bind(this),
-            function(err) {
+            function error(err) {
                 this.setState({serverError: err.message});
                 $('#sign-up-button').button('reset');
             }.bind(this)
@@ -727,6 +763,12 @@ PasswordPage = React.createClass({
 });
 
 module.exports = React.createClass({
+    displayName: 'SignupTeamComplete',
+    propTypes: {
+        hash: React.PropTypes.string,
+        email: React.PropTypes.string,
+        data: React.PropTypes.string
+    },
     updateParent: function(state, skipSet) {
         BrowserStore.setGlobalItem(this.props.hash, state);
 
