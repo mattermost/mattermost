@@ -3,7 +3,6 @@
 
 var PostHeader = require('./post_header.jsx');
 var PostBody = require('./post_body.jsx');
-var PostInfo = require('./post_info.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var UserStore = require('../stores/user_store.jsx');
@@ -12,6 +11,8 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
+
+var PostInfo = require('./post_info.jsx');
 
 module.exports = React.createClass({
     displayName: "Post",
