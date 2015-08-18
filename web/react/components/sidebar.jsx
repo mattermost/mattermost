@@ -128,6 +128,7 @@ module.exports = React.createClass({
         ChannelStore.addChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
+        TeamStore.addChangeListener(this.onChange);
         SocketStore.addChangeListener(this.onSocketChange);
         $('.nav-pills__container').perfectScrollbar();
 
@@ -146,6 +147,7 @@ module.exports = React.createClass({
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
+        TeamStore.removeChangeListener(this.onChange);
         SocketStore.removeChangeListener(this.onSocketChange);
     },
     onChange: function() {
@@ -348,15 +350,16 @@ module.exports = React.createClass({
 
             // set up click handler to switch channels (or create a new channel for non-existant ones)
             var clickHandler = null;
-            var href;
+            var href = '#';
+            var teamURL = TeamStore.getCurrentTeamUrl();
             if (!channel.fake) {
                 clickHandler = function(e) {
                     e.preventDefault();
                     utils.switchChannel(channel);
                 };
-                href = '#';
-            } else {
-                href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+            }
+            if (channel.fake && teamURL){
+                href = teamURL + '/channels/' + channel.name;
             }
 
             return (
