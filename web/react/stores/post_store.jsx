@@ -19,7 +19,6 @@ var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
 var ADD_MENTION_EVENT = 'add_mention';
 
 var PostStore = assign({}, EventEmitter.prototype, {
-
     emitChange: function emitChange() {
         this.emit(CHANGE_EVENT);
     },
@@ -110,6 +109,108 @@ var PostStore = assign({}, EventEmitter.prototype, {
     getPosts: function getPosts(channelId) {
         return BrowserStore.getItem('posts_' + channelId);
     },
+    storePost: function(post) {
+        this.pStorePost(post);
+        this.emitChange();
+    },
+    pStorePost: function(post) {
+        var postList = PostStore.getPosts(post.channel_id);
+        if (!postList) {
+            return;
+        }
+
+        if (post.pending_post_id !== '') {
+            this.removePendingPost(post.channel_id, post.pending_post_id);
+        }
+
+        post.pending_post_id = '';
+
+        postList.posts[post.id] = post;
+        if (postList.order.indexOf(post.id) === -1) {
+            postList.order.unshift(post.id);
+        }
+
+        this.pStorePosts(post.channel_id, postList);
+    },
+    storePendingPost: function(post) {
+        post.state = Constants.POST_LOADING;
+
+        var postList = this.getPendingPosts(post.channel_id);
+        if (!postList) {
+            postList = {posts: {}, order: []};
+        }
+
+        postList.posts[post.pending_post_id] = post;
+        postList.order.unshift(post.pending_post_id);
+        this._storePendingPosts(post.channel_id, postList);
+        this.emitChange();
+    },
+    _storePendingPosts: function(channelId, postList) {
+        var posts = postList.posts;
+
+        // sort failed posts to the bottom
+        postList.order.sort(function postSort(a, b) {
+            if (posts[a].state === Constants.POST_LOADING && posts[b].state === Constants.POST_FAILED) {
+                return 1;
+            }
+            if (posts[a].state === Constants.POST_FAILED && posts[b].state === Constants.POST_LOADING) {
+                return -1;
+            }
+
+            if (posts[a].create_at > posts[b].create_at) {
+                return -1;
+            }
+            if (posts[a].create_at < posts[b].create_at) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        BrowserStore.setItem('pending_posts_' + channelId, postList);
+    },
+    getPendingPosts: function(channelId) {
+        return BrowserStore.getItem('pending_posts_' + channelId);
+    },
+    removePendingPost: function(channelId, pendingPostId) {
+        this._removePendingPost(channelId, pendingPostId);
+        this.emitChange();
+    },
+    _removePendingPost: function(channelId, pendingPostId) {
+        var postList = this.getPendingPosts(channelId);
+        if (!postList) {
+            return;
+        }
+
+        if (pendingPostId in postList.posts) {
+            delete postList.posts[pendingPostId];
+        }
+        var index = postList.order.indexOf(pendingPostId);
+        if (index >= 0) {
+            postList.order.splice(index, 1);
+        }
+
+        this._storePendingPosts(channelId, postList);
+    },
+    clearPendingPosts: function() {
+        BrowserStore.actionOnItemsWithPrefix('pending_posts_', function clearPending(key) {
+            BrowserStore.removeItem(key);
+        });
+    },
+    updatePendingPost: function(post) {
+        var postList = this.getPendingPosts(post.channel_id);
+        if (!postList) {
+            postList = {posts: {}, order: []};
+        }
+
+        if (postList.order.indexOf(post.pending_post_id) === -1) {
+            return;
+        }
+
+        postList.posts[post.pending_post_id] = post;
+        this._storePendingPosts(post.channel_id, postList);
+        this.emitChange();
+    },
     storeSearchResults: function storeSearchResults(results, isMentionSearch) {
         BrowserStore.setItem('search_results', results);
         BrowserStore.setItem('is_mention_search', Boolean(isMentionSearch));
@@ -179,6 +280,10 @@ PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     switch (action.type) {
         case ActionTypes.RECIEVED_POSTS:
             PostStore.pStorePosts(action.id, action.post_list);
+            PostStore.emitChange();
+            break;
+        case ActionTypes.RECIEVED_POST:
+            PostStore.pStorePost(action.post);
             PostStore.emitChange();
             break;
         case ActionTypes.RECIEVED_SEARCH:
