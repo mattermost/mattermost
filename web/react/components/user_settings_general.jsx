@@ -163,7 +163,7 @@ module.exports = React.createClass({
         }
     },
     updateSection: function(section) {
-        this.setState({clientError: ''});
+        this.setState(assign({}, this.getInitialState(), {clientError: ''}));
         this.submitActive = false;
         this.props.updateSection(section);
     },

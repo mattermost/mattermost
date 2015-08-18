@@ -100,6 +100,10 @@ module.exports = React.createClass({
 
         this.props.updateTab('general');
     },
+    updateSection: function(section) {
+        this.setState(this.getInitialState());
+        this.props.updateSection(section);
+    },
     componentDidMount: function() {
         UserStore.addChangeListener(this._onChange);
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
@@ -209,7 +213,7 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={server_error}
-                    updateSection={function(e){self.props.updateSection("");e.preventDefault();}}
+                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
                 />
             );
         } else {
@@ -226,7 +230,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title="Send desktop notifications"
                     describe={describe}
-                    updateSection={function(){self.props.updateSection("desktop");}}
+                    updateSection={function(){self.updateSection("desktop");}}
                 />
             );
         }
@@ -257,7 +261,7 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={server_error}
-                    updateSection={function(e){self.props.updateSection("");e.preventDefault();}}
+                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
                 />
             );
         } else {
@@ -274,7 +278,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title="Desktop notification sounds"
                     describe={describe}
-                    updateSection={function(){self.props.updateSection("sound");}}
+                    updateSection={function(){self.updateSection("sound");}}
                     disableOpen = {!this.state.soundNeeded}
                 />
             );
@@ -307,7 +311,7 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={server_error}
-                    updateSection={function(e){self.props.updateSection("");e.preventDefault();}}
+                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
                 />
             );
         } else {
@@ -322,7 +326,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title="Email notifications"
                     describe={describe}
-                    updateSection={function(){self.props.updateSection("email");}}
+                    updateSection={function(){self.updateSection("email");}}
                 />
             );
         }
@@ -400,7 +404,7 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={server_error}
-                    updateSection={function(e){self.props.updateSection("");e.preventDefault();}}
+                    updateSection={function(e){self.updateSection("");e.preventDefault();}}
                 />
             );
         } else {
@@ -427,7 +431,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title="Words that trigger mentions"
                     describe={describe}
-                    updateSection={function(){self.props.updateSection("keys");}}
+                    updateSection={function(){self.updateSection("keys");}}
                 />
             );
         }
