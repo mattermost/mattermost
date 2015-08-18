@@ -192,6 +192,10 @@ module.exports.displayDateTime = function(ticks) {
 
 }
 
+module.exports.displayCommentDateTime = function(ticks) {
+    return module.exports.displayDate(ticks) + ' ' + module.exports.displayTime(ticks);
+}
+
 // returns Unix timestamp in milliseconds
 module.exports.getTimestamp = function() {
     return Date.now();

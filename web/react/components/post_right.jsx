@@ -120,7 +120,7 @@ RootPost = React.createClass({
                 <div className='post__content'>
                     <ul className='post-header'>
                         <li className='post-header-col'><strong><UserProfile userId={post.user_id} /></strong></li>
-                        <li className='post-header-col'><time className='post-right-root-time'>{utils.displayDate(post.create_at) + ' ' + utils.displayTime(post.create_at)}</time></li>
+                        <li className='post-header-col'><time className='post-right-root-time'>{utils.displayCommentDateTime(post.create_at)}</time></li>
                         <li className='post-header-col post-header__reply'>
                             <div className='dropdown'>
                                 {ownerOptions}
@@ -229,7 +229,7 @@ CommentPost = React.createClass({
                 <div className='post__content'>
                     <ul className='post-header'>
                         <li className='post-header-col'><strong><UserProfile userId={post.user_id} /></strong></li>
-                        <li className='post-header-col'><time className='post-right-comment-time'>{utils.displayDateTime(post.create_at)}</time></li>
+                        <li className='post-header-col'><time className='post-right-comment-time'>{utils.displayCommentDateTime(post.create_at)}</time></li>
                         <li className='post-header-col post-header__reply'>
                             {ownerOptions}
                         </li>
