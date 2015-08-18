@@ -10,13 +10,16 @@
     display: inline-block;
     width: 120px;
     height: 100px;
-    margin: 7px 10px 0 0;
+    margin: 7px 0 0 5px;
     vertical-align: top;
     position: relative;
     border: 1px solid #DDD;
     @include clearfix;
     &:hover .remove-preview:after {
       @include opacity(1);
+    }
+    &:first-child {
+      margin-left: 0;
     }
     .spinner {
       position:absolute;
@@ -58,6 +61,8 @@
       cursor: pointer;
       z-index: 5;
       opacity: inherit;
+        text-shadow: 0 0px 3px #444;
+        text-shadow: 0 0px 3px rgba(0, 0, 0, 0.7);
     }
   }
 }

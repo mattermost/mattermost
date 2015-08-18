@@ -855,6 +855,20 @@ module.exports.changeColor =function(col, amt) {
     return (usePound?"#":"") + String("000000" + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
 };
 
+module.exports.changeOpacity = function(oldColor, opacity) {
+
+    var col = oldColor;
+    if (col[0] === '#') {
+        col = col.slice(1);
+    }
+
+    var r = parseInt(col.substring(0, 2), 16);
+    var g = parseInt(col.substring(2, 4), 16);
+    var b = parseInt(col.substring(4, 6), 16);
+
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + opacity + ')';
+};
+
 module.exports.getFullName = function(user) {
     if (user.first_name && user.last_name) {
         return user.first_name + " " + user.last_name;

@@ -363,8 +363,8 @@ module.exports = React.createClass({
                 <li key={channel.name} ref={channel.name} className={linkClass}>
                     <a className={'sidebar-channel ' + titleClass} href={href} onClick={clickHandler}>
                         {status}
-                        {badge}
                         {channel.display_name}
+                        {badge}
                     </a>
                 </li>
             );

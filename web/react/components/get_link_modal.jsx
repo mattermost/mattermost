@@ -34,7 +34,7 @@ module.exports = React.createClass({
         var copyLinkConfirm = null;
 
         if (this.state.copiedLink) {
-            copyLinkConfirm = <p className='copy-link-confirm'>Link copied to clipboard.</p>;
+            copyLinkConfirm = <p className='alert alert-success copy-link-confirm'><i className="fa fa-check"></i> Link copied to clipboard.</p>;
         }
 
         if (currentUser != null) {
