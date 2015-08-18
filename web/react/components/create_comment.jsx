@@ -122,16 +122,20 @@ module.exports = React.createClass({
         this.setState({uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
     },
     handleUploadError: function(err, clientId) {
-        var draft = PostStore.getCommentDraft(this.props.rootId);
+        if (clientId !== -1) {
+            var draft = PostStore.getCommentDraft(this.props.rootId);
 
-        var index = draft['uploadsInProgress'].indexOf(clientId);
-        if (index !== -1) {
-            draft['uploadsInProgress'].splice(index, 1);
+            var index = draft['uploadsInProgress'].indexOf(clientId);
+            if (index !== -1) {
+                draft['uploadsInProgress'].splice(index, 1);
+            }
+
+            PostStore.storeCommentDraft(this.props.rootId, draft);
+
+            this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
+        } else {
+            this.setState({serverError: err});
         }
-
-        PostStore.storeCommentDraft(this.props.rootId, draft);
-
-        this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
     },
     clearPreviews: function() {
         this.setState({previews: []});
@@ -222,7 +226,9 @@ module.exports = React.createClass({
                             getFileCount={this.getFileCount}
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError} />
+                            onUploadError={this.handleUploadError}
+                            postType='comment'
+                            channelId={this.props.channelId} />
                     </div>
                     <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId}  />
                     <div className={postFooterClassName}>

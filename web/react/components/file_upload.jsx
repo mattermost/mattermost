@@ -12,7 +12,9 @@ module.exports = React.createClass({
         onUploadError: React.PropTypes.func,
         getFileCount: React.PropTypes.func,
         onFileUpload: React.PropTypes.func,
-        onUploadStart: React.PropTypes.func
+        onUploadStart: React.PropTypes.func,
+        channelId: React.PropTypes.string,
+        postType: React.PropTypes.string
     },
     getInitialState: function() {
         return {requests: {}};
@@ -21,7 +23,7 @@ module.exports = React.createClass({
         var element = $(this.refs.fileInput.getDOMNode());
         var files = element.prop('files');
 
-        var channelId = ChannelStore.getCurrentId();
+        var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         this.props.onUploadError(null);
 
@@ -61,8 +63,8 @@ module.exports = React.createClass({
                     this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                     var requests = this.state.requests;
-                    for (var i = 0; i < parsedData.client_ids.length; i++) {
-                        delete requests[parsedData.client_ids[i]];
+                    for (var j = 0; j < parsedData.client_ids.length; j++) {
+                        delete requests[parsedData.client_ids[j]];
                     }
                     this.setState({requests: requests});
                 }.bind(this),
@@ -87,9 +89,93 @@ module.exports = React.createClass({
             }
         } catch(e) {}
     },
+    handleDrop: function(e) {
+        this.props.onUploadError(null);
+
+        var files = e.originalEvent.dataTransfer.files;
+        var channelId = this.props.channelId || ChannelStore.getCurrentId();
+
+        if (typeof files !== 'string' && files.length) {
+            var numFiles = files.length;
+
+            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId), numFiles);
+
+            if (numFiles > numToUpload) {
+                this.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
+            }
+
+            for (var i = 0; i < files.length && i < numToUpload; i++) {
+                if (files[i].size > Constants.MAX_FILE_SIZE) {
+                    this.props.onUploadError('Files must be no more than ' + Constants.MAX_FILE_SIZE / 1000000 + ' MB');
+                    continue;
+                }
+
+                // generate a unique id that can be used by other components to refer back to this file upload
+                var clientId = utils.generateId();
+
+                // Prepare data to be uploaded.
+                var formData = new FormData();
+                formData.append('channel_id', channelId);
+                formData.append('files', files[i], files[i].name);
+                formData.append('client_ids', clientId);
+
+                var request = client.uploadFile(formData,
+                    function(data) {
+                        var parsedData = $.parseJSON(data);
+                        this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
+
+                        var requests = this.state.requests;
+                        for (var j = 0; j < parsedData.client_ids.length; j++) {
+                            delete requests[parsedData.client_ids[j]];
+                        }
+                        this.setState({requests: requests});
+                    }.bind(this),
+                    function(err) {
+                        this.props.onUploadError(err, clientId);
+                    }.bind(this)
+                );
+
+                var requests = this.state.requests;
+                requests[clientId] = request;
+                this.setState({requests: requests});
+
+                this.props.onUploadStart([clientId], channelId);
+            }
+        } else {
+            this.props.onUploadError('Invalid file upload', -1);
+        }
+    },
     componentDidMount: function() {
         var inputDiv = this.refs.input.getDOMNode();
         var self = this;
+
+        if (this.props.postType === 'post') {
+            $('.row.main').dragster({
+                enter: function() {
+                    $('.center-file-overlay').removeClass('hidden');
+                },
+                leave: function() {
+                    $('.center-file-overlay').addClass('hidden');
+                },
+                drop: function(dragsterEvent, e) {
+                    $('.center-file-overlay').addClass('hidden');
+                    self.handleDrop(e);
+                }
+            });
+        } else if (this.props.postType === 'comment') {
+            $('.post-right__container').dragster({
+                enter: function() {
+                    $('.right-file-overlay').removeClass('hidden');
+                },
+                leave: function() {
+                    $('.right-file-overlay').addClass('hidden');
+                },
+                drop: function(dragsterEvent, e) {
+                    $('.right-file-overlay').addClass('hidden');
+                    self.handleDrop(e);
+                }
+            });
+        }
 
         document.addEventListener('paste', function(e) {
             var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
@@ -133,14 +219,13 @@ module.exports = React.createClass({
                             continue;
                         }
 
-                        var channelId = ChannelStore.getCurrentId();
+                        var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
                         // generate a unique id that can be used by other components to refer back to this file upload
                         var clientId = utils.generateId();
 
                         var formData = new FormData();
                         formData.append('channel_id', channelId);
-
                         var d = new Date();
                         var hour;
                         if (d.getHours() < 10) {
@@ -165,8 +250,8 @@ module.exports = React.createClass({
                                 self.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
                                 var requests = self.state.requests;
-                                for (var i = 0; i < parsedData.client_ids.length; i++) {
-                                    delete requests[parsedData.client_ids[i]];
+                                for (var j = 0; j < parsedData.client_ids.length; j++) {
+                                    delete requests[parsedData.client_ids[j]];
                                 }
                                 self.setState({requests: requests});
                             },

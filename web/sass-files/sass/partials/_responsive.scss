@@ -189,6 +189,9 @@
 }
 
 @media screen and (max-width: 960px) {
+    .center-file-overlay {
+        font-size: 1.5em;
+    }
     .post {
         .post-header .post-header-col.post-header__reply {
             .comment-icon__container__hide {
@@ -240,6 +243,9 @@
     }
 }
 @media screen and (max-width: 768px) {
+    .center-file-overlay {
+        font-size: 1.3em;
+    }
     .date-separator, .new-separator {
         &.hovered--after {
             &:before {
