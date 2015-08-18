@@ -396,7 +396,7 @@ function getMe() {
     }
 
     callTracker.getMe = utils.getTimestamp();
-    client.getMe(
+    client.getMeSynchronous(
         function(data, textStatus, xhr) {
             callTracker.getMe = 0;
 

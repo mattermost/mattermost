@@ -5,6 +5,7 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
+var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
     handleSubmit: function(e) {
@@ -151,19 +152,34 @@ module.exports = React.createClass({
         // add options to log in using another service
         var authServices = JSON.parse(this.props.authServices);
 
-        var signupMessage = null;
-        if (authServices.indexOf('gitlab') >= 0) {
-            signupMessage = (
-                <div>
+        var signupMessage = [];
+        if (authServices.indexOf(Constants.GITLAB_SERVICE) >= 0) {
+            signupMessage.push(
                     <a className='btn btn-custom-login gitlab' href={'/' + this.props.teamName + '/signup/gitlab' + window.location.search}>
                         <span className='icon' />
                         <span>with GitLab</span>
                     </a>
+           );
+        }
+
+        if (authServices.indexOf(Constants.GOOGLE_SERVICE) >= 0) {
+            signupMessage.push(
+                    <a className='btn btn-custom-login google' href={'/' + this.props.teamName + '/signup/google' + window.location.search}>
+                        <span className='icon' />
+                        <span>with Google</span>
+                    </a>
+           );
+        }
+
+        if (signupMessage.length > 0) {
+            signupMessage = (
+                <div>
+                    {signupMessage}
                     <div className='or__container'>
                         <span>or</span>
                     </div>
-               </div>
-           );
+                </div>
+            );
         }
 
         var termsDisclaimer = null;

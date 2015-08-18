@@ -37,6 +37,7 @@ type SSOSetting struct {
 	Allow           bool
 	Secret          string
 	Id              string
+	Scope           string
 	AuthEndpoint    string
 	TokenEndpoint   string
 	UserApiEndpoint string

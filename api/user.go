@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"code.google.com/p/freetype-go/freetype"
 	l4g "code.google.com/p/log4go"
+	b64 "encoding/base64"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
@@ -1304,7 +1305,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri string) {
+func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri, loginHint string) {
 
 	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
 		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
@@ -1314,20 +1315,48 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 
 	clientId := utils.Cfg.SSOSettings[service].Id
 	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
-	state := model.HashPassword(clientId)
+	scope := utils.Cfg.SSOSettings[service].Scope
 
-	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri+"?team="+teamName) + "&state=" + url.QueryEscape(state)
+	stateProps := map[string]string{"team": teamName, "hash": model.HashPassword(clientId)}
+	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+
+	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
+
+	if len(scope) > 0 {
+		authUrl += "&scope=" + utils.UrlEncode(scope)
+	}
+
+	if len(loginHint) > 0 {
+		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
+	}
+
 	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 
-func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.AppError) {
+func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, *model.AppError) {
 	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
 	}
 
-	if !model.ComparePassword(state, utils.Cfg.SSOSettings[service].Id) {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
+	stateStr := ""
+	if b, err := b64.StdEncoding.DecodeString(state); err != nil {
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", err.Error())
+	} else {
+		stateStr = string(b)
 	}
+
+	stateProps := model.MapFromJson(strings.NewReader(stateStr))
+
+	if !model.ComparePassword(stateProps["hash"], utils.Cfg.SSOSettings[service].Id) {
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
+	}
+
+	teamName := stateProps["team"]
+	if len(teamName) == 0 {
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state; missing team name", "")
+	}
+
+	tchan := Srv.Store.Team().GetByName(teamName)
 
 	p := url.Values{}
 	p.Set("client_id", utils.Cfg.SSOSettings[service].Id)
@@ -1344,17 +1373,17 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	var ar *model.AccessResponse
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
 	}
 
-	if ar.TokenType != model.ACCESS_TOKEN_TYPE {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
+	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
 	}
 
 	p = url.Values{}
@@ -1366,9 +1395,13 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
 	} else {
-		return resp.Body, nil
+		if result := <-tchan; result.Err != nil {
+			return nil, nil, result.Err
+		} else {
+			return resp.Body, result.Data.(*model.Team), nil
+		}
 	}
 
 }

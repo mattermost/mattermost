@@ -33,7 +33,10 @@ module.exports = React.createClass({
         client.createUser(user, "", "",
             function(data) {
                 client.track('signup', 'signup_user_oauth_02');
-                window.location.href = '/' + this.props.teamName + '/login/'+user.auth_service;
+                UserStore.setCurrentUser(data);
+                UserStore.setLastEmail(data.email);
+
+                window.location.href = '/' + this.props.teamName + '/login/' + user.auth_service + '?login_hint=' + user.email;
             }.bind(this),
             function(err) {
                 this.state.server_error = err.message;

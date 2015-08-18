@@ -4,6 +4,7 @@
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
+var client = require('../utils/client.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -72,12 +73,23 @@ var UserStore = assign({}, EventEmitter.prototype, {
             BrowserStore.setGlobalItem('current_user_id', id);
         }
     },
-    getCurrentId: function() {
+    getCurrentId: function(skipFetch) {
         var currentId = this.gCurrentId;
 
         if (currentId == null) {
             currentId = BrowserStore.getGlobalItem('current_user_id');
             this.gCurrentId = currentId;
+        }
+
+        // this is a special case to force fetch the
+        // current user if it's missing
+        // it's synchronous to block rendering
+        if (currentId == null && !skipFetch) {
+            var me = client.getMeSynchronous();
+            if (me != null) {
+                this.setCurrentUser(me);
+                currentId = me.id;
+            }
         }
 
         return currentId;
