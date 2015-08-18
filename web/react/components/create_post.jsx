@@ -127,7 +127,7 @@ module.exports = React.createClass({
 
         var t = Date.now();
         if ((t - this.lastTime) > 5000) {
-            SocketStore.sendMessage({channelId: this.state.channelId, action: 'typing', props: {'parent_id': ''}, state: {}});
+            SocketStore.sendMessage({channel_id: this.state.channelId, action: 'typing', props: {'parent_id': ''}, state: {}});
             this.lastTime = t;
         }
     },
