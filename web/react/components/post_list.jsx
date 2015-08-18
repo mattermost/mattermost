@@ -198,12 +198,6 @@ module.exports = React.createClass({
             PostStore.storePost(post);
         } else if (msg.action === 'post_edited') {
             if (this.state.channel.id === msg.channel_id) {
-                this.setState({postList: postList});
-            }
-
-            PostStore.storePosts(post.channel_id, postList);
-        } else if (msg.action === 'post_edited') {
-            if (this.state.channel.id === msg.channel_id) {
                 postList = this.state.postList;
                 if (!(msg.props.post_id in postList.posts)) {
                     return;
