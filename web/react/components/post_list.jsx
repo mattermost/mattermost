@@ -42,6 +42,9 @@ module.exports = React.createClass({
             utils.changeCss('.modal .modal-header', 'background: ' + user.props.theme+';');
             utils.changeCss('.mention', 'background: ' + user.props.theme+';');
             utils.changeCss('.mention-link', 'color: ' + user.props.theme+';');
+            utils.changeCss('.mention-link', 'color: ' + user.props.theme+';');
+            utils.changeCss('.mention-link', 'color: ' + user.props.theme+';');
+            utils.changeCss('.search-item-container:hover', 'background: ' + utils.changeOpacity(user.props.theme, 0.05)  +';');
             utils.changeCss('@media(max-width: 768px){.search-bar__container', 'background: ' + user.props.theme+';}');
         }
         if (user.props.theme != '#000000' && user.props.theme != '#585858') {

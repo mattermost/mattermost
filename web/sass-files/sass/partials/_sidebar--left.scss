@@ -27,7 +27,9 @@
     .status {
         position:relative;
         top:1px;
-        margin-right: 3px;
+        margin-right: 6px;
+        width: 12px;
+        display: inline-block;
         .online--icon {
             fill: #7DBE00;
         }
@@ -80,6 +82,9 @@
                 line-height: 1.5;
                 border-radius: 0;
                 color: #999;
+                &.nav-more {
+                    text-decoration: underline;
+                }
                 &.unread-title {
                     color: #333;
                     font-weight: 600;
