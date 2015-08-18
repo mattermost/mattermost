@@ -124,8 +124,10 @@ module.exports.notifyMe = function(title, body, channel) {
 }
 
 module.exports.ding = function() {
-  var audio = new Audio('/static/images/ding.mp3');
-  audio.play();
+    if (!module.exports.isBrowserFirefox()) {
+        var audio = new Audio('/static/images/ding.mp3');
+        audio.play();
+    }
 }
 
 module.exports.getUrlParameter = function(sParam) {
@@ -945,3 +947,7 @@ module.exports.generateId = function() {
 
     return id;
 };
+
+module.exports.isBrowserFirefox = function() {
+    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+}

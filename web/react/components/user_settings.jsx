@@ -13,6 +13,7 @@ var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
+    var soundNeeded = !utils.isBrowserFirefox();
     var sound = (!user.notify_props || user.notify_props.desktop_sound == undefined) ? "true" : user.notify_props.desktop_sound;
     var desktop = (!user.notify_props || user.notify_props.desktop == undefined) ? "all" : user.notify_props.desktop;
     var email = (!user.notify_props || user.notify_props.email == undefined) ? "true" : user.notify_props.email;
@@ -58,7 +59,7 @@ function getNotificationsStateFromStores() {
         }
     }
 
-    return { notify_level: desktop, enable_email: email, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key, all_key: all_key, channel_key: channel_key };
+    return { notify_level: desktop, enable_email: email, soundNeeded: soundNeeded, enable_sound: sound, username_key: username_key, mention_key: mention_key, custom_keys: custom_keys, custom_keys_checked: custom_keys.length > 0, first_name_key: first_name_key, all_key: all_key, channel_key: channel_key };
 }
 
 
@@ -235,7 +236,7 @@ var NotificationsTab = React.createClass({
         }
 
         var soundSection;
-        if (this.props.activeSection === 'sound') {
+        if (this.props.activeSection === 'sound' && this.state.soundNeeded) {
             var soundActive = ["",""];
             if (this.state.enable_sound === "false") {
                 soundActive[1] = "active";
@@ -265,7 +266,9 @@ var NotificationsTab = React.createClass({
             );
         } else {
             var describe = "";
-            if (this.state.enable_sound === "false") {
+            if (!this.state.soundNeeded) {
+                describe = "Please configure notification sounds in your browser settings"
+            } else if (this.state.enable_sound === "false") {
                 describe = "Off";
             } else {
                 describe = "On";
@@ -276,6 +279,7 @@ var NotificationsTab = React.createClass({
                     title="Desktop notification sounds"
                     describe={describe}
                     updateSection={function(){self.props.updateSection("sound");}}
+                    disableOpen = {!this.state.soundNeeded}
                 />
             );
         }
