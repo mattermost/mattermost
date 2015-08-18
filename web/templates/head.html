@@ -56,11 +56,11 @@
 
     <script>
         if (config.LogglyWriteKey != null && config.LogglyWriteKey !== "") {
-            var _LTracker = _LTracker || [];
-            window._LTracker = _LTracker;
-            _LTracker.push({'logglyKey': config.LogglyWriteKey, 'sendConsoleErrors' : config.LogglyConsoleErrors });
+            var LTracker = LTracker || [];
+            window.LTracker = LTracker;
+            LTracker.push({'logglyKey': config.LogglyWriteKey, 'sendConsoleErrors' : config.LogglyConsoleErrors });
         } else {
-            window._LTracker = [];
+            window.LTracker = [];
             console.warn("config.js missing LogglyWriteKey, Loggly analytics is not reporting");
         }
     </script>

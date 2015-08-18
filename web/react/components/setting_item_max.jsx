@@ -3,7 +3,7 @@
 
 module.exports = React.createClass({
     render: function() {
-        var client_error = this.props.client_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.client_error }</label></div> : null;
+        var clientError = this.props.clientError ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.clientError }</label></div> : null;
         var server_error = this.props.server_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.server_error }</label></div> : null;
 
         var inputs = this.props.inputs;
@@ -19,7 +19,7 @@ module.exports = React.createClass({
                         <li className="setting-list-item">
                             <hr />
                             { server_error }
-                            { client_error }
+                            { clientError }
                             { this.props.submit ? <a className="btn btn-sm btn-primary" onClick={this.props.submit}>Submit</a> : "" }
                             <a className="btn btn-sm theme" href="#" onClick={this.props.updateSection}>Cancel</a>
                         </li>
