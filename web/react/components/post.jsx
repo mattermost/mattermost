@@ -11,12 +11,6 @@ var ActionTypes = Constants.ActionTypes;
 
 module.exports = React.createClass({
     displayName: "Post",
-    componentDidMount: function() {
-        $('.modal').on('show.bs.modal', function () {
-            $('.modal-body').css('overflow-y', 'auto');
-            $('.modal-body').css('max-height', $(window).height() * 0.7);
-        });
-    },
     handleCommentClick: function(e) {
         e.preventDefault();
 
