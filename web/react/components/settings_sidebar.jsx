@@ -15,7 +15,7 @@ module.exports = React.createClass({
             <div className="">
                 <ul className="nav nav-pills nav-stacked">
                     {this.props.tabs.map(function(tab) {
-                        return <li key={tab.name+'_li'} className={self.props.activeTab == tab.name ? 'active' : ''}><a key={tab.name + '_a'} href="#" onClick={function(){self.updateTab(tab.name);}}><i key={tab.name+'_i'} className={tab.icon}></i>{tab.ui_name}</a></li>
+                        return <li key={tab.name+'_li'} className={self.props.activeTab == tab.name ? 'active' : ''}><a key={tab.name + '_a'} href="#" onClick={function(){self.updateTab(tab.name);}}><i key={tab.name+'_i'} className={tab.icon}></i>{tab.uiName}</a></li>
                     })}
                 </ul>
             </div>
