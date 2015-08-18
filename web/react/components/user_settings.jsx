@@ -10,20 +10,26 @@ var AppearanceTab = require('./user_settings_appearance.jsx');
 
 module.exports = React.createClass({
     displayName: 'UserSettings',
+    propTypes: {
+        activeTab: React.PropTypes.string,
+        activeSection: React.PropTypes.string,
+        updateSection: React.PropTypes.func,
+        updateTab: React.PropTypes.func
+    },
     componentDidMount: function() {
-        UserStore.addChangeListener(this._onChange);
+        UserStore.addChangeListener(this.onListenerChange);
     },
     componentWillUnmount: function() {
-        UserStore.removeChangeListener(this._onChange);
+        UserStore.removeChangeListener(this.onListenerChange);
     },
-    _onChange: function () {
+    onListenerChange: function () {
         var user = UserStore.getCurrentUser();
         if (!utils.areStatesEqual(this.state.user, user)) {
-            this.setState({ user: user });
+            this.setState({user: user});
         }
     },
     getInitialState: function() {
-        return { user: UserStore.getCurrentUser() };
+        return {user: UserStore.getCurrentUser()};
     },
     render: function() {
         if (this.props.activeTab === 'general') {
