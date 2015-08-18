@@ -4,7 +4,7 @@
 var client = require('../utils/client.jsx');
 
 module.exports = React.createClass({
-    displayName: 'AllowedDomainsPage',
+    displayName: 'TeamSignupAllowedDomainsPage',
     propTypes: {
         state: React.PropTypes.object,
         updateParent: React.PropTypes.func

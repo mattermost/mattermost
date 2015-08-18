@@ -4,7 +4,7 @@
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
-    displayName: 'EmailItem',
+    displayName: 'TeamSignupEmailItem',
     propTypes: {
         focus: React.PropTypes.bool,
         email: React.PropTypes.string

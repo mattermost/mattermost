@@ -5,7 +5,7 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 
 module.exports = React.createClass({
-    displayName: 'TeamDisplayNamePage',
+    displayName: 'TeamSignupDisplayNamePage',
     propTypes: {
         state: React.PropTypes.object,
         updateParent: React.PropTypes.func

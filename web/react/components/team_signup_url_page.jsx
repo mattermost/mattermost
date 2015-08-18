@@ -6,7 +6,7 @@ var client = require('../utils/client.jsx');
 var constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
-    displayName: 'TeamURLPage',
+    displayName: 'TeamSignupURLPage',
     propTypes: {
         state: React.PropTypes.object,
         updateParent: React.PropTypes.func

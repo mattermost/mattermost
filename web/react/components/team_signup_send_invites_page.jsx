@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var EmailItem = require('./email_item.jsx');
+var EmailItem = require('./team_signup_email_item.jsx');
 var utils = require('../utils/utils.jsx');
 var ConfigStore = require('../stores/config_store.jsx');
 var client = require('../utils/client.jsx');
 
 module.exports = React.createClass({
-    displayName: 'SendInivtesPage',
+    displayName: 'TeamSignupSendInivtesPage',
     propTypes: {
         state: React.PropTypes.object,
         updateParent: React.PropTypes.func

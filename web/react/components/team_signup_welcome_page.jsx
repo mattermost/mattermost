@@ -6,7 +6,7 @@ var client = require('../utils/client.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 
 module.exports = React.createClass({
-    displayName: 'WelcomePage',
+    displayName: 'TeamSignupWelcomePage',
     propTypes: {
         state: React.PropTypes.object,
         updateParent: React.PropTypes.func

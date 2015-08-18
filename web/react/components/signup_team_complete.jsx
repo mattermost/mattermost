@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var WelcomePage = require('./welcome_page.jsx');
-var TeamDisplayNamePage = require('./team_display_name_page.jsx');
-var TeamURLPage = require('./team_url_page.jsx');
-var AllowedDomainsPage = require('./allowed_domains_page.jsx');
-var SendInivtesPage = require('./send_invites_page.jsx');
-var UsernamePage = require('./username_page.jsx');
-var PasswordPage = require('./password_page.jsx');
+var WelcomePage = require('./team_signup_welcome_page.jsx');
+var TeamDisplayNamePage = require('./team_signup_display_name_page.jsx');
+var TeamURLPage = require('./team_signup_url_page.jsx');
+var AllowedDomainsPage = require('./team_signup_allowed_domains_page.jsx');
+var SendInivtesPage = require('./team_signup_send_invites_page.jsx');
+var UsernamePage = require('./team_signup_username_page.jsx');
+var PasswordPage = require('./team_signup_password_page.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 
 module.exports = React.createClass({
