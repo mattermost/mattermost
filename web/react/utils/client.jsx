@@ -1,4 +1,3 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 var BrowserStore = require('../stores/browser_store.jsx');
@@ -859,7 +858,7 @@ module.exports.uploadProfileImage = function(imageData, success, error) {
 
 module.exports.importSlack = function(fileData, success, error) {
     $.ajax({
-		url: '/api/v1/teams/import_team',
+        url: '/api/v1/teams/import_team',
         type: 'POST',
         data: fileData,
         cache: false,

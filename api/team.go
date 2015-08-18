@@ -494,8 +494,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") {
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") || !c.IsTeamAdmin(c.Session.UserId) {
 		c.Err = model.NewAppError("importTeam", "Only a team admin can import data.", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return

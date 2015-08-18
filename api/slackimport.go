@@ -24,7 +24,7 @@ type SlackChannel struct {
 
 type SlackUser struct {
 	Id       string            `json:"id"`
-	UserName string            `json:"name"`
+	Username string            `json:"name"`
 	Profile  map[string]string `json:"profile"`
 }
 
@@ -85,7 +85,6 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	log.WriteString("\n Users Created\n")
 	log.WriteString("===============\n\n")
 
-	// Add users
 	addedUsers := make(map[string]*model.User)
 	for _, sUser := range slackusers {
 		firstName := ""
@@ -101,7 +100,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 
 		newUser := model.User{
 			TeamId:    teamId,
-			Username:  sUser.UserName,
+			Username:  sUser.Username,
 			FirstName: firstName,
 			LastName:  lastName,
 			Email:     sUser.Profile["email"],
@@ -112,7 +111,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			addedUsers[sUser.Id] = mUser
 			log.WriteString("Email, Password: " + newUser.Email + ", " + password + "\n")
 		} else {
-			log.WriteString("Unable to import user: " + sUser.UserName)
+			log.WriteString("Unable to import user: " + sUser.Username)
 		}
 	}
 
@@ -167,7 +166,6 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 	log.WriteString("\n Channels Added \n")
 	log.WriteString("=================\n\n")
 
-	// Add channels
 	addedChannels := make(map[string]*model.Channel)
 	for _, sChannel := range slackchannels {
 		newChannel := model.Channel{
