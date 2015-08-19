@@ -107,7 +107,7 @@ AWS Elastic Beanstalk Setup (Docker)
 	9. The options on the additional resources page may be left at default unless you wish to change them. Press Next.
 	10. On the configuration details place. Select an instance type of t2.small or larger.
 	11. You can set the configuration details as you please but they may be left at their defaults. When you are done press next.
-	12. Environment tags my be left blank. Press next.
+	12. Environment tags may be left blank. Press next.
 	13. You will be asked to review your information. Press Launch.
 
 4. Try it out!
