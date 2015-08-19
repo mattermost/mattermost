@@ -23,12 +23,31 @@ function getStateFromStores() {
     }
 
     var postList = PostStore.getCurrentPosts();
+    var deletedPosts = PostStore.getUnseenDeletedPosts(channel.id);
+
+    if (deletedPosts && Object.keys(deletedPosts).length > 0) {
+        for (var pid in deletedPosts) {
+            postList.posts[pid] = deletedPosts[pid];
+            postList.order.unshift(pid);
+        }
+
+        postList.order.sort(function postSort(a, b) {
+            if (postList.posts[a].create_at > postList.posts[b].create_at) {
+                return -1;
+            }
+            if (postList.posts[a].create_at < postList.posts[b].create_at) {
+                return 1;
+            }
+            return 0;
+        });
+    }
+
     var pendingPostList = PostStore.getPendingPosts(channel.id);
 
     if (pendingPostList) {
         postList.order = pendingPostList.order.concat(postList.order);
-        for (var pid in pendingPostList.posts) {
-            postList.posts[pid] = pendingPostList.posts[pid];
+        for (var ppid in pendingPostList.posts) {
+            postList.posts[ppid] = pendingPostList.posts[ppid];
         }
     }
 
@@ -88,7 +107,6 @@ module.exports = React.createClass({
             $('.modal-body').css('max-height', $(window).height() * 0.7);
         });
 
-        // Timeout exists for the DOM to fully render before making changes
         var self = this;
         $(window).resize(function resize() {
             $(postHolder).perfectScrollbar('update');
@@ -185,6 +203,7 @@ module.exports = React.createClass({
                 }
             }
             if (this.state.channel.id !== newState.channel.id) {
+                PostStore.clearUnseenDeletedPosts(this.state.channel.id);
                 this.scrolledToNew = false;
             }
             this.setState(newState);
@@ -220,23 +239,19 @@ module.exports = React.createClass({
                 activeRootPostId = activeRoot.id;
             }
 
-            if (this.state.channel.id === msg.channel_id) {
-                postList = this.state.postList;
-                if (!(msg.props.post_id in this.state.postList.posts)) {
-                    return;
-                }
+            post = JSON.parse(msg.props.post);
+            postList = this.state.postList;
 
-                delete postList.posts[msg.props.post_id];
-                var index = postList.order.indexOf(msg.props.post_id);
+            PostStore.storeUnseenDeletedPost(post);
+
+            if (postList.posts[post.id]) {
+                delete postList.posts[post.id];
+                var index = postList.order.indexOf(post.id);
                 if (index > -1) {
                     postList.order.splice(index, 1);
                 }
 
-                this.setState({postList: postList});
-
                 PostStore.storePosts(msg.channel_id, postList);
-            } else {
-                AsyncClient.getPosts(true, msg.channel_id);
             }
 
             if (activeRootPostId === msg.props.post_id && UserStore.getCurrentId() !== msg.user_id) {

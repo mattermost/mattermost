@@ -63,8 +63,9 @@ module.exports = {
   GOOGLE_SERVICE: 'google',
   POST_CHUNK_SIZE: 60,
   MAX_POST_CHUNKS: 3,
-  POST_LOADING: "loading",
-  POST_FAILED: "failed",
+  POST_LOADING: 'loading',
+  POST_FAILED: 'failed',
+  POST_DELETED: 'deleted',
   RESERVED_TEAM_NAMES: [
     "www",
     "web",
