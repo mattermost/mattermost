@@ -248,9 +248,9 @@ module.exports = React.createClass({
         if (channel) {
             if (channel.type === 'D') {
                 var teammateUsername = utils.getDirectTeammate(channel.id).username;
-                document.title = teammateUsername + ' ' + document.title.substring(document.title.lastIndexOf('-'));
+                utils.updateTabTitle(teammateUsername);
             } else {
-                document.title = channel.display_name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
+                utils.updateTabTitle(channel.display_name);
             }
         }
     },
