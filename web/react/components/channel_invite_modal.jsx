@@ -75,6 +75,7 @@ export default class ChannelInviteModal extends React.Component {
     }
     onShow() {
         this.isShown = true;
+        this.onListenerChange();
     }
     onHide() {
         this.isShown = false;
