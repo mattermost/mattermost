@@ -318,7 +318,7 @@ module.exports = React.createClass({
         var lastViewed = Number.MAX_VALUE;
 
         if (ChannelStore.getCurrentMember() != null) {
-            lastViewed = ChannelStore.getCurrentMember().lastViewed_at;
+            lastViewed = ChannelStore.getCurrentMember().last_viewed_at;
         }
 
         if (this.state.postList != null) {
