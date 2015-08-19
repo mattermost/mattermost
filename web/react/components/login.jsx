@@ -56,7 +56,7 @@ module.exports = React.createClass({
             },
             function loginFailed(err) {
                 if (err.message === 'Login failed because email address has not been verified') {
-                    window.location.href = '/verify_email?name=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email);
+                    window.location.href = '/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email);
                     return;
                 }
                 state.serverError = err.message;
