@@ -8,6 +8,12 @@ var BrowserStore = require('../stores/browser_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
+    displayName: 'Login',
+    propTypes: {
+        teamName: React.PropTypes.string,
+        teamDisplayName: React.PropTypes.string,
+        authServices: React.PropTypes.object
+    },
     handleSubmit: function(e) {
         e.preventDefault();
         var state = {};
@@ -49,9 +55,9 @@ module.exports = React.createClass({
 
                 var redirect = utils.getUrlParameter('redirect');
                 if (redirect) {
-                    window.location.pathname = decodeURIComponent(redirect);
+                    window.location.href = decodeURIComponent(redirect);
                 } else {
-                    window.location.pathname = '/' + name + '/channels/town-square';
+                    window.location.href = '/' + name + '/channels/town-square';
                 }
             },
             function loginFailed(err) {
