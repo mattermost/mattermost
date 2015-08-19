@@ -85,6 +85,7 @@ type EmailSettings struct {
 	SMTPPassword         string
 	SMTPServer           string
 	UseTLS               bool
+	UseStartTLS          bool
 	FeedbackEmail        string
 	FeedbackName         string
 	ApplePushServer      string
