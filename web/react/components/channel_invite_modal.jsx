@@ -4,6 +4,7 @@
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var MemberList = require('./member_list.jsx');
+var LoadingScreen = require('./loading_screen.jsx');
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
@@ -11,6 +12,8 @@ var AsyncClient = require('../utils/async_client.jsx');
 function getStateFromStores() {
     var users = UserStore.getActiveOnlyProfiles();
     var memberIds = ChannelStore.getCurrentExtraInfo().members.map(function(user) { return user.id; });
+
+    var loading = $.isEmptyObject(users);
 
     var nonmembers = [];
     for (var id in users) {
@@ -28,7 +31,8 @@ function getStateFromStores() {
     return {
         nonmembers: nonmembers,
         memberIds: memberIds,
-        channel_name: channel_name
+        channel_name: channel_name,
+        loading: loading
     };
 }
 
@@ -37,30 +41,36 @@ module.exports = React.createClass({
 
     isShown: false,
     getInitialState: function() {
-        return {};
+        return getStateFromStores()
     },
 
     componentDidMount: function() {
-        $(React.findDOMNode(this))
-            .on('hidden.bs.modal', this._onHide)
-            .on('show.bs.modal', this._onShow);
+        $(React.findDOMNode(this)).on('hidden.bs.modal', this.onHide);
+        $(React.findDOMNode(this)).on('show.bs.modal', this.onShow);
+
+        ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.addChangeListener(this.onListenerChange);
+        UserStore.addChangeListener(this.onListenerChange);
+    },
+    componentWillUnmount: function() {
+        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
+        ChannelStore.removeChangeListener(this.onListenerChange);
+        UserStore.removeChangeListener(this.onListenerChange);
     },
 
-    _onShow: function() {
-        ChannelStore.addExtraInfoChangeListener(this._onChange);
-        ChannelStore.addChangeListener(this._onChange);
+    onShow: function() {
         this.isShown = true;
-        this._onChange();
     },
 
-    _onHide: function() {
-        ChannelStore.removeExtraInfoChangeListener(this._onChange);
-        ChannelStore.removeChangeListener(this._onChange);
+    onHide: function() {
         this.isShown = false;
     },
 
-    _onChange: function() {
-        this.setState(getStateFromStores());
+    onListenerChange: function() {
+        var newState = getStateFromStores()
+        if (!utils.areStatesEqual(this.state, newState)) {
+            this.setState(newState);
+        }
     },
 
     handleInvite: function(user_id) {
@@ -95,8 +105,8 @@ module.exports = React.createClass({
         );
     },
 
-    shouldComponentUpdate: function(nextProps, nextState) {
-        return this.isShown && !utils.areStatesEqual(this.state, nextState);
+    shouldComponentUpdate: function() {
+        return this.isShown;
     },
 
     render: function() {
@@ -106,6 +116,13 @@ module.exports = React.createClass({
         var isAdmin = false;
         if (currentMember) {
             isAdmin = currentMember.roles.indexOf("admin") > -1 || UserStore.getCurrentUser().roles.indexOf("admin") > -1;
+        }
+
+        var content;
+        if (this.state.loading) {
+            content = (<LoadingScreen />);
+        } else {
+            content = (<MemberList memberList={this.state.nonmembers} isAdmin={isAdmin} handleInvite={this.handleInvite} />);
         }
 
         return (
@@ -118,10 +135,7 @@ module.exports = React.createClass({
                   </div>
                   <div className="modal-body">
                     { invite_error }
-                    <MemberList
-                      memberList={this.state.nonmembers}
-                      isAdmin={isAdmin}
-                      handleInvite={this.handleInvite} />
+                    {content}
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
