@@ -438,6 +438,23 @@ module.exports.createChannel = function(channel, success, error) {
     module.exports.track('api', 'api_channels_create', channel.type, 'name', channel.name);
 };
 
+module.exports.createDirectChannel = function(channel, userId, success, error) {
+    $.ajax({
+        url: '/api/v1/channels/create_direct',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({user_id: userId}),
+        success: success,
+        error: function(xhr, status, err) {
+            var e = handleError('createDirectChannel', xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_channels_create_direct', channel.type, 'name', channel.name);
+};
+
 module.exports.updateChannel = function(channel, success, error) {
     $.ajax({
         url: "/api/v1/channels/update",
