@@ -24,6 +24,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 		table.ColMap("Name").SetMaxSize(64)
 		table.SetUniqueTogether("Name", "TeamId")
 		table.ColMap("Description").SetMaxSize(1024)
+		table.ColMap("CreatorId").SetMaxSize(26)
 
 		tablem := db.AddTableWithName(model.ChannelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
 		tablem.ColMap("ChannelId").SetMaxSize(26)
@@ -37,6 +38,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
 	s.CreateColumnIfNotExists("Channels", "ExtraUpdateAt", "TotalMsgCount", "bigint(20)", "0")
+	s.CreateColumnIfNotExists("Channels", "CreatorId", "ExtraUpdateAt", "varchar(26)", "")
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
