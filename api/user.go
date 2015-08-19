@@ -181,12 +181,13 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		c.Err = result.Err
+		l4g.Error("Filae err=%v", result.Err)
 		return nil
 	} else {
 		ruser := result.Data.(*model.User)
 
 		// Soft error if there is an issue joining the default channels
-		if err := JoinDefaultChannels(c, ruser, channelRole); err != nil {
+		if err := JoinDefaultChannels(ruser, channelRole); err != nil {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
