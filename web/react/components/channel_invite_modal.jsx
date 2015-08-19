@@ -10,112 +10,122 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
 function getStateFromStores() {
+    function getId(user) {
+        return user.id;
+    }
     var users = UserStore.getActiveOnlyProfiles();
-    var memberIds = ChannelStore.getCurrentExtraInfo().members.map(function(user) { return user.id; });
+    var memberIds = ChannelStore.getCurrentExtraInfo().members.map(getId);
 
     var loading = $.isEmptyObject(users);
 
     var nonmembers = [];
     for (var id in users) {
-        if (memberIds.indexOf(id) == -1) {
-           nonmembers.push(users[id]);
+        if (memberIds.indexOf(id) === -1) {
+            nonmembers.push(users[id]);
         }
     }
 
-    nonmembers.sort(function(a,b) {
+    nonmembers.sort(function sortByUsername(a, b) {
         return a.username.localeCompare(b.username);
     });
 
-    var channel_name = ChannelStore.getCurrent() ? ChannelStore.getCurrent().display_name : "";
+    var channelName = '';
+    if (ChannelStore.getCurrent()) {
+        channelName = ChannelStore.getCurrent().display_name;
+    }
 
     return {
         nonmembers: nonmembers,
         memberIds: memberIds,
-        channel_name: channel_name,
+        channelName: channelName,
         loading: loading
     };
 }
 
-module.exports = React.createClass({
-    displayName: "ChannelInviteModal",
+export default class ChannelInviteModal extends React.Component {
+    constructor() {
+        super();
 
-    isShown: false,
-    getInitialState: function() {
-        return getStateFromStores()
-    },
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentWillUnmount = this.componentWillUnmount.bind(this);
+        this.shouldComponentUpdate = this.shouldComponentUpdate.bind(this);
+        this.onShow = this.onShow.bind(this);
+        this.onHide = this.onHide.bind(this);
+        this.onListenerChange = this.onListenerChange.bind(this);
+        this.handleInvite = this.handleInvite.bind(this);
 
-    componentDidMount: function() {
+        this.isShown = false;
+        this.state = getStateFromStores();
+    }
+    componentDidMount() {
         $(React.findDOMNode(this)).on('hidden.bs.modal', this.onHide);
         $(React.findDOMNode(this)).on('show.bs.modal', this.onShow);
 
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
         ChannelStore.addChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
         ChannelStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);
-    },
-
-    onShow: function() {
+    }
+    shouldComponentUpdate() {
+        return this.isShown;
+    }
+    onShow() {
         this.isShown = true;
-    },
-
-    onHide: function() {
+    }
+    onHide() {
         this.isShown = false;
-    },
-
-    onListenerChange: function() {
-        var newState = getStateFromStores()
+    }
+    onListenerChange() {
+        var newState = getStateFromStores();
         if (!utils.areStatesEqual(this.state, newState)) {
             this.setState(newState);
         }
-    },
-
-    handleInvite: function(user_id) {
+    }
+    handleInvite(userId) {
         // Make sure the user isn't already a member of the channel
-        if (this.state.memberIds.indexOf(user_id) > -1) {
+        if (this.state.memberIds.indexOf(userId) > -1) {
             return;
         }
 
         var data = {};
-        data.user_id = user_id;
+        data.user_id = userId;
 
         client.addChannelMember(ChannelStore.getCurrentId(), data,
-            function() {
+            function sucess() {
                 var nonmembers = this.state.nonmembers;
                 var memberIds = this.state.memberIds;
 
                 for (var i = 0; i < nonmembers.length; i++) {
-                    if (user_id === nonmembers[i].id) {
+                    if (userId === nonmembers[i].id) {
                         nonmembers[i].invited = true;
-                        memberIds.push(user_id);
+                        memberIds.push(userId);
                         break;
                     }
                 }
 
-                this.setState({ invite_error: null, memberIds: memberIds, nonmembers: nonmembers });
+                this.setState({inviteError: null, memberIds: memberIds, nonmembers: nonmembers});
                 AsyncClient.getChannelExtraInfo(true);
             }.bind(this),
 
-            function(err) {
-                this.setState({ invite_error: err.message });
+            function error(err) {
+                this.setState({inviteError: err.message});
             }.bind(this)
         );
-    },
-
-    shouldComponentUpdate: function() {
-        return this.isShown;
-    },
-
-    render: function() {
-        var invite_error = this.state.invite_error ? <label className='has-error control-label'>{this.state.invite_error}</label> : null;
+    }
+    render() {
+        var inviteError = null;
+        if (this.state.inviteError) {
+            inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
+        }
 
         var currentMember = ChannelStore.getCurrentMember();
         var isAdmin = false;
         if (currentMember) {
-            isAdmin = currentMember.roles.indexOf("admin") > -1 || UserStore.getCurrentUser().roles.indexOf("admin") > -1;
+            isAdmin = currentMember.roles.indexOf('admin') > -1 || UserStore.getCurrentUser().roles.indexOf('admin') > -1;
         }
 
         var content;
@@ -126,23 +136,24 @@ module.exports = React.createClass({
         }
 
         return (
-            <div className="modal fade" id="channel_invite" tabIndex="-1" role="dialog" aria-hidden="true">
-              <div className="modal-dialog" role="document">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title">Add New Members to {this.state.channel_name}</h4>
+            <div className='modal fade' id='channel_invite' tabIndex='-1' role='dialog' aria-hidden='true'>
+              <div className='modal-dialog' role='document'>
+                <div className='modal-content'>
+                  <div className='modal-header'>
+                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+                    <h4 className='modal-title'>Add New Members to {this.state.channelName}</h4>
                   </div>
-                  <div className="modal-body">
-                    { invite_error }
+                  <div className='modal-body'>
+                    {inviteError}
                     {content}
                   </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                  <div className='modal-footer'>
+                    <button type='button' className='btn btn-default' data-dismiss='modal'>Close</button>
                   </div>
                 </div>
               </div>
             </div>
         );
     }
-});
+}
+ChannelInviteModal.displayName = 'ChannelInviteModal';
