@@ -28,6 +28,7 @@ type Channel struct {
 	LastPostAt    int64  `json:"last_post_at"`
 	TotalMsgCount int64  `json:"total_msg_count"`
 	ExtraUpdateAt int64  `json:"extra_update_at"`
+	CreatorId     string `json:"creator_id"`
 }
 
 func (o *Channel) ToJson() string {
@@ -90,6 +91,10 @@ func (o *Channel) IsValid() *AppError {
 
 	if len(o.Description) > 1024 {
 		return NewAppError("Channel.IsValid", "Invalid description", "id="+o.Id)
+	}
+
+	if len(o.CreatorId) > 26 {
+		return NewAppError("Channel.IsValid", "Invalid creator id", "")
 	}
 
 	return nil

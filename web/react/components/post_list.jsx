@@ -392,13 +392,22 @@ module.exports = React.createClass({
                 }
             } else if (channel.type === 'P' || channel.type === 'O') {
                 var uiName = channel.display_name;
-                var members = ChannelStore.getCurrentExtraInfo().members;
                 var creatorName = '';
 
-                for (var i = 0; i < members.length; i++) {
-                    if (members[i].roles.indexOf('admin') > -1) {
-                        creatorName = members[i].username;
-                        break;
+                if (channel.creator_id.length > 0) {
+                    var creator = UserStore.getProfile(channel.creator_id);
+                    if (creator) {
+                        creatorName = creator.username;
+                    }
+                }
+
+                if (creatorName === '') {
+                    var members = ChannelStore.getCurrentExtraInfo().members;
+                    for (var i = 0; i < members.length; i++) {
+                        if (members[i].roles.indexOf('admin') > -1) {
+                            creatorName = members[i].username;
+                            break;
+                        }
                     }
                 }
 
