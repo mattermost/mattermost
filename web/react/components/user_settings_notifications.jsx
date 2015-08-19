@@ -67,16 +67,28 @@ function getNotificationsStateFromStores() {
     return {notifyLevel: desktop, enableEmail: email, soundNeeded: soundNeeded, enableSound: sound, usernameKey: usernameKey, mentionKey: mentionKey, customKeys: customKeys, customKeysChecked: customKeys.length > 0, firstNameKey: firstNameKey, allKey: allKey, channelKey: channelKey};
 }
 
-module.exports = React.createClass({
-    displayName: 'NotificationsTab',
-    propTypes: {
-        user: React.PropTypes.object,
-        updateSection: React.PropTypes.func,
-        updateTab: React.PropTypes.func,
-        activeSection: React.PropTypes.string,
-        activeTab: React.PropTypes.string
-    },
-    handleSubmit: function() {
+export default class NotificationsTab extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+        this.updateSection = this.updateSection.bind(this);
+        this.onListenerChange = this.onListenerChange.bind(this);
+        this.handleNotifyRadio = this.handleNotifyRadio.bind(this);
+        this.handleEmailRadio = this.handleEmailRadio.bind(this);
+        this.handleSoundRadio = this.handleSoundRadio.bind(this);
+        this.updateUsernameKey = this.updateUsernameKey.bind(this);
+        this.updateMentionKey = this.updateMentionKey.bind(this);
+        this.updateFirstNameKey = this.updateFirstNameKey.bind(this);
+        this.updateAllKey = this.updateAllKey.bind(this);
+        this.updateChannelKey = this.updateChannelKey.bind(this);
+        this.updateCustomMentionKeys = this.updateCustomMentionKeys.bind(this);
+        this.onCustomChange = this.onCustomChange.bind(this);
+
+        this.state = getNotificationsStateFromStores();
+    }
+    handleSubmit() {
         var data = {};
         data.user_id = this.props.user.id;
         data.email = this.state.enableEmail;
@@ -110,66 +122,63 @@ module.exports = React.createClass({
                 this.setState({serverError: err.message});
             }.bind(this)
         );
-    },
-    handleClose: function() {
-        $(this.getDOMNode()).find('.form-control').each(function clearField() {
+    }
+    handleClose() {
+        $(React.findDOMNode(this)).find('.form-control').each(function clearField() {
             this.value = '';
         });
 
         this.setState(assign({}, getNotificationsStateFromStores(), {serverError: null}));
 
         this.props.updateTab('general');
-    },
-    updateSection: function(section) {
+    }
+    updateSection(section) {
         this.setState(this.getInitialState());
         this.props.updateSection(section);
-    },
-    componentDidMount: function() {
+    }
+    componentDidMount() {
         UserStore.addChangeListener(this.onListenerChange);
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         UserStore.removeChangeListener(this.onListenerChange);
         $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
-    },
-    onListenerChange: function() {
+    }
+    onListenerChange() {
         var newState = getNotificationsStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
-    },
-    getInitialState: function() {
-        return getNotificationsStateFromStores();
-    },
-    handleNotifyRadio: function(notifyLevel) {
+    }
+    handleNotifyRadio(notifyLevel) {
         this.setState({notifyLevel: notifyLevel});
         this.refs.wrapper.getDOMNode().focus();
-    },
-    handleEmailRadio: function(enableEmail) {
+    }
+    handleEmailRadio(enableEmail) {
         this.setState({enableEmail: enableEmail});
         this.refs.wrapper.getDOMNode().focus();
-    },
-    handleSoundRadio: function(enableSound) {
+    }
+    handleSoundRadio(enableSound) {
         this.setState({enableSound: enableSound});
         this.refs.wrapper.getDOMNode().focus();
-    },
-    updateUsernameKey: function(val) {
+    }
+    updateUsernameKey(val) {
         this.setState({usernameKey: val});
-    },
-    updateMentionKey: function(val) {
+    }
+    updateMentionKey(val) {
         this.setState({mentionKey: val});
-    },
-    updateFirstNameKey: function(val) {
+    }
+    updateFirstNameKey(val) {
         this.setState({firstNameKey: val});
-    },
-    updateAllKey: function(val) {
+    }
+    updateAllKey(val) {
         this.setState({allKey: val});
-    },
-    updateChannelKey: function(val) {
+    }
+    updateChannelKey(val) {
         this.setState({channelKey: val});
-    },
-    updateCustomMentionKeys: function() {
+    }
+    updateCustomMentionKeys() {
         var checked = this.refs.customcheck.getDOMNode().checked;
 
         if (checked) {
@@ -180,12 +189,12 @@ module.exports = React.createClass({
         } else {
             this.setState({customKeys: '', customKeysChecked: false});
         }
-    },
-    onCustomChange: function() {
+    }
+    onCustomChange() {
         this.refs.customcheck.getDOMNode().checked = true;
         this.updateCustomMentionKeys();
-    },
-    render: function() {
+    }
+    render() {
         var serverError = null;
         if (this.state.serverError) {
             serverError = this.state.serverError;
@@ -196,6 +205,7 @@ module.exports = React.createClass({
         var user = this.props.user;
 
         var desktopSection;
+        var handleUpdateDesktopSection;
         if (this.props.activeSection === 'desktop') {
             var notifyActive = [false, false, false];
             if (this.state.notifyLevel === 'mention') {
@@ -206,29 +216,51 @@ module.exports = React.createClass({
                 notifyActive[0] = true;
             }
 
-            var inputs = [];
+            let inputs = [];
 
             inputs.push(
                 <div>
                     <div className='radio'>
                         <label>
-                            <input type='radio' checked={notifyActive[0]} onClick={function(){self.handleNotifyRadio('all')}}>For all activity</input>
+                            <input type='radio'
+                                checked={notifyActive[0]}
+                                onChange={self.handleNotifyRadio.bind(this, 'all')}
+                            >
+                                For all activity
+                            </input>
                         </label>
                         <br/>
                     </div>
                     <div className='radio'>
                         <label>
-                            <input type='radio' checked={notifyActive[1]} onClick={function(){self.handleNotifyRadio('mention')}}>Only for mentions and private messages</input>
+                            <input
+                                type='radio'
+                                checked={notifyActive[1]}
+                                onChange={self.handleNotifyRadio.bind(this, 'mention')}
+                            >
+                                Only for mentions and private messages
+                            </input>
                         </label>
                         <br/>
                     </div>
                     <div className='radio'>
                         <label>
-                            <input type='radio' checked={notifyActive[2]} onClick={function(){self.handleNotifyRadio('none')}}>Never</input>
+                            <input
+                                type='radio'
+                                checked={notifyActive[2]}
+                                onChange={self.handleNotifyRadio.bind(this, 'none')}
+                            >
+                                Never
+                            </input>
                         </label>
                     </div>
                 </div>
             );
+
+            handleUpdateDesktopSection = function updateDesktopSection(e) {
+                self.props.updateSection('');
+                e.preventDefault();
+            };
 
             desktopSection = (
                 <SettingItemMax
@@ -236,11 +268,11 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
-                    updateSection={function(e){self.updateSection('');e.preventDefault();}}
+                    updateSection={handleUpdateDesktopSection}
                 />
             );
         } else {
-            var describe = '';
+            let describe = '';
             if (this.state.notifyLevel === 'mention') {
                 describe = 'Only for mentions and private messages';
             } else if (this.state.notifyLevel === 'none') {
@@ -249,34 +281,64 @@ module.exports = React.createClass({
                 describe = 'For all activity';
             }
 
+            handleUpdateDesktopSection = function updateDesktopSection() {
+                self.props.updateSection('desktop');
+            };
+
             desktopSection = (
                 <SettingItemMin
                     title='Send desktop notifications'
                     describe={describe}
-                    updateSection={function(){self.updateSection('desktop');}}
+                    updateSection={handleUpdateDesktopSection}
                 />
             );
         }
 
         var soundSection;
+        var handleUpdateSoundSection;
         if (this.props.activeSection === 'sound' && this.state.soundNeeded) {
-            var soundActive = ['', ''];
+            var soundActive = [false, false];
             if (this.state.enableSound === 'false') {
-                soundActive[1] = 'active';
+                soundActive[1] = true;
             } else {
-                soundActive[0] = 'active';
+                soundActive[0] = true;
             }
 
-            var inputs = [];
+            let inputs = [];
 
             inputs.push(
                 <div>
-                    <div className='btn-group' data-toggle='buttons-radio'>
-                        <button className={'btn btn-default '+soundActive[0]} onClick={function(){self.handleSoundRadio('true')}}>On</button>
-                        <button className={'btn btn-default '+soundActive[1]} onClick={function(){self.handleSoundRadio('false')}}>Off</button>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={soundActive[0]}
+                                onChange={self.handleSoundRadio.bind(this, 'true')}
+                            >
+                                On
+                            </input>
+                        </label>
+                        <br/>
                     </div>
-                </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={soundActive[1]}
+                                onChange={self.handleSoundRadio.bind(this, 'false')}
+                            >
+                                Off
+                            </input>
+                        </label>
+                        <br/>
+                     </div>
+                 </div>
             );
+
+            handleUpdateSoundSection = function updateSoundSection(e) {
+                self.props.updateSection('');
+                e.preventDefault();
+            };
 
             soundSection = (
                 <SettingItemMax
@@ -284,49 +346,79 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
-                    updateSection={function(e){self.updateSection('');e.preventDefault();}}
+                    updateSection={handleUpdateSoundSection}
                 />
             );
         } else {
-            var describe = '';
+            let describe = '';
             if (!this.state.soundNeeded) {
-                describe = 'Please configure notification sounds in your browser settings'
+                describe = 'Please configure notification sounds in your browser settings';
             } else if (this.state.enableSound === 'false') {
                 describe = 'Off';
             } else {
                 describe = 'On';
             }
 
+            handleUpdateSoundSection = function updateSoundSection() {
+                self.props.updateSection('sound');
+            };
+
             soundSection = (
                 <SettingItemMin
                     title='Desktop notification sounds'
                     describe={describe}
-                    updateSection={function(){self.updateSection('sound');}}
+                    updateSection={handleUpdateSoundSection}
                     disableOpen = {!this.state.soundNeeded}
                 />
             );
         }
 
         var emailSection;
+        var handleUpdateEmailSection;
         if (this.props.activeSection === 'email') {
-            var emailActive = ['',''];
+            var emailActive = [false, false];
             if (this.state.enableEmail === 'false') {
-                emailActive[1] = 'active';
+                emailActive[1] = true;
             } else {
-                emailActive[0] = 'active';
+                emailActive[0] = true;
             }
 
-            var inputs = [];
+            let inputs = [];
 
             inputs.push(
                 <div>
-                    <div className='btn-group' data-toggle='buttons-radio'>
-                        <button className={'btn btn-default '+emailActive[0]} onClick={function(){self.handleEmailRadio('true')}}>On</button>
-                        <button className={'btn btn-default '+emailActive[1]} onClick={function(){self.handleEmailRadio('false')}}>Off</button>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={emailActive[0]}
+                                onChange={self.handleEmailRadio.bind(this, 'true')}
+                            >
+                                On
+                            </input>
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={emailActive[1]}
+                                onChange={self.handleEmailRadio.bind(this, 'false')}
+                            >
+                                Off
+                            </input>
+                        </label>
+                        <br/>
                     </div>
                     <div><br/>{'Email notifications are sent for mentions and private messages after you have been away from ' + config.SiteName + ' for 5 minutes.'}</div>
                 </div>
             );
+
+            handleUpdateEmailSection = function updateEmailSection(e) {
+                self.props.updateSection('');
+                e.preventDefault();
+            };
 
             emailSection = (
                 <SettingItemMax
@@ -334,47 +426,133 @@ module.exports = React.createClass({
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
-                    updateSection={function(e){self.updateSection('');e.preventDefault();}}
+                    updateSection={handleUpdateEmailSection}
                 />
             );
         } else {
-            var describe = '';
+            let describe = '';
             if (this.state.enableEmail === 'false') {
                 describe = 'Off';
             } else {
                 describe = 'On';
             }
 
+            handleUpdateEmailSection = function updateEmailSection() {
+                self.props.updateSection('email');
+            };
+
             emailSection = (
                 <SettingItemMin
                     title='Email notifications'
                     describe={describe}
-                    updateSection={function(){self.updateSection('email');}}
+                    updateSection={handleUpdateEmailSection}
                 />
             );
         }
 
         var keysSection;
+        var handleUpdateKeysSection;
         if (this.props.activeSection === 'keys') {
-            var inputs = [];
+            let inputs = [];
+
+            let handleUpdateFirstNameKey;
+            let handleUpdateUsernameKey;
+            let handleUpdateMentionKey;
+            let handleUpdateAllKey;
+            let handleUpdateChannelKey;
 
             if (user.first_name) {
+                handleUpdateFirstNameKey = function handleFirstNameKeyChange(e) {
+                    self.updateFirstNameKey(e.target.checked);
+                };
                 inputs.push(
                     <div>
                         <div className='checkbox'>
                             <label>
-                                <input type='checkbox' checked={this.state.firstNameKey} onChange={function(e){self.updateFirstNameKey(e.target.checked);}}>{'Your case sensitive first name "' + user.first_name + '"'}</input>
+                                <input
+                                    type='checkbox'
+                                    checked={this.state.firstNameKey}
+                                    onChange={handleUpdateFirstNameKey}
+                                >
+                                    {'Your case sensitive first name "' + user.first_name + '"'}
+                                </input>
                             </label>
                         </div>
                     </div>
                 );
             }
 
+            handleUpdateUsernameKey = function handleUsernameKeyChange(e) {
+                self.updateUsernameKey(e.target.checked);
+            };
             inputs.push(
                 <div>
                     <div className='checkbox'>
                         <label>
-                            <input type='checkbox' checked={this.state.usernameKey} onChange={function(e){self.updateUsernameKey(e.target.checked);}}>{'Your non-case sensitive username "' + user.username + '"'}</input>
+                            <input
+                                type='checkbox'
+                                checked={this.state.usernameKey}
+                                onChange={handleUpdateUsernameKey}
+                            >
+                                {'Your non-case sensitive username "' + user.username + '"'}
+                            </input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            handleUpdateMentionKey = function handleMentionKeyChange(e) {
+                self.updateMentionKey(e.target.checked);
+            };
+            inputs.push(
+                <div>
+                    <div className='checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={this.state.mentionKey}
+                                onChange={handleUpdateMentionKey}
+                            >
+                                {'Your username mentioned "@' + user.username + '"'}
+                            </input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            handleUpdateAllKey = function handleAllKeyChange(e) {
+                self.updateAllKey(e.target.checked);
+            };
+            inputs.push(
+                <div>
+                    <div className='checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={this.state.allKey}
+                                onChange={handleUpdateAllKey}
+                            >
+                                {'Team-wide mentions "@all"'}
+                            </input>
+                        </label>
+                    </div>
+                </div>
+            );
+
+            handleUpdateChannelKey = function handleChannelKeyChange(e) {
+                self.updateChannelKey(e.target.checked);
+            };
+            inputs.push(
+                <div>
+                    <div className='checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={this.state.channelKey}
+                                onChange={handleUpdateChannelKey}
+                            >
+                                {'Channel-wide mentions "@channel"'}
+                            </input>
                         </label>
                     </div>
                 </div>
@@ -384,62 +562,61 @@ module.exports = React.createClass({
                 <div>
                     <div className='checkbox'>
                         <label>
-                            <input type='checkbox' checked={this.state.mentionKey} onChange={function(e){self.updateMentionKey(e.target.checked);}}>{'Your username mentioned "@' + user.username + '"'}</input>
+                            <input
+                                ref='customcheck'
+                                type='checkbox'
+                                checked={this.state.customKeysChecked}
+                                onChange={this.updateCustomMentionKeys}
+                            >
+                                {'Other non-case sensitive words, separated by commas:'}
+                            </input>
                         </label>
                     </div>
+                    <input
+                        ref='custommentions'
+                        className='form-control mentions-input'
+                        type='text'
+                        defaultValue={this.state.customKeys}
+                        onChange={this.onCustomChange}
+                    />
                 </div>
             );
 
-            inputs.push(
-                <div>
-                    <div className='checkbox'>
-                        <label>
-                            <input type='checkbox' checked={this.state.allKey} onChange={function(e){self.updateAllKey(e.target.checked);}}>{'Team-wide mentions "@all"'}</input>
-                        </label>
-                    </div>
-                </div>
-            );
-
-            inputs.push(
-                <div>
-                    <div className='checkbox'>
-                        <label>
-                            <input type='checkbox' checked={this.state.channelKey} onChange={function(e){self.updateChannelKey(e.target.checked);}}>{'Channel-wide mentions "@channel"'}</input>
-                        </label>
-                    </div>
-                </div>
-            );
-
-            inputs.push(
-                <div>
-                    <div className='checkbox'>
-                        <label>
-                            <input ref='customcheck' type='checkbox' checked={this.state.customKeysChecked} onChange={this.updateCustomMentionKeys}>{'Other non-case sensitive words, separated by commas:'}</input>
-                        </label>
-                    </div>
-                    <input ref='custommentions' className='form-control mentions-input' type='text' defaultValue={this.state.customKeys} onChange={this.onCustomChange} />
-                </div>
-            );
-
+            handleUpdateKeysSection = function updateKeysSection(e) {
+                self.props.updateSection('');
+                e.preventDefault();
+            };
             keysSection = (
                 <SettingItemMax
                     title='Words that trigger mentions'
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
-                    updateSection={function(e){self.updateSection('');e.preventDefault();}}
+                    updateSection={handleUpdateKeysSection}
                 />
             );
         } else {
-            var keys = [];
-            if (this.state.firstNameKey) keys.push(user.first_name);
-            if (this.state.usernameKey) keys.push(user.username);
-            if (this.state.mentionKey) keys.push('@'+user.username);
-            if (this.state.allKey) keys.push('@all');
-            if (this.state.channelKey) keys.push('@channel');
-            if (this.state.customKeys.length > 0) keys = keys.concat(this.state.customKeys.split(','));
+            let keys = [];
+            if (this.state.firstNameKey) {
+                keys.push(user.first_name);
+            }
+            if (this.state.usernameKey) {
+                keys.push(user.username);
+            }
+            if (this.state.mentionKey) {
+                keys.push('@' + user.username);
+            }
+            if (this.state.allKey) {
+                keys.push('@all');
+            }
+            if (this.state.channelKey) {
+                keys.push('@channel');
+            }
+            if (this.state.customKeys.length > 0) {
+                keys = keys.concat(this.state.customKeys.split(','));
+            }
 
-            var describe = '';
+            let describe = '';
             for (var i = 0; i < keys.length; i++) {
                 describe += '"' + keys[i] + '", ';
             }
@@ -450,11 +627,15 @@ module.exports = React.createClass({
                 describe = 'No words configured';
             }
 
+            handleUpdateKeysSection = function updateKeysSection() {
+                self.props.updateSection('keys');
+            };
+
             keysSection = (
                 <SettingItemMin
                     title='Words that trigger mentions'
                     describe={describe}
-                    updateSection={function(){self.updateSection('keys');}}
+                    updateSection={handleUpdateKeysSection}
                 />
             );
         }
@@ -462,10 +643,26 @@ module.exports = React.createClass({
         return (
             <div>
                 <div className='modal-header'>
-                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>Notifications</h4>
+                    <button
+                        type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        aria-label='Close'
+                    >
+                        <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4
+                        className='modal-title'
+                        ref='title'
+                    >
+                        <i className='modal-back'></i>
+                        Notifications
+                    </h4>
                 </div>
-                <div ref='wrapper' className='user-settings'>
+                <div
+                    ref='wrapper'
+                    className='user-settings'
+                >
                     <h3 className='tab-header'>Notifications</h3>
                     <div className='divider-dark first'/>
                     {desktopSection}
@@ -481,4 +678,17 @@ module.exports = React.createClass({
 
         );
     }
-});
+}
+
+NotificationsTab.defaultProps = {
+    user: null,
+    activeSection: '',
+    activeTab: ''
+};
+NotificationsTab.propTypes = {
+    user: React.PropTypes.object,
+    updateSection: React.PropTypes.func,
+    updateTab: React.PropTypes.func,
+    activeSection: React.PropTypes.string,
+    activeTab: React.PropTypes.string
+};
