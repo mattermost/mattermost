@@ -22,6 +22,10 @@ export default class PostInfo extends React.Component {
         var isOwner = UserStore.getCurrentId() === post.user_id;
         var isAdmin = UserStore.getCurrentUser().roles.indexOf('admin') > -1;
 
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
+            return '';
+        }
+
         var type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
             type = 'Comment';

@@ -172,6 +172,28 @@ var PostStore = assign({}, EventEmitter.prototype, {
     getPendingPosts: function(channelId) {
         return BrowserStore.getItem('pending_posts_' + channelId);
     },
+    storeUnseenDeletedPost: function(post) {
+        var posts = this.getUnseenDeletedPosts(post.channel_id);
+
+        if (!posts) {
+            posts = {};
+        }
+
+        post.message = '(message deleted)';
+        post.state = Constants.POST_DELETED;
+
+        posts[post.id] = post;
+        this.storeUnseenDeletedPosts(post.channel_id, posts);
+    },
+    storeUnseenDeletedPosts: function(channelId, posts) {
+        BrowserStore.setItem('deleted_posts_' + channelId, posts);
+    },
+    getUnseenDeletedPosts: function(channelId) {
+        return BrowserStore.getItem('deleted_posts_' + channelId);
+    },
+    clearUnseenDeletedPosts: function(channelId) {
+        BrowserStore.setItem('deleted_posts_' + channelId, {});
+    },
     removePendingPost: function(channelId, pendingPostId) {
         this._removePendingPost(channelId, pendingPostId);
         this.emitChange();
