@@ -121,13 +121,24 @@ function getStateFromStores() {
     };
 }
 
-module.exports = React.createClass({
-    displayName: 'Sidebar',
-    propTypes: {
-        teamType: React.PropTypes.string,
-        teamDisplayName: React.PropTypes.string
-    },
-    componentDidMount: function() {
+export default class Sidebar extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentDidUpdate = this.componentDidUpdate.bind(this);
+        this.componentWillUnmount = this.componentWillUnmount.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.onSocketChange = this.onSocketChange.bind(this);
+        this.updateTitle = this.updateTitle.bind(this);
+        this.onScroll = this.onScroll.bind(this);
+        this.onResize = this.onResize.bind(this);
+        this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
+
+        this.state = getStateFromStores();
+        this.state.loadingDMChannel = -1;
+    }
+    componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
@@ -139,12 +150,12 @@ module.exports = React.createClass({
         this.updateUnreadIndicators();
 
         $(window).on('resize', this.onResize);
-    },
-    componentDidUpdate: function() {
+    }
+    componentDidUpdate() {
         this.updateTitle();
         this.updateUnreadIndicators();
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         $(window).off('resize', this.onResize);
 
         ChannelStore.removeChangeListener(this.onChange);
@@ -152,14 +163,14 @@ module.exports = React.createClass({
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         SocketStore.removeChangeListener(this.onSocketChange);
-    },
-    onChange: function() {
+    }
+    onChange() {
         var newState = getStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
-    },
-    onSocketChange: function(msg) {
+    }
+    onSocketChange(msg) {
         if (msg.action === 'posted') {
             if (ChannelStore.getCurrentId() === msg.channel_id) {
                 if (window.isActive) {
@@ -242,8 +253,8 @@ module.exports = React.createClass({
                 }
             }
         }
-    },
-    updateTitle: function() {
+    }
+    updateTitle() {
         var channel = ChannelStore.getCurrent();
         if (channel) {
             if (channel.type === 'D') {
@@ -253,14 +264,14 @@ module.exports = React.createClass({
                 utils.updateTabTitle(channel.display_name);
             }
         }
-    },
-    onScroll: function() {
+    }
+    onScroll() {
         this.updateUnreadIndicators();
-    },
-    onResize: function() {
+    }
+    onResize() {
         this.updateUnreadIndicators();
-    },
-    updateUnreadIndicators: function() {
+    }
+    updateUnreadIndicators() {
         var container = $(this.refs.container.getDOMNode());
 
         if (this.firstUnreadChannel) {
@@ -283,14 +294,8 @@ module.exports = React.createClass({
                 $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'none');
             }
         }
-    },
-    getInitialState: function() {
-        var newState = getStateFromStores();
-        newState.loadingDMChannel = -1;
-
-        return newState;
-    },
-    render: function() {
+    }
+    render() {
         var members = this.state.members;
         var activeId = this.state.activeId;
         var badgesActive = false;
@@ -473,4 +478,10 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
+
+Sidebar.displayName = 'Sidebar';
+Sidebar.propTypes = {
+    teamType: React.PropTypes.string,
+    teamDisplayName: React.PropTypes.string
+};
