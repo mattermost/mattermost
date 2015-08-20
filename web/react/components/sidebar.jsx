@@ -13,114 +13,6 @@ var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
 var Constants = require('../utils/constants.jsx');
 
-function getStateFromStores() {
-    var members = ChannelStore.getAllMembers();
-    var teamMemberMap = UserStore.getActiveOnlyProfiles();
-    var currentId = ChannelStore.getCurrentId();
-
-    var teammates = [];
-    for (var id in teamMemberMap) {
-        if (id === UserStore.getCurrentId()) {
-            continue;
-        }
-        teammates.push(teamMemberMap[id]);
-    }
-
-    // Create lists of all read and unread direct channels
-    var showDirectChannels = [];
-    var readDirectChannels = [];
-    for (var i = 0; i < teammates.length; i++) {
-        var teammate = teammates[i];
-
-        if (teammate.id === UserStore.getCurrentId()) {
-            continue;
-        }
-
-        var channelName = '';
-        if (teammate.id > UserStore.getCurrentId()) {
-            channelName = UserStore.getCurrentId() + '__' + teammate.id;
-        } else {
-            channelName = teammate.id + '__' + UserStore.getCurrentId();
-        }
-
-        var channel = ChannelStore.getByName(channelName);
-
-        if (channel != null) {
-            channel.display_name = teammate.username;
-            channel.teammate_username = teammate.username;
-
-            channel.status = UserStore.getStatus(teammate.id);
-
-            var channelMember = members[channel.id];
-            var msgCount = channel.total_msg_count - channelMember.msg_count;
-            if (msgCount > 0) {
-                showDirectChannels.push(channel);
-            } else if (currentId === channel.id) {
-                showDirectChannels.push(channel);
-            } else {
-                readDirectChannels.push(channel);
-            }
-        } else {
-            var tempChannel = {};
-            tempChannel.fake = true;
-            tempChannel.name = channelName;
-            tempChannel.display_name = utils.getDisplayName(teammate);
-            tempChannel.status = UserStore.getStatus(teammate.id);
-            tempChannel.last_post_at = 0;
-            tempChannel.total_msg_count = 0;
-            tempChannel.type = 'D';
-            readDirectChannels.push(tempChannel);
-        }
-    }
-
-    // If we don't have MAX_DMS unread channels, sort the read list by last_post_at
-    if (showDirectChannels.length < Constants.MAX_DMS) {
-        readDirectChannels.sort(function sortByLastPost(a, b) {
-            // sort by last_post_at first
-            if (a.last_post_at > b.last_post_at) {
-                return -1;
-            }
-            if (a.last_post_at < b.last_post_at) {
-                return 1;
-            }
-
-            // if last_post_at is equal, sort by name
-            if (a.display_name < b.display_name) {
-                return -1;
-            }
-            if (a.display_name > b.display_name) {
-                return 1;
-            }
-            return 0;
-        });
-
-        var index = 0;
-        while (showDirectChannels.length < Constants.MAX_DMS && index < readDirectChannels.length) {
-            showDirectChannels.push(readDirectChannels[index]);
-            index++;
-        }
-        readDirectChannels = readDirectChannels.slice(index);
-
-        showDirectChannels.sort(function directSort(a, b) {
-            if (a.display_name < b.display_name) {
-                return -1;
-            }
-            if (a.display_name > b.display_name) {
-                return 1;
-            }
-            return 0;
-        });
-    }
-
-    return {
-        activeId: currentId,
-        channels: ChannelStore.getAll(),
-        members: members,
-        showDirectChannels: showDirectChannels,
-        hideDirectChannels: readDirectChannels
-    };
-}
-
 export default class Sidebar extends React.Component {
     constructor(props) {
         super(props);
@@ -135,8 +27,115 @@ export default class Sidebar extends React.Component {
         this.onResize = this.onResize.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
 
-        this.state = getStateFromStores();
+        this.state = this.getStateFromStores();
         this.state.loadingDMChannel = -1;
+    }
+    getStateFromStores() {
+        var members = ChannelStore.getAllMembers();
+        var teamMemberMap = UserStore.getActiveOnlyProfiles();
+        var currentId = ChannelStore.getCurrentId();
+
+        var teammates = [];
+        for (var id in teamMemberMap) {
+            if (id === UserStore.getCurrentId()) {
+                continue;
+            }
+            teammates.push(teamMemberMap[id]);
+        }
+
+        // Create lists of all read and unread direct channels
+        var showDirectChannels = [];
+        var readDirectChannels = [];
+        for (var i = 0; i < teammates.length; i++) {
+            var teammate = teammates[i];
+
+            if (teammate.id === UserStore.getCurrentId()) {
+                continue;
+            }
+
+            var channelName = '';
+            if (teammate.id > UserStore.getCurrentId()) {
+                channelName = UserStore.getCurrentId() + '__' + teammate.id;
+            } else {
+                channelName = teammate.id + '__' + UserStore.getCurrentId();
+            }
+
+            var channel = ChannelStore.getByName(channelName);
+
+            if (channel != null) {
+                channel.display_name = teammate.username;
+                channel.teammate_username = teammate.username;
+
+                channel.status = UserStore.getStatus(teammate.id);
+
+                var channelMember = members[channel.id];
+                var msgCount = channel.total_msg_count - channelMember.msg_count;
+                if (msgCount > 0) {
+                    showDirectChannels.push(channel);
+                } else if (currentId === channel.id) {
+                    showDirectChannels.push(channel);
+                } else {
+                    readDirectChannels.push(channel);
+                }
+            } else {
+                var tempChannel = {};
+                tempChannel.fake = true;
+                tempChannel.name = channelName;
+                tempChannel.display_name = utils.getDisplayName(teammate);
+                tempChannel.status = UserStore.getStatus(teammate.id);
+                tempChannel.last_post_at = 0;
+                tempChannel.total_msg_count = 0;
+                tempChannel.type = 'D';
+                readDirectChannels.push(tempChannel);
+            }
+        }
+
+        // If we don't have MAX_DMS unread channels, sort the read list by last_post_at
+        if (showDirectChannels.length < Constants.MAX_DMS) {
+            readDirectChannels.sort(function sortByLastPost(a, b) {
+                // sort by last_post_at first
+                if (a.last_post_at > b.last_post_at) {
+                    return -1;
+                }
+                if (a.last_post_at < b.last_post_at) {
+                    return 1;
+                }
+
+                // if last_post_at is equal, sort by name
+                if (a.display_name < b.display_name) {
+                    return -1;
+                }
+                if (a.display_name > b.display_name) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            var index = 0;
+            while (showDirectChannels.length < Constants.MAX_DMS && index < readDirectChannels.length) {
+                showDirectChannels.push(readDirectChannels[index]);
+                index++;
+            }
+            readDirectChannels = readDirectChannels.slice(index);
+
+            showDirectChannels.sort(function directSort(a, b) {
+                if (a.display_name < b.display_name) {
+                    return -1;
+                }
+                if (a.display_name > b.display_name) {
+                    return 1;
+                }
+                return 0;
+            });
+        }
+
+        return {
+            activeId: currentId,
+            channels: ChannelStore.getAll(),
+            members: members,
+            showDirectChannels: showDirectChannels,
+            hideDirectChannels: readDirectChannels
+        };
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
@@ -165,7 +164,7 @@ export default class Sidebar extends React.Component {
         SocketStore.removeChangeListener(this.onSocketChange);
     }
     onChange() {
-        var newState = getStateFromStores();
+        var newState = this.getStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
@@ -480,7 +479,6 @@ export default class Sidebar extends React.Component {
     }
 }
 
-Sidebar.displayName = 'Sidebar';
 Sidebar.propTypes = {
     teamType: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string
