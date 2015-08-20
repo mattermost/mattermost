@@ -103,6 +103,25 @@ module.exports = React.createClass({
 
         $(this.refs.imageWrap.getDOMNode()).hover(
             function onModalHover() {
+                console.log('asd');
+                $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
+            }, function offModalHover() {
+                $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
+            }
+        );
+
+        $(this.refs.previewArrowLeft.getDOMNode()).hover(
+            function onModalHover() {
+                console.log('asd');
+                $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
+            }, function offModalHover() {
+                $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
+            }
+        );
+
+        $(this.refs.previewArrowRight.getDOMNode()).hover(
+            function onModalHover() {
+                console.log('asd');
                 $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
             }, function offModalHover() {
                 $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
@@ -252,13 +271,13 @@ module.exports = React.createClass({
         var rightArrow = '';
         if (this.props.filenames.length > 1) {
             leftArrow = (
-                <a className='modal-prev-bar' href='#' onClick={this.handlePrev}>
+                <a ref='previewArrowLeft' className='modal-prev-bar' href='#' onClick={this.handlePrev}>
                     <i className='image-control image-prev'/>
                 </a>
             );
 
             rightArrow = (
-                <a className='modal-next-bar' href='#' onClick={this.handleNext}>
+                <a ref='previewArrowRight' className='modal-next-bar' href='#' onClick={this.handleNext}>
                     <i className='image-control image-next'/>
                 </a>
             );

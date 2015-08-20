@@ -1,3 +1,8 @@
+.channel-header__info .popover-content {
+	max-height: 250px;
+	overflow: auto;
+}
+
 .user-popover {
 	cursor: pointer;
 	display: inline-block;
@@ -14,3 +19,4 @@
 	text-overflow: ellipsis;
 	display: block;
 }
+

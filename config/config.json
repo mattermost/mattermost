@@ -54,10 +54,10 @@
         "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
     },
     "AWSSettings": {
-        "S3AccessKeyId": "",
-        "S3SecretAccessKey": "",
-        "S3Bucket": "",
-        "S3Region": ""
+        "S3AccessKeyId": "AKIAJUNLXIO24GXHV5EA",
+"S3SecretAccessKey": "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",
+"S3Bucket": "mattermost-media-dev",
+"S3Region": "us-east-1"
     },
     "ImageSettings": {
         "ThumbnailWidth": 120,
