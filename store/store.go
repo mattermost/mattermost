@@ -4,7 +4,9 @@
 package store
 
 import (
+	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
+	"time"
 )
 
 type StoreResult struct {
@@ -17,6 +19,8 @@ type StoreChannel chan StoreResult
 func Must(sc StoreChannel) interface{} {
 	r := <-sc
 	if r.Err != nil {
+		l4g.Close()
+		time.Sleep(time.Second)
 		panic(r.Err)
 	}
 
