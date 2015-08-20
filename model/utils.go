@@ -18,7 +18,7 @@ import (
 
 const (
 	// Also change web/react/stores/browser_store.jsx BROWSER_STORE_VERSION
-	ETAG_ROOT_VERSION = "11"
+	ETAG_ROOT_VERSION = "12"
 )
 
 type StringMap map[string]string
