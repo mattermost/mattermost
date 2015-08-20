@@ -7,8 +7,13 @@ var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
-module.exports = React.createClass({
-    handleSubmit: function(e) {
+export default class Login extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.state = {};
+    }
+    handleSubmit(e) {
         e.preventDefault();
         var state = {};
 
@@ -49,9 +54,9 @@ module.exports = React.createClass({
 
                 var redirect = utils.getUrlParameter('redirect');
                 if (redirect) {
-                    window.location.pathname = decodeURIComponent(redirect);
+                    window.location.href = decodeURIComponent(redirect);
                 } else {
-                    window.location.pathname = '/' + name + '/channels/town-square';
+                    window.location.href = '/' + name + '/channels/town-square';
                 }
             },
             function loginFailed(err) {
@@ -64,11 +69,8 @@ module.exports = React.createClass({
                 this.setState(state);
             }.bind(this)
         );
-    },
-    getInitialState: function() {
-        return { };
-    },
-    render: function() {
+    }
+    render() {
         var serverError;
         if (this.state.serverError) {
             serverError = <label className='control-label'>{this.state.serverError}</label>;
@@ -124,13 +126,33 @@ module.exports = React.createClass({
                         {serverError}
                     </div>
                     <div className={'form-group' + errorClass}>
-                        <input autoFocus={focusEmail} type='email' className='form-control' name='email' defaultValue={priorEmail} ref='email' placeholder='Email' />
+                        <input
+                            autoFocus={focusEmail}
+                            type='email'
+                            className='form-control'
+                            name='email'
+                            defaultValue={priorEmail}
+                            ref='email'
+                            placeholder='Email'
+                        />
                     </div>
                     <div className={'form-group' + errorClass}>
-                        <input autoFocus={focusPassword} type='password' className='form-control' name='password' ref='password' placeholder='Password' />
+                        <input
+                            autoFocus={focusPassword}
+                            type='password'
+                            className='form-control'
+                            name='password'
+                            ref='password'
+                            placeholder='Password'
+                        />
                     </div>
                     <div className='form-group'>
-                        <button type='submit' className='btn btn-primary'>Sign in</button>
+                        <button
+                            type='submit'
+                            className='btn btn-primary'
+                        >
+                            Sign in
+                        </button>
                     </div>
                     {loginMessage}
                     <div className='form-group margin--extra form-group--small'>
@@ -140,10 +162,28 @@ module.exports = React.createClass({
                         <a href={'/' + teamName + '/reset_password'}>I forgot my password</a>
                     </div>
                     <div className='margin--extra'>
-                        <span>{'Want to create your own ' + strings.Team + '?'} <a href='/' className='signup-team-login'>Sign up now</a></span>
+                        <span>{'Want to create your own ' + strings.Team + '? '}
+                            <a
+                                href='/'
+                                className='signup-team-login'
+                            >
+                                Sign up now
+                            </a>
+                        </span>
                     </div>
                 </form>
             </div>
         );
     }
-});
+}
+
+Login.defaultProps = {
+    teamName: '',
+    teamDisplayName: '',
+    authServices: ''
+};
+Login.propTypes = {
+    teamName: React.PropTypes.string,
+    teamDisplayName: React.PropTypes.string,
+    authServices: React.PropTypes.string
+};
