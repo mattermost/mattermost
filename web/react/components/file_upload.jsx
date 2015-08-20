@@ -219,7 +219,7 @@ module.exports = React.createClass({
                             continue;
                         }
 
-                        var channelId = this.props.channelId || ChannelStore.getCurrentId();
+                        var channelId = self.props.channelId || ChannelStore.getCurrentId();
 
                         // generate a unique id that can be used by other components to refer back to this file upload
                         var clientId = utils.generateId();
