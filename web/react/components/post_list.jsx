@@ -419,7 +419,7 @@ module.exports = React.createClass({
                             <p className='channel-intro__content'>
                                 Welcome to <strong>{uiName}</strong>!
                                 <br/><br/>
-                                This is the first channel {strings.Team} mates see when they
+                                This is the first channel {strings.Team}mates see when they
                                 <br/>
                                 sign up - use it for posting updates everyone needs to know.
                                 <br/><br/>
@@ -454,7 +454,7 @@ module.exports = React.createClass({
 
                     var createMessage;
                     if (creatorName !== '') {
-                        createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType} created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
+                        createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
                     } else {
                         createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + utils.displayDate(channel.create_at) + '.';
                     }
