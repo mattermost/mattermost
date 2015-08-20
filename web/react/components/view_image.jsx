@@ -103,7 +103,6 @@ module.exports = React.createClass({
 
         $(this.refs.imageWrap.getDOMNode()).hover(
             function onModalHover() {
-                console.log('asd');
                 $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
             }, function offModalHover() {
                 $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
@@ -112,7 +111,6 @@ module.exports = React.createClass({
 
         $(this.refs.previewArrowLeft.getDOMNode()).hover(
             function onModalHover() {
-                console.log('asd');
                 $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
             }, function offModalHover() {
                 $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
@@ -121,7 +119,6 @@ module.exports = React.createClass({
 
         $(this.refs.previewArrowRight.getDOMNode()).hover(
             function onModalHover() {
-                console.log('asd');
                 $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
             }, function offModalHover() {
                 $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
