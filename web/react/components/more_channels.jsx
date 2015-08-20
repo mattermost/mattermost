@@ -45,9 +45,10 @@ module.exports = React.createClass({
     },
     handleJoin: function(id) {
         client.joinChannel(id,
-            function() {
+            function(data) {
                 $(this.refs.modal.getDOMNode()).modal('hide');
                 asyncClient.getChannel(id);
+                utils.switchChannel(data);
             }.bind(this),
             function(err) {
                 this.state.serverError = err.message;
