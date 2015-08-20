@@ -143,8 +143,18 @@ Email Setup (Optional)
 2. Edit the config file `vi /config_docker.json` with the settings you captured from the step above. See an example below and notice `ByPassEmail` has been set to `false`
 
 ``` bash
-"EmailSettings":
-{ "ByPassEmail" : false, "SMTPUsername": "AKIADTOVBGERKLCBV", "SMTPPassword": "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY", "SMTPServer": "email-smtp.us-east-1.amazonaws.com:465", "UseTLS": true, "FeedbackEmail": "feedback@example.com", "FeedbackName": "Feedback", "ApplePushServer": "", "ApplePushCertPublic": "", "ApplePushCertPrivate": "" }
+"EmailSettings": { 
+	"ByPassEmail" : false, 
+	"SMTPUsername": "AKIADTOVBGERKLCBV", 
+	"SMTPPassword": "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY", 
+	"SMTPServer": "email-smtp.us-east-1.amazonaws.com:465", 
+	"UseTLS": true, 
+	"FeedbackEmail": "feedback@example.com", 
+	"FeedbackName": "Feedback", 
+	"ApplePushServer": "", 
+	"ApplePushCertPublic": "", 
+	"ApplePushCertPrivate": ""
+}
 ```
 
 3. Restart Mattermost
