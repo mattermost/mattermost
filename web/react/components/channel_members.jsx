@@ -126,7 +126,7 @@ module.exports = React.createClass({
                   <div className="modal-content">
                     <div className="modal-header">
                         <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                        <h4 className="modal-title"><span className="name">{this.state.channel_name}</span> Members</h4>
+                        <h4 className="modal-title">{this.state.channel_name + " Members"}</h4>
                         <a className="btn btn-md btn-primary" data-toggle="modal" data-target="#channel_invite"><i className="glyphicon glyphicon-envelope"/>  Add New Members</a>
                     </div>
                     <div ref="modalBody" className="modal-body">

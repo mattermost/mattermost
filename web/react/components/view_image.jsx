@@ -109,22 +109,6 @@ module.exports = React.createClass({
             }
         );
 
-        $(this.refs.previewArrowLeft.getDOMNode()).hover(
-            function onModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-            }, function offModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-            }
-        );
-
-        $(this.refs.previewArrowRight.getDOMNode()).hover(
-            function onModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-            }, function offModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-            }
-        );
-
         $(window).on('keyup', this.handleKeyPress);
 
         // keep track of whether or not this component is mounted so we can safely set the state asynchronously
@@ -268,13 +252,13 @@ module.exports = React.createClass({
         var rightArrow = '';
         if (this.props.filenames.length > 1) {
             leftArrow = (
-                <a ref='previewArrowLeft' className='modal-prev-bar' href='#' onClick={this.handlePrev}>
+                <a className='modal-prev-bar' href='#' onClick={this.handlePrev}>
                     <i className='image-control image-prev'/>
                 </a>
             );
 
             rightArrow = (
-                <a ref='previewArrowRight' className='modal-next-bar' href='#' onClick={this.handleNext}>
+                <a className='modal-next-bar' href='#' onClick={this.handleNext}>
                     <i className='image-control image-next'/>
                 </a>
             );
