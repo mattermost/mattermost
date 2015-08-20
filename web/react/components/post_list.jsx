@@ -75,7 +75,6 @@ module.exports = React.createClass({
             utils.changeCss('.mention-link', 'color: ' + user.props.theme + ';');
             utils.changeCss('@media(max-width: 768px){.search-bar__container', 'background: ' + user.props.theme + ';}');
             utils.changeCss('.search-item-container:hover', 'background: ' + utils.changeOpacity(user.props.theme, 0.05) + ';');
-            utils.changeCss('.nav-pills__unread-indicator', 'background: ' + utils.changeOpacity(user.props.theme, 0.05) + ';');
         }
 
         if (user.props.theme !== '#000000' && user.props.theme !== '#585858') {
@@ -378,8 +377,8 @@ module.exports = React.createClass({
                                 <strong><UserProfile userId={teammate.id} /></strong>
                             </div>
                             <p className='channel-intro-text'>
-                                This is the start of your private message history with <strong>{teammateName}</strong>.<br/>
-                                Private messages and files shared here are not shown to people outside this area.
+                                {'This is the start of your private message history with ' + teammateName + '.'}<br/>
+                                {'Private messages and files shared here are not shown to people outside this area.'}
                             </p>
                             <a className='intro-links' href='#' style={userStyle} data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className='fa fa-pencil'></i>Set a description</a>
                         </div>
@@ -417,9 +416,9 @@ module.exports = React.createClass({
                         <div className='channel-intro'>
                             <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
                             <p className='channel-intro__content'>
-                                Welcome to <strong>{uiName}</strong>!
+                                Welcome to {uiName}!
                                 <br/><br/>
-                                This is the first channel {strings.Team} mates see when they
+                                {'This is the first channel ' + strings.Team + 'mates see when they'}
                                 <br/>
                                 sign up - use it for posting updates everyone needs to know.
                                 <br/><br/>
@@ -435,7 +434,7 @@ module.exports = React.createClass({
                         <div className='channel-intro'>
                             <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
                             <p className='channel-intro__content'>
-                                This is the start of <strong>{uiName}</strong>, a channel for non-work-related conversations.
+                                {'This is the start of ' + uiName + ', a channel for non-work-related conversations.'}
                                 <br/>
                             </p>
                             <a className='intro-links' href='#' style={userStyle} data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={uiName} data-channelid={channel.id}><i className='fa fa-pencil'></i>Set a description</a>
@@ -454,7 +453,7 @@ module.exports = React.createClass({
 
                     var createMessage;
                     if (creatorName !== '') {
-                        createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType} created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
+                        createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created by ' + creatorName + ' on ' + utils.displayDate(channel.create_at) + '.';
                     } else {
                         createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + utils.displayDate(channel.create_at) + '.';
                     }

@@ -105,7 +105,7 @@ module.exports = React.createClass({
         if (!utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
-        $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover click', html: true, delay: {show: 500, hide: 500}});
+        $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
     },
     onSocketChange: function(msg) {
         if (msg.action === 'new_user') {
