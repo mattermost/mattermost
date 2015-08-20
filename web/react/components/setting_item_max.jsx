@@ -20,7 +20,7 @@ module.exports = React.createClass({
                             <hr />
                             { server_error }
                             { clientError }
-                            { this.props.submit ? <a className="btn btn-sm btn-primary" onClick={this.props.submit}>Submit</a> : "" }
+                            { this.props.submit ? <a className="btn btn-sm btn-primary" href="#" onClick={this.props.submit}>Submit</a> : "" }
                             <a className="btn btn-sm theme" href="#" onClick={this.props.updateSection}>Cancel</a>
                         </li>
                     </ul>
