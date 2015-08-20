@@ -3,7 +3,7 @@
 
 module.exports = React.createClass({
     render: function() {
-        var clientError = this.props.clientError ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.clientError }</label></div> : null;
+        var clientError = this.props.client_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.client_error }</label></div> : null;
         var server_error = this.props.server_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.server_error }</label></div> : null;
 
         var inputs = this.props.inputs;
