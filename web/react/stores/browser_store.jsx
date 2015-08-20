@@ -10,7 +10,7 @@ function getPrefix() {
 }
 
 // Also change model/utils.go ETAG_ROOT_VERSION
-var BROWSER_STORE_VERSION = '.4';
+var BROWSER_STORE_VERSION = '.5';
 
 module.exports = {
     initialized: false,
