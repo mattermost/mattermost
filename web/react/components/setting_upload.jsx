@@ -46,17 +46,25 @@ module.exports = React.createClass({
             serverError: ''
         });
     },
+    onFileSelect: function(e) {
+        var filename = $(e.target).val();
+        if (filename.substring(3, 11) === 'fakepath') {
+            filename = filename.substring(12);
+        }
+        $(e.target).closest('li').find('.file-status').addClass('hide');
+        $(e.target).closest('li').find('.file-name').removeClass('hide').html(filename);
+    },
     render: function() {
         var clientError = null;
         if (this.state.clientError) {
             clientError = (
-                <div className='form-group has-error'><label className='control-label'>{this.state.clientError}</label></div>
+                <div className='file-status'>{this.state.clientError}</div>
             );
         }
         var serverError = null;
         if (this.state.serverError) {
             serverError = (
-                <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>
+                <div className='file-status'>{this.state.serverError}</div>
             );
         }
         return (
@@ -65,11 +73,21 @@ module.exports = React.createClass({
                 <li className='col-xs-offset-3 col-xs-8'>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
+                            <span className='btn btn-sm btn-primary btn-file sel-btn'>Select file<input ref='uploadinput' accept={this.props.fileTypesAccepted} type='file' onChange={this.onFileSelect}/></span>
+                            <a
+                                className={'btn btn-sm btn-primary'}
+                                onClick={this.doSubmit}>
+                                Import
+                            </a>
+                            <a
+                                className='btn btn-sm btn-link theme'
+                                href='#'
+                                onClick={this.doCancel}>
+                                Cancel
+                            </a>
+                            <div className='file-status file-name hide'></div>
                             {serverError}
                             {clientError}
-                            <span className='btn btn-sm btn-primary btn-file sel-btn'>SelectFile<input ref='uploadinput' accept={this.props.fileTypesAccepted} type='file' onChange={this.onFileSelect}/></span>
-                            <a className={'btn btn-sm btn-primary'} onClick={this.doSubmit}>Import</a>
-                            <a className='btn btn-sm theme' href='#' onClick={this.doCancel}>Cancel</a>
                         </li>
                     </ul>
                 </li>
