@@ -282,6 +282,7 @@ module.exports.getMeSynchronous = function(success, error) {
     var currentUser = null;
     $.ajax({
         async: false,
+        cache: false,
         url: '/api/v1/users/me',
         dataType: 'json',
         contentType: 'application/json',
@@ -293,12 +294,9 @@ module.exports.getMeSynchronous = function(success, error) {
             }
         },
         error: function onError(xhr, status, err) {
-            var ieChecker = window.navigator.userAgent; // This and the condition below is used to check specifically for browsers IE10 & 11 to suppress a 200 'OK' error from appearing on login
-            if (xhr.status !== 200 || !(ieChecker.indexOf('Trident/7.0') > 0 || ieChecker.indexOf('Trident/6.0') > 0)) {
-                if (error) {
-                    var e = handleError('getMeSynchronous', xhr, status, err);
-                    error(e);
-                }
+            if (error) {
+                var e = handleError('getMeSynchronous', xhr, status, err);
+                error(e);
             }
         }
     });
