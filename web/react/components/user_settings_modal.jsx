@@ -26,10 +26,10 @@ module.exports = React.createClass({
     },
     render: function() {
         var tabs = [];
-        tabs.push({name: "general", ui_name: "General", icon: "glyphicon glyphicon-cog"});
-        tabs.push({name: "security", ui_name: "Security", icon: "glyphicon glyphicon-lock"});
-        tabs.push({name: "notifications", ui_name: "Notifications", icon: "glyphicon glyphicon-exclamation-sign"});
-        tabs.push({name: "appearance", ui_name: "Appearance", icon: "glyphicon glyphicon-wrench"});
+        tabs.push({name: "general", uiName: "General", icon: "glyphicon glyphicon-cog"});
+        tabs.push({name: "security", uiName: "Security", icon: "glyphicon glyphicon-lock"});
+        tabs.push({name: "notifications", uiName: "Notifications", icon: "glyphicon glyphicon-exclamation-sign"});
+        tabs.push({name: "appearance", uiName: "Appearance", icon: "glyphicon glyphicon-wrench"});
 
         return (
             <div className="modal fade" ref="modal" id="user_settings" role="dialog" tabIndex="-1" aria-hidden="true">

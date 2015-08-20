@@ -631,9 +631,9 @@ module.exports.changeCss = function(className, classValue) {
     // we need invisible container to store additional css definitions
     var cssMainContainer = $('#css-modifier-container');
     if (cssMainContainer.length === 0) {
-        var cssMainContainer2 = $('<div id="css-modifier-container"></div>');
-        cssMainContainer2.hide();
-        cssMainContainer2.appendTo($('body'));
+        cssMainContainer = $('<div id="css-modifier-container"></div>');
+        cssMainContainer.hide();
+        cssMainContainer.appendTo($('body'));
     }
 
     // and we need one div for each class
