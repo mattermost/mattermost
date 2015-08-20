@@ -109,7 +109,7 @@ module.exports = React.createClass({
             }
         );
 
-        if (this.refs.previewArrowLeft.getDOMNode) {
+        if (this.refs.previewArrowLeft) {
             $(this.refs.previewArrowLeft.getDOMNode()).hover(
                 function onModalHover() {
                     $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
@@ -119,7 +119,7 @@ module.exports = React.createClass({
             );
         }
 
-        if (this.refs.previewArrowRight.getDOMNode) {
+        if (this.refs.previewArrowRight) {
             $(this.refs.previewArrowRight.getDOMNode()).hover(
                 function onModalHover() {
                     $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
