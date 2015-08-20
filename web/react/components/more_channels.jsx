@@ -24,6 +24,7 @@ export default class MoreChannels extends React.Component {
 
         var initState = getStateFromStores();
         initState.channelType = '';
+        initState.joiningChannel = -1;
         this.state = initState;
     }
     componentDidMount() {
@@ -47,14 +48,17 @@ export default class MoreChannels extends React.Component {
             this.setState(newState);
         }
     }
-    handleJoin(id) {
-        client.joinChannel(id,
-            function joinSuccess(data) {
+    handleJoin(channel, channelIndex) {
+        this.setState({joiningChannel: channelIndex});
+        client.joinChannel(channel.id,
+            function joinSuccess() {
                 $(this.refs.modal.getDOMNode()).modal('hide');
-                asyncClient.getChannel(id);
-                utils.switchChannel(data);
+                asyncClient.getChannel(channel.id);
+                utils.switchChannel(channel);
+                this.setState({joiningChannel: -1});
             }.bind(this),
             function joinFail(err) {
+                this.setState({joiningChannel: -1});
                 this.state.serverError = err.message;
                 this.setState(this.state);
             }.bind(this)
@@ -79,7 +83,20 @@ export default class MoreChannels extends React.Component {
                     moreChannels = (
                         <table className='more-channel-table table'>
                             <tbody>
-                                {channels.map(function cMap(channel) {
+                                {channels.map(function cMap(channel, index) {
+                                    var joinButton;
+                                    if (self.state.joiningChannel === index) {
+                                        joinButton = (<img
+                                                        className='join-channel-loading-gif'
+                                                        src='/static/images/load.gif'
+                                                    />);
+                                    } else {
+                                        joinButton = (<button
+                                                        onClick={self.handleJoin.bind(self, channel, index)}
+                                                        className='btn btn-primary'>Join
+                                                    </button>);
+                                    }
+
                                     return (
                                         <tr key={channel.id}>
                                             <td>
@@ -87,10 +104,7 @@ export default class MoreChannels extends React.Component {
                                                 <p className='more-channel-description'>{channel.description}</p>
                                             </td>
                                             <td className='td--action'>
-                                                <button
-                                                    onClick={self.handleJoin.bind(self, channel.id)}
-                                                    className='btn btn-primary'>Join
-                                                </button>
+                                                {joinButton}
                                             </td>
                                         </tr>
                                     );
