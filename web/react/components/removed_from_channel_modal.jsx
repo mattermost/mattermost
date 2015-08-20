@@ -45,7 +45,7 @@ module.exports = React.createClass({
                       <div className="modal-content">
                         <div className="modal-header">
                           <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                          <h4 className="modal-title">Removed from {channelName}</h4>
+                          <h4 className="modal-title">Removed from <span className="name">{channelName}</span></h4>
                         </div>
                         <div className="modal-body">
                             <p>{remover} removed you from {channelName}</p>
