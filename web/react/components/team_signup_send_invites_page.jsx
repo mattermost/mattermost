@@ -6,13 +6,18 @@ var utils = require('../utils/utils.jsx');
 var ConfigStore = require('../stores/config_store.jsx');
 var client = require('../utils/client.jsx');
 
-module.exports = React.createClass({
-    displayName: 'TeamSignupSendInivtesPage',
-    propTypes: {
-        state: React.PropTypes.object,
-        updateParent: React.PropTypes.func
-    },
-    submitBack: function(e) {
+export default class TeamSignupSendInvitesPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.submitBack = this.submitBack.bind(this);
+        this.submitNext = this.submitNext.bind(this);
+        this.submitAddInvite = this.submitAddInvite.bind(this);
+        this.submitSkip = this.submitSkip.bind(this);
+        this.state = {
+            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
+        };
+    }
+    submitBack(e) {
         e.preventDefault();
 
         if (config.AllowSignupDomainsWizard) {
@@ -22,8 +27,8 @@ module.exports = React.createClass({
         }
 
         this.props.updateParent(this.props.state);
-    },
-    submitNext: function(e) {
+    }
+    submitNext(e) {
         e.preventDefault();
 
         var valid = true;
@@ -48,8 +53,8 @@ module.exports = React.createClass({
             this.props.state.wizard = 'username';
             this.props.updateParent(this.props.state);
         }
-    },
-    submitAddInvite: function(e) {
+    }
+    submitAddInvite(e) {
         e.preventDefault();
         this.props.state.wizard = 'send_invites';
         if (!this.props.state.invites) {
@@ -57,18 +62,19 @@ module.exports = React.createClass({
         }
         this.props.state.invites.push('');
         this.props.updateParent(this.props.state);
-    },
-    submitSkip: function(e) {
+    }
+    submitSkip(e) {
         e.preventDefault();
         this.props.state.wizard = 'username';
         this.props.updateParent(this.props.state);
-    },
-    getInitialState: function() {
-        return {
-            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
-        };
-    },
-    render: function() {
+    }
+    componentWillMount() {
+        if (!this.state.emailEnabled) {
+            this.props.state.wizard = 'username';
+            this.props.updateParent(this.props.state);
+        }
+    }
+    render() {
         client.track('signup', 'signup_team_05_send_invites');
 
         var content = null;
@@ -79,43 +85,95 @@ module.exports = React.createClass({
 
             for (var i = 0; i < this.props.state.invites.length; i++) {
                 if (i === 0) {
-                    emails.push(<EmailItem focus={true} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+                    emails.push(
+                        <EmailItem
+                            focus={true}
+                            key={i}
+                            ref={'email_' + i}
+                            email={this.props.state.invites[i]}
+                        />
+                    );
                 } else {
-                    emails.push(<EmailItem focus={false} key={i} ref={'email_' + i} email={this.props.state.invites[i]} />);
+                    emails.push(
+                        <EmailItem
+                            focus={false}
+                            key={i}
+                            ref={'email_' + i}
+                            email={this.props.state.invites[i]}
+                        />
+                    );
                 }
             }
 
             content = (
                 <div>
                     {emails}
-                    <div className='form-group text-right'><a href='#' onClick={this.submitAddInvite}>Add Invitation</a></div>
+                    <div className='form-group text-right'>
+                        <a
+                            href='#'
+                            onClick={this.submitAddInvite}
+                        >
+                            Add Invitation
+                        </a>
+                    </div>
                 </div>
             );
 
             bottomContent = (
-                <p className='color--light'>{'if you prefer, you can invite ' + strings.Team + ' members later'}<br /> and <a href='#' onClick={this.submitSkip}>skip this step</a> for now.</p>
+                <p className='color--light'>
+                    {'if you prefer, you can invite ' + strings.Team + ' members later'}
+                    <br />
+                    {' and '}
+                    <a
+                        href='#'
+                        onClick={this.submitSkip}
+                    >
+                    {'skip this step '}
+                    </a>
+                    {'for now.'}
+                </p>
             );
         } else {
             content = (
-                <div className='form-group color--light'>{'Email is currently disabled for your ' + strings.Team + ', and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}</div>
+                <div className='form-group color--light'>
+                    {'Email is currently disabled for your ' + strings.Team + ', and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}
+                </div>
             );
         }
 
         return (
             <div>
                 <form>
-                    <img className='signup-team-logo' src='/static/images/logo.png' />
+                    <img
+                        className='signup-team-logo'
+                        src='/static/images/logo.png'
+                    />
                     <h2>{'Invite ' + utils.toTitleCase(strings.Team) + ' Members'}</h2>
                     {content}
                     <div className='form-group'>
-                        <button type='submit' className='btn-primary btn' onClick={this.submitNext}>Next<i className='glyphicon glyphicon-chevron-right'></i></button>
+                        <button
+                            type='submit'
+                            className='btn-primary btn'
+                            onClick={this.submitNext}
+                        >
+                            Next<i className='glyphicon glyphicon-chevron-right' />
+                        </button>
                     </div>
                 </form>
                 {bottomContent}
                 <div className='margin--extra'>
-                    <a href='#' onClick={this.submitBack}>Back to previous step</a>
+                    <a
+                        href='#'
+                        onClick={this.submitBack}
+                    >
+                        Back to previous step
+                    </a>
                 </div>
             </div>
         );
     }
-});
+}
+TeamSignupSendInvitesPage.propTypes = {
+    state: React.PropTypes.object.isRequired,
+    updateParent: React.PropTypes.func.isRequired
+};
