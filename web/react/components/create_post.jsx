@@ -223,7 +223,7 @@ module.exports = React.createClass({
 
             var previews = [];
             var messageText = '';
-            var uploadsInProgress = 0;
+            var uploadsInProgress = [];
             if (draft && draft.previews && draft.message) {
                 previews = draft.previews;
                 messageText = draft.message;
@@ -239,7 +239,7 @@ module.exports = React.createClass({
         var draft = PostStore.getCurrentDraft();
         var previews = [];
         var messageText = '';
-        var uploadsInProgress = 0;
+        var uploadsInProgress = [];
         if (draft && draft.previews && draft.message) {
             previews = draft.previews;
             messageText = draft.message;
