@@ -50,6 +50,13 @@
 		@include clearfix;
 		.modal-title {
 			float: left;
+			font-size: 16px;
+			line-height: 27px;
+			color: #f4f4f4;
+			.name {
+				font-weight: 600;
+				color: #fff;
+			}
 		}
 		.modal-action {
 			padding: 0;
