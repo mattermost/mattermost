@@ -9,38 +9,6 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
-function getStateFromStores() {
-    function getId(user) {
-        return user.id;
-    }
-    var users = UserStore.getActiveOnlyProfiles();
-    var memberIds = ChannelStore.getCurrentExtraInfo().members.map(getId);
-
-    var loading = $.isEmptyObject(users);
-
-    var nonmembers = [];
-    for (var id in users) {
-        if (memberIds.indexOf(id) === -1) {
-            nonmembers.push(users[id]);
-        }
-    }
-
-    nonmembers.sort(function sortByUsername(a, b) {
-        return a.username.localeCompare(b.username);
-    });
-
-    var channelName = '';
-    if (ChannelStore.getCurrent()) {
-        channelName = ChannelStore.getCurrent().display_name;
-    }
-
-    return {
-        nonmembers: nonmembers,
-        memberIds: memberIds,
-        channelName: channelName,
-        loading: loading
-    };
-}
 
 export default class ChannelInviteModal extends React.Component {
     constructor() {
@@ -48,14 +16,45 @@ export default class ChannelInviteModal extends React.Component {
 
         this.componentDidMount = this.componentDidMount.bind(this);
         this.componentWillUnmount = this.componentWillUnmount.bind(this);
-        this.shouldComponentUpdate = this.shouldComponentUpdate.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleInvite = this.handleInvite.bind(this);
 
         this.isShown = false;
-        this.state = getStateFromStores();
+        this.state = this.getStateFromStores();
+    }
+    getStateFromStores() {
+        function getId(user) {
+            return user.id;
+        }
+        var users = UserStore.getActiveOnlyProfiles();
+        var memberIds = ChannelStore.getCurrentExtraInfo().members.map(getId);
+
+        var loading = $.isEmptyObject(users);
+
+        var nonmembers = [];
+        for (var id in users) {
+            if (memberIds.indexOf(id) === -1) {
+                nonmembers.push(users[id]);
+            }
+        }
+
+        nonmembers.sort(function sortByUsername(a, b) {
+            return a.username.localeCompare(b.username);
+        });
+
+        var channelName = '';
+        if (ChannelStore.getCurrent()) {
+            channelName = ChannelStore.getCurrent().display_name;
+        }
+
+        return {
+            nonmembers: nonmembers,
+            memberIds: memberIds,
+            channelName: channelName,
+            loading: loading
+        };
     }
     componentDidMount() {
         $(React.findDOMNode(this)).on('hidden.bs.modal', this.onHide);
@@ -70,9 +69,6 @@ export default class ChannelInviteModal extends React.Component {
         ChannelStore.removeChangeListener(this.onListenerChange);
         UserStore.removeChangeListener(this.onListenerChange);
     }
-    shouldComponentUpdate() {
-        return this.isShown;
-    }
     onShow() {
         this.isShown = true;
         this.onListenerChange();
@@ -81,8 +77,8 @@ export default class ChannelInviteModal extends React.Component {
         this.isShown = false;
     }
     onListenerChange() {
-        var newState = getStateFromStores();
-        if (!utils.areStatesEqual(this.state, newState)) {
+        var newState = this.getStateFromStores();
+        if (!utils.areStatesEqual(this.state, newState) && this.isShown) {
             this.setState(newState);
         }
     }
