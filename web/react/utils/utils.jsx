@@ -167,7 +167,7 @@ module.exports.displayTime = function(ticks) {
 
     var ampm = 'AM';
     if (hours >= 12) {
-        ampm = 'AM';
+        ampm = 'PM';
     }
 
     hours = hours % 12;
