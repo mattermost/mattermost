@@ -252,6 +252,7 @@ module.exports.revokeSession = function(altId, success, error) {
 
 module.exports.getSessions = function(userId, success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/users/' + userId + '/sessions',
         dataType: 'json',
         contentType: 'application/json',
@@ -789,6 +790,7 @@ module.exports.removeChannelMember = function(id, data, success, error) {
 
 module.exports.getProfiles = function(success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/users/profiles',
         dataType: 'json',
         contentType: 'application/json',
