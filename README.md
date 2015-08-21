@@ -79,18 +79,26 @@ Local Machine Setup (Docker)
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
 
 ### Additional Notes ###
-- If you want to work with the latest bits in the repository (i.e. not a stable release) you can run the cmd:  
-`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:dev`
+- If you want to work with the latest master from the repository (i.e. not a stable release) you can run the cmd:  
 
-- You can update to the latest bits by running:  
-`docker pull mattermost/platform:dev`
+	``` bash
+    docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:dev
+    ```
+
+- Instructions on how to update your docker image are found below. 
 
 - If you wish to remove mattermost-dev use:   
-	`docker stop mattermost-dev`
-	`docker rm -v mattermost-dev`
+
+	``` bash
+	docker stop mattermost-dev
+	docker rm -v mattermost-dev
+    ```
 
 - If you wish to gain access to a shell on the container use:  
-	`docker exec -ti mattermost-dev /bin/bash`
+
+	``` bash
+	docker exec -ti mattermost-dev /bin/bash
+    ```
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
@@ -123,6 +131,35 @@ There are a few configuration settings you might want to adjust when setting up 
 * *ServiceSettings*:*UseLocalStorage* - If this is set to true, then your Mattermost server will store uploaded files in the storage directory specified by *StorageDirectory*. *StorageDirectory* must be set if *UseLocalStorage* is set to true.  
 * *ServiceSettings*:*StorageDirectory* - The file path where files will be stored locally if *UseLocalStorage* is set to true. The operating system user that is running the Mattermost application must have read and write privileges to this directory.  
 * *AWSSettings*:*S3*\* - If *UseLocalStorage* is set to false, and the S3 settings are configured here, then Mattermost will store files in the provided S3 bucket.
+
+Upgrading Mattermost
+---------------------
+
+### Docker ###
+To upgrade your docker image to the latest release (NOTE: this will destroy all data in the docker container):
+
+1. Stop your docker container by running: 
+
+    ``` bash
+    docker stop mattermost-dev
+    ```
+2. Delete your docker container by running:
+
+    ``` bash
+    docker rm mattermost-dev
+    ```
+3. Update your docker image by running:
+
+    ``` bash
+    docker pull mattermost/platform
+    ```
+4. Start your docker container by running:
+
+    ``` bash
+    docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform
+    ```
+
+To upgrade to the latest master from the repository replace `mattermost/platform` with `mattermost/platform:dev` in the above instructions.
 
 Contributing
 ------------
