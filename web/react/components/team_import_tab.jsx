@@ -39,7 +39,7 @@ module.exports = React.createClass({
             break;
             case 'done':
                 messageSection = (
-                    <p>Import sucessfull: <a href={this.state.link} download='MattermostImportSummery.txt'>View Summery</a></p>
+                    <p>Import successful: <a href={this.state.link} download='MattermostImportSummery.txt'>View Summery</a></p>
             );
             break;
             case 'fail':
