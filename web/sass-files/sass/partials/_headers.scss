@@ -65,6 +65,9 @@
 	}
 	.channel-intro-img {
 		float:left;
+		img {
+			@include border-radius(100px);
+		}
 	}
 	.channel-intro__title {
 		font-weight:600;

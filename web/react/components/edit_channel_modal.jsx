@@ -56,7 +56,7 @@ module.exports = React.createClass({
                 <div className="modal-content">
                   <div className="modal-header">
                     <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title" ref="title">Edit {this.state.title} Description</h4>
+                    <h4 className="modal-title" ref="title">Edit Description for {this.state.title}</h4>
                   </div>
                   <div className="modal-body">
                     <textarea className="form-control no-resize" rows="6" ref="channelDesc" maxLength="1024" value={this.state.description} onChange={this.handleUserInput}></textarea>

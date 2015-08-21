@@ -79,18 +79,26 @@ Local Machine Setup (Docker)
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
 
 ### Additional Notes ###
-- If you want to work with the latest bits in the repository (i.e. not a stable release) you can run the cmd:  
-`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:dev`
+- If you want to work with the latest master from the repository (i.e. not a stable release) you can run the cmd:  
 
-- You can update to the latest bits by running:  
-`docker pull mattermost/platform:dev`
+	``` bash
+    docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:dev
+    ```
+
+- Instructions on how to update your docker image are found below. 
 
 - If you wish to remove mattermost-dev use:   
-	`docker stop mattermost-dev`
-	`docker rm -v mattermost-dev`
+
+	``` bash
+	docker stop mattermost-dev
+	docker rm -v mattermost-dev
+    ```
 
 - If you wish to gain access to a shell on the container use:  
-	`docker exec -ti mattermost-dev /bin/bash`
+
+	``` bash
+	docker exec -ti mattermost-dev /bin/bash
+    ```
 
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
@@ -162,6 +170,35 @@ Email Setup (Optional)
 	2. Kill the process `kill pid`
 	3. The service should restart automatically. Verify the Mattermost service is running with `ps -A`
 	4. Current logged in users will not be affected, but upon logging out or session expiration users will be required to verify their email address.
+
+Upgrading Mattermost
+---------------------
+
+### Docker ###
+To upgrade your docker image to the latest release (NOTE: this will destroy all data in the docker container):
+
+1. Stop your docker container by running: 
+
+    ``` bash
+    docker stop mattermost-dev
+    ```
+2. Delete your docker container by running:
+
+    ``` bash
+    docker rm mattermost-dev
+    ```
+3. Update your docker image by running:
+
+    ``` bash
+    docker pull mattermost/platform
+    ```
+4. Start your docker container by running:
+
+    ``` bash
+    docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform
+    ```
+
+To upgrade to the latest master from the repository replace `mattermost/platform` with `mattermost/platform:dev` in the above instructions.
 
 Contributing
 ------------

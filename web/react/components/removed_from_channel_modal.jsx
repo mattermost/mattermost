@@ -20,7 +20,7 @@ module.exports = React.createClass({
       var townSquare = ChannelStore.getByName("town-square");
       utils.switchChannel(townSquare);
 
-      this.setState({channelName: "", remover: ""})
+      this.setState({channelName: "", remover: ""});
     },
     componentDidMount: function() {
       $(this.getDOMNode()).on('show.bs.modal',this.handleShow);
@@ -40,18 +40,18 @@ module.exports = React.createClass({
 
         if (currentUser != null) {
             return (
-                <div className="modal fade" ref="modal" id="removed_from_channel" tabIndex="-1" role="dialog" aria-hidden="true">
-                   <div className="modal-dialog">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                          <h4 className="modal-title">Removed from {channelName}</h4>
+                <div className='modal fade' ref='modal' id='removed_from_channel' tabIndex='-1' role='dialog' aria-hidden='true'>
+                   <div className='modal-dialog'>
+                      <div className='modal-content'>
+                        <div className='modal-header'>
+                          <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+                          <h4 className='modal-title'>Removed from <span className='name'>{channelName}</span></h4>
                         </div>
-                        <div className="modal-body">
+                        <div className='modal-body'>
                             <p>{remover} removed you from {channelName}</p>
                         </div>
-                        <div className="modal-footer">
-                          <button type="button" className="btn btn-primary" data-dismiss="modal">Okay</button>
+                        <div className='modal-footer'>
+                          <button type='button' className='btn btn-primary' data-dismiss='modal'>Okay</button>
                         </div>
                       </div>
                    </div>

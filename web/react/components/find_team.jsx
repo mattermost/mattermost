@@ -47,7 +47,7 @@ module.exports = React.createClass({
             return (
                 <div>
                     <h4>{"Find Your " + utils.toTitleCase(strings.Team)}</h4>
-                    <p>{"An email was sent with links to any " + strings.TeamPlural}</p>
+                    <p>{"An email was sent with links to any " + strings.TeamPlural + " to which you are a member."}</p>
                 </div>
             );
         }
@@ -56,7 +56,7 @@ module.exports = React.createClass({
         <div>
                 <h4>Find Your Team</h4>
                 <form onSubmit={this.handleSubmit}>
-                    <p>{"We'll send you an email with links to your " + strings.TeamPlural + "."}</p>
+                    <p>{"Get an email with links to any " + strings.TeamPlural + " to which you are a member."}</p>
                     <div className="form-group">
                         <label className='control-label'>Email</label>
                         <div className={ email_error ? "form-group has-error" : "form-group" }>

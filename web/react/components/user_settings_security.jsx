@@ -62,11 +62,9 @@ module.exports = React.createClass({
         this.setState({confirmPassword: e.target.value});
     },
     handleHistoryOpen: function() {
-        this.setState({willReturn: true});
         $("#user_settings").modal('hide');
     },
     handleDevicesOpen: function() {
-        this.setState({willReturn: true});
         $("#user_settings").modal('hide');
     },
     handleClose: function() {
@@ -75,11 +73,7 @@ module.exports = React.createClass({
         });
         this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
 
-        if (!this.state.willReturn) {
-            this.props.updateTab('general');
-        } else {
-            this.setState({willReturn: false});
-        }
+        this.props.updateTab('general');
     },
     componentDidMount: function() {
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
@@ -89,7 +83,7 @@ module.exports = React.createClass({
         this.props.updateSection('');
     },
     getInitialState: function() {
-        return {currentPassword: '', newPassword: '', confirmPassword: '', willReturn: false};
+        return {currentPassword: '', newPassword: '', confirmPassword: ''};
     },
     render: function() {
         var serverError = this.state.serverError ? this.state.serverError : null;
