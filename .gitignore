@@ -50,3 +50,7 @@ web/sass-files/sass/.sass-cache/
 # Default local file storage
 data/*
 api/data/*
+
+.agignore
+.ctags
+tags

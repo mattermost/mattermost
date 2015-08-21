@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	l4g "code.google.com/p/log4go"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -93,6 +94,7 @@ func getCookie(name string, resp *http.Response) *http.Cookie {
 
 func (c *Client) Must(result *Result, err *AppError) *Result {
 	if err != nil {
+		l4g.Close()
 		time.Sleep(time.Second)
 		panic(err)
 	}

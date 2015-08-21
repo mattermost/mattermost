@@ -4,6 +4,7 @@
 package store
 
 import (
+	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -153,8 +154,10 @@ func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
 
 		channel.ExtraUpdated()
 
-		if count, err := s.GetMaster().Update(channel); err != nil || count != 1 {
+		if count, err := s.GetMaster().Update(channel); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.extraUpdated", "Problem updating members last updated time", "id="+channel.Id+", "+err.Error())
+		} else if count != 1 {
+			result.Err = model.NewAppError("SqlChannelStore.extraUpdated", "Problem updating members last updated time", fmt.Sprintf("id=%v, count=%v", channel.Id, count))
 		}
 
 		storeChannel <- result
