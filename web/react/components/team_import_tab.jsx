@@ -34,17 +34,17 @@ module.exports = React.createClass({
             break;
             case 'in-progress':
                 messageSection = (
-                    <p>Importing...</p>
+                    <p className="confirm-import alert alert-warning"><i className="fa fa-spinner fa-pulse"></i> Importing...</p>
             );
             break;
             case 'done':
                 messageSection = (
-                    <p>Import sucessfull: <a href={this.state.link} download='MattermostImportSummary.txt'>View Summary</a></p>
+                    <p className="confirm-import alert alert-success"><i className="fa fa-check"></i> Import sucessfull: <a href={this.state.link} download='MattermostImportSummery.txt'>View Summery</a></p>
             );
             break;
             case 'fail':
                 messageSection = (
-                    <p>Import failure: <a href={this.state.link} download='MattermostImportSummary.txt'>View Summary</a></p>
+                    <p className="confirm-import alert alert-warning"><i className="fa fa-warning"></i> Import failure: <a href={this.state.link} download='MattermostImportSummery.txt'>View Summery</a></p>
             );
             break;
         }
@@ -59,8 +59,8 @@ module.exports = React.createClass({
                     <h3 className='tab-header'>Import</h3>
                     <div className='divider-dark first'/>
                     {uploadSection}
-                    {messageSection}
                     <div className='divider-dark'/>
+                    {messageSection}
                 </div>
             </div>
         );
