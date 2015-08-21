@@ -152,6 +152,8 @@ module.exports = React.createClass({
 
         var channelMenuDropdown = null;
         if (channel) {
+            var viewInfoOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_info' data-channelid={channel.id} href='#'>View Info</a></li>
+
             var addMembersOption = null;
             if (!isDirect && !ChannelStore.isDefault(channel)) {
                 addMembersOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_invite' href='#'>Add Members</a></li>;
@@ -192,6 +194,7 @@ module.exports = React.createClass({
                                                 <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'></span>
                                             </a>
                                             <ul className='dropdown-menu' role='menu' aria-labelledby='channel_header_dropdown'>
+                                                {viewInfoOption}
                                                 {addMembersOption}
                                                 {manageMembersOption}
                                                 {setChannelDescriptionOption}

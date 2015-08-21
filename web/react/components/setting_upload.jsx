@@ -88,6 +88,18 @@ module.exports = React.createClass({
                             <div className='file-status file-name hide'></div>
                             {serverError}
                             {clientError}
+                            <span className='btn btn-sm btn-primary btn-file sel-btn'>Select File<input ref='uploadinput' accept={this.props.fileTypesAccepted} type='file' onChange={this.onFileSelect}/></span>
+                            <a
+                                className={'btn btn-sm btn-primary'}
+                                onClick={this.doSubmit}>
+                                Import
+                            </a>
+                            <a
+                                className='btn btn-sm theme'
+                                href='#'
+                                onClick={this.doCancel}>
+                                Cancel
+                            </a>
                         </li>
                     </ul>
                 </li>
