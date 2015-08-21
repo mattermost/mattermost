@@ -4,18 +4,19 @@
 package web
 
 import (
-	l4g "code.google.com/p/log4go"
 	"fmt"
+	"html/template"
+	"net/http"
+	"strconv"
+	"strings"
+
+	l4g "code.google.com/p/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 	"gopkg.in/fsnotify.v1"
-	"html/template"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 var Templates *template.Template
@@ -214,7 +215,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	props := model.MapFromJson(strings.NewReader(data))
 
 	t, err := strconv.ParseInt(props["time"], 10, 64)
-	if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
+	if err != nil || model.GetMillis()-t > 1000*60*60*24*30 { // 30 days
 		c.Err = model.NewAppError("signupTeamComplete", "The signup link has expired", "")
 		return
 	}
