@@ -4,6 +4,7 @@
 var TeamStore = require('../stores/team_store.jsx');
 var ImportTab = require('./team_import_tab.jsx');
 var FeatureTab = require('./team_feature_tab.jsx');
+var GeneralTab = require('./team_general_tab.jsx');
 var utils = require('../utils/utils.jsx');
 
 module.exports = React.createClass({
@@ -11,7 +12,8 @@ module.exports = React.createClass({
     propTypes: {
         activeTab: React.PropTypes.string.isRequired,
         activeSection: React.PropTypes.string.isRequired,
-        updateSection: React.PropTypes.func.isRequired
+        updateSection: React.PropTypes.func.isRequired,
+        teamDisplayName: React.PropTypes.string.isRequired
     },
     componentDidMount: function() {
         TeamStore.addChangeListener(this.onChange);
@@ -34,6 +36,12 @@ module.exports = React.createClass({
             case 'general':
                 result = (
                     <div>
+                        <GeneralTab
+                            team={this.state.team}
+                            activeSection={this.props.activeSection}
+                            updateSection={this.props.updateSection}
+                            teamDisplayName={this.props.teamDisplayName}
+                        />
                     </div>
                 );
                 break;
