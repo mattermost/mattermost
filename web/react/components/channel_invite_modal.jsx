@@ -138,7 +138,7 @@ export default class ChannelInviteModal extends React.Component {
                 <div className='modal-content'>
                   <div className='modal-header'>
                     <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                    <h4 className='modal-title'>Add New Members to {this.state.channelName}</h4>
+                    <h4 className='modal-title'>Add New Members to <span className='name'>{this.state.channel_name}</span></h4>
                   </div>
                   <div className='modal-body'>
                     {inviteError}
