@@ -27,8 +27,8 @@ module.exports = React.createClass({
     },
     render: function() {
         var tabs = [];
-        tabs.push({name: 'feature', uiName: 'Features', icon: 'glyphicon glyphicon-wrench'});
         tabs.push({name: 'import', uiName: 'Import', icon: 'glyphicon glyphicon-upload'});
+        tabs.push({name: 'feature', uiName: 'Advanced', icon: 'glyphicon glyphicon-wrench'});
 
         return (
             <div className='modal fade' ref='modal' id='team_settings' role='dialog' tabIndex='-1' aria-hidden='true'>
