@@ -50,13 +50,18 @@ module.exports = React.createClass({
     render: function() {
         var server_error = this.state.server_error ? <div className='form-group has-error'><br/><label className='control-label'>{ this.state.server_error }</label></div> : null;
 
+        var editTitle = <h4 className='modal-title' ref='title'>Edit Description</h4>;
+        if (this.state.title) {
+            editTitle = <h4 className='modal-title' ref='title'>Edit Description for <span className='name'>{this.state.title}</span></h4>;
+        }
+
         return (
             <div className="modal fade" ref="modal" id="edit_channel" role="dialog" tabIndex="-1" aria-hidden="true">
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
                     <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title" ref="title">Edit Description for <span className='name'>{this.state.title}</span></h4>
+                    {editTitle}
                   </div>
                   <div className="modal-body">
                     <textarea className="form-control no-resize" rows="6" ref="channelDesc" maxLength="1024" value={this.state.description} onChange={this.handleUserInput}></textarea>
