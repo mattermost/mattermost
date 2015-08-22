@@ -565,6 +565,7 @@ module.exports.updateLastViewedAt = function(channelId, success, error) {
 
 function getChannels(success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/',
         dataType: 'json',
         type: 'GET',
@@ -580,6 +581,7 @@ module.exports.getChannels = getChannels;
 
 module.exports.getChannel = function(id, success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/' + id + '/',
         dataType: 'json',
         type: 'GET',
@@ -609,6 +611,7 @@ module.exports.getMoreChannels = function(success, error) {
 
 function getChannelCounts(success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/counts',
         dataType: 'json',
         type: 'GET',
@@ -652,6 +655,7 @@ module.exports.executeCommand = function(channelId, command, suggest, success, e
 
 module.exports.getPosts = function(channelId, offset, limit, success, error, complete) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/' + channelId + '/posts/' + offset + '/' + limit,
         dataType: 'json',
         type: 'GET',
@@ -667,6 +671,7 @@ module.exports.getPosts = function(channelId, offset, limit, success, error, com
 
 module.exports.getPost = function(channelId, postId, success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/' + channelId + '/post/' + postId,
         dataType: 'json',
         type: 'GET',
