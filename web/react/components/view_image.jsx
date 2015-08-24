@@ -229,13 +229,18 @@ module.exports = React.createClass({
                 if (!(filename in this.state.fileSizes)) {
                     var self = this;
 
-                    utils.getFileSize(utils.getFileUrl(filename), function fileSizeOp(fileSize) {
-                        if (self.canSetState) {
-                            var fileSizes = self.state.fileSizes;
-                            fileSizes[filename] = fileSize;
-                            self.setState(fileSizes);
+                    Client.getFileInfo(
+                        filename,
+                        function(data) {
+                            if (self.canSetState) {
+                                var fileSizes = self.state.fileSizes;
+                                fileSizes[filename] = parseInt(data["size"], 10);
+                                self.setState(fileSizes);
+                            }
+                        },
+                        function(err) {
                         }
-                    });
+                    );
                 }
             }
         } else {

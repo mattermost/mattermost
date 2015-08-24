@@ -831,6 +831,20 @@ module.exports.uploadFile = function(formData, success, error) {
     return request;
 };
 
+module.exports.getFileInfo = function(filename, success, error) {
+    $.ajax({
+        url: '/api/v1/files/get_info' + filename,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success: success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getFileInfo', xhr, status, err);
+            error(e);
+        }
+    });
+};
+
 module.exports.getPublicLink = function(data, success, error) {
     $.ajax({
         url: '/api/v1/files/get_public_link',

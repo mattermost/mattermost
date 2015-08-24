@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var utils = require('../utils/utils.jsx');
+var Client = require('../utils/client.jsx');
 var Constants = require('../utils/constants.jsx');
 
 module.exports = React.createClass({
@@ -103,12 +104,16 @@ module.exports = React.createClass({
         if (this.state.fileSize < 0) {
             var self = this;
 
-            // asynchronously request the size of the file so that we can display it next to the thumbnail
-            utils.getFileSize(utils.getFileUrl(filename), function(fileSize) {
-                if (self.canSetState) {
-                    self.setState({fileSize: fileSize});
+            Client.getFileInfo(
+                filename,
+                function(data) {
+                    if (self.canSetState) {
+                        self.setState({fileSize: parseInt(data["size"], 10)});
+                    }
+                },
+                function(err) {
                 }
-            });
+            );
         } else {
             fileSizeString = utils.fileSizeToString(this.state.fileSize);
         }
