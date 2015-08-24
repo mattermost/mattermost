@@ -79,6 +79,9 @@ func newSMTPClient(conn net.Conn) (*smtp.Client, *model.AppError) {
 			ServerName:         host,
 		}
 		c.StartTLS(tlsconfig)
+		if err = c.Auth(auth); err != nil {
+			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+		}
 	}
 	return c, nil
 }
