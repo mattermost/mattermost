@@ -234,8 +234,8 @@ func LoadConfig(fileName string) {
 
 	// Check for a valid email for feedback, if not then do feedback@domain
 	if _, err := mail.ParseAddress(config.EmailSettings.FeedbackEmail); err != nil {
-		config.EmailSettings.FeedbackEmail = "feedback@localhost"
 		l4g.Error("Misconfigured feedback email setting: %s", config.EmailSettings.FeedbackEmail)
+		config.EmailSettings.FeedbackEmail = "feedback@localhost"
 	}
 
 	configureLog(config.LogSettings)
