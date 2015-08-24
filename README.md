@@ -60,7 +60,7 @@ Local Machine Setup (Docker)
 3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
 
 ### Arch ###
-1. Install docker using the following commands:
+1. Install Docker using the following commands:
 
 	``` bash
 	pacman -S docker
@@ -70,13 +70,13 @@ Local Machine Setup (Docker)
 	newgrp docker
 	```
 
-2. Start docker container:
+2. Start Docker container:
 
 	``` bash
 	docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform
 	```
 
-3. When docker is done fetching the image, open http://localhost:8065/ in your browser.
+3. When Docker is done fetching the image, open http://localhost:8065/ in your browser.
 
 ### Additional Notes ###
 - If you want to work with the latest master from the repository (i.e. not a stable release) you can run the cmd:  
@@ -85,7 +85,7 @@ Local Machine Setup (Docker)
     docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform:dev
     ```
 
-- Instructions on how to update your docker image are found below. 
+- Instructions on how to update your Docker image are found below. 
 
 - If you wish to remove mattermost-dev use:   
 
@@ -103,7 +103,7 @@ Local Machine Setup (Docker)
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
 
-1. Create a new elastic beanstalk docker application using the [Dockerrun.aws.json](docker/0.6/Dockerrun.aws.json) file provided. 
+1. Create a new Elastic Beanstalk Docker application using the [Dockerrun.aws.json](docker/0.6/Dockerrun.aws.json) file provided. 
 	1. From the AWS console select Elastic Beanstalk.
 	2. Select "Create New Application" from the top right.
 	3. Name the application and press next.
@@ -125,7 +125,7 @@ AWS Elastic Beanstalk Setup (Docker)
 Configuration Settings
 ----------------------
 
-There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in [config/config.json](config/config.json) or [docker/0.6/config_docker.json](docker/0.6/config_docker.json) if you're running a docker instance.
+There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in [config/config.json](config/config.json) or [docker/0.6/config_docker.json](docker/0.6/config_docker.json) if you're running a Docker instance.
 
 * *EmailSettings*:*ByPassEmail* - If this is set to true, then users on the system will not need to verify their email addresses when signing up. In addition, no emails will ever be sent.  
 * *ServiceSettings*:*UseLocalStorage* - If this is set to true, then your Mattermost server will store uploaded files in the storage directory specified by *StorageDirectory*. *StorageDirectory* must be set if *UseLocalStorage* is set to true.  
@@ -171,34 +171,34 @@ Email Setup (Optional)
 	3. The service should restart automatically. Verify the Mattermost service is running with `ps -A`
 	4. Current logged in users will not be affected, but upon logging out or session expiration users will be required to verify their email address.
 
-Upgrading Mattermost
----------------------
+Upgrading Mattermost Preview
+----------------------------
 
 ### Docker ###
-To upgrade your docker image to the latest release (NOTE: this will destroy all data in the docker container):
+To upgrade your Docker image to a preview of the latest stable release (NOTE: this will erase all data in the Docker container, including the database):
 
-1. Stop your docker container by running: 
+1. Stop your Docker container by running: 
 
     ``` bash
     docker stop mattermost-dev
     ```
-2. Delete your docker container by running:
+2. Delete your Docker container by running:
 
     ``` bash
     docker rm mattermost-dev
     ```
-3. Update your docker image by running:
+3. Update your Docker image by running:
 
     ``` bash
     docker pull mattermost/platform
     ```
-4. Start your docker container by running:
+4. Start your Docker container by running:
 
     ``` bash
     docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform
     ```
 
-To upgrade to the latest master from the repository replace `mattermost/platform` with `mattermost/platform:dev` in the above instructions.
+To upgrade to the latest development build on master from the repository replace `mattermost/platform` with `mattermost/platform:dev` in the instructions 3) and 4) above. 
 
 Contributing
 ------------
