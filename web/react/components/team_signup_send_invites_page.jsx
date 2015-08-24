@@ -13,6 +13,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         this.submitNext = this.submitNext.bind(this);
         this.submitAddInvite = this.submitAddInvite.bind(this);
         this.submitSkip = this.submitSkip.bind(this);
+        this.keySubmit = this.keySubmit.bind(this);
         this.state = {
             emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
         };
@@ -68,10 +69,26 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         this.props.state.wizard = 'username';
         this.props.updateParent(this.props.state);
     }
+    keySubmit(e) {
+        if (e && e.keyCode === 13) {
+            this.submitNext(e)
+        }
+    }
     componentWillMount() {
         if (!this.state.emailEnabled) {
             this.props.state.wizard = 'username';
             this.props.updateParent(this.props.state);
+        }
+    }
+    componentDidMount() {
+        if (!this.state.emailEnabled) {
+            // Must use keypress not keyup due to event chain of pressing enter
+            $('body').keypress(this.keySubmit);
+        }
+    }
+    componentWillUnmount() {
+        if (!this.state.emailEnabled) {
+            $('body').off('keypress', this.keySubmit);
         }
     }
     render() {
