@@ -48,6 +48,7 @@ module.exports = React.createClass({
             }
             confirmButton = <a className={confirmButtonClass} onClick={this.props.submit}>Save</a>;
         }
+        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + config.ProfileWidth + 'px in width and ' + config.ProfileHeight + 'px height.'
 
         var self = this;
         return (
@@ -57,6 +58,9 @@ module.exports = React.createClass({
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             {img}
+                        </li>
+                        <li className='setting-list-item'>
+                            {helpText}
                         </li>
                         <li className='setting-list-item'>
                             {serverError}

@@ -30,6 +30,8 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["AnalyticsUrl"] = utils.Cfg.ServiceSettings.AnalyticsUrl
+	props["ProfileHeight"] = fmt.Sprintf("%v", utils.Cfg.ImageSettings.ProfileHeight)
+	props["ProfileWidth"] = fmt.Sprintf("%v", utils.Cfg.ImageSettings.ProfileWidth)
 	return &HtmlTemplatePage{TemplateName: templateName, Title: title, SiteName: utils.Cfg.ServiceSettings.SiteName, Props: props}
 }
 
