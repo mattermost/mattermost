@@ -102,7 +102,12 @@ module.exports = React.createClass({
             currentUserCss = "current--user";
         }
 
-        var timestamp = UserStore.getProfile(post.user_id).update_at;
+        var userProfile = UserStore.getProfile(post.user_id);
+
+        var timestamp = UserStore.getCurrentUser().update_at;
+        if (userProfile) {
+            timestamp = userProfile.update_at;
+        }
 
         return (
             <div>
