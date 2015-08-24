@@ -133,10 +133,10 @@ module.exports = React.createClass({
             <div>
                 <div className='modal-header'>
                     <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>Feature Settings</h4>
+                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>Advanced Features</h4>
                 </div>
                 <div ref='wrapper' className='user-settings'>
-                    <h3 className='tab-header'>Feature Settings</h3>
+                    <h3 className='tab-header'>Advanced Features</h3>
                     <div className='divider-dark first'/>
                     {valetSection}
                     <div className='divider-dark'/>
