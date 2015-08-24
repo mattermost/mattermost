@@ -252,6 +252,7 @@ module.exports.revokeSession = function(altId, success, error) {
 
 module.exports.getSessions = function(userId, success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/users/' + userId + '/sessions',
         dataType: 'json',
         contentType: 'application/json',
@@ -282,6 +283,7 @@ module.exports.getMeSynchronous = function(success, error) {
     var currentUser = null;
     $.ajax({
         async: false,
+        cache: false,
         url: '/api/v1/users/me',
         dataType: 'json',
         contentType: 'application/json',
@@ -293,12 +295,9 @@ module.exports.getMeSynchronous = function(success, error) {
             }
         },
         error: function onError(xhr, status, err) {
-            var ieChecker = window.navigator.userAgent; // This and the condition below is used to check specifically for browsers IE10 & 11 to suppress a 200 'OK' error from appearing on login
-            if (xhr.status !== 200 || !(ieChecker.indexOf('Trident/7.0') > 0 || ieChecker.indexOf('Trident/6.0') > 0)) {
-                if (error) {
-                    var e = handleError('getMeSynchronous', xhr, status, err);
-                    error(e);
-                }
+            if (error) {
+                var e = handleError('getMeSynchronous', xhr, status, err);
+                error(e);
             }
         }
     });
@@ -566,6 +565,7 @@ module.exports.updateLastViewedAt = function(channelId, success, error) {
 
 function getChannels(success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/',
         dataType: 'json',
         type: 'GET',
@@ -581,6 +581,7 @@ module.exports.getChannels = getChannels;
 
 module.exports.getChannel = function(id, success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/' + id + '/',
         dataType: 'json',
         type: 'GET',
@@ -610,6 +611,7 @@ module.exports.getMoreChannels = function(success, error) {
 
 function getChannelCounts(success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/counts',
         dataType: 'json',
         type: 'GET',
@@ -653,6 +655,7 @@ module.exports.executeCommand = function(channelId, command, suggest, success, e
 
 module.exports.getPosts = function(channelId, offset, limit, success, error, complete) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/' + channelId + '/posts/' + offset + '/' + limit,
         dataType: 'json',
         type: 'GET',
@@ -668,6 +671,7 @@ module.exports.getPosts = function(channelId, offset, limit, success, error, com
 
 module.exports.getPost = function(channelId, postId, success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/channels/' + channelId + '/post/' + postId,
         dataType: 'json',
         type: 'GET',
@@ -791,6 +795,7 @@ module.exports.removeChannelMember = function(id, data, success, error) {
 
 module.exports.getProfiles = function(success, error) {
     $.ajax({
+        cache: false,
         url: '/api/v1/users/profiles',
         dataType: 'json',
         contentType: 'application/json',
