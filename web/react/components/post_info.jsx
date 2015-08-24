@@ -49,6 +49,7 @@ export default class PostInfo extends React.Component {
                         role='menuitem'
                         data-toggle='modal'
                         data-target='#edit_post'
+                        data-refoucsid="#post_textbox"
                         data-title={type}
                         data-message={post.message}
                         data-postid={post.id}

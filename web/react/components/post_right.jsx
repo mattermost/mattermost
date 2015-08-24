@@ -93,7 +93,7 @@ RootPost = React.createClass({
                 <div>
                     <a href='#' className='dropdown-toggle theme' type='button' data-toggle='dropdown' aria-expanded='false' />
                     <ul className='dropdown-menu' role='menu'>
-                        <li role='presentation'><a href='#' role='menuitem' data-toggle='modal' data-target='#edit_post' data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
+                        <li role='presentation'><a href='#' role='menuitem' data-toggle='modal' data-target='#edit_post' data-refoucsid='#reply_textbox' data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
                         <li role='presentation'><a href='#' role='menuitem' data-toggle='modal' data-target='#delete_post' data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={this.props.commentCount}>Delete</a></li>
                     </ul>
                 </div>
@@ -203,7 +203,7 @@ CommentPost = React.createClass({
                 <div className='dropdown' onClick={function(e){$('.post-list-holder-by-time').scrollTop($('.post-list-holder-by-time').scrollTop() + 50);}}>
                     <a href='#' className='dropdown-toggle theme' type='button' data-toggle='dropdown' aria-expanded='false' />
                     <ul className='dropdown-menu' role='menu'>
-                        <li role='presentation'><a href='#' role='menuitem' data-toggle='modal' data-target='#edit_post' data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
+                        <li role='presentation'><a href='#' role='menuitem' data-toggle='modal' data-target='#edit_post' data-refoucsid='#reply_textbox' data-title={type} data-message={post.message} data-postid={post.id} data-channelid={post.channel_id}>Edit</a></li>
                         <li role='presentation'><a href='#' role='menuitem' data-toggle='modal' data-target='#delete_post' data-title={type} data-postid={post.id} data-channelid={post.channel_id} data-comments={0}>Delete</a></li>
                     </ul>
                 </div>
