@@ -127,12 +127,12 @@ module.exports = React.createClass({
                             <div className='modal-body'>
                                 <div className={displayNameClass}>
                                     <label className='control-label'>Display Name</label>
-                                    <input onKeyUp={this.displayNameKeyUp} type='text' ref='display_name' className='form-control' placeholder='Enter display name' maxLength='64' />
+                                    <input onKeyUp={this.displayNameKeyUp} type='text' ref='display_name' className='form-control' placeholder='Enter display name' maxLength='22' />
                                     {displayNameError}
                                 </div>
                                 <div className={nameClass}>
                                     <label className='control-label'>Handle</label>
-                                    <input type='text' className='form-control' ref='channel_name' placeholder="lowercase alphanumeric's only" maxLength='64' />
+                                    <input type='text' className='form-control' ref='channel_name' placeholder="lowercase alphanumeric's only" maxLength='22' />
                                     {nameError}
                                 </div>
                                 <div className='form-group'>
