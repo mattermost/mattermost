@@ -1,4 +1,8 @@
+// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 var UserStore = require('../stores/user_store.jsx');
+var ConfigStore = require('../stores/config_store.jsx');
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 var SettingPicture = require('./setting_picture.jsx');
@@ -183,9 +187,10 @@ module.exports = React.createClass({
     },
     getInitialState: function() {
         var user = this.props.user;
+        var emailEnabled = !ConfigStore.getSettingAsBoolean('ByPassEmail', false);
 
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                 email: user.email, picture: null, loadingPicture: false};
+                 email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
     },
     render: function() {
         var user = this.props.user;
@@ -334,12 +339,21 @@ module.exports = React.createClass({
         }
         var emailSection;
         if (this.props.activeSection === 'email') {
+            let helpText = <div>Email is used for notifications, and requires verification if changed.</div>;
+
+            if (!this.state.emailEnabled) {
+                helpText = <div className='text-danger'><br />Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.</div>;
+            }
+
             inputs.push(
-                <div className='form-group'>
-                    <label className='col-sm-5 control-label'>Primary Email</label>
-                    <div className='col-sm-7'>
-                        <input className='form-control' type='text' onChange={this.updateEmail} value={this.state.email}/>
+                <div>
+                    <div className='form-group'>
+                        <label className='col-sm-5 control-label'>Primary Email</label>
+                        <div className='col-sm-7'>
+                            <input className='form-control' type='text' onChange={this.updateEmail} value={this.state.email}/>
+                        </div>
                     </div>
+                    {helpText}
                 </div>
             );
 
