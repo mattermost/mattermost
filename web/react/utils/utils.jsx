@@ -271,11 +271,12 @@ function getYoutubeEmbed(link) {
         iframe.setAttribute('src',
                             'https://www.youtube.com/embed/' +
                             div.id +
-                            '?autoplay=1&autohide=1&border=0&wmode=opaque&enablejsapi=1');
+                            '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1');
         iframe.setAttribute('width', '480px');
         iframe.setAttribute('height', '360px');
         iframe.setAttribute('type', 'text/html');
         iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allowfullscreen', 'allowfullscreen');
 
         div.parentNode.replaceChild(iframe, div);
     }
