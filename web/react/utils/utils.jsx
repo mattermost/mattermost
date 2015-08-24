@@ -175,7 +175,7 @@ module.exports.displayTime = function(ticks) {
         hours = '12';
     }
     if (minutes <= 9) {
-        minutes = 0 + minutes;
+        minutes = '0' + minutes;
     }
     return hours + ':' + minutes + ' ' + ampm;
 };
