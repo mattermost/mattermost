@@ -16,7 +16,7 @@ module.exports = React.createClass({
     },
     submitValetFeature: function() {
         var data = {};
-        data.allowValet = this.state.allowValet;
+        data.allow_valet = this.state.allowValet;
 
         client.updateValetFeature(data,
             function() {
@@ -38,7 +38,7 @@ module.exports = React.createClass({
         var team = newProps.team;
 
         var allowValet = 'false';
-        if (team && team.allowValet) {
+        if (team && team.allow_valet) {
             allowValet = 'true';
         }
 
@@ -48,17 +48,18 @@ module.exports = React.createClass({
         var team = this.props.team;
 
         var allowValet = 'false';
-        if (team && team.allowValet) {
+        if (team && team.allow_valet) {
             allowValet = 'true';
         }
 
         return {allowValet: allowValet};
     },
-    onUpdateSection: function() {
+    onUpdateSection: function(e) {
+        e.preventDefault();
         if (this.props.activeSection === 'valet') {
-            self.props.updateSection('valet');
+            this.props.updateSection('');
         } else {
-            self.props.updateSection('');
+            this.props.updateSection('valet');
         }
     },
     render: function() {
@@ -75,31 +76,43 @@ module.exports = React.createClass({
         var self = this;
 
         if (this.props.activeSection === 'valet') {
-            var valetActive = ['', ''];
+            var valetActive = [false, false];
             if (this.state.allowValet === 'false') {
-                valetActive[1] = 'active';
+                valetActive[1] = true;
             } else {
-                valetActive[0] = 'active';
+                valetActive[0] = true;
             }
 
-            var inputs = [];
-
-            function valetActivate() {
-                self.handleValetRadio('true');
-            }
-
-            function valetDeactivate() {
-                self.handleValetRadio('false');
-            }
+            let inputs = [];
 
             inputs.push(
-                <div>
-                    <div className='btn-group' data-toggle='buttons-radio'>
-                        <button className={'btn btn-default ' + valetActive[0]} onClick={valetActivate}>On</button>
-                        <button className={'btn btn-default ' + valetActive[1]} onClick={valetDeactivate}>Off</button>
+                <div key='teamValetSetting'>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={valetActive[0]}
+                                onChange={self.handleValetRadio.bind(this, 'true')}
+                            >
+                                On
+                            </input>
+                        </label>
+                        <br/>
                     </div>
-                    <div><br/>Valet is a preview feature for enabling a non-user account limited to basic member permissions that can be manipulated by 3rd parties.<br/><br/>IMPORTANT: The preview version of Valet should not be used without a secure connection and a trusted 3rd party, since user credentials are used to connect. OAuth2 will be used in the final release.</div>
-                </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={valetActive[1]}
+                                onChange={self.handleValetRadio.bind(this, 'false')}
+                            >
+                                Off
+                            </input>
+                        </label>
+                        <br/>
+                     </div>
+                     <div><br/>Valet is a preview feature for enabling a non-user account limited to basic member permissions that can be manipulated by 3rd parties.<br/><br/>IMPORTANT: The preview version of Valet should not be used without a secure connection and a trusted 3rd party, since user credentials are used to connect. OAuth2 will be used in the final release.</div>
+                 </div>
             );
 
             valetSection = (
@@ -107,8 +120,8 @@ module.exports = React.createClass({
                     title='Valet (Preview - EXPERTS ONLY)'
                     inputs={inputs}
                     submit={this.submitValetFeature}
-                    serverError={serverError}
-                    clientError={clientError}
+                    server_error={serverError}
+                    client_error={clientError}
                     updateSection={this.onUpdateSection}
                 />
             );

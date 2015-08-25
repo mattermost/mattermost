@@ -14,7 +14,6 @@ var MemberInviteModal = require('../components/invite_member_modal.jsx');
 var EditChannelModal = require('../components/edit_channel_modal.jsx');
 var DeleteChannelModal = require('../components/delete_channel_modal.jsx');
 var RenameChannelModal = require('../components/rename_channel_modal.jsx');
-var RenameTeamModal = require('../components/rename_team_modal.jsx');
 var EditPostModal = require('../components/edit_post_modal.jsx');
 var DeletePostModal = require('../components/delete_post_modal.jsx');
 var MoreChannelsModal = require('../components/more_channels.jsx');
@@ -77,11 +76,6 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <RenameTeamModal teamDisplayName={team_name} />,
-        document.getElementById('rename_team_modal')
-    );
-
-    React.render(
         <GetLinkModal />,
         document.getElementById('get_link_modal')
     );
@@ -92,7 +86,7 @@ global.window.setup_channel_page = function(team_name, team_type, team_id, chann
     );
 
     React.render(
-        <TeamSettingsModal />,
+        <TeamSettingsModal teamDisplayName={team_name} />,
         document.getElementById('team_settings_modal')
     );
 

@@ -51,7 +51,6 @@ var NavbarDropdown = React.createClass({
         var teamLink = '';
         var inviteLink = '';
         var manageLink = '';
-        var renameLink = '';
         var currentUser = UserStore.getCurrentUser();
         var isAdmin = false;
         var teamSettings = null;
@@ -72,7 +71,6 @@ var NavbarDropdown = React.createClass({
 
         if (isAdmin) {
             manageLink = (<li> <a href='#' data-toggle='modal' data-target='#team_members'>Manage Team</a> </li>);
-            renameLink = (<li> <a href='#' data-toggle='modal' data-target='#rename_team_link'>Rename</a> </li>);
             teamSettings = (<li> <a href='#' data-toggle='modal' data-target='#team_settings'>Team Settings</a> </li>);
         }
 
@@ -101,7 +99,6 @@ var NavbarDropdown = React.createClass({
                         {inviteLink}
                         {teamLink}
                         {manageLink}
-                        {renameLink}
                         <li><a href='#' onClick={this.handleLogoutClick}>Logout</a></li>
                         {teams}
                         <li className='divider'></li>

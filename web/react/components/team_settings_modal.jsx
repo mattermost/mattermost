@@ -6,6 +6,9 @@ var TeamSettings = require('./team_settings.jsx');
 
 module.exports = React.createClass({
     displayName: 'Team Settings Modal',
+    propTypes: {
+        teamDisplayName: React.PropTypes.string.isRequired
+    },
     componentDidMount: function() {
         $('body').on('click', '.modal-back', function onClick() {
             $(this).closest('.modal-dialog').removeClass('display--content');
@@ -17,16 +20,17 @@ module.exports = React.createClass({
         });
     },
     updateTab: function(tab) {
-        this.setState({activeTab: tab});
+        this.setState({activeTab: tab, activeSection: ''});
     },
     updateSection: function(section) {
         this.setState({activeSection: section});
     },
     getInitialState: function() {
-        return {activeTab: 'feature', activeSection: ''};
+        return {activeTab: 'general', activeSection: ''};
     },
     render: function() {
         var tabs = [];
+        tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
         tabs.push({name: 'import', uiName: 'Import', icon: 'glyphicon glyphicon-upload'});
         tabs.push({name: 'feature', uiName: 'Advanced', icon: 'glyphicon glyphicon-wrench'});
 
@@ -52,6 +56,7 @@ module.exports = React.createClass({
                                 activeTab={this.state.activeTab}
                                 activeSection={this.state.activeSection}
                                 updateSection={this.updateSection}
+                                teamDisplayName={this.props.teamDisplayName}
                             />
                         </div>
                     </div>
