@@ -44,6 +44,11 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if utils.Cfg.TeamSettings.DisableTeamCreation {
+		c.Err = model.NewAppError("createTeamFromSignup", "Team creation has been disabled. Please ask your systems administrator for details.", "")
+		return
+	}
+
 	subjectPage := NewServerTemplatePage("signup_team_subject", c.GetSiteURL())
 	bodyPage := NewServerTemplatePage("signup_team_body", c.GetSiteURL())
 	bodyPage.Props["TourUrl"] = utils.Cfg.TeamSettings.TourLink
@@ -76,6 +81,11 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if teamSignup == nil {
 		c.SetInvalidParam("createTeam", "teamSignup")
+		return
+	}
+
+	if utils.Cfg.TeamSettings.DisableTeamCreation {
+		c.Err = model.NewAppError("createTeamFromSignup", "Team creation has been disabled. Please ask your systems administrator for details.", "")
 		return
 	}
 
@@ -166,6 +176,11 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if team == nil {
 		c.SetInvalidParam("createTeam", "team")
+		return
+	}
+
+	if utils.Cfg.TeamSettings.DisableTeamCreation {
+		c.Err = model.NewAppError("createTeam", "Team creation has been disabled. Please ask your systems administrator for details.", "")
 		return
 	}
 
