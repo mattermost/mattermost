@@ -224,6 +224,7 @@ module.exports = React.createClass({
                         </div>
                     </div>
                 );
+                bgClass = 'white-bg';
 
                 // asynchronously request the actual size of this file
                 if (!(filename in this.state.fileSizes)) {
