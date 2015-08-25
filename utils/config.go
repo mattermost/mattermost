@@ -109,17 +109,18 @@ type PrivacySettings struct {
 }
 
 type TeamSettings struct {
-	MaxUsersPerTeam     int
-	AllowPublicLink     bool
-	AllowValetDefault   bool
-	TermsLink           string
-	PrivacyLink         string
-	AboutLink           string
-	HelpLink            string
-	ReportProblemLink   string
-	TourLink            string
-	DefaultThemeColor   string
-	DisableTeamCreation bool
+	MaxUsersPerTeam           int
+	AllowPublicLink           bool
+	AllowValetDefault         bool
+	TermsLink                 string
+	PrivacyLink               string
+	AboutLink                 string
+	HelpLink                  string
+	ReportProblemLink         string
+	TourLink                  string
+	DefaultThemeColor         string
+	DisableTeamCreation       bool
+	RestrictCreationToDomains string
 }
 
 type Config struct {
