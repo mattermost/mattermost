@@ -134,9 +134,11 @@ module.exports = React.createClass({
     handleUserInput: function(messageText) {
         var newPostError = this.state.postError;
 
-        if (!this.state.postError && messageText.length >= Constants.MAX_POST_LEN) {
+        var len = utils.getLengthOfTextInTextarea(messageText);
+
+        if (!this.state.postError && len >= Constants.MAX_POST_LEN) {
             newPostError = 'Message length cannot exceed 4000 characters';
-        } else if (this.state.postError === 'Message length cannot exceed 4000 characters' && messageText.length < Constants.MAX_POST_LEN) {
+        } else if (this.state.postError === 'Message length cannot exceed 4000 characters' && len < Constants.MAX_POST_LEN) {
             newPostError = '';
         }
 

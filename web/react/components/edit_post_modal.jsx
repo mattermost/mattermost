@@ -4,6 +4,7 @@
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var Constants = require('../utils/constants.jsx');
+var utils = require('../utils/utils.jsx');
 var Textbox = require('./textbox.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 
@@ -40,9 +41,11 @@ module.exports = React.createClass({
     handleEditInput: function(editText) {
         var newError = this.state.error;
 
-        if (!this.state.error && editText.length >= Constants.MAX_POST_LEN) {
-            newError = 'Message length cannot exceed 4000 characters';
-        } else if (this.state.error === 'Message length cannot exceed 4000 characters' && editText.length < Constants.MAX_POST_LEN) {
+        var len = utils.getLengthOfTextInTextarea(editText);
+
+        if (!this.state.error && len >= Constants.MAX_POST_LEN) {
+            newError = 'New message length cannot exceed 4000 characters';
+        } else if (this.state.error === 'New message length cannot exceed 4000 characters' && len < Constants.MAX_POST_LEN) {
             newError = '';
         }
 
