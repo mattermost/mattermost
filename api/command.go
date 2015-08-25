@@ -24,6 +24,8 @@ var commands = []commandHandler{
 	echoCommand,
 }
 
+var echoSem chan bool
+
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
@@ -95,6 +97,7 @@ func logoutCommand(c *Context, command *model.Command) bool {
 
 func echoCommand(c *Context, command *model.Command) bool {
 	cmd := "/echo"
+	maxThreads := 100
 
 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
 		parameters := strings.SplitN(command.Command, " ", 2)
@@ -118,8 +121,24 @@ func echoCommand(c *Context, command *model.Command) bool {
 			}
 		}
 
-		// Fire off asynchronous process
+		if delay > 10000 {
+			c.Err = model.NewAppError("echoCommand", "Delays must be under 10000 seconds", "")
+			return false
+		}
+
+		if echoSem == nil {
+			// We want one additional thread allowed so we never reach channel lockup
+			echoSem = make(chan bool, maxThreads+1)
+		}
+
+		if len(echoSem) >= maxThreads {
+			c.Err = model.NewAppError("echoCommand", "High volume of echo request, cannot process request", "")
+			return false
+		}
+
+		echoSem <- true
 		go func() {
+			defer func() { <-echoSem }()
 			post := &model.Post{}
 			post.ChannelId = command.ChannelId
 			post.Message = message
