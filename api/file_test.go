@@ -201,6 +201,15 @@ func TestGetFile(t *testing.T) {
 			t.Fatal(downErr)
 		}
 
+		if resp, downErr := Client.GetFileInfo(filenames[0]); downErr != nil {
+			t.Fatal(downErr)
+		} else {
+			m := resp.Data.(map[string]string)
+			if len(m["size"]) == 0 {
+				t.Fail()
+			}
+		}
+
 		team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 		team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 

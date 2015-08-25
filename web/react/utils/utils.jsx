@@ -604,23 +604,6 @@ module.exports.splitFileLocation = function(fileLocation) {
     return {ext: ext, name: filename, path: filePath};
 };
 
-// Asynchronously gets the size of a file by requesting its headers. If successful, it calls the
-// provided callback with the file size in bytes as the argument.
-module.exports.getFileSize = function(url, callback) {
-    var request = new XMLHttpRequest();
-
-    request.open('HEAD', url, true);
-    request.onreadystatechange = function onReadyStateChange() {
-        if (request.readyState === 4 && request.status === 200) {
-            if (callback) {
-                callback(parseInt(request.getResponseHeader('content-length'), 10));
-            }
-        }
-    };
-
-    request.send();
-};
-
 module.exports.toTitleCase = function(str) {
     function doTitleCase(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();

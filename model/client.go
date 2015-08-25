@@ -589,6 +589,24 @@ func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
+	var rq *http.Request
+	rq, _ = http.NewRequest("GET", c.Url+"/files/get_info"+url, nil)
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+	} else if rp.StatusCode >= 300 {
+		return nil, AppErrorFromJson(rp.Body)
+	} else {
+		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
+			rp.Header.Get(HEADER_ETAG_SERVER), MapFromJson(rp.Body)}, nil
+	}
+}
+
 func (c *Client) GetPublicLink(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoPost("/files/get_public_link", MapToJson(data)); err != nil {
 		return nil, err
