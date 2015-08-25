@@ -4,14 +4,15 @@
 package api
 
 import (
-	l4g "code.google.com/p/log4go"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	l4g "code.google.com/p/log4go"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
@@ -431,10 +432,22 @@ func IsPrivateIpAddress(ipAddress string) bool {
 }
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
+
+	protocol := "http"
+	if utils.Cfg.ServiceSettings.UseSSL {
+		forwardProto := r.Header.Get(model.HEADER_FORWARDED_PROTO)
+		if forwardProto != "http" {
+			protocol = "https"
+		}
+	}
+
+	SiteURL := protocol + "://" + r.Host
+
 	m := make(map[string]string)
 	m["Message"] = err.Message
 	m["Details"] = err.DetailedError
 	m["SiteName"] = utils.Cfg.ServiceSettings.SiteName
+	m["SiteURL"] = SiteURL
 
 	w.WriteHeader(err.StatusCode)
 	ServerTemplates.ExecuteTemplate(w, "error.html", m)
