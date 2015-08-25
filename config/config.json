@@ -106,6 +106,6 @@
         "TourLink": "/static/help/configure_links.html",
         "DefaultThemeColor": "#2389D7",
         "DisableTeamCreation": false,
-        "RestrictCreationToDomains": "mattermost.com, @spinpunch.com"
+        "RestrictCreationToDomains": ""
     }
 }
