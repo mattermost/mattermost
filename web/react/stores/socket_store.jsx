@@ -28,7 +28,6 @@ var SocketStore = assign({}, EventEmitter.prototype, {
             var port = '';
             if (window.location.protocol === 'https:') {
                 protocol = 'wss://';
-                port = ':8443';
             }
             var connUrl = protocol + location.host + port + '/api/v1/websocket';
             console.log('connecting to ' + connUrl);
