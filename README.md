@@ -103,14 +103,14 @@ Local Machine Setup (Docker)
 AWS Elastic Beanstalk Setup (Docker)
 ------------------------------------
 
-1. Create a new Elastic Beanstalk Docker application using the [Dockerrun.aws.json](docker/0.6/Dockerrun.aws.json) file provided. 
+1. Create a new Elastic Beanstalk Docker application using the [Dockerrun.aws.zip](docker/0.6/Dockerrun.aws//Dockerrun.aws.zip) file provided. 
 	1. From the AWS console select Elastic Beanstalk.
 	2. Select "Create New Application" from the top right.
 	3. Name the application and press next.
 	4. Select "Create a web server" environment.
 	5. If asked, select create an IAM role and instance profile and press next.
 	6. For predefined configuration select under Generic: Docker. For environment type select single instance.
-	7. For application source, select upload your own and upload Dockerrun.aws.json from [docker/0.6/Dockerrun.aws.json](docker/0.6/Dockerrun.aws.json). Everything else may be left at default.
+	7. For application source, select upload your own and upload Dockerrun.aws.zip from [Dockerrun.aws.zip](docker/0.6/Dockerrun.aws//Dockerrun.aws.zip). Everything else may be left at default.
 	8. Select an environment name, this is how you will refer to your environment. Make sure the URL is available then press next.
 	9. The options on the additional resources page may be left at default unless you wish to change them. Press Next.
 	10. On the configuration details place. Select an instance type of t2.small or larger.
