@@ -25,11 +25,10 @@ var SocketStore = assign({}, EventEmitter.prototype, {
 
         if (window.WebSocket && !conn) {
             var protocol = 'ws://';
-            var port = '';
             if (window.location.protocol === 'https:') {
                 protocol = 'wss://';
             }
-            var connUrl = protocol + location.host + port + '/api/v1/websocket';
+            var connUrl = protocol + location.host + '/api/v1/websocket';
             console.log('connecting to ' + connUrl);
             conn = new WebSocket(connUrl);
 
