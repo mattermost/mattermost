@@ -132,8 +132,16 @@ module.exports = React.createClass({
         }
     },
     handleUserInput: function(messageText) {
+        var newPostError = this.state.postError;
+
+        if (!this.state.postError && messageText.length >= Constants.MAX_POST_LEN) {
+            newPostError = 'Message length cannot exceed 4000 characters';
+        } else if (this.state.postError === 'Message length cannot exceed 4000 characters' && messageText.length < Constants.MAX_POST_LEN) {
+            newPostError = '';
+        }
+
         this.resizePostHolder();
-        this.setState({messageText: messageText});
+        this.setState({messageText: messageText, postError: newPostError});
 
         var draft = PostStore.getCurrentDraft();
         draft['message'] = messageText;

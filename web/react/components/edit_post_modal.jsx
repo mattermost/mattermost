@@ -3,6 +3,7 @@
 
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var Constants = require('../utils/constants.jsx');
 var Textbox = require('./textbox.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 
@@ -37,7 +38,15 @@ module.exports = React.createClass({
         $(this.state.refocusId).focus();
     },
     handleEditInput: function(editText) {
-        this.setState({ editText: editText });
+        var newError = this.state.error;
+
+        if (!this.state.error && editText.length >= Constants.MAX_POST_LEN) {
+            newError = 'Message length cannot exceed 4000 characters';
+        } else if (this.state.error === 'Message length cannot exceed 4000 characters' && editText.length < Constants.MAX_POST_LEN) {
+            newError = '';
+        }
+
+        this.setState({editText: editText, error: newError});
     },
     handleEditKeyPress: function(e) {
         if (e.which == 13 && !e.shiftKey && !e.altKey) {
@@ -53,7 +62,7 @@ module.exports = React.createClass({
         var self = this;
 
         $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
-            self.setState({ editText: "", title: "", channel_id: "", post_id: "", comments: 0, refocusId: "" });
+            self.setState({editText: "", title: "", channel_id: "", post_id: "", comments: 0, refocusId: "", error: ''});
         });
 
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
@@ -69,7 +78,7 @@ module.exports = React.createClass({
         return { editText: "", title: "", post_id: "", channel_id: "", comments: 0, refocusId: "" };
     },
     render: function() {
-        var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
+        var error = this.state.error ? <div className='form-group has-error'><br /><label className='control-label'>{ this.state.error }</label></div> : <div className='form-group'><br /></div>;
 
         return (
             <div className="modal fade edit-modal" ref="modal" id="edit_post" role="dialog" tabIndex="-1" aria-hidden="true">

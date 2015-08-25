@@ -106,13 +106,21 @@ module.exports = React.createClass({
         }
     },
     handleUserInput: function(messageText) {
+        var newPostError = this.state.postError;
+
+        if (!this.state.postError && messageText.length >= Constants.MAX_POST_LEN) {
+            newPostError = 'Message length cannot exceed 4000 characters';
+        } else if (this.state.postError === 'Message length cannot exceed 4000 characters' && messageText.length < Constants.MAX_POST_LEN) {
+            newPostError = '';
+        }
+
         var draft = PostStore.getCommentDraft(this.props.rootId);
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
         $('.post-right__scroll').perfectScrollbar('update');
-        this.setState({messageText: messageText});
+        this.setState({messageText: messageText, postError: newPostError});
     },
     handleUploadStart: function(clientIds, channelId) {
         var draft = PostStore.getCommentDraft(this.props.rootId);

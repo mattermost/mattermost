@@ -257,7 +257,7 @@ module.exports = React.createClass({
         return (
             <div ref='wrapper' className='textarea-wrapper'>
                 <CommandList ref='commands' addCommand={this.addCommand} channelId={this.props.channelId} />
-                <textarea id={this.props.id} ref='message' className={'form-control custom-textarea ' + this.state.connection} spellCheck='true' autoComplete='off' autoCorrect='off' rows='1' placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
+                <textarea id={this.props.id} ref='message' className={'form-control custom-textarea ' + this.state.connection} spellCheck='true' autoComplete='off' autoCorrect='off' rows='1' maxLength={Constants.MAX_POST_LEN} placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
             </div>
         );
     }
