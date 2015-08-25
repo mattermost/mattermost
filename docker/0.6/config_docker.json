@@ -94,6 +94,8 @@
         "HelpLink": "/static/help/configure_links.html",
         "ReportProblemLink": "/static/help/configure_links.html",
         "TourLink": "/static/help/configure_links.html",
-        "DefaultThemeColor": "#2389D7"
+        "DefaultThemeColor": "#2389D7",
+        "DisableTeamCreation": true,
+        "RestrictCreationToDomains": ""
     }
 }

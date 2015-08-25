@@ -73,8 +73,8 @@
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
-               "UseTLS": false,
-               "UseStartTLS": false,
+        "UseTLS": false,
+        "UseStartTLS": false,
         "FeedbackEmail": "",
         "FeedbackName": "",
         "ApplePushServer": "",
@@ -104,6 +104,8 @@
         "HelpLink": "/static/help/configure_links.html",
         "ReportProblemLink": "/static/help/configure_links.html",
         "TourLink": "/static/help/configure_links.html",
-        "DefaultThemeColor": "#2389D7"
+        "DefaultThemeColor": "#2389D7",
+        "DisableTeamCreation": false,
+        "RestrictCreationToDomains": ""
     }
 }
