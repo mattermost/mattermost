@@ -12,7 +12,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
-  "time"
+	"time"
 )
 
 func CheckMailSettings() *model.AppError {
