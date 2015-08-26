@@ -203,3 +203,23 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlTeamStore) GetAll() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams"); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAll", "We could not get all teams", err.Error())
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

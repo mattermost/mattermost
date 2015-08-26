@@ -891,6 +891,19 @@ module.exports.importSlack = function(fileData, success, error) {
     });
 };
 
+export function exportTeam(success, error) {
+    $.ajax({
+        url: '/api/v1/teams/export_team',
+        type: 'GET',
+        dataType: 'json',
+        success: success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('exportTeam', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 module.exports.getStatuses = function(success, error) {
     $.ajax({
         url: '/api/v1/users/status',

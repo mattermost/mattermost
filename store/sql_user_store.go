@@ -5,9 +5,9 @@ package store
 
 import (
 	"fmt"
-	"strings"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"strings"
 )
 
 type SqlUserStore struct {
@@ -168,7 +168,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 				nonUsernameKeys := []string{}
 				splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
 				for _, key := range splitKeys {
-					if key != oldUser.Username && key != "@" + oldUser.Username {
+					if key != oldUser.Username && key != "@"+oldUser.Username {
 						nonUsernameKeys = append(nonUsernameKeys, key)
 					}
 				}
@@ -469,6 +469,33 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 		}
 
 		result.Data = userId
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetAll(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "We encounted an error while finding user profiles", err.Error())
+		} else {
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+			}
+
+			result.Data = users
+		}
 
 		storeChannel <- result
 		close(storeChannel)
