@@ -102,7 +102,7 @@ func SendMail(to, subject, body string) *model.AppError {
 	headers["Subject"] = html.UnescapeString(subject)
 	headers["MIME-version"] = "1.0"
 	headers["Content-Type"] = "text/html"
-  headers["Date"] = time.Now().Format(time.RFC822)
+	headers["Date"] = time.Now().Format(time.RFC822)
 
 	message := ""
 	for k, v := range headers {
