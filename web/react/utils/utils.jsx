@@ -260,10 +260,40 @@ module.exports.escapeRegExp = function(string) {
     return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 };
 
+function handleYoutubeTime(link) {
+    var timeRegex = /[\\?&]t=([0-9hms]+)/;
+
+    var time = link.trim().match(timeRegex);
+    if (!time || !time[1]) {
+        return '';
+    }
+
+    var hours = time[1].match(/([0-9]+)h/);
+    var minutes = time[1].match(/([0-9]+)m/);
+    var seconds = time[1].match(/([0-9]+)s/);
+
+    var ticks = 0;
+
+    if (hours && hours[1]) {
+        ticks += parseInt(hours[1], 10) * 3600;
+    }
+
+    if (minutes && minutes[1]) {
+        ticks += parseInt(minutes[1], 10) * 60;
+    }
+
+    if (seconds && seconds[1]) {
+        ticks += parseInt(seconds[1], 10);
+    }
+
+    return '&start=' + ticks.toString();
+}
+
 function getYoutubeEmbed(link) {
     var regex = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|watch\?(?:[a-zA-Z-_]+=[a-zA-Z0-9-_]+&)+v=)([^#\&\?]*).*/;
 
     var youtubeId = link.trim().match(regex)[1];
+    var time = handleYoutubeTime(link);
 
     function onClick(e) {
         var div = $(e.target).closest('.video-thumbnail__container')[0];
@@ -271,7 +301,8 @@ function getYoutubeEmbed(link) {
         iframe.setAttribute('src',
                             'https://www.youtube.com/embed/' +
                             div.id +
-                            '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1');
+                            '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1' +
+                            time);
         iframe.setAttribute('width', '480px');
         iframe.setAttribute('height', '360px');
         iframe.setAttribute('type', 'text/html');
