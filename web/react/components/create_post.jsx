@@ -82,7 +82,7 @@ module.exports = React.createClass({
             client.createPost(post, channel,
                 function(data) {
                     this.resizePostHolder();
-                    AsyncClient.getPosts(true);
+                    AsyncClient.getPosts();
 
                     var member = ChannelStore.getMember(channel.id);
                     member.msg_count = channel.total_msg_count;
@@ -112,8 +112,6 @@ module.exports = React.createClass({
                 }.bind(this)
             );
         }
-
-        $('.post-list-holder-by-time').perfectScrollbar('update');
     },
     componentDidUpdate: function() {
         this.resizePostHolder();

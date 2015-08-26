@@ -99,8 +99,52 @@ var PostStore = assign({}, EventEmitter.prototype, {
         }
         return null;
     },
-    storePosts: function storePosts(channelId, posts) {
-        this.pStorePosts(channelId, posts);
+    storePosts: function storePosts(channelId, newPostList) {
+        if (isPostListNull(newPostList)) {
+            return;
+        }
+
+        var postList = makePostListNonNull(PostStore.getPosts(channelId));
+
+        for (var pid in newPostList.posts) {
+            var np = newPostList.posts[pid];
+            if (np.delete_at === 0) {
+                postList.posts[pid] = np;
+                if (postList.order.indexOf(pid) === -1) {
+                    postList.order.push(pid);
+                }
+            } else {
+                if (pid in postList.posts) {
+                    delete postList.posts[pid];
+                }
+
+                var index = postList.order.indexOf(pid);
+                if (index !== -1) {
+                    postList.order.splice(index, 1);
+                }
+            }
+        }
+
+        postList.order.sort(function postSort(a, b) {
+            if (postList.posts[a].create_at > postList.posts[b].create_at) {
+                return -1;
+            }
+            if (postList.posts[a].create_at < postList.posts[b].create_at) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        var latestUpdate = 0;
+        for (var pid in postList.posts) {
+            if (postList.posts[pid].update_at > latestUpdate) {
+                latestUpdate = postList.posts[pid].update_at;
+            }
+        }
+
+        this.storeLatestUpdate(channelId, latestUpdate);
+        this.pStorePosts(channelId, postList);
         this.emitChange();
     },
     pStorePosts: function pStorePosts(channelId, posts) {
@@ -115,9 +159,7 @@ var PostStore = assign({}, EventEmitter.prototype, {
     },
     pStorePost: function(post) {
         var postList = PostStore.getPosts(post.channel_id);
-        if (!postList) {
-            return;
-        }
+        postList = makePostListNonNull(postList);
 
         if (post.pending_post_id !== '') {
             this.removePendingPost(post.channel_id, post.pending_post_id);
@@ -132,13 +174,28 @@ var PostStore = assign({}, EventEmitter.prototype, {
 
         this.pStorePosts(post.channel_id, postList);
     },
+    removePost: function(postId, channelId) {
+        var postList = PostStore.getPosts(channelId);
+        if (isPostListNull(postList)) {
+            return;
+        }
+
+        if (postId in postList.posts) {
+            delete postList.posts[postId];
+        }
+
+        var index = postList.order.indexOf(postId);
+        if (index !== -1) {
+            postList.order.splice(index, 1);
+        }
+
+        this.pStorePosts(channelId, postList);
+    },
     storePendingPost: function(post) {
         post.state = Constants.POST_LOADING;
 
         var postList = this.getPendingPosts(post.channel_id);
-        if (!postList) {
-            postList = {posts: {}, order: []};
-        }
+        postList = makePostListNonNull(postList);
 
         postList.posts[post.pending_post_id] = post;
         postList.order.unshift(post.pending_post_id);
@@ -200,15 +257,13 @@ var PostStore = assign({}, EventEmitter.prototype, {
     },
     _removePendingPost: function(channelId, pendingPostId) {
         var postList = this.getPendingPosts(channelId);
-        if (!postList) {
-            return;
-        }
+        postList = makePostListNonNull(postList);
 
         if (pendingPostId in postList.posts) {
             delete postList.posts[pendingPostId];
         }
         var index = postList.order.indexOf(pendingPostId);
-        if (index >= 0) {
+        if (index !== -1) {
             postList.order.splice(index, 1);
         }
 
@@ -221,9 +276,7 @@ var PostStore = assign({}, EventEmitter.prototype, {
     },
     updatePendingPost: function(post) {
         var postList = this.getPendingPosts(post.channel_id);
-        if (!postList) {
-            postList = {posts: {}, order: []};
-        }
+        postList = makePostListNonNull(postList);
 
         if (postList.order.indexOf(post.pending_post_id) === -1) {
             return;
@@ -293,6 +346,12 @@ var PostStore = assign({}, EventEmitter.prototype, {
                 BrowserStore.setItem(key, value);
             }
         });
+    },
+    storeLatestUpdate: function(channelId, time) {
+        BrowserStore.setItem('latest_post_' + channelId, time);
+    },
+    getLatestUpdate: function(channelId) {
+        return BrowserStore.getItem('latest_post_' + channelId, 0);
     }
 });
 
@@ -301,8 +360,7 @@ PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
 
     switch (action.type) {
         case ActionTypes.RECIEVED_POSTS:
-            PostStore.pStorePosts(action.id, action.post_list);
-            PostStore.emitChange();
+            PostStore.storePosts(action.id, makePostListNonNull(action.post_list));
             break;
         case ActionTypes.RECIEVED_POST:
             PostStore.pStorePost(action.post);
@@ -331,3 +389,36 @@ PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
 });
 
 module.exports = PostStore;
+
+function makePostListNonNull(pl) {
+    var postList = pl;
+    if (postList == null) {
+        postList = {order: [], posts: {}};
+    }
+
+    if (postList.order == null) {
+        postList.order = [];
+    }
+
+    if (postList.posts == null) {
+        postList.posts = {};
+    }
+
+    return postList;
+}
+
+function isPostListNull(pl) {
+    if (pl == null) {
+        return true;
+    }
+
+    if (pl.posts == null) {
+        return true;
+    }
+
+    if (pl.order == null) {
+        return true;
+    }
+
+    return false;
+}

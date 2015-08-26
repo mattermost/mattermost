@@ -30,6 +30,14 @@ func PublishAndForget(message *model.Message) {
 	}()
 }
 
+func UpdateChannelAccessCacheAndForget(teamId, userId, channelId string) {
+	go func() {
+		if nh, ok := hub.teamHubs[teamId]; ok {
+			nh.UpdateChannelAccessCache(userId, channelId)
+		}
+	}()
+}
+
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 }

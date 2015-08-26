@@ -28,6 +28,7 @@ func InitPost(r *mux.Router) {
 	sr.Handle("/valet_create", ApiUserRequired(createValetPost)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updatePost)).Methods("POST")
 	sr.Handle("/posts/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getPosts, false)).Methods("GET")
+	sr.Handle("/posts/{time:[0-9]+}", ApiUserRequiredActivity(getPostsSince, false)).Methods("GET")
 	sr.Handle("/post/{post_id:[A-Za-z0-9]+}", ApiUserRequired(getPost)).Methods("GET")
 	sr.Handle("/post/{post_id:[A-Za-z0-9]+}/delete", ApiUserRequired(deletePost)).Methods("POST")
 }
@@ -545,9 +546,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		rpost := result.Data.(*model.Post)
 
 		message := model.NewMessage(c.Session.TeamId, rpost.ChannelId, c.Session.UserId, model.ACTION_POST_EDITED)
-		message.Add("post_id", rpost.Id)
-		message.Add("channel_id", rpost.ChannelId)
-		message.Add("message", rpost.Message)
+		message.Add("post", rpost.ToJson())
 
 		PublishAndForget(message)
 
@@ -598,6 +597,39 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		list := result.Data.(*model.PostList)
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(list.ToJson()))
+	}
+
+}
+
+func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	id := params["id"]
+	if len(id) != 26 {
+		c.SetInvalidParam("getPostsSince", "channelId")
+		return
+	}
+
+	time, err := strconv.ParseInt(params["time"], 10, 64)
+	if err != nil {
+		c.SetInvalidParam("getPostsSince", "time")
+		return
+	}
+
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	pchan := Srv.Store.Post().GetPostsSince(id, time)
+
+	if !c.HasPermissionsToChannel(cchan, "getPostsSince") {
+		return
+	}
+
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		list := result.Data.(*model.PostList)
+
 		w.Write([]byte(list.ToJson()))
 	}
 

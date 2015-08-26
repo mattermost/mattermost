@@ -15,124 +15,116 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-function getStateFromStores() {
-    var channel = ChannelStore.getCurrent();
+export default class PostList extends React.Component {
+    constructor() {
+        super();
 
-    if (channel == null) {
-        channel = {};
+        this.gotMorePosts = false;
+        this.scrolled = false;
+        this.prevScrollTop = 0;
+        this.seenNewMessages = false;
+        this.isUserScroll = true;
+        this.userHasSeenNew = false;
+
+        this.onChange = this.onChange.bind(this);
+        this.onTimeChange = this.onTimeChange.bind(this);
+        this.onSocketChange = this.onSocketChange.bind(this);
+        this.createChannelIntroMessage = this.createChannelIntroMessage.bind(this);
+        this.loadMorePosts = this.loadMorePosts.bind(this);
+
+        this.state = this.getStateFromStores();
+        this.state.numToDisplay = Constants.POST_CHUNK_SIZE;
     }
+    getStateFromStores() {
+        var channel = ChannelStore.getCurrent();
 
-    var postList = PostStore.getCurrentPosts();
-    var deletedPosts = PostStore.getUnseenDeletedPosts(channel.id);
-
-    if (deletedPosts && Object.keys(deletedPosts).length > 0) {
-        for (var pid in deletedPosts) {
-            postList.posts[pid] = deletedPosts[pid];
-            postList.order.unshift(pid);
+        if (channel == null) {
+            channel = {};
         }
 
-        postList.order.sort(function postSort(a, b) {
-            if (postList.posts[a].create_at > postList.posts[b].create_at) {
-                return -1;
+        var postList = PostStore.getCurrentPosts();
+
+        if (postList != null) {
+            var deletedPosts = PostStore.getUnseenDeletedPosts(channel.id);
+
+            if (deletedPosts && Object.keys(deletedPosts).length > 0) {
+                for (var pid in deletedPosts) {
+                    postList.posts[pid] = deletedPosts[pid];
+                    postList.order.unshift(pid);
+                }
+
+                postList.order.sort(function postSort(a, b) {
+                    if (postList.posts[a].create_at > postList.posts[b].create_at) {
+                        return -1;
+                    }
+                    if (postList.posts[a].create_at < postList.posts[b].create_at) {
+                        return 1;
+                    }
+                    return 0;
+                });
             }
-            if (postList.posts[a].create_at < postList.posts[b].create_at) {
-                return 1;
+
+            var pendingPostList = PostStore.getPendingPosts(channel.id);
+
+            if (pendingPostList) {
+                postList.order = pendingPostList.order.concat(postList.order);
+                for (var ppid in pendingPostList.posts) {
+                    postList.posts[ppid] = pendingPostList.posts[ppid];
+                }
             }
-            return 0;
-        });
+        }
+
+        var lastViewed = Number.MAX_VALUE;
+
+        if (ChannelStore.getCurrentMember() != null) {
+            lastViewed = ChannelStore.getCurrentMember().last_viewed_at;
+        }
+
+        return {
+            postList: postList,
+            channel: channel,
+            lastViewed: lastViewed
+        };
     }
-
-    var pendingPostList = PostStore.getPendingPosts(channel.id);
-
-    if (pendingPostList) {
-        postList.order = pendingPostList.order.concat(postList.order);
-        for (var ppid in pendingPostList.posts) {
-            postList.posts[ppid] = pendingPostList.posts[ppid];
-        }
-    }
-
-    return {
-        postList: postList,
-        channel: channel
-    };
-}
-
-module.exports = React.createClass({
-    displayName: 'PostList',
-    scrollPosition: 0,
-    preventScrollTrigger: false,
-    gotMorePosts: false,
-    oldScrollHeight: 0,
-    oldZoom: 0,
-    scrolledToNew: false,
-    componentDidMount: function() {
-        var user = UserStore.getCurrentUser();
-        if (user.props && user.props.theme) {
-            utils.changeCss('div.theme', 'background-color:' + user.props.theme + ';');
-            utils.changeCss('.btn.btn-primary', 'background: ' + user.props.theme + ';');
-            utils.changeCss('.modal .modal-header', 'background: ' + user.props.theme + ';');
-            utils.changeCss('.mention', 'background: ' + user.props.theme + ';');
-            utils.changeCss('.mention-link', 'color: ' + user.props.theme + ';');
-            utils.changeCss('@media(max-width: 768px){.search-bar__container', 'background: ' + user.props.theme + ';}');
-            utils.changeCss('.search-item-container:hover', 'background: ' + utils.changeOpacity(user.props.theme, 0.05) + ';');
-            utils.changeCss('.nav-pills__unread-indicator', 'background: ' + utils.changeOpacity(user.props.theme, 0.05) + ';');
-        }
-
-        if (user.props.theme !== '#000000' && user.props.theme !== '#585858') {
-            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, -10) + ';');
-            utils.changeCss('a.theme', 'color:' + user.props.theme + '; fill:' + user.props.theme + '!important;');
-        } else if (user.props.theme === '#000000') {
-            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, +50) + ';');
-            $('.team__header').addClass('theme--black');
-        } else if (user.props.theme === '#585858') {
-            utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + utils.changeColor(user.props.theme, +10) + ';');
-            $('.team__header').addClass('theme--gray');
-        }
-
+    componentDidMount() {
         PostStore.addChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onTimeChange);
         SocketStore.addChangeListener(this.onSocketChange);
 
-        $('.post-list-holder-by-time').perfectScrollbar();
-
-        this.resize();
-
-        var postHolder = $('.post-list-holder-by-time')[0];
-        this.scrollPosition = $(postHolder).scrollTop() + $(postHolder).innerHeight();
-        this.oldScrollHeight = postHolder.scrollHeight;
-        this.oldZoom = (window.outerWidth - 8) / window.innerWidth;
+        var postHolder = $('.post-list-holder-by-time');
 
         $('.modal').on('show.bs.modal', function onShow() {
             $('.modal-body').css('overflow-y', 'auto');
             $('.modal-body').css('max-height', $(window).height() * 0.7);
         });
 
-        var self = this;
         $(window).resize(function resize() {
-            $(postHolder).perfectScrollbar('update');
-
-            // this only kind of works, detecting zoom in browsers is a nightmare
-            var newZoom = (window.outerWidth - 8) / window.innerWidth;
-
-            if (self.scrollPosition >= postHolder.scrollHeight || (self.oldScrollHeight !== postHolder.scrollHeight && self.scrollPosition >= self.oldScrollHeight) || self.oldZoom !== newZoom) {
-                self.resize();
-            }
-
-            self.oldZoom = newZoom;
-
             if ($('#create_post').length > 0) {
                 var height = $(window).height() - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
-                $('.post-list-holder-by-time').css('height', height + 'px');
+                postHolder.css('height', height + 'px');
             }
-        });
 
-        $(postHolder).scroll(function scroll() {
-            if (!self.preventScrollTrigger) {
-                self.scrollPosition = $(postHolder).scrollTop() + $(postHolder).innerHeight();
+            if (!this.scrolled) {
+                this.scrollToBottom();
             }
-            self.preventScrollTrigger = false;
-        });
+        }.bind(this));
+
+        postHolder.scroll(function scroll() {
+            var position = postHolder.scrollTop() + postHolder.height() + 14;
+            var bottom = postHolder[0].scrollHeight;
+
+            if (position >= bottom) {
+                this.scrolled = false;
+            } else {
+                this.scrolled = true;
+            }
+
+            if (this.isUserScroll) {
+                this.userHasSeenNew = true;
+            }
+            this.isUserScroll = true;
+        }.bind(this));
 
         $('body').on('click.userpopover', function popOver(e) {
             if ($(e.target).attr('data-toggle') !== 'popover' &&
@@ -163,76 +155,101 @@ module.exports = React.createClass({
                 $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--comment');
             }
         });
-    },
-    componentDidUpdate: function() {
-        this.resize();
-        var postHolder = $('.post-list-holder-by-time')[0];
-        this.scrollPosition = $(postHolder).scrollTop() + $(postHolder).innerHeight();
-        this.oldScrollHeight = postHolder.scrollHeight;
+
+        this.scrollToBottom();
+        setTimeout(this.scrollToBottom, 100);
+    }
+    componentDidUpdate(prevProps, prevState) {
         $('.post-list__content div .post').removeClass('post--last');
         $('.post-list__content div:last-child .post').addClass('post--last');
-    },
-    componentWillUnmount: function() {
+
+        if (this.state.postList == null || prevState.postList == null) {
+            this.scrollToBottom();
+            return;
+        }
+
+        var order = this.state.postList.order || [];
+        var posts = this.state.postList.posts || {};
+        var oldOrder = prevState.postList.order || [];
+        var oldPosts = prevState.postList.posts || {};
+        var userId = UserStore.getCurrentId();
+        var firstPost = posts[order[0]] || {};
+        var isNewPost = oldOrder.indexOf(order[0]) === -1;
+
+        if (this.state.channel.id !== prevState.channel.id) {
+            this.scrollToBottom();
+        } else if (oldOrder.length === 0) {
+            this.scrollToBottom();
+
+        // the user is scrolled to the bottom
+        } else if (!this.scrolled) {
+            this.scrollToBottom();
+
+        // there's a new post and
+        // it's by the user and not a comment
+        } else if (isNewPost &&
+                    userId === firstPost.user_id &&
+                    !utils.isComment(firstPost)) {
+            this.state.lastViewed = utils.getTimestamp();
+            this.scrollToBottom(true);
+
+        // the user clicked 'load more messages'
+        } else if (this.gotMorePosts) {
+            var lastPost = oldPosts[oldOrder[prevState.numToDisplay]];
+            $('#' + lastPost.id)[0].scrollIntoView();
+        } else {
+            this.scrollTo(this.prevScrollTop);
+        }
+    }
+    componentWillUpdate() {
+        var postHolder = $('.post-list-holder-by-time');
+        this.prevScrollTop = postHolder.scrollTop();
+    }
+    componentWillUnmount() {
         PostStore.removeChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onTimeChange);
         SocketStore.removeChangeListener(this.onSocketChange);
         $('body').off('click.userpopover');
         $('.modal').off('show.bs.modal');
-    },
-    resize: function() {
-        var postHolder = $('.post-list-holder-by-time')[0];
-        this.preventScrollTrigger = true;
-        if (this.gotMorePosts) {
-            this.gotMorePosts = false;
-            $(postHolder).scrollTop($(postHolder).scrollTop() + (postHolder.scrollHeight - this.oldScrollHeight));
-        } else if ($('#new_message')[0] && !this.scrolledToNew) {
-            $(postHolder).scrollTop($(postHolder).scrollTop() + $('#new_message').offset().top - 63);
-            this.scrolledToNew = true;
+    }
+    scrollTo(val) {
+        this.isUserScroll = false;
+        var postHolder = $('.post-list-holder-by-time');
+        postHolder[0].scrollTop = val;
+    }
+    scrollToBottom(force) {
+        this.isUserScroll = false;
+        var postHolder = $('.post-list-holder-by-time');
+        if ($('#new_message')[0] && !this.userHasSeenNew && !force) {
+            $('#new_message')[0].scrollIntoView();
         } else {
-            $(postHolder).scrollTop(postHolder.scrollHeight);
+            postHolder.addClass('hide-scroll');
+            postHolder[0].scrollTop = postHolder[0].scrollHeight;
+            postHolder.removeClass('hide-scroll');
         }
-        $(postHolder).perfectScrollbar('update');
-    },
-    onChange: function() {
-        var newState = getStateFromStores();
+    }
+    onChange() {
+        var newState = this.getStateFromStores();
 
         if (!utils.areStatesEqual(newState, this.state)) {
-            if (this.state.postList && this.state.postList.order) {
-                if (this.state.channel.id === newState.channel.id && this.state.postList.order.length !== newState.postList.order.length && newState.postList.order.length > Constants.POST_CHUNK_SIZE) {
-                    this.gotMorePosts = true;
-                }
-            }
             if (this.state.channel.id !== newState.channel.id) {
                 PostStore.clearUnseenDeletedPosts(this.state.channel.id);
-                this.scrolledToNew = false;
+                this.userHasSeenNew = false;
+                newState.numToDisplay = Constants.POST_CHUNK_SIZE;
+            } else {
+                newState.lastViewed = this.state.lastViewed;
             }
+
             this.setState(newState);
         }
-    },
-    onSocketChange: function(msg) {
+    }
+    onSocketChange(msg) {
         var postList;
         var post;
-        if (msg.action === 'posted') {
+        if (msg.action === 'posted' || msg.action === 'post_edited') {
             post = JSON.parse(msg.props.post);
             PostStore.storePost(post);
-        } else if (msg.action === 'post_edited') {
-            if (this.state.channel.id === msg.channel_id) {
-                postList = this.state.postList;
-                if (!(msg.props.post_id in postList.posts)) {
-                    return;
-                }
-
-                post = postList.posts[msg.props.post_id];
-                post.message = msg.props.message;
-
-                postList.posts[post.id] = post;
-                this.setState({postList: postList});
-
-                PostStore.storePosts(msg.channel_id, postList);
-            } else {
-                AsyncClient.getPosts(true, msg.channel_id);
-            }
         } else if (msg.action === 'post_deleted') {
             var activeRoot = $(document.activeElement).closest('.comment-create-body')[0];
             var activeRootPostId = '';
@@ -244,16 +261,8 @@ module.exports = React.createClass({
             postList = this.state.postList;
 
             PostStore.storeUnseenDeletedPost(post);
-
-            if (postList.posts[post.id]) {
-                delete postList.posts[post.id];
-                var index = postList.order.indexOf(post.id);
-                if (index > -1) {
-                    postList.order.splice(index, 1);
-                }
-
-                PostStore.storePosts(msg.channel_id, postList);
-            }
+            PostStore.removePost(post, true);
+            PostStore.emitChange();
 
             if (activeRootPostId === msg.props.post_id && UserStore.getCurrentId() !== msg.user_id) {
                 $('#post_deleted').modal('show');
@@ -261,8 +270,8 @@ module.exports = React.createClass({
         } else if (msg.action === 'new_user') {
             AsyncClient.getProfiles();
         }
-    },
-    onTimeChange: function() {
+    }
+    onTimeChange() {
         if (!this.state.postList) {
             return;
         }
@@ -273,11 +282,256 @@ module.exports = React.createClass({
             }
             this.refs[id].forceUpdateInfo();
         }
-    },
-    getMorePosts: function(e) {
-        e.preventDefault();
+    }
+    createDMIntroMessage(channel) {
+        var teammate = utils.getDirectTeammate(channel.id);
 
-        if (!this.state.postList) {
+        if (teammate) {
+            var teammateName = teammate.username;
+            if (teammate.nickname.length > 0) {
+                teammateName = teammate.nickname;
+            }
+
+            return (
+                <div className='channel-intro'>
+                    <div className='post-profile-img__container channel-intro-img'>
+                        <img
+                            className='post-profile-img'
+                            src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at}
+                            height='50'
+                            width='50'
+                        />
+                    </div>
+                    <div className='channel-intro-profile'>
+                        <strong><UserProfile userId={teammate.id} /></strong>
+                    </div>
+                    <p className='channel-intro-text'>
+                        {'This is the start of your private message history with ' + teammateName + '.'}<br/>
+                        {'Private messages and files shared here are not shown to people outside this area.'}
+                    </p>
+                    <a
+                        className='intro-links'
+                        href='#'
+                        data-toggle='modal'
+                        data-target='#edit_channel'
+                        data-desc={channel.description}
+                        data-title={channel.display_name}
+                        data-channelid={channel.id}
+                    >
+                        <i className='fa fa-pencil'></i>Set a description
+                    </a>
+                </div>
+            );
+        }
+
+        return (
+            <div className='channel-intro'>
+                <p className='channel-intro-text'>{'This is the start of your private message history with this ' + strings.Team + 'mate. Private messages and files shared here are not shown to people outside this area.'}</p>
+            </div>
+        );
+    }
+    createChannelIntroMessage(channel) {
+        if (channel.type === 'D') {
+            return this.createDMIntroMessage(channel);
+        } else if (ChannelStore.isDefault(channel)) {
+            return this.createDefaultIntroMessage(channel);
+        } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
+            return this.createOffTopicIntroMessage(channel);
+        } else if (channel.type === 'O' || channel.type === 'P') {
+            return this.createStandardIntroMessage(channel);
+        }
+    }
+    createDefaultIntroMessage(channel) {
+        return (
+            <div className='channel-intro'>
+                <h4 className='channel-intro__title'>Beginning of {channel.display_name}</h4>
+                <p className='channel-intro__content'>
+                    Welcome to {channel.display_name}!
+                    <br/><br/>
+                    This is the first channel {strings.Team}mates see when they
+                    <br/>
+                    sign up - use it for posting updates everyone needs to know.
+                    <br/><br/>
+                    To create a new channel or join an existing one, go to
+                    <br/>
+                    the Left Hand Sidebar under “Channels” and click “More…”.
+                    <br/>
+                </p>
+            </div>
+        );
+    }
+    createOffTopicIntroMessage(channel) {
+        return (
+            <div className='channel-intro'>
+                <h4 className='channel-intro__title'>Beginning of {channel.display_name}</h4>
+                <p className='channel-intro__content'>
+                    {'This is the start of ' + channel.display_name + ', a channel for non-work-related conversations.'}
+                    <br/>
+                </p>
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#edit_channel'
+                    data-desc={channel.description}
+                    data-title={channel.display_name}
+                    data-channelid={channel.id}
+                >
+                    <i className='fa fa-pencil'></i>Set a description
+                </a>
+            </div>
+        );
+    }
+    getChannelCreator(channel) {
+        if (channel.creator_id.length > 0) {
+            var creator = UserStore.getProfile(channel.creator_id);
+            if (creator) {
+                return creator.username;
+            }
+        }
+
+        var members = ChannelStore.getCurrentExtraInfo().members;
+        for (var i = 0; i < members.length; i++) {
+            if (members[i].roles.indexOf('admin') > -1) {
+                return members[i].username;
+            }
+        }
+    }
+    createStandardIntroMessage(channel) {
+        var uiName = channel.display_name;
+        var creatorName = '';
+
+        var uiType;
+        var memberMessage;
+        if (channel.type === 'P') {
+            uiType = 'private group';
+            memberMessage = ' Only invited members can see this private group.';
+        } else {
+            uiType = 'channel';
+            memberMessage = ' Any member can join and read this channel.';
+        }
+
+        var createMessage;
+        if (creatorName !== '') {
+            createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
+        } else {
+            createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + utils.displayDate(channel.create_at) + '.';
+        }
+
+        return (
+            <div className='channel-intro'>
+                <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
+                <p className='channel-intro__content'>
+                    {createMessage}
+                    {memberMessage}
+                    <br/>
+                </p>
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#edit_channel'
+                    data-desc={channel.description}
+                    data-title={channel.display_name}
+                    data-channelid={channel.id}
+                >
+                    <i className='fa fa-pencil'></i>Set a description
+                </a>
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#channel_invite'
+                >
+                    <i className='fa fa-user-plus'></i>Invite others to this {uiType}
+                </a>
+            </div>
+        );
+    }
+    createPosts(posts, order) {
+        var postCtls = [];
+        var previousPostDay = new Date(0);
+        var userId = UserStore.getCurrentId();
+
+        var renderedLastViewed = false;
+
+        var numToDisplay = this.state.numToDisplay;
+        if (order.length - 1 < numToDisplay) {
+            numToDisplay = order.length - 1;
+        }
+
+        for (var i = numToDisplay; i >= 0; i--) {
+            var post = posts[order[i]];
+            var parentPost = posts[post.parent_id];
+
+            var sameUser = false;
+            var sameRoot = false;
+            var hideProfilePic = false;
+            var prevPost = posts[order[i + 1]];
+
+            if (prevPost) {
+                sameUser = prevPost.user_id === post.user_id && post.create_at - prevPost.create_at <= 1000 * 60 * 5;
+
+                sameRoot = utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
+
+                // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
+                hideProfilePic = (prevPost.user_id === post.user_id) && !utils.isComment(prevPost) && !utils.isComment(post);
+            }
+
+            // check if it's the last comment in a consecutive string of comments on the same post
+            // it is the last comment if it is last post in the channel or the next post has a different root post
+            var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
+
+            var postCtl = (
+                <Post
+                    key={post.id}
+                    ref={post.id}
+                    sameUser={sameUser}
+                    sameRoot={sameRoot}
+                    post={post}
+                    parentPost={parentPost}
+                    posts={posts}
+                    hideProfilePic={hideProfilePic}
+                    isLastComment={isLastComment}
+                />
+            );
+
+            let currentPostDay = utils.getDateForUnixTicks(post.create_at);
+            if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
+                postCtls.push(
+                    <div
+                        key={currentPostDay.toDateString()}
+                        className='date-separator'
+                    >
+                        <hr className='separator__hr' />
+                        <div className='separator__text'>{currentPostDay.toDateString()}</div>
+                    </div>
+                );
+            }
+
+            if (post.user_id !== userId && post.create_at > this.state.lastViewed && !renderedLastViewed) {
+                renderedLastViewed = true;
+                postCtls.push(
+                    <div
+                        id='new_message'
+                        key='unviewed'
+                        className='new-separator'
+                    >
+                        <hr
+                            className='separator__hr'
+                         />
+                        <div className='separator__text'>New Messages</div>
+                    </div>
+                );
+            }
+            postCtls.push(postCtl);
+            previousPostDay = currentPostDay;
+        }
+
+        return postCtls;
+    }
+    loadMorePosts() {
+        if (this.state.postList == null) {
             return;
         }
 
@@ -287,257 +541,72 @@ module.exports = React.createClass({
 
         $(this.refs.loadmore.getDOMNode()).text('Retrieving more messages...');
 
-        var self = this;
-        var currentPos = $('.post-list').scrollTop;
+        Client.getPostsPage(
+            channelId,
+            order.length,
+            Constants.POST_CHUNK_SIZE,
+            function success(data) {
+                $(this.refs.loadmore.getDOMNode()).text('Load more messages');
+                this.gotMorePosts = true;
+                this.setState({numToDisplay: this.state.numToDisplay + Constants.POST_CHUNK_SIZE});
 
-        Client.getPosts(
-                channelId,
-                order.length,
-                Constants.POST_CHUNK_SIZE,
-                function success(data) {
-                    $(self.refs.loadmore.getDOMNode()).text('Load more messages');
-
-                    if (!data) {
-                        return;
-                    }
-
-                    if (data.order.length === 0) {
-                        return;
-                    }
-
-                    var postList = {};
-                    postList.posts = $.extend(posts, data.posts);
-                    postList.order = order.concat(data.order);
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECIEVED_POSTS,
-                        id: channelId,
-                        postList: postList
-                    });
-
-                    Client.getProfiles();
-                    $('.post-list').scrollTop(currentPos);
-                },
-                function fail(err) {
-                    $(self.refs.loadmore.getDOMNode()).text('Load more messages');
-                    AsyncClient.dispatchError(err, 'getPosts');
+                if (!data) {
+                    return;
                 }
-            );
-    },
-    getInitialState: function() {
-        return getStateFromStores();
-    },
-    render: function() {
+
+                if (data.order.length === 0) {
+                    return;
+                }
+
+                var postList = {};
+                postList.posts = $.extend(posts, data.posts);
+                postList.order = order.concat(data.order);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_POSTS,
+                    id: channelId,
+                    post_list: postList
+                });
+
+                Client.getProfiles();
+            }.bind(this),
+            function fail(err) {
+                $(this.refs.loadmore.getDOMNode()).text('Load more messages');
+                AsyncClient.dispatchError(err, 'getPosts');
+            }.bind(this)
+        );
+    }
+    render() {
         var order = [];
         var posts;
-
-        var lastViewed = Number.MAX_VALUE;
-
-        if (ChannelStore.getCurrentMember() != null) {
-            lastViewed = ChannelStore.getCurrentMember().last_viewed_at;
-        }
+        var channel = this.state.channel;
 
         if (this.state.postList != null) {
             posts = this.state.postList.posts;
             order = this.state.postList.order;
         }
 
-        var renderedLastViewed = false;
-
-        var userId = '';
-        if (UserStore.getCurrentId()) {
-            userId = UserStore.getCurrentId();
-        } else {
-            return <div/>;
-        }
-
-        var channel = this.state.channel;
-
         var moreMessages = <p className='beginning-messages-text'>Beginning of Channel</p>;
-
-        var userStyle = {color: UserStore.getCurrentUser().props.theme};
-
         if (channel != null) {
-            if (order.length > 0 && order.length % Constants.POST_CHUNK_SIZE === 0) {
-                moreMessages = <a ref='loadmore' className='more-messages-text theme' href='#' onClick={this.getMorePosts}>Load more messages</a>;
-            } else if (channel.type === 'D') {
-                var teammate = utils.getDirectTeammate(channel.id);
-
-                if (teammate) {
-                    var teammateName = teammate.username;
-                    if (teammate.nickname.length > 0) {
-                        teammateName = teammate.nickname;
-                    }
-
-                    moreMessages = (
-                        <div className='channel-intro'>
-                            <div className='post-profile-img__container channel-intro-img'>
-                                <img className='post-profile-img' src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at} height='50' width='50' />
-                            </div>
-                            <div className='channel-intro-profile'>
-                                <strong><UserProfile userId={teammate.id} /></strong>
-                            </div>
-                            <p className='channel-intro-text'>
-                                This is the start of your private message history with <strong>{teammateName}</strong>.<br/>
-                                Private messages and files shared here are not shown to people outside this area.
-                            </p>
-                            <a className='intro-links' href='#' style={userStyle} data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className='fa fa-pencil'></i>Set a description</a>
-                        </div>
-                    );
-                } else {
-                    moreMessages = (
-                        <div className='channel-intro'>
-                            <p className='channel-intro-text'>{'This is the start of your private message history with this ' + strings.Team + 'mate. Private messages and files shared here are not shown to people outside this area.'}</p>
-                        </div>
-                    );
-                }
-            } else if (channel.type === 'P' || channel.type === 'O') {
-                var uiName = channel.display_name;
-                var creatorName = '';
-
-                if (channel.creator_id.length > 0) {
-                    var creator = UserStore.getProfile(channel.creator_id);
-                    if (creator) {
-                        creatorName = creator.username;
-                    }
-                }
-
-                if (creatorName === '') {
-                    var members = ChannelStore.getCurrentExtraInfo().members;
-                    for (var i = 0; i < members.length; i++) {
-                        if (members[i].roles.indexOf('admin') > -1) {
-                            creatorName = members[i].username;
-                            break;
-                        }
-                    }
-                }
-
-                if (ChannelStore.isDefault(channel)) {
-                    moreMessages = (
-                        <div className='channel-intro'>
-                            <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
-                            <p className='channel-intro__content'>
-                                Welcome to <strong>{uiName}</strong>!
-                                <br/><br/>
-                                This is the first channel {strings.Team}mates see when they
-                                <br/>
-                                sign up - use it for posting updates everyone needs to know.
-                                <br/><br/>
-                                To create a new channel or join an existing one, go to
-                                <br/>
-                                the Left Hand Sidebar under “Channels” and click “More…”.
-                                <br/>
-                            </p>
-                        </div>
-                    );
-                } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-                    moreMessages = (
-                        <div className='channel-intro'>
-                            <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
-                            <p className='channel-intro__content'>
-                                This is the start of <strong>{uiName}</strong>, a channel for non-work-related conversations.
-                                <br/>
-                            </p>
-                            <a className='intro-links' href='#' style={userStyle} data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={uiName} data-channelid={channel.id}><i className='fa fa-pencil'></i>Set a description</a>
-                        </div>
-                    );
-                } else {
-                    var uiType;
-                    var memberMessage;
-                    if (channel.type === 'P') {
-                        uiType = 'private group';
-                        memberMessage = ' Only invited members can see this private group.';
-                    } else {
-                        uiType = 'channel';
-                        memberMessage = ' Any member can join and read this channel.';
-                    }
-
-                    var createMessage;
-                    if (creatorName !== '') {
-                        createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
-                    } else {
-                        createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + utils.displayDate(channel.create_at) + '.';
-                    }
-
-                    moreMessages = (
-                        <div className='channel-intro'>
-                            <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
-                            <p className='channel-intro__content'>
-                                {createMessage}
-                                {memberMessage}
-                                <br/>
-                            </p>
-                            <a className='intro-links' href='#' style={userStyle} data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}><i className='fa fa-pencil'></i>Set a description</a>
-                            <a className='intro-links' href='#' style={userStyle} data-toggle='modal' data-target='#channel_invite'><i className='fa fa-user-plus'></i>Invite others to this {uiType}</a>
-                        </div>
-                    );
-                }
+            if (order.length > this.state.numToDisplay) {
+                moreMessages = (
+                    <a
+                        ref='loadmore'
+                        className='more-messages-text theme'
+                        href='#'
+                        onClick={this.loadMorePosts}
+                    >
+                            Load more messages
+                    </a>
+                );
+            } else {
+                moreMessages = this.createChannelIntroMessage(channel);
             }
         }
 
         var postCtls = [];
-
         if (posts) {
-            var previousPostDay = new Date(0);
-            var currentPostDay;
-
-            for (var i = order.length - 1; i >= 0; i--) {
-                var post = posts[order[i]];
-                var parentPost = null;
-                if (post.parent_id) {
-                    parentPost = posts[post.parent_id];
-                }
-
-                var sameUser = '';
-                var sameRoot = false;
-                var hideProfilePic = false;
-                var prevPost;
-                if (i < order.length - 1) {
-                    prevPost = posts[order[i + 1]];
-                }
-
-                if (prevPost) {
-                    if ((prevPost.user_id === post.user_id) && (post.create_at - prevPost.create_at <= 1000 * 60 * 5)) {
-                        sameUser = 'same--user';
-                    }
-                    sameRoot = utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
-
-                    // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
-                    hideProfilePic = (prevPost.user_id === post.user_id) && !utils.isComment(prevPost) && !utils.isComment(post);
-                }
-
-                // check if it's the last comment in a consecutive string of comments on the same post
-                // it is the last comment if it is last post in the channel or the next post has a different root post
-                var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
-
-                var postCtl = (
-                    <Post ref={post.id} sameUser={sameUser} sameRoot={sameRoot} post={post} parentPost={parentPost} key={post.id}
-                        posts={posts} hideProfilePic={hideProfilePic} isLastComment={isLastComment}
-                    />
-                );
-
-                currentPostDay = utils.getDateForUnixTicks(post.create_at);
-                if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
-                    postCtls.push(
-                        <div key={currentPostDay.toDateString()} className='date-separator'>
-                            <hr className='separator__hr' />
-                            <div className='separator__text'>{currentPostDay.toDateString()}</div>
-                        </div>
-                    );
-                }
-
-                if (post.user_id !== userId && post.create_at > lastViewed && !renderedLastViewed) {
-                    renderedLastViewed = true;
-                    postCtls.push(
-                        <div key='unviewed' className='new-separator'>
-                            <hr id='new_message' className='separator__hr' />
-                            <div className='separator__text'>New Messages</div>
-                        </div>
-                    );
-                }
-                postCtls.push(postCtl);
-                previousPostDay = currentPostDay;
-            }
+            postCtls = this.createPosts(posts, order);
         } else {
             postCtls.push(<LoadingScreen position='absolute' />);
         }
@@ -553,4 +622,4 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}

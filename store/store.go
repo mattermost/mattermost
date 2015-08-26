@@ -75,6 +75,7 @@ type PostStore interface {
 	Get(id string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	GetPosts(channelId string, offset int, limit int) StoreChannel
+	GetPostsSince(channelId string, time int64) StoreChannel
 	GetEtag(channelId string) StoreChannel
 	Search(teamId string, userId string, terms string, isHashtagSearch bool) StoreChannel
 }

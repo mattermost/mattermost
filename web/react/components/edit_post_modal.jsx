@@ -25,7 +25,7 @@ module.exports = React.createClass({
 
         Client.updatePost(updatedPost,
             function(data) {
-                AsyncClient.getPosts(true, this.state.channel_id);
+                AsyncClient.getPosts(this.state.channel_id);
                 window.scrollTo(0, 0);
             }.bind(this),
             function(err) {

@@ -765,7 +765,7 @@ function switchChannel(channel, teammateName) {
 
     AsyncClient.getChannels(true, true, true);
     AsyncClient.getChannelExtraInfo(true);
-    AsyncClient.getPosts(true, channel.id, Constants.POST_CHUNK_SIZE);
+    AsyncClient.getPosts(channel.id);
 
     $('.inner__wrap').removeClass('move--right');
     $('.sidebar--left').removeClass('move--right');
