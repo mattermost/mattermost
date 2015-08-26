@@ -82,8 +82,8 @@ func SlackParsePosts(data io.Reader) []SlackPost {
 
 func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
 	// Log header
-	log.WriteString("\n Users Created\n")
-	log.WriteString("===============\n\n")
+	log.WriteString("\r\n Users Created\r\n")
+	log.WriteString("===============\r\n\r\n")
 
 	addedUsers := make(map[string]*model.User)
 	for _, sUser := range slackusers {
@@ -109,9 +109,9 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 
 		if mUser := ImportUser(&newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
-			log.WriteString("Email, Password: " + newUser.Email + ", " + password + "\n")
+			log.WriteString("Email, Password: " + newUser.Email + ", " + password + "\r\n")
 		} else {
-			log.WriteString("Unable to import user: " + sUser.Username)
+			log.WriteString("Unable to import user: " + sUser.Username + "\r\n")
 		}
 	}
 
@@ -163,8 +163,8 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 
 func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
-	log.WriteString("\n Channels Added \n")
-	log.WriteString("=================\n\n")
+	log.WriteString("\r\n Channels Added \r\n")
+	log.WriteString("=================\r\n\r\n")
 
 	addedChannels := make(map[string]*model.Channel)
 	for _, sChannel := range slackchannels {
@@ -180,14 +180,14 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			// Maybe it already exists?
 			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
 				l4g.Debug("Failed to import: %s", newChannel.DisplayName)
-				log.WriteString("Failed to import: " + newChannel.DisplayName + "\n")
+				log.WriteString("Failed to import: " + newChannel.DisplayName + "\r\n")
 				continue
 			} else {
 				mChannel = result.Data.(*model.Channel)
-				log.WriteString("Merged with existing channel: " + newChannel.DisplayName + "\n")
+				log.WriteString("Merged with existing channel: " + newChannel.DisplayName + "\r\n")
 			}
 		}
-		log.WriteString(newChannel.DisplayName + "\n")
+		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel
 		SlackAddPosts(mChannel, posts[sChannel.Name], users)
 	}
@@ -202,7 +202,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	}
 
 	// Create log file
-	log := bytes.NewBufferString("Mattermost Slack Import Log\n")
+	log := bytes.NewBufferString("Mattermost Slack Import Log\r\n")
 
 	var channels []SlackChannel
 	var users []SlackUser
@@ -234,11 +234,11 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	addedUsers := SlackAddUsers(teamID, users, log)
 	SlackAddChannels(teamID, channels, posts, addedUsers, log)
 
-	log.WriteString("\n Notes \n")
-	log.WriteString("=======\n\n")
+	log.WriteString("\r\n Notes \r\n")
+	log.WriteString("=======\r\n\r\n")
 
-	log.WriteString("- Some posts may not have been imported because they where not supported by this importer.\n")
-	log.WriteString("- Slack bot posts are currently not supported.\n")
+	log.WriteString("- Some posts may not have been imported because they where not supported by this importer.\r\n")
+	log.WriteString("- Slack bot posts are currently not supported.\r\n")
 
 	return nil, log
 }
