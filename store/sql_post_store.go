@@ -6,7 +6,6 @@ package store
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/platform/model"
