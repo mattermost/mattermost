@@ -3,6 +3,7 @@
 
 var TeamStore = require('../stores/team_store.jsx');
 var ImportTab = require('./team_import_tab.jsx');
+var ExportTab = require('./team_export_tab.jsx');
 var FeatureTab = require('./team_feature_tab.jsx');
 var GeneralTab = require('./team_general_tab.jsx');
 var Utils = require('../utils/utils.jsx');
@@ -61,6 +62,13 @@ export default class TeamSettings extends React.Component {
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                     />
+                </div>
+            );
+            break;
+        case 'export':
+            result = (
+                <div>
+                    <ExportTab />
                 </div>
             );
             break;
