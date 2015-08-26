@@ -84,6 +84,17 @@ module.exports = React.createClass({
             var button = e.relatedTarget;
             self.setState({channelType: $(button).attr('data-channeltype')});
         });
+        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose);
+    },
+    componentWillUnmount: function() {
+        $(this.refs.modal.getDOMNode()).off('hidden.bs.modal', this.handleClose);
+    },
+    handleClose: function() {
+        $(this.getDOMNode()).find('.form-control').each(function clearForms() {
+            this.value = '';
+        });
+
+        this.setState({channelType: '', displayNameError: '', nameError: '', serverError: '', inValid: false});
     },
     getInitialState: function() {
         return {channelType: ''};
