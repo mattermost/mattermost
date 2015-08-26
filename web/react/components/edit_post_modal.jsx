@@ -39,17 +39,9 @@ module.exports = React.createClass({
         $(this.state.refocusId).focus();
     },
     handleEditInput: function(editText) {
-        var newError = this.state.error;
-
-        var len = utils.getLengthOfTextInTextarea(editText);
-
-        if (!this.state.error && len >= Constants.MAX_POST_LEN) {
-            newError = 'New message length cannot exceed 4000 characters';
-        } else if (this.state.error === 'New message length cannot exceed 4000 characters' && len < Constants.MAX_POST_LEN) {
-            newError = '';
-        }
-
-        this.setState({editText: editText, error: newError});
+        var editMessage = utils.truncateText(editText);
+        var newError = utils.checkMessageLengthError(editMessage, this.state.error, 'New message length cannot exceed ' + Constants.MAX_POST_LEN + ' characters');
+        this.setState({editText: editMessage, error: newError});
     },
     handleEditKeyPress: function(e) {
         if (e.which == 13 && !e.shiftKey && !e.altKey) {
