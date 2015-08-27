@@ -22,8 +22,8 @@ The following is an abridged version of the [Airbnb Javascript Style Guide](http
 
 ### Whitespace
 
-- Indentation is four spaces
-- Use a space before the leading brace
+- Indentation is four spaces.
+- Use a space before the leading brace.
 - Use one space between the comma and the next argument in a bracketed list. No other space.
 - Use whitespace to make code more readable.
 - Do not use more than one newline to separate code blocks. 
