@@ -44,19 +44,21 @@ module.exports = React.createClass({
 
         var suggestions = [];
 
+        console.log(this.state.suggestions.length);
+
         for (var i = 0; i < this.state.suggestions.length; i++) {
             if (this.state.suggestions[i].suggestion != this.state.cmd) {
                 suggestions.push(
                     <div key={i} className="command-name" onClick={this.handleClick.bind(this, i)}>
-                        <div className="pull-left"><strong>{ this.state.suggestions[i].suggestion }</strong></div>
-                        <div className="command-desc pull-right">{ this.state.suggestions[i].description }</div>
+                        <div className="command__title"><strong>{ this.state.suggestions[i].suggestion }</strong></div>
+                        <div className="command__desc">{ this.state.suggestions[i].description }</div>
                     </div>
                 );
             }
         }
 
         return (
-            <div ref="mentionlist" className="command-box" style={{height:(this.state.suggestions.length*37)+2}}>
+            <div ref="mentionlist" className="command-box" style={{height:(this.state.suggestions.length*56)+2}}>
                 { suggestions }
             </div>
         );
