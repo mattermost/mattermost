@@ -110,9 +110,62 @@ func TestReservedTeamName(t *testing.T) {
 	}
 }
 
+func TestCleanTeamName(t *testing.T) {
+	if CleanTeamName("Jimbo's Team") != "jimbos-team" {
+		t.Fatal("didn't clean name properly")
+	}
+	if len(CleanTeamName("Test")) != 26 {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanTeamName("Team Really cool") != "really-cool" {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanTeamName("super-duper-guys") != "super-duper-guys" {
+		t.Fatal("didn't clean name properly")
+	}
+}
+
 func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
 	if len(etag) <= 0 {
 		t.Fatal()
+	}
+}
+
+var usernames = []struct {
+	value    string
+	expected bool
+}{
+	{"spin-punch", true},
+	{"Spin-punch", false},
+	{"spin punch-", false},
+	{"spin_punch", true},
+	{"spin", true},
+	{"PUNCH", false},
+	{"spin.punch", true},
+	{"spin'punch", false},
+	{"spin*punch", false},
+}
+
+func TestValidUsername(t *testing.T) {
+	for _, v := range usernames {
+		if IsValidUsername(v.value) != v.expected {
+			t.Errorf("expect %v as %v", v.value, v.expected)
+		}
+	}
+}
+
+func TestCleanUsername(t *testing.T) {
+	if CleanUsername("Spin-punch") != "spin-punch" {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanUsername("PUNCH") != "punch" {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanUsername("spin'punch") != "spin-punch" {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanUsername("spin") != "spin" {
+		t.Fatal("didn't clean name properly")
 	}
 }

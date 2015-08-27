@@ -7,7 +7,6 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"encoding/json"
 	"io"
-	"regexp"
 	"strings"
 )
 
@@ -72,13 +71,7 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "Invalid team id", "")
 	}
 
-	if len(u.Username) == 0 || len(u.Username) > 64 {
-		return NewAppError("User.IsValid", "Invalid username", "user_id="+u.Id)
-	}
-
-	validChars, _ := regexp.Compile("^[a-z0-9\\.\\-\\_]+$")
-
-	if !validChars.MatchString(u.Username) {
+	if !IsValidUsername(u.Username) {
 		return NewAppError("User.IsValid", "Invalid username", "user_id="+u.Id)
 	}
 

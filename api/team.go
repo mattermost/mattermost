@@ -23,6 +23,7 @@ func InitTeam(r *mux.Router) {
 	sr := r.PathPrefix("/teams").Subrouter()
 	sr.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
 	sr.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
+	sr.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	sr.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
 	sr.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 	sr.Handle("/find_teams", ApiAppHandler(findTeams)).Methods("POST")
@@ -35,6 +36,11 @@ func InitTeam(r *mux.Router) {
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.SSOSettings.AllowEmailSignUp {
+		c.Err = model.NewAppError("signupTeam", "Team sign-up with email is disabled.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
 
 	m := model.MapFromJson(r.Body)
 	email := strings.ToLower(strings.TrimSpace(m["email"]))
@@ -70,7 +76,70 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(m)))
 }
 
+func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	service := params["service"]
+
+	if !utils.IsServiceAllowed(service) {
+		c.SetInvalidParam("createTeamFromSSO", "service")
+		return
+	}
+
+	team := model.TeamFromJson(r.Body)
+
+	if team == nil {
+		c.SetInvalidParam("createTeamFromSSO", "team")
+		return
+	}
+
+	team.PreSave()
+
+	team.Name = model.CleanTeamName(team.Name)
+
+	if err := team.IsValid(); err != nil {
+		c.Err = err
+		return
+	}
+
+	team.Id = ""
+
+	found := true
+	count := 0
+	for found {
+		if found = FindTeamByName(c, team.Name, "true"); c.Err != nil {
+			return
+		} else if found {
+			team.Name = team.Name + strconv.Itoa(count)
+			count += 1
+		}
+	}
+
+	team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
+
+	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		rteam := result.Data.(*model.Team)
+
+		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
+			c.Err = nil
+			return
+		}
+
+		data := map[string]string{"follow_link": c.GetSiteURL() + "/" + rteam.Name + "/signup/" + service}
+		w.Write([]byte(model.MapToJson(data)))
+
+	}
+
+}
+
 func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.SSOSettings.AllowEmailSignUp {
+		c.Err = model.NewAppError("createTeamFromSignup", "Team sign-up with email is disabled.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
 
 	teamSignup := model.TeamSignupFromJson(r.Body)
 
@@ -161,6 +230,11 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.SSOSettings.AllowEmailSignUp {
+		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
 
 	team := model.TeamFromJson(r.Body)
 

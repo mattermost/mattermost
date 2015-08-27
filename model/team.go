@@ -93,7 +93,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 
-	if !IsValidEmail(o.Email) {
+	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 

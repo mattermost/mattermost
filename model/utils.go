@@ -193,6 +193,64 @@ func IsValidTeamName(s string) bool {
 	return true
 }
 
+var validTeamNameCharacter = regexp.MustCompile(`^[a-z0-9-]$`)
+
+func CleanTeamName(s string) string {
+	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+
+	for _, value := range reservedName {
+		if strings.Index(s, value) == 0 {
+			s = strings.Replace(s, value, "", -1)
+		}
+	}
+
+	s = strings.TrimSpace(s)
+
+	for _, c := range s {
+		char := fmt.Sprintf("%c", c)
+		if !validTeamNameCharacter.MatchString(char) {
+			s = strings.Replace(s, char, "", -1)
+		}
+	}
+
+	s = strings.Trim(s, "-")
+
+	if !IsValidTeamName(s) {
+		s = NewId()
+	}
+
+	return s
+}
+
+var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+
+func IsValidUsername(s string) bool {
+	if len(s) == 0 || len(s) > 64 {
+		return false
+	}
+
+	if !validUsernameChars.MatchString(s) {
+		return false
+	}
+
+	return true
+}
+
+func CleanUsername(s string) string {
+	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+
+	for _, c := range s {
+		char := fmt.Sprintf("%c", c)
+		if !validUsernameChars.MatchString(char) {
+			s = strings.Replace(s, char, "-", -1)
+		}
+	}
+
+	s = strings.Trim(s, "-")
+
+	return s
+}
+
 var wwwStart = regexp.MustCompile(`^www`)
 var betaStart = regexp.MustCompile(`^beta`)
 var ciStart = regexp.MustCompile(`^ci`)
