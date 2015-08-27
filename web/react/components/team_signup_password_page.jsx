@@ -31,31 +31,35 @@ module.exports = React.createClass({
         teamSignup.user.allow_marketing = true;
         delete teamSignup.wizard;
 
-        // var ctl = this;
-
         client.createTeamFromSignup(teamSignup,
             function success() {
                 client.track('signup', 'signup_team_08_complete');
 
                 var props = this.props;
 
-                $('#sign-up-button').button('reset');
-                props.state.wizard = 'finished';
-                props.updateParent(props.state, true);
+                
+                client.loginByEmail(teamSignup.team.name, teamSignup.team.email, teamSignup.user.password,
+                    function(data) {
+                        UserStore.setLastEmail(teamSignup.team.email);
+                        UserStore.setCurrentUser(teamSignup.user);
+                        if (this.props.hash > 0) {
+                            BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: 'finished'}));
+                        }
 
-                window.location.href = utils.getWindowLocationOrigin() + '/' + props.state.team.name + '/login?email=' + encodeURIComponent(teamSignup.team.email);
+                        $('#sign-up-button').button('reset');
+                        props.state.wizard = 'finished';
+                        props.updateParent(props.state, true);
 
-                // client.loginByEmail(teamSignup.team.domain, teamSignup.team.email, teamSignup.user.password,
-                //     function(data) {
-                //         TeamStore.setLastName(teamSignup.team.domain);
-                //         UserStore.setLastEmail(teamSignup.team.email);
-                //         UserStore.setCurrentUser(data);
-                //         window.location.href = '/channels/town-square';
-                //     }.bind(ctl),
-                //     function(err) {
-                //         this.setState({nameError: err.message});
-                //     }.bind(ctl)
-                // );
+                        window.location.href = '/';
+                    }.bind(this),
+                    function(err) {
+                        if (err.message === 'Login failed because email address has not been verified') {
+                            window.location.href = '/verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name);
+                        } else {
+                            this.setState({serverError: err.message});
+                        }
+                    }.bind(this)
+                );
             }.bind(this),
             function error(err) {
                 this.setState({serverError: err.message});
