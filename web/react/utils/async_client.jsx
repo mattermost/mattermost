@@ -412,6 +412,11 @@ function getPosts(id) {
         return;
     }
 
+    if (PostStore.getCurrentPosts() == null) {
+        module.exports.getPostsPage(true, id, Constants.POST_CHUNK_SIZE);
+        return;
+    }
+
     var latestUpdate = PostStore.getLatestUpdate(channelId);
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
