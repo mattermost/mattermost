@@ -1,69 +1,49 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var ChoosePage = require('./team_signup_choose_auth.jsx');
+var EmailSignUpPage = require('./team_signup_with_email.jsx');
+var SSOSignupPage = require('./team_signup_with_sso.jsx');
+var Constants = require('../utils/constants.jsx');
 
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
+export default class TeamSignUp extends React.Component {
+    constructor(props) {
+        super(props);
 
-module.exports = React.createClass({
-    handleSubmit: function(e) {
-        e.preventDefault();
-        var team = {};
-        var state = { server_error: "" };
+        this.updatePage = this.updatePage.bind(this);
 
-        team.email = this.refs.email.getDOMNode().value.trim().toLowerCase();
-        if (!team.email || !utils.isEmail(team.email)) {
-            state.email_error = "Please enter a valid email address";
-            state.inValid = true;
+        if (props.services.length === 1) {
+            if (props.services[0] === Constants.EMAIL_SERVICE) {
+                this.state = {page: 'email', service: ''};
+            } else {
+                this.state = {page: 'service', service: props.services[0]};
+            }
+        } else {
+            this.state = {page: 'choose', service: ''};
         }
-        else {
-            state.email_error = "";
-        }
-
-        if (state.inValid) {
-            this.setState(state);
-            return;
-        }
-
-        client.signupTeam(team.email,
-            function(data) {
-                if (data["follow_link"]) {
-                    window.location.href = data["follow_link"];
-                }
-                else {
-                    window.location.href = "/signup_team_confirm/?email=" + encodeURIComponent(team.email);
-                }
-            }.bind(this),
-            function(err) {
-                state.server_error = err.message;
-                this.setState(state);
-            }.bind(this)
-        );
-    },
-    getInitialState: function() {
-        return {  };
-    },
-    render: function() {
-
-        var email_error = this.state.email_error ? <label className='control-label'>{ this.state.email_error }</label> : null;
-        var server_error = this.state.server_error ? <div className={ "form-group has-error" }><label className='control-label'>{ this.state.server_error }</label></div> : null;
-
-        return (
-            <form role="form" onSubmit={this.handleSubmit}>
-                <div className={ email_error ? "form-group has-error" : "form-group" }>
-                    <input autoFocus={true} type="email" ref="email" className="form-control" placeholder="Email Address" maxLength="128" />
-                    { email_error }
-                </div>
-                { server_error }
-                <div className="form-group">
-                    <button className="btn btn-md btn-primary" type="submit">Sign up</button>
-                </div>
-                <div className="form-group margin--extra-2x">
-                    <span><a href="/find_team">{"Find my " + strings.Team}</a></span>
-                </div>
-            </form>
-        );
     }
-});
+    updatePage(page, service) {
+        this.setState({page: page, service: service});
+    }
+    render() {
+        if (this.state.page === 'email') {
+            return <EmailSignUpPage />;
+        } else if (this.state.page === 'service' && this.state.service !== '') {
+            return <SSOSignupPage service={this.state.service} />;
+        } else {
+            return (
+                <ChoosePage
+                    services={this.props.services}
+                    updatePage={this.updatePage}
+                />
+            );
+        }
+    }
+}
 
-
+TeamSignUp.defaultProps = {
+    services: []
+};
+TeamSignUp.propTypes = {
+    services: React.PropTypes.array
+};

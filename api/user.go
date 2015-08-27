@@ -58,6 +58,11 @@ func InitUser(r *mux.Router) {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.SSOSettings.AllowEmailSignUp {
+		c.Err = model.NewAppError("signupTeam", "User sign-up with email is disabled.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
 
 	user := model.UserFromJson(r.Body)
 
@@ -181,7 +186,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		c.Err = result.Err
-		l4g.Error("Filae err=%v", result.Err)
+		l4g.Error("Couldn't save the user err=%v", result.Err)
 		return nil
 	} else {
 		ruser := result.Data.(*model.User)
@@ -1328,15 +1333,15 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri, loginHint string) {
 
-	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+	if s, ok := utils.Cfg.SSOSettings.Services[service]; !ok || !s.Allow {
 		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
-	clientId := utils.Cfg.SSOSettings[service].Id
-	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
-	scope := utils.Cfg.SSOSettings[service].Scope
+	clientId := utils.Cfg.SSOSettings.Services[service].Id
+	endpoint := utils.Cfg.SSOSettings.Services[service].AuthEndpoint
+	scope := utils.Cfg.SSOSettings.Services[service].Scope
 
 	stateProps := map[string]string{"team": teamName, "hash": model.HashPassword(clientId)}
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
@@ -1355,7 +1360,7 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 }
 
 func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, *model.AppError) {
-	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+	if s, ok := utils.Cfg.SSOSettings.Services[service]; !ok || !s.Allow {
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
 	}
 
@@ -1368,7 +1373,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
-	if !model.ComparePassword(stateProps["hash"], utils.Cfg.SSOSettings[service].Id) {
+	if !model.ComparePassword(stateProps["hash"], utils.Cfg.SSOSettings.Services[service].Id) {
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
 	}
 
@@ -1380,14 +1385,14 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	tchan := Srv.Store.Team().GetByName(teamName)
 
 	p := url.Values{}
-	p.Set("client_id", utils.Cfg.SSOSettings[service].Id)
-	p.Set("client_secret", utils.Cfg.SSOSettings[service].Secret)
+	p.Set("client_id", utils.Cfg.SSOSettings.Services[service].Id)
+	p.Set("client_secret", utils.Cfg.SSOSettings.Services[service].Secret)
 	p.Set("code", code)
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings[service].TokenEndpoint, strings.NewReader(p.Encode()))
+	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings.Services[service].TokenEndpoint, strings.NewReader(p.Encode()))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
@@ -1409,7 +1414,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	p = url.Values{}
 	p.Set("access_token", ar.AccessToken)
-	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings[service].UserApiEndpoint, strings.NewReader(""))
+	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings.Services[service].UserApiEndpoint, strings.NewReader(""))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
@@ -1425,4 +1430,19 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 		}
 	}
 
+}
+
+func IsUsernameTaken(name string, teamId string) bool {
+
+	if !model.IsValidUsername(name) {
+		return false
+	}
+
+	if result := <-Srv.Store.User().GetByUsername(teamId, name); result.Err != nil {
+		return false
+	} else {
+		return true
+	}
+
+	return false
 }

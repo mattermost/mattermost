@@ -25,23 +25,26 @@
         "AllowedLoginAttempts": 10
     },
     "SSOSettings": {
-        "gitlab": {
-            "Allow": false,
-            "Secret" : "",
-            "Id": "",
-            "Scope": "",
-            "AuthEndpoint": "",
-            "TokenEndpoint": "",
-            "UserApiEndpoint": ""
-        },
-        "google": {
-            "Allow": false,
-            "Secret": "",
-            "Id": "",
-            "Scope": "email profile",
-            "AuthEndpoint": "https://accounts.google.com/o/oauth2/auth",
-            "TokenEndpoint": "https://www.googleapis.com/oauth2/v3/token",
-            "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
+        "AllowEmailSignUp": true,
+        "Services": {
+            "gitlab": {
+                "Allow": false,
+                "Secret" : "",
+                "Id": "",
+                "Scope": "",
+                "AuthEndpoint": "",
+                "TokenEndpoint": "",
+                "UserApiEndpoint": ""
+            },
+            "google": {
+                "Allow": false,
+                "Secret": "",
+                "Id": "",
+                "Scope": "email profile",
+                "AuthEndpoint": "https://accounts.google.com/o/oauth2/auth",
+                "TokenEndpoint": "https://www.googleapis.com/oauth2/v3/token",
+                "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
+            }
         }
     },
     "SqlSettings": {

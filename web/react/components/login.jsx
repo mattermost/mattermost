@@ -10,7 +10,9 @@ var Constants = require('../utils/constants.jsx');
 export default class Login extends React.Component {
     constructor(props) {
         super(props);
+
         this.handleSubmit = this.handleSubmit.bind(this);
+
         this.state = {};
     }
     handleSubmit(e) {
@@ -96,19 +98,28 @@ export default class Login extends React.Component {
         var authServices = JSON.parse(this.props.authServices);
 
         var loginMessage = [];
-        if (authServices.indexOf(Constants.GITLAB_SERVICE) >= 0) {
+        if (authServices.indexOf(Constants.GITLAB_SERVICE) !== -1) {
             loginMessage.push(
-                <div className='form-group form-group--small'>
-                    <span><a href={'/' + teamName + '/login/gitlab'}>{'Log in with GitLab'}</a></span>
-                </div>
-            );
+                    <a
+                        className='btn btn-custom-login gitlab'
+                        href={'/' + teamName + '/login/gitlab'}
+                    >
+                        <span className='icon' />
+                        <span>with GitLab</span>
+                    </a>
+           );
         }
-        if (authServices.indexOf(Constants.GOOGLE_SERVICE) >= 0) {
+
+        if (authServices.indexOf(Constants.GOOGLE_SERVICE) !== -1) {
             loginMessage.push(
-                <div className='form-group form-group--small'>
-                    <span><a href={'/' + teamName + '/login/google'}>{'Log in with Google'}</a></span>
-                </div>
-            );
+                    <a
+                        className='btn btn-custom-login google'
+                        href={'/' + teamName + '/login/google'}
+                    >
+                        <span className='icon' />
+                        <span>with Google Apps</span>
+                    </a>
+           );
         }
 
         var errorClass = '';
@@ -116,15 +127,10 @@ export default class Login extends React.Component {
             errorClass = ' has-error';
         }
 
-        return (
-            <div className='signup-team__container'>
-                <h5 className='margin--less'>Sign in to:</h5>
-                <h2 className='signup-team__name'>{teamDisplayName}</h2>
-                <h2 className='signup-team__subdomain'>on {config.SiteName}</h2>
-                <form onSubmit={this.handleSubmit}>
-                    <div className={'form-group' + errorClass}>
-                        {serverError}
-                    </div>
+        var emailSignup;
+        if (authServices.indexOf(Constants.EMAIL_SERVICE) !== -1) {
+            emailSignup = (
+                <div>
                     <div className={'form-group' + errorClass}>
                         <input
                             autoFocus={focusEmail}
@@ -154,13 +160,43 @@ export default class Login extends React.Component {
                             Sign in
                         </button>
                     </div>
+                </div>
+            );
+        }
+
+        var forgotPassword;
+        if (loginMessage.length > 0 && emailSignup) {
+            loginMessage = (
+                <div>
                     {loginMessage}
+                    <div className='or__container'>
+                        <span>or</span>
+                    </div>
+                </div>
+            );
+
+            forgotPassword = (
+                <div className='form-group'>
+                    <a href={'/' + teamName + '/reset_password'}>I forgot my password</a>
+                </div>
+            );
+        }
+
+        return (
+            <div className='signup-team__container'>
+                <h5 className='margin--less'>Sign in to:</h5>
+                <h2 className='signup-team__name'>{teamDisplayName}</h2>
+                <h2 className='signup-team__subdomain'>on {config.SiteName}</h2>
+                <form onSubmit={this.handleSubmit}>
+                    <div className={'form-group' + errorClass}>
+                        {serverError}
+                    </div>
+                    {loginMessage}
+                    {emailSignup}
                     <div className='form-group margin--extra form-group--small'>
                         <span><a href='/find_team'>{'Find other ' + strings.TeamPlural}</a></span>
                     </div>
-                    <div className='form-group'>
-                        <a href={'/' + teamName + '/reset_password'}>I forgot my password</a>
-                    </div>
+                    {forgotPassword}
                     <div className='margin--extra'>
                         <span>{'Want to create your own ' + strings.Team + '? '}
                             <a
