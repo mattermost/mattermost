@@ -248,7 +248,6 @@ module.exports = React.createClass({
             // display a progress indicator when the preview for an image is still loading
             var percentage = Math.floor(this.state.progress[this.state.imgId]);
             if (percentage) {
-
                 content = (
                     <div>
                         <img className='loader-image' src='/static/images/load.gif' />
