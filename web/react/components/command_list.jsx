@@ -44,8 +44,6 @@ module.exports = React.createClass({
 
         var suggestions = [];
 
-        console.log(this.state.suggestions.length);
-
         for (var i = 0; i < this.state.suggestions.length; i++) {
             if (this.state.suggestions[i].suggestion != this.state.cmd) {
                 suggestions.push(
