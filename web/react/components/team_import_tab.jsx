@@ -20,10 +20,22 @@ module.exports = React.createClass({
         utils.importSlack(file, this.onImportSuccess, this.onImportFailure);
     },
     render: function() {
+        var uploadHelpText = (
+            <div>
+                <br/>
+                Slack does now allow you to export any of your files or images stored in slack. Private channels and direct message channels are also not exported. Therefore, no files, images, or private channels will be imported. 
+                <br/>
+                Slack bot posts are not imported.
+                <br/>
+                Unable to import Slack channels that are not valid Mattermost channels. (ex underscores)
+                <br/>
+            </div>
+        );
         var uploadSection = (
             <SettingUpload
                 title='Import from Slack'
                 submit={this.doImportSlack}
+                helpText={uploadHelpText}
                 fileTypesAccepted='.zip'/>
         );
 
@@ -39,12 +51,12 @@ module.exports = React.createClass({
             break;
             case 'done':
                 messageSection = (
-                    <p className="confirm-import alert alert-success"><i className="fa fa-check"></i> Import sucessfull: <a href={this.state.link} download='MattermostImportSummery.txt'>View Summery</a></p>
+                    <p className="confirm-import alert alert-success"><i className="fa fa-check"></i> Import successful: <a href={this.state.link} download='MattermostImportSummary.txt'>View Summary</a></p>
             );
             break;
             case 'fail':
                 messageSection = (
-                    <p className="confirm-import alert alert-warning"><i className="fa fa-warning"></i> Import failure: <a href={this.state.link} download='MattermostImportSummery.txt'>View Summery</a></p>
+                    <p className="confirm-import alert alert-warning"><i className="fa fa-warning"></i> Import failure: <a href={this.state.link} download='MattermostImportSummary.txt'>View Summary</a></p>
             );
             break;
         }

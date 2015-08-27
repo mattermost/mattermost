@@ -8,7 +8,8 @@ module.exports = React.createClass({
         submit: React.PropTypes.func.isRequired,
         fileTypesAccepted: React.PropTypes.string.isRequired,
         clientError: React.PropTypes.string,
-        serverError: React.PropTypes.string
+        serverError: React.PropTypes.string,
+        helpText: React.PropTypes.string
     },
     getInitialState: function() {
         return {
@@ -38,14 +39,6 @@ module.exports = React.createClass({
             this.setState({clientError: 'No file selected.'});
         }
     },
-    doCancel: function(e) {
-        e.preventDefault();
-        this.refs.uploadinput.getDOMNode().value = '';
-        this.setState({
-            clientError: '',
-            serverError: ''
-        });
-    },
     onFileSelect: function(e) {
         var filename = $(e.target).val();
         if (filename.substring(3, 11) === 'fakepath') {
@@ -70,6 +63,7 @@ module.exports = React.createClass({
         return (
             <ul className='section-max'>
                 <li className='col-xs-12 section-title'>{this.props.title}</li>
+                <li className='col-xs-offset-3'>{this.props.helpText}</li>
                 <li className='col-xs-offset-3 col-xs-8'>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
@@ -78,12 +72,6 @@ module.exports = React.createClass({
                                 className={'btn btn-sm btn-primary'}
                                 onClick={this.doSubmit}>
                                 Import
-                            </a>
-                            <a
-                                className='btn btn-sm btn-link theme'
-                                href='#'
-                                onClick={this.doCancel}>
-                                Cancel
                             </a>
                             <div className='file-status file-name hide'></div>
                             {serverError}
