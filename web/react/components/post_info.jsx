@@ -43,13 +43,16 @@ export default class PostInfo extends React.Component {
 
         if (isOwner) {
             dropdownContents.push(
-                <li role='presentation'>
+                <li
+                    key='editPost'
+                    role='presentation'
+                >
                     <a
                         href='#'
                         role='menuitem'
                         data-toggle='modal'
                         data-target='#edit_post'
-                        data-refoucsid="#post_textbox"
+                        data-refoucsid='#post_textbox'
                         data-title={type}
                         data-message={post.message}
                         data-postid={post.id}
@@ -64,7 +67,10 @@ export default class PostInfo extends React.Component {
 
         if (isOwner || isAdmin) {
             dropdownContents.push(
-                <li role='presentation'>
+                <li
+                    key='deletePost'
+                    role='presentation'
+                >
                     <a
                         href='#'
                         role='menuitem'
@@ -83,7 +89,10 @@ export default class PostInfo extends React.Component {
 
         if (this.props.allowReply === 'true') {
             dropdownContents.push(
-                <li role='presentation'>
+                <li
+                    key='replyLink'
+                    role='presentation'
+                >
                     <a
                         className='reply-link theme'
                         href='#'

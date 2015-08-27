@@ -11,10 +11,32 @@ var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 var assign = require('object-assign');
 
-module.exports = React.createClass({
-    displayName: 'GeneralTab',
-    submitActive: false,
-    submitUsername: function(e) {
+export default class UserSettingsGeneralTab extends React.Component {
+    constructor(props) {
+        super(props);
+        this.submitActive = false;
+
+        this.submitUsername = this.submitUsername.bind(this);
+        this.submitNickname = this.submitNickname.bind(this);
+        this.submitName = this.submitName.bind(this);
+        this.submitEmail = this.submitEmail.bind(this);
+        this.submitUser = this.submitUser.bind(this);
+        this.submitPicture = this.submitPicture.bind(this);
+
+        this.updateUsername = this.updateUsername.bind(this);
+        this.updateFirstName = this.updateFirstName.bind(this);
+        this.updateLastName = this.updateLastName.bind(this);
+        this.updateNickname = this.updateNickname.bind(this);
+        this.updateEmail = this.updateEmail.bind(this);
+        this.updatePicture = this.updatePicture.bind(this);
+        this.updateSection = this.updateSection.bind(this);
+
+        this.handleClose = this.handleClose.bind(this);
+        this.setupInitialState = this.setupInitialState.bind(this);
+
+        this.state = this.setupInitialState(props);
+    }
+    submitUsername(e) {
         e.preventDefault();
 
         var user = this.props.user;
@@ -37,8 +59,8 @@ module.exports = React.createClass({
         user.username = username;
 
         this.submitUser(user);
-    },
-    submitNickname: function(e) {
+    }
+    submitNickname(e) {
         e.preventDefault();
 
         var user = UserStore.getCurrentUser();
@@ -52,8 +74,8 @@ module.exports = React.createClass({
         user.nickname = nickname;
 
         this.submitUser(user);
-    },
-    submitName: function(e) {
+    }
+    submitName(e) {
         e.preventDefault();
 
         var user = UserStore.getCurrentUser();
@@ -69,8 +91,8 @@ module.exports = React.createClass({
         user.last_name = lastName;
 
         this.submitUser(user);
-    },
-    submitEmail: function(e) {
+    }
+    submitEmail(e) {
         e.preventDefault();
 
         var user = UserStore.getCurrentUser();
@@ -88,15 +110,15 @@ module.exports = React.createClass({
         user.email = email;
 
         this.submitUser(user);
-    },
-    submitUser: function(user) {
+    }
+    submitUser(user) {
         client.updateUser(user,
-            function() {
+            function updateSuccess() {
                 this.updateSection('');
                 AsyncClient.getMe();
             }.bind(this),
-            function(err) {
-                var state = this.getInitialState();
+            function updateFailure(err) {
+                var state = this.setupInitialState(this.props);
                 if (err.message) {
                     state.serverError = err.message;
                 } else {
@@ -105,8 +127,8 @@ module.exports = React.createClass({
                 this.setState(state);
             }.bind(this)
         );
-    },
-    submitPicture: function(e) {
+    }
+    submitPicture(e) {
         e.preventDefault();
 
         if (!this.state.picture) {
@@ -129,34 +151,34 @@ module.exports = React.createClass({
         this.setState({loadingPicture: true});
 
         client.uploadProfileImage(formData,
-            function() {
+            function imageUploadSuccess() {
                 this.submitActive = false;
                 AsyncClient.getMe();
                 window.location.reload();
             }.bind(this),
-            function(err) {
-                var state = this.getInitialState();
+            function imageUploadFailure(err) {
+                var state = this.setupInitialState(this.props);
                 state.serverError = err;
                 this.setState(state);
             }.bind(this)
         );
-    },
-    updateUsername: function(e) {
+    }
+    updateUsername(e) {
         this.setState({username: e.target.value});
-    },
-    updateFirstName: function(e) {
+    }
+    updateFirstName(e) {
         this.setState({firstName: e.target.value});
-    },
-    updateLastName: function(e) {
+    }
+    updateLastName(e) {
         this.setState({lastName: e.target.value});
-    },
-    updateNickname: function(e) {
+    }
+    updateNickname(e) {
         this.setState({nickname: e.target.value});
-    },
-    updateEmail: function(e) {
+    }
+    updateEmail(e) {
         this.setState({email: e.target.value});
-    },
-    updatePicture: function(e) {
+    }
+    updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({picture: e.target.files[0]});
 
@@ -165,34 +187,33 @@ module.exports = React.createClass({
         } else {
             this.setState({picture: null});
         }
-    },
-    updateSection: function(section) {
-        this.setState(assign({}, this.getInitialState(), {clientError: ''}));
+    }
+    updateSection(section) {
+        this.setState(assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: ''}));
         this.submitActive = false;
         this.props.updateSection(section);
-    },
-    handleClose: function() {
-        $(this.getDOMNode()).find('.form-control').each(function() {
+    }
+    handleClose() {
+        $(this.getDOMNode()).find('.form-control').each(function clearForms() {
             this.value = '';
         });
 
-        this.setState(assign({}, this.getInitialState(), {clientError: null, serverError: null, emailError: null}));
+        this.setState(assign({}, this.setupInitialState(this.props), {clientError: null, serverError: null, emailError: null}));
         this.props.updateSection('');
-    },
-    componentDidMount: function() {
+    }
+    componentDidMount() {
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         $('#user_settings').off('hidden.bs.modal', this.handleClose);
-    },
-    getInitialState: function() {
-        var user = this.props.user;
+    }
+    setupInitialState(props) {
+        var user = props.user;
         var emailEnabled = !ConfigStore.getSettingAsBoolean('ByPassEmail', false);
-
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                 email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
-    },
-    render: function() {
+                        email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
+    }
+    render() {
         var user = this.props.user;
 
         var clientError = null;
@@ -214,19 +235,35 @@ module.exports = React.createClass({
 
         if (this.props.activeSection === 'name') {
             inputs.push(
-                <div className='form-group'>
+                <div
+                    key='firstNameSetting'
+                    className='form-group'
+                >
                     <label className='col-sm-5 control-label'>First Name</label>
                     <div className='col-sm-7'>
-                        <input className='form-control' type='text' onChange={this.updateFirstName} value={this.state.firstName}/>
+                        <input
+                            className='form-control'
+                            type='text'
+                            onChange={this.updateFirstName}
+                            value={this.state.firstName}
+                        />
                     </div>
                 </div>
             );
 
             inputs.push(
-                <div className='form-group'>
+                <div
+                    key='lastNameSetting'
+                    className='form-group'
+                >
                     <label className='col-sm-5 control-label'>Last Name</label>
                     <div className='col-sm-7'>
-                        <input className='form-control' type='text' onChange={this.updateLastName} value={this.state.lastName}/>
+                        <input
+                            className='form-control'
+                            type='text'
+                            onChange={this.updateLastName}
+                            value={this.state.lastName}
+                        />
                     </div>
                 </div>
             );
@@ -238,7 +275,7 @@ module.exports = React.createClass({
                     submit={this.submitName}
                     server_error={serverError}
                     client_error={clientError}
-                    updateSection={function(e) {
+                    updateSection={function clearSection(e) {
                         self.updateSection('');
                         e.preventDefault();
                     }}
@@ -259,7 +296,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title='Full Name'
                     describe={fullName}
-                    updateSection={function() {
+                    updateSection={function updateNameSection() {
                         self.updateSection('name');
                     }}
                 />
@@ -268,11 +305,24 @@ module.exports = React.createClass({
 
         var nicknameSection;
         if (this.props.activeSection === 'nickname') {
+            let nicknameLabel = 'Nickname';
+            if (utils.isMobile()) {
+                nicknameLabel = '';
+            }
+
             inputs.push(
-                <div className='form-group'>
-                    <label className='col-sm-5 control-label'>{utils.isMobile() ? '' : 'Nickname'}</label>
+                <div
+                    key='nicknameSetting'
+                    className='form-group'
+                >
+                    <label className='col-sm-5 control-label'>{nicknameLabel}</label>
                     <div className='col-sm-7'>
-                        <input className='form-control' type='text' onChange={this.updateNickname} value={this.state.nickname}/>
+                        <input
+                            className='form-control'
+                            type='text'
+                            onChange={this.updateNickname}
+                            value={this.state.nickname}
+                        />
                     </div>
                 </div>
             );
@@ -284,7 +334,7 @@ module.exports = React.createClass({
                     submit={this.submitNickname}
                     server_error={serverError}
                     client_error={clientError}
-                    updateSection={function(e) {
+                    updateSection={function clearSection(e) {
                         self.updateSection('');
                         e.preventDefault();
                     }}
@@ -295,7 +345,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title='Nickname'
                     describe={UserStore.getCurrentUser().nickname}
-                    updateSection={function() {
+                    updateSection={function updateNicknameSection() {
                         self.updateSection('nickname');
                     }}
                 />
@@ -304,11 +354,24 @@ module.exports = React.createClass({
 
         var usernameSection;
         if (this.props.activeSection === 'username') {
+            let usernameLabel = 'Username';
+            if (utils.isMobile()) {
+                usernameLabel = '';
+            }
+
             inputs.push(
-                <div className='form-group'>
-                    <label className='col-sm-5 control-label'>{utils.isMobile() ? '' : 'Username'}</label>
+                <div
+                    key='usernameSetting'
+                    className='form-group'
+                >
+                    <label className='col-sm-5 control-label'>{usernameLabel}</label>
                     <div className='col-sm-7'>
-                        <input className='form-control' type='text' onChange={this.updateUsername} value={this.state.username}/>
+                        <input
+                            className='form-control'
+                            type='text'
+                            onChange={this.updateUsername}
+                            value={this.state.username}
+                        />
                     </div>
                 </div>
             );
@@ -320,7 +383,7 @@ module.exports = React.createClass({
                     submit={this.submitUsername}
                     server_error={serverError}
                     client_error={clientError}
-                    updateSection={function(e) {
+                    updateSection={function clearSection(e) {
                         self.updateSection('');
                         e.preventDefault();
                     }}
@@ -331,7 +394,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title='Username'
                     describe={UserStore.getCurrentUser().username}
-                    updateSection={function() {
+                    updateSection={function updateUsernameSection() {
                         self.updateSection('username');
                     }}
                 />
@@ -346,11 +409,16 @@ module.exports = React.createClass({
             }
 
             inputs.push(
-                <div>
+                <div key='emailSetting'>
                     <div className='form-group'>
                         <label className='col-sm-5 control-label'>Primary Email</label>
                         <div className='col-sm-7'>
-                            <input className='form-control' type='text' onChange={this.updateEmail} value={this.state.email}/>
+                            <input
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateEmail}
+                                value={this.state.email}
+                            />
                         </div>
                     </div>
                     {helpText}
@@ -364,7 +432,7 @@ module.exports = React.createClass({
                     submit={this.submitEmail}
                     server_error={serverError}
                     client_error={emailError}
-                    updateSection={function(e) {
+                    updateSection={function clearSection(e) {
                         self.updateSection('');
                         e.preventDefault();
                     }}
@@ -375,7 +443,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title='Email'
                     describe={UserStore.getCurrentUser().email}
-                    updateSection={function() {
+                    updateSection={function updateEmailSection() {
                         self.updateSection('email');
                     }}
                 />
@@ -391,7 +459,7 @@ module.exports = React.createClass({
                     src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update}
                     server_error={serverError}
                     client_error={clientError}
-                    updateSection={function(e) {
+                    updateSection={function clearSection(e) {
                         self.updateSection('');
                         e.preventDefault();
                     }}
@@ -410,7 +478,7 @@ module.exports = React.createClass({
                 <SettingItemMin
                     title='Profile Picture'
                     describe={minMessage}
-                    updateSection={function() {
+                    updateSection={function updatePictureSection() {
                         self.updateSection('picture');
                     }}
                 />
@@ -419,8 +487,21 @@ module.exports = React.createClass({
         return (
             <div>
                 <div className='modal-header'>
-                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>General Settings</h4>
+                    <button
+                        type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        aria-label='Close'
+                    >
+                        <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4
+                        className='modal-title'
+                        ref='title'
+                    >
+                        <i className='modal-back'></i>
+                        General Settings
+                    </h4>
                 </div>
                 <div className='user-settings'>
                     <h3 className='tab-header'>General Settings</h3>
@@ -439,4 +520,10 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
+
+UserSettingsGeneralTab.propTypes = {
+    user: React.PropTypes.object,
+    updateSection: React.PropTypes.func,
+    activeSection: React.PropTypes.string
+};
