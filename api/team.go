@@ -44,6 +44,10 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isTreamCreationAllowed(c, email) {
+		return
+	}
+
 	subjectPage := NewServerTemplatePage("signup_team_subject", c.GetSiteURL())
 	bodyPage := NewServerTemplatePage("signup_team_body", c.GetSiteURL())
 	bodyPage.Props["TourUrl"] = utils.Cfg.TeamSettings.TourLink
@@ -89,6 +93,11 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	if !isTreamCreationAllowed(c, teamSignup.Team.Email) {
+		return
+	}
+
 	teamSignup.Team.Id = ""
 
 	password := teamSignup.User.Password
@@ -169,6 +178,10 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isTreamCreationAllowed(c, team.Email) {
+		return
+	}
+
 	if utils.Cfg.ServiceSettings.Mode != utils.MODE_DEV {
 		c.Err = model.NewAppError("createTeam", "The mode does not allow network creation without a valid invite", "")
 		return
@@ -194,6 +207,35 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write([]byte(rteam.ToJson()))
 	}
+}
+
+func isTreamCreationAllowed(c *Context, email string) bool {
+
+	email = strings.ToLower(email)
+
+	if utils.Cfg.TeamSettings.DisableTeamCreation {
+		c.Err = model.NewAppError("isTreamCreationAllowed", "Team creation has been disabled. Please ask your systems administrator for details.", "")
+		return false
+	}
+
+	// commas and @ signs are optional
+	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
+	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(utils.Cfg.TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domains {
+		if strings.HasSuffix(email, "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	if len(utils.Cfg.TeamSettings.RestrictCreationToDomains) > 0 && !matched {
+		c.Err = model.NewAppError("isTreamCreationAllowed", "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.", "")
+		return false
+	}
+
+	return true
 }
 
 func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
