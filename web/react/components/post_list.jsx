@@ -379,6 +379,14 @@ export default class PostList extends React.Component {
                 >
                     <i className='fa fa-pencil'></i>Set a description
                 </a>
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#channel_invite'
+                >
+                    <i className='fa fa-user-plus'></i>Invite others to this channel
+                </a>
             </div>
         );
     }
