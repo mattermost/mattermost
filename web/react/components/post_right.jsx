@@ -26,6 +26,13 @@ RhsHeaderPost = React.createClass({
         });
 
         AppDispatcher.handleServerAction({
+            type: ActionTypes.RECIEVED_SEARCH_TERM,
+            term: null,
+            do_search: false,
+            is_mention_search: false
+        });
+
+        AppDispatcher.handleServerAction({
             type: ActionTypes.RECIEVED_POST_SELECTED,
             results: null
         });
