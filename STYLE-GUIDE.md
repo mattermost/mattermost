@@ -85,14 +85,14 @@ var my_variable = 4;
 
 ```javascript
 // Correct
-if (somthing) {
+if (something) {
     stuff...;
 } else if (otherthing) {
     stuff...;
 }
 
 // Incorrect
-if (somthing)
+if (something)
 {
     stuff...;
 }
@@ -102,8 +102,8 @@ else
 }
 
 // Incorrect
-if (somthing) stuff...;
-if (somthing)
+if (something) stuff...;
+if (something)
     stuff...;
 
 ```
