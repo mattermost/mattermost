@@ -291,7 +291,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 			WHERE
 			    (UpdateAt > :Time
 			        AND ChannelId = :ChannelId)
-			LIMIT 100)
+			LIMIT 1000)
 			UNION
 			(SELECT
 			    *
@@ -307,7 +307,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 			    WHERE
 			        UpdateAt > :Time
 			            AND ChannelId = :ChannelId
-			    LIMIT 100) temp_tab))
+			    LIMIT 1000) temp_tab))
 			ORDER BY CreateAt DESC`,
 			map[string]interface{}{"ChannelId": channelId, "Time": time})
 
@@ -319,7 +319,9 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 
 			for _, p := range posts {
 				list.AddPost(p)
-				list.AddOrder(p.Id)
+				if p.UpdateAt > time {
+					list.AddOrder(p.Id)
+				}
 			}
 
 			result.Data = list
