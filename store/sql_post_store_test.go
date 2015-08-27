@@ -374,7 +374,7 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 		t.Fatal("invalid order")
 	}
 
-	if len(r1.Posts) != 6 {
+	if len(r1.Posts) != 5 { //the last 4, + o1 (o3 and o2a's parent)
 		t.Fatal("wrong size")
 	}
 

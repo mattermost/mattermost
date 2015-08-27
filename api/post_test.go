@@ -331,7 +331,7 @@ func TestGetPosts(t *testing.T) {
 		t.Fatal("wrong order")
 	}
 
-	if len(r1.Posts) != 4 {
+	if len(r1.Posts) != 2 { // 3a1 and 3; 3a1's parent already there
 		t.Fatal("wrong size")
 	}
 
@@ -345,7 +345,7 @@ func TestGetPosts(t *testing.T) {
 		t.Fatal("wrong order")
 	}
 
-	if len(r2.Posts) != 4 {
+	if len(r2.Posts) != 3 { // 2 and 1a1; + 1a1's parent
 		t.Log(r2.Posts)
 		t.Fatal("wrong size")
 	}
