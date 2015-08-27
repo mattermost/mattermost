@@ -140,3 +140,6 @@ func (o *Team) PreSave() {
 func (o *Team) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
+
+func (o *Team) PreExport() {
+}

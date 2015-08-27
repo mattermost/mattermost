@@ -44,6 +44,7 @@ type TeamStore interface {
 	Get(id string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetTeamsForEmail(domain string) StoreChannel
+	GetAll() StoreChannel
 }
 
 type ChannelStore interface {
@@ -67,6 +68,7 @@ type ChannelStore interface {
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	UpdateNotifyLevel(channelId string, userId string, notifyLevel string) StoreChannel
+	GetAllChannels(teamId string) StoreChannel
 }
 
 type PostStore interface {
@@ -78,6 +80,7 @@ type PostStore interface {
 	GetPostsSince(channelId string, time int64) StoreChannel
 	GetEtag(channelId string) StoreChannel
 	Search(teamId string, userId string, terms string, isHashtagSearch bool) StoreChannel
+	GetAll(channelId string) StoreChannel
 }
 
 type UserStore interface {
@@ -96,6 +99,7 @@ type UserStore interface {
 	VerifyEmail(userId string) StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
+	GetAll(teamId string) StoreChannel
 }
 
 type SessionStore interface {
