@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"time"
 )
 
 func CheckMailSettings() *model.AppError {
@@ -101,6 +102,7 @@ func SendMail(to, subject, body string) *model.AppError {
 	headers["Subject"] = html.UnescapeString(subject)
 	headers["MIME-version"] = "1.0"
 	headers["Content-Type"] = "text/html"
+	headers["Date"] = time.Now().Format(time.RFC1123Z)
 
 	message := ""
 	for k, v := range headers {
