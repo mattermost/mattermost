@@ -29,8 +29,6 @@ module.exports = React.createClass({
             return;
         }
 
-        this.setState({submitting: true, serverError: null});
-
         var post = {};
         post.filenames = [];
         post.message = this.state.messageText;
@@ -57,11 +55,10 @@ module.exports = React.createClass({
 
         PostStore.storePendingPost(post);
         PostStore.storeCommentDraft(this.props.rootId, null);
-        this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         client.createPost(post, ChannelStore.getCurrent(),
             function(data) {
-                AsyncClient.getPosts(true, this.props.channelId);
+                AsyncClient.getPosts(this.props.channelId);
 
                 var channel = ChannelStore.get(this.props.channelId);
                 var member = ChannelStore.getMember(this.props.channelId);
@@ -91,6 +88,8 @@ module.exports = React.createClass({
                 this.setState(state);
             }.bind(this)
         );
+
+        this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
     },
     commentMsgKeyPress: function(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {

@@ -344,14 +344,14 @@ module.exports.search = function(terms) {
     );
 }
 
-module.exports.getPosts = function(force, id, maxPosts) {
+module.exports.getPostsPage = function(force, id, maxPosts) {
     if (PostStore.getCurrentPosts() == null || force) {
         var channelId = id;
         if (channelId == null) {
             channelId = ChannelStore.getCurrentId();
         }
 
-        if (isCallInProgress('getPosts_' + channelId)) {
+        if (isCallInProgress('getPostsPage_' + channelId)) {
             return;
         }
 
@@ -371,9 +371,9 @@ module.exports.getPosts = function(force, id, maxPosts) {
         }
 
         if (channelId != null) {
-            callTracker['getPosts_' + channelId] = utils.getTimestamp();
+            callTracker['getPostsPage_' + channelId] = utils.getTimestamp();
 
-            client.getPosts(
+            client.getPostsPage(
                 channelId,
                 0,
                 numPosts,
@@ -389,15 +389,58 @@ module.exports.getPosts = function(force, id, maxPosts) {
                     module.exports.getProfiles();
                 },
                 function(err) {
-                    dispatchError(err, 'getPosts');
+                    dispatchError(err, 'getPostsPage');
                 },
                 function() {
-                    callTracker['getPosts_' + channelId] = 0;
+                    callTracker['getPostsPage_' + channelId] = 0;
                 }
             );
         }
     }
+};
+
+function getPosts(id) {
+    var channelId = id;
+    if (channelId == null) {
+        if (ChannelStore.getCurrentId() == null) {
+            return;
+        }
+        channelId = ChannelStore.getCurrentId();
+    }
+
+    if (isCallInProgress('getPosts_' + channelId)) {
+        return;
+    }
+
+    var latestUpdate = PostStore.getLatestUpdate(channelId);
+
+    callTracker['getPosts_' + channelId] = utils.getTimestamp();
+
+    client.getPosts(
+        channelId,
+        latestUpdate,
+        function success(data, textStatus, xhr) {
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_POSTS,
+                id: channelId,
+                post_list: data
+            });
+
+            module.exports.getProfiles();
+        },
+        function fail(err) {
+            dispatchError(err, 'getPosts');
+        },
+        function complete() {
+            callTracker['getPosts_' + channelId] = 0;
+        }
+    );
 }
+module.exports.getPosts = getPosts;
 
 function getMe() {
     if (isCallInProgress('getMe')) {

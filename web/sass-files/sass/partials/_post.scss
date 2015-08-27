@@ -139,6 +139,9 @@ body.ios {
 		width: 100%;
 		padding: 1em 0 0;
 		position: relative;
+		&.hide-scroll::-webkit-scrollbar {
+			width: 0px !important;
+		}
 	}
 	.post-list__table {
 		display: table;

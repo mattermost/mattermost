@@ -77,3 +77,12 @@ func (h *TeamHub) Start() {
 		}
 	}()
 }
+
+func (h *TeamHub) UpdateChannelAccessCache(userId string, channelId string) {
+	for webCon := range h.connections {
+		if webCon.UserId == userId {
+			webCon.updateChannelAccessCache(channelId)
+			break
+		}
+	}
+}

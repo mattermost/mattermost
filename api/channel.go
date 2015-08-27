@@ -391,6 +391,8 @@ func JoinChannel(c *Context, channelId string, role string) {
 				c.Err = model.NewAppError("joinChannel", "Failed to send join request", "")
 				return
 			}
+
+			UpdateChannelAccessCacheAndForget(c.Session.TeamId, c.Session.UserId, channel.Id)
 		} else {
 			c.Err = model.NewAppError("joinChannel", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden

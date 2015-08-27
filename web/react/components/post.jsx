@@ -11,11 +11,12 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
+var utils = require('../utils/utils.jsx');
 
 var PostInfo = require('./post_info.jsx');
 
 module.exports = React.createClass({
-    displayName: "Post",
+    displayName: 'Post',
     handleCommentClick: function(e) {
         e.preventDefault();
 
@@ -43,7 +44,7 @@ module.exports = React.createClass({
         var post = this.props.post;
         client.createPost(post, post.channel_id,
             function(data) {
-                AsyncClient.getPosts(true);
+                AsyncClient.getPosts();
 
                 var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
@@ -66,6 +67,13 @@ module.exports = React.createClass({
         post.state = Constants.POST_LOADING;
         PostStore.updatePendingPost(post);
         this.forceUpdate();
+    },
+    shouldComponentUpdate: function(nextProps) {
+        if (!utils.areStatesEqual(nextProps.post, this.props.post)) {
+            return true;
+        }
+
+        return false;
     },
     getInitialState: function() {
         return { };
@@ -90,16 +98,16 @@ module.exports = React.createClass({
 
         var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
 
-        var rootUser =  this.props.sameRoot ? "same--root" : "other--root";
+        var rootUser =  this.props.sameRoot ? 'same--root' : 'other--root';
 
-        var postType = "";
-        if (type != "Post"){
-            postType = "post--comment";
+        var postType = '';
+        if (type != 'Post'){
+            postType = 'post--comment';
         }
 
-        var currentUserCss = "";
+        var currentUserCss = '';
         if (UserStore.getCurrentId() === post.user_id) {
-            currentUserCss = "current--user";
+            currentUserCss = 'current--user';
         }
 
         var userProfile = UserStore.getProfile(post.user_id);
@@ -109,18 +117,23 @@ module.exports = React.createClass({
             timestamp = userProfile.update_at;
         }
 
+        var sameUserClass = '';
+        if (this.props.sameUser) {
+            sameUserClass = 'same--user';
+        }
+
         return (
             <div>
-                <div id={post.id} className={"post " + this.props.sameUser + " " + rootUser + " " + postType + " " + currentUserCss}>
+                <div id={post.id} className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}>
                     { !this.props.hideProfilePic ?
-                    <div className="post-profile-img__container">
-                        <img className="post-profile-img" src={"/api/v1/users/" + post.user_id + "/image?time=" + timestamp} height="36" width="36" />
+                    <div className='post-profile-img__container'>
+                        <img className='post-profile-img' src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp} height='36' width='36' />
                     </div>
                     : null }
-                    <div className="post__content">
-                        <PostHeader ref="header" post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
+                    <div className='post__content'>
+                        <PostHeader ref='header' post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
                         <PostBody post={post} sameRoot={this.props.sameRoot} parentPost={parentPost} posts={posts} handleCommentClick={this.handleCommentClick} retryPost={this.retryPost} />
-                        <PostInfo ref="info" post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} allowReply="true" />
+                        <PostInfo ref='info' post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} allowReply='true' />
                     </div>
                 </div>
             </div>

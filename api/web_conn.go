@@ -121,6 +121,11 @@ func (c *WebConn) writePump() {
 	}
 }
 
+func (c *WebConn) updateChannelAccessCache(channelId string) {
+	allowed := hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.UserId))
+	c.ChannelAccessCache[channelId] = allowed
+}
+
 func hasPermissionsToChannel(sc store.StoreChannel) bool {
 	if cresult := <-sc; cresult.Err != nil {
 		return false

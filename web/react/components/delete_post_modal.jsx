@@ -44,7 +44,8 @@ module.exports = React.createClass({
                         }
                     }
                 }
-                AsyncClient.getPosts(true, this.state.channel_id);
+                PostStore.removePost(this.state.post_id, this.state.channel_id);
+                AsyncClient.getPosts(this.state.channel_id);
             }.bind(this),
             function(err) {
                 AsyncClient.dispatchError(err, "deletePost");

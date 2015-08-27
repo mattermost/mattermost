@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strconv"
 	"strings"
 )
 
@@ -158,14 +157,6 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "id="+id+err.Error())
 		}
 
-		if post.ImgCount > 0 {
-			post.Filenames = []string{}
-			for i := 0; int64(i) < post.ImgCount; i++ {
-				fileUrl := "/api/v1/files/get_image/" + post.ChannelId + "/" + post.Id + "/" + strconv.Itoa(i+1) + ".png"
-				post.Filenames = append(post.Filenames, fileUrl)
-			}
-		}
-
 		pl.AddPost(&post)
 		pl.AddOrder(id)
 
@@ -265,29 +256,71 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
 
 			for _, p := range posts {
-				if p.ImgCount > 0 {
-					p.Filenames = []string{}
-					for i := 0; int64(i) < p.ImgCount; i++ {
-						fileUrl := "/api/v1/files/get_image/" + p.ChannelId + "/" + p.Id + "/" + strconv.Itoa(i+1) + ".png"
-						p.Filenames = append(p.Filenames, fileUrl)
-					}
-				}
 				list.AddPost(p)
 				list.AddOrder(p.Id)
 			}
 
 			for _, p := range parents {
-				if p.ImgCount > 0 {
-					p.Filenames = []string{}
-					for i := 0; int64(i) < p.ImgCount; i++ {
-						fileUrl := "/api/v1/files/get_image/" + p.ChannelId + "/" + p.Id + "/" + strconv.Itoa(i+1) + ".png"
-						p.Filenames = append(p.Filenames, fileUrl)
-					}
-				}
 				list.AddPost(p)
 			}
 
 			list.MakeNonNil()
+
+			result.Data = list
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var posts []*model.Post
+		_, err := s.GetReplica().Select(&posts,
+			`(SELECT
+			    *
+			FROM
+			    Posts
+			WHERE
+			    (UpdateAt > :Time
+			        AND ChannelId = :ChannelId)
+			LIMIT 100)
+			UNION
+			(SELECT
+			    *
+			FROM
+			    Posts
+			WHERE
+			    Id
+			IN
+			    (SELECT * FROM (SELECT
+			        RootId
+			    FROM
+			        Posts
+			    WHERE
+			        UpdateAt > :Time
+			            AND ChannelId = :ChannelId
+			    LIMIT 100) temp_tab))
+			ORDER BY CreateAt DESC`,
+			map[string]interface{}{"ChannelId": channelId, "Time": time})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetPostsSince", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+		} else {
+
+			list := &model.PostList{Order: make([]string, 0, len(posts))}
+
+			for _, p := range posts {
+				list.AddPost(p)
+				list.AddOrder(p.Id)
+			}
 
 			result.Data = list
 		}

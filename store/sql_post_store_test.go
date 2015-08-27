@@ -383,6 +383,91 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	}
 }
 
+func TestPostStoreGetPostsSince(t *testing.T) {
+	Setup()
+	o0 := &model.Post{}
+	o0.ChannelId = model.NewId()
+	o0.UserId = model.NewId()
+	o0.Message = "a" + model.NewId() + "b"
+	o0 = (<-store.Post().Save(o0)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "b"
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "a" + model.NewId() + "b"
+	o2.ParentId = o1.Id
+	o2.RootId = o1.Id
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o2a := &model.Post{}
+	o2a.ChannelId = o1.ChannelId
+	o2a.UserId = model.NewId()
+	o2a.Message = "a" + model.NewId() + "b"
+	o2a.ParentId = o1.Id
+	o2a.RootId = o1.Id
+	o2a = (<-store.Post().Save(o2a)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "b"
+	o3.ParentId = o1.Id
+	o3.RootId = o1.Id
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o4 := &model.Post{}
+	o4.ChannelId = o1.ChannelId
+	o4.UserId = model.NewId()
+	o4.Message = "a" + model.NewId() + "b"
+	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o5 := &model.Post{}
+	o5.ChannelId = o1.ChannelId
+	o5.UserId = model.NewId()
+	o5.Message = "a" + model.NewId() + "b"
+	o5.ParentId = o4.Id
+	o5.RootId = o4.Id
+	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
+
+	r1 := (<-store.Post().GetPostsSince(o1.ChannelId, o1.CreateAt)).Data.(*model.PostList)
+
+	if r1.Order[0] != o5.Id {
+		t.Fatal("invalid order")
+	}
+
+	if r1.Order[1] != o4.Id {
+		t.Fatal("invalid order")
+	}
+
+	if r1.Order[2] != o3.Id {
+		t.Fatal("invalid order")
+	}
+
+	if r1.Order[3] != o2a.Id {
+		t.Fatal("invalid order")
+	}
+
+	if len(r1.Posts) != 6 {
+		t.Fatal("wrong size")
+	}
+
+	if r1.Posts[o1.Id].Message != o1.Message {
+		t.Fatal("Missing parent")
+	}
+}
+
 func TestPostStoreSearch(t *testing.T) {
 	Setup()
 

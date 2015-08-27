@@ -522,6 +522,15 @@ func (c *Client) GetPosts(channelId string, offset int, limit int, etag string) 
 	}
 }
 
+func (c *Client) GetPostsSince(channelId string, time int64) (*Result, *AppError) {
+	if r, err := c.DoGet(fmt.Sprintf("/channels/%v/posts/%v", channelId, time), "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) GetPost(channelId string, postId string, etag string) (*Result, *AppError) {
 	if r, err := c.DoGet(fmt.Sprintf("/channels/%v/post/%v", channelId, postId), "", etag); err != nil {
 		return nil, err

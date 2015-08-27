@@ -1,11 +1,9 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-
-var SearchResults =require('./search_results.jsx');
-var PostRight =require('./post_right.jsx');
+var SearchResults = require('./search_results.jsx');
+var RhsThread = require('./rhs_thread.jsx');
 var PostStore = require('../stores/post_store.jsx');
-var Constants = require('../utils/constants.jsx');
 var utils = require('../utils/utils.jsx');
 
 function getStateFromStores(from_search) {
@@ -39,8 +37,8 @@ module.exports = React.createClass({
         }
     },
     resize: function() {
-        $(".post-list-holder-by-time").scrollTop(100000);
-        $(".post-list-holder-by-time").perfectScrollbar('update');
+        var postHolder = $('.post-list-holder-by-time');
+        postHolder[0].scrollTop = postHolder[0].scrollHeight - 224;
     },
     getInitialState: function() {
         return getStateFromStores();
@@ -72,7 +70,7 @@ module.exports = React.createClass({
             content = <SearchResults isMentionSearch={this.state.is_mention_search} />;
         }
         else if (this.state.post_right_visible) {
-            content = <PostRight fromSearch={this.state.from_search} isMentionSearch={this.state.is_mention_search} />;
+            content = <RhsThread fromSearch={this.state.from_search} isMentionSearch={this.state.is_mention_search} />;
         }
 
         return (
