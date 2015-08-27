@@ -18,6 +18,7 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 module.exports = React.createClass({
+    displayName: 'CreatePost',
     lastTime: 0,
     handleSubmit: function(e) {
         e.preventDefault();
@@ -131,9 +132,12 @@ module.exports = React.createClass({
             this.lastTime = t;
         }
     },
-    handleUserInput: function(messageText) {
+    handleUserInput: function(message) {
+        var messageText = utils.truncateText(message);
+        var newPostError = utils.checkMessageLengthError(messageText, this.state.postError, 'Message length cannot exceed ' + Constants.MAX_POST_LEN + ' characters');
+
         this.resizePostHolder();
-        this.setState({messageText: messageText});
+        this.setState({messageText: messageText, postError: newPostError});
 
         var draft = PostStore.getCurrentDraft();
         draft['message'] = messageText;
