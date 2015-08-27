@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
@@ -67,7 +68,11 @@ function getNotificationsStateFromStores() {
         }
     }
 
-    return {notifyLevel: desktop, enableEmail: email, soundNeeded: soundNeeded, enableSound: sound, usernameKey: usernameKey, mentionKey: mentionKey, customKeys: customKeys, customKeysChecked: customKeys.length > 0, firstNameKey: firstNameKey, allKey: allKey, channelKey: channelKey};
+    var curChannel = ChannelStore.getCurrent().display_name;
+
+    return {notifyLevel: desktop, enableEmail: email, soundNeeded: soundNeeded, enableSound: sound,
+            usernameKey: usernameKey, mentionKey: mentionKey, customKeys: customKeys, customKeysChecked: customKeys.length > 0,
+            firstNameKey: firstNameKey, allKey: allKey, channelKey: channelKey, curChannel: curChannel};
 }
 
 export default class NotificationsTab extends React.Component {
@@ -141,10 +146,12 @@ export default class NotificationsTab extends React.Component {
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onListenerChange);
+        ChannelStore.addChangeListener(this.onListenerChange);
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onListenerChange);
+        ChannelStore.removeChangeListener(this.onListenerChange);
         $('#user_settings').off('hidden.bs.modal', this.handleClose);
         this.props.updateSection('');
     }
@@ -265,6 +272,12 @@ export default class NotificationsTab extends React.Component {
                 e.preventDefault();
             };
 
+            let extraInfo = (
+                <div className='setting-list__hint'>
+                    These settings will override the global notification settings for the <b>{this.state.curChannel}</b> channel
+                </div>
+            )
+
             desktopSection = (
                 <SettingItemMax
                     title='Send desktop notifications'
@@ -272,6 +285,7 @@ export default class NotificationsTab extends React.Component {
                     submit={this.handleSubmit}
                     server_error={serverError}
                     updateSection={handleUpdateDesktopSection}
+                    extraInfo={extraInfo}
                 />
             );
         } else {
