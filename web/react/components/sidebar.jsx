@@ -64,7 +64,8 @@ function getStateFromStores() {
             var tempChannel = {};
             tempChannel.fake = true;
             tempChannel.name = channelName;
-            tempChannel.display_name = utils.getDisplayName(teammate);
+            tempChannel.display_name = teammate.username;
+            tempChannel.teammate_username = teammate.username;
             tempChannel.status = UserStore.getStatus(teammate.id);
             tempChannel.last_post_at = 0;
             tempChannel.total_msg_count = 0;
