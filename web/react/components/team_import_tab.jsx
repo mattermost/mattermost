@@ -23,12 +23,10 @@ module.exports = React.createClass({
         var uploadHelpText = (
             <div>
                 <br/>
-                Slack does now allow you to export any of your files or images stored in slack. Private channels and direct message channels are also not exported. Therefore, no files, images, or private channels will be imported. 
-                <br/>
-                Slack bot posts are not imported.
-                <br/>
-                Unable to import Slack channels that are not valid Mattermost channels. (ex underscores)
-                <br/>
+                Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels. 
+                <br/><br/>
+                The Slack import to Mattermost is in "Preview". Slack bot posts and channels with underscores do not yet import.
+                <br/><br/>
             </div>
         );
         var uploadSection = (
