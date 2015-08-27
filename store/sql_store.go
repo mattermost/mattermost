@@ -123,13 +123,29 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 }
 
 func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
-	// XXX TODO FIXME this should be removed after 0.6.0
 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-		return false
-	}
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT COUNT(0)
+			FROM   pg_attribute
+			WHERE  attrelid = $1::regclass
+			AND    attname = $2
+			AND    NOT attisdropped`,
+			strings.ToLower(tableName),
+			strings.ToLower(columnName),
+		)
 
-	count, err := ss.GetMaster().SelectInt(
-		`SELECT
+		if err != nil {
+			l4g.Critical("Failed to check if column exists %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to check if column exists " + err.Error())
+		}
+
+		return count > 0
+
+	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT
 		    COUNT(0) AS column_exists
 		FROM
 		    information_schema.COLUMNS
@@ -137,81 +153,101 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		    TABLE_SCHEMA = DATABASE()
 		        AND TABLE_NAME = ?
 		        AND COLUMN_NAME = ?`,
-		tableName,
-		columnName,
-	)
-	if err != nil {
-		l4g.Critical("Failed to check if column exists %v", err)
+			tableName,
+			columnName,
+		)
+
+		if err != nil {
+			l4g.Critical("Failed to check if column exists %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to check if column exists " + err.Error())
+		}
+
+		return count > 0
+
+	} else {
+		l4g.Critical("Failed to check if column exists because of missing driver")
 		time.Sleep(time.Second)
-		panic("Failed to check if column exists " + err.Error())
+		panic("Failed to check if column exists because of missing driver")
 	}
 
-	return count > 0
 }
 
-func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
-
-	// XXX TODO FIXME this should be removed after 0.6.0
-	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-		return false
-	}
+func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
 
 	if ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
 
-	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + colType + " DEFAULT '" + defaultValue + "'" + " AFTER " + afterName)
-	if err != nil {
-		l4g.Critical("Failed to create column %v", err)
-		time.Sleep(time.Second)
-		panic("Failed to create column " + err.Error())
-	}
-
-	return true
-}
-
-func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
-
-	// XXX TODO FIXME this should be removed after 0.6.0
 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-		return false
-	}
+		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		if err != nil {
+			l4g.Critical("Failed to create column %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to create column " + err.Error())
+		}
 
-	if !ss.DoesColumnExist(tableName, columnName) {
-		return false
-	}
+		return true
 
-	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
-	if err != nil {
-		l4g.Critical("Failed to drop column %v", err)
+	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		if err != nil {
+			l4g.Critical("Failed to create column %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to create column " + err.Error())
+		}
+
+		return true
+
+	} else {
+		l4g.Critical("Failed to create column because of missing driver")
 		time.Sleep(time.Second)
-		panic("Failed to drop column " + err.Error())
+		panic("Failed to create column because of missing driver")
 	}
-
-	return true
 }
 
-func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+// func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
 
-	// XXX TODO FIXME this should be removed after 0.6.0
-	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-		return false
-	}
+// 	// XXX TODO FIXME this should be removed after 0.6.0
+// 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+// 		return false
+// 	}
 
-	if !ss.DoesColumnExist(tableName, oldColumnName) {
-		return false
-	}
+// 	if !ss.DoesColumnExist(tableName, columnName) {
+// 		return false
+// 	}
 
-	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
+// 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
+// 	if err != nil {
+// 		l4g.Critical("Failed to drop column %v", err)
+// 		time.Sleep(time.Second)
+// 		panic("Failed to drop column " + err.Error())
+// 	}
 
-	if err != nil {
-		l4g.Critical("Failed to rename column %v", err)
-		time.Sleep(time.Second)
-		panic("Failed to drop column " + err.Error())
-	}
+// 	return true
+// }
 
-	return true
-}
+// func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+
+// 	// XXX TODO FIXME this should be removed after 0.6.0
+// 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+// 		return false
+// 	}
+
+// 	if !ss.DoesColumnExist(tableName, oldColumnName) {
+// 		return false
+// 	}
+
+// 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
+
+// 	if err != nil {
+// 		l4g.Critical("Failed to rename column %v", err)
+// 		time.Sleep(time.Second)
+// 		panic("Failed to drop column " + err.Error())
+// 	}
+
+// 	return true
+// }
 
 func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
 	ss.createIndexIfNotExists(indexName, tableName, columnName, false)

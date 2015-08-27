@@ -5,9 +5,9 @@ package store
 
 import (
 	"fmt"
-	"strings"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"strings"
 )
 
 type SqlUserStore struct {
@@ -40,31 +40,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
-	us.CreateColumnIfNotExists("Users", "LastPictureUpdate", "LastPasswordUpdate", "bigint(20)", "0")
-
-	// migrating the FullName column to Nickname and adding the FirstName and LastName columns for MM-825
-	if us.RenameColumnIfExists("Users", "FullName", "Nickname", "varchar(64)") {
-		us.CreateColumnIfNotExists("Users", "FirstName", "Nickname", "varchar(64)", "")
-		us.CreateColumnIfNotExists("Users", "LastName", "FirstName", "varchar(64)", "")
-
-		// infer values of first and last name by splitting the previous full name
-		if _, err := us.GetMaster().Exec("UPDATE Users SET FirstName = SUBSTRING_INDEX(SUBSTRING_INDEX(Nickname, ' ', 1), ' ', -1)"); err != nil {
-			panic("Failed to set first name from nickname " + err.Error())
-		}
-
-		// only set the last name from full names that are comprised of multiple words (ie that have at least one space in them)
-		if _, err := us.GetMaster().Exec("Update Users SET LastName = SUBSTRING(Nickname, INSTR(Nickname, ' ') + 1) " +
-			"WHERE CHAR_LENGTH(REPLACE(Nickname, ' ', '')) < CHAR_LENGTH(Nickname)"); err != nil {
-			panic("Failed to set last name from nickname " + err.Error())
-		}
-	}
-
-	us.CreateColumnIfNotExists("Users", "AuthService", "AuthData", "varchar(32)", "") // for OAuth Client
-
-	us.CreateColumnIfNotExists("Users", "FailedAttempts", "LastPictureUpdate", "int(11)", "0")
 }
-
-//func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, afterName string, colType string, defaultValue string) bool {
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_team_id", "Users", "TeamId")
@@ -168,7 +144,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 				nonUsernameKeys := []string{}
 				splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
 				for _, key := range splitKeys {
-					if key != oldUser.Username && key != "@" + oldUser.Username {
+					if key != oldUser.Username && key != "@"+oldUser.Username {
 						nonUsernameKeys = append(nonUsernameKeys, key)
 					}
 				}
