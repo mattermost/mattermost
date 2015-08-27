@@ -49,7 +49,7 @@ function myFunction ( parm1, parm2 ){
 
 ### Semicolons
 
-- You must use them always
+- You must use them always.
 
 ```javascript
 // Correct
