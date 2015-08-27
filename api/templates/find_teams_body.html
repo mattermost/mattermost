@@ -21,7 +21,7 @@
                                                 <p>{{ if .Props }}
                                                         The following teams were found:<br>
                                                         {{range $index, $element := .Props}}
-                                                            {{ $index }}<br>
+                                                            <a href="{{ $element }}" style="text-decoration: none; color:#2389D7;">{{ $index }}</a><br>
                                                         {{ end }}
                                                     {{ else }}
                                                         We could not find any teams for the given email.

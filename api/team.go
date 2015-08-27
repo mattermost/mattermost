@@ -283,10 +283,10 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		teams := result.Data.([]*model.Team)
 
-		// the template expects Props to be a map with team names as the keys
+		// the template expects Props to be a map with team names as the keys and the team url as the value
 		props := make(map[string]string)
 		for _, team := range teams {
-			props[team.Name] = team.Name
+			props[team.Name] = c.GetTeamURLFromTeam(team)
 		}
 		bodyPage.Props = props
 
