@@ -194,7 +194,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		rteam := result.Data.(*model.Team)
 
 		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
-			c.Err = nil
+			c.Err = err
 			return
 		}
 

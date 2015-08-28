@@ -35,11 +35,6 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-
-	// These execs are for upgrading currently created databases to full utf8mb4 compliance
-	// Will be removed as seen fit for upgrading
-	s.GetMaster().Exec("ALTER TABLE Posts charset=utf8mb4")
-	s.GetMaster().Exec("ALTER TABLE Posts MODIFY COLUMN Message varchar(4000) CHARACTER SET utf8mb4")
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
