@@ -26,7 +26,7 @@ module.exports = React.createClass({
 
         var postFiles = [];
         for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
-            postFiles.push(<FileAttachment key={i} filenames={filenames} index={i} modalId={modalId} handleImageClick={this.handleImageClick} />);
+            postFiles.push(<FileAttachment key={i} filename={filenames[i]} index={i} modalId={modalId} handleImageClick={this.handleImageClick} />);
         }
 
         return (
