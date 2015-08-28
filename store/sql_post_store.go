@@ -379,7 +379,8 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			        ChannelId = :ChannelId1
 			            AND DeleteAt = 0
 			    ORDER BY CreateAt DESC
-			    LIMIT :Limit OFFSET :Offset) q3) q1 ON q1.RootId = q2.RootId
+			    LIMIT :Limit OFFSET :Offset) q3
+			    WHERE q3.RootId != '') q1 ON q1.RootId = q2.Id
 			WHERE
 			    ChannelId = :ChannelId2
 			        AND DeleteAt = 0
