@@ -15,7 +15,6 @@ module.exports = React.createClass({
         var inviteLink = '';
         var teamSettingsLink = '';
         var manageLink = '';
-        var renameLink = '';
         var currentUser = UserStore.getCurrentUser();
         var isAdmin = false;
 
@@ -48,11 +47,6 @@ module.exports = React.createClass({
                     <a href='#' data-toggle='modal' data-target='#team_members'><i className='glyphicon glyphicon-wrench'></i>Manage Team</a>
                 </li>
             );
-            renameLink = (
-                <li>
-                    <a href='#' data-toggle='modal' data-target='#rename_team_link'><i className='glyphicon glyphicon-pencil'></i>Rename</a>
-                </li>
-            );
         }
 
         var siteName = '';
@@ -77,7 +71,6 @@ module.exports = React.createClass({
                         {inviteLink}
                         {teamLink}
                         {manageLink}
-                        {renameLink}
                         <li><a href='#' onClick={this.handleLogoutClick}><i className='glyphicon glyphicon-log-out'></i>Logout</a></li>
                         <li className='divider'></li>
                         <li><a target='_blank' href='/static/help/configure_links.html'><i className='glyphicon glyphicon-question-sign'></i>Help</a></li>
