@@ -5,13 +5,25 @@ const FileAttachmentList = require('./file_attachment_list.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
+const twemoji = require('twemoji');
 
 export default class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
+        this.parseEmojis = this.parseEmojis.bind(this);
+
         const linkData = Utils.extractLinks(this.props.post.message);
         this.state = {links: linkData.links, message: linkData.text};
+    }
+    parseEmojis() {
+        twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+    }
+    componentDidMount() {
+        this.parseEmojis();
+    }
+    componentDidUpdate() {
+        this.parseEmojis();
     }
     componentWillReceiveProps(nextProps) {
         const linkData = Utils.extractLinks(nextProps.post.message);
