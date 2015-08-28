@@ -162,15 +162,6 @@ module.exports = React.createClass({
            );
         }
 
-        if (authServices.indexOf(Constants.GOOGLE_SERVICE) >= 0) {
-            signupMessage.push(
-                    <a className='btn btn-custom-login google' href={'/' + this.props.teamName + '/signup/google' + window.location.search}>
-                        <span className='icon' />
-                        <span>with Google</span>
-                    </a>
-           );
-        }
-
         var emailSignup;
         if (authServices.indexOf(Constants.EMAIL_SERVICE) !== -1) {
             emailSignup = (

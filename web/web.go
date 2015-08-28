@@ -521,9 +521,6 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		if service == model.USER_AUTH_SERVICE_GITLAB {
 			glu := model.GitLabUserFromJson(body)
 			user = model.UserFromGitLabUser(glu)
-		} else if service == model.USER_AUTH_SERVICE_GOOGLE {
-			gu := model.GoogleUserFromJson(body)
-			user = model.UserFromGoogleUser(gu)
 		}
 
 		if user == nil {
@@ -620,9 +617,6 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		if service == model.USER_AUTH_SERVICE_GITLAB {
 			glu := model.GitLabUserFromJson(body)
 			authData = glu.GetAuthData()
-		} else if service == model.USER_AUTH_SERVICE_GOOGLE {
-			gu := model.GoogleUserFromJson(body)
-			authData = gu.GetAuthData()
 		}
 
 		if len(authData) == 0 {
