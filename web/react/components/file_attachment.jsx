@@ -10,7 +10,7 @@ module.exports = React.createClass({
     canSetState: false,
     propTypes: {
         // a list of file pathes displayed by the parent FileAttachmentList
-        filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+        filename: React.PropTypes.string.isRequired,
         // the index of this attachment preview in the parent FileAttachmentList
         index: React.PropTypes.number.isRequired,
         // the identifier of the modal dialog used to preview files
@@ -22,9 +22,17 @@ module.exports = React.createClass({
         return {fileSize: -1};
     },
     componentDidMount: function() {
+        this.loadFiles();
+    },
+    componentDidUpdate: function(prevProps) {
+        if (this.props.filename !== prevProps.filename) {
+            this.loadFiles();
+        }
+    },
+    loadFiles: function() {
         this.canSetState = true;
 
-        var filename = this.props.filenames[this.props.index];
+        var filename = this.props.filename;
 
         if (filename) {
             var fileInfo = utils.splitFileLocation(filename);
@@ -71,6 +79,10 @@ module.exports = React.createClass({
         this.canSetState = false;
     },
     shouldComponentUpdate: function(nextProps, nextState) {
+        if (!utils.areStatesEqual(nextProps, this.props)) {
+            return true;
+        }
+
         // the only time this object should update is when it receives an updated file size which we can usually handle without re-rendering
         if (nextState.fileSize != this.state.fileSize) {
             if (this.refs.fileSize) {
@@ -87,8 +99,7 @@ module.exports = React.createClass({
         }
     },
     render: function() {
-        var filenames = this.props.filenames;
-        var filename = filenames[this.props.index];
+        var filename = this.props.filename;
 
         var fileInfo = utils.splitFileLocation(filename);
         var type = utils.getFileType(fileInfo.ext);
