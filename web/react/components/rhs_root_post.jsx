@@ -6,11 +6,24 @@ var UserProfile = require('./user_profile.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
+var twemoji = require('twemoji');
+var Constants = require('../utils/constants.jsx');
 
 export default class RhsRootPost extends React.Component {
     constructor(props) {
         super(props);
+
+        this.parseEmojis = this.parseEmojis.bind(this);
+        this.componentDidMount = this.componentDidMount.bind(this);
+        this.componentDidUpdate = this.componentDidUpdate.bind(this);
+
         this.state = {};
+    }
+    parseEmojis() {
+        twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+    }
+    componentDidMount() {
+        this.parseEmojis();
     }
     shouldComponentUpdate(nextProps) {
         if (!utils.areStatesEqual(nextProps.post, this.props.post)) {
@@ -18,6 +31,9 @@ export default class RhsRootPost extends React.Component {
         }
 
         return false;
+    }
+    componentDidUpdate() {
+        this.parseEmojis();
     }
     render() {
         var post = this.props.post;
