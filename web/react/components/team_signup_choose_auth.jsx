@@ -28,24 +28,6 @@ export default class ChooseAuthPage extends React.Component {
             );
         }
 
-        if (this.props.services.indexOf(Constants.GOOGLE_SERVICE) !== -1) {
-            buttons.push(
-                    <a
-                        className='btn btn-custom-login google btn-full'
-                        href='#'
-                        onClick={
-                            function clickGoogle(e) {
-                                e.preventDefault();
-                                this.props.updatePage('service', Constants.GOOGLE_SERVICE);
-                            }.bind(this)
-                        }
-                        >
-                        <span className='icon' />
-                        <span>Create new {strings.Team} with Google Apps Account</span>
-                    </a>
-            );
-        }
-
         if (this.props.services.indexOf(Constants.EMAIL_SERVICE) !== -1) {
             buttons.push(
                     <a

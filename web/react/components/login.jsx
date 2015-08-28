@@ -110,18 +110,6 @@ export default class Login extends React.Component {
            );
         }
 
-        if (authServices.indexOf(Constants.GOOGLE_SERVICE) !== -1) {
-            loginMessage.push(
-                    <a
-                        className='btn btn-custom-login google'
-                        href={'/' + teamName + '/login/google'}
-                    >
-                        <span className='icon' />
-                        <span>with Google Apps</span>
-                    </a>
-           );
-        }
-
         var errorClass = '';
         if (serverError) {
             errorClass = ' has-error';
