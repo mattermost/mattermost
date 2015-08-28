@@ -130,12 +130,9 @@ module.exports = React.createClass({
             this.lastTime = t;
         }
     },
-    handleUserInput: function(message) {
-        var messageText = utils.truncateText(message);
-        var newPostError = utils.checkMessageLengthError(messageText, this.state.postError, 'Message length cannot exceed ' + Constants.MAX_POST_LEN + ' characters');
-
+    handleUserInput: function(messageText) {
         this.resizePostHolder();
-        this.setState({messageText: messageText, postError: newPostError});
+        this.setState({messageText: messageText});
 
         var draft = PostStore.getCurrentDraft();
         draft['message'] = messageText;

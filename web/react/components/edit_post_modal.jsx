@@ -38,10 +38,8 @@ module.exports = React.createClass({
         $("#edit_post").modal('hide');
         $(this.state.refocusId).focus();
     },
-    handleEditInput: function(editText) {
-        var editMessage = utils.truncateText(editText);
-        var newError = utils.checkMessageLengthError(editMessage, this.state.error, 'New message length cannot exceed ' + Constants.MAX_POST_LEN + ' characters');
-        this.setState({editText: editMessage, error: newError});
+    handleEditInput: function(editMessage) {
+        this.setState({editText: editMessage});
     },
     handleEditKeyPress: function(e) {
         if (e.which == 13 && !e.shiftKey && !e.altKey) {

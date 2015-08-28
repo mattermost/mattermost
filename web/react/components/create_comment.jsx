@@ -104,17 +104,14 @@ module.exports = React.createClass({
             this.lastTime = t;
         }
     },
-    handleUserInput: function(message) {
-        var messageText = utils.truncateText(message);
-        var newPostError = utils.checkMessageLengthError(messageText, this.state.postError, 'Comment length cannot exceed ' + Constants.MAX_POST_LEN + ' characters');
-
+    handleUserInput: function(messageText) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
         $('.post-right__scroll').perfectScrollbar('update');
-        this.setState({messageText: messageText, postError: newPostError});
+        this.setState({messageText: messageText});
     },
     handleUploadStart: function(clientIds, channelId) {
         var draft = PostStore.getCommentDraft(this.props.rootId);
