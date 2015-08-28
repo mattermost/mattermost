@@ -168,31 +168,6 @@ var reservedName = []string{
 	"api",
 }
 
-func IsReservedTeamName(s string) bool {
-	s = strings.ToLower(s)
-
-	for _, value := range reservedName {
-		if strings.Index(s, value) == 0 {
-			return true
-		}
-	}
-
-	return false
-}
-
-func IsValidTeamName(s string) bool {
-
-	if !IsValidAlphaNum(s) {
-		return false
-	}
-
-	if len(s) <= 3 {
-		return false
-	}
-
-	return true
-}
-
 var wwwStart = regexp.MustCompile(`^www`)
 var betaStart = regexp.MustCompile(`^beta`)
 var ciStart = regexp.MustCompile(`^ci`)

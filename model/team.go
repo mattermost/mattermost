@@ -5,7 +5,10 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"regexp"
+	"strings"
 )
 
 const (
@@ -93,7 +96,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 
-	if !IsValidEmail(o.Email) {
+	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 
@@ -139,4 +142,58 @@ func (o *Team) PreSave() {
 
 func (o *Team) PreUpdate() {
 	o.UpdateAt = GetMillis()
+}
+
+func IsReservedTeamName(s string) bool {
+	s = strings.ToLower(s)
+
+	for _, value := range reservedName {
+		if strings.Index(s, value) == 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func IsValidTeamName(s string) bool {
+
+	if !IsValidAlphaNum(s) {
+		return false
+	}
+
+	if len(s) <= 3 {
+		return false
+	}
+
+	return true
+}
+
+var validTeamNameCharacter = regexp.MustCompile(`^[a-z0-9-]$`)
+
+func CleanTeamName(s string) string {
+	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+
+	for _, value := range reservedName {
+		if strings.Index(s, value) == 0 {
+			s = strings.Replace(s, value, "", -1)
+		}
+	}
+
+	s = strings.TrimSpace(s)
+
+	for _, c := range s {
+		char := fmt.Sprintf("%c", c)
+		if !validTeamNameCharacter.MatchString(char) {
+			s = strings.Replace(s, char, "", -1)
+		}
+	}
+
+	s = strings.Trim(s, "-")
+
+	if !IsValidTeamName(s) {
+		s = NewId()
+	}
+
+	return s
 }

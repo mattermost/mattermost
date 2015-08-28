@@ -5,11 +5,13 @@ var SignupTeam = require('../components/signup_team.jsx');
 
 var AsyncClient = require('../utils/async_client.jsx');
 
-global.window.setup_signup_team_page = function() {
+global.window.setup_signup_team_page = function(authServices) {
     AsyncClient.getConfig();
 
+    var services = JSON.parse(authServices);
+
     React.render(
-        <SignupTeam />,
+        <SignupTeam services={services} />,
         document.getElementById('signup-team')
     );
 };

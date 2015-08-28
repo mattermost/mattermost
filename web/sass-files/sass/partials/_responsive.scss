@@ -290,6 +290,14 @@
         .signup-team__name {
             font-size: 2em;
         }
+        .btn.btn-full {
+            padding-left: 10px;
+        }
+        .btn {
+            .icon, .fa {
+                margin-right: 6px;
+            }
+        }
     }
     .modal {
         .info__label {

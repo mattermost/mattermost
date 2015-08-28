@@ -23,7 +23,7 @@ type GitLabUser struct {
 
 func UserFromGitLabUser(glu *GitLabUser) *User {
 	user := &User{}
-	user.Username = glu.Username
+	user.Username = CleanUsername(glu.Username)
 	splitName := strings.Split(glu.Name, " ")
 	if len(splitName) == 2 {
 		user.FirstName = splitName[0]

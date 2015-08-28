@@ -6,6 +6,7 @@ package model
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"encoding/json"
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -72,13 +73,7 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "Invalid team id", "")
 	}
 
-	if len(u.Username) == 0 || len(u.Username) > 64 {
-		return NewAppError("User.IsValid", "Invalid username", "user_id="+u.Id)
-	}
-
-	validChars, _ := regexp.Compile("^[a-z0-9\\.\\-\\_]+$")
-
-	if !validChars.MatchString(u.Username) {
+	if !IsValidUsername(u.Username) {
 		return NewAppError("User.IsValid", "Invalid username", "user_id="+u.Id)
 	}
 
@@ -332,17 +327,58 @@ func ComparePassword(hash string, password string) bool {
 
 func IsUsernameValid(username string) bool {
 
-	var restrictedUsernames = []string{
-		BOT_USERNAME,
-		"all",
-		"channel",
+	return true
+}
+
+var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+
+var restrictedUsernames = []string{
+	BOT_USERNAME,
+	"all",
+	"channel",
+}
+
+func IsValidUsername(s string) bool {
+	if len(s) == 0 || len(s) > 64 {
+		return false
+	}
+
+	if !validUsernameChars.MatchString(s) {
+		return false
 	}
 
 	for _, restrictedUsername := range restrictedUsernames {
-		if username == restrictedUsername {
+		if s == restrictedUsername {
 			return false
 		}
 	}
 
 	return true
+}
+
+func CleanUsername(s string) string {
+	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+
+	for _, value := range reservedName {
+		if s == value {
+			s = strings.Replace(s, value, "", -1)
+		}
+	}
+
+	s = strings.TrimSpace(s)
+
+	for _, c := range s {
+		char := fmt.Sprintf("%c", c)
+		if !validUsernameChars.MatchString(char) {
+			s = strings.Replace(s, char, "-", -1)
+		}
+	}
+
+	s = strings.Trim(s, "-")
+
+	if !IsValidUsername(s) {
+		s = "a" + NewId()
+	}
+
+	return s
 }

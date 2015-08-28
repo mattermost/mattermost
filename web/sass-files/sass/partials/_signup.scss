@@ -156,9 +156,21 @@
     }
 
     .btn {
+        font-size: 1em;
         padding: em(7px) em(15px);
         font-weight: 600;
         margin-right: 5px;
+        .fa {
+            font-size: 17px;
+            margin-right: 8px;
+        }
+        .icon {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            @include background-size(100% 100%);
+            display: inline-block;
+        }
         &.btn-custom-login {
             display: block;
             min-width: 200px;
@@ -166,7 +178,7 @@
             padding: 0 1em;
             margin: 1em auto;
             height: 40px;
-            line-height: 35px;
+            line-height: 34px;
             color: #fff;
             @include border-radius(2px);
             &.gitlab {
@@ -178,12 +190,7 @@
                     vertical-align: middle;
                 }
                 .icon {
-                    background: url("../images/gitlabLogo.png");
-                    width: 18px;
-                    height: 18px;
-                    margin-right: 8px;
-                    @include background-size(100% 100%);
-                    display: inline-block;
+                    background-image: url("../images/gitlabLogo.png");
                 }
             }
             &.google {
@@ -195,13 +202,22 @@
                     vertical-align: middle;
                 }
                 .icon {
-                    background: url("../images/googleLogo.png");
-                    width: 18px;
-                    height: 18px;
-                    margin-right: 8px;
-                    @include background-size(100% 100%);
-                    display: inline-block;
+                    background-image: url("../images/googleLogo.png");
                 }
+            }
+            &.email {
+                background: #2389D7;
+                &:hover {
+                    background: darken(#2389D7, 10%);
+                }
+                span {
+                    vertical-align: middle;
+                }
+            }
+            &.btn-full {
+                width: 100%;
+                text-align: left;
+                padding-left: 35px;
             }
         }
         &.btn-default {

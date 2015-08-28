@@ -61,6 +61,7 @@ module.exports = {
   OFFTOPIC_CHANNEL: 'off-topic',
   GITLAB_SERVICE: 'gitlab',
   GOOGLE_SERVICE: 'google',
+  EMAIL_SERVICE: 'email',
   POST_CHUNK_SIZE: 60,
   MAX_POST_CHUNKS: 3,
   POST_LOADING: 'loading',
