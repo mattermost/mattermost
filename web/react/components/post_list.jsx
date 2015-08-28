@@ -34,6 +34,7 @@ export default class PostList extends React.Component {
 
         this.state = this.getStateFromStores();
         this.state.numToDisplay = Constants.POST_CHUNK_SIZE;
+        this.state.isFirstLoadComplete = false;
     }
     getStateFromStores() {
         var channel = ChannelStore.getCurrent();
@@ -157,7 +158,17 @@ export default class PostList extends React.Component {
         });
 
         this.scrollToBottom();
-        setTimeout(this.scrollToBottom, 100);
+
+        Client.getPosts(
+            this.state.channel.id,
+            PostStore.getLatestUpdate(this.state.channel.id),
+            function success() {
+                this.setState({isFirstLoadComplete: true});
+            }.bind(this),
+            function fail() {
+                this.setState({isFirstLoadComplete: true});
+            }.bind(this)
+        );
     }
     componentDidUpdate(prevProps, prevState) {
         $('.post-list__content div .post').removeClass('post--last');
@@ -605,7 +616,7 @@ export default class PostList extends React.Component {
         }
 
         var postCtls = [];
-        if (posts) {
+        if (posts && this.state.isFirstLoadComplete) {
             postCtls = this.createPosts(posts, order);
         } else {
             postCtls.push(<LoadingScreen position='absolute' />);
