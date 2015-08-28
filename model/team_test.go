@@ -74,3 +74,62 @@ func TestTeamPreUpdate(t *testing.T) {
 	o := Team{DisplayName: "test"}
 	o.PreUpdate()
 }
+
+var domains = []struct {
+	value    string
+	expected bool
+}{
+	{"spin-punch", true},
+	{"-spin-punch", false},
+	{"spin-punch-", false},
+	{"spin_punch", false},
+	{"a", false},
+	{"aa", false},
+	{"aaa", false},
+	{"aaa-999b", true},
+	{"b00b", true},
+	{"b))b", false},
+	{"test", true},
+}
+
+func TestValidTeamName(t *testing.T) {
+	for _, v := range domains {
+		if IsValidTeamName(v.value) != v.expected {
+			t.Errorf("expect %v as %v", v.value, v.expected)
+		}
+	}
+}
+
+var tReservedDomains = []struct {
+	value    string
+	expected bool
+}{
+	{"test-hello", true},
+	{"test", true},
+	{"admin", true},
+	{"Admin-punch", true},
+	{"spin-punch-admin", false},
+}
+
+func TestReservedTeamName(t *testing.T) {
+	for _, v := range tReservedDomains {
+		if IsReservedTeamName(v.value) != v.expected {
+			t.Errorf("expect %v as %v", v.value, v.expected)
+		}
+	}
+}
+
+func TestCleanTeamName(t *testing.T) {
+	if CleanTeamName("Jimbo's Team") != "jimbos-team" {
+		t.Fatal("didn't clean name properly")
+	}
+	if len(CleanTeamName("Test")) != 26 {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanTeamName("Team Really cool") != "really-cool" {
+		t.Fatal("didn't clean name properly")
+	}
+	if CleanTeamName("super-duper-guys") != "super-duper-guys" {
+		t.Fatal("didn't clean name properly")
+	}
+}

@@ -23,11 +23,6 @@ type GoogleUser struct {
 
 func UserFromGoogleUser(gu *GoogleUser) *User {
 	user := &User{}
-	if len(gu.Nickname) > 0 {
-		user.Username = gu.Nickname
-	} else {
-		user.Username = strings.ToLower(strings.Replace(gu.DisplayName, " ", "", -1))
-	}
 	user.FirstName = gu.Names["givenName"]
 	user.LastName = gu.Names["familyName"]
 	user.Nickname = gu.Nickname
@@ -35,6 +30,7 @@ func UserFromGoogleUser(gu *GoogleUser) *User {
 	for _, e := range gu.Emails {
 		if e["type"] == "account" {
 			user.Email = e["value"]
+			user.Username = CleanUsername(strings.Split(user.Email, "@")[0])
 		}
 	}
 

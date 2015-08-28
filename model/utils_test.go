@@ -66,50 +66,6 @@ func TestValidLower(t *testing.T) {
 	}
 }
 
-var domains = []struct {
-	value    string
-	expected bool
-}{
-	{"spin-punch", true},
-	{"-spin-punch", false},
-	{"spin-punch-", false},
-	{"spin_punch", false},
-	{"a", false},
-	{"aa", false},
-	{"aaa", false},
-	{"aaa-999b", true},
-	{"b00b", true},
-	{"b))b", false},
-	{"test", true},
-}
-
-func TestValidTeamName(t *testing.T) {
-	for _, v := range domains {
-		if IsValidTeamName(v.value) != v.expected {
-			t.Errorf("expect %v as %v", v.value, v.expected)
-		}
-	}
-}
-
-var tReservedDomains = []struct {
-	value    string
-	expected bool
-}{
-	{"test-hello", true},
-	{"test", true},
-	{"admin", true},
-	{"Admin-punch", true},
-	{"spin-punch-admin", false},
-}
-
-func TestReservedTeamName(t *testing.T) {
-	for _, v := range tReservedDomains {
-		if IsReservedTeamName(v.value) != v.expected {
-			t.Errorf("expect %v as %v", v.value, v.expected)
-		}
-	}
-}
-
 func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
 	if len(etag) <= 0 {
