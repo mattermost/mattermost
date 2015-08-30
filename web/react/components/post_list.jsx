@@ -511,9 +511,15 @@ export default class PostList extends React.Component {
 
             if (post.user_id !== userId && post.create_at > this.state.lastViewed && !renderedLastViewed) {
                 renderedLastViewed = true;
+
+                // Temporary fix to solve ie10/11 rendering issue
+                let newSeparatorId = '';
+                if (!utils.isBrowserIE()) {
+                    newSeparatorId = 'new_message';
+                }
                 postCtls.push(
                     <div
-                        id='new_message'
+                        id={newSeparatorId}
                         key='unviewed'
                         className='new-separator'
                     >
