@@ -31,9 +31,11 @@ export default class PostList extends React.Component {
         this.onSocketChange = this.onSocketChange.bind(this);
         this.createChannelIntroMessage = this.createChannelIntroMessage.bind(this);
         this.loadMorePosts = this.loadMorePosts.bind(this);
+        this.loadFirstPosts = this.loadFirstPosts.bind(this);
 
         this.state = this.getStateFromStores();
         this.state.numToDisplay = Constants.POST_CHUNK_SIZE;
+        this.state.isFirstLoadComplete = false;
     }
     getStateFromStores() {
         var channel = ChannelStore.getCurrent();
@@ -157,7 +159,10 @@ export default class PostList extends React.Component {
         });
 
         this.scrollToBottom();
-        setTimeout(this.scrollToBottom, 100);
+
+        if (this.state.channel.id != null) {
+            this.loadFirstPosts(this.state.channel.id);
+        }
     }
     componentDidUpdate(prevProps, prevState) {
         $('.post-list__content div .post').removeClass('post--last');
@@ -229,8 +234,25 @@ export default class PostList extends React.Component {
             postHolder.removeClass('hide-scroll');
         }
     }
+    loadFirstPosts(id) {
+        Client.getPosts(
+            id,
+            PostStore.getLatestUpdate(id),
+            function success() {
+                this.setState({isFirstLoadComplete: true});
+            }.bind(this),
+            function fail() {
+                this.setState({isFirstLoadComplete: true});
+            }.bind(this)
+        );
+    }
     onChange() {
         var newState = this.getStateFromStores();
+
+        // Special case where the channel wasn't yet set in componentDidMount
+        if (!this.state.isFirstLoadComplete && this.state.channel.id == null && newState.channel.id != null) {
+            this.loadFirstPosts(newState.channel.id);
+        }
 
         if (!utils.areStatesEqual(newState, this.state)) {
             if (this.state.channel.id !== newState.channel.id) {
@@ -605,7 +627,7 @@ export default class PostList extends React.Component {
         }
 
         var postCtls = [];
-        if (posts) {
+        if (posts && this.state.isFirstLoadComplete) {
             postCtls = this.createPosts(posts, order);
         } else {
             postCtls.push(<LoadingScreen position='absolute' />);
