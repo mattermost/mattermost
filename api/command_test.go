@@ -4,9 +4,10 @@
 package api
 
 import (
+	"testing"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
-	"testing"
 )
 
 func TestSuggestRootCommands(t *testing.T) {
@@ -49,6 +50,12 @@ func TestSuggestRootCommands(t *testing.T) {
 
 	if rs3.Suggestions[0].Suggestion != "/join" {
 		t.Fatal("should have join cmd")
+	}
+
+	rs4 := Client.Must(Client.Command("", "/ech", true)).Data.(*model.Command)
+
+	if rs4.Suggestions[0].Suggestion != "/echo" {
+		t.Fatal("should have echo cmd")
 	}
 }
 
@@ -143,5 +150,33 @@ func TestJoinCommands(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("didn't join channel")
+	}
+}
+
+func TestEchoCommand(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	echoTestString := "/echo test"
+
+	r1 := Client.Must(Client.Command(channel1.Id, echoTestString, false)).Data.(*model.Command)
+	if r1.Response != model.RESP_EXECUTED {
+		t.Fatal("Echo command failed to execute")
+	}
+
+	p1 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
+	if len(p1.Order) != 1 {
+		t.Fatal("Echo command failed to send")
 	}
 }
