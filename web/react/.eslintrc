@@ -39,7 +39,7 @@
             "no-unexpected-multiline": 2,
 
             "block-scoped-var": 1,
-            "complexity": [1, 8],
+            "complexity": [0, 8],
             "consistent-return": 2,
             "curly": [2, "all"],
             "dot-notation": 2,
@@ -97,7 +97,7 @@
             // Style
             "array-bracket-spacing": [2, "never"],
             "brace-style": [2, "1tbs", { "allowSingleLine": false }],
-            "camelcase": [2, {"properties": "always"}],
+            "camelcase": [2, {"properties": "never"}],
             "comma-spacing": [2, {"before": false, "after": true}],
             "comma-style": [2, "last"],
             "computed-property-spacing": [2, "never"],
