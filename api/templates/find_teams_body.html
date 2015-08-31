@@ -19,7 +19,7 @@
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
                                                 <h2 style="font-weight: normal; margin-top: 10px;">Finding teams</h2>
                                                 <p>{{ if .Props }}
-                                                        The following teams were found:<br>
+                                                        Your request to find teams associated with your email found the following:<br>
                                                         {{range $index, $element := .Props}}
                                                             <a href="{{ $element }}" style="text-decoration: none; color:#2389D7;">{{ $index }}</a><br>
                                                         {{ end }}
