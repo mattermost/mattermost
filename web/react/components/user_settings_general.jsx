@@ -194,7 +194,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.props.updateSection(section);
     }
     handleClose() {
-        $(this.getDOMNode()).find('.form-control').each(function clearForms() {
+        $(React.findDOMNode(this)).find('.form-control').each(function clearForms() {
             this.value = '';
         });
 
@@ -230,7 +230,6 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
 
         var nameSection;
-        var self = this;
         var inputs = [];
 
         if (this.props.activeSection === 'name') {
@@ -276,9 +275,9 @@ export default class UserSettingsGeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={function clearSection(e) {
-                        self.updateSection('');
+                        this.updateSection('');
                         e.preventDefault();
-                    }}
+                    }.bind(this)}
                 />
             );
         } else {
@@ -297,8 +296,8 @@ export default class UserSettingsGeneralTab extends React.Component {
                     title='Full Name'
                     describe={fullName}
                     updateSection={function updateNameSection() {
-                        self.updateSection('name');
-                    }}
+                        this.updateSection('name');
+                    }.bind(this)}
                 />
             );
         }
@@ -335,9 +334,9 @@ export default class UserSettingsGeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={function clearSection(e) {
-                        self.updateSection('');
+                        this.updateSection('');
                         e.preventDefault();
-                    }}
+                    }.bind(this)}
                 />
             );
         } else {
@@ -346,8 +345,8 @@ export default class UserSettingsGeneralTab extends React.Component {
                     title='Nickname'
                     describe={UserStore.getCurrentUser().nickname}
                     updateSection={function updateNicknameSection() {
-                        self.updateSection('nickname');
-                    }}
+                        this.updateSection('nickname');
+                    }.bind(this)}
                 />
             );
         }
@@ -384,9 +383,9 @@ export default class UserSettingsGeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={function clearSection(e) {
-                        self.updateSection('');
+                        this.updateSection('');
                         e.preventDefault();
-                    }}
+                    }.bind(this)}
                 />
             );
         } else {
@@ -395,8 +394,8 @@ export default class UserSettingsGeneralTab extends React.Component {
                     title='Username'
                     describe={UserStore.getCurrentUser().username}
                     updateSection={function updateUsernameSection() {
-                        self.updateSection('username');
-                    }}
+                        this.updateSection('username');
+                    }.bind(this)}
                 />
             );
         }
@@ -433,9 +432,9 @@ export default class UserSettingsGeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={emailError}
                     updateSection={function clearSection(e) {
-                        self.updateSection('');
+                        this.updateSection('');
                         e.preventDefault();
-                    }}
+                    }.bind(this)}
                 />
             );
         } else {
@@ -444,8 +443,8 @@ export default class UserSettingsGeneralTab extends React.Component {
                     title='Email'
                     describe={UserStore.getCurrentUser().email}
                     updateSection={function updateEmailSection() {
-                        self.updateSection('email');
-                    }}
+                        this.updateSection('email');
+                    }.bind(this)}
                 />
             );
         }
@@ -460,9 +459,9 @@ export default class UserSettingsGeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={function clearSection(e) {
-                        self.updateSection('');
+                        this.updateSection('');
                         e.preventDefault();
-                    }}
+                    }.bind(this)}
                     picture={this.state.picture}
                     pictureChange={this.updatePicture}
                     submitActive={this.submitActive}
@@ -479,8 +478,8 @@ export default class UserSettingsGeneralTab extends React.Component {
                     title='Profile Picture'
                     describe={minMessage}
                     updateSection={function updatePictureSection() {
-                        self.updateSection('picture');
-                    }}
+                        this.updateSection('picture');
+                    }.bind(this)}
                 />
             );
         }

@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var PostStore = require('../stores/post_store.jsx');
@@ -10,36 +9,47 @@ var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-function getSearchTermStateFromStores() {
-    var term = PostStore.getSearchTerm() || '';
-    return {
-        search_term: term
-    };
-}
+export default class SearchBar extends React.Component {
+    constructor() {
+        super();
+        this.mounted = false;
 
-module.exports = React.createClass({
-    displayName: 'SearchBar',
-    componentDidMount: function() {
-        PostStore.addSearchTermChangeListener(this._onChange);
-    },
-    componentWillUnmount: function() {
-        PostStore.removeSearchTermChangeListener(this._onChange);
-    },
-    _onChange: function(doSearch, isMentionSearch) {
-        if (this.isMounted()) {
-            var newState = getSearchTermStateFromStores();
+        this.onListenerChange = this.onListenerChange.bind(this);
+        this.handleUserInput = this.handleUserInput.bind(this);
+        this.performSearch = this.performSearch.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+
+        this.state = this.getSearchTermStateFromStores();
+    }
+    getSearchTermStateFromStores() {
+        var term = PostStore.getSearchTerm() || '';
+        return {
+            searchTerm: term
+        };
+    }
+    componentDidMount() {
+        PostStore.addSearchTermChangeListener(this.onListenerChange);
+        this.mounted = true;
+    }
+    componentWillUnmount() {
+        PostStore.removeSearchTermChangeListener(this.onListenerChange);
+        this.mounted = false;
+    }
+    onListenerChange(doSearch, isMentionSearch) {
+        if (this.mounted) {
+            var newState = this.getSearchTermStateFromStores();
             if (!utils.areStatesEqual(newState, this.state)) {
                 this.setState(newState);
             }
             if (doSearch) {
-                this.performSearch(newState.search_term, isMentionSearch);
+                this.performSearch(newState.searchTerm, isMentionSearch);
             }
         }
-    },
-    clearFocus: function(e) {
+    }
+    clearFocus() {
         $('.search-bar__container').removeClass('focused');
-    },
-    handleClose: function(e) {
+    }
+    handleClose(e) {
         e.preventDefault();
 
         AppDispatcher.handleServerAction({
@@ -58,23 +68,23 @@ module.exports = React.createClass({
             type: ActionTypes.RECIEVED_POST_SELECTED,
             results: null
         });
-    },
-    handleUserInput: function(e) {
+    }
+    handleUserInput(e) {
         var term = e.target.value;
         PostStore.storeSearchTerm(term);
         PostStore.emitSearchTermChange(false);
-        this.setState({ search_term: term });
-    },
-    handleUserFocus: function(e) {
+        this.setState({searchTerm: term});
+    }
+    handleUserFocus(e) {
         e.target.select();
         $('.search-bar__container').addClass('focused');
-    },
-    performSearch: function(terms, isMentionSearch) {
+    }
+    performSearch(terms, isMentionSearch) {
         if (terms.length) {
             this.setState({isSearching: true});
             client.search(
                 terms,
-                function(data) {
+                function success(data) {
                     this.setState({isSearching: false});
                     if (utils.isMobile()) {
                         React.findDOMNode(this.refs.search).value = '';
@@ -86,38 +96,50 @@ module.exports = React.createClass({
                         is_mention_search: isMentionSearch
                     });
                 }.bind(this),
-                function(err) {
+                function error(err) {
                     this.setState({isSearching: false});
-                    AsyncClient.dispatchError(err, "search");
+                    AsyncClient.dispatchError(err, 'search');
                 }.bind(this)
             );
         }
-    },
-    handleSubmit: function(e) {
+    }
+    handleSubmit(e) {
         e.preventDefault();
-        this.performSearch(this.state.search_term.trim());
-    },
-    getInitialState: function() {
-        return getSearchTermStateFromStores();
-    },
-    render: function() {
+        this.performSearch(this.state.searchTerm.trim());
+    }
+    render() {
+        var isSearching = null;
+        if (this.state.isSearching) {
+            isSearching = <span className={'glyphicon glyphicon-refresh glyphicon-refresh-animate'}></span>;
+        }
         return (
             <div>
-                <div className="sidebar__collapse" onClick={this.handleClose}><span className="fa fa-angle-left"></span></div>
-                <span onClick={this.clearFocus} className="search__clear">Cancel</span>
-                <form role="form" className="search__form relative-div" onSubmit={this.handleSubmit}>
-                    <span className="glyphicon glyphicon-search sidebar__search-icon"></span>
+                <div
+                    className='sidebar__collapse'
+                    onClick={this.handleClose} >
+                    <span className='fa fa-angle-left'></span>
+                </div>
+                <span
+                    className='search__clear'
+                    onClick={this.clearFocus}>
+                    Cancel
+                </span>
+                <form
+                    role='form'
+                    className='search__form relative-div'
+                    onSubmit={this.handleSubmit}>
+                    <span className='glyphicon glyphicon-search sidebar__search-icon'></span>
                     <input
-                        type="text"
-                        ref="search"
-                        className="form-control search-bar"
-                        placeholder="Search"
-                        value={this.state.search_term}
+                        type='text'
+                        ref='search'
+                        className='form-control search-bar'
+                        placeholder='Search'
+                        value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onChange={this.handleUserInput} />
-                    {this.state.isSearching ? <span className={"glyphicon glyphicon-refresh glyphicon-refresh-animate"}></span> : null}
+                    {isSearching}
                 </form>
             </div>
         );
     }
-});
+}

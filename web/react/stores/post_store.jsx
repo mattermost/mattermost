@@ -3,7 +3,6 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
 
 var ChannelStore = require('../stores/channel_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
@@ -18,109 +17,169 @@ var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
 var ADD_MENTION_EVENT = 'add_mention';
 
-var PostStore = assign({}, EventEmitter.prototype, {
-    emitChange: function emitChange() {
+class PostStoreClass extends EventEmitter {
+    constructor() {
+        super();
+
+        this.emitChange = this.emitChange.bind(this);
+        this.addChangeListener = this.addChangeListener.bind(this);
+        this.removeChangeListener = this.removeChangeListener.bind(this);
+        this.emitSearchChange = this.emitSearchChange.bind(this);
+        this.addSearchChangeListener = this.addSearchChangeListener.bind(this);
+        this.removeSearchChangeListener = this.removeSearchChangeListener.bind(this);
+        this.emitSearchTermChange = this.emitSearchTermChange.bind(this);
+        this.addSearchTermChangeListener = this.addSearchTermChangeListener.bind(this);
+        this.removeSearchTermChangeListener = this.removeSearchTermChangeListener.bind(this);
+        this.emitSelectedPostChange = this.emitSelectedPostChange.bind(this);
+        this.addSelectedPostChangeListener = this.addSelectedPostChangeListener.bind(this);
+        this.removeSelectedPostChangeListener = this.removeSelectedPostChangeListener.bind(this);
+        this.emitMentionDataChange = this.emitMentionDataChange.bind(this);
+        this.addMentionDataChangeListener = this.addMentionDataChangeListener.bind(this);
+        this.removeMentionDataChangeListener = this.removeMentionDataChangeListener.bind(this);
+        this.emitAddMention = this.emitAddMention.bind(this);
+        this.addAddMentionListener = this.addAddMentionListener.bind(this);
+        this.removeAddMentionListener = this.removeAddMentionListener.bind(this);
+        this.getCurrentPosts = this.getCurrentPosts.bind(this);
+        this.storePosts = this.storePosts.bind(this);
+        this.pStorePosts = this.pStorePosts.bind(this);
+        this.getPosts = this.getPosts.bind(this);
+        this.storePost = this.storePost.bind(this);
+        this.pStorePost = this.pStorePost.bind(this);
+        this.removePost = this.removePost.bind(this);
+        this.storePendingPost = this.storePendingPost.bind(this);
+        this.pStorePendingPosts = this.pStorePendingPosts.bind(this);
+        this.getPendingPosts = this.getPendingPosts.bind(this);
+        this.storeUnseenDeletedPost = this.storeUnseenDeletedPost.bind(this);
+        this.storeUnseenDeletedPosts = this.storeUnseenDeletedPosts.bind(this);
+        this.getUnseenDeletedPosts = this.getUnseenDeletedPosts.bind(this);
+        this.clearUnseenDeletedPosts = this.clearUnseenDeletedPosts.bind(this);
+        this.removePendingPost = this.removePendingPost.bind(this);
+        this.pRemovePendingPost = this.pRemovePendingPost.bind(this);
+        this.clearPendingPosts = this.clearPendingPosts.bind(this);
+        this.updatePendingPost = this.updatePendingPost.bind(this);
+        this.storeSearchResults = this.storeSearchResults.bind(this);
+        this.getSearchResults = this.getSearchResults.bind(this);
+        this.getIsMentionSearch = this.getIsMentionSearch.bind(this);
+        this.storeSelectedPost = this.storeSelectedPost.bind(this);
+        this.getSelectedPost = this.getSelectedPost.bind(this);
+        this.storeSearchTerm = this.storeSearchTerm.bind(this);
+        this.getSearchTerm = this.getSearchTerm.bind(this);
+        this.getEmptyDraft = this.getEmptyDraft.bind(this);
+        this.storeCurrentDraft = this.storeCurrentDraft.bind(this);
+        this.getCurrentDraft = this.getCurrentDraft.bind(this);
+        this.storeDraft = this.storeDraft.bind(this);
+        this.getDraft = this.getDraft.bind(this);
+        this.storeCommentDraft = this.storeCommentDraft.bind(this);
+        this.getCommentDraft = this.getCommentDraft.bind(this);
+        this.clearDraftUploads = this.clearDraftUploads.bind(this);
+        this.clearCommentDraftUploads = this.clearCommentDraftUploads.bind(this);
+        this.storeLatestUpdate = this.storeLatestUpdate.bind(this);
+        this.getLatestUpdate = this.getLatestUpdate.bind(this);
+    }
+    emitChange() {
         this.emit(CHANGE_EVENT);
-    },
+    }
 
-    addChangeListener: function addChangeListener(callback) {
+    addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
-    },
+    }
 
-    removeChangeListener: function removeChangeListener(callback) {
+    removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
+    }
 
-    emitSearchChange: function emitSearchChange() {
+    emitSearchChange() {
         this.emit(SEARCH_CHANGE_EVENT);
-    },
+    }
 
-    addSearchChangeListener: function addSearchChangeListener(callback) {
+    addSearchChangeListener(callback) {
         this.on(SEARCH_CHANGE_EVENT, callback);
-    },
+    }
 
-    removeSearchChangeListener: function removeSearchChangeListener(callback) {
+    removeSearchChangeListener(callback) {
         this.removeListener(SEARCH_CHANGE_EVENT, callback);
-    },
+    }
 
-    emitSearchTermChange: function emitSearchTermChange(doSearch, isMentionSearch) {
+    emitSearchTermChange(doSearch, isMentionSearch) {
         this.emit(SEARCH_TERM_CHANGE_EVENT, doSearch, isMentionSearch);
-    },
+    }
 
-    addSearchTermChangeListener: function addSearchTermChangeListener(callback) {
+    addSearchTermChangeListener(callback) {
         this.on(SEARCH_TERM_CHANGE_EVENT, callback);
-    },
+    }
 
-    removeSearchTermChangeListener: function removeSearchTermChangeListener(callback) {
+    removeSearchTermChangeListener(callback) {
         this.removeListener(SEARCH_TERM_CHANGE_EVENT, callback);
-    },
+    }
 
-    emitSelectedPostChange: function emitSelectedPostChange(fromSearch) {
+    emitSelectedPostChange(fromSearch) {
         this.emit(SELECTED_POST_CHANGE_EVENT, fromSearch);
-    },
+    }
 
-    addSelectedPostChangeListener: function addSelectedPostChangeListener(callback) {
+    addSelectedPostChangeListener(callback) {
         this.on(SELECTED_POST_CHANGE_EVENT, callback);
-    },
+    }
 
-    removeSelectedPostChangeListener: function removeSelectedPostChangeListener(callback) {
+    removeSelectedPostChangeListener(callback) {
         this.removeListener(SELECTED_POST_CHANGE_EVENT, callback);
-    },
+    }
 
-    emitMentionDataChange: function emitMentionDataChange(id, mentionText) {
+    emitMentionDataChange(id, mentionText) {
         this.emit(MENTION_DATA_CHANGE_EVENT, id, mentionText);
-    },
+    }
 
-    addMentionDataChangeListener: function addMentionDataChangeListener(callback) {
+    addMentionDataChangeListener(callback) {
         this.on(MENTION_DATA_CHANGE_EVENT, callback);
-    },
+    }
 
-    removeMentionDataChangeListener: function removeMentionDataChangeListener(callback) {
+    removeMentionDataChangeListener(callback) {
         this.removeListener(MENTION_DATA_CHANGE_EVENT, callback);
-    },
+    }
 
-    emitAddMention: function emitAddMention(id, username) {
+    emitAddMention(id, username) {
         this.emit(ADD_MENTION_EVENT, id, username);
-    },
+    }
 
-    addAddMentionListener: function addAddMentionListener(callback) {
+    addAddMentionListener(callback) {
         this.on(ADD_MENTION_EVENT, callback);
-    },
+    }
 
-    removeAddMentionListener: function removeAddMentionListener(callback) {
+    removeAddMentionListener(callback) {
         this.removeListener(ADD_MENTION_EVENT, callback);
-    },
+    }
 
-    getCurrentPosts: function getCurrentPosts() {
+    getCurrentPosts() {
         var currentId = ChannelStore.getCurrentId();
 
         if (currentId != null) {
             return this.getPosts(currentId);
         }
         return null;
-    },
-    storePosts: function storePosts(channelId, newPostList) {
+    }
+    storePosts(channelId, newPostList) {
         if (isPostListNull(newPostList)) {
             return;
         }
 
-        var postList = makePostListNonNull(PostStore.getPosts(channelId));
+        var postList = makePostListNonNull(this.getPosts(channelId));
 
-        for (var pid in newPostList.posts) {
-            var np = newPostList.posts[pid];
-            if (np.delete_at === 0) {
-                postList.posts[pid] = np;
-                if (postList.order.indexOf(pid) === -1) {
-                    postList.order.push(pid);
-                }
-            } else {
-                if (pid in postList.posts) {
-                    delete postList.posts[pid];
-                }
+        for (let pid in newPostList.posts) {
+            if (newPostList.posts.hasOwnProperty(pid)) {
+                var np = newPostList.posts[pid];
+                if (np.delete_at === 0) {
+                    postList.posts[pid] = np;
+                    if (postList.order.indexOf(pid) === -1) {
+                        postList.order.push(pid);
+                    }
+                } else {
+                    if (pid in postList.posts) {
+                        delete postList.posts[pid];
+                    }
 
-                var index = postList.order.indexOf(pid);
-                if (index !== -1) {
-                    postList.order.splice(index, 1);
+                    var index = postList.order.indexOf(pid);
+                    if (index !== -1) {
+                        postList.order.splice(index, 1);
+                    }
                 }
             }
         }
@@ -146,19 +205,19 @@ var PostStore = assign({}, EventEmitter.prototype, {
         this.storeLatestUpdate(channelId, latestUpdate);
         this.pStorePosts(channelId, postList);
         this.emitChange();
-    },
-    pStorePosts: function pStorePosts(channelId, posts) {
+    }
+    pStorePosts(channelId, posts) {
         BrowserStore.setItem('posts_' + channelId, posts);
-    },
-    getPosts: function getPosts(channelId) {
+    }
+    getPosts(channelId) {
         return BrowserStore.getItem('posts_' + channelId);
-    },
-    storePost: function(post) {
+    }
+    storePost(post) {
         this.pStorePost(post);
         this.emitChange();
-    },
-    pStorePost: function(post) {
-        var postList = PostStore.getPosts(post.channel_id);
+    }
+    pStorePost(post) {
+        var postList = this.getPosts(post.channel_id);
         postList = makePostListNonNull(postList);
 
         if (post.pending_post_id !== '') {
@@ -173,9 +232,9 @@ var PostStore = assign({}, EventEmitter.prototype, {
         }
 
         this.pStorePosts(post.channel_id, postList);
-    },
-    removePost: function(postId, channelId) {
-        var postList = PostStore.getPosts(channelId);
+    }
+    removePost(postId, channelId) {
+        var postList = this.getPosts(channelId);
         if (isPostListNull(postList)) {
             return;
         }
@@ -190,8 +249,8 @@ var PostStore = assign({}, EventEmitter.prototype, {
         }
 
         this.pStorePosts(channelId, postList);
-    },
-    storePendingPost: function(post) {
+    }
+    storePendingPost(post) {
         post.state = Constants.POST_LOADING;
 
         var postList = this.getPendingPosts(post.channel_id);
@@ -199,10 +258,10 @@ var PostStore = assign({}, EventEmitter.prototype, {
 
         postList.posts[post.pending_post_id] = post;
         postList.order.unshift(post.pending_post_id);
-        this._storePendingPosts(post.channel_id, postList);
+        this.pStorePendingPosts(post.channel_id, postList);
         this.emitChange();
-    },
-    _storePendingPosts: function(channelId, postList) {
+    }
+    pStorePendingPosts(channelId, postList) {
         var posts = postList.posts;
 
         // sort failed posts to the bottom
@@ -225,11 +284,11 @@ var PostStore = assign({}, EventEmitter.prototype, {
         });
 
         BrowserStore.setItem('pending_posts_' + channelId, postList);
-    },
-    getPendingPosts: function(channelId) {
+    }
+    getPendingPosts(channelId) {
         return BrowserStore.getItem('pending_posts_' + channelId);
-    },
-    storeUnseenDeletedPost: function(post) {
+    }
+    storeUnseenDeletedPost(post) {
         var posts = this.getUnseenDeletedPosts(post.channel_id);
 
         if (!posts) {
@@ -241,21 +300,21 @@ var PostStore = assign({}, EventEmitter.prototype, {
 
         posts[post.id] = post;
         this.storeUnseenDeletedPosts(post.channel_id, posts);
-    },
-    storeUnseenDeletedPosts: function(channelId, posts) {
+    }
+    storeUnseenDeletedPosts(channelId, posts) {
         BrowserStore.setItem('deleted_posts_' + channelId, posts);
-    },
-    getUnseenDeletedPosts: function(channelId) {
+    }
+    getUnseenDeletedPosts(channelId) {
         return BrowserStore.getItem('deleted_posts_' + channelId);
-    },
-    clearUnseenDeletedPosts: function(channelId) {
+    }
+    clearUnseenDeletedPosts(channelId) {
         BrowserStore.setItem('deleted_posts_' + channelId, {});
-    },
-    removePendingPost: function(channelId, pendingPostId) {
-        this._removePendingPost(channelId, pendingPostId);
+    }
+    removePendingPost(channelId, pendingPostId) {
+        this.pRemovePendingPost(channelId, pendingPostId);
         this.emitChange();
-    },
-    _removePendingPost: function(channelId, pendingPostId) {
+    }
+    pRemovePendingPost(channelId, pendingPostId) {
         var postList = this.getPendingPosts(channelId);
         postList = makePostListNonNull(postList);
 
@@ -267,14 +326,14 @@ var PostStore = assign({}, EventEmitter.prototype, {
             postList.order.splice(index, 1);
         }
 
-        this._storePendingPosts(channelId, postList);
-    },
-    clearPendingPosts: function() {
+        this.pStorePendingPosts(channelId, postList);
+    }
+    clearPendingPosts() {
         BrowserStore.actionOnItemsWithPrefix('pending_posts_', function clearPending(key) {
             BrowserStore.removeItem(key);
         });
-    },
-    updatePendingPost: function(post) {
+    }
+    updatePendingPost(post) {
         var postList = this.getPendingPosts(post.channel_id);
         postList = makePostListNonNull(postList);
 
@@ -283,112 +342,114 @@ var PostStore = assign({}, EventEmitter.prototype, {
         }
 
         postList.posts[post.pending_post_id] = post;
-        this._storePendingPosts(post.channel_id, postList);
+        this.pStorePendingPosts(post.channel_id, postList);
         this.emitChange();
-    },
-    storeSearchResults: function storeSearchResults(results, isMentionSearch) {
+    }
+    storeSearchResults(results, isMentionSearch) {
         BrowserStore.setItem('search_results', results);
         BrowserStore.setItem('is_mention_search', Boolean(isMentionSearch));
-    },
-    getSearchResults: function getSearchResults() {
+    }
+    getSearchResults() {
         return BrowserStore.getItem('search_results');
-    },
-    getIsMentionSearch: function getIsMentionSearch() {
+    }
+    getIsMentionSearch() {
         return BrowserStore.getItem('is_mention_search');
-    },
-    storeSelectedPost: function storeSelectedPost(postList) {
+    }
+    storeSelectedPost(postList) {
         BrowserStore.setItem('select_post', postList);
-    },
-    getSelectedPost: function getSelectedPost() {
+    }
+    getSelectedPost() {
         return BrowserStore.getItem('select_post');
-    },
-    storeSearchTerm: function storeSearchTerm(term) {
+    }
+    storeSearchTerm(term) {
         BrowserStore.setItem('search_term', term);
-    },
-    getSearchTerm: function getSearchTerm() {
+    }
+    getSearchTerm() {
         return BrowserStore.getItem('search_term');
-    },
-    getEmptyDraft: function getEmptyDraft(draft) {
+    }
+    getEmptyDraft() {
         return {message: '', uploadsInProgress: [], previews: []};
-    },
-    storeCurrentDraft: function storeCurrentDraft(draft) {
+    }
+    storeCurrentDraft(draft) {
         var channelId = ChannelStore.getCurrentId();
         BrowserStore.setItem('draft_' + channelId, draft);
-    },
-    getCurrentDraft: function getCurrentDraft() {
+    }
+    getCurrentDraft() {
         var channelId = ChannelStore.getCurrentId();
-        return PostStore.getDraft(channelId);
-    },
-    storeDraft: function storeDraft(channelId, draft) {
+        return this.getDraft(channelId);
+    }
+    storeDraft(channelId, draft) {
         BrowserStore.setItem('draft_' + channelId, draft);
-    },
-    getDraft: function getDraft(channelId) {
-        return BrowserStore.getItem('draft_' + channelId, PostStore.getEmptyDraft());
-    },
-    storeCommentDraft: function storeCommentDraft(parentPostId, draft) {
+    }
+    getDraft(channelId) {
+        return BrowserStore.getItem('draft_' + channelId, this.getEmptyDraft());
+    }
+    storeCommentDraft(parentPostId, draft) {
         BrowserStore.setItem('comment_draft_' + parentPostId, draft);
-    },
-    getCommentDraft: function getCommentDraft(parentPostId) {
-        return BrowserStore.getItem('comment_draft_' + parentPostId, PostStore.getEmptyDraft());
-    },
-    clearDraftUploads: function clearDraftUploads() {
+    }
+    getCommentDraft(parentPostId) {
+        return BrowserStore.getItem('comment_draft_' + parentPostId, this.getEmptyDraft());
+    }
+    clearDraftUploads() {
         BrowserStore.actionOnItemsWithPrefix('draft_', function clearUploads(key, value) {
             if (value) {
                 value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
             }
         });
-    },
-    clearCommentDraftUploads: function clearCommentDraftUploads() {
+    }
+    clearCommentDraftUploads() {
         BrowserStore.actionOnItemsWithPrefix('comment_draft_', function clearUploads(key, value) {
             if (value) {
                 value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
             }
         });
-    },
-    storeLatestUpdate: function(channelId, time) {
+    }
+    storeLatestUpdate(channelId, time) {
         BrowserStore.setItem('latest_post_' + channelId, time);
-    },
-    getLatestUpdate: function(channelId) {
+    }
+    getLatestUpdate(channelId) {
         return BrowserStore.getItem('latest_post_' + channelId, 0);
     }
-});
+}
+
+var PostStore = new PostStoreClass();
 
 PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     var action = payload.action;
 
     switch (action.type) {
-        case ActionTypes.RECIEVED_POSTS:
-            PostStore.storePosts(action.id, makePostListNonNull(action.post_list));
-            break;
-        case ActionTypes.RECIEVED_POST:
-            PostStore.pStorePost(action.post);
-            PostStore.emitChange();
-            break;
-        case ActionTypes.RECIEVED_SEARCH:
-            PostStore.storeSearchResults(action.results, action.is_mention_search);
-            PostStore.emitSearchChange();
-            break;
-        case ActionTypes.RECIEVED_SEARCH_TERM:
-            PostStore.storeSearchTerm(action.term);
-            PostStore.emitSearchTermChange(action.do_search, action.is_mention_search);
-            break;
-        case ActionTypes.RECIEVED_POST_SELECTED:
-            PostStore.storeSelectedPost(action.post_list);
-            PostStore.emitSelectedPostChange(action.from_search);
-            break;
-        case ActionTypes.RECIEVED_MENTION_DATA:
-            PostStore.emitMentionDataChange(action.id, action.mention_text);
-            break;
-        case ActionTypes.RECIEVED_ADD_MENTION:
-            PostStore.emitAddMention(action.id, action.username);
-            break;
-        default:
+    case ActionTypes.RECIEVED_POSTS:
+        PostStore.storePosts(action.id, makePostListNonNull(action.post_list));
+        break;
+    case ActionTypes.RECIEVED_POST:
+        PostStore.pStorePost(action.post);
+        PostStore.emitChange();
+        break;
+    case ActionTypes.RECIEVED_SEARCH:
+        PostStore.storeSearchResults(action.results, action.is_mention_search);
+        PostStore.emitSearchChange();
+        break;
+    case ActionTypes.RECIEVED_SEARCH_TERM:
+        PostStore.storeSearchTerm(action.term);
+        PostStore.emitSearchTermChange(action.do_search, action.is_mention_search);
+        break;
+    case ActionTypes.RECIEVED_POST_SELECTED:
+        PostStore.storeSelectedPost(action.post_list);
+        PostStore.emitSelectedPostChange(action.from_search);
+        break;
+    case ActionTypes.RECIEVED_MENTION_DATA:
+        PostStore.emitMentionDataChange(action.id, action.mention_text);
+        break;
+    case ActionTypes.RECIEVED_ADD_MENTION:
+        PostStore.emitAddMention(action.id, action.username);
+        break;
+    default:
     }
 });
 
-module.exports = PostStore;
+export default PostStore;
 
 function makePostListNonNull(pl) {
     var postList = pl;

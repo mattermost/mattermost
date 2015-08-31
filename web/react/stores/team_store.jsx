@@ -3,7 +3,6 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -19,21 +18,38 @@ function getWindowLocationOrigin() {
     return utils.getWindowLocationOrigin();
 }
 
-var TeamStore = assign({}, EventEmitter.prototype, {
-    emitChange: function() {
+class TeamStoreClass extends EventEmitter {
+    constructor() {
+        super();
+
+        this.emitChange = this.emitChange.bind(this);
+        this.addChangeListener = this.addChangeListener.bind(this);
+        this.removeChangeListener = this.removeChangeListener.bind(this);
+        this.get = this.get.bind(this);
+        this.getByName = this.getByName.bind(this);
+        this.getAll = this.getAll.bind(this);
+        this.setCurrentId = this.setCurrentId.bind(this);
+        this.getCurrentId = this.getCurrentId.bind(this);
+        this.getCurrent = this.getCurrent.bind(this);
+        this.getCurrentTeamUrl = this.getCurrentTeamUrl.bind(this);
+        this.storeTeam = this.storeTeam.bind(this);
+        this.pStoreTeams = this.pStoreTeams.bind(this);
+        this.pGetTeams = this.pGetTeams.bind(this);
+    }
+    emitChange() {
         this.emit(CHANGE_EVENT);
-    },
-    addChangeListener: function(callback) {
+    }
+    addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
-    },
-    removeChangeListener: function(callback) {
+    }
+    removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
-    get: function(id) {
+    }
+    get(id) {
         var c = this.pGetTeams();
         return c[id];
-    },
-    getByName: function(name) {
+    }
+    getByName(name) {
         var t = this.pGetTeams();
 
         for (var id in t) {
@@ -43,64 +59,65 @@ var TeamStore = assign({}, EventEmitter.prototype, {
         }
 
         return null;
-    },
-    getAll: function() {
+    }
+    getAll() {
         return this.pGetTeams();
-    },
-    setCurrentId: function(id) {
+    }
+    setCurrentId(id) {
         if (id === null) {
             BrowserStore.removeItem('current_team_id');
         } else {
             BrowserStore.setItem('current_team_id', id);
         }
-    },
-    getCurrentId: function() {
+    }
+    getCurrentId() {
         return BrowserStore.getItem('current_team_id');
-    },
-    getCurrent: function() {
-        var currentId = TeamStore.getCurrentId();
+    }
+    getCurrent() {
+        var currentId = this.getCurrentId();
 
         if (currentId !== null) {
             return this.get(currentId);
         }
         return null;
-    },
-    getCurrentTeamUrl: function() {
+    }
+    getCurrentTeamUrl() {
         if (this.getCurrent()) {
             return getWindowLocationOrigin() + '/' + this.getCurrent().name;
         }
         return null;
-    },
-    storeTeam: function(team) {
+    }
+    storeTeam(team) {
         var teams = this.pGetTeams();
         teams[team.id] = team;
         this.pStoreTeams(teams);
-    },
-    pStoreTeams: function(teams) {
+    }
+    pStoreTeams(teams) {
         BrowserStore.setItem('user_teams', teams);
-    },
-    pGetTeams: function() {
+    }
+    pGetTeams() {
         return BrowserStore.getItem('user_teams', {});
     }
-});
+}
+
+var TeamStore = new TeamStoreClass();
 
 TeamStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     var action = payload.action;
 
     switch (action.type) {
+    case ActionTypes.CLICK_TEAM:
+        TeamStore.setCurrentId(action.id);
+        TeamStore.emitChange();
+        break;
 
-        case ActionTypes.CLICK_TEAM:
-            TeamStore.setCurrentId(action.id);
-            TeamStore.emitChange();
-            break;
+    case ActionTypes.RECIEVED_TEAM:
+        TeamStore.storeTeam(action.team);
+        TeamStore.emitChange();
+        break;
 
-        case ActionTypes.RECIEVED_TEAM:
-            TeamStore.storeTeam(action.team);
-            TeamStore.emitChange();
-            break;
-
-        default:
+    default:
     }
 });
 
-module.exports = TeamStore;
+export default TeamStore;

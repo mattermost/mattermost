@@ -3,7 +3,6 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
 
 var BrowserStore = require('../stores/browser_store.jsx');
 
@@ -12,45 +11,59 @@ var ActionTypes = Constants.ActionTypes;
 
 var CHANGE_EVENT = 'change';
 
-var ConfigStore = assign({}, EventEmitter.prototype, {
-    emitChange: function emitChange() {
+class ConfigStoreClass extends EventEmitter {
+    constructor() {
+        super();
+
+        this.emitChange = this.emitChange.bind(this);
+        this.addChangeListener = this.addChangeListener.bind(this);
+        this.removeChangeListener = this.removeChangeListener.bind(this);
+        this.getSetting = this.getSetting.bind(this);
+        this.getSettingAsBoolean = this.getSettingAsBoolean.bind(this);
+        this.updateStoredSettings = this.updateStoredSettings.bind(this);
+    }
+    emitChange() {
         this.emit(CHANGE_EVENT);
-    },
-    addChangeListener: function addChangeListener(callback) {
+    }
+    addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
-    },
-    removeChangeListener: function removeChangeListener(callback) {
+    }
+    removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
-    getSetting: function getSetting(key, defaultValue) {
+    }
+    getSetting(key, defaultValue) {
         return BrowserStore.getItem('config_' + key, defaultValue);
-    },
-    getSettingAsBoolean: function getSettingAsNumber(key, defaultValue) {
-        var value = ConfigStore.getSetting(key, defaultValue);
+    }
+    getSettingAsBoolean(key, defaultValue) {
+        var value = this.getSetting(key, defaultValue);
 
         if (typeof value !== 'string') {
-            return !!value;
-        } else {
-            return value === 'true';
+            return Boolean(value);
         }
-    },
-    updateStoredSettings: function updateStoredSettings(settings) {
-        for (var key in settings) {
-            BrowserStore.setItem('config_' + key, settings[key]);
+
+        return value === 'true';
+    }
+    updateStoredSettings(settings) {
+        for (let key in settings) {
+            if (settings.hasOwnProperty(key)) {
+                BrowserStore.setItem('config_' + key, settings[key]);
+            }
         }
     }
-});
+}
+
+var ConfigStore = new ConfigStoreClass();
 
 ConfigStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     var action = payload.action;
 
     switch (action.type) {
-        case ActionTypes.RECIEVED_CONFIG:
-            ConfigStore.updateStoredSettings(action.settings);
-            ConfigStore.emitChange();
-            break;
-        default:
+    case ActionTypes.RECIEVED_CONFIG:
+        ConfigStore.updateStoredSettings(action.settings);
+        ConfigStore.emitChange();
+        break;
+    default:
     }
 });
 
-module.exports = ConfigStore;
+export default ConfigStore;
