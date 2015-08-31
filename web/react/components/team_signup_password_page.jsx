@@ -57,13 +57,14 @@ module.exports = React.createClass({
                             window.location.href = '/verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name);
                         } else {
                             this.setState({serverError: err.message});
+                            $('#finish-button').button('reset');
                         }
                     }.bind(this)
                 );
             }.bind(this),
             function error(err) {
                 this.setState({serverError: err.message});
-                $('#sign-up-button').button('reset');
+                $('#finish-button').button('reset');
             }.bind(this)
         );
     },
