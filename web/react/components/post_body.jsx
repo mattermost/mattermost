@@ -5,8 +5,18 @@ var FileAttachmentList = require('./file_attachment_list.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
+var twemoji = require('twemoji')
 
 module.exports = React.createClass({
+    parseEmojis: function() {
+        twemoji.parse(this.getDOMNode(), {size: Constants.EMOJI_SIZE});
+    },
+    componentDidMount: function() {
+        this.parseEmojis();
+    },
+    componentDidUpdate: function() {
+        this.parseEmojis();
+    },
     componentWillReceiveProps: function(nextProps) {
         var linkData = utils.extractLinks(nextProps.post.message);
         this.setState({links: linkData.links, message: linkData.text});
