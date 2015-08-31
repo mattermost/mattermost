@@ -152,7 +152,6 @@ export default class Login extends React.Component {
             );
         }
 
-        var forgotPassword;
         if (loginMessage.length > 0 && emailSignup) {
             loginMessage = (
                 <div>
@@ -162,7 +161,10 @@ export default class Login extends React.Component {
                     </div>
                 </div>
             );
+        }
 
+        var forgotPassword;
+        if (emailSignup) {
             forgotPassword = (
                 <div className='form-group'>
                     <a href={'/' + teamName + '/reset_password'}>I forgot my password</a>
