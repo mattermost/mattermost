@@ -105,7 +105,6 @@ export default class PostList extends React.Component {
             if ($('#create_post').length > 0) {
                 var height = $(window).height() - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
                 postHolder.css('height', height + 'px');
-                postHolder.perfectScrollbar();
             }
 
             if (!this.scrolled) {
