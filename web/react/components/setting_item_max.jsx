@@ -5,6 +5,7 @@ module.exports = React.createClass({
     render: function() {
         var clientError = this.props.client_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.client_error }</label></div> : null;
         var server_error = this.props.server_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.server_error }</label></div> : null;
+        var extraInfo = this.props.extraInfo ? this.props.extraInfo : null;
 
         var inputs = this.props.inputs;
 
@@ -15,6 +16,7 @@ module.exports = React.createClass({
                     <ul className="setting-list">
                         <li className="setting-list-item">
                             {inputs}
+                            {extraInfo}
                         </li>
                         <li className="setting-list-item">
                             <hr />

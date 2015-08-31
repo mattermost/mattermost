@@ -270,4 +270,5 @@ ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {
     }
 });
 
+ChannelStore.setMaxListeners(11);
 module.exports = ChannelStore;
