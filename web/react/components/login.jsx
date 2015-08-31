@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
-var Constants = require('../utils/constants.jsx');
+const Utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
+const UserStore = require('../stores/user_store.jsx');
+const BrowserStore = require('../stores/browser_store.jsx');
+const Constants = require('../utils/constants.jsx');
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -17,23 +17,23 @@ export default class Login extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        var state = {};
+        let state = {};
 
-        var name = this.props.teamName;
+        const name = this.props.teamName;
         if (!name) {
             state.serverError = 'Bad team name';
             this.setState(state);
             return;
         }
 
-        var email = this.refs.email.getDOMNode().value.trim();
+        const email = React.findDOMNode(this.refs.email).value.trim();
         if (!email) {
             state.serverError = 'An email is required';
             this.setState(state);
             return;
         }
 
-        var password = this.refs.password.getDOMNode().value.trim();
+        const password = React.findDOMNode(this.refs.password).value.trim();
         if (!password) {
             state.serverError = 'A password is required';
             this.setState(state);
@@ -49,12 +49,12 @@ export default class Login extends React.Component {
         state.serverError = '';
         this.setState(state);
 
-        client.loginByEmail(name, email, password,
+        Client.loginByEmail(name, email, password,
             function loggedIn(data) {
                 UserStore.setCurrentUser(data);
                 UserStore.setLastEmail(email);
 
-                var redirect = utils.getUrlParameter('redirect');
+                const redirect = Utils.getUrlParameter('redirect');
                 if (redirect) {
                     window.location.href = decodeURIComponent(redirect);
                 } else {
@@ -73,31 +73,31 @@ export default class Login extends React.Component {
         );
     }
     render() {
-        var serverError;
+        let serverError;
         if (this.state.serverError) {
             serverError = <label className='control-label'>{this.state.serverError}</label>;
         }
-        var priorEmail = UserStore.getLastEmail();
+        let priorEmail = UserStore.getLastEmail();
 
-        var emailParam = utils.getUrlParameter('email');
+        const emailParam = Utils.getUrlParameter('email');
         if (emailParam) {
             priorEmail = decodeURIComponent(emailParam);
         }
 
-        var teamDisplayName = this.props.teamDisplayName;
-        var teamName = this.props.teamName;
+        const teamDisplayName = this.props.teamDisplayName;
+        const teamName = this.props.teamName;
 
-        var focusEmail = false;
-        var focusPassword = false;
+        let focusEmail = false;
+        let focusPassword = false;
         if (priorEmail !== '') {
             focusPassword = true;
         } else {
             focusEmail = true;
         }
 
-        var authServices = JSON.parse(this.props.authServices);
+        const authServices = JSON.parse(this.props.authServices);
 
-        var loginMessage = [];
+        let loginMessage = [];
         if (authServices.indexOf(Constants.GITLAB_SERVICE) !== -1) {
             loginMessage.push(
                     <a
@@ -110,12 +110,12 @@ export default class Login extends React.Component {
            );
         }
 
-        var errorClass = '';
+        let errorClass = '';
         if (serverError) {
             errorClass = ' has-error';
         }
 
-        var emailSignup;
+        let emailSignup;
         if (authServices.indexOf(Constants.EMAIL_SERVICE) !== -1) {
             emailSignup = (
                 <div>
@@ -163,7 +163,7 @@ export default class Login extends React.Component {
             );
         }
 
-        var forgotPassword;
+        let forgotPassword;
         if (emailSignup) {
             forgotPassword = (
                 <div className='form-group'>

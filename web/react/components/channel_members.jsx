@@ -1,154 +1,200 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var MemberList = require('./member_list.jsx');
-var client = require('../utils/client.jsx');
-var utils = require('../utils/utils.jsx');
+const UserStore = require('../stores/user_store.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const MemberList = require('./member_list.jsx');
+const Client = require('../utils/client.jsx');
+const Utils = require('../utils/utils.jsx');
 
-function getStateFromStores() {
-    var users = UserStore.getActiveOnlyProfiles();
-    var member_list = ChannelStore.getCurrentExtraInfo().members;
+export default class ChannelMembers extends React.Component {
+    constructor(props) {
+        super(props);
 
-    var nonmember_list = [];
-    for (var id in users) {
-        var found = false;
-        for (var i = 0; i < member_list.length; i++) {
-            if (member_list[i].id === id) {
-                found = true;
-                break;
+        this.getStateFromStores = this.getStateFromStores.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.handleRemove = this.handleRemove.bind(this);
+
+        this.state = this.getStateFromStores();
+    }
+    getStateFromStores() {
+        const users = UserStore.getActiveOnlyProfiles();
+        let memberList = ChannelStore.getCurrentExtraInfo().members;
+
+        let nonmemberList = [];
+        for (let id in users) {
+            if (users.hasOwnProperty(id)) {
+                let found = false;
+                for (let i = 0; i < memberList.length; i++) {
+                    if (memberList[i].id === id) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    nonmemberList.push(users[id]);
+                }
             }
         }
-        if (!found) {
-            nonmember_list.push(users[id]);
+
+        function compareByUsername(a, b) {
+            if (a.username < b.username) {
+                return -1;
+            } else if (a.username > b.username) {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        memberList.sort(compareByUsername);
+        nonmemberList.sort(compareByUsername);
+
+        const channel = ChannelStore.getCurrent();
+        let channelName = '';
+        if (channel) {
+            channelName = channel.display_name;
+        }
+
+        return {
+            nonmemberList: nonmemberList,
+            memberList: memberList,
+            channelName: channelName
+        };
+    }
+    componentDidMount() {
+        ChannelStore.addExtraInfoChangeListener(this.onChange);
+        ChannelStore.addChangeListener(this.onChange);
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function handleHide() {
+            this.setState({renderMembers: false});
+        }.bind(this));
+
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function handleShow() {
+            this.setState({renderMembers: true});
+        }.bind(this));
+    }
+    componentWillUnmount() {
+        ChannelStore.removeExtraInfoChangeListener(this.onChange);
+        ChannelStore.removeChangeListener(this.onChange);
+    }
+    onChange() {
+        const newState = this.getStateFromStores();
+        if (!Utils.areStatesEqual(this.state, newState)) {
+            this.setState(newState);
         }
     }
-
-    member_list.sort(function(a,b) {
-        if (a.username < b.username) return -1;
-        if (a.username > b.username) return 1;
-        return 0;
-    });
-
-    nonmember_list.sort(function(a,b) {
-        if (a.username < b.username) return -1;
-        if (a.username > b.username) return 1;
-        return 0;
-    });
-
-    var channel_name = ChannelStore.getCurrent() ? ChannelStore.getCurrent().display_name : "";
-
-    return {
-        nonmember_list: nonmember_list,
-        member_list: member_list,
-        channel_name: channel_name
-    };
-}
-
-module.exports = React.createClass({
-    componentDidMount: function() {
-        ChannelStore.addExtraInfoChangeListener(this._onChange);
-        ChannelStore.addChangeListener(this._onChange);
-        var self = this;
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function(e) {
-            self.setState({ render_members: false });
-        });
-
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
-            self.setState({ render_members: true });
-        });
-    },
-    componentWillUnmount: function() {
-        ChannelStore.removeExtraInfoChangeListener(this._onChange);
-        ChannelStore.removeChangeListener(this._onChange);
-    },
-    _onChange: function() {
-        var new_state = getStateFromStores();
-        if (!utils.areStatesEqual(this.state, new_state)) {
-            this.setState(new_state);
-        }
-    },
-    handleRemove: function(user_id) {
+    handleRemove(userId) {
         // Make sure the user is a member of the channel
-        var member_list = this.state.member_list;
-        var found = false;
-        for (var i = 0; i < member_list.length; i++) {
-            if (member_list[i].id === user_id) {
+        let memberList = this.state.memberList;
+        let found = false;
+        for (let i = 0; i < memberList.length; i++) {
+            if (memberList[i].id === userId) {
                 found = true;
                 break;
             }
         }
 
-        if (!found) { return };
+        if (!found) {
+            return;
+        }
 
-        var data = {};
-        data['user_id'] = user_id;
+        let data = {};
+        data.user_id = userId;
 
-        client.removeChannelMember(ChannelStore.getCurrentId(), data,
-            function(data) {
-                var old_member;
-                for (var i = 0; i < member_list.length; i++) {
-                    if (user_id === member_list[i].id) {
-                        old_member = member_list[i];
-                        member_list.splice(i, 1);
+        Client.removeChannelMember(ChannelStore.getCurrentId(), data,
+            function handleRemoveSuccess() {
+                let oldMember;
+                for (let i = 0; i < memberList.length; i++) {
+                    if (userId === memberList[i].id) {
+                        oldMember = memberList[i];
+                        memberList.splice(i, 1);
                         break;
                     }
                 }
 
-                var nonmember_list = this.state.nonmember_list;
-                if (old_member) {
-                    nonmember_list.push(old_member);
+                let nonmemberList = this.state.nonmemberList;
+                if (oldMember) {
+                    nonmemberList.push(oldMember);
                 }
 
-                this.setState({ member_list: member_list, nonmember_list: nonmember_list });
+                this.setState({memberList: memberList, nonmemberList: nonmemberList});
                 AsyncClient.getChannelExtraInfo(true);
             }.bind(this),
-            function(err) {
-                this.setState({ invite_error: err.message });
+            function handleRemoveError(err) {
+                this.setState({inviteError: err.message});
             }.bind(this)
          );
-    },
-    getInitialState: function() {
-        return getStateFromStores();
-    },
-    render: function() {
-        var currentMember = ChannelStore.getCurrentMember();
-        var isAdmin = false;
+    }
+    render() {
+        const currentMember = ChannelStore.getCurrentMember();
+        let isAdmin = false;
         if (currentMember) {
-            isAdmin = currentMember.roles.indexOf("admin") > -1 || UserStore.getCurrentUser().roles.indexOf("admin") > -1;
+            isAdmin = currentMember.roles.indexOf('admin') > -1 || UserStore.getCurrentUser().roles.indexOf('admin') > -1;
+        }
+
+        var memberList = null;
+        if (this.state.renderMembers) {
+            memberList = (
+                <MemberList
+                    memberList={this.state.memberList}
+                    isAdmin={isAdmin}
+                    handleRemove={this.handleRemove}
+                />
+            );
         }
 
         return (
-            <div className="modal fade" ref="modal" id="channel_members" tabIndex="-1" role="dialog" aria-hidden="true">
-               <div className="modal-dialog">
-                  <div className="modal-content">
-                    <div className="modal-header">
-                        <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                        <h4 className="modal-title"><span className="name">{this.state.channel_name}</span> Members</h4>
-                        <a className="btn btn-md btn-primary" data-toggle="modal" data-target="#channel_invite"><i className="glyphicon glyphicon-envelope"/>  Add New Members</a>
-                    </div>
-                    <div ref="modalBody" className="modal-body">
-                        <div className="col-sm-12">
-                            <div className="team-member-list">
-                                { this.state.render_members ?
-                                <MemberList
-                                    memberList={this.state.member_list}
-                                    isAdmin={isAdmin}
-                                    handleRemove={this.handleRemove}
-                                />
-                                : "" }
+            <div
+                className='modal fade'
+                ref='modal'
+                id='channel_members'
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'
+            >
+                <div className='modal-dialog'>
+                    <div className='modal-content'>
+                        <div className='modal-header'>
+                            <button
+                                type='button'
+                                className='close'
+                                data-dismiss='modal'
+                                aria-label='Close'
+                            >
+                                <span aria-hidden='true'>×</span>
+                            </button>
+                            <h4 className='modal-title'><span className='name'>{this.state.channelName}</span> Members</h4>
+                            <a
+                                className='btn btn-md btn-primary'
+                                data-toggle='modal'
+                                data-target='#channel_invite'
+                            >
+                                <i className='glyphicon glyphicon-envelope'/> Add New Members
+                            </a>
+                        </div>
+                        <div
+                            ref='modalBody'
+                            className='modal-body'
+                        >
+                            <div className='col-sm-12'>
+                                <div className='team-member-list'>
+                                    {memberList}
+                                </div>
                             </div>
                         </div>
+                        <div className='modal-footer'>
+                            <button
+                                type='button'
+                                className='btn btn-default'
+                                data-dismiss='modal'
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
-                    <div className="modal-footer">
-                      <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                  </div>
-               </div>
+                </div>
             </div>
-
         );
     }
-});
+}

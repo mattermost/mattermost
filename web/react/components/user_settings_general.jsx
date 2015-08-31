@@ -194,7 +194,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.props.updateSection(section);
     }
     handleClose() {
-        $(this.getDOMNode()).find('.form-control').each(function clearForms() {
+        $(React.findDOMNode(this)).find('.form-control').each(function clearForms() {
             this.value = '';
         });
 

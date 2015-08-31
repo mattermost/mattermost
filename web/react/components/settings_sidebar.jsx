@@ -1,24 +1,56 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
+export default class SettingsSidebar extends React.Component {
+    constructor(props) {
+        super(props);
 
-module.exports = React.createClass({
-    displayName:'SettingsSidebar',
-    updateTab: function(tab) {
-        this.props.updateTab(tab);
+        this.handleClick = this.handleClick.bind(this);
+    }
+    handleClick(tab) {
+        this.props.updateTab(tab.name);
         $('.settings-modal').addClass('display--content');
-    },
-    render: function() {
-        var self = this;
+    }
+    render() {
+        let tabList = this.props.tabs.map(function makeTab(tab) {
+            let key = `${tab.name}_li`;
+            let className = '';
+            if (this.props.activeTab === tab.name) {
+                className = 'active';
+            }
+
+            return (
+                <li
+                    key={key}
+                    className={className}
+                >
+                    <a
+                        href='#'
+                        onClick={this.handleClick.bind(null, tab)}
+                    >
+                        <i className={tab.icon} />
+                        {tab.uiName}
+                    </a>
+                </li>
+            );
+        }.bind(this));
+
         return (
-            <div className="">
-                <ul className="nav nav-pills nav-stacked">
-                    {this.props.tabs.map(function(tab) {
-                        return <li key={tab.name+'_li'} className={self.props.activeTab == tab.name ? 'active' : ''}><a key={tab.name + '_a'} href="#" onClick={function(){self.updateTab(tab.name);}}><i key={tab.name+'_i'} className={tab.icon}></i>{tab.uiName}</a></li>
-                    })}
+            <div>
+                <ul className='nav nav-pills nav-stacked'>
+                    {tabList}
                 </ul>
             </div>
         );
     }
-});
+}
+
+SettingsSidebar.propTypes = {
+    tabs: React.PropTypes.arrayOf(React.PropTypes.shape({
+        name: React.PropTypes.string.isRequired,
+        uiName: React.PropTypes.string.isRequired,
+        icon: React.PropTypes.string.isRequired
+    })).isRequired,
+    activeTab: React.PropTypes.string,
+    updateTab: React.PropTypes.func.isRequired
+};

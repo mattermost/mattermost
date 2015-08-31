@@ -1,66 +1,93 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var CommandList = require('./command_list.jsx');
-var ErrorStore = require('../stores/error_store.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
+const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+const PostStore = require('../stores/post_store.jsx');
+const CommandList = require('./command_list.jsx');
+const ErrorStore = require('../stores/error_store.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
 
-var utils = require('../utils/utils.jsx');
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+const Utils = require('../utils/utils.jsx');
+const Constants = require('../utils/constants.jsx');
+const ActionTypes = Constants.ActionTypes;
 
-function getStateFromStores() {
-    var error = ErrorStore.getLastError();
+export default class Textbox extends React.Component {
+    constructor(props) {
+        super(props);
 
-    if (error) {
-        return {message: error.message};
+        this.getStateFromStores = this.getStateFromStores.bind(this);
+        this.onListenerChange = this.onListenerChange.bind(this);
+        this.onRecievedError = this.onRecievedError.bind(this);
+        this.onTimerInterrupt = this.onTimerInterrupt.bind(this);
+        this.updateMentionTab = this.updateMentionTab.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBackspace = this.handleBackspace.bind(this);
+        this.checkForNewMention = this.checkForNewMention.bind(this);
+        this.addMention = this.addMention.bind(this);
+        this.addCommand = this.addCommand.bind(this);
+        this.resize = this.resize.bind(this);
+        this.handleFocus = this.handleFocus.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
+        this.handlePaste = this.handlePaste.bind(this);
+
+        this.state = {
+            mentionText: '-1',
+            mentions: [],
+            connection: '',
+            timerInterrupt: null
+        };
+
+        this.caret = -1;
+        this.addedMention = false;
+        this.doProcessMentions = false;
+        this.mentions = [];
     }
-    return {message: null};
-}
+    getStateFromStores() {
+        const error = ErrorStore.getLastError();
 
-module.exports = React.createClass({
-    displayName: 'Textbox',
-    caret: -1,
-    addedMention: false,
-    doProcessMentions: false,
-    mentions: [],
-    componentDidMount: function() {
+        if (error) {
+            return {message: error.message};
+        }
+
+        return {message: null};
+    }
+    componentDidMount() {
         PostStore.addAddMentionListener(this.onListenerChange);
         ErrorStore.addChangeListener(this.onRecievedError);
 
         this.resize();
         this.updateMentionTab(null);
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         PostStore.removeAddMentionListener(this.onListenerChange);
         ErrorStore.removeChangeListener(this.onRecievedError);
-    },
-    onListenerChange: function(id, username) {
+    }
+    onListenerChange(id, username) {
         if (id === this.props.id) {
             this.addMention(username);
         }
-    },
-    onRecievedError: function() {
-        var errorState = getStateFromStores();
+    }
+    onRecievedError() {
+        const errorState = this.getStateFromStores();
 
-        if (this.state.timerInterrupt != null) {
+        if (this.state.timerInterrupt !== null) {
             window.clearInterval(this.state.timerInterrupt);
             this.setState({timerInterrupt: null});
         }
 
         if (errorState.message === 'There appears to be a problem with your internet connection') {
             this.setState({connection: 'bad-connection'});
-            var timerInterrupt = window.setInterval(this.onTimerInterrupt, 5000);
+            const timerInterrupt = window.setInterval(this.onTimerInterrupt, 5000);
             this.setState({timerInterrupt: timerInterrupt});
         } else {
             this.setState({connection: ''});
         }
-    },
-    onTimerInterrupt: function() {
-        //Since these should only happen when you have no connection and slightly briefly after any
-        //performance hit should not matter
+    }
+    onTimerInterrupt() {
+        // Since these should only happen when you have no connection and slightly briefly after any
+        // performance hit should not matter
         if (this.state.connection === 'bad-connection') {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_ERROR,
@@ -72,10 +99,10 @@ module.exports = React.createClass({
 
         window.clearInterval(this.state.timerInterrupt);
         this.setState({timerInterrupt: null});
-    },
-    componentDidUpdate: function() {
+    }
+    componentDidUpdate() {
         if (this.caret >= 0) {
-            utils.setCaretPosition(this.refs.message.getDOMNode(), this.caret);
+            Utils.setCaretPosition(React.findDOMNode(this.refs.message), this.caret);
             this.caret = -1;
         }
         if (this.doProcessMentions) {
@@ -83,40 +110,35 @@ module.exports = React.createClass({
             this.doProcessMentions = false;
         }
         this.resize();
-    },
-    componentWillReceiveProps: function(nextProps) {
+    }
+    componentWillReceiveProps(nextProps) {
         if (!this.addedMention) {
             this.checkForNewMention(nextProps.messageText);
         }
-        var text = this.refs.message.getDOMNode().value;
+        const text = React.findDOMNode(this.refs.message).value;
         if (nextProps.channelId !== this.props.channelId || nextProps.messageText !== text) {
             this.doProcessMentions = true;
         }
         this.addedMention = false;
         this.refs.commands.getSuggestedCommands(nextProps.messageText);
         this.resize();
-    },
-    getInitialState: function() {
-        return {mentionText: '-1', mentions: [], connection: '', timerInterrupt: null};
-    },
-    updateMentionTab: function(mentionText) {
-        var self = this;
-
+    }
+    updateMentionTab(mentionText) {
         // using setTimeout so dispatch isn't called during an in progress dispatch
-        setTimeout(function() {
+        setTimeout(function updateMentionTabAfterTimeout() {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_MENTION_DATA,
-                id: self.props.id,
+                id: this.props.id,
                 mention_text: mentionText
             });
-        }, 1);
-    },
-    handleChange: function() {
-        this.props.onUserInput(this.refs.message.getDOMNode().value);
+        }.bind(this), 1);
+    }
+    handleChange() {
+        this.props.onUserInput(React.findDOMNode(this.refs.message).value);
         this.resize();
-    },
-    handleKeyPress: function(e) {
-        var text = this.refs.message.getDOMNode().value;
+    }
+    handleKeyPress(e) {
+        const text = React.findDOMNode(this.refs.message).value;
 
         if (!this.refs.commands.isEmpty() && text.indexOf('/') === 0 && e.which === 13) {
             this.refs.commands.addFirstCommand();
@@ -125,10 +147,10 @@ module.exports = React.createClass({
         }
 
         if (!this.doProcessMentions) {
-            var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
-            var preText = text.substring(0, caret);
-            var lastSpace = preText.lastIndexOf(' ');
-            var lastAt = preText.lastIndexOf('@');
+            const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
+            const preText = text.substring(0, caret);
+            const lastSpace = preText.lastIndexOf(' ');
+            const lastAt = preText.lastIndexOf('@');
 
             if (caret > lastAt && lastSpace < lastAt) {
                 this.doProcessMentions = true;
@@ -136,18 +158,18 @@ module.exports = React.createClass({
         }
 
         this.props.onKeyPress(e);
-    },
-    handleKeyDown: function(e) {
-        if (utils.getSelectedText(this.refs.message.getDOMNode()) !== '') {
+    }
+    handleKeyDown(e) {
+        if (Utils.getSelectedText(React.findDOMNode(this.refs.message)) !== '') {
             this.doProcessMentions = true;
         }
 
         if (e.keyCode === 8) {
             this.handleBackspace(e);
         }
-    },
-    handleBackspace: function() {
-        var text = this.refs.message.getDOMNode().value;
+    }
+    handleBackspace() {
+        const text = React.findDOMNode(this.refs.message).value;
         if (text.indexOf('/') === 0) {
             this.refs.commands.getSuggestedCommands(text.substring(0, text.length - 1));
         }
@@ -156,21 +178,21 @@ module.exports = React.createClass({
             return;
         }
 
-        var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
-        var preText = text.substring(0, caret);
-        var lastSpace = preText.lastIndexOf(' ');
-        var lastAt = preText.lastIndexOf('@');
+        const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
+        const preText = text.substring(0, caret);
+        const lastSpace = preText.lastIndexOf(' ');
+        const lastAt = preText.lastIndexOf('@');
 
         if (caret > lastAt && (lastSpace > lastAt || lastSpace === -1)) {
             this.doProcessMentions = true;
         }
-    },
-    checkForNewMention: function(text) {
-        var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
+    }
+    checkForNewMention(text) {
+        const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
 
-        var preText = text.substring(0, caret);
+        const preText = text.substring(0, caret);
 
-        var atIndex = preText.lastIndexOf('@');
+        const atIndex = preText.lastIndexOf('@');
 
         // The @ character not typed, so nothing to do.
         if (atIndex === -1) {
@@ -178,8 +200,8 @@ module.exports = React.createClass({
             return;
         }
 
-        var lastCharSpace = preText.lastIndexOf(String.fromCharCode(160));
-        var lastSpace = preText.lastIndexOf(' ');
+        const lastCharSpace = preText.lastIndexOf(String.fromCharCode(160));
+        const lastSpace = preText.lastIndexOf(' ');
 
         // If there is a space after the last @, nothing to do.
         if (lastSpace > atIndex || lastCharSpace > atIndex) {
@@ -188,43 +210,43 @@ module.exports = React.createClass({
         }
 
         // Get the name typed so far.
-        var name = preText.substring(atIndex + 1, preText.length).toLowerCase();
+        const name = preText.substring(atIndex + 1, preText.length).toLowerCase();
         this.updateMentionTab(name);
-    },
-    addMention: function(name) {
-        var caret = utils.getCaretPosition(this.refs.message.getDOMNode());
+    }
+    addMention(name) {
+        const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
 
-        var text = this.props.messageText;
+        const text = this.props.messageText;
 
-        var preText = text.substring(0, caret);
+        const preText = text.substring(0, caret);
 
-        var atIndex = preText.lastIndexOf('@');
+        const atIndex = preText.lastIndexOf('@');
 
         // The @ character not typed, so nothing to do.
         if (atIndex === -1) {
             return;
         }
 
-        var prefix = text.substring(0, atIndex);
-        var suffix = text.substring(caret, text.length);
+        const prefix = text.substring(0, atIndex);
+        const suffix = text.substring(caret, text.length);
         this.caret = prefix.length + name.length + 2;
         this.addedMention = true;
         this.doProcessMentions = true;
 
-        this.props.onUserInput(prefix + '@' + name + ' ' + suffix);
-    },
-    addCommand: function(cmd) {
-        var elm = this.refs.message.getDOMNode();
+        this.props.onUserInput(`${prefix}@${name} ${suffix}`);
+    }
+    addCommand(cmd) {
+        const elm = React.findDOMNode(this.refs.message);
         elm.value = cmd;
         this.handleChange();
-    },
-    resize: function() {
-        var e = this.refs.message.getDOMNode();
-        var w = this.refs.wrapper.getDOMNode();
+    }
+    resize() {
+        const e = React.findDOMNode(this.refs.message);
+        const w = React.findDOMNode(this.refs.wrapper);
 
-        var lht = parseInt($(e).css('lineHeight'), 10);
-        var lines = e.scrollHeight / lht;
-        var mod =  15;
+        const lht = parseInt($(e).css('lineHeight'), 10);
+        const lines = e.scrollHeight / lht;
+        let mod = 15;
 
         if (lines < 2.5 || this.props.messageText === '') {
             mod = 30;
@@ -237,28 +259,62 @@ module.exports = React.createClass({
             $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167);
             $(w).css({height: 'auto'}).height(167);
         }
-    },
-    handleFocus: function() {
-        var elm = this.refs.message.getDOMNode();
+    }
+    handleFocus() {
+        const elm = React.findDOMNode(this.refs.message);
         if (elm.title === elm.value) {
             elm.value = '';
         }
-    },
-    handleBlur: function() {
-        var elm = this.refs.message.getDOMNode();
+    }
+    handleBlur() {
+        const elm = React.findDOMNode(this.refs.message);
         if (elm.value === '') {
             elm.value = elm.title;
         }
-    },
-    handlePaste: function() {
+    }
+    handlePaste() {
         this.doProcessMentions = true;
-    },
-    render: function() {
+    }
+    render() {
         return (
-            <div ref='wrapper' className='textarea-wrapper'>
-                <CommandList ref='commands' addCommand={this.addCommand} channelId={this.props.channelId} />
-                <textarea id={this.props.id} ref='message' className={'form-control custom-textarea ' + this.state.connection} spellCheck='true' autoComplete='off' autoCorrect='off' rows='1' maxLength={Constants.MAX_POST_LEN} placeholder={this.props.createMessage} value={this.props.messageText} onInput={this.handleChange} onChange={this.handleChange} onKeyPress={this.handleKeyPress} onKeyDown={this.handleKeyDown} onFocus={this.handleFocus} onBlur={this.handleBlur} onPaste={this.handlePaste} />
+            <div
+                ref='wrapper'
+                className='textarea-wrapper'
+            >
+                <CommandList
+                    ref='commands'
+                    addCommand={this.addCommand}
+                    channelId={this.props.channelId}
+                />
+                <textarea
+                    id={this.props.id}
+                    ref='message'
+                    className={`form-control custom-textarea ${this.state.connection}`}
+                    spellCheck='true'
+                    autoComplete='off'
+                    autoCorrect='off'
+                    rows='1'
+                    maxLength={Constants.MAX_POST_LEN}
+                    placeholder={this.props.createMessage}
+                    value={this.props.messageText}
+                    onInput={this.handleChange}
+                    onChange={this.handleChange}
+                    onKeyPress={this.handleKeyPress}
+                    onKeyDown={this.handleKeyDown}
+                    onFocus={this.handleFocus}
+                    onBlur={this.handleBlur}
+                    onPaste={this.handlePaste}
+                />
             </div>
         );
     }
-});
+}
+
+Textbox.propTypes = {
+    id: React.PropTypes.string.isRequired,
+    channelId: React.PropTypes.string,
+    messageText: React.PropTypes.string.isRequired,
+    onUserInput: React.PropTypes.func.isRequired,
+    onKeyPress: React.PropTypes.func.isRequired,
+    createMessage: React.PropTypes.string.isRequired
+};

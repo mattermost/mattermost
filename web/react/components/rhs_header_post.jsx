@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+const Constants = require('../utils/constants.jsx');
+const ActionTypes = Constants.ActionTypes;
 
 export default class RhsHeaderPost extends React.Component {
     constructor(props) {
@@ -43,7 +43,7 @@ export default class RhsHeaderPost extends React.Component {
         });
     }
     render() {
-        var back;
+        let back;
         if (this.props.fromSearch) {
             back = (
                 <a
