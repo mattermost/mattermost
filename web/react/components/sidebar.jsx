@@ -278,7 +278,6 @@ module.exports = React.createClass({
             var lastUnreadElement = $(this.refs[this.lastUnreadChannel].getDOMNode());
 
             if (lastUnreadElement.position().top > container.height()) {
-                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('bottom', '0');
                 $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'initial');
             } else {
                 $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'none');
