@@ -4,11 +4,11 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestPostStoreSave(t *testing.T) {
@@ -547,11 +547,9 @@ func TestPostStoreSearch(t *testing.T) {
 		t.Fatal("returned wrong serach result")
 	}
 
-	if utils.Cfg.SqlSettings.DriverName == "mysql" {
-		r5 := (<-store.Post().Search(teamId, userId, "matter*", false)).Data.(*model.PostList)
-		if len(r5.Order) != 1 && r5.Order[0] != o1.Id {
-			t.Fatal("returned wrong serach result")
-		}
+	r5 := (<-store.Post().Search(teamId, userId, "matter*", false)).Data.(*model.PostList)
+	if len(r5.Order) != 1 && r5.Order[0] != o1.Id {
+		t.Fatal("returned wrong serach result")
 	}
 
 	r6 := (<-store.Post().Search(teamId, userId, "#hashtag", true)).Data.(*model.PostList)
@@ -571,6 +569,11 @@ func TestPostStoreSearch(t *testing.T) {
 
 	r9 := (<-store.Post().Search(teamId, userId, "mattermost jersey", false)).Data.(*model.PostList)
 	if len(r9.Order) != 2 {
+		t.Fatal("returned wrong search result")
+	}
+
+	r10 := (<-store.Post().Search(teamId, userId, "matter* jer*", false)).Data.(*model.PostList)
+	if len(r10.Order) != 2 {
 		t.Fatal("returned wrong search result")
 	}
 }

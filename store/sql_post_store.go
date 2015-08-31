@@ -5,9 +5,11 @@ package store
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"strings"
 )
 
 type SqlPostStore struct {
@@ -358,7 +360,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts,
-			`SELECT 
+			`SELECT
 			    q2.*
 			FROM
 			    Posts q2
@@ -366,7 +368,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			    (SELECT DISTINCT
 			        q3.RootId
 			    FROM
-			        (SELECT 
+			        (SELECT
 			        RootId
 			    FROM
 			        Posts
@@ -417,6 +419,12 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 		var posts []*model.Post
 
 		if utils.Cfg.SqlSettings.DriverName == "postgres" {
+
+			// Parse text for wildcards
+			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
+				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+			}
+
 			searchQuery := fmt.Sprintf(`SELECT
 				    *
 				FROM

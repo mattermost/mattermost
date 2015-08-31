@@ -456,9 +456,21 @@ module.exports.textToJsx = function(text, options) {
             var mentionRegex = /^(?:@)([a-z0-9_]+)$/gi; // looks loop invariant but a weird JS bug needs it to be redefined here
             var explicitMention = mentionRegex.exec(trimWord);
 
-            if ((trimWord.toLowerCase().indexOf(searchTerm) > -1 || word.toLowerCase().indexOf(searchTerm) > -1) && searchTerm != '') {
-
-                highlightSearchClass = ' search-highlight';
+            if (searchTerm !== '') {
+                let searchWords = searchTerm.split(' ');
+                for (let idx in searchWords) {
+                    let searchWord = searchWords[idx];
+                    if (searchWord === word.toLowerCase() || searchWord === trimWord.toLowerCase()) {
+                        highlightSearchClass = ' search-highlight';
+                        break;
+                    } else if (searchWord.charAt(searchWord.length - 1) === '*') {
+                        let searchWordPrefix = searchWord.slice(0,-1);
+                        if (trimWord.toLowerCase().indexOf(searchWordPrefix) > -1 || word.toLowerCase().indexOf(searchWordPrefix) > -1) {
+                            highlightSearchClass = ' search-highlight';
+                            break;
+                        }
+                    }
+                }
             }
 
             if (explicitMention &&
