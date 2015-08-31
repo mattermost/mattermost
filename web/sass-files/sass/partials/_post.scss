@@ -139,6 +139,7 @@ body.ios {
 		width: 100%;
 		padding: 1em 0 0;
 		position: relative;
+		-webkit-overflow-scrolling: touch;
 		&.hide-scroll::-webkit-scrollbar {
 			width: 0px !important;
 		}
