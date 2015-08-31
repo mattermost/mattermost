@@ -12,17 +12,20 @@ var ChannelStore = require('../stores/channel_store.jsx');
 export default class ChannelNotifications extends React.Component {
     constructor(props) {
         super(props);
+
         this.onListenerChange = this.onListenerChange.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.handleUpdate = this.handleUpdate.bind(this);
         this.handleRadioClick = this.handleRadioClick.bind(this);
         this.handleQuietToggle = this.handleQuietToggle.bind(this);
+        this.createDesktopSection = this.createDesktopSection.bind(this);
+        this.createQuietSection = this.createQuietSection.bind(this);
+
         this.state = {notifyLevel: '', title: '', channelId: '', activeSection: ''};
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
 
-        var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function showModal(e) {
             var button = e.relatedTarget;
             var channelId = button.getAttribute('data-channelid');
@@ -34,8 +37,8 @@ export default class ChannelNotifications extends React.Component {
                 quietMode = true;
             }
 
-            self.setState({notifyLevel: notifyLevel, quietMode: quietMode, title: button.getAttribute('data-title'), channelId: channelId});
-        });
+            this.setState({notifyLevel: notifyLevel, quietMode: quietMode, title: button.getAttribute('data-title'), channelId: channelId});
+        }.bind(this));
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
@@ -98,19 +101,9 @@ export default class ChannelNotifications extends React.Component {
         this.setState({notifyLevel: 'none', quietMode: quietMode});
         this.refs.modal.getDOMNode().focus();
     }
-    render() {
-        var serverError = null;
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
-        }
-
-        var self = this;
-        var describe = '';
-        var inputs = [];
-
+    createDesktopSection(serverError) {
         var handleUpdateSection;
 
-        var desktopSection;
         if (this.state.activeSection === 'desktop') {
             var notifyActive = [false, false, false];
             if (this.state.notifyLevel === 'mention') {
@@ -121,6 +114,8 @@ export default class ChannelNotifications extends React.Component {
                 notifyActive[2] = true;
             }
 
+            var inputs = [];
+
             inputs.push(
                 <div>
                     <div className='radio'>
@@ -128,7 +123,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[0]}
-                                onChange={self.handleRadioClick.bind(this, 'all')}
+                                onChange={this.handleRadioClick.bind(this, 'all')}
                             >
                                 For all activity
                             </input>
@@ -140,7 +135,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[1]}
-                                onChange={self.handleRadioClick.bind(this, 'mention')}
+                                onChange={this.handleRadioClick.bind(this, 'mention')}
                             >
                                 Only for mentions
                             </input>
@@ -152,7 +147,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[2]}
-                                onChange={self.handleRadioClick.bind(this, 'none')}
+                                onChange={this.handleRadioClick.bind(this, 'none')}
                             >
                                 Never
                             </input>
@@ -162,12 +157,12 @@ export default class ChannelNotifications extends React.Component {
             );
 
             handleUpdateSection = function updateSection(e) {
-                self.updateSection('');
-                self.onListenerChange();
+                this.updateSection('');
+                this.onListenerChange();
                 e.preventDefault();
-            };
+            }.bind(this);
 
-            desktopSection = (
+            return (
                 <SettingItemMax
                     title='Send desktop notifications'
                     inputs={inputs}
@@ -176,30 +171,32 @@ export default class ChannelNotifications extends React.Component {
                     updateSection={handleUpdateSection}
                 />
             );
-        } else {
-            if (this.state.notifyLevel === 'mention') {
-                describe = 'Only for mentions';
-            } else if (this.state.notifyLevel === 'all') {
-                describe = 'For all activity';
-            } else {
-                describe = 'Never';
-            }
-
-            handleUpdateSection = function updateSection(e) {
-                self.updateSection('desktop');
-                e.preventDefault();
-            };
-
-            desktopSection = (
-                <SettingItemMin
-                    title='Send desktop notifications'
-                    describe={describe}
-                    updateSection={handleUpdateSection}
-                />
-            );
         }
 
-        var quietSection;
+        var describe;
+        if (this.state.notifyLevel === 'mention') {
+            describe = 'Only for mentions';
+        } else if (this.state.notifyLevel === 'all') {
+            describe = 'For all activity';
+        } else {
+            describe = 'Never';
+        }
+
+        handleUpdateSection = function updateSection(e) {
+            this.updateSection('desktop');
+            e.preventDefault();
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title='Send desktop notifications'
+                describe={describe}
+                updateSection={handleUpdateSection}
+            />
+        );
+    }
+    createQuietSection(serverError) {
+        var handleUpdateSection;
         if (this.state.activeSection === 'quiet') {
             var quietActive = [false, false];
             if (this.state.quietMode) {
@@ -208,6 +205,8 @@ export default class ChannelNotifications extends React.Component {
                 quietActive[1] = true;
             }
 
+            var inputs = [];
+
             inputs.push(
                 <div>
                     <div className='radio'>
@@ -215,7 +214,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={quietActive[0]}
-                                onChange={self.handleQuietToggle.bind(this, true)}
+                                onChange={this.handleQuietToggle.bind(this, true)}
                             >
                                 On
                             </input>
@@ -227,7 +226,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={quietActive[1]}
-                                onChange={self.handleQuietToggle.bind(this, false)}
+                                onChange={this.handleQuietToggle.bind(this, false)}
                             >
                                 Off
                             </input>
@@ -245,12 +244,12 @@ export default class ChannelNotifications extends React.Component {
             );
 
             handleUpdateSection = function updateSection(e) {
-                self.updateSection('');
-                self.onListenerChange();
+                this.updateSection('');
+                this.onListenerChange();
                 e.preventDefault();
-            };
+            }.bind(this);
 
-            quietSection = (
+            return (
                 <SettingItemMax
                     title='Quiet mode'
                     inputs={inputs}
@@ -259,26 +258,37 @@ export default class ChannelNotifications extends React.Component {
                     updateSection={handleUpdateSection}
                 />
             );
-        } else {
-            if (this.state.quietMode) {
-                describe = 'On';
-            } else {
-                describe = 'Off';
-            }
-
-            handleUpdateSection = function updateSection(e) {
-                self.updateSection('quiet');
-                e.preventDefault();
-            };
-
-            quietSection = (
-                <SettingItemMin
-                    title='Quiet mode'
-                    describe={describe}
-                    updateSection={handleUpdateSection}
-                />
-            );
         }
+
+        var describe;
+        if (this.state.quietMode) {
+            describe = 'On';
+        } else {
+            describe = 'Off';
+        }
+
+        handleUpdateSection = function updateSection(e) {
+            this.updateSection('quiet');
+            e.preventDefault();
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title='Quiet mode'
+                describe={describe}
+                updateSection={handleUpdateSection}
+            />
+        );
+    }
+    render() {
+        var serverError = null;
+        if (this.state.serverError) {
+            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+        }
+
+        var desktopSection = this.createDesktopSection(serverError);
+
+        var quietSection = this.createQuietSection(serverError);
 
         return (
             <div
