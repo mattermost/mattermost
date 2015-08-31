@@ -286,6 +286,7 @@ function getYoutubeEmbed(link) {
             return;
         }
         var metadata = data.items[0].snippet;
+        $('.video-type.' + youtubeId).html("Youtube - ")
         $('.video-uploader.' + youtubeId).html(metadata.channelTitle);
         $('.video-title.' + youtubeId).find('a').html(metadata.title);
         $('.post-list-holder-by-time').scrollTop($('.post-list-holder-by-time')[0].scrollHeight);
@@ -303,9 +304,11 @@ function getYoutubeEmbed(link) {
 
     return (
         <div className='post-comment'>
-            <h4 className='video-type'>YouTube</h4>
+            <h4>
+                <span className={'video-type ' + youtubeId}>YouTube</span>
+                <span className={'video-title ' + youtubeId}><a href={link}></a></span>
+            </h4>
             <h4 className={'video-uploader ' + youtubeId}></h4>
-            <h4 className={'video-title ' + youtubeId}><a href={link}></a></h4>
             <div className='video-div embed-responsive-item' id={youtubeId} onClick={onClick}>
                 <div className='embed-responsive embed-responsive-4by3 video-div__placeholder'>
                     <div id={youtubeId} className='video-thumbnail__container'>
