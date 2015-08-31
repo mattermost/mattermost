@@ -1001,43 +1001,6 @@ module.exports.isBrowserEdge = function() {
     return window.naviagtor && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('edge') > -1;
 };
 
-// Gets text length consistent with maxlength property of textarea html tag
-module.exports.getLengthOfTextInTextarea = function(messageText) {
-    // Need to get length with carriage returns counting as two characters to match textbox maxlength behavior
-    // unless ie10/ie11/edge which already do
-
-    var len = messageText.length;
-    if (!module.exports.isBrowserIE() && !module.exports.isBrowserEdge()) {
-        len = messageText.replace(/\r(?!\n)|\n(?!\r)/g, '--').length;
-    }
-
-    return len;
-};
-
-module.exports.checkMessageLengthError = function(message, currentError, newError) {
-    var updatedError = currentError;
-    var len = module.exports.getLengthOfTextInTextarea(message);
-
-    if (!currentError && len >= Constants.MAX_POST_LEN) {
-        updatedError = newError;
-    } else if (currentError === newError && len < Constants.MAX_POST_LEN) {
-        updatedError = '';
-    }
-
-    return updatedError;
-};
-
-// Necessary due to issues with textarea max length and pasting newlines
-module.exports.truncateText = function(message) {
-    var lengthDifference = module.exports.getLengthOfTextInTextarea(message) - message.length;
-
-    if (lengthDifference > 0) {
-        return message.substring(0, Constants.MAX_POST_LEN - lengthDifference);
-    }
-
-    return message.substring(0, Constants.MAX_POST_LEN);
-};
-
 // Used to get the id of the other user from a DM channel
 module.exports.getUserIdFromChannelName = function(channel) {
     var ids = channel.name.split('__');
