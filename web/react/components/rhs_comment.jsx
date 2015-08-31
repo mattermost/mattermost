@@ -6,10 +6,10 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var UserProfile = require('./user_profile.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
-var client = require('../utils/client.jsx');
+var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
 
@@ -25,7 +25,7 @@ export default class RhsComment extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        client.createPost(post, post.channel_id,
+        Client.createPost(post, post.channel_id,
             function success(data) {
                 AsyncClient.getPosts(post.channel_id);
 
@@ -52,7 +52,7 @@ export default class RhsComment extends React.Component {
         this.forceUpdate();
     }
     shouldComponentUpdate(nextProps) {
-        if (!utils.areStatesEqual(nextProps.post, this.props.post)) {
+        if (!Utils.areStatesEqual(nextProps.post, this.props.post)) {
             return true;
         }
 
@@ -73,7 +73,7 @@ export default class RhsComment extends React.Component {
             type = 'Comment';
         }
 
-        var message = utils.textToJsx(post.message);
+        var message = Utils.textToJsx(post.message);
         var timestamp = UserStore.getCurrentUser().update_at;
 
         var loading;
@@ -182,7 +182,7 @@ export default class RhsComment extends React.Component {
                         </li>
                         <li className='post-header-col'>
                             <time className='post-right-comment-time'>
-                                {utils.displayCommentDateTime(post.create_at)}
+                                {Utils.displayCommentDateTime(post.create_at)}
                             </time>
                         </li>
                         <li className='post-header-col post-header__reply'>

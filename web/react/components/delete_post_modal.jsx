@@ -4,20 +4,28 @@
 var Client = require('../utils/client.jsx');
 var PostStore = require('../stores/post_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-module.exports = React.createClass({
-    handleDelete: function(e) {
-        Client.deletePost(this.state.channel_id, this.state.post_id,
-            function(data) {
-                var selected_list = this.state.selectedList;
-                if (selected_list && selected_list.order && selected_list.order.length > 0) {
-                    var selected_post = selected_list.posts[selected_list.order[0]];
-                    if ((selected_post.id === this.state.post_id && this.state.title === "Post") || selected_post.root_id === this.state.post_id) {
+export default class DeletePostModal extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleDelete = this.handleDelete.bind(this);
+        this.onListenerChange = this.onListenerChange.bind(this);
+
+        this.state = {title: '', postId: '', channelId: '', selectedList: PostStore.getSelectedPost(), comments: 0};
+    }
+    handleDelete() {
+        Client.deletePost(this.state.channelId, this.state.postId,
+            function deleteSuccess() {
+                var selectedList = this.state.selectedList;
+                if (selectedList && selectedList.order && selectedList.order.length > 0) {
+                    var selectedPost = selectedList.posts[selectedList.order[0]];
+                    if ((selectedPost.id === this.state.postId && this.state.title === 'Post') || selectedPost.root_id === this.state.postId) {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.RECIEVED_SEARCH,
                             results: null
@@ -27,14 +35,14 @@ module.exports = React.createClass({
                             type: ActionTypes.RECIEVED_POST_SELECTED,
                             results: null
                         });
-                    } else if (selected_post.id === this.state.post_id && this.state.title === "Comment") {
-                        if (selected_post.root_id && selected_post.root_id.length > 0 && selected_list.posts[selected_post.root_id]) {
-                            selected_list.order = [selected_post.root_id];
-                            delete selected_list.posts[selected_post.id];
+                    } else if (selectedPost.id === this.state.postId && this.state.title === 'Comment') {
+                        if (selectedPost.root_id && selectedPost.root_id.length > 0 && selectedList.posts[selectedPost.root_id]) {
+                            selectedList.order = [selectedPost.root_id];
+                            delete selectedList.posts[selectedPost.id];
 
                             AppDispatcher.handleServerAction({
                                 type: ActionTypes.RECIEVED_POST_SELECTED,
-                                post_list: selected_list
+                                post_list: selectedList
                             });
 
                             AppDispatcher.handleServerAction({
@@ -44,67 +52,98 @@ module.exports = React.createClass({
                         }
                     }
                 }
-                PostStore.removePost(this.state.post_id, this.state.channel_id);
-                AsyncClient.getPosts(this.state.channel_id);
+                PostStore.removePost(this.state.postId, this.state.channelId);
+                AsyncClient.getPosts(this.state.channelId);
             }.bind(this),
-            function(err) {
-                AsyncClient.dispatchError(err, "deletePost");
-            }.bind(this)
+            function deleteFailed(err) {
+                AsyncClient.dispatchError(err, 'deletePost');
+            }
         );
-    },
-    componentDidMount: function() {
+    }
+    componentDidMount() {
         var self = this;
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
+        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function freshOpen(e) {
             var newState = {};
-            if(BrowserStore.getItem('edit_state_transfer')) {
+            if (BrowserStore.getItem('edit_state_transfer')) {
                 newState = BrowserStore.getItem('edit_state_transfer');
                 BrowserStore.removeItem('edit_state_transfer');
             } else {
                 var button = e.relatedTarget;
-                newState = { title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments') };
+                newState = {title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), postId: $(button).attr('data-postid'), comments: $(button).attr('data-comments')};
             }
             self.setState(newState);
         });
-        PostStore.addSelectedPostChangeListener(this._onChange);
-    },
-    componentWillUnmount: function() {
-        PostStore.removeSelectedPostChangeListener(this._onChange);
-    },
-    _onChange: function() {
+        PostStore.addSelectedPostChangeListener(this.onListenerChange);
+    }
+    componentWillUnmount() {
+        PostStore.removeSelectedPostChangeListener(this.onListenerChange);
+    }
+    onListenerChange() {
         var newList = PostStore.getSelectedPost();
-        if (!utils.areStatesEqual(this.state.selectedList, newList)) {
-            this.setState({ selectedList: newList });
+        if (!Utils.areStatesEqual(this.state.selectedList, newList)) {
+            this.setState({selectedList: newList});
         }
-    },
-    getInitialState: function() {
-        return { title: "", post_id: "", channel_id: "", selectedList: PostStore.getSelectedPost(), comments: 0 };
-    },
-    render: function() {
-        var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
+    }
+    render() {
+        var error = null;
+        if (this.state.error) {
+            error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
+        }
+
+        var commentWarning = '';
+        if (this.state.comments > 0) {
+            commentWarning = 'This post has ' + this.state.comments + ' comment(s) on it.';
+        }
 
         return (
-            <div className="modal fade" id="delete_post" ref="modal" role="dialog" tabIndex="-1" aria-hidden="true">
-              <div className="modal-dialog modal-push-down">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 className="modal-title">Confirm {this.state.title} Delete</h4>
+            <div
+                className='modal fade'
+                id='delete_post'
+                ref='modal'
+                role='dialog'
+                tabIndex='-1'
+                aria-hidden='true'
+            >
+              <div className='modal-dialog modal-push-down'>
+                <div className='modal-content'>
+                  <div className='modal-header'>
+                    <button
+                        type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        aria-label='Close'
+                    >
+                        <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4 className='modal-title'>Confirm {this.state.title} Delete</h4>
                   </div>
-                  <div className="modal-body">
+                  <div className='modal-body'>
                     Are you sure you want to delete the {this.state.title.toLowerCase()}?
                     <br/>
                     <br/>
-                    { this.state.comments > 0 ?
-                        "This post has " + this.state.comments + " comment(s) on it."
-                    : "" }
+                    {commentWarning}
                   </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="button" className="btn btn-danger" data-dismiss="modal" onClick={this.handleDelete}>Delete</button>
+                  {error}
+                  <div className='modal-footer'>
+                    <button
+                        type='button'
+                        className='btn btn-default'
+                        data-dismiss='modal'
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type='button'
+                        className='btn btn-danger'
+                        data-dismiss='modal'
+                        onClick={this.handleDelete}
+                    >
+                        Delete
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
         );
     }
-});
+}

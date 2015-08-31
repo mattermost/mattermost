@@ -2,9 +2,9 @@
 // See License.txt for license information.
 
 var EmailItem = require('./team_signup_email_item.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var ConfigStore = require('../stores/config_store.jsx');
-var client = require('../utils/client.jsx');
+var Client = require('../utils/client.jsx');
 
 export default class TeamSignupSendInvitesPage extends React.Component {
     constructor(props) {
@@ -71,7 +71,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
     }
     keySubmit(e) {
         if (e && e.keyCode === 13) {
-            this.submitNext(e)
+            this.submitNext(e);
         }
     }
     componentWillMount() {
@@ -92,7 +92,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         }
     }
     render() {
-        client.track('signup', 'signup_team_05_send_invites');
+        Client.track('signup', 'signup_team_05_send_invites');
 
         var content = null;
         var bottomContent = null;
@@ -165,7 +165,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{'Invite ' + utils.toTitleCase(strings.Team) + ' Members'}</h2>
+                    <h2>{'Invite ' + Utils.toTitleCase(strings.Team) + ' Members'}</h2>
                     {content}
                     <div className='form-group'>
                         <button
@@ -190,6 +190,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         );
     }
 }
+
 TeamSignupSendInvitesPage.propTypes = {
     state: React.PropTypes.object.isRequired,
     updateParent: React.PropTypes.func.isRequired

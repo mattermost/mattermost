@@ -229,7 +229,7 @@ export default class NotificationsTab extends React.Component {
             let inputs = [];
 
             inputs.push(
-                <div>
+                <div key='userNotificationLevelOption'>
                     <div className='radio'>
                         <label>
                             <input type='radio'
@@ -276,7 +276,7 @@ export default class NotificationsTab extends React.Component {
                 <div className='setting-list__hint'>
                     These settings will override the global notification settings for the <b>{this.state.curChannel}</b> channel
                 </div>
-            )
+            );
 
             desktopSection = (
                 <SettingItemMax
@@ -324,7 +324,7 @@ export default class NotificationsTab extends React.Component {
             let inputs = [];
 
             inputs.push(
-                <div>
+                <div key='userNotificationSoundOptions'>
                     <div className='radio'>
                         <label>
                             <input
@@ -403,7 +403,7 @@ export default class NotificationsTab extends React.Component {
             let inputs = [];
 
             inputs.push(
-                <div>
+                <div key='userNotificationEmailOptions'>
                     <div className='radio'>
                         <label>
                             <input
@@ -483,7 +483,7 @@ export default class NotificationsTab extends React.Component {
                     self.updateFirstNameKey(e.target.checked);
                 };
                 inputs.push(
-                    <div>
+                    <div key='userNotificationFirstNameOption'>
                         <div className='checkbox'>
                             <label>
                                 <input
@@ -503,7 +503,7 @@ export default class NotificationsTab extends React.Component {
                 self.updateUsernameKey(e.target.checked);
             };
             inputs.push(
-                <div>
+                <div key='userNotificationUsernameOption'>
                     <div className='checkbox'>
                         <label>
                             <input
@@ -522,7 +522,7 @@ export default class NotificationsTab extends React.Component {
                 self.updateMentionKey(e.target.checked);
             };
             inputs.push(
-                <div>
+                <div key='userNotificationMentionOption'>
                     <div className='checkbox'>
                         <label>
                             <input
@@ -541,7 +541,7 @@ export default class NotificationsTab extends React.Component {
                 self.updateAllKey(e.target.checked);
             };
             inputs.push(
-                <div>
+                <div key='userNotificationAllOption'>
                     <div className='checkbox'>
                         <label>
                             <input
@@ -560,7 +560,7 @@ export default class NotificationsTab extends React.Component {
                 self.updateChannelKey(e.target.checked);
             };
             inputs.push(
-                <div>
+                <div key='userNotificationChannelOption'>
                     <div className='checkbox'>
                         <label>
                             <input
@@ -576,7 +576,7 @@ export default class NotificationsTab extends React.Component {
             );
 
             inputs.push(
-                <div>
+                <div key='userNotificationCustomOption'>
                     <div className='checkbox'>
                         <label>
                             <input

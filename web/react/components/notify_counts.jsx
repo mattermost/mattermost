@@ -23,27 +23,30 @@ function getCountsStateFromStores() {
     return {count: count};
 }
 
-module.exports = React.createClass({
-    displayName: 'NotifyCounts',
-    componentDidMount: function() {
+export default class NotifyCounts extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onListenerChange = this.onListenerChange.bind(this);
+
+        this.state = getCountsStateFromStores();
+    }
+    componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
-    },
-    onListenerChange: function() {
+    }
+    onListenerChange() {
         var newState = getCountsStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
-    },
-    getInitialState: function() {
-        return getCountsStateFromStores();
-    },
-    render: function() {
+    }
+    render() {
         if (this.state.count) {
             return <span className='badge badge-notify'>{this.state.count}</span>;
         }
         return null;
     }
-});
+}
