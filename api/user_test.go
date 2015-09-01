@@ -68,12 +68,6 @@ func TestCreateUser(t *testing.T) {
 		}
 	}
 
-	user2 := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Nickname: "Corey Hulen", Password: "hello", Username: model.BOT_USERNAME}
-
-	if _, err := Client.CreateUser(&user2, ""); err == nil {
-		t.Fatal("Should have failed using reserved bot name")
-	}
-
 	if _, err := Client.DoPost("/users/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
 	}

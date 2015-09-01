@@ -36,7 +36,7 @@ func InitTeam(r *mux.Router) {
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.AllowEmailSignUp {
+	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
 		c.Err = model.NewAppError("signupTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -139,7 +139,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.AllowEmailSignUp {
+	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
 		c.Err = model.NewAppError("createTeamFromSignup", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -239,7 +239,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.AllowEmailSignUp {
+	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
 		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return

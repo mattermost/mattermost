@@ -333,7 +333,6 @@ func IsUsernameValid(username string) bool {
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 var restrictedUsernames = []string{
-	BOT_USERNAME,
 	"all",
 	"channel",
 }

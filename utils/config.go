@@ -31,7 +31,7 @@ type ServiceSettings struct {
 	UseLocalStorage      bool
 	StorageDirectory     string
 	AllowedLoginAttempts int
-	AllowEmailSignUp     bool
+	DisableEmailSignUp   bool
 }
 
 type SSOSetting struct {
@@ -278,7 +278,7 @@ func GetAllowedAuthServices() []string {
 		}
 	}
 
-	if Cfg.ServiceSettings.AllowEmailSignUp {
+	if !Cfg.ServiceSettings.DisableEmailSignUp {
 		authServices = append(authServices, "email")
 	}
 

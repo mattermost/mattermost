@@ -23,7 +23,7 @@
         "UseLocalStorage": true,
         "StorageDirectory": "./data/",
         "AllowedLoginAttempts": 10,
-        "AllowEmailSignUp": true
+        "DisableEmailSignUp": false
     },
     "SSOSettings": {
         "gitlab": {
