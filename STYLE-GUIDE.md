@@ -151,17 +151,16 @@ This is an abridged version of the [Airbnb React/JSX Style Guide](https://github
   <Child />
 </Tag>
 
-// Correct
-<Tag propertyOne="1" />
-```
 
-### Naming
 
-- Property names use camelCase.
-- React component names use CapitalCamelCase.
-- Do not use an underscore for internal methods in a react component. 
+## React-JSX
 
-```xml
-// Correct
-<ReactComponent propertyOne="value" />
-```
+Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
+
+Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
+
+This is an abridged version of the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#airbnb-reactjsx-style-guide). Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
+
+### General
+
+TESTTESTTESTTETSSTESTSETS
