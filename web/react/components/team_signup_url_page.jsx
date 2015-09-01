@@ -38,7 +38,7 @@ module.exports = React.createClass({
 
         for (var index = 0; index < constants.RESERVED_TEAM_NAMES.length; index++) {
             if (cleanedName.indexOf(constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                this.setState({nameError: 'This team name is unavailable'});
+                this.setState({nameError: 'URL is taken or contains a reserved word'});
                 return;
             }
         }
