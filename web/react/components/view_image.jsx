@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../Utils/client.jsx');
-var Utils = require('../Utils/Utils.jsx');
+var Client = require('../utils/client.jsx');
+var Utils = require('../utils/utils.jsx');
 
 export default class ViewImageModal extends React.Component {
     constructor(props) {
