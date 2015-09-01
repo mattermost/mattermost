@@ -41,7 +41,7 @@ module.exports = React.createClass({
                 client.loginByEmail(teamSignup.team.name, teamSignup.team.email, teamSignup.user.password,
                     function(data) {
                         UserStore.setLastEmail(teamSignup.team.email);
-                        UserStore.setCurrentUser(teamSignup.user);
+                        UserStore.setCurrentUser(data);
                         if (this.props.hash > 0) {
                             BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: 'finished'}));
                         }
