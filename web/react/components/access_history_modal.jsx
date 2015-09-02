@@ -4,7 +4,7 @@
 var UserStore = require('../stores/user_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var LoadingScreen = require('./loading_screen.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 
 export default class AccessHistoryModal extends React.Component {
     constructor(props) {
@@ -38,7 +38,7 @@ export default class AccessHistoryModal extends React.Component {
     }
     onAuditChange() {
         var newState = this.getStateFromStoresForAudits();
-        if (!utils.areStatesEqual(newState.audits, this.state.audits)) {
+        if (!Utils.areStatesEqual(newState.audits, this.state.audits)) {
             this.setState(newState);
         }
     }

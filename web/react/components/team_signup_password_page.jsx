@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var client = require('../utils/client.jsx');
+var Client = require('../utils/client.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 
@@ -35,13 +35,13 @@ export default class TeamSignupPasswordPage extends React.Component {
         teamSignup.user.allow_marketing = true;
         delete teamSignup.wizard;
 
-        client.createTeamFromSignup(teamSignup,
+        Client.createTeamFromSignup(teamSignup,
             function success() {
-                client.track('signup', 'signup_team_08_complete');
+                Client.track('signup', 'signup_team_08_complete');
 
                 var props = this.props;
 
-                client.loginByEmail(teamSignup.team.name, teamSignup.team.email, teamSignup.user.password,
+                Client.loginByEmail(teamSignup.team.name, teamSignup.team.email, teamSignup.user.password,
                     function loginSuccess() {
                         UserStore.setLastEmail(teamSignup.team.email);
                         UserStore.setCurrentUser(teamSignup.user);
@@ -72,7 +72,7 @@ export default class TeamSignupPasswordPage extends React.Component {
         );
     }
     render() {
-        client.track('signup', 'signup_team_07_password');
+        Client.track('signup', 'signup_team_07_password');
 
         var passwordError = null;
         var passwordDivStyle = 'form-group';

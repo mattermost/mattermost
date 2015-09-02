@@ -4,7 +4,7 @@
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 
-var client = require('../utils/client.jsx');
+var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
 export default class FeatureTab extends React.Component {
@@ -38,7 +38,7 @@ export default class FeatureTab extends React.Component {
         var data = {};
         data.allow_valet = this.state.allowValet;
 
-        client.updateValetFeature(data,
+        Client.updateValetFeature(data,
             function success() {
                 this.props.updateSection('');
                 AsyncClient.getMyTeam();

@@ -8,7 +8,7 @@ var SocketStore = require('../stores/socket_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
 var Constants = require('../utils/constants.jsx');
@@ -166,7 +166,7 @@ export default class Sidebar extends React.Component {
     }
     onChange() {
         var newState = this.getStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
@@ -218,17 +218,17 @@ export default class Sidebar extends React.Component {
 
                 if (notifyText.length === 0) {
                     if (msgProps.image) {
-                        utils.notifyMe(title, username + ' uploaded an image', channel);
+                        Utils.notifyMe(title, username + ' uploaded an image', channel);
                     } else if (msgProps.otherFile) {
-                        utils.notifyMe(title, username + ' uploaded a file', channel);
+                        Utils.notifyMe(title, username + ' uploaded a file', channel);
                     } else {
-                        utils.notifyMe(title, username + ' did something new', channel);
+                        Utils.notifyMe(title, username + ' did something new', channel);
                     }
                 } else {
-                    utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
+                    Utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
                 }
                 if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
-                    utils.ding();
+                    Utils.ding();
                 }
             }
         } else if (msg.action === 'viewed') {
@@ -258,7 +258,7 @@ export default class Sidebar extends React.Component {
         var channel = ChannelStore.getCurrent();
         if (channel) {
             if (channel.type === 'D') {
-                var teammateUsername = utils.getDirectTeammate(channel.id).username;
+                var teammateUsername = Utils.getDirectTeammate(channel.id).username;
                 document.title = teammateUsername + ' ' + document.title.substring(document.title.lastIndexOf('-'));
             } else {
                 document.title = channel.display_name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
@@ -371,11 +371,11 @@ export default class Sidebar extends React.Component {
         if (!channel.fake) {
             handleClick = function clickHandler(e) {
                 e.preventDefault();
-                utils.switchChannel(channel);
+                Utils.switchChannel(channel);
             };
         } else if (channel.fake && teamURL) {
             // It's a direct message channel that doesn't exist yet so let's create it now
-            var otherUserId = utils.getUserIdFromChannelName(channel);
+            var otherUserId = Utils.getUserIdFromChannelName(channel);
 
             if (self.state.loadingDMChannel === -1) {
                 handleClick = function clickHandler(e) {
@@ -386,7 +386,7 @@ export default class Sidebar extends React.Component {
                         function success(data) {
                             self.setState({loadingDMChannel: -1});
                             AsyncClient.getChannel(data.id);
-                            utils.switchChannel(data);
+                            Utils.switchChannel(data);
                         },
                         function error() {
                             self.setState({loadingDMChannel: -1});

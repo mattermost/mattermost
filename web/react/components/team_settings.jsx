@@ -5,7 +5,7 @@ var TeamStore = require('../stores/team_store.jsx');
 var ImportTab = require('./team_import_tab.jsx');
 var FeatureTab = require('./team_feature_tab.jsx');
 var GeneralTab = require('./team_general_tab.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 
 export default class TeamSettings extends React.Component {
     constructor(props) {
@@ -23,7 +23,7 @@ export default class TeamSettings extends React.Component {
     }
     onChange() {
         var team = TeamStore.getCurrent();
-        if (!utils.areStatesEqual(this.state.team, team)) {
+        if (!Utils.areStatesEqual(this.state.team, team)) {
             this.setState({team: team});
         }
     }

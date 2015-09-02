@@ -4,8 +4,8 @@
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
+var Utils = require('../utils/utils.jsx');
+var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 
@@ -58,7 +58,7 @@ export default class ChannelNotifications extends React.Component {
         newState.notifyLevel = notifyLevel;
         newState.quietMode = quietMode;
 
-        if (!utils.areStatesEqual(this.state, newState)) {
+        if (!Utils.areStatesEqual(this.state, newState)) {
             this.setState(newState);
         }
     }
@@ -81,7 +81,7 @@ export default class ChannelNotifications extends React.Component {
             return;
         }
 
-        client.updateNotifyLevel(data,
+        Client.updateNotifyLevel(data,
             function success() {
                 var member = ChannelStore.getMember(channelId);
                 member.notify_level = notifyLevel;
