@@ -64,7 +64,8 @@ export default class FileAttachment extends React.Component {
                             var url = path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
                             $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg)');
                         }
-                    }; }(fileInfo.path, filename));
+                    };
+                }(fileInfo.path, filename));
             }
         }
     }
