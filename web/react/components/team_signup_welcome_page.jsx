@@ -4,6 +4,7 @@
 var Utils = require('../utils/utils.jsx');
 var Client = require('../utils/client.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
+import {config} from '../utils/config.js';
 
 export default class TeamSignupWelcomePage extends React.Component {
     constructor(props) {

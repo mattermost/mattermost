@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var client = require('../utils/client.jsx');
+import {config} from '../utils/config.js';
 
 export default class PasswordResetForm extends React.Component {
     constructor(props) {

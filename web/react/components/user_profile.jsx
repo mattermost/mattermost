@@ -3,6 +3,7 @@
 
 var Utils = require('../utils/utils.jsx');
 var UserStore = require('../stores/user_store.jsx');
+import {config} from '../utils/config.js';
 
 var id = 0;
 

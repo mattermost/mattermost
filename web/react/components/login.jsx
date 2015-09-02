@@ -6,6 +6,7 @@ const Client = require('../utils/client.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const BrowserStore = require('../stores/browser_store.jsx');
 const Constants = require('../utils/constants.jsx');
+import {config, strings} from '../utils/config.js';
 
 export default class Login extends React.Component {
     constructor(props) {

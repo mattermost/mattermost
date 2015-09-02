@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
+import {strings} from '../utils/config.js';
 
 export default class GetLinkModal extends React.Component {
     constructor(props) {

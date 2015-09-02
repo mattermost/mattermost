@@ -9,6 +9,7 @@ var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
 var Autolinker = require('autolinker');
+import {config} from '../utils/config.js';
 
 export function isEmail(email) {
     var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;

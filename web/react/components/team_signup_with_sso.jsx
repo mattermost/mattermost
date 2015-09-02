@@ -4,6 +4,7 @@
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var Constants = require('../utils/constants.jsx');
+import {strings} from '../utils/config.js';
 
 export default class SSOSignUpPage extends React.Component {
     constructor(props) {

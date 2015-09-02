@@ -7,6 +7,7 @@ var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
+import {config} from '../utils/config.js';
 
 function getStateFromStores() {
     return {teams: UserStore.getTeams(), currentTeam: TeamStore.getCurrent()};

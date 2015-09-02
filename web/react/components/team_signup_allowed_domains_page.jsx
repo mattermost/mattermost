@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var Client = require('../utils/client.jsx');
+import {strings} from '../utils/config.js';
 
 export default class TeamSignupAllowedDomainsPage extends React.Component {
     constructor(props) {

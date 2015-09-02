@@ -4,6 +4,7 @@
 const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
 const Constants = require('../utils/constants.jsx');
+import {strings, config} from '../utils/config.js';
 
 export default class TeamSignupUrlPage extends React.Component {
     constructor(props) {
