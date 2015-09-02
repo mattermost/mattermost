@@ -136,7 +136,7 @@ export default class Post extends React.Component {
         }
 
         var profilePic = null;
-        if (this.props.hideProfilePic) {
+        if (!this.props.hideProfilePic) {
             profilePic = (
                 <div className='post-profile-img__container'>
                     <img
