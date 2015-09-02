@@ -42,7 +42,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                 var props = this.props;
 
                 Client.loginByEmail(teamSignup.team.name, teamSignup.team.email, teamSignup.user.password,
-                    function loginSuccess() {
+                    function loginSuccess(data) {
                         UserStore.setLastEmail(teamSignup.team.email);
                         UserStore.setCurrentUser(data);
                         if (this.props.hash > 0) {
