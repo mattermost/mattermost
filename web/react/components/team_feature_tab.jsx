@@ -4,37 +4,27 @@
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 
-var client = require('../utils/client.jsx');
+var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
-module.exports = React.createClass({
-    displayName: 'Feature Tab',
-    propTypes: {
-        updateSection: React.PropTypes.func.isRequired,
-        team: React.PropTypes.object.isRequired,
-        activeSection: React.PropTypes.string.isRequired
-    },
-    submitValetFeature: function() {
-        var data = {};
-        data.allow_valet = this.state.allowValet;
+export default class FeatureTab extends React.Component {
+    constructor(props) {
+        super(props);
 
-        client.updateValetFeature(data,
-            function() {
-                this.props.updateSection('');
-                AsyncClient.getMyTeam();
-            }.bind(this),
-            function(err) {
-                var state = this.getInitialState();
-                state.serverError = err;
-                this.setState(state);
-            }.bind(this)
-        );
-    },
-    handleValetRadio: function(val) {
-        this.setState({allowValet: val});
-        this.refs.wrapper.getDOMNode().focus();
-    },
-    componentWillReceiveProps: function(newProps) {
+        this.submitValetFeature = this.submitValetFeature.bind(this);
+        this.handleValetRadio = this.handleValetRadio.bind(this);
+        this.onUpdateSection = this.onUpdateSection.bind(this);
+
+        this.state = {};
+        var team = this.props.team;
+
+        if (team && team.allow_valet) {
+            this.state.allowValet = 'true';
+        } else {
+            this.state.allowValet = 'false';
+        }
+    }
+    componentWillReceiveProps(newProps) {
         var team = newProps.team;
 
         var allowValet = 'false';
@@ -43,26 +33,36 @@ module.exports = React.createClass({
         }
 
         this.setState({allowValet: allowValet});
-    },
-    getInitialState: function() {
-        var team = this.props.team;
+    }
+    submitValetFeature() {
+        var data = {};
+        data.allow_valet = this.state.allowValet;
 
-        var allowValet = 'false';
-        if (team && team.allow_valet) {
-            allowValet = 'true';
-        }
-
-        return {allowValet: allowValet};
-    },
-    onUpdateSection: function(e) {
+        Client.updateValetFeature(data,
+            function success() {
+                this.props.updateSection('');
+                AsyncClient.getMyTeam();
+            }.bind(this),
+            function fail(err) {
+                var state = this.getInitialState();
+                state.serverError = err;
+                this.setState(state);
+            }.bind(this)
+        );
+    }
+    handleValetRadio(val) {
+        this.setState({allowValet: val});
+        React.findDOMNode(this.refs.wrapper).focus();
+    }
+    onUpdateSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'valet') {
             this.props.updateSection('');
         } else {
             this.props.updateSection('valet');
         }
-    },
-    render: function() {
+    }
+    render() {
         var clientError = null;
         var serverError = null;
         if (this.state.clientError) {
@@ -73,7 +73,6 @@ module.exports = React.createClass({
         }
 
         var valetSection;
-        var self = this;
 
         if (this.props.activeSection === 'valet') {
             var valetActive = [false, false];
@@ -92,7 +91,7 @@ module.exports = React.createClass({
                             <input
                                 type='radio'
                                 checked={valetActive[0]}
-                                onChange={self.handleValetRadio.bind(this, 'true')}
+                                onChange={this.handleValetRadio.bind(this, 'true')}
                             >
                                 On
                             </input>
@@ -104,7 +103,7 @@ module.exports = React.createClass({
                             <input
                                 type='radio'
                                 checked={valetActive[1]}
-                                onChange={self.handleValetRadio.bind(this, 'false')}
+                                onChange={this.handleValetRadio.bind(this, 'false')}
                             >
                                 Off
                             </input>
@@ -145,10 +144,25 @@ module.exports = React.createClass({
         return (
             <div>
                 <div className='modal-header'>
-                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>Advanced Features</h4>
+                    <button
+                        type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        aria-label='Close'
+                    >
+                        <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4
+                        className='modal-title'
+                        ref='title'
+                    >
+                        <i className='modal-back'></i>Advanced Features
+                    </h4>
                 </div>
-                <div ref='wrapper' className='user-settings'>
+                <div
+                    ref='wrapper'
+                    className='user-settings'
+                >
                     <h3 className='tab-header'>Advanced Features</h3>
                     <div className='divider-dark first'/>
                     {valetSection}
@@ -157,4 +171,14 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
+
+FeatureTab.defaultProps = {
+    team: {},
+    activeSection: ''
+};
+FeatureTab.propTypes = {
+    updateSection: React.PropTypes.func.isRequired,
+    team: React.PropTypes.object.isRequired,
+    activeSection: React.PropTypes.string.isRequired
+};

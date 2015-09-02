@@ -4,48 +4,49 @@
 var UserStore = require('../stores/user_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var LoadingScreen = require('./loading_screen.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 
-function getStateFromStoresForAudits() {
-    return {
-        audits: UserStore.getAudits()
-    };
-}
+export default class AccessHistoryModal extends React.Component {
+    constructor(props) {
+        super(props);
 
-module.exports = React.createClass({
-    displayName: 'AccessHistoryModal',
-    componentDidMount: function() {
-        UserStore.addAuditsChangeListener(this.onListenerChange);
-        $(this.refs.modal.getDOMNode()).on('shown.bs.modal', function() {
+        this.onAuditChange = this.onAuditChange.bind(this);
+        this.handleMoreInfo = this.handleMoreInfo.bind(this);
+
+        this.state = this.getStateFromStoresForAudits();
+        this.state.moreInfo = [];
+    }
+    getStateFromStoresForAudits() {
+        return {
+            audits: UserStore.getAudits()
+        };
+    }
+    componentDidMount() {
+        UserStore.addAuditsChangeListener(this.onAuditChange);
+        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', function show() {
             AsyncClient.getAudits();
         });
 
-        var self = this;
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', function() {
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function hide() {
             $('#user_settings').modal('show');
-            self.setState({moreInfo: []});
-        });
-    },
-    componentWillUnmount: function() {
-        UserStore.removeAuditsChangeListener(this.onListenerChange);
-    },
-    onListenerChange: function() {
-        var newState = getStateFromStoresForAudits();
-        if (!utils.areStatesEqual(newState.audits, this.state.audits)) {
+            this.setState({moreInfo: []});
+        }.bind(this));
+    }
+    componentWillUnmount() {
+        UserStore.removeAuditsChangeListener(this.onAuditChange);
+    }
+    onAuditChange() {
+        var newState = this.getStateFromStoresForAudits();
+        if (!Utils.areStatesEqual(newState.audits, this.state.audits)) {
             this.setState(newState);
         }
-    },
-    handleMoreInfo: function(index) {
+    }
+    handleMoreInfo(index) {
         var newMoreInfo = this.state.moreInfo;
         newMoreInfo[index] = true;
         this.setState({moreInfo: newMoreInfo});
-    },
-    getInitialState: function() {
-        var initialState = getStateFromStoresForAudits();
-        initialState.moreInfo = [];
-        return initialState;
-    },
-    render: function() {
+    }
+    render() {
         var accessList = [];
         var currentHistoryDate = null;
 
@@ -63,7 +64,16 @@ module.exports = React.createClass({
                 currentAudit.session_id = 'N/A (Login attempt)';
             }
 
-            var moreInfo = (<a href='#' className='theme' onClick={this.handleMoreInfo.bind(this, i)}>More info</a>);
+            var moreInfo = (
+                <a
+                    href='#'
+                    className='theme'
+                    onClick={this.handleMoreInfo.bind(this, i)}
+                >
+                    More info
+                </a>
+            );
+
             if (this.state.moreInfo[i]) {
                 moreInfo = (
                     <div>
@@ -75,7 +85,7 @@ module.exports = React.createClass({
 
             var divider = null;
             if (i < this.state.audits.length - 1) {
-                divider = (<div className='divider-light'></div>)
+                divider = (<div className='divider-light'></div>);
             }
 
             accessList[i] = (
@@ -102,14 +112,36 @@ module.exports = React.createClass({
 
         return (
             <div>
-                <div className='modal fade' ref='modal' id='access-history' tabIndex='-1' role='dialog' aria-hidden='true'>
+                <div
+                    className='modal fade'
+                    ref='modal'
+                    id='access-history'
+                    tabIndex='-1'
+                    role='dialog'
+                    aria-hidden='true'
+                >
                     <div className='modal-dialog modal-lg'>
                         <div className='modal-content'>
                             <div className='modal-header'>
-                                <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                                <h4 className='modal-title' id='myModalLabel'>Access History</h4>
+                                <button
+                                    type='button'
+                                    className='close'
+                                    data-dismiss='modal'
+                                    aria-label='Close'
+                                >
+                                    <span aria-hidden='true'>&times;</span>
+                                </button>
+                                <h4
+                                    className='modal-title'
+                                    id='myModalLabel'
+                                >
+                                    Access History
+                                </h4>
                             </div>
-                            <div ref='modalBody' className='modal-body'>
+                            <div
+                                ref='modalBody'
+                                className='modal-body'
+                            >
                                 {content}
                             </div>
                         </div>
@@ -118,4 +150,4 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}

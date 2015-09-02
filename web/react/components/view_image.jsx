@@ -2,35 +2,46 @@
 // See License.txt for license information.
 
 var Client = require('../utils/client.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 
-module.exports = React.createClass({
-    displayName: 'ViewImageModal',
-    propTypes: {
-        filenames: React.PropTypes.array,
-        modalId: React.PropTypes.string,
-        channelId: React.PropTypes.string,
-        userId: React.PropTypes.string,
-        startId: React.PropTypes.number
-    },
-    canSetState: false,
-    handleNext: function() {
+export default class ViewImageModal extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.canSetState = false;
+
+        this.loadImage = this.loadImage.bind(this);
+        this.handleNext = this.handleNext.bind(this);
+        this.handlePrev = this.handlePrev.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.getPublicLink = this.getPublicLink.bind(this);
+        this.getPreviewImagePath = this.getPreviewImagePath.bind(this);
+
+        var loaded = [];
+        var progress = [];
+        for (var i = 0; i < this.props.filenames.length; i++) {
+            loaded.push(false);
+            progress.push(0);
+        }
+        this.state = {imgId: this.props.startId, viewed: false, loaded: loaded, progress: progress, images: {}, fileSizes: {}};
+    }
+    handleNext() {
         var id = this.state.imgId + 1;
         if (id > this.props.filenames.length - 1) {
             id = 0;
         }
         this.setState({imgId: id});
         this.loadImage(id);
-    },
-    handlePrev: function() {
+    }
+    handlePrev() {
         var id = this.state.imgId - 1;
         if (id < 0) {
             id = this.props.filenames.length - 1;
         }
         this.setState({imgId: id});
         this.loadImage(id);
-    },
-    handleKeyPress: function handleKeyPress(e) {
+    }
+    handleKeyPress(e) {
         if (!e) {
             return;
         } else if (e.keyCode === 39) {
@@ -38,11 +49,11 @@ module.exports = React.createClass({
         } else if (e.keyCode === 37) {
             this.handlePrev();
         }
-    },
-    componentWillReceiveProps: function(nextProps) {
+    }
+    componentWillReceiveProps(nextProps) {
         this.setState({imgId: nextProps.startId});
-    },
-    loadImage: function(id) {
+    }
+    loadImage(id) {
         var imgHeight = $(window).height() - 100;
         if (this.state.loaded[id] || this.state.images[id]) {
             $('.modal .modal-image .image-wrapper img').css('max-height', imgHeight);
@@ -51,26 +62,25 @@ module.exports = React.createClass({
 
         var filename = this.props.filenames[id];
 
-        var fileInfo = utils.splitFileLocation(filename);
-        var fileType = utils.getFileType(fileInfo.ext);
+        var fileInfo = Utils.splitFileLocation(filename);
+        var fileType = Utils.getFileType(fileInfo.ext);
 
         if (fileType === 'image') {
-            var self = this;
             var img = new Image();
             img.load(this.getPreviewImagePath(filename),
-                function() {
-                    var progress = self.state.progress;
+                function load() {
+                    var progress = this.state.progress;
                     progress[id] = img.completedPercentage;
-                    self.setState({progress: progress});
-                });
-            img.onload = function onload(imgid) {
+                    this.setState({progress: progress});
+                }.bind(this));
+            img.onload = (function onload(imgid) {
                 return function onloadReturn() {
-                    var loaded = self.state.loaded;
+                    var loaded = this.state.loaded;
                     loaded[imgid] = true;
-                    self.setState({loaded: loaded});
-                    $(self.refs.image.getDOMNode()).css('max-height', imgHeight);
-                };
-            }(id);
+                    this.setState({loaded: loaded});
+                    $(React.findDOMNode(this.refs.image)).css('max-height', imgHeight);
+                }.bind(this);
+            }.bind(this)(id));
             var images = this.state.images;
             images[id] = img;
             this.setState({images: images});
@@ -80,52 +90,51 @@ module.exports = React.createClass({
             loaded[id] = true;
             this.setState({loaded: loaded});
         }
-    },
-    componentDidUpdate: function() {
+    }
+    componentDidUpdate() {
         if (this.state.loaded[this.state.imgId]) {
             if (this.refs.imageWrap) {
-                $(this.refs.imageWrap.getDOMNode()).removeClass('default');
+                $(React.findDOMNode(this.refs.imageWrap)).removeClass('default');
             }
         }
-    },
-    componentDidMount: function() {
-        var self = this;
+    }
+    componentDidMount() {
         $('#' + this.props.modalId).on('shown.bs.modal', function onModalShow() {
-            self.setState({viewed: true});
-            self.loadImage(self.state.imgId);
-        });
+            this.setState({viewed: true});
+            this.loadImage(this.state.imgId);
+        }.bind(this));
 
-        $(this.refs.modal.getDOMNode()).click(function onModalClick(e) {
-            if (e.target === this || e.target === self.refs.imageBody.getDOMNode()) {
+        $(React.findDOMNode(this.refs.modal)).click(function onModalClick(e) {
+            if (e.target === this || e.target === React.findDOMNode(this.refs.imageBody)) {
                 $('.image_modal').modal('hide');
             }
-        });
+        }.bind(this));
 
-        $(this.refs.imageWrap.getDOMNode()).hover(
+        $(React.findDOMNode(this.refs.imageWrap)).hover(
             function onModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-            }, function offModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-            }
+                $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
+            }.bind(this), function offModalHover() {
+                $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
+            }.bind(this)
         );
 
         if (this.refs.previewArrowLeft) {
-            $(this.refs.previewArrowLeft.getDOMNode()).hover(
+            $(React.findDOMNode(this.refs.previewArrowLeft)).hover(
                 function onModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-                }, function offModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-                }
+                    $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
+                }.bind(this), function offModalHover() {
+                    $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
+                }.bind(this)
             );
         }
 
         if (this.refs.previewArrowRight) {
-            $(this.refs.previewArrowRight.getDOMNode()).hover(
+            $(React.findDOMNode(this.refs.previewArrowRight)).hover(
                 function onModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-                }, function offModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-                }
+                    $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
+                }.bind(this), function offModalHover() {
+                    $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
+                }.bind(this)
             );
         }
 
@@ -133,90 +142,93 @@ module.exports = React.createClass({
 
         // keep track of whether or not this component is mounted so we can safely set the state asynchronously
         this.canSetState = true;
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         this.canSetState = false;
         $(window).off('keyup', this.handleKeyPress);
-    },
-    getPublicLink: function() {
+    }
+    getPublicLink() {
         var data = {};
         data.channel_id = this.props.channelId;
         data.user_id = this.props.userId;
         data.filename = this.props.filenames[this.state.imgId];
         Client.getPublicLink(data,
             function sucess(serverData) {
-                if (utils.isMobile()) {
+                if (Utils.isMobile()) {
                     window.location.href = serverData.public_link;
                 } else {
                     window.open(serverData.public_link);
                 }
             },
-            function error() {
-            }
+            function error() {}
         );
-    },
-    getPreviewImagePath: function(filename) {
+    }
+    getPreviewImagePath(filename) {
         // Returns the path to a preview image that can be used to represent a file.
-        var fileInfo = utils.splitFileLocation(filename);
-        var fileType = utils.getFileType(fileInfo.ext);
+        var fileInfo = Utils.splitFileLocation(filename);
+        var fileType = Utils.getFileType(fileInfo.ext);
 
         if (fileType === 'image') {
             // This is a temporary patch to fix issue with old files using absolute paths
             if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
                 fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
             }
-            fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
+            fileInfo.path = Utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
 
             return fileInfo.path + '_preview.jpg';
         }
 
         // only images have proper previews, so just use a placeholder icon for non-images
-        return utils.getPreviewImagePathForFileType(fileType);
-    },
-    getInitialState: function() {
-        var loaded = [];
-        var progress = [];
-        for (var i = 0; i < this.props.filenames.length; i++) {
-            loaded.push(false);
-            progress.push(0);
-        }
-        return {imgId: this.props.startId, viewed: false, loaded: loaded, progress: progress, images: {}, fileSizes: {}};
-    },
-    render: function() {
+        return Utils.getPreviewImagePathForFileType(fileType);
+    }
+    render() {
         if (this.props.filenames.length < 1 || this.props.filenames.length - 1 < this.state.imgId) {
             return <div/>;
         }
 
         var filename = this.props.filenames[this.state.imgId];
-        var fileUrl = utils.getFileUrl(filename);
+        var fileUrl = Utils.getFileUrl(filename);
 
-        var name = decodeURIComponent(utils.getFileName(filename));
+        var name = decodeURIComponent(Utils.getFileName(filename));
 
         var content;
         var bgClass = '';
         if (this.state.loaded[this.state.imgId]) {
-            var fileInfo = utils.splitFileLocation(filename);
-            var fileType = utils.getFileType(fileInfo.ext);
+            var fileInfo = Utils.splitFileLocation(filename);
+            var fileType = Utils.getFileType(fileInfo.ext);
 
             if (fileType === 'image') {
                 // image files just show a preview of the file
                 content = (
-                    <a href={fileUrl} target='_blank'>
-                        <img ref='image' src={this.getPreviewImagePath(filename)}/>
+                    <a
+                        href={fileUrl}
+                        target='_blank'
+                    >
+                        <img
+                            ref='image'
+                            src={this.getPreviewImagePath(filename)}
+                        />
                     </a>
                 );
             } else {
                 // non-image files include a section providing details about the file
                 var infoString = 'File type ' + fileInfo.ext.toUpperCase();
                 if (this.state.fileSizes[filename] && this.state.fileSizes[filename] >= 0) {
-                    infoString += ', Size ' + utils.fileSizeToString(this.state.fileSizes[filename]);
+                    infoString += ', Size ' + Utils.fileSizeToString(this.state.fileSizes[filename]);
                 }
 
                 content = (
                     <div className='file-details__container'>
-                        <a className={'file-details__preview'} href={fileUrl} target='_blank'>
+                        <a
+                            className={'file-details__preview'}
+                            href={fileUrl}
+                            target='_blank'
+                        >
                             <span className='file-details__preview-helper' />
-                            <img ref='image' src={this.getPreviewImagePath(filename)} />
+                            <img
+                                ref='image'
+                                src={this.getPreviewImagePath(filename)}
+                            />
                         </a>
                         <div className='file-details'>
                             <div className='file-details__name'>{name}</div>
@@ -228,19 +240,16 @@ module.exports = React.createClass({
 
                 // asynchronously request the actual size of this file
                 if (!(filename in this.state.fileSizes)) {
-                    var self = this;
-
                     Client.getFileInfo(
                         filename,
-                        function(data) {
-                            if (self.canSetState) {
-                                var fileSizes = self.state.fileSizes;
-                                fileSizes[filename] = parseInt(data["size"], 10);
-                                self.setState(fileSizes);
+                        function success(data) {
+                            if (this.canSetState) {
+                                var fileSizes = this.state.fileSizes;
+                                fileSizes[filename] = parseInt(data.size, 10);
+                                this.setState(fileSizes);
                             }
-                        },
-                        function(err) {
-                        }
+                        }.bind(this),
+                        function fail() {}
                     );
                 }
             }
@@ -250,14 +259,22 @@ module.exports = React.createClass({
             if (percentage) {
                 content = (
                     <div>
-                        <img className='loader-image' src='/static/images/load.gif' />
-                        <span className='loader-percent' >{'Previewing ' + percentage + '%'}</span>
+                        <img
+                            className='loader-image'
+                            src='/static/images/load.gif'
+                        />
+                        <span className='loader-percent'>
+                            {'Previewing ' + percentage + '%'}
+                        </span>
                     </div>
                 );
             } else {
                 content = (
                     <div>
-                        <img className='loader-image' src='/static/images/load.gif' />
+                        <img
+                            className='loader-image'
+                            src='/static/images/load.gif'
+                        />
                     </div>
                 );
             }
@@ -268,7 +285,14 @@ module.exports = React.createClass({
         if (config.AllowPublicLink) {
             publicLink = (
                 <div>
-                    <a href='#' className='public-link text' data-title='Public Image' onClick={this.getPublicLink}>Get Public Link</a>
+                    <a
+                        href='#'
+                        className='public-link text'
+                        data-title='Public Image'
+                        onClick={this.getPublicLink}
+                    >
+                        Get Public Link
+                    </a>
                     <span className='text'> | </span>
                 </div>
             );
@@ -299,18 +323,43 @@ module.exports = React.createClass({
         }
 
         return (
-            <div className='modal fade image_modal' ref='modal' id={this.props.modalId} tabIndex='-1' role='dialog' aria-hidden='true'>
+            <div
+                className='modal fade image_modal'
+                ref='modal'
+                id={this.props.modalId}
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'
+            >
                 <div className='modal-dialog modal-image'>
                     <div className='modal-content image-content'>
-                        <div ref='imageBody' className='modal-body image-body'>
-                            <div ref='imageWrap' className={'image-wrapper default ' + bgClass}>
-                                <div className='modal-close' data-dismiss='modal'></div>
+                        <div
+                            ref='imageBody'
+                            className='modal-body image-body'
+                        >
+                            <div
+                                ref='imageWrap'
+                                className={'image-wrapper default ' + bgClass}
+                            >
+                                <div
+                                    className='modal-close'
+                                    data-dismiss='modal'
+                                />
                                 {content}
-                                <div ref='imageFooter' className='modal-button-bar'>
+                                <div
+                                    ref='imageFooter'
+                                    className='modal-button-bar'
+                                >
                                     <span className='pull-left text'>{'File ' + (this.state.imgId + 1) + ' of ' + this.props.filenames.length}</span>
                                     <div className='image-links'>
                                         {publicLink}
-                                        <a href={fileUrl} download={name} className='text'>Download</a>
+                                        <a
+                                            href={fileUrl}
+                                            download={name}
+                                            className='text'
+                                        >
+                                            Download
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -322,4 +371,19 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
+
+ViewImageModal.defaultProps = {
+    filenames: [],
+    modalId: '',
+    channelId: '',
+    userId: '',
+    startId: 0
+};
+ViewImageModal.propTypes = {
+    filenames: React.PropTypes.array,
+    modalId: React.PropTypes.string,
+    channelId: React.PropTypes.string,
+    userId: React.PropTypes.string,
+    startId: React.PropTypes.number
+};

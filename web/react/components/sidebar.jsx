@@ -8,127 +8,137 @@ var SocketStore = require('../stores/socket_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
 var Constants = require('../utils/constants.jsx');
 
-function getStateFromStores() {
-    var members = ChannelStore.getAllMembers();
-    var teamMemberMap = UserStore.getActiveOnlyProfiles();
-    var currentId = ChannelStore.getCurrentId();
+export default class Sidebar extends React.Component {
+    constructor(props) {
+        super(props);
 
-    var teammates = [];
-    for (var id in teamMemberMap) {
-        if (id === UserStore.getCurrentId()) {
-            continue;
-        }
-        teammates.push(teamMemberMap[id]);
+        this.badgesActive = false;
+        this.firstUnreadChannel = null;
+        this.lastUnreadChannel = null;
+
+        this.onChange = this.onChange.bind(this);
+        this.onScroll = this.onScroll.bind(this);
+        this.onResize = this.onResize.bind(this);
+        this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
+        this.createChannelElement = this.createChannelElement.bind(this);
+
+        this.state = this.getStateFromStores();
+        this.state.loadingDMChannel = -1;
     }
+    getStateFromStores() {
+        var members = ChannelStore.getAllMembers();
+        var teamMemberMap = UserStore.getActiveOnlyProfiles();
+        var currentId = ChannelStore.getCurrentId();
 
-    // Create lists of all read and unread direct channels
-    var showDirectChannels = [];
-    var readDirectChannels = [];
-    for (var i = 0; i < teammates.length; i++) {
-        var teammate = teammates[i];
-
-        if (teammate.id === UserStore.getCurrentId()) {
-            continue;
+        var teammates = [];
+        for (var id in teamMemberMap) {
+            if (id === UserStore.getCurrentId()) {
+                continue;
+            }
+            teammates.push(teamMemberMap[id]);
         }
 
-        var channelName = '';
-        if (teammate.id > UserStore.getCurrentId()) {
-            channelName = UserStore.getCurrentId() + '__' + teammate.id;
-        } else {
-            channelName = teammate.id + '__' + UserStore.getCurrentId();
-        }
+        // Create lists of all read and unread direct channels
+        var showDirectChannels = [];
+        var readDirectChannels = [];
+        for (var i = 0; i < teammates.length; i++) {
+            var teammate = teammates[i];
 
-        var channel = ChannelStore.getByName(channelName);
+            if (teammate.id === UserStore.getCurrentId()) {
+                continue;
+            }
 
-        if (channel != null) {
-            channel.display_name = teammate.username;
-            channel.teammate_username = teammate.username;
-
-            channel.status = UserStore.getStatus(teammate.id);
-
-            var channelMember = members[channel.id];
-            var msgCount = channel.total_msg_count - channelMember.msg_count;
-            if (msgCount > 0) {
-                showDirectChannels.push(channel);
-            } else if (currentId === channel.id) {
-                showDirectChannels.push(channel);
+            var channelName = '';
+            if (teammate.id > UserStore.getCurrentId()) {
+                channelName = UserStore.getCurrentId() + '__' + teammate.id;
             } else {
-                readDirectChannels.push(channel);
+                channelName = teammate.id + '__' + UserStore.getCurrentId();
             }
-        } else {
-            var tempChannel = {};
-            tempChannel.fake = true;
-            tempChannel.name = channelName;
-            tempChannel.display_name = teammate.username;
-            tempChannel.teammate_username = teammate.username;
-            tempChannel.status = UserStore.getStatus(teammate.id);
-            tempChannel.last_post_at = 0;
-            tempChannel.total_msg_count = 0;
-            tempChannel.type = 'D';
-            readDirectChannels.push(tempChannel);
+
+            var channel = ChannelStore.getByName(channelName);
+
+            if (channel != null) {
+                channel.display_name = teammate.username;
+                channel.teammate_username = teammate.username;
+
+                channel.status = UserStore.getStatus(teammate.id);
+
+                var channelMember = members[channel.id];
+                var msgCount = channel.total_msg_count - channelMember.msg_count;
+                if (msgCount > 0) {
+                    showDirectChannels.push(channel);
+                } else if (currentId === channel.id) {
+                    showDirectChannels.push(channel);
+                } else {
+                    readDirectChannels.push(channel);
+                }
+            } else {
+                var tempChannel = {};
+                tempChannel.fake = true;
+                tempChannel.name = channelName;
+                tempChannel.display_name = teammate.username;
+                tempChannel.teammate_username = teammate.username;
+                tempChannel.status = UserStore.getStatus(teammate.id);
+                tempChannel.last_post_at = 0;
+                tempChannel.total_msg_count = 0;
+                tempChannel.type = 'D';
+                readDirectChannels.push(tempChannel);
+            }
         }
-    }
 
-    // If we don't have MAX_DMS unread channels, sort the read list by last_post_at
-    if (showDirectChannels.length < Constants.MAX_DMS) {
-        readDirectChannels.sort(function sortByLastPost(a, b) {
-            // sort by last_post_at first
-            if (a.last_post_at > b.last_post_at) {
-                return -1;
-            }
-            if (a.last_post_at < b.last_post_at) {
-                return 1;
-            }
+        // If we don't have MAX_DMS unread channels, sort the read list by last_post_at
+        if (showDirectChannels.length < Constants.MAX_DMS) {
+            readDirectChannels.sort(function sortByLastPost(a, b) {
+                // sort by last_post_at first
+                if (a.last_post_at > b.last_post_at) {
+                    return -1;
+                }
+                if (a.last_post_at < b.last_post_at) {
+                    return 1;
+                }
 
-            // if last_post_at is equal, sort by name
-            if (a.display_name < b.display_name) {
-                return -1;
-            }
-            if (a.display_name > b.display_name) {
-                return 1;
-            }
-            return 0;
-        });
+                // if last_post_at is equal, sort by name
+                if (a.display_name < b.display_name) {
+                    return -1;
+                }
+                if (a.display_name > b.display_name) {
+                    return 1;
+                }
+                return 0;
+            });
 
-        var index = 0;
-        while (showDirectChannels.length < Constants.MAX_DMS && index < readDirectChannels.length) {
-            showDirectChannels.push(readDirectChannels[index]);
-            index++;
+            var index = 0;
+            while (showDirectChannels.length < Constants.MAX_DMS && index < readDirectChannels.length) {
+                showDirectChannels.push(readDirectChannels[index]);
+                index++;
+            }
+            readDirectChannels = readDirectChannels.slice(index);
+
+            showDirectChannels.sort(function directSort(a, b) {
+                if (a.display_name < b.display_name) {
+                    return -1;
+                }
+                if (a.display_name > b.display_name) {
+                    return 1;
+                }
+                return 0;
+            });
         }
-        readDirectChannels = readDirectChannels.slice(index);
 
-        showDirectChannels.sort(function directSort(a, b) {
-            if (a.display_name < b.display_name) {
-                return -1;
-            }
-            if (a.display_name > b.display_name) {
-                return 1;
-            }
-            return 0;
-        });
+        return {
+            activeId: currentId,
+            channels: ChannelStore.getAll(),
+            members: members,
+            showDirectChannels: showDirectChannels,
+            hideDirectChannels: readDirectChannels
+        };
     }
-
-    return {
-        activeId: currentId,
-        channels: ChannelStore.getAll(),
-        members: members,
-        showDirectChannels: showDirectChannels,
-        hideDirectChannels: readDirectChannels
-    };
-}
-
-module.exports = React.createClass({
-    displayName: 'Sidebar',
-    propTypes: {
-        teamType: React.PropTypes.string,
-        teamDisplayName: React.PropTypes.string
-    },
-    componentDidMount: function() {
+    componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
@@ -140,12 +150,12 @@ module.exports = React.createClass({
         this.updateUnreadIndicators();
 
         $(window).on('resize', this.onResize);
-    },
-    componentDidUpdate: function() {
+    }
+    componentDidUpdate() {
         this.updateTitle();
         this.updateUnreadIndicators();
-    },
-    componentWillUnmount: function() {
+    }
+    componentWillUnmount() {
         $(window).off('resize', this.onResize);
 
         ChannelStore.removeChangeListener(this.onChange);
@@ -153,14 +163,14 @@ module.exports = React.createClass({
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         SocketStore.removeChangeListener(this.onSocketChange);
-    },
-    onChange: function() {
-        var newState = getStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+    }
+    onChange() {
+        var newState = this.getStateFromStores();
+        if (!Utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
-    },
-    onSocketChange: function(msg) {
+    }
+    onSocketChange(msg) {
         if (msg.action === 'posted') {
             if (ChannelStore.getCurrentId() === msg.channel_id) {
                 if (window.isActive) {
@@ -208,17 +218,17 @@ module.exports = React.createClass({
 
                 if (notifyText.length === 0) {
                     if (msgProps.image) {
-                        utils.notifyMe(title, username + ' uploaded an image', channel);
+                        Utils.notifyMe(title, username + ' uploaded an image', channel);
                     } else if (msgProps.otherFile) {
-                        utils.notifyMe(title, username + ' uploaded a file', channel);
+                        Utils.notifyMe(title, username + ' uploaded a file', channel);
                     } else {
-                        utils.notifyMe(title, username + ' did something new', channel);
+                        Utils.notifyMe(title, username + ' did something new', channel);
                     }
                 } else {
-                    utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
+                    Utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
                 }
                 if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
-                    utils.ding();
+                    Utils.ding();
                 }
             }
         } else if (msg.action === 'viewed') {
@@ -243,186 +253,196 @@ module.exports = React.createClass({
                 }
             }
         }
-    },
-    updateTitle: function() {
+    }
+    updateTitle() {
         var channel = ChannelStore.getCurrent();
         if (channel) {
             if (channel.type === 'D') {
-                var teammateUsername = utils.getDirectTeammate(channel.id).username;
+                var teammateUsername = Utils.getDirectTeammate(channel.id).username;
                 document.title = teammateUsername + ' ' + document.title.substring(document.title.lastIndexOf('-'));
             } else {
                 document.title = channel.display_name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
             }
         }
-    },
-    onScroll: function() {
+    }
+    onScroll() {
         this.updateUnreadIndicators();
-    },
-    onResize: function() {
+    }
+    onResize() {
         this.updateUnreadIndicators();
-    },
-    updateUnreadIndicators: function() {
-        var container = $(this.refs.container.getDOMNode());
+    }
+    updateUnreadIndicators() {
+        var container = $(React.findDOMNode(this.refs.container));
 
         if (this.firstUnreadChannel) {
-            var firstUnreadElement = $(this.refs[this.firstUnreadChannel].getDOMNode());
+            var firstUnreadElement = $(React.findDOMNode(this.refs[this.firstUnreadChannel]));
 
             if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
-                $(this.refs.topUnreadIndicator.getDOMNode()).css('display', 'initial');
+                $(React.findDOMNode(this.refs.topUnreadIndicator)).css('display', 'initial');
             } else {
-                $(this.refs.topUnreadIndicator.getDOMNode()).css('display', 'none');
+                $(React.findDOMNode(this.refs.topUnreadIndicator)).css('display', 'none');
             }
         }
 
         if (this.lastUnreadChannel) {
-            var lastUnreadElement = $(this.refs[this.lastUnreadChannel].getDOMNode());
+            var lastUnreadElement = $(React.findDOMNode(this.refs[this.lastUnreadChannel]));
 
             if (lastUnreadElement.position().top > container.height()) {
-                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'initial');
+                $(React.findDOMNode(this.refs.bottomUnreadIndicator)).css('display', 'initial');
             } else {
-                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'none');
+                $(React.findDOMNode(this.refs.bottomUnreadIndicator)).css('display', 'none');
             }
         }
-    },
-    getInitialState: function() {
-        var newState = getStateFromStores();
-        newState.loadingDMChannel = -1;
-
-        return newState;
-    },
-    render: function() {
+    }
+    createChannelElement(channel, index) {
         var members = this.state.members;
         var activeId = this.state.activeId;
-        var badgesActive = false;
+        var channelMember = members[channel.id];
+        var msgCount;
 
-        // keep track of the first and last unread channels so we can use them to set the unread indicators
-        var self = this;
-        this.firstUnreadChannel = null;
-        this.lastUnreadChannel = null;
+        var linkClass = '';
+        if (channel.id === activeId) {
+            linkClass = 'active';
+        }
 
-        function createChannelElement(channel, index) {
-            var channelMember = members[channel.id];
-            var msgCount;
+        var unread = false;
+        if (channelMember) {
+            msgCount = channel.total_msg_count - channelMember.msg_count;
+            unread = (msgCount > 0 && channelMember.notify_level !== 'quiet') || channelMember.mention_count > 0;
+        }
 
-            var linkClass = '';
-            if (channel.id === activeId) {
-                linkClass = 'active';
+        var titleClass = '';
+        if (unread) {
+            titleClass = 'unread-title';
+
+            if (!this.firstUnreadChannel) {
+                this.firstUnreadChannel = channel.name;
             }
+            this.lastUnreadChannel = channel.name;
+        }
 
-            var unread = false;
-            if (channelMember) {
-                msgCount = channel.total_msg_count - channelMember.msg_count;
-                unread = (msgCount > 0 && channelMember.notify_level !== 'quiet') || channelMember.mention_count > 0;
-            }
-
-            var titleClass = '';
-            if (unread) {
-                titleClass = 'unread-title';
-
-                if (!self.firstUnreadChannel) {
-                    self.firstUnreadChannel = channel.name;
-                }
-                self.lastUnreadChannel = channel.name;
-            }
-
-            var badge = null;
-            if (channelMember) {
-                if (channel.type === 'D') {
-                    // direct message channels show badges for any number of unread posts
-                    msgCount = channel.total_msg_count - channelMember.msg_count;
-                    if (msgCount > 0) {
-                        badge = <span className='badge pull-right small'>{msgCount}</span>;
-                        badgesActive = true;
-                    }
-                } else if (channelMember.mention_count > 0) {
-                    // public and private channels only show badges for mentions
-                    badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
-                    badgesActive = true;
-                }
-            } else if (self.state.loadingDMChannel === index && channel.type === 'D') {
-                badge = <img className='channel-loading-gif pull-right' src='/static/images/load.gif'/>;
-            }
-
-            // set up status icon for direct message channels
-            var status = null;
+        var badge = null;
+        if (channelMember) {
             if (channel.type === 'D') {
-                var statusIcon = '';
-                if (channel.status === 'online') {
-                    statusIcon = Constants.ONLINE_ICON_SVG;
-                } else if (channel.status === 'away') {
-                    statusIcon = Constants.ONLINE_ICON_SVG;
-                } else {
-                    statusIcon = Constants.OFFLINE_ICON_SVG;
+                // direct message channels show badges for any number of unread posts
+                msgCount = channel.total_msg_count - channelMember.msg_count;
+                if (msgCount > 0) {
+                    badge = <span className='badge pull-right small'>{msgCount}</span>;
+                    this.badgesActive = true;
                 }
-                status = <span className='status' dangerouslySetInnerHTML={{__html: statusIcon}} />;
+            } else if (channelMember.mention_count > 0) {
+                // public and private channels only show badges for mentions
+                badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
+                this.badgesActive = true;
             }
-
-            // set up click handler to switch channels (or create a new channel for non-existant ones)
-            var handleClick = null;
-            var href = '#';
-            var teamURL = TeamStore.getCurrentTeamUrl();
-
-            if (!channel.fake) {
-                handleClick = function clickHandler(e) {
-                    e.preventDefault();
-                    utils.switchChannel(channel);
-                };
-            } else if (channel.fake && teamURL) {
-                // It's a direct message channel that doesn't exist yet so let's create it now
-                var otherUserId = utils.getUserIdFromChannelName(channel);
-
-                if (self.state.loadingDMChannel === -1) {
-                    handleClick = function clickHandler(e) {
-                        e.preventDefault();
-                        self.setState({loadingDMChannel: index});
-
-                        Client.createDirectChannel(channel, otherUserId,
-                            function success(data) {
-                                self.setState({loadingDMChannel: -1});
-                                AsyncClient.getChannel(data.id);
-                                utils.switchChannel(data);
-                            },
-                            function error() {
-                                self.setState({loadingDMChannel: -1});
-                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
-                            }
-                        );
-                    };
-                }
-            }
-
-            return (
-                <li key={channel.name} ref={channel.name} className={linkClass}>
-                    <a className={'sidebar-channel ' + titleClass} href={href} onClick={handleClick}>
-                        {status}
-                        {channel.display_name}
-                        {badge}
-                    </a>
-                </li>
+        } else if (this.state.loadingDMChannel === index && channel.type === 'D') {
+            badge = (
+                <img
+                    className='channel-loading-gif pull-right'
+                    src='/static/images/load.gif'
+                />
             );
         }
+
+        // set up status icon for direct message channels
+        var status = null;
+        if (channel.type === 'D') {
+            var statusIcon = '';
+            if (channel.status === 'online') {
+                statusIcon = Constants.ONLINE_ICON_SVG;
+            } else if (channel.status === 'away') {
+                statusIcon = Constants.ONLINE_ICON_SVG;
+            } else {
+                statusIcon = Constants.OFFLINE_ICON_SVG;
+            }
+            status = (
+                <span
+                    className='status'
+                    dangerouslySetInnerHTML={{__html: statusIcon}}
+                />
+            );
+        }
+
+        // set up click handler to switch channels (or create a new channel for non-existant ones)
+        var handleClick = null;
+        var href = '#';
+        var teamURL = TeamStore.getCurrentTeamUrl();
+
+        if (!channel.fake) {
+            handleClick = function clickHandler(e) {
+                e.preventDefault();
+                Utils.switchChannel(channel);
+            };
+        } else if (channel.fake && teamURL) {
+            // It's a direct message channel that doesn't exist yet so let's create it now
+            var otherUserId = Utils.getUserIdFromChannelName(channel);
+
+            if (this.state.loadingDMChannel === -1) {
+                handleClick = function clickHandler(e) {
+                    e.preventDefault();
+                    this.setState({loadingDMChannel: index});
+
+                    Client.createDirectChannel(channel, otherUserId,
+                        function success(data) {
+                            this.setState({loadingDMChannel: -1});
+                            AsyncClient.getChannel(data.id);
+                            Utils.switchChannel(data);
+                        },
+                        function error() {
+                            this.setState({loadingDMChannel: -1});
+                            window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+                        }
+                    );
+                };
+            }
+        }
+
+        return (
+            <li
+                key={channel.name}
+                ref={channel.name}
+                className={linkClass}
+            >
+                <a
+                    className={'sidebar-channel ' + titleClass}
+                    href={href}
+                    onClick={handleClick}
+                >
+                    {status}
+                    {channel.display_name}
+                    {badge}
+                </a>
+            </li>
+        );
+    }
+    render() {
+        this.badgesActive = false;
+
+        // keep track of the first and last unread channels so we can use them to set the unread indicators
+        this.firstUnreadChannel = null;
+        this.lastUnreadChannel = null;
 
         // create elements for all 3 types of channels
         var channelItems = this.state.channels.filter(
             function filterPublicChannels(channel) {
                 return channel.type === 'O';
             }
-        ).map(createChannelElement);
+        ).map(this.createChannelElement);
 
         var privateChannelItems = this.state.channels.filter(
             function filterPrivateChannels(channel) {
                 return channel.type === 'P';
             }
-        ).map(createChannelElement);
+        ).map(this.createChannelElement);
 
-        var directMessageItems = this.state.showDirectChannels.map(createChannelElement);
+        var directMessageItems = this.state.showDirectChannels.map(this.createChannelElement);
 
         // update the favicon to show if there are any notifications
         var link = document.createElement('link');
         link.type = 'image/x-icon';
         link.rel = 'shortcut icon';
         link.id = 'favicon';
-        if (badgesActive) {
+        if (this.badgesActive) {
             link.href = '/static/images/redfavicon.ico';
         } else {
             link.href = '/static/images/favicon.ico';
@@ -438,7 +458,13 @@ module.exports = React.createClass({
         if (this.state.hideDirectChannels.length > 0) {
             directMessageMore = (
                 <li>
-                    <a href='#' data-toggle='modal' className='nav-more' data-target='#more_direct_channels' data-channels={JSON.stringify(this.state.hideDirectChannels)}>
+                    <a
+                        href='#'
+                        data-toggle='modal'
+                        className='nav-more'
+                        data-target='#more_direct_channels'
+                        data-channels={JSON.stringify(this.state.hideDirectChannels)}
+                    >
                         {'More (' + this.state.hideDirectChannels.length + ')'}
                     </a>
                 </li>
@@ -447,21 +473,76 @@ module.exports = React.createClass({
 
         return (
             <div>
-                <SidebarHeader teamDisplayName={this.props.teamDisplayName} teamType={this.props.teamType} />
+                <SidebarHeader
+                    teamDisplayName={this.props.teamDisplayName}
+                    teamType={this.props.teamType}
+                />
                 <SearchBox />
 
-                <div ref='topUnreadIndicator' className='nav-pills__unread-indicator nav-pills__unread-indicator-top' style={{display: 'none'}}>Unread post(s) above</div>
-                <div ref='bottomUnreadIndicator' className='nav-pills__unread-indicator nav-pills__unread-indicator-bottom' style={{display: 'none'}}>Unread post(s) below</div>
+                <div
+                    ref='topUnreadIndicator'
+                    className='nav-pills__unread-indicator nav-pills__unread-indicator-top'
+                    style={{display: 'none'}}
+                >
+                    Unread post(s) above
+                </div>
+                <div
+                    ref='bottomUnreadIndicator'
+                    className='nav-pills__unread-indicator nav-pills__unread-indicator-bottom'
+                    style={{display: 'none'}}
+                >
+                    Unread post(s) below
+                </div>
 
-                <div ref='container' className='nav-pills__container' onScroll={this.onScroll}>
+                <div
+                    ref='container'
+                    className='nav-pills__container'
+                    onScroll={this.onScroll}
+                >
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>Channels<a className='add-channel-btn' href='#' data-toggle='modal' data-target='#new_channel' data-channeltype='O'>+</a></h4></li>
+                        <li>
+                            <h4>
+                                Channels
+                                <a
+                                    className='add-channel-btn'
+                                    href='#'
+                                    data-toggle='modal'
+                                    data-target='#new_channel'
+                                    data-channeltype='O'
+                                >
+                                    +
+                                </a>
+                            </h4>
+                        </li>
                         {channelItems}
-                        <li><a href='#' data-toggle='modal' className='nav-more' data-target='#more_channels' data-channeltype='O'>More...</a></li>
+                        <li>
+                            <a
+                                href='#'
+                                data-toggle='modal'
+                                className='nav-more'
+                                data-target='#more_channels'
+                                data-channeltype='O'
+                            >
+                                More...
+                            </a>
+                        </li>
                     </ul>
 
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>Private Groups<a className='add-channel-btn' href='#' data-toggle='modal' data-target='#new_channel' data-channeltype='P'>+</a></h4></li>
+                        <li>
+                            <h4>
+                                Private Groups
+                                <a
+                                    className='add-channel-btn'
+                                    href='#'
+                                    data-toggle='modal'
+                                    data-target='#new_channel'
+                                    data-channeltype='P'
+                                >
+                                    +
+                                </a>
+                            </h4>
+                        </li>
                         {privateChannelItems}
                     </ul>
                     <ul className='nav nav-pills nav-stacked'>
@@ -473,4 +554,13 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
+
+Sidebar.defaultProps = {
+    teamType: '',
+    teamDisplayName: ''
+};
+Sidebar.propTypes = {
+    teamType: React.PropTypes.string,
+    teamDisplayName: React.PropTypes.string
+};

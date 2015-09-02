@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var client = require('../utils/client.jsx');
+var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
@@ -13,22 +13,27 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 
-function getStateFromStores() {
-    return {
-        channel: ChannelStore.getCurrent(),
-        member: ChannelStore.getCurrentMember(),
-        users: ChannelStore.getCurrentExtraInfo().members
-    };
-}
+export default class Navbar extends React.Component {
+    constructor(props) {
+        super(props);
 
-module.exports = React.createClass({
-    displayName: 'Navbar',
-    propTypes: {
-        teamDisplayName: React.PropTypes.string
-    },
-    componentDidMount: function() {
-        ChannelStore.addChangeListener(this.onListenerChange);
-        ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
+        this.onChange = this.onChange.bind(this);
+        this.handleLeave = this.handleLeave.bind(this);
+        this.createCollapseButtons = this.createCollapseButtons.bind(this);
+        this.createDropdown = this.createDropdown.bind(this);
+
+        this.state = this.getStateFromStores();
+    }
+    getStateFromStores() {
+        return {
+            channel: ChannelStore.getCurrent(),
+            member: ChannelStore.getCurrentMember(),
+            users: ChannelStore.getCurrentExtraInfo().members
+        };
+    }
+    componentDidMount() {
+        ChannelStore.addChangeListener(this.onChange);
+        ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner__wrap').click(this.hideSidebars);
 
         $('body').on('click.infopopover', function handlePopoverClick(e) {
@@ -36,15 +41,15 @@ module.exports = React.createClass({
                 $('.info-popover').popover('hide');
             }
         });
-    },
-    componentWillUnmount: function() {
-        ChannelStore.removeChangeListener(this.onListenerChange);
-    },
-    handleSubmit: function(e) {
+    }
+    componentWillUnmount() {
+        ChannelStore.removeChangeListener(this.onChange);
+    }
+    handleSubmit(e) {
         e.preventDefault();
-    },
-    handleLeave: function() {
-        client.leaveChannel(this.state.channel.id,
+    }
+    handleLeave() {
+        Client.leaveChannel(this.state.channel.id,
             function success() {
                 AsyncClient.getChannels(true);
                 window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
@@ -53,8 +58,8 @@ module.exports = React.createClass({
                 AsyncClient.dispatchError(err, 'handleLeave');
             }
         );
-    },
-    hideSidebars: function(e) {
+    }
+    hideSidebars(e) {
         var windowWidth = $(window).outerWidth();
         if (windowWidth <= 768) {
             AppDispatcher.handleServerAction({
@@ -74,32 +79,259 @@ module.exports = React.createClass({
                 $('.sidebar--menu').removeClass('move--left');
             }
         }
-    },
-    toggleLeftSidebar: function() {
+    }
+    toggleLeftSidebar() {
         $('.inner__wrap').toggleClass('move--right');
         $('.sidebar--left').toggleClass('move--right');
-    },
-    toggleRightSidebar: function() {
+    }
+    toggleRightSidebar() {
         $('.inner__wrap').toggleClass('move--left-small');
         $('.sidebar--menu').toggleClass('move--left');
-    },
-    onListenerChange: function() {
-        this.setState(getStateFromStores());
+    }
+    onChange() {
+        this.setState(this.getStateFromStores());
         $('#navbar .navbar-brand .description').popover({placement: 'bottom', trigger: 'click', html: true});
-    },
-    getInitialState: function() {
-        return getStateFromStores();
-    },
-    render: function() {
+    }
+    createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
+        if (channel) {
+            var viewInfoOption = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        data-toggle='modal'
+                        data-target='#channel_info'
+                        data-channelid={channel.id}
+                        href='#'
+                    >
+                        View Info
+                    </a>
+                </li>
+            );
+
+            var setChannelDescriptionOption = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        data-toggle='modal'
+                        data-target='#edit_channel'
+                        data-desc={channel.description}
+                        data-title={channel.display_name}
+                        data-channelid={channel.id}
+                    >
+                        Set Channel Description...
+                    </a>
+                </li>
+            );
+
+            var addMembersOption;
+            var leaveChannelOption;
+            if (!isDirect && !ChannelStore.isDefault(channel)) {
+                addMembersOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            data-toggle='modal'
+                            data-target='#channel_invite'
+                            href='#'
+                        >
+                            Add Members
+                        </a>
+                    </li>
+                );
+
+                leaveChannelOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={this.handleLeave}
+                        >
+                            Leave Channel
+                        </a>
+                    </li>
+                );
+            }
+
+            var manageMembersOption;
+            var renameChannelOption;
+            var deleteChannelOption;
+            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
+                manageMembersOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            data-toggle='modal'
+                            data-target='#channel_members'
+                            href='#'
+                        >
+                            Manage Members
+                        </a>
+                    </li>
+                );
+
+                renameChannelOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            data-toggle='modal'
+                            data-target='#rename_channel'
+                            data-display={channel.display_name}
+                            data-name={channel.name}
+                            data-channelid={channel.id}
+                        >
+                            Rename Channel...
+                        </a>
+                    </li>
+                );
+
+                deleteChannelOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            data-toggle='modal'
+                            data-target='#delete_channel'
+                            data-title={channel.display_name}
+                            data-channelid={channel.id}
+                        >
+                            Delete Channel...
+                        </a>
+                    </li>
+                );
+            }
+
+            var notificationPreferenceOption;
+            if (!isDirect) {
+                notificationPreferenceOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            data-toggle='modal'
+                            data-target='#channel_notifications'
+                            data-title={channel.display_name}
+                            data-channelid={channel.id}
+                        >
+                            Notification Preferences
+                        </a>
+                    </li>
+                );
+            }
+
+            return (
+                <div className='navbar-brand'>
+                    <div className='dropdown'>
+                        <div
+                            data-toggle='popover'
+                            data-content={popoverContent}
+                            className='description info-popover'
+                        />
+                        <a
+                            href='#'
+                            className='dropdown-toggle theme'
+                            type='button'
+                            id='channel_header_dropdown'
+                            data-toggle='dropdown'
+                            aria-expanded='true'
+                        >
+                            <span className='heading'>{channelTitle} </span>
+                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'></span>
+                        </a>
+                        <ul
+                            className='dropdown-menu'
+                            role='menu'
+                            aria-labelledby='channel_header_dropdown'
+                        >
+                            {viewInfoOption}
+                            {addMembersOption}
+                            {manageMembersOption}
+                            {setChannelDescriptionOption}
+                            {notificationPreferenceOption}
+                            {renameChannelOption}
+                            {deleteChannelOption}
+                            {leaveChannelOption}
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className='navbar-brand'>
+                <a
+                    href='/'
+                    className='heading'
+                >
+                    {channelTitle}
+                </a>
+            </div>
+        );
+    }
+    createCollapseButtons(currentId) {
+        var buttons = [];
+        if (currentId == null) {
+            buttons.push(
+                <button
+                    type='button'
+                    className='navbar-toggle'
+                    data-toggle='collapse'
+                    data-target='#navbar-collapse-1'
+                >
+                    <span className='sr-only'>Toggle sidebar</span>
+                    <span className='icon-bar'></span>
+                    <span className='icon-bar'></span>
+                    <span className='icon-bar'></span>
+                </button>
+            );
+        } else {
+            buttons.push(
+                <button
+                    type='button'
+                    className='navbar-toggle'
+                    data-toggle='collapse'
+                    data-target='#sidebar-nav'
+                    onClick={this.toggleLeftSidebar}
+                >
+                    <span className='sr-only'>Toggle sidebar</span>
+                    <span className='icon-bar'></span>
+                    <span className='icon-bar'></span>
+                    <span className='icon-bar'></span>
+                    <NotifyCounts />
+                </button>
+            );
+
+            buttons.push(
+                <button
+                    type='button'
+                    className='navbar-toggle menu-toggle pull-right'
+                    data-toggle='collapse'
+                    data-target='#sidebar-nav'
+                    onClick={this.toggleRightSidebar}
+                >
+                    <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
+                </button>
+            );
+        }
+
+        return buttons;
+    }
+    render() {
         var currentId = UserStore.getCurrentId();
-        var popoverContent = '';
+        var channel = this.state.channel;
         var channelTitle = this.props.teamDisplayName;
+        var popoverContent;
         var isAdmin = false;
         var isDirect = false;
-        var channel = this.state.channel;
 
         if (channel) {
-            popoverContent = React.renderToString(<MessageWrapper message={channel.description} options={{singleline: true, noMentionHighlight: true}}/>);
+            popoverContent = React.renderToString(
+                <MessageWrapper
+                    message={channel.description}
+                    options={{singleline: true, noMentionHighlight: true}}
+                />
+            );
             isAdmin = this.state.member.roles.indexOf('admin') > -1;
 
             if (channel.type === 'O') {
@@ -118,110 +350,46 @@ module.exports = React.createClass({
             }
 
             if (channel.description.length === 0) {
-                popoverContent = React.renderToString(<div>No channel description yet. <br /><a href='#' data-toggle='modal' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id} data-target='#edit_channel'>Click here</a> to add one.</div>);
+                popoverContent = React.renderToString(
+                    <div>
+                        No channel description yet. <br/>
+                        <a
+                            href='#'
+                            data-toggle='modal'
+                            data-desc={channel.description}
+                            data-title={channel.display_name}
+                            data-channelid={channel.id}
+                            data-target='#edit_channel'
+                        >
+                            Click here
+                        </a> to add one.</div>
+                );
             }
         }
 
-        var navbarCollapseButton = null;
-        if (currentId == null) {
-            navbarCollapseButton = (<button type='button' className='navbar-toggle' data-toggle='collapse' data-target='#navbar-collapse-1'>
-                                        <span className='sr-only'>Toggle sidebar</span>
-                                        <span className='icon-bar'></span>
-                                        <span className='icon-bar'></span>
-                                        <span className='icon-bar'></span>
-                                    </button>);
-        }
+        var collapseButtons = this.createCollapseButtons(currentId);
 
-        var sidebarCollapseButton = null;
-        if (currentId != null) {
-            sidebarCollapseButton = (<button type='button' className='navbar-toggle' data-toggle='collapse' data-target='#sidebar-nav' onClick={this.toggleLeftSidebar}>
-                                        <span className='sr-only'>Toggle sidebar</span>
-                                        <span className='icon-bar'></span>
-                                        <span className='icon-bar'></span>
-                                        <span className='icon-bar'></span>
-                                        <NotifyCounts />
-                                    </button>);
-        }
-
-        var rightSidebarCollapseButton = null;
-        if (currentId != null) {
-            rightSidebarCollapseButton = (<button type='button' className='navbar-toggle menu-toggle pull-right' data-toggle='collapse' data-target='#sidebar-nav' onClick={this.toggleRightSidebar}>
-                                            <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
-                                        </button>);
-        }
-
-        var channelMenuDropdown = null;
-        if (channel) {
-            var viewInfoOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_info' data-channelid={channel.id} href='#'>View Info</a></li>
-
-            var addMembersOption = null;
-            if (!isDirect && !ChannelStore.isDefault(channel)) {
-                addMembersOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_invite' href='#'>Add Members</a></li>;
-            }
-
-            var manageMembersOption = null;
-            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
-                manageMembersOption = <li role='presentation'><a role='menuitem' data-toggle='modal' data-target='#channel_members' href='#'>Manage Members</a></li>;
-            }
-
-            var setChannelDescriptionOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#edit_channel' data-desc={channel.description} data-title={channel.display_name} data-channelid={channel.id}>Set Channel Description...</a></li>;
-
-            var notificationPreferenceOption = null;
-            if (!isDirect) {
-                notificationPreferenceOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#channel_notifications' data-title={channel.display_name} data-channelid={channel.id}>Notification Preferences</a></li>;
-            }
-
-            var renameChannelOption = null;
-            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
-                renameChannelOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#rename_channel' data-display={channel.display_name} data-name={channel.name} data-channelid={channel.id}>Rename Channel...</a></li>;
-            }
-
-            var deleteChannelOption = null;
-            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
-                deleteChannelOption = <li role='presentation'><a role='menuitem' href='#' data-toggle='modal' data-target='#delete_channel' data-title={channel.display_name} data-channelid={channel.id}>Delete Channel...</a></li>;
-            }
-
-            var leaveChannelOption = null;
-            if (!isDirect && !ChannelStore.isDefault(channel)) {
-                leaveChannelOption = <li role='presentation'><a role='menuitem' href='#' onClick={this.handleLeave}>Leave Channel</a></li>;
-            }
-
-            channelMenuDropdown = (<div className='navbar-brand'>
-                                        <div className='dropdown'>
-                                            <div data-toggle='popover' data-content={popoverContent} className='description info-popover'></div>
-                                            <a href='#' className='dropdown-toggle theme' type='button' id='channel_header_dropdown' data-toggle='dropdown' aria-expanded='true'>
-                                                <span className='heading'>{channelTitle} </span>
-                                                <span className='glyphicon glyphicon-chevron-down header-dropdown__icon'></span>
-                                            </a>
-                                            <ul className='dropdown-menu' role='menu' aria-labelledby='channel_header_dropdown'>
-                                                {viewInfoOption}
-                                                {addMembersOption}
-                                                {manageMembersOption}
-                                                {setChannelDescriptionOption}
-                                                {notificationPreferenceOption}
-                                                {renameChannelOption}
-                                                {deleteChannelOption}
-                                                {leaveChannelOption}
-                                            </ul>
-                                        </div>
-                                    </div>);
-        } else {
-            channelMenuDropdown = (<div className='navbar-brand'>
-                                        <a href='/' className='heading'>{channelTitle}</a>
-                                    </div>);
-        }
+        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent);
 
         return (
-            <nav className='navbar navbar-default navbar-fixed-top' role='navigation'>
+            <nav
+                className='navbar navbar-default navbar-fixed-top'
+                role='navigation'
+            >
                 <div className='container-fluid theme'>
                     <div className='navbar-header'>
-                        {navbarCollapseButton}
-                        {sidebarCollapseButton}
-                        {rightSidebarCollapseButton}
+                        {collapseButtons}
                         {channelMenuDropdown}
                     </div>
                 </div>
             </nav>
         );
     }
-});
+}
+
+Navbar.defaultProps = {
+    teamDisplayName: ''
+};
+Navbar.propTypes = {
+    teamDisplayName: React.PropTypes.string
+};
