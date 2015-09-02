@@ -18,6 +18,21 @@ export default class FileUpload extends React.Component {
         };
     }
 
+    fileUploadSuccess(channelId, data) {
+        var parsedData = $.parseJSON(data);
+        this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
+
+        var requests = this.state.requests;
+        for (var j = 0; j < parsedData.client_ids.length; j++) {
+            delete requests[parsedData.client_ids[j]];
+        }
+        this.setState({requests: requests});
+    }
+
+    fileUploadFail(clientId, err) {
+        this.props.onUploadError(err, clientId);
+    }
+
     handleChange() {
         var element = $(React.findDOMNode(this.refs.fileInput));
         var files = element.prop('files');
@@ -57,19 +72,8 @@ export default class FileUpload extends React.Component {
             formData.append('client_ids', clientId);
 
             var request = client.uploadFile(formData,
-                function success(data) {
-                    var parsedData = $.parseJSON(data);
-                    this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
-
-                    var requests = this.state.requests;
-                    for (var j = 0; j < parsedData.client_ids.length; j++) {
-                        delete requests[parsedData.client_ids[j]];
-                    }
-                    this.setState({requests: requests});
-                }.bind(this),
-                function fail(err) {
-                    this.props.onUploadError(err, clientId);
-                }.bind(this)
+                this.fileUploadSuccess.bind(this, channelId),
+                this.fileUploadFail.bind(this, clientId)
             );
 
             var requests = this.state.requests;
@@ -122,19 +126,8 @@ export default class FileUpload extends React.Component {
                 formData.append('client_ids', clientId);
 
                 var request = client.uploadFile(formData,
-                    function success(data) {
-                        var parsedData = $.parseJSON(data);
-                        this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
-
-                        var requests = this.state.requests;
-                        for (var j = 0; j < parsedData.client_ids.length; j++) {
-                            delete requests[parsedData.client_ids[j]];
-                        }
-                        this.setState({requests: requests});
-                    }.bind(this),
-                    function fail(err) {
-                        this.props.onUploadError(err, clientId);
-                    }.bind(this)
+                    this.fileUploadSuccess.bind(this, channelId),
+                    this.fileUploadFail.bind(this, clientId)
                 );
 
                 var requests = this.state.requests;
@@ -248,19 +241,8 @@ export default class FileUpload extends React.Component {
                         formData.append('client_ids', clientId);
 
                         var request = client.uploadFile(formData,
-                            function(data) {
-                                var parsedData = $.parseJSON(data);
-                                self.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
-
-                                var requests = self.state.requests;
-                                for (var j = 0; j < parsedData.client_ids.length; j++) {
-                                    delete requests[parsedData.client_ids[j]];
-                                }
-                                self.setState({requests: requests});
-                            },
-                            function(err) {
-                                self.props.onUploadError(err, clientId);
-                            }
+                            self.fileUploadSuccess.bind(self, channelId),
+                            self.fileUploadFail.bind(self, clientId)
                         );
 
                         var requests = self.state.requests;
