@@ -44,7 +44,7 @@ export default class MemberListItem extends React.Component {
             var self = this;
 
             let makeAdminOption = null;
-            if (makeAdminOption) {
+            if (this.props.handleMakeAdmin) {
                 makeAdminOption = (
                                     <li role='presentation'>
                                         <a
@@ -56,7 +56,7 @@ export default class MemberListItem extends React.Component {
             }
 
             let handleRemoveOption = null;
-            if (handleRemoveOption) {
+            if (this.props.handleRemove) {
                 handleRemoveOption = (
                                         <li role='presentation'>
                                             <a
