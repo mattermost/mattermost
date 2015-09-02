@@ -565,7 +565,7 @@ export function textToJsx(textin, options) {
                             key={word + i + z + '_hash'}
                             className={'theme ' + mClass + highlightSearchClass}
                             href='#'
-                            onClick={() => searchForTerm(trimWord)} //eslint-disable-line no-loop-func
+                            onClick={searchForTerm.bind(this, trimWord)} //eslint-disable-line no-loop-func
                         >
                             {trimWord}
                         </a>
