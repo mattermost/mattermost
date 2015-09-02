@@ -6,6 +6,7 @@ var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
+import {config} from '../utils/config.js';
 
 export default class InviteMemberModal extends React.Component {
     constructor(props) {

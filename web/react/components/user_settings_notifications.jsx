@@ -9,6 +9,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 var assign = require('object-assign');
+import {config} from '../utils/config.js';
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();

@@ -6,6 +6,7 @@ var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var Constants = require('../utils/constants.jsx');
+import {config} from '../utils/config.js';
 
 export default class SignupUserComplete extends React.Component {
     constructor(props) {

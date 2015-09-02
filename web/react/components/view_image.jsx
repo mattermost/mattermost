@@ -3,6 +3,7 @@
 
 var Client = require('../utils/client.jsx');
 var Utils = require('../utils/utils.jsx');
+import {config} from '../utils/config.js';
 
 export default class ViewImageModal extends React.Component {
     constructor(props) {

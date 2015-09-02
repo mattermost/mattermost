@@ -5,6 +5,7 @@ var EmailItem = require('./team_signup_email_item.jsx');
 var Utils = require('../utils/utils.jsx');
 var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
+import {strings, config} from '../utils/config.js';
 
 export default class TeamSignupSendInvitesPage extends React.Component {
     constructor(props) {

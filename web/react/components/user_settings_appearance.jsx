@@ -6,6 +6,7 @@ var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 var Client = require('../utils/client.jsx');
 var Utils = require('../utils/utils.jsx');
+import {config} from '../utils/config.js';
 
 export default class UserSettingsAppearance extends React.Component {
     constructor(props) {

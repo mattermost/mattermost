@@ -3,6 +3,7 @@
 
 const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
+import {strings} from '../utils/config.js';
 
 export default class EmailSignUpPage extends React.Component {
     constructor() {

@@ -4,6 +4,7 @@
 var UserStore = require('../stores/user_store.jsx');
 var client = require('../utils/client.jsx');
 var utils = require('../utils/utils.jsx');
+import {config} from '../utils/config.js';
 
 export default class SidebarRightMenu extends React.Component {
     constructor(props) {

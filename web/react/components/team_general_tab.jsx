@@ -6,6 +6,7 @@ const SettingItemMax = require('./setting_item_max.jsx');
 
 const Client = require('../utils/client.jsx');
 const Utils = require('../utils/utils.jsx');
+import {strings} from '../utils/config.js';
 
 export default class GeneralTab extends React.Component {
     constructor(props) {

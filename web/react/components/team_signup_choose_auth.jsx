@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var Constants = require('../utils/constants.jsx');
+import {strings} from '../utils/config.js';
 
 export default class ChooseAuthPage extends React.Component {
     constructor(props) {

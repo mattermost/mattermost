@@ -15,6 +15,8 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
+import {strings} from '../utils/config.js';
+
 export default class PostList extends React.Component {
     constructor() {
         super();

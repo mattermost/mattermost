@@ -3,6 +3,7 @@
 
 var Utils = require('../utils/utils.jsx');
 var Client = require('../utils/client.jsx');
+import {strings} from '../utils/config.js';
 
 export default class TeamSignupUsernamePage extends React.Component {
     constructor(props) {

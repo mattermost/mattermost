@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {config} from '../utils/config.js';
+
 export default class SettingPicture extends React.Component {
     constructor(props) {
         super(props);
