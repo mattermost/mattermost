@@ -15,7 +15,7 @@ export default class PasswordResetForm extends React.Component {
         e.preventDefault();
         var state = {};
 
-        var password = this.refs.password.getDOMNode().value.trim();
+        var password = React.findDOMNode(this.refs.password).value.trim();
         if (!password || password.length < 5) {
             state.error = 'Please enter at least 5 characters.';
             this.setState(state);

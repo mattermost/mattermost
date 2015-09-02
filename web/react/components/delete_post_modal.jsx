@@ -61,8 +61,7 @@ export default class DeletePostModal extends React.Component {
         );
     }
     componentDidMount() {
-        var self = this;
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function freshOpen(e) {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function freshOpen(e) {
             var newState = {};
             if (BrowserStore.getItem('edit_state_transfer')) {
                 newState = BrowserStore.getItem('edit_state_transfer');
@@ -71,8 +70,8 @@ export default class DeletePostModal extends React.Component {
                 var button = e.relatedTarget;
                 newState = {title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), postId: $(button).attr('data-postid'), comments: $(button).attr('data-comments')};
             }
-            self.setState(newState);
-        });
+            this.setState(newState);
+        }.bind(this));
         PostStore.addSelectedPostChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {

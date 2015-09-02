@@ -15,7 +15,7 @@ export default class PasswordResetSendLink extends React.Component {
         e.preventDefault();
         var state = {};
 
-        var email = this.refs.email.getDOMNode().value.trim();
+        var email = React.findDOMNode(this.refs.email).value.trim();
         if (!email) {
             state.error = 'Please enter a valid email address.';
             this.setState(state);
@@ -32,7 +32,7 @@ export default class PasswordResetSendLink extends React.Component {
         client.sendPasswordReset(data,
              function passwordResetSent() {
                  this.setState({error: null, updateText: <p>A password reset link has been sent to <b>{email}</b> for your <b>{this.props.teamDisplayName}</b> team on {window.location.hostname}.</p>, moreUpdateText: 'Please check your inbox.'});
-                 $(this.refs.reset_form.getDOMNode()).hide();
+                 $(React.findDOMNode(this.refs.reset_form)).hide();
              }.bind(this),
              function passwordResetFailedToSend(err) {
                  this.setState({error: err.message, update_text: null, moreUpdateText: null});

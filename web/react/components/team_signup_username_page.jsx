@@ -21,7 +21,7 @@ export default class TeamSignupUsernamePage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        var name = this.refs.name.getDOMNode().value.trim();
+        var name = React.findDOMNode(this.refs.name).value.trim();
 
         var usernameError = Utils.isValidUsername(name);
         if (usernameError === 'Cannot use a reserved word as a username.') {

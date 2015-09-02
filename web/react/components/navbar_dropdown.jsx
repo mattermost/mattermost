@@ -30,19 +30,18 @@ export default class NavbarDropdown extends React.Component {
         UserStore.addTeamsChangeListener(this.onListenerChange);
         TeamStore.addChangeListener(this.onListenerChange);
 
-        var self = this;
-        $(this.refs.dropdown.getDOMNode()).on('hide.bs.dropdown', function resetDropdown() {
-            self.blockToggle = true;
+        $(React.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', function resetDropdown() {
+            this.blockToggle = true;
             setTimeout(function blockTimeout() {
-                self.blockToggle = false;
-            }, 100);
-        });
+                this.blockToggle = false;
+            }.bind(this), 100);
+        }.bind(this));
     }
     componentWillUnmount() {
         UserStore.removeTeamsChangeListener(this.onListenerChange);
         TeamStore.removeChangeListener(this.onListenerChange);
 
-        $(this.refs.dropdown.getDOMNode()).off('hide.bs.dropdown');
+        $(React.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
     }
     onListenerChange() {
         var newState = getStateFromStores();

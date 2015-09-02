@@ -34,7 +34,7 @@ export default class TeamSignupWelcomePage extends React.Component {
 
         var state = {useDiff: true, serverError: ''};
 
-        var email = this.refs.email.getDOMNode().value.trim().toLowerCase();
+        var email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!email || !Utils.isEmail(email)) {
             state.emailError = 'Please enter a valid email address';
             this.setState(state);
