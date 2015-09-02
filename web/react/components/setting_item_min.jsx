@@ -1,19 +1,23 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-module.exports = React.createClass({
-    displayName: 'SettingsItemMin',
-    propTypes: {
-        title: React.PropTypes.string,
-        disableOpen: React.PropTypes.bool,
-        updateSection: React.PropTypes.func,
-        describe: React.PropTypes.string
-    },
-    render: function() {
-        var editButton = '';
+export default class SettingItemMin extends React.Component {
+    render() {
+        let editButton = null;
         if (!this.props.disableOpen) {
-            editButton = <li className='col-sm-2 section-edit'><a className='section-edit theme' href='#' onClick={this.props.updateSection}>Edit</a></li>;
+            editButton = (
+                <li className='col-sm-2 section-edit'>
+                    <a
+                        className='section-edit theme'
+                        href='#'
+                        onClick={this.props.updateSection}
+                    >
+                        Edit
+                    </a>
+                </li>
+            );
         }
+
         return (
             <ul className='section-min'>
                 <li className='col-sm-10 section-title'>{this.props.title}</li>
@@ -22,4 +26,11 @@ module.exports = React.createClass({
             </ul>
         );
     }
-});
+}
+
+SettingItemMin.propTypes = {
+    title: React.PropTypes.string,
+    disableOpen: React.PropTypes.bool,
+    updateSection: React.PropTypes.func,
+    describe: React.PropTypes.string
+};

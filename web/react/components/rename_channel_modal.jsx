@@ -1,147 +1,217 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const Utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
 
-var utils = require('../utils/utils.jsx');
-var Client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var Constants = require('../utils/constants.jsx');
+export default class RenameChannelModal extends React.Component {
+    constructor(props) {
+        super(props);
 
-module.exports = React.createClass({
-    handleSubmit: function(e) {
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.onNameChange = this.onNameChange.bind(this);
+        this.onDisplayNameChange = this.onDisplayNameChange.bind(this);
+        this.displayNameKeyUp = this.displayNameKeyUp.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+
+        this.state = {
+            displayName: '',
+            channelName: '',
+            channelId: '',
+            serverError: '',
+            nameError: '',
+            displayNameError: '',
+            invalid: false
+        };
+    }
+    handleSubmit(e) {
         e.preventDefault();
 
-        if (this.state.channel_id.length !== 26) return;
+        if (this.state.channelId.length !== 26) {
+            return;
+        }
 
-        var channel = ChannelStore.get(this.state.channel_id);
-        var oldName = channel.name
-        var oldDisplayName = channel.display_name
-        var state = { server_error: "" };
+        let channel = ChannelStore.get(this.state.channelId);
+        const oldName = channel.name;
+        const oldDisplayName = channel.displayName;
+        let state = {serverError: ''};
 
-        channel.display_name = this.state.display_name.trim();
+        channel.display_name = this.state.displayName.trim();
         if (!channel.display_name) {
-            state.display_name_error = "This field is required";
-            state.inValid = true;
-        }
-        else if (channel.display_name.length > 22) {
-            state.display_name_error = "This field must be less than 22 characters";
-            state.inValid = true;
-        }
-        else {
-            state.display_name_error = "";
+            state.displayNameError = 'This field is required';
+            state.invalid = true;
+        } else if (channel.display_name.length > 22) {
+            state.displayNameError = 'This field must be less than 22 characters';
+            state.invalid = true;
+        } else {
+            state.displayNameError = '';
         }
 
-        channel.name = this.state.channel_name.trim();
+        channel.name = this.state.channelName.trim();
         if (!channel.name) {
-            state.name_error = "This field is required";
-            state.inValid = true;
-        }
-        else if(channel.name.length > 22){
-            state.name_error = "This field must be less than 22 characters";
-            state.inValid = true;
-        }
-        else {
-            var cleaned_name = utils.cleanUpUrlable(channel.name);
-            if (cleaned_name != channel.name) {
-                state.name_error = "Must be lowercase alphanumeric characters";
-                state.inValid = true;
-            }
-            else {
-                state.name_error = "";
+            state.nameError = 'This field is required';
+            state.invalid = true;
+        } else if (channel.name.length > 22) {
+            state.nameError = 'This field must be less than 22 characters';
+            state.invalid = true;
+        } else {
+            let cleanedName = Utils.cleanUpUrlable(channel.name);
+            if (cleanedName !== channel.name) {
+                state.nameError = 'Must be lowercase alphanumeric characters';
+                state.invalid = true;
+            } else {
+                state.nameError = '';
             }
         }
 
         this.setState(state);
 
-        if (state.inValid)
+        if (state.invalid || (oldName === channel.name && oldDisplayName === channel.display_name)) {
             return;
-
-        if (oldName == channel.name && oldDisplayName == channel.display_name)
-            return;
+        }
 
         Client.updateChannel(channel,
-            function(data, text, req) {
-                $(this.refs.modal.getDOMNode()).modal('hide');
+            function handleUpdateSuccess() {
+                $(React.findDOMNode(this.refs.modal)).modal('hide');
 
                 AsyncClient.getChannel(channel.id);
-                utils.updateTabTitle(channel.display_name);
-                utils.updateAddressBar(channel.name);
+                Utils.updateTabTitle(channel.display_name);
+                Utils.updateAddressBar(channel.name);
 
-                this.refs.display_name.getDOMNode().value = "";
-                this.refs.channel_name.getDOMNode().value = "";
+                React.findDOMNode(this.refs.displayName).value = '';
+                React.findDOMNode(this.refs.channelName).value = '';
             }.bind(this),
-            function(err) {
-                state.server_error = err.message;
-                state.inValid = true;
+            function handleUpdateError(err) {
+                state.serverError = err.message;
+                state.invalid = true;
                 this.setState(state);
             }.bind(this)
         );
-    },
-    onNameChange: function() {
-        this.setState({ channel_name: this.refs.channel_name.getDOMNode().value })
-    },
-    onDisplayNameChange: function() {
-        this.setState({ display_name: this.refs.display_name.getDOMNode().value })
-    },
-    displayNameKeyUp: function(e) {
-        var display_name = this.refs.display_name.getDOMNode().value.trim();
-        var channel_name = utils.cleanUpUrlable(display_name);
-        this.refs.channel_name.getDOMNode().value = channel_name;
-        this.setState({ channel_name: channel_name })
-    },
-    handleClose: function() {
-        this.setState({display_name: "", channel_name: "", display_name_error: "", server_error: "", name_error: ""});
-    },
-    componentDidMount: function() {
-        var self = this;
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
-            var button = $(e.relatedTarget);
-            self.setState({ display_name: button.attr('data-display'), channel_name: button.attr('data-name'), channel_id: button.attr('data-channelid') });
-        });
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose);
-    },
-    componentWillUnmount: function() {
-        $(this.refs.modal.getDOMNode()).off('hidden.bs.modal', this.handleClose);
-    },
-    getInitialState: function() {
-        return { display_name: "", channel_name: "", channel_id: "" };
-    },
-    render: function() {
+    }
+    onNameChange() {
+        this.setState({channelName: React.findDOMNode(this.refs.channelName).value});
+    }
+    onDisplayNameChange() {
+        this.setState({displayName: React.findDOMNode(this.refs.displayName).value});
+    }
+    displayNameKeyUp() {
+        const displayName = React.findDOMNode(this.refs.displayName).value.trim();
+        const channelName = Utils.cleanUpUrlable(displayName);
+        React.findDOMNode(this.refs.channelName).value = channelName;
+        this.setState({channelName: channelName});
+    }
+    handleClose() {
+        this.state = {
+            displayName: '',
+            channelName: '',
+            channelId: '',
+            serverError: '',
+            nameError: '',
+            displayNameError: '',
+            invalid: false
+        };
+    }
+    componentDidMount() {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function handleShow(e) {
+            const button = $(e.relatedTarget);
+            this.setState({displayName: button.attr('data-display'), channelName: button.attr('data-name'), channelId: button.attr('data-channelid')});
+        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
+    }
+    componentWillUnmount() {
+        $(React.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
+    }
+    render() {
+        let displayNameError = null;
+        let displayNameClass = 'form-group';
+        if (this.state.displayNameError) {
+            displayNameError = <label className='control-label'>{this.state.displayNameError}</label>;
+            displayNameClass += ' has-error';
+        }
 
-        var display_name_error = this.state.display_name_error ? <label className='control-label'>{ this.state.display_name_error }</label> : null;
-        var name_error = this.state.name_error ? <label className='control-label'>{ this.state.name_error }</label> : null;
-        var server_error = this.state.server_error ? <div className='form-group has-error'><label className='control-label'>{ this.state.server_error }</label></div> : null;
+        let nameError = null;
+        let nameClass = 'form-group';
+        if (this.state.nameError) {
+            nameError = <label className='control-label'>{this.state.nameError}</label>;
+            nameClass += ' has-error';
+        }
+
+        let serverError = null;
+        if (this.state.serverError) {
+            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+        }
 
         return (
-            <div className="modal fade" ref="modal" id="rename_channel" tabIndex="-1" role="dialog" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal">
-                                <span aria-hidden="true">&times;</span>
-                                <span className="sr-only">Close</span>
+            <div
+                className='modal fade'
+                ref='modal'
+                id='rename_channel'
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'
+            >
+                <div className='modal-dialog'>
+                    <div className='modal-content'>
+                        <div className='modal-header'>
+                            <button
+                                type='button'
+                                className='close'
+                                data-dismiss='modal'
+                            >
+                                <span aria-hidden='true'>&times;</span>
+                                <span className='sr-only'>Close</span>
                             </button>
-                        <h4 className="modal-title">Rename Channel</h4>
+                        <h4 className='modal-title'>Rename Channel</h4>
                         </div>
-                        <form role="form">
-                            <div className="modal-body">
-                                <div className={ this.state.display_name_error ? "form-group has-error" : "form-group" }>
+                        <form role='form'>
+                            <div className='modal-body'>
+                                <div className={displayNameClass}>
                                     <label className='control-label'>Display Name</label>
-                                    <input onKeyUp={this.displayNameKeyUp} onChange={this.onDisplayNameChange} type="text" ref="display_name" className="form-control" placeholder="Enter display name" value={this.state.display_name} maxLength="64" />
-                                    { display_name_error }
+                                    <input
+                                        onKeyUp={this.displayNameKeyUp}
+                                        onChange={this.onDisplayNameChange}
+                                        type='text'
+                                        ref='displayName'
+                                        className='form-control'
+                                        placeholder='Enter display name'
+                                        value={this.state.displayName}
+                                        maxLength='64'
+                                    />
+                                    {displayNameError}
                                 </div>
-                                <div className={ this.state.name_error ? "form-group has-error" : "form-group" }>
+                                <div className={nameClass}>
                                     <label className='control-label'>Handle</label>
-                                    <input onChange={this.onNameChange} type="text" className="form-control" ref="channel_name" placeholder="lowercase alphanumeric's only" value={this.state.channel_name} maxLength="64" />
-                                    { name_error }
+                                    <input
+                                        onChange={this.onNameChange}
+                                        type='text'
+                                        className='form-control'
+                                        ref='channelName'
+                                        placeholder='lowercase alphanumeric&#39;s only'
+                                        value={this.state.channelName}
+                                        maxLength='64'
+                                    />
+                                    {nameError}
                                 </div>
-                                { server_error }
+                                {serverError}
                             </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
-                                <button onClick={this.handleSubmit} type="submit" className="btn btn-primary">Save</button>
+                            <div className='modal-footer'>
+                                <button
+                                    type='button'
+                                    className='btn btn-default'
+                                    data-dismiss='modal'
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={this.handleSubmit}
+                                    type='submit'
+                                    className='btn btn-primary'
+                                >
+                                    Save
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -149,4 +219,4 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}

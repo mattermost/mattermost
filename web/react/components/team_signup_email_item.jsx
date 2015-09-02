@@ -1,28 +1,28 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
+const Utils = require('../utils/utils.jsx');
 
-module.exports = React.createClass({
-    displayName: 'TeamSignupEmailItem',
-    propTypes: {
-        focus: React.PropTypes.bool,
-        email: React.PropTypes.string
-    },
-    getInitialState: function() {
-        return {};
-    },
-    getValue: function() {
-        return this.refs.email.getDOMNode().value.trim();
-    },
-    validate: function(teamEmail) {
-        var email = this.refs.email.getDOMNode().value.trim().toLowerCase();
+export default class TeamSignupEmailItem extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.getValue = this.getValue.bind(this);
+        this.validate = this.validate.bind(this);
+
+        this.state = {};
+    }
+    getValue() {
+        return React.findDOMNode(this.refs.email).value.trim();
+    }
+    validate(teamEmail) {
+        const email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
 
         if (!email) {
             return true;
         }
 
-        if (!utils.isEmail(email)) {
+        if (!Utils.isEmail(email)) {
             this.state.emailError = 'Please enter a valid email address';
             this.setState(this.state);
             return false;
@@ -31,13 +31,14 @@ module.exports = React.createClass({
             this.setState(this.state);
             return false;
         }
+
         this.state.emailError = '';
         this.setState(this.state);
         return true;
-    },
-    render: function() {
-        var emailError = null;
-        var emailDivClass = 'form-group';
+    }
+    render() {
+        let emailError = null;
+        let emailDivClass = 'form-group';
         if (this.state.emailError) {
             emailError = <label className='control-label'>{this.state.emailError}</label>;
             emailDivClass += ' has-error';
@@ -45,9 +46,22 @@ module.exports = React.createClass({
 
         return (
             <div className={emailDivClass}>
-                <input autoFocus={this.props.focus} type='email' ref='email' className='form-control' placeholder='Email Address' defaultValue={this.props.email} maxLength='128' />
+                <input
+                    autoFocus={this.props.focus}
+                    type='email'
+                    ref='email'
+                    className='form-control'
+                    placeholder='Email Address'
+                    defaultValue={this.props.email}
+                    maxLength='128'
+                />
                 {emailError}
             </div>
         );
     }
-});
+}
+
+TeamSignupEmailItem.propTypes = {
+    focus: React.PropTypes.bool,
+    email: React.PropTypes.string
+};

@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
+const Utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
 
 export default class EmailSignUpPage extends React.Component {
     constructor() {
@@ -14,11 +14,11 @@ export default class EmailSignUpPage extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        var team = {};
-        var state = {serverError: ''};
+        let team = {};
+        let state = {serverError: ''};
 
-        team.email = this.refs.email.getDOMNode().value.trim().toLowerCase();
-        if (!team.email || !utils.isEmail(team.email)) {
+        team.email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
+        if (!team.email || !Utils.isEmail(team.email)) {
             state.emailError = 'Please enter a valid email address';
             state.inValid = true;
         } else {
@@ -30,12 +30,12 @@ export default class EmailSignUpPage extends React.Component {
             return;
         }
 
-        client.signupTeam(team.email,
+        Client.signupTeam(team.email,
             function success(data) {
                 if (data.follow_link) {
                     window.location.href = data.follow_link;
                 } else {
-                    window.location.href = '/signup_team_confirm/?email=' + encodeURIComponent(team.email);
+                    window.location.href = `/signup_team_confirm/?email=${encodeURIComponent(team.email)}`;
                 }
             },
             function fail(err) {
@@ -69,7 +69,7 @@ export default class EmailSignUpPage extends React.Component {
                     </button>
                 </div>
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{'Find my ' + strings.Team}</a></span>
+                    <span><a href='/find_team'>{`Find my ${strings.Team}`}</a></span>
                 </div>
             </form>
         );

@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SettingItemMin = require('./setting_item_min.jsx');
-var SettingItemMax = require('./setting_item_max.jsx');
+const SettingItemMin = require('./setting_item_min.jsx');
+const SettingItemMax = require('./setting_item_max.jsx');
 
-var client = require('../utils/client.jsx');
-var utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
+const Utils = require('../utils/utils.jsx');
 
 export default class GeneralTab extends React.Component {
     constructor(props) {
@@ -21,10 +21,10 @@ export default class GeneralTab extends React.Component {
     handleNameSubmit(e) {
         e.preventDefault();
 
-        var state = {serverError: '', clientError: ''};
-        var valid = true;
+        let state = {serverError: '', clientError: ''};
+        let valid = true;
 
-        var name = this.state.name.trim();
+        const name = this.state.name.trim();
         if (!name) {
             state.clientError = 'This field is required';
             valid = false;
@@ -41,10 +41,10 @@ export default class GeneralTab extends React.Component {
             return;
         }
 
-        var data = {};
+        let data = {};
         data.new_name = name;
 
-        client.updateTeamDisplayName(data,
+        Client.updateTeamDisplayName(data,
             function nameChangeSuccess() {
                 this.props.updateSection('');
                 $('#team_settings').modal('hide');
@@ -84,8 +84,8 @@ export default class GeneralTab extends React.Component {
         this.setState({name: e.target.value});
     }
     render() {
-        var clientError = null;
-        var serverError = null;
+        let clientError = null;
+        let serverError = null;
         if (this.state.clientError) {
             clientError = this.state.clientError;
         }
@@ -93,18 +93,21 @@ export default class GeneralTab extends React.Component {
             serverError = this.state.serverError;
         }
 
-        var nameSection;
+        let nameSection;
 
         if (this.props.activeSection === 'name') {
             let inputs = [];
 
-            let teamNameLabel = utils.toTitleCase(strings.Team) + ' Name';
-            if (utils.isMobile()) {
+            let teamNameLabel = Utils.toTitleCase(strings.Team) + ' Name';
+            if (Utils.isMobile()) {
                 teamNameLabel = '';
             }
 
             inputs.push(
-                <div key='teamNameSetting' className='form-group'>
+                <div
+                    key='teamNameSetting'
+                    className='form-group'
+                >
                     <label className='col-sm-5 control-label'>{teamNameLabel}</label>
                     <div className='col-sm-7'>
                         <input
@@ -119,7 +122,7 @@ export default class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMax
-                    title={utils.toTitleCase(strings.Team) +  ' Name'}
+                    title={`${Utils.toTitleCase(strings.Team)} Name`}
                     inputs={inputs}
                     submit={this.handleNameSubmit}
                     server_error={serverError}
@@ -132,7 +135,7 @@ export default class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMin
-                    title={utils.toTitleCase(strings.Team) +  ' Name'}
+                    title={`${Utils.toTitleCase(strings.Team)} Name`}
                     describe={describe}
                     updateSection={this.onUpdateSection}
                 />

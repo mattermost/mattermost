@@ -1,24 +1,48 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var SocketStore = require('../stores/socket_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var Textbox = require('./textbox.jsx');
-var MsgTyping = require('./msg_typing.jsx');
-var FileUpload = require('./file_upload.jsx');
-var FilePreview = require('./file_preview.jsx');
-var utils = require('../utils/utils.jsx');
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+const Client = require('../utils/client.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const SocketStore = require('../stores/socket_store.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
+const UserStore = require('../stores/user_store.jsx');
+const PostStore = require('../stores/post_store.jsx');
+const Textbox = require('./textbox.jsx');
+const MsgTyping = require('./msg_typing.jsx');
+const FileUpload = require('./file_upload.jsx');
+const FilePreview = require('./file_preview.jsx');
+const Utils = require('../utils/utils.jsx');
+const Constants = require('../utils/constants.jsx');
+const ActionTypes = Constants.ActionTypes;
 
-module.exports = React.createClass({
-    lastTime: 0,
-    handleSubmit: function(e) {
+export default class CreateComment extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.lastTime = 0;
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
+        this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleUploadStart = this.handleUploadStart.bind(this);
+        this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
+        this.handleUploadError = this.handleUploadError.bind(this);
+        this.removePreview = this.removePreview.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.getFileCount = this.getFileCount.bind(this);
+
+        PostStore.clearCommentDraftUploads();
+
+        const draft = PostStore.getCommentDraft(this.props.rootId);
+        this.state = {
+            messageText: draft.message,
+            uploadsInProgress: draft.uploadsInProgress,
+            previews: draft.previews,
+            submitting: false
+        };
+    }
+    handleSubmit(e) {
         e.preventDefault();
 
         if (this.state.uploadsInProgress.length > 0) {
@@ -29,7 +53,7 @@ module.exports = React.createClass({
             return;
         }
 
-        var post = {};
+        let post = {};
         post.filenames = [];
         post.message = this.state.messageText;
 
@@ -38,30 +62,30 @@ module.exports = React.createClass({
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: 'Comment length must be less than ' + Constants.CHARACTER_LIMIT + ' characters.'});
+            this.setState({postError: `Comment length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
             return;
         }
 
-        var user_id = UserStore.getCurrentId();
+        const userId = UserStore.getCurrentId();
 
         post.channel_id = this.props.channelId;
         post.root_id = this.props.rootId;
         post.parent_id = this.props.rootId;
         post.filenames = this.state.previews;
-        var time = utils.getTimestamp();
-        post.pending_post_id = user_id + ':'+ time;
-        post.user_id = user_id;
+        const time = Utils.getTimestamp();
+        post.pending_post_id = `${userId}:${time}`;
+        post.user_id = userId;
         post.create_at = time;
 
         PostStore.storePendingPost(post);
         PostStore.storeCommentDraft(this.props.rootId, null);
 
-        client.createPost(post, ChannelStore.getCurrent(),
-            function(data) {
+        Client.createPost(post, ChannelStore.getCurrent(),
+            function handlePostSuccess(data) {
                 AsyncClient.getPosts(this.props.channelId);
 
-                var channel = ChannelStore.get(this.props.channelId);
-                var member = ChannelStore.getMember(this.props.channelId);
+                const channel = ChannelStore.get(this.props.channelId);
+                let member = ChannelStore.getMember(this.props.channelId);
                 member.msg_count = channel.total_msg_count;
                 member.last_viewed_at = Date.now();
                 ChannelStore.setChannelMember(member);
@@ -71,8 +95,8 @@ module.exports = React.createClass({
                     post: data
                 });
             }.bind(this),
-            function(err) {
-                var state = {};
+            function handlePostError(err) {
+                let state = {};
 
                 if (err.message === 'Invalid RootId parameter') {
                     if ($('#post_deleted').length > 0) {
@@ -90,76 +114,76 @@ module.exports = React.createClass({
         );
 
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
-    },
-    commentMsgKeyPress: function(e) {
+    }
+    commentMsgKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            this.refs.textbox.getDOMNode().blur();
+            React.findDOMNode(this.refs.textbox).blur();
             this.handleSubmit(e);
         }
 
-        var t = Date.now();
+        const t = Date.now();
         if ((t - this.lastTime) > 5000) {
-            SocketStore.sendMessage({channel_id: this.props.channelId, action: 'typing', props: {'parent_id': this.props.rootId}});
+            SocketStore.sendMessage({channel_id: this.props.channelId, action: 'typing', props: {parent_id: this.props.rootId}});
             this.lastTime = t;
         }
-    },
-    handleUserInput: function(messageText) {
-        var draft = PostStore.getCommentDraft(this.props.rootId);
+    }
+    handleUserInput(messageText) {
+        let draft = PostStore.getCommentDraft(this.props.rootId);
         draft.message = messageText;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
         $('.post-right__scroll').perfectScrollbar('update');
         this.setState({messageText: messageText});
-    },
-    handleUploadStart: function(clientIds, channelId) {
-        var draft = PostStore.getCommentDraft(this.props.rootId);
+    }
+    handleUploadStart(clientIds) {
+        let draft = PostStore.getCommentDraft(this.props.rootId);
 
-        draft['uploadsInProgress'] = draft['uploadsInProgress'].concat(clientIds);
+        draft.uploadsInProgress = draft.uploadsInProgress.concat(clientIds);
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        this.setState({uploadsInProgress: draft['uploadsInProgress']});
-    },
-    handleFileUploadComplete: function(filenames, clientIds, channelId) {
-        var draft = PostStore.getCommentDraft(this.props.rootId);
+        this.setState({uploadsInProgress: draft.uploadsInProgress});
+    }
+    handleFileUploadComplete(filenames, clientIds) {
+        let draft = PostStore.getCommentDraft(this.props.rootId);
 
         // remove each finished file from uploads
-        for (var i = 0; i < clientIds.length; i++) {
-            var index = draft['uploadsInProgress'].indexOf(clientIds[i]);
+        for (let i = 0; i < clientIds.length; i++) {
+            const index = draft.uploadsInProgress.indexOf(clientIds[i]);
 
             if (index !== -1) {
-                draft['uploadsInProgress'].splice(index, 1);
+                draft.uploadsInProgress.splice(index, 1);
             }
         }
 
-        draft['previews'] = draft['previews'].concat(filenames);
+        draft.previews = draft.previews.concat(filenames);
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        this.setState({uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
-    },
-    handleUploadError: function(err, clientId) {
+        this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
+    }
+    handleUploadError(err, clientId) {
         if (clientId !== -1) {
-            var draft = PostStore.getCommentDraft(this.props.rootId);
+            let draft = PostStore.getCommentDraft(this.props.rootId);
 
-            var index = draft['uploadsInProgress'].indexOf(clientId);
+            const index = draft.uploadsInProgress.indexOf(clientId);
             if (index !== -1) {
-                draft['uploadsInProgress'].splice(index, 1);
+                draft.uploadsInProgress.splice(index, 1);
             }
 
             PostStore.storeCommentDraft(this.props.rootId, draft);
 
-            this.setState({uploadsInProgress: draft['uploadsInProgress'], serverError: err});
+            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: err});
         } else {
             this.setState({serverError: err});
         }
-    },
-    removePreview: function(id) {
-        var previews = this.state.previews;
-        var uploadsInProgress = this.state.uploadsInProgress;
+    }
+    removePreview(id) {
+        let previews = this.state.previews;
+        let uploadsInProgress = this.state.uploadsInProgress;
 
         // id can either be the path of an uploaded file or the client id of an in progress upload
-        var index = previews.indexOf(id);
+        let index = previews.indexOf(id);
         if (index !== -1) {
             previews.splice(index, 1);
         } else {
@@ -171,30 +195,24 @@ module.exports = React.createClass({
             }
         }
 
-        var draft = PostStore.getCommentDraft(this.props.rootId);
+        let draft = PostStore.getCommentDraft(this.props.rootId);
         draft.previews = previews;
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         this.setState({previews: previews, uploadsInProgress: uploadsInProgress});
-    },
-    getInitialState: function() {
-        PostStore.clearCommentDraftUploads();
-
-        var draft = PostStore.getCommentDraft(this.props.rootId);
-        return {messageText: draft['message'], uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews'], submitting: false};
-    },
-    componentWillReceiveProps: function(newProps) {
+    }
+    componentWillReceiveProps(newProps) {
         if (newProps.rootId !== this.props.rootId) {
-            var draft = PostStore.getCommentDraft(newProps.rootId);
-            this.setState({messageText: draft['message'], uploadsInProgress: draft['uploadsInProgress'], previews: draft['previews']});
+            const draft = PostStore.getCommentDraft(newProps.rootId);
+            this.setState({messageText: draft.message, uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
         }
-    },
-    getFileCount: function(channelId) {
+    }
+    getFileCount() {
         return this.state.previews.length + this.state.uploadsInProgress.length;
-    },
-    render: function() {
-        var serverError = null;
+    }
+    render() {
+        let serverError = null;
         if (this.state.serverError) {
             serverError = (
                 <div className='form-group has-error'>
@@ -203,22 +221,23 @@ module.exports = React.createClass({
             );
         }
 
-        var postError = null;
+        let postError = null;
         if (this.state.postError) {
             postError = <label className='control-label'>{this.state.postError}</label>;
         }
 
-        var preview = null;
+        let preview = null;
         if (this.state.previews.length > 0 || this.state.uploadsInProgress.length > 0) {
             preview = (
                 <FilePreview
                     files={this.state.previews}
                     onRemove={this.removePreview}
-                    uploadsInProgress={this.state.uploadsInProgress} />
+                    uploadsInProgress={this.state.uploadsInProgress}
+                />
             );
         }
 
-        var postFooterClassName = 'post-create-footer';
+        let postFooterClassName = 'post-create-footer';
         if (postError) {
             postFooterClassName += ' has-error';
         }
@@ -226,7 +245,10 @@ module.exports = React.createClass({
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
-                    <div id={this.props.rootId} className='post-create-body comment-create-body'>
+                    <div
+                        id={this.props.rootId}
+                        className='post-create-body comment-create-body'
+                    >
                         <Textbox
                             onUserInput={this.handleUserInput}
                             onKeyPress={this.commentMsgKeyPress}
@@ -234,7 +256,8 @@ module.exports = React.createClass({
                             createMessage='Add a comment...'
                             initialText=''
                             id='reply_textbox'
-                            ref='textbox' />
+                            ref='textbox'
+                        />
                         <FileUpload
                             ref='fileUpload'
                             getFileCount={this.getFileCount}
@@ -242,11 +265,20 @@ module.exports = React.createClass({
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
                             postType='comment'
-                            channelId={this.props.channelId} />
+                            channelId={this.props.channelId}
+                        />
                     </div>
-                    <MsgTyping channelId={this.props.channelId} parentId={this.props.rootId}  />
+                    <MsgTyping
+                        channelId={this.props.channelId}
+                        parentId={this.props.rootId}
+                    />
                     <div className={postFooterClassName}>
-                        <input type='button' className='btn btn-primary comment-btn pull-right' value='Add Comment' onClick={this.handleSubmit} />
+                        <input
+                            type='button'
+                            className='btn btn-primary comment-btn pull-right'
+                            value='Add Comment'
+                            onClick={this.handleSubmit}
+                        />
                         {postError}
                         {serverError}
                     </div>
@@ -255,4 +287,9 @@ module.exports = React.createClass({
             </form>
         );
     }
-});
+}
+
+CreateComment.propTypes = {
+    channelId: React.PropTypes.string.isRequired,
+    rootId: React.PropTypes.string.isRequired
+};

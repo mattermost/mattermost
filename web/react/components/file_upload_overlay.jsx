@@ -1,12 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-module.exports = React.createClass({
-    displayName: 'FileUploadOverlay',
-    propTypes: {
-        overlayType: React.PropTypes.string
-    },
-    render: function() {
+export default class FileUploadOverlay extends React.Component {
+    render() {
         var overlayClass = 'file-overlay hidden';
         if (this.props.overlayType === 'right') {
             overlayClass += ' right-file-overlay';
@@ -23,4 +19,8 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
+
+FileUploadOverlay.propTypes = {
+    overlayType: React.PropTypes.string
+};
