@@ -48,7 +48,7 @@ export default class TeamMembers extends React.Component {
             self.setState({render_members: false});
         });
 
-        $(React.findDOMNOde(this.refs.modal)).on('show.bs.modal', function hide() {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function hide() {
             self.setState({render_members: true});
         });
     }
