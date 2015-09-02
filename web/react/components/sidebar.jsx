@@ -387,13 +387,13 @@ export default class Sidebar extends React.Component {
                             this.setState({loadingDMChannel: -1});
                             AsyncClient.getChannel(data.id);
                             Utils.switchChannel(data);
-                        },
+                        }.bind(this),
                         function error() {
                             this.setState({loadingDMChannel: -1});
                             window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
-                        }
+                        }.bind(this)
                     );
-                };
+                }.bind(this);
             }
         }
 
