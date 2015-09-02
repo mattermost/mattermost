@@ -3,7 +3,6 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -14,36 +13,42 @@ var CHANGE_EVENT = 'change';
 var MORE_CHANGE_EVENT = 'change';
 var EXTRA_INFO_EVENT = 'extra_info';
 
-var ChannelStore = assign({}, EventEmitter.prototype, {
-    currentId: null,
-    emitChange: function() {
+class ChannelStoreClass extends EventEmitter {
+    constructor(props) {
+        super(props);
+
+        this.setMaxListeners(11);
+
+        this.currentId = null;
+    }
+    emitChange() {
         this.emit(CHANGE_EVENT);
-    },
-    addChangeListener: function(callback) {
+    }
+    addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
-    },
-    removeChangeListener: function(callback) {
+    }
+    removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
-    emitMoreChange: function() {
+    }
+    emitMoreChange() {
         this.emit(MORE_CHANGE_EVENT);
-    },
-    addMoreChangeListener: function(callback) {
+    }
+    addMoreChangeListener(callback) {
         this.on(MORE_CHANGE_EVENT, callback);
-    },
-    removeMoreChangeListener: function(callback) {
+    }
+    removeMoreChangeListener(callback) {
         this.removeListener(MORE_CHANGE_EVENT, callback);
-    },
-    emitExtraInfoChange: function() {
+    }
+    emitExtraInfoChange() {
         this.emit(EXTRA_INFO_EVENT);
-    },
-    addExtraInfoChangeListener: function(callback) {
+    }
+    addExtraInfoChangeListener(callback) {
         this.on(EXTRA_INFO_EVENT, callback);
-    },
-    removeExtraInfoChangeListener: function(callback) {
+    }
+    removeExtraInfoChangeListener(callback) {
         this.removeListener(EXTRA_INFO_EVENT, callback);
-    },
-    findFirstBy: function(field, value) {
+    }
+    findFirstBy(field, value) {
         var channels = this.pGetChannels();
         for (var i = 0; i < channels.length; i++) {
             if (channels[i][field] === value) {
@@ -52,39 +57,39 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
         }
 
         return null;
-    },
-    get: function(id) {
+    }
+    get(id) {
         return this.findFirstBy('id', id);
-    },
-    getMember: function(id) {
+    }
+    getMember(id) {
         return this.getAllMembers()[id];
-    },
-    getByName: function(name) {
+    }
+    getByName(name) {
         return this.findFirstBy('name', name);
-    },
-    getAll: function() {
+    }
+    getAll() {
         return this.pGetChannels();
-    },
-    getAllMembers: function() {
+    }
+    getAllMembers() {
         return this.pGetChannelMembers();
-    },
-    getMoreAll: function() {
+    }
+    getMoreAll() {
         return this.pGetMoreChannels();
-    },
-    setCurrentId: function(id) {
+    }
+    setCurrentId(id) {
         this.currentId = id;
-    },
-    setLastVisitedName: function(name) {
+    }
+    setLastVisitedName(name) {
         if (name == null) {
             BrowserStore.removeItem('last_visited_name');
         } else {
             BrowserStore.setItem('last_visited_name', name);
         }
-    },
-    getLastVisitedName: function() {
+    }
+    getLastVisitedName() {
         return BrowserStore.getItem('last_visited_name');
-    },
-    resetCounts: function(id) {
+    }
+    resetCounts(id) {
         var cm = this.pGetChannelMembers();
         for (var cmid in cm) {
             if (cm[cmid].channel_id === id) {
@@ -97,36 +102,36 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
             }
         }
         this.pStoreChannelMembers(cm);
-    },
-    getCurrentId: function() {
+    }
+    getCurrentId() {
         return this.currentId;
-    },
-    getCurrent: function() {
+    }
+    getCurrent() {
         var currentId = this.getCurrentId();
 
         if (currentId) {
             return this.get(currentId);
-        } else {
-            return null;
         }
-    },
-    getCurrentMember: function() {
-        var currentId = ChannelStore.getCurrentId();
+
+        return null;
+    }
+    getCurrentMember() {
+        var currentId = this.getCurrentId();
 
         if (currentId) {
             return this.getAllMembers()[currentId];
-        } else {
-            return null;
         }
-    },
-    setChannelMember: function(member) {
+
+        return null;
+    }
+    setChannelMember(member) {
         var members = this.pGetChannelMembers();
         members[member.channel_id] = member;
         this.pStoreChannelMembers(members);
         this.emitChange();
-    },
-    getCurrentExtraInfo: function() {
-        var currentId = ChannelStore.getCurrentId();
+    }
+    getCurrentExtraInfo() {
+        var currentId = this.getCurrentId();
         var extra = null;
 
         if (currentId) {
@@ -138,8 +143,8 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
         }
 
         return extra;
-    },
-    getExtraInfo: function(channelId) {
+    }
+    getExtraInfo(channelId) {
         var extra = null;
 
         if (channelId) {
@@ -151,8 +156,8 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
         }
 
         return extra;
-    },
-    pStoreChannel: function(channel) {
+    }
+    pStoreChannel(channel) {
         var channels = this.pGetChannels();
         var found;
 
@@ -179,28 +184,28 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
         });
 
         this.pStoreChannels(channels);
-    },
-    pStoreChannels: function(channels) {
+    }
+    pStoreChannels(channels) {
         BrowserStore.setItem('channels', channels);
-    },
-    pGetChannels: function() {
+    }
+    pGetChannels() {
         return BrowserStore.getItem('channels', []);
-    },
-    pStoreChannelMember: function(channelMember) {
+    }
+    pStoreChannelMember(channelMember) {
         var members = this.pGetChannelMembers();
         members[channelMember.channel_id] = channelMember;
         this.pStoreChannelMembers(members);
-    },
-    pStoreChannelMembers: function(channelMembers) {
+    }
+    pStoreChannelMembers(channelMembers) {
         BrowserStore.setItem('channel_members', channelMembers);
-    },
-    pGetChannelMembers: function() {
+    }
+    pGetChannelMembers() {
         return BrowserStore.getItem('channel_members', {});
-    },
-    pStoreMoreChannels: function(channels) {
+    }
+    pStoreMoreChannels(channels) {
         BrowserStore.setItem('more_channels', channels);
-    },
-    pGetMoreChannels: function() {
+    }
+    pGetMoreChannels() {
         var channels = BrowserStore.getItem('more_channels');
 
         if (channels == null) {
@@ -209,66 +214,67 @@ var ChannelStore = assign({}, EventEmitter.prototype, {
         }
 
         return channels;
-    },
-    pStoreExtraInfos: function(extraInfos) {
+    }
+    pStoreExtraInfos(extraInfos) {
         BrowserStore.setItem('extra_infos', extraInfos);
-    },
-    pGetExtraInfos: function() {
+    }
+    pGetExtraInfos() {
         return BrowserStore.getItem('extra_infos', {});
-    },
-    isDefault: function(channel) {
+    }
+    isDefault(channel) {
         return channel.name === Constants.DEFAULT_CHANNEL;
     }
-});
+}
 
-ChannelStore.dispatchToken = AppDispatcher.register(function(payload) {
+var ChannelStore = new ChannelStoreClass();
+
+ChannelStore.dispatchToken = AppDispatcher.register(function handleAction(payload) {
     var action = payload.action;
     var currentId;
 
-    switch(action.type) {
+    switch (action.type) {
+    case ActionTypes.CLICK_CHANNEL:
+        ChannelStore.setCurrentId(action.id);
+        ChannelStore.setLastVisitedName(action.name);
+        ChannelStore.resetCounts(action.id);
+        ChannelStore.emitChange();
+        break;
 
-        case ActionTypes.CLICK_CHANNEL:
-            ChannelStore.setCurrentId(action.id);
-            ChannelStore.setLastVisitedName(action.name);
-            ChannelStore.resetCounts(action.id);
-            ChannelStore.emitChange();
-            break;
+    case ActionTypes.RECIEVED_CHANNELS:
+        ChannelStore.pStoreChannels(action.channels);
+        ChannelStore.pStoreChannelMembers(action.members);
+        currentId = ChannelStore.getCurrentId();
+        if (currentId) {
+            ChannelStore.resetCounts(currentId);
+        }
+        ChannelStore.emitChange();
+        break;
 
-        case ActionTypes.RECIEVED_CHANNELS:
-            ChannelStore.pStoreChannels(action.channels);
-            ChannelStore.pStoreChannelMembers(action.members);
-            currentId = ChannelStore.getCurrentId();
-            if (currentId) {
-                ChannelStore.resetCounts(currentId);
-            }
-            ChannelStore.emitChange();
-            break;
+    case ActionTypes.RECIEVED_CHANNEL:
+        ChannelStore.pStoreChannel(action.channel);
+        ChannelStore.pStoreChannelMember(action.member);
+        currentId = ChannelStore.getCurrentId();
+        if (currentId) {
+            ChannelStore.resetCounts(currentId);
+        }
+        ChannelStore.emitChange();
+        break;
 
-        case ActionTypes.RECIEVED_CHANNEL:
-            ChannelStore.pStoreChannel(action.channel);
-            ChannelStore.pStoreChannelMember(action.member);
-            currentId = ChannelStore.getCurrentId();
-            if (currentId) {
-                ChannelStore.resetCounts(currentId);
-            }
-            ChannelStore.emitChange();
-            break;
+    case ActionTypes.RECIEVED_MORE_CHANNELS:
+        ChannelStore.pStoreMoreChannels(action.channels);
+        ChannelStore.emitMoreChange();
+        break;
 
-        case ActionTypes.RECIEVED_MORE_CHANNELS:
-            ChannelStore.pStoreMoreChannels(action.channels);
-            ChannelStore.emitMoreChange();
-            break;
+    case ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO:
+        var extraInfos = ChannelStore.pGetExtraInfos();
+        extraInfos[action.extra_info.id] = action.extra_info;
+        ChannelStore.pStoreExtraInfos(extraInfos);
+        ChannelStore.emitExtraInfoChange();
+        break;
 
-        case ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO:
-            var extraInfos = ChannelStore.pGetExtraInfos();
-            extraInfos[action.extra_info.id] = action.extra_info;
-            ChannelStore.pStoreExtraInfos(extraInfos);
-            ChannelStore.emitExtraInfoChange();
-            break;
-
-        default:
+    default:
+        break;
     }
 });
 
-ChannelStore.setMaxListeners(11);
-module.exports = ChannelStore;
+export default ChannelStore;
