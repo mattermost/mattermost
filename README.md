@@ -40,7 +40,9 @@ Depending on your needs, there are multiple ways to install Mattermost:
 
 ### Product Evaluation 
 
-- [Single Container Installation and Upgrade](doc/install/single-container-install.md) - Explore product functionality using a single-container Docker install on a local machine (Mac OSX, Ubuntu, or Arch Linux) or on AWS Beanstalk. Optionally setup email and upgrade your instance using DockerHub. 
+- [Local Machine Install and Upgrade with Docker](doc/install/single-container-install.md) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
+
+- [AWS EBS Install and Upgrade with Docker](doc/install/aws-ebs-setup.md) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
 
 ### Development 
 
