@@ -33,7 +33,9 @@ export default class RhsThread extends React.Component {
 
         if (pendingPostList) {
             for (var pid in pendingPostList.posts) {
-                postList.posts[pid] = pendingPostList.posts[pid];
+                if (pendingPostList.posts.hasOwnProperty(pid)) {
+                    postList.posts[pid] = pendingPostList.posts[pid];
+                }
             }
         }
 
@@ -81,7 +83,9 @@ export default class RhsThread extends React.Component {
         if (currentPosts.posts[currentPosts.order[0]].channel_id === currentSelected.posts[currentSelected.order[0]].channel_id) {
             currentSelected.posts = {};
             for (var postId in currentPosts.posts) {
-                currentSelected.posts[postId] = currentPosts.posts[postId];
+                if (currentPosts.posts.hasOwnProperty(postId)) {
+                    currentSelected.posts[postId] = currentPosts.posts[postId];
+                }
             }
 
             PostStore.storeSelectedPost(currentSelected);
@@ -128,9 +132,11 @@ export default class RhsThread extends React.Component {
         var postsArray = [];
 
         for (var postId in postList.posts) {
-            var cpost = postList.posts[postId];
-            if (cpost.root_id === rootPost.id) {
-                postsArray.push(cpost);
+            if (postList.posts.hasOwnProperty(postId)) {
+                var cpost = postList.posts[postId];
+                if (cpost.root_id === rootPost.id) {
+                    postsArray.push(cpost);
+                }
             }
         }
 
@@ -209,6 +215,7 @@ RhsThread.defaultProps = {
     fromSearch: '',
     isMentionSearch: false
 };
+
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
     isMentionSearch: React.PropTypes.bool

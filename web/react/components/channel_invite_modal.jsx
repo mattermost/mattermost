@@ -9,7 +9,6 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
-
 export default class ChannelInviteModal extends React.Component {
     constructor() {
         super();
@@ -129,15 +128,37 @@ export default class ChannelInviteModal extends React.Component {
         if (this.state.loading) {
             content = (<LoadingScreen />);
         } else {
-            content = (<MemberList memberList={this.state.nonmembers} isAdmin={isAdmin} handleInvite={this.handleInvite} />);
+            content = (
+                <MemberList
+                    memberList={this.state.nonmembers}
+                    isAdmin={isAdmin}
+                    handleInvite={this.handleInvite}
+                />
+            );
         }
 
         return (
-            <div className='modal fade' id='channel_invite' tabIndex='-1' role='dialog' aria-hidden='true'>
-              <div className='modal-dialog' role='document'>
+            <div
+                className='modal fade'
+                id='channel_invite'
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'
+            >
+              <div
+                className='modal-dialog'
+                role='document'
+              >
                 <div className='modal-content'>
                   <div className='modal-header'>
-                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
+                    <button
+                        type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        aria-label='Close'
+                    >
+                        <span aria-hidden='true'>&times;</span>
+                    </button>
                     <h4 className='modal-title'>Add New Members to <span className='name'>{this.state.channelName}</span></h4>
                   </div>
                   <div className='modal-body'>
@@ -145,7 +166,11 @@ export default class ChannelInviteModal extends React.Component {
                     {content}
                   </div>
                   <div className='modal-footer'>
-                    <button type='button' className='btn btn-default' data-dismiss='modal'>Close</button>
+                    <button
+                        type='button'
+                        className='btn btn-default'
+                        data-dismiss='modal'
+                    >Close</button>
                   </div>
                 </div>
               </div>
@@ -153,4 +178,3 @@ export default class ChannelInviteModal extends React.Component {
         );
     }
 }
-ChannelInviteModal.displayName = 'ChannelInviteModal';

@@ -1,25 +1,33 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-module.exports = React.createClass({
-    setPicture: function(file) {
+export default class SettingPicture extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.setPicture = this.setPicture.bind(this);
+    }
+
+    setPicture(file) {
         if (file) {
             var reader = new FileReader();
 
             var img = this.refs.image.getDOMNode();
-            reader.onload = function(e) {
+            reader.onload = function load(e) {
                 $(img).attr('src', e.target.result);
             };
 
             reader.readAsDataURL(file);
         }
-    },
-    componentWillReceiveProps: function(nextProps) {
+    }
+
+    componentWillReceiveProps(nextProps) {
         if (nextProps.picture) {
             this.setPicture(nextProps.picture);
         }
-    },
-    render: function() {
+    }
+
+    render() {
         var clientError = null;
         if (this.props.client_error) {
             clientError = <div className='form-group has-error'><label className='control-label'>{this.props.client_error}</label></div>;
@@ -31,14 +39,31 @@ module.exports = React.createClass({
 
         var img = null;
         if (this.props.picture) {
-            img = (<img ref='image' className='profile-img' src=''/>);
+            img = (
+                <img
+                    ref='image'
+                    className='profile-img'
+                    src=''
+                />
+            );
         } else {
-            img = (<img ref='image' className='profile-img' src={this.props.src}/>);
+            img = (
+                <img
+                    ref='image'
+                    className='profile-img'
+                    src={this.props.src}
+                />
+            );
         }
 
         var confirmButton;
         if (this.props.loadingPicture) {
-            confirmButton = <img className='spinner' src='/static/images/load.gif'/>;
+            confirmButton = (
+                <img
+                    className='spinner'
+                    src='/static/images/load.gif'
+                />
+            );
         } else {
             var confirmButtonClass = 'btn btn-sm';
             if (this.props.submitActive) {
@@ -46,9 +71,15 @@ module.exports = React.createClass({
             } else {
                 confirmButtonClass += ' btn-inactive disabled';
             }
-            confirmButton = <a className={confirmButtonClass} onClick={this.props.submit}>Save</a>;
+
+            confirmButton = (
+                <a
+                    className={confirmButtonClass}
+                    onClick={this.props.submit}
+                >Save</a>
+            );
         }
-        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + config.ProfileWidth + 'px in width and ' + config.ProfileHeight + 'px height.'
+        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + config.ProfileWidth + 'px in width and ' + config.ProfileHeight + 'px height.';
 
         var self = this;
         return (
@@ -65,13 +96,36 @@ module.exports = React.createClass({
                         <li className='setting-list-item'>
                             {serverError}
                             {clientError}
-                            <span className='btn btn-sm btn-primary btn-file sel-btn'>Select<input ref='input' accept='.jpg,.png,.bmp' type='file' onChange={this.props.pictureChange}/></span>
+                            <span className='btn btn-sm btn-primary btn-file sel-btn'
+                            >Select<input
+                                ref='input'
+                                accept='.jpg,.png,.bmp'
+                                type='file'
+                                onChange={this.props.pictureChange}
+                                />
+                            </span>
                             {confirmButton}
-                            <a className='btn btn-sm theme' href='#' onClick={self.props.updateSection}>Cancel</a>
+                            <a
+                                className='btn btn-sm theme'
+                                href='#'
+                                onClick={self.props.updateSection}
+                            >Cancel</a>
                         </li>
                     </ul>
                 </li>
             </ul>
         );
     }
-});
+}
+
+SettingPicture.propTypes = {
+    client_error: React.PropTypes.string,
+    server_error: React.PropTypes.string,
+    src: React.PropTypes.string,
+    picture: React.PropTypes.object,
+    loadingPicture: React.PropTypes.bool,
+    submitActive: React.PropTypes.bool,
+    submit: React.PropTypes.func,
+    title: React.PropTypes.string,
+    pictureChange: React.PropTypes.func
+};

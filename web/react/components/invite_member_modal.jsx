@@ -7,10 +7,28 @@ var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
 
-module.exports = React.createClass({
-    componentDidMount: function() {
+export default class InviteMemberModal extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.addInviteFields = this.addInviteFields.bind(this);
+        this.clearFields = this.clearFields.bind(this);
+        this.removeInviteFields = this.removeInviteFields.bind(this);
+
+        this.state = {
+            inviteIds: [0],
+            idCount: 0,
+            emailErrors: {},
+            firstNameErrors: {},
+            lastNameErrors: {},
+            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
+        };
+    }
+
+    componentDidMount() {
         var self = this;
-        $('#invite_member').on('hide.bs.modal', function(e) {
+        $('#invite_member').on('hide.bs.modal', function hide(e) {
             if ($('#invite_member').attr('data-confirm') === 'true') {
                 $('#invite_member').attr('data-confirm', 'false');
                 return;
@@ -31,11 +49,12 @@ module.exports = React.createClass({
             }
         });
 
-        $('#invite_member').on('hidden.bs.modal', function() {
+        $('#invite_member').on('hidden.bs.modal', function show() {
             self.clearFields();
         });
-    },
-    handleSubmit: function(e) {
+    }
+
+    handleSubmit() {
         if (!this.state.emailEnabled) {
             return;
         }
@@ -90,11 +109,11 @@ module.exports = React.createClass({
         data.invites = invites;
 
         Client.inviteMembers(data,
-            function() {
+            function success() {
                 $(this.refs.modal.getDOMNode()).attr('data-confirm', 'true');
                 $(this.refs.modal.getDOMNode()).modal('hide');
             }.bind(this),
-            function(err) {
+            function fail(err) {
                 if (err.message === 'This person is already on your team') {
                     emailErrors[err.detailed_error] = err.message;
                     this.setState({emailErrors: emailErrors});
@@ -103,18 +122,21 @@ module.exports = React.createClass({
                 }
             }.bind(this)
         );
-    },
-    componentDidUpdate: function() {
+    }
+
+    componentDidUpdate() {
         $(this.refs.modalBody.getDOMNode()).css('max-height', $(window).height() - 200);
         $(this.refs.modalBody.getDOMNode()).css('overflow-y', 'scroll');
-    },
-    addInviteFields: function() {
+    }
+
+    addInviteFields() {
         var count = this.state.idCount + 1;
         var inviteIds = this.state.inviteIds;
         inviteIds.push(count);
         this.setState({inviteIds: inviteIds, idCount: count});
-    },
-    clearFields: function() {
+    }
+
+    clearFields() {
         var inviteIds = this.state.inviteIds;
 
         for (var i = 0; i < inviteIds.length; i++) {
@@ -133,8 +155,9 @@ module.exports = React.createClass({
             firstNameErrors: {},
             lastNameErrors: {}
         });
-    },
-    removeInviteFields: function(index) {
+    }
+
+    removeInviteFields(index) {
         var count = this.state.idCount;
         var inviteIds = this.state.inviteIds;
         var i = inviteIds.indexOf(index);
@@ -145,24 +168,10 @@ module.exports = React.createClass({
             inviteIds.push(++count);
         }
         this.setState({inviteIds: inviteIds, idCount: count});
-    },
-    getInitialState: function() {
-        return {
-            inviteIds: [0],
-            idCount: 0,
-            emailErrors: {},
-            firstNameErrors: {},
-            lastNameErrors: {},
-            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
-        };
-    },
-    render: function() {
-        var currentUser = UserStore.getCurrentUser();
+    }
 
-        var inputDisabled = '';
-        if (!this.state.emailEnabled) {
-            inputDisabled = 'disabled';
-        }
+    render() {
+        var currentUser = UserStore.getCurrentUser();
 
         if (currentUser != null) {
             var inviteSections = [];
@@ -185,7 +194,13 @@ module.exports = React.createClass({
                 var removeButton = null;
                 if (index) {
                     removeButton = (<div>
-                                        <button type='button' className='btn btn-link remove__member' onClick={this.removeInviteFields.bind(this, index)}><span className='fa fa-trash'></span></button>
+                                        <button
+                                            type='button'
+                                            className='btn btn-link remove__member'
+                                            onClick={this.removeInviteFields.bind(this, index)}
+                                        >
+                                            <span className='fa fa-trash'></span>
+                                        </button>
                                     </div>);
                 }
                 var emailClass = 'form-group invite';
@@ -206,13 +221,27 @@ module.exports = React.createClass({
                     nameFields = (<div className='row--invite'>
                                     <div className='col-sm-6'>
                                         <div className={firstNameClass}>
-                                            <input type='text' className='form-control' ref={'first_name' + index} placeholder='First name' maxLength='64' disabled={!this.state.emailEnabled}/>
+                                            <input
+                                                type='text'
+                                                className='form-control'
+                                                ref={'first_name' + index}
+                                                placeholder='First name'
+                                                maxLength='64'
+                                                disabled={!this.state.emailEnabled}
+                                            />
                                             {firstNameError}
                                         </div>
                                     </div>
                                     <div className='col-sm-6'>
                                         <div className={lastNameClass}>
-                                            <input type='text' className='form-control' ref={'last_name' + index} placeholder='Last name' maxLength='64' disabled={!this.state.emailEnabled}/>
+                                            <input
+                                                type='text'
+                                                className='form-control'
+                                                ref={'last_name' + index}
+                                                placeholder='Last name'
+                                                maxLength='64'
+                                                disabled={!this.state.emailEnabled}
+                                            />
                                             {lastNameError}
                                         </div>
                                     </div>
@@ -223,7 +252,15 @@ module.exports = React.createClass({
                     <div key={'key' + index}>
                     {removeButton}
                     <div className={emailClass}>
-                        <input onKeyUp={this.displayNameKeyUp} type='text' ref={'email' + index} className='form-control' placeholder='email@domain.com' maxLength='64' disabled={!this.state.emailEnabled}/>
+                        <input
+                            onKeyUp={this.displayNameKeyUp}
+                            type='text'
+                            ref={'email' + index}
+                            className='form-control'
+                            placeholder='email@domain.com'
+                            maxLength='64'
+                            disabled={!this.state.emailEnabled}
+                        />
                         {emailError}
                     </div>
                     {nameFields}
@@ -242,23 +279,44 @@ module.exports = React.createClass({
                 content = (
                     <div>
                         {serverError}
-                        <button type='button' className='btn btn-default' onClick={this.addInviteFields}>Add another</button>
+                        <button
+                            type='button'
+                            className='btn btn-default'
+                            onClick={this.addInviteFields}
+                        >Add another</button>
                         <br/>
                         <br/>
                         <span>People invited automatically join Town Square channel.</span>
                     </div>
                 );
 
-                sendButton = <button onClick={this.handleSubmit} type='button' className='btn btn-primary'>Send Invitations</button>
+                sendButton =
+                    (
+                        <button
+                            onClick={this.handleSubmit}
+                            type='button'
+                            className='btn btn-primary'
+                        >Send Invitations</button>
+                    );
             } else {
                 var teamInviteLink = null;
                 if (currentUser && this.props.teamType === 'O') {
                     var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id;
-                    var link = <a href='#' data-toggle='modal' data-target='#get_link' data-title='Team Invite' data-value={linkUrl} onClick={
-                        function() {
-                            $('#invite_member').modal('hide');
-                        }
-                    }>Team Invite Link</a>;
+                    var link =
+                        (
+                            <a
+                                href='#'
+                                data-toggle='modal'
+                                data-target='#get_link'
+                                data-title='Team Invite'
+                                data-value={linkUrl}
+                                onClick={
+                                    function click() {
+                                        $('#invite_member').modal('hide');
+                                    }
+                                }
+                            >Team Invite Link</a>
+                    );
 
                     teamInviteLink = (
                         <p>
@@ -277,22 +335,46 @@ module.exports = React.createClass({
 
             return (
                 <div>
-                    <div className='modal fade' ref='modal' id='invite_member' tabIndex='-1' role='dialog' aria-hidden='true'>
+                    <div
+                        className='modal fade'
+                        ref='modal'
+                        id='invite_member'
+                        tabIndex='-1'
+                        role='dialog'
+                        aria-hidden='true'
+                    >
                        <div className='modal-dialog'>
                           <div className='modal-content'>
                             <div className='modal-header'>
-                            <button type='button' className='close' data-dismiss='modal' aria-label='Close' data-reactid='.5.0.0.0.0'><span aria-hidden='true' data-reactid='.5.0.0.0.0.0'>×</span></button>
-                              <h4 className='modal-title' id='myModalLabel'>Invite New Member</h4>
+                            <button
+                                type='button'
+                                className='close'
+                                data-dismiss='modal'
+                                aria-label='Close'
+                            >
+                                <span aria-hidden='true'>×</span>
+                            </button>
+                            <h4
+                                className='modal-title'
+                                id='myModalLabel'
+                            >Invite New Member</h4>
                             </div>
-                            <div ref='modalBody' className='modal-body'>
+                            <div
+                                ref='modalBody'
+                                className='modal-body'
+                            >
                                 <form role='form'>
                                     {inviteSections}
                                 </form>
                                 {content}
                             </div>
                             <div className='modal-footer'>
-                              <button type='button' className='btn btn-default' data-dismiss='modal'>Cancel</button>
-                              {sendButton}
+                                <button
+                                    type='button'
+                                    className='btn btn-default'
+                                    data-dismiss='modal'
+                                >Cancel</button>
+                                {sendButton}
                             </div>
                           </div>
                        </div>
@@ -309,4 +391,8 @@ module.exports = React.createClass({
         }
         return <div/>;
     }
-});
+}
+
+InviteMemberModal.propTypes = {
+    teamType: React.PropTypes.string
+};

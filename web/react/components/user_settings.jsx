@@ -8,56 +8,82 @@ var SecurityTab = require('./user_settings_security.jsx');
 var GeneralTab = require('./user_settings_general.jsx');
 var AppearanceTab = require('./user_settings_appearance.jsx');
 
-module.exports = React.createClass({
-    displayName: 'UserSettings',
-    propTypes: {
-        activeTab: React.PropTypes.string,
-        activeSection: React.PropTypes.string,
-        updateSection: React.PropTypes.func,
-        updateTab: React.PropTypes.func
-    },
-    componentDidMount: function() {
+export default class UserSettings extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onListenerChange = this.onListenerChange.bind(this);
+
+        this.state = {user: UserStore.getCurrentUser()};
+    }
+
+    componentDidMount() {
         UserStore.addChangeListener(this.onListenerChange);
-    },
-    componentWillUnmount: function() {
+    }
+
+    componentWillUnmount() {
         UserStore.removeChangeListener(this.onListenerChange);
-    },
-    onListenerChange: function () {
+    }
+
+    onListenerChange() {
         var user = UserStore.getCurrentUser();
         if (!utils.areStatesEqual(this.state.user, user)) {
             this.setState({user: user});
         }
-    },
-    getInitialState: function() {
-        return {user: UserStore.getCurrentUser()};
-    },
-    render: function() {
+    }
+
+    render() {
         if (this.props.activeTab === 'general') {
             return (
                 <div>
-                    <GeneralTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} />
+                    <GeneralTab
+                        user={this.state.user}
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                    />
                 </div>
             );
         } else if (this.props.activeTab === 'security') {
             return (
                 <div>
-                    <SecurityTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} updateTab={this.props.updateTab} />
+                    <SecurityTab
+                        user={this.state.user}
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
+                    />
                 </div>
             );
         } else if (this.props.activeTab === 'notifications') {
             return (
                 <div>
-                    <NotificationsTab user={this.state.user} activeSection={this.props.activeSection} updateSection={this.props.updateSection} updateTab={this.props.updateTab} />
+                    <NotificationsTab
+                        user={this.state.user}
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
+                    />
                 </div>
             );
         } else if (this.props.activeTab === 'appearance') {
             return (
                 <div>
-                    <AppearanceTab activeSection={this.props.activeSection} updateSection={this.props.updateSection} updateTab={this.props.updateTab} />
+                    <AppearanceTab
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
+                    />
                 </div>
             );
-        } else {
-            return <div/>;
         }
+
+        return <div/>;
     }
-});
+}
+
+UserSettings.propTypes = {
+    activeTab: React.PropTypes.string,
+    activeSection: React.PropTypes.string,
+    updateSection: React.PropTypes.func,
+    updateTab: React.PropTypes.func
+};

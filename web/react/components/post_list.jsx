@@ -51,8 +51,10 @@ export default class PostList extends React.Component {
 
             if (deletedPosts && Object.keys(deletedPosts).length > 0) {
                 for (var pid in deletedPosts) {
-                    postList.posts[pid] = deletedPosts[pid];
-                    postList.order.unshift(pid);
+                    if (deletedPosts.hasOwnProperty(pid)) {
+                        postList.posts[pid] = deletedPosts[pid];
+                        postList.order.unshift(pid);
+                    }
                 }
 
                 postList.order.sort(function postSort(a, b) {
@@ -71,7 +73,9 @@ export default class PostList extends React.Component {
             if (pendingPostList) {
                 postList.order = pendingPostList.order.concat(postList.order);
                 for (var ppid in pendingPostList.posts) {
-                    postList.posts[ppid] = pendingPostList.posts[ppid];
+                    if (pendingPostList.posts.hasOwnProperty(ppid)) {
+                        postList.posts[ppid] = pendingPostList.posts[ppid];
+                    }
                 }
             }
         }
@@ -267,7 +271,6 @@ export default class PostList extends React.Component {
         }
     }
     onSocketChange(msg) {
-        var postList;
         var post;
         if (msg.action === 'posted' || msg.action === 'post_edited') {
             post = JSON.parse(msg.props.post);
@@ -280,7 +283,6 @@ export default class PostList extends React.Component {
             }
 
             post = JSON.parse(msg.props.post);
-            postList = this.state.postList;
 
             PostStore.storeUnseenDeletedPost(post);
             PostStore.removePost(post, true);
@@ -644,11 +646,18 @@ export default class PostList extends React.Component {
         if (posts && this.state.isFirstLoadComplete) {
             postCtls = this.createPosts(posts, order);
         } else {
-            postCtls.push(<LoadingScreen position='absolute' />);
+            postCtls.push(
+                <LoadingScreen
+                    position='absolute'
+                    key='loading'
+                />);
         }
 
         return (
-            <div ref='postlist' className='post-list-holder-by-time'>
+            <div
+                ref='postlist'
+                className='post-list-holder-by-time'
+            >
                 <div className='post-list__table'>
                     <div className='post-list__content'>
                         {moreMessages}

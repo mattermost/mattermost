@@ -7,19 +7,22 @@ var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var utils = require('../utils/utils.jsx');
 
-module.exports = React.createClass({
-    displayName: 'MoreDirectChannels',
-    componentDidMount: function() {
+export default class MoreDirectChannels extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {channels: [], loadingDMChannel: -1};
+    }
+
+    componentDidMount() {
         var self = this;
         $(this.refs.modal.getDOMNode()).on('show.bs.modal', function showModal(e) {
             var button = e.relatedTarget;
             self.setState({channels: $(button).data('channels')});
         });
-    },
-    getInitialState: function() {
-        return {channels: [], loadingDMChannel: -1};
-    },
-    render: function() {
+    }
+
+    render() {
         var self = this;
 
         var directMessageItems = this.state.channels.map(function mapActivityToChannel(channel, index) {
@@ -48,7 +51,12 @@ module.exports = React.createClass({
                 var otherUserId = utils.getUserIdFromChannelName(channel);
 
                 if (self.state.loadingDMChannel === index) {
-                    badge = <img className='channel-loading-gif pull-right' src='/static/images/load.gif'/>;
+                    badge = (
+                        <img
+                            className='channel-loading-gif pull-right'
+                            src='/static/images/load.gif'
+                        />
+                    );
                 }
 
                 if (self.state.loadingDMChannel === -1) {
@@ -73,16 +81,36 @@ module.exports = React.createClass({
             }
 
             return (
-                <li key={channel.name} className={active}><a className={'sidebar-channel ' + titleClass} href='#' onClick={handleClick}>{badge}{channel.display_name}</a></li>
+                <li
+                    key={channel.name}
+                    className={active}
+                >
+                    <a
+                        className={'sidebar-channel ' + titleClass}
+                        href='#'
+                        onClick={handleClick}
+                    >{badge}{channel.display_name}</a>
+                </li>
             );
         });
 
         return (
-            <div className='modal fade' id='more_direct_channels' ref='modal' tabIndex='-1' role='dialog' aria-hidden='true'>
+            <div
+                className='modal fade'
+                id='more_direct_channels'
+                ref='modal'
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'
+            >
                 <div className='modal-dialog'>
                     <div className='modal-content'>
                         <div className='modal-header'>
-                            <button type='button' className='close' data-dismiss='modal'>
+                            <button
+                                type='button'
+                                className='close'
+                                data-dismiss='modal'
+                            >
                                 <span aria-hidden='true'>&times;</span>
                                 <span className='sr-only'>Close</span>
                             </button>
@@ -94,11 +122,15 @@ module.exports = React.createClass({
                             </ul>
                         </div>
                         <div className='modal-footer'>
-                            <button type='button' className='btn btn-default' data-dismiss='modal'>Close</button>
+                            <button
+                                type='button'
+                                className='btn btn-default'
+                                data-dismiss='modal'
+                            >Close</button>
                         </div>
                     </div>
                 </div>
             </div>
         );
     }
-});
+}
