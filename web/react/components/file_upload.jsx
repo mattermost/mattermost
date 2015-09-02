@@ -6,20 +6,19 @@ var Constants = require('../utils/constants.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var utils = require('../utils/utils.jsx');
 
-module.exports = React.createClass({
-    displayName: 'FileUpload',
-    propTypes: {
-        onUploadError: React.PropTypes.func,
-        getFileCount: React.PropTypes.func,
-        onFileUpload: React.PropTypes.func,
-        onUploadStart: React.PropTypes.func,
-        channelId: React.PropTypes.string,
-        postType: React.PropTypes.string
-    },
-    getInitialState: function() {
-        return {requests: {}};
-    },
-    handleChange: function() {
+export default class FileUpload extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleDrop = this.handleDrop.bind(this);
+
+        this.state = {
+            requests: {}
+        };
+    }
+
+    handleChange() {
         var element = $(this.refs.fileInput.getDOMNode());
         var files = element.prop('files');
 
@@ -30,7 +29,7 @@ module.exports = React.createClass({
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
         var numFiles = 0;
-        for (var i = 0; i < files.length; i++) {
+        for (let i = 0; i < files.length; i++) {
             if (files[i].size <= Constants.MAX_FILE_SIZE) {
                 numFiles++;
             }
@@ -42,7 +41,7 @@ module.exports = React.createClass({
             this.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
         }
 
-        for (var i = 0; i < files.length && i < numToUpload; i++) {
+        for (let i = 0; i < files.length && i < numToUpload; i++) {
             if (files[i].size > Constants.MAX_FILE_SIZE) {
                 this.props.onUploadError('Files must be no more than ' + Constants.MAX_FILE_SIZE / 1000000 + ' MB');
                 continue;
@@ -58,7 +57,7 @@ module.exports = React.createClass({
             formData.append('client_ids', clientId);
 
             var request = client.uploadFile(formData,
-                function(data) {
+                function success(data) {
                     var parsedData = $.parseJSON(data);
                     this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
@@ -68,7 +67,7 @@ module.exports = React.createClass({
                     }
                     this.setState({requests: requests});
                 }.bind(this),
-                function(err) {
+                function fail(err) {
                     this.props.onUploadError(err, clientId);
                 }.bind(this)
             );
@@ -87,9 +86,12 @@ module.exports = React.createClass({
                 element[0].type = 'text';
                 element[0].type = 'file';
             }
-        } catch(e) {}
-    },
-    handleDrop: function(e) {
+        } catch(e) {
+            // Do nothing
+        }
+    }
+
+    handleDrop(e) {
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
@@ -120,7 +122,7 @@ module.exports = React.createClass({
                 formData.append('client_ids', clientId);
 
                 var request = client.uploadFile(formData,
-                    function(data) {
+                    function success(data) {
                         var parsedData = $.parseJSON(data);
                         this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
 
@@ -130,7 +132,7 @@ module.exports = React.createClass({
                         }
                         this.setState({requests: requests});
                     }.bind(this),
-                    function(err) {
+                    function fail(err) {
                         this.props.onUploadError(err, clientId);
                     }.bind(this)
                 );
@@ -144,40 +146,41 @@ module.exports = React.createClass({
         } else {
             this.props.onUploadError('Invalid file upload', -1);
         }
-    },
-    componentDidMount: function() {
+    }
+
+    componentDidMount() {
         var inputDiv = this.refs.input.getDOMNode();
         var self = this;
 
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
-                enter: function() {
+                enter() {
                     $('.center-file-overlay').removeClass('hidden');
                 },
-                leave: function() {
+                leave() {
                     $('.center-file-overlay').addClass('hidden');
                 },
-                drop: function(dragsterEvent, e) {
+                drop(dragsterEvent, e) {
                     $('.center-file-overlay').addClass('hidden');
                     self.handleDrop(e);
                 }
             });
         } else if (this.props.postType === 'comment') {
             $('.post-right__container').dragster({
-                enter: function() {
+                enter() {
                     $('.right-file-overlay').removeClass('hidden');
                 },
-                leave: function() {
+                leave() {
                     $('.right-file-overlay').addClass('hidden');
                 },
-                drop: function(dragsterEvent, e) {
+                drop(dragsterEvent, e) {
                     $('.right-file-overlay').addClass('hidden');
                     self.handleDrop(e);
                 }
             });
         }
 
-        document.addEventListener('paste', function(e) {
+        document.addEventListener('paste', function handlePaste(e) {
             var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
 
             if (textarea !== e.target && !$.contains(textarea, e.target)) {
@@ -191,7 +194,7 @@ module.exports = React.createClass({
             var items = e.clipboardData.items;
             var numItems = 0;
             if (items) {
-                for (var i = 0; i < items.length; i++) {
+                for (let i = 0; i < items.length; i++) {
                     if (items[i].type.indexOf('image') !== -1) {
                         var testExt = items[i].type.split('/')[1].toLowerCase();
 
@@ -269,8 +272,9 @@ module.exports = React.createClass({
                 }
             }
         });
-    },
-    cancelUpload: function(clientId) {
+    }
+
+    cancelUpload(clientId) {
         var requests = this.state.requests;
         var request = requests[clientId];
 
@@ -280,15 +284,33 @@ module.exports = React.createClass({
             delete requests[clientId];
             this.setState({requests: requests});
         }
-    },
-    render: function() {
+    }
+
+    render() {
         return (
-            <span ref='input' className='btn btn-file'>
+            <span
+                ref='input'
+                className='btn btn-file'
+            >
                 <span>
                     <i className='glyphicon glyphicon-paperclip' />
                 </span>
-                <input ref='fileInput' type='file' onChange={this.handleChange} multiple/>
+                <input
+                    ref='fileInput'
+                    type='file'
+                    onChange={this.handleChange}
+                    multiple='true'
+                />
             </span>
         );
     }
-});
+}
+
+FileUpload.propTypes = {
+    onUploadError: React.PropTypes.func,
+    getFileCount: React.PropTypes.func,
+    onFileUpload: React.PropTypes.func,
+    onUploadStart: React.PropTypes.func,
+    channelId: React.PropTypes.string,
+    postType: React.PropTypes.string
+};

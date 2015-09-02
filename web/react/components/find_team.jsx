@@ -1,53 +1,57 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 
-module.exports = React.createClass({
-     handleSubmit: function(e) {
+export default class FindTeam extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(e) {
         e.preventDefault();
 
         var state = { };
 
         var email = this.refs.email.getDOMNode().value.trim().toLowerCase();
         if (!email || !utils.isEmail(email)) {
-            state.email_error = "Please enter a valid email address";
+            state.email_error = 'Please enter a valid email address';
             this.setState(state);
             return;
         }
-        else {
-            state.email_error = "";
-        }
+
+        state.email_error = '';
 
         client.findTeamsSendEmail(email,
-            function(data) {
+            function success() {
                 state.sent = true;
                 this.setState(state);
             }.bind(this),
-            function(err) {
+            function fail(err) {
                 state.email_error = err.message;
                 this.setState(state);
             }.bind(this)
         );
-    },
-    getInitialState: function() {
-        return {  };
-    },
-    render: function() {
+    }
 
-        var email_error = this.state.email_error ? <label className='control-label'>{ this.state.email_error }</label> : null;
+    render() {
+        var emailError = null;
+        var emailErrorClass = 'form-group';
 
-        var divStyle = {
-            "marginTop": "50px",
+        if (this.state.email_error) {
+            emailError = <label className='control-label'>{this.state.email_error}</label>;
+            emailErrorClass = 'form-group has-error';
         }
 
         if (this.state.sent) {
             return (
                 <div>
-                    <h4>{"Find Your " + utils.toTitleCase(strings.Team)}</h4>
-                    <p>{"An email was sent with links to any " + strings.TeamPlural + " to which you are a member."}</p>
+                    <h4>{'Find Your ' + utils.toTitleCase(strings.Team)}</h4>
+                    <p>{'An email was sent with links to any ' + strings.TeamPlural + ' to which you are a member.'}</p>
                 </div>
             );
         }
@@ -56,17 +60,25 @@ module.exports = React.createClass({
         <div>
                 <h4>Find Your Team</h4>
                 <form onSubmit={this.handleSubmit}>
-                    <p>{"Get an email with links to any " + strings.TeamPlural + " to which you are a member."}</p>
-                    <div className="form-group">
+                    <p>{'Get an email with links to any ' + strings.TeamPlural + ' to which you are a member.'}</p>
+                    <div className='form-group'>
                         <label className='control-label'>Email</label>
-                        <div className={ email_error ? "form-group has-error" : "form-group" }>
-                            <input type="text" ref="email" className="form-control" placeholder="you@domain.com" maxLength="128" />
-                            { email_error }
+                        <div className={emailErrorClass}>
+                            <input
+                                type='text'
+                                ref='email'
+                                className='form-control'
+                                placeholder='you@domain.com'
+                                maxLength='128'
+                            />
+                            {emailError}
                         </div>
                     </div>
-                    <button className="btn btn-md btn-primary" type="submit">Send</button>
+                    <button
+                        className='btn btn-md btn-primary'
+                        type='submit'>Send</button>
                 </form>
                 </div>
         );
     }
-});
+}

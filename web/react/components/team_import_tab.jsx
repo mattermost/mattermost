@@ -4,26 +4,38 @@
 var utils = require('../utils/utils.jsx');
 var SettingUpload = require('./setting_upload.jsx');
 
-module.exports = React.createClass({
-    displayName: 'Import Tab',
-    getInitialState: function() {
-        return {status: 'ready', link: ''};
-    },
-    onImportFailure: function() {
+export default class TeamImportTab extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onImportFailure = this.onImportFailure.bind(this);
+        this.onImportSuccess = this.onImportSuccess.bind(this);
+        this.doImportSlack = this.doImportSlack.bind(this);
+
+        this.state = {
+            status: 'ready',
+            link: ''
+        };
+    }
+
+    onImportFailure() {
         this.setState({status: 'fail', link: ''});
-    },
-    onImportSuccess: function(data) {
+    }
+
+    onImportSuccess(data) {
         this.setState({status: 'done', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(data)});
-    },
-    doImportSlack: function(file) {
+    }
+
+    doImportSlack(file) {
         this.setState({status: 'in-progress', link: ''});
         utils.importSlack(file, this.onImportSuccess, this.onImportFailure);
-    },
-    render: function() {
+    }
+
+    render() {
         var uploadHelpText = (
             <div>
                 <br/>
-                Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels. 
+                Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels.
                 <br/><br/>
                 The Slack import to Mattermost is in "Preview". Slack bot posts and channels with underscores do not yet import.
                 <br/><br/>
@@ -39,22 +51,25 @@ module.exports = React.createClass({
 
         var messageSection;
         switch (this.state.status) {
-            case 'ready':
-                messageSection = '';
+
+        case 'ready':
+            messageSection = '';
             break;
-            case 'in-progress':
-                messageSection = (
-                    <p className="confirm-import alert alert-warning"><i className="fa fa-spinner fa-pulse"></i> Importing...</p>
+        case 'in-progress':
+            messageSection = (
+                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'></i> Importing...</p>
             );
             break;
-            case 'done':
-                messageSection = (
-                    <p className="confirm-import alert alert-success"><i className="fa fa-check"></i> Import successful: <a href={this.state.link} download='MattermostImportSummary.txt'>View Summary</a></p>
+        case 'done':
+            messageSection = (
+                <p className='confirm-import alert alert-success'><i className='fa fa-check'></i> Import successful: <a href={this.state.link}
+                download='MattermostImportSummary.txt'>View Summary</a></p>
             );
             break;
-            case 'fail':
-                messageSection = (
-                    <p className="confirm-import alert alert-warning"><i className="fa fa-warning"></i> Import failure: <a href={this.state.link} download='MattermostImportSummary.txt'>View Summary</a></p>
+        case 'fail':
+            messageSection = (
+                <p className='confirm-import alert alert-warning'><i className='fa fa-warning'></i> Import failure: <a href={this.state.link}
+                download='MattermostImportSummary.txt'>View Summary</a></p>
             );
             break;
         }
@@ -62,10 +77,22 @@ module.exports = React.createClass({
         return (
             <div>
                 <div className='modal-header'>
-                    <button type='button' className='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                    <h4 className='modal-title' ref='title'><i className='modal-back'></i>Import</h4>
+                    <button type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        aria-label='Close'
+                    >
+                        <span aria-hidden='true'>&times;</span>
+                    </button>
+                    <h4
+                        className='modal-title'
+                        ref='title'
+                    ><i className='modal-back'></i>Import</h4>
                 </div>
-                <div ref='wrapper' className='user-settings'>
+                <div
+                    ref='wrapper'
+                    className='user-settings'
+                >
                     <h3 className='tab-header'>Import</h3>
                     <div className='divider-dark first'/>
                     {uploadSection}
@@ -75,4 +102,4 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}
