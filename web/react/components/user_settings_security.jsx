@@ -16,8 +16,9 @@ export default class SecurityTab extends React.Component {
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
         this.handleClose = this.handleClose.bind(this);
+        this.setupInitialState = this.setupInitialState.bind(this);
 
-        this.state = {currentPassword: '', newPassword: '', confirmPassword: ''};
+        this.state = this.setupInitialState();
     }
     submitPassword(e) {
         e.preventDefault();
@@ -51,10 +52,10 @@ export default class SecurityTab extends React.Component {
             function success() {
                 this.props.updateSection('');
                 AsyncClient.getMe();
-                this.setState({currentPassword: '', newPassword: '', confirmPassword: ''});
+                this.setState(this.setupInitialState());
             }.bind(this),
             function fail(err) {
-                var state = this.getInitialState();
+                var state = this.setupInitialState();
                 if (err.message) {
                     state.serverError = err.message;
                 } else {
@@ -87,6 +88,9 @@ export default class SecurityTab extends React.Component {
         this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
 
         this.props.updateTab('general');
+    }
+    setupInitialState() {
+        return {currentPassword: '', newPassword: '', confirmPassword: ''};
     }
     componentDidMount() {
         $('#user_settings').on('hidden.bs.modal', this.handleClose);

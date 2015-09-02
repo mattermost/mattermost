@@ -14,15 +14,9 @@ export default class FeatureTab extends React.Component {
         this.submitValetFeature = this.submitValetFeature.bind(this);
         this.handleValetRadio = this.handleValetRadio.bind(this);
         this.onUpdateSection = this.onUpdateSection.bind(this);
+        this.setupInitialState = this.setupInitialState.bind(this);
 
-        this.state = {};
-        var team = this.props.team;
-
-        if (team && team.allow_valet) {
-            this.state.allowValet = 'true';
-        } else {
-            this.state.allowValet = 'false';
-        }
+        this.state = this.setupInitialState();
     }
     componentWillReceiveProps(newProps) {
         var team = newProps.team;
@@ -44,7 +38,7 @@ export default class FeatureTab extends React.Component {
                 AsyncClient.getMyTeam();
             }.bind(this),
             function fail(err) {
-                var state = this.getInitialState();
+                var state = this.setupInitialState();
                 state.serverError = err;
                 this.setState(state);
             }.bind(this)
@@ -61,6 +55,18 @@ export default class FeatureTab extends React.Component {
         } else {
             this.props.updateSection('valet');
         }
+    }
+    setupInitialState() {
+        var allowValet;
+        var team = this.props.team;
+
+        if (team && team.allow_valet) {
+            allowValet = 'true';
+        } else {
+            allowValet = 'false';
+        }
+
+        return {allowValet: allowValet};
     }
     render() {
         var clientError = null;

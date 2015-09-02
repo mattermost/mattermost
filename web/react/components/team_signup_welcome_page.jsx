@@ -16,6 +16,8 @@ export default class TeamSignupWelcomePage extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
 
         this.state = {useDiff: false};
+
+        document.addEventListener('keyup', this.handleKeyPress, false);
     }
     submitNext(e) {
         if (!BrowserStore.isLocalStorageSupported()) {
@@ -67,9 +69,6 @@ export default class TeamSignupWelcomePage extends React.Component {
         if (event.keyCode === 13) {
             this.submitNext(event);
         }
-    }
-    componentWillMount() {
-        document.addEventListener('keyup', this.handleKeyPress, false);
     }
     componentWillUnmount() {
         document.removeEventListener('keyup', this.handleKeyPress, false);

@@ -18,6 +18,11 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         this.state = {
             emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
         };
+
+        if (!this.state.emailEnabled) {
+            this.props.state.wizard = 'username';
+            this.props.updateParent(this.props.state);
+        }
     }
     submitBack(e) {
         e.preventDefault();
@@ -73,12 +78,6 @@ export default class TeamSignupSendInvitesPage extends React.Component {
     keySubmit(e) {
         if (e && e.keyCode === 13) {
             this.submitNext(e);
-        }
-    }
-    componentWillMount() {
-        if (!this.state.emailEnabled) {
-            this.props.state.wizard = 'username';
-            this.props.updateParent(this.props.state);
         }
     }
     componentDidMount() {
