@@ -15,7 +15,7 @@ export default class CommandList extends React.Component {
     componentDidMount() {
         var self = this;
         if (this.refs.modal) {
-            $(React.findDOMNode(this.refs.modal).on('show.bs.modal', function show(e) {
+            $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function show(e) {
                 var button = e.relatedTarget;
                 self.setState({channel_id: $(button).attr('data-channelid')});
             });
