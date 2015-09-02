@@ -3,7 +3,6 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
 var client = require('../utils/client.jsx');
 
 var Constants = require('../utils/constants.jsx');
@@ -16,64 +15,114 @@ var CHANGE_EVENT_AUDITS = 'change_audits';
 var CHANGE_EVENT_TEAMS = 'change_teams';
 var CHANGE_EVENT_STATUSES = 'change_statuses';
 
-var UserStore = assign({}, EventEmitter.prototype, {
+class UserStoreClass extends EventEmitter {
+    constructor() {
+        super();
 
-    gCurrentId: null,
+        this.emitChange = this.emitChange.bind(this);
+        this.addChangeListener = this.addChangeListener.bind(this);
+        this.removeChangeListener = this.removeChangeListener.bind(this);
+        this.emitSessionsChange = this.emitSessionsChange.bind(this);
+        this.addSessionsChangeListener = this.addSessionsChangeListener.bind(this);
+        this.removeSessionsChangeListener = this.removeSessionsChangeListener.bind(this);
+        this.emitAuditsChange = this.emitAuditsChange.bind(this);
+        this.addAuditsChangeListener = this.addAuditsChangeListener.bind(this);
+        this.removeAuditsChangeListener = this.removeAuditsChangeListener.bind(this);
+        this.emitTeamsChange = this.emitTeamsChange.bind(this);
+        this.addTeamsChangeListener = this.addTeamsChangeListener.bind(this);
+        this.removeTeamsChangeListener = this.removeTeamsChangeListener.bind(this);
+        this.emitStatusesChange = this.emitStatusesChange.bind(this);
+        this.addStatusesChangeListener = this.addStatusesChangeListener.bind(this);
+        this.removeStatusesChangeListener = this.removeStatusesChangeListener.bind(this);
+        this.setCurrentId = this.setCurrentId.bind(this);
+        this.getCurrentId = this.getCurrentId.bind(this);
+        this.getCurrentUser = this.getCurrentUser.bind(this);
+        this.setCurrentUser = this.setCurrentUser.bind(this);
+        this.getLastEmail = this.getLastEmail.bind(this);
+        this.setLastEmail = this.setLastEmail.bind(this);
+        this.removeCurrentUser = this.removeCurrentUser.bind(this);
+        this.hasProfile = this.hasProfile.bind(this);
+        this.getProfile = this.getProfile.bind(this);
+        this.getProfileByUsername = this.getProfileByUsername.bind(this);
+        this.getProfilesUsernameMap = this.getProfilesUsernameMap.bind(this);
+        this.getProfiles = this.getProfiles.bind(this);
+        this.getActiveOnlyProfiles = this.getActiveOnlyProfiles.bind(this);
+        this.saveProfile = this.saveProfile.bind(this);
+        this.pStoreProfiles = this.pStoreProfiles.bind(this);
+        this.pGetProfiles = this.pGetProfiles.bind(this);
+        this.pGetProfilesUsernameMap = this.pGetProfilesUsernameMap.bind(this);
+        this.setSessions = this.setSessions.bind(this);
+        this.getSessions = this.getSessions.bind(this);
+        this.setAudits = this.setAudits.bind(this);
+        this.getAudits = this.getAudits.bind(this);
+        this.setTeams = this.setTeams.bind(this);
+        this.getTeams = this.getTeams.bind(this);
+        this.getCurrentMentionKeys = this.getCurrentMentionKeys.bind(this);
+        this.getLastVersion = this.getLastVersion.bind(this);
+        this.setLastVersion = this.setLastVersion.bind(this);
+        this.setStatuses = this.setStatuses.bind(this);
+        this.pSetStatuses = this.pSetStatuses.bind(this);
+        this.setStatus = this.setStatus.bind(this);
+        this.getStatuses = this.getStatuses.bind(this);
+        this.getStatus = this.getStatus.bind(this);
 
-    emitChange: function(userId) {
+        this.gCurrentId = null;
+    }
+
+    emitChange(userId) {
         this.emit(CHANGE_EVENT, userId);
-    },
-    addChangeListener: function(callback) {
+    }
+    addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
-    },
-    removeChangeListener: function(callback) {
+    }
+    removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
-    emitSessionsChange: function() {
+    }
+    emitSessionsChange() {
         this.emit(CHANGE_EVENT_SESSIONS);
-    },
-    addSessionsChangeListener: function(callback) {
+    }
+    addSessionsChangeListener(callback) {
         this.on(CHANGE_EVENT_SESSIONS, callback);
-    },
-    removeSessionsChangeListener: function(callback) {
+    }
+    removeSessionsChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_SESSIONS, callback);
-    },
-    emitAuditsChange: function() {
+    }
+    emitAuditsChange() {
         this.emit(CHANGE_EVENT_AUDITS);
-    },
-    addAuditsChangeListener: function(callback) {
+    }
+    addAuditsChangeListener(callback) {
         this.on(CHANGE_EVENT_AUDITS, callback);
-    },
-    removeAuditsChangeListener: function(callback) {
+    }
+    removeAuditsChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_AUDITS, callback);
-    },
-    emitTeamsChange: function() {
+    }
+    emitTeamsChange() {
         this.emit(CHANGE_EVENT_TEAMS);
-    },
-    addTeamsChangeListener: function(callback) {
+    }
+    addTeamsChangeListener(callback) {
         this.on(CHANGE_EVENT_TEAMS, callback);
-    },
-    removeTeamsChangeListener: function(callback) {
+    }
+    removeTeamsChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_TEAMS, callback);
-    },
-    emitStatusesChange: function() {
+    }
+    emitStatusesChange() {
         this.emit(CHANGE_EVENT_STATUSES);
-    },
-    addStatusesChangeListener: function(callback) {
+    }
+    addStatusesChangeListener(callback) {
         this.on(CHANGE_EVENT_STATUSES, callback);
-    },
-    removeStatusesChangeListener: function(callback) {
+    }
+    removeStatusesChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_STATUSES, callback);
-    },
-    setCurrentId: function(id) {
+    }
+    setCurrentId(id) {
         this.gCurrentId = id;
         if (id == null) {
             BrowserStore.removeGlobalItem('current_user_id');
         } else {
             BrowserStore.setGlobalItem('current_user_id', id);
         }
-    },
-    getCurrentId: function(skipFetch) {
+    }
+    getCurrentId(skipFetch) {
         var currentId = this.gCurrentId;
 
         if (currentId == null) {
@@ -93,46 +142,45 @@ var UserStore = assign({}, EventEmitter.prototype, {
         }
 
         return currentId;
-    },
-    getCurrentUser: function() {
+    }
+    getCurrentUser() {
         if (this.getCurrentId() == null) {
             return null;
         }
 
-        return this._getProfiles()[this.getCurrentId()];
-    },
-    setCurrentUser: function(user) {
+        return this.pGetProfiles()[this.getCurrentId()];
+    }
+    setCurrentUser(user) {
         this.setCurrentId(user.id);
         this.saveProfile(user);
-    },
-    getLastEmail: function() {
+    }
+    getLastEmail() {
         return BrowserStore.getItem('last_email', '');
-    },
-    setLastEmail: function(email) {
+    }
+    setLastEmail(email) {
         BrowserStore.setItem('last_email', email);
-    },
-    removeCurrentUser: function() {
+    }
+    removeCurrentUser() {
         this.setCurrentId(null);
-    },
-    hasProfile: function(userId) {
-        return this._getProfiles()[userId] != null;
-    },
-    getProfile: function(userId) {
-        return this._getProfiles()[userId];
-    },
-    getProfileByUsername: function(username) {
-        return this._getProfilesUsernameMap()[username];
-    },
-    getProfilesUsernameMap: function() {
-        return this._getProfilesUsernameMap();
-    },
-    getProfiles: function() {
-
-        return this._getProfiles();
-    },
-    getActiveOnlyProfiles: function() {
+    }
+    hasProfile(userId) {
+        return this.pGetProfiles()[userId] != null;
+    }
+    getProfile(userId) {
+        return this.pGetProfiles()[userId];
+    }
+    getProfileByUsername(username) {
+        return this.pGetProfilesUsernameMap()[username];
+    }
+    getProfilesUsernameMap() {
+        return this.pGetProfilesUsernameMap();
+    }
+    getProfiles() {
+        return this.pGetProfiles();
+    }
+    getActiveOnlyProfiles() {
         var active = {};
-        var current = this._getProfiles();
+        var current = this.pGetProfiles();
 
         for (var key in current) {
             if (current[key].delete_at === 0) {
@@ -141,45 +189,47 @@ var UserStore = assign({}, EventEmitter.prototype, {
         }
 
         return active;
-    },
-    saveProfile: function(profile) {
-        var ps = this._getProfiles();
+    }
+    saveProfile(profile) {
+        var ps = this.pGetProfiles();
         ps[profile.id] = profile;
-        this._storeProfiles(ps);
-    },
-    _storeProfiles: function(profiles) {
+        this.pStoreProfiles(ps);
+    }
+    pStoreProfiles(profiles) {
         BrowserStore.setItem('profiles', profiles);
         var profileUsernameMap = {};
         for (var id in profiles) {
-            profileUsernameMap[profiles[id].username] = profiles[id];
+            if (profiles.hasOwnProperty(id)) {
+                profileUsernameMap[profiles[id].username] = profiles[id];
+            }
         }
         BrowserStore.setItem('profileUsernameMap', profileUsernameMap);
-    },
-    _getProfiles: function() {
+    }
+    pGetProfiles() {
         return BrowserStore.getItem('profiles', {});
-    },
-    _getProfilesUsernameMap: function() {
+    }
+    pGetProfilesUsernameMap() {
         return BrowserStore.getItem('profileUsernameMap', {});
-    },
-    setSessions: function(sessions) {
+    }
+    setSessions(sessions) {
         BrowserStore.setItem('sessions', sessions);
-    },
-    getSessions: function() {
+    }
+    getSessions() {
         return BrowserStore.getItem('sessions', {loading: true});
-    },
-    setAudits: function(audits) {
+    }
+    setAudits(audits) {
         BrowserStore.setItem('audits', audits);
-    },
-    getAudits: function() {
+    }
+    getAudits() {
         return BrowserStore.getItem('audits', {loading: true});
-    },
-    setTeams: function(teams) {
+    }
+    setTeams(teams) {
         BrowserStore.setItem('teams', teams);
-    },
-    getTeams: function() {
+    }
+    getTeams() {
         return BrowserStore.getItem('teams', []);
-    },
-    getCurrentMentionKeys: function() {
+    }
+    getCurrentMentionKeys() {
         var user = this.getCurrentUser();
 
         var keys = [];
@@ -205,74 +255,76 @@ var UserStore = assign({}, EventEmitter.prototype, {
         }
 
         return keys;
-    },
-    getLastVersion: function() {
+    }
+    getLastVersion() {
         return BrowserStore.getItem('last_version', '');
-    },
-    setLastVersion: function(version) {
+    }
+    setLastVersion(version) {
         BrowserStore.setItem('last_version', version);
-    },
-    setStatuses: function(statuses) {
-        this._setStatuses(statuses);
+    }
+    setStatuses(statuses) {
+        this.pSetStatuses(statuses);
         this.emitStatusesChange();
-    },
-    _setStatuses: function(statuses) {
+    }
+    pSetStatuses(statuses) {
         BrowserStore.setItem('statuses', statuses);
-    },
-    setStatus: function(userId, status) {
+    }
+    setStatus(userId, status) {
         var statuses = this.getStatuses();
         statuses[userId] = status;
-        this._setStatuses(statuses);
+        this.pSetStatuses(statuses);
         this.emitStatusesChange();
-    },
-    getStatuses: function() {
+    }
+    getStatuses() {
         return BrowserStore.getItem('statuses', {});
-    },
-    getStatus: function(id) {
+    }
+    getStatus(id) {
         return this.getStatuses()[id];
     }
-});
+}
 
-UserStore.dispatchToken = AppDispatcher.register(function(payload) {
+var UserStore = new UserStoreClass();
+UserStore.setMaxListeners(0);
+
+UserStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     var action = payload.action;
 
     switch (action.type) {
-        case ActionTypes.RECIEVED_PROFILES:
-            for (var id in action.profiles) {
-                // profiles can have incomplete data, so don't overwrite current user
-                if (id === UserStore.getCurrentId()) {
-                    continue;
-                }
-                var profile = action.profiles[id];
-                UserStore.saveProfile(profile);
-                UserStore.emitChange(profile.id);
+    case ActionTypes.RECIEVED_PROFILES:
+        for (var id in action.profiles) {
+            // profiles can have incomplete data, so don't overwrite current user
+            if (id === UserStore.getCurrentId()) {
+                continue;
             }
-            break;
-        case ActionTypes.RECIEVED_ME:
-            UserStore.setCurrentUser(action.me);
-            UserStore.emitChange(action.me.id);
-            break;
-        case ActionTypes.RECIEVED_SESSIONS:
-            UserStore.setSessions(action.sessions);
-            UserStore.emitSessionsChange();
-            break;
-        case ActionTypes.RECIEVED_AUDITS:
-            UserStore.setAudits(action.audits);
-            UserStore.emitAuditsChange();
-            break;
-        case ActionTypes.RECIEVED_TEAMS:
-            UserStore.setTeams(action.teams);
-            UserStore.emitTeamsChange();
-            break;
-        case ActionTypes.RECIEVED_STATUSES:
-            UserStore._setStatuses(action.statuses);
-            UserStore.emitStatusesChange();
-            break;
+            var profile = action.profiles[id];
+            UserStore.saveProfile(profile);
+            UserStore.emitChange(profile.id);
+        }
+        break;
+    case ActionTypes.RECIEVED_ME:
+        UserStore.setCurrentUser(action.me);
+        UserStore.emitChange(action.me.id);
+        break;
+    case ActionTypes.RECIEVED_SESSIONS:
+        UserStore.setSessions(action.sessions);
+        UserStore.emitSessionsChange();
+        break;
+    case ActionTypes.RECIEVED_AUDITS:
+        UserStore.setAudits(action.audits);
+        UserStore.emitAuditsChange();
+        break;
+    case ActionTypes.RECIEVED_TEAMS:
+        UserStore.setTeams(action.teams);
+        UserStore.emitTeamsChange();
+        break;
+    case ActionTypes.RECIEVED_STATUSES:
+        UserStore.pSetStatuses(action.statuses);
+        UserStore.emitStatusesChange();
+        break;
 
-        default:
+    default:
     }
 });
 
-UserStore.setMaxListeners(0);
 global.window.UserStore = UserStore;
-module.exports = UserStore;
+export default UserStore;

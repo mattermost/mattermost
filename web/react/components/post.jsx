@@ -15,9 +15,17 @@ var utils = require('../utils/utils.jsx');
 
 var PostInfo = require('./post_info.jsx');
 
-module.exports = React.createClass({
-    displayName: 'Post',
-    handleCommentClick: function(e) {
+export default class Post extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleCommentClick = this.handleCommentClick.bind(this);
+        this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
+        this.retryPost = this.retryPost.bind(this);
+
+        this.state = {};
+    }
+    handleCommentClick(e) {
         e.preventDefault();
 
         var data = {};
@@ -33,31 +41,31 @@ module.exports = React.createClass({
             type: ActionTypes.RECIEVED_SEARCH,
             results: null
         });
-    },
-    forceUpdateInfo: function() {
+    }
+    forceUpdateInfo() {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
-    },
-    retryPost: function(e) {
+    }
+    retryPost(e) {
         e.preventDefault();
 
         var post = this.props.post;
         client.createPost(post, post.channel_id,
-            function(data) {
+            function success(data) {
                 AsyncClient.getPosts();
 
                 var channel = ChannelStore.get(post.channel_id);
                 var member = ChannelStore.getMember(post.channel_id);
                 member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = (new Date).getTime();
+                member.last_viewed_at = utils.getTimestamp();
                 ChannelStore.setChannelMember(member);
 
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECIEVED_POST,
                     post: data
                 });
-            }.bind(this),
-            function(err) {
+            },
+            function error() {
                 post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
                 this.forceUpdate();
@@ -67,18 +75,15 @@ module.exports = React.createClass({
         post.state = Constants.POST_LOADING;
         PostStore.updatePendingPost(post);
         this.forceUpdate();
-    },
-    shouldComponentUpdate: function(nextProps) {
+    }
+    shouldComponentUpdate(nextProps) {
         if (!utils.areStatesEqual(nextProps.post, this.props.post)) {
             return true;
         }
 
         return false;
-    },
-    getInitialState: function() {
-        return { };
-    },
-    render: function() {
+    }
+    render() {
         var post = this.props.post;
         var parentPost = this.props.parentPost;
         var posts = this.props.posts;
@@ -89,19 +94,27 @@ module.exports = React.createClass({
         }
 
         var commentCount = 0;
-        var commentRootId = parentPost ? post.root_id : post.id;
+        var commentRootId;
+        if (parentPost) {
+            commentRootId = post.root_id;
+        } else {
+            commentRootId = post.id;
+        }
         for (var postId in posts) {
-            if (posts[postId].root_id == commentRootId) {
+            if (posts[postId].root_id === commentRootId) {
                 commentCount += 1;
             }
         }
 
-        var error = this.state.error ? <div className='form-group has-error'><label className='control-label'>{ this.state.error }</label></div> : null;
-
-        var rootUser =  this.props.sameRoot ? 'same--root' : 'other--root';
+        var rootUser;
+        if (this.props.sameRoot) {
+            rootUser = 'same--root';
+        } else {
+            rootUser = 'other--root';
+        }
 
         var postType = '';
-        if (type != 'Post'){
+        if (type !== 'Post') {
             postType = 'post--comment';
         }
 
@@ -122,21 +135,60 @@ module.exports = React.createClass({
             sameUserClass = 'same--user';
         }
 
+        var profilePic = null;
+        if (this.props.hideProfilePic) {
+            profilePic = (
+                <div className='post-profile-img__container'>
+                    <img
+                        className='post-profile-img'
+                        src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp}
+                        height='36'
+                        width='36' />
+                </div>
+            );
+        }
+
         return (
             <div>
-                <div id={post.id} className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}>
-                    { !this.props.hideProfilePic ?
-                    <div className='post-profile-img__container'>
-                        <img className='post-profile-img' src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp} height='36' width='36' />
-                    </div>
-                    : null }
+                <div
+                    id={post.id}
+                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss} >
+                    {profilePic}
                     <div className='post__content'>
-                        <PostHeader ref='header' post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} isLastComment={this.props.isLastComment} />
-                        <PostBody post={post} sameRoot={this.props.sameRoot} parentPost={parentPost} posts={posts} handleCommentClick={this.handleCommentClick} retryPost={this.retryPost} />
-                        <PostInfo ref='info' post={post} sameRoot={this.props.sameRoot} commentCount={commentCount} handleCommentClick={this.handleCommentClick} allowReply='true' />
+                        <PostHeader
+                            ref='header'
+                            post={post}
+                            sameRoot={this.props.sameRoot}
+                            commentCount={commentCount}
+                            handleCommentClick={this.handleCommentClick}
+                            isLastComment={this.props.isLastComment} />
+                        <PostBody
+                            post={post}
+                            sameRoot={this.props.sameRoot}
+                            parentPost={parentPost}
+                            posts={posts}
+                            handleCommentClick={this.handleCommentClick}
+                            retryPost={this.retryPost} />
+                        <PostInfo
+                            ref='info'
+                            post={post}
+                            sameRoot={this.props.sameRoot}
+                            commentCount={commentCount}
+                            handleCommentClick={this.handleCommentClick}
+                            allowReply='true' />
                     </div>
                 </div>
             </div>
         );
     }
-});
+}
+
+Post.propTypes = {
+    post: React.PropTypes.object,
+    posts: React.PropTypes.object,
+    parentPost: React.PropTypes.object,
+    sameUser: React.PropTypes.bool,
+    sameRoot: React.PropTypes.bool,
+    hideProfilePic: React.PropTypes.bool,
+    isLastComment: React.PropTypes.bool
+};

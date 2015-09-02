@@ -14,54 +14,66 @@ var MAX_HEIGHT_LIST = 292;
 var MAX_ITEMS_IN_LIST = 25;
 var ITEM_HEIGHT = 36;
 
-module.exports = React.createClass({
-    displayName: 'MentionList',
-    componentDidMount: function() {
-        PostStore.addMentionDataChangeListener(this.onListenerChange);
-        var self = this;
+export default class MentionList extends React.Component {
+    constructor(props) {
+        super(props);
 
-        $('.post-right__scroll').scroll(function(){
-            if($('.mentions--top').length){
-                $('#reply_mention_tab .mentions--top').css({ bottom: $(window).height() - $('.post-right__scroll #reply_textbox').offset().top });
+        this.onListenerChange = this.onListenerChange.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+        this.handleMouseEnter = this.handleMouseEnter.bind(this);
+        this.getSelection = this.getSelection.bind(this);
+        this.addCurrentMention = this.addCurrentMention.bind(this);
+        this.addFirstMention = this.addFirstMention.bind(this);
+        this.isEmpty = this.isEmpty.bind(this);
+        this.scrollToMention = this.scrollToMention.bind(this);
+
+        this.state = {excludeUsers: [], mentionText: '-1', selectedMention: 0, selectedUsername: ''};
+    }
+    componentDidMount() {
+        PostStore.addMentionDataChangeListener(this.onListenerChange);
+
+        $('.post-right__scroll').scroll(function onScroll() {
+            if ($('.mentions--top').length) {
+                $('#reply_mention_tab .mentions--top').css({bottom: $(window).height() - $('.post-right__scroll #reply_textbox').offset().top});
             }
         });
 
         $('body').on('keydown.mentionlist', '#' + this.props.id,
-            function(e) {
-                if (!self.isEmpty() && self.state.mentionText !== '-1' && (e.which === 13 || e.which === 9)) {
+            function onMentionListKey(e) {
+                if (!this.isEmpty() && this.state.mentionText !== '-1' && (e.which === 13 || e.which === 9)) {
                     e.stopPropagation();
                     e.preventDefault();
-                    self.addCurrentMention();
-                } else if (!self.isEmpty() && self.state.mentionText !== '-1' && (e.which === 38 || e.which === 40)) {
+                    this.addCurrentMention();
+                } else if (!this.isEmpty() && this.state.mentionText !== '-1' && (e.which === 38 || e.which === 40)) {
                     e.stopPropagation();
                     e.preventDefault();
 
                     if (e.which === 38) {
-                        if (self.getSelection(self.state.selectedMention - 1)) {
-                            self.setState({selectedMention: self.state.selectedMention - 1, selectedUsername: self.refs['mention' + (self.state.selectedMention - 1)].props.username});
+                        if (this.getSelection(this.state.selectedMention - 1)) {
+                            this.setState({selectedMention: this.state.selectedMention - 1, selectedUsername: this.refs['mention' + (this.state.selectedMention - 1)].props.username});
                         }
                     } else if (e.which === 40) {
-                        if (self.getSelection(self.state.selectedMention + 1)) {
-                            self.setState({selectedMention: self.state.selectedMention + 1, selectedUsername: self.refs['mention' + (self.state.selectedMention + 1)].props.username});
+                        if (this.getSelection(this.state.selectedMention + 1)) {
+                            this.setState({selectedMention: this.state.selectedMention + 1, selectedUsername: this.refs['mention' + (this.state.selectedMention + 1)].props.username});
                         }
                     }
 
-                    self.scrollToMention(e.which);
+                    this.scrollToMention(e.which);
                 }
-            }
+            }.bind(this)
         );
-        $(document).click(function(e) {
-            if (!($('#' + self.props.id).is(e.target) || $('#' + self.props.id).has(e.target).length ||
-                ('mentionlist' in self.refs && $(self.refs.mentionlist.getDOMNode()).has(e.target).length))) {
-                self.setState({mentionText: '-1'});
+        $(document).click(function onClick(e) {
+            if (!($('#' + this.props.id).is(e.target) || $('#' + this.props.id).has(e.target).length ||
+                ('mentionlist' in this.refs && $(React.findDOMNode(this.refs.mentionlist)).has(e.target).length))) {
+                this.setState({mentionText: '-1'});
             }
-        });
-    },
-    componentWillUnmount: function() {
+        }.bind(this));
+    }
+    componentWillUnmount() {
         PostStore.removeMentionDataChangeListener(this.onListenerChange);
         $('body').off('keydown.mentionlist', '#' + this.props.id);
-    },
-    componentDidUpdate: function() {
+    }
+    componentDidUpdate() {
         if (this.state.mentionText !== '-1') {
             if (this.state.selectedUsername !== '' && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
                 var tempSelectedMention = -1;
@@ -80,8 +92,8 @@ module.exports = React.createClass({
         } else if (this.state.selectedMention !== 0) {
             this.setState({selectedMention: 0, selectedUsername: ''});
         }
-    },
-    onListenerChange: function(id, mentionText) {
+    }
+    onListenerChange(id, mentionText) {
         if (id !== this.props.id) {
             return;
         }
@@ -92,8 +104,8 @@ module.exports = React.createClass({
         }
 
         this.setState(newState);
-    },
-    handleClick: function(name) {
+    }
+    handleClick(name) {
         AppDispatcher.handleViewAction({
             type: ActionTypes.RECIEVED_ADD_MENTION,
             id: this.props.id,
@@ -101,33 +113,33 @@ module.exports = React.createClass({
         });
 
         this.setState({mentionText: '-1'});
-    },
-    handleMouseEnter: function(listId) {
+    }
+    handleMouseEnter(listId) {
         this.setState({selectedMention: listId, selectedUsername: this.refs['mention' + listId].props.username});
-    },
-    getSelection: function(listId) {
+    }
+    getSelection(listId) {
         if (!this.refs['mention' + listId]) {
             return false;
         }
         return true;
-    },
-    addCurrentMention: function() {
+    }
+    addCurrentMention() {
         if (!this.getSelection(this.state.selectedMention)) {
             this.addFirstMention();
         } else {
             this.refs['mention' + this.state.selectedMention].handleClick();
         }
-    },
-    addFirstMention: function() {
+    }
+    addFirstMention() {
         if (!this.refs.mention0) {
             return;
         }
         this.refs.mention0.handleClick();
-    },
-    isEmpty: function() {
+    }
+    isEmpty() {
         return (!this.refs.mention0);
-    },
-    scrollToMention: function(keyPressed) {
+    }
+    scrollToMention(keyPressed) {
         var direction;
         if (keyPressed === 38) {
             direction = 'up';
@@ -145,12 +157,8 @@ module.exports = React.createClass({
         $('#mentionsbox').animate({
             scrollTop: scrollAmount
         }, 75);
-    },
-    getInitialState: function() {
-        return {excludeUsers: [], mentionText: '-1', selectedMention: 0, selectedUsername: ''};
-    },
-    render: function() {
-        var self = this;
+    }
+    render() {
         var mentionText = this.state.mentionText;
         if (mentionText === '-1') {
             return null;
@@ -158,8 +166,10 @@ module.exports = React.createClass({
 
         var profiles = UserStore.getActiveOnlyProfiles();
         var users = [];
-        for (var id in profiles) {
-            users.push(profiles[id]);
+        for (let id in profiles) {
+            if (profiles[id]) {
+                users.push(profiles[id]);
+            }
         }
 
         var all = {};
@@ -176,7 +186,7 @@ module.exports = React.createClass({
         channel.id = 'channelmention';
         users.push(channel);
 
-        users.sort(function(a, b) {
+        users.sort(function sortByUsername(a, b) {
             if (a.username < b.username) {
                 return -1;
             }
@@ -185,29 +195,34 @@ module.exports = React.createClass({
             }
             return 0;
         });
-        var mentions = {};
+        var mentions = [];
         var index = 0;
 
         for (var i = 0; i < users.length && index < MAX_ITEMS_IN_LIST; i++) {
             if ((users[i].first_name && users[i].first_name.lastIndexOf(mentionText, 0) === 0) ||
                     (users[i].last_name && users[i].last_name.lastIndexOf(mentionText, 0) === 0) ||
                     users[i].username.lastIndexOf(mentionText, 0) === 0) {
+                let isFocused = '';
+                if (this.state.selectedMention === index) {
+                    isFocused = 'mentions-focus';
+                }
                 mentions[index] = (
                     <Mention
+                        key={'mention_key_' + index}
                         ref={'mention' + index}
                         username={users[i].username}
                         secondary_text={Utils.getFullName(users[i])}
                         id={users[i].id}
                         listId={index}
-                        isFocused={this.state.selectedMention === index ? 'mentions-focus' : ''}
-                        handleMouseEnter={function(value) { return function() { self.handleMouseEnter(value); } }(index)}
+                        isFocused={isFocused}
+                        handleMouseEnter={this.handleMouseEnter.bind(this, index)}
                         handleClick={this.handleClick} />
                 );
                 index++;
             }
         }
 
-        var numMentions = Object.keys(mentions).length;
+        var numMentions = mentions.length;
 
         if (numMentions < 1) {
             return null;
@@ -223,11 +238,20 @@ module.exports = React.createClass({
         };
 
         return (
-            <div className='mentions--top' style={style}>
-                <div ref='mentionlist' className='mentions-box' id='mentionsbox'>
+            <div
+                className='mentions--top'
+                style={style}>
+                <div
+                    ref='mentionlist'
+                    className='mentions-box'
+                    id='mentionsbox'>
                     {mentions}
                 </div>
             </div>
         );
     }
-});
+}
+
+MentionList.propTypes = {
+    id: React.PropTypes.string
+};

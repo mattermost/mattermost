@@ -3,7 +3,6 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -12,43 +11,53 @@ var BrowserStore = require('../stores/browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
 
-var ErrorStore = assign({}, EventEmitter.prototype, {
+class ErrorStoreClass extends EventEmitter {
+    constructor() {
+        super();
 
-  emitChange: function() {
-    this.emit(CHANGE_EVENT);
-  },
+        this.emitChange = this.emitChange.bind(this);
+        this.addChangeListener = this.addChangeListener.bind(this);
+        this.removeChangeListener = this.removeChangeListener.bind(this);
+        this.handledError = this.handledError.bind(this);
+        this.getLastError = this.getLastError.bind(this);
+        this.storeLastError = this.storeLastError.bind(this);
+    }
 
-  addChangeListener: function(callback) {
-    this.on(CHANGE_EVENT, callback);
-  },
+    emitChange() {
+        this.emit(CHANGE_EVENT);
+    }
 
-  removeChangeListener: function(callback) {
-    this.removeListener(CHANGE_EVENT, callback);
-  },
-  handledError: function() {
-    BrowserStore.removeItem("last_error");
-  },
-  getLastError: function() {
-    return BrowserStore.getItem('last_error');
-  },
+    addChangeListener(callback) {
+        this.on(CHANGE_EVENT, callback);
+    }
 
-  _storeLastError: function(error) {
-    BrowserStore.setItem("last_error", error);
-  },
-});
+    removeChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT, callback);
+    }
+    handledError() {
+        BrowserStore.removeItem('last_error');
+    }
+    getLastError() {
+        return BrowserStore.getItem('last_error');
+    }
 
-ErrorStore.dispatchToken = AppDispatcher.register(function(payload) {
-  var action = payload.action;
-  switch(action.type) {
+    storeLastError(error) {
+        BrowserStore.setItem('last_error', error);
+    }
+}
+
+var ErrorStore = new ErrorStoreClass();
+
+ErrorStore.dispatchToken = AppDispatcher.register(function registry(payload) {
+    var action = payload.action;
+    switch (action.type) {
     case ActionTypes.RECIEVED_ERROR:
-      ErrorStore._storeLastError(action.err);
-      ErrorStore.emitChange();
-      break;
+        ErrorStore.storeLastError(action.err);
+        ErrorStore.emitChange();
+        break;
 
     default:
-  }
+    }
 });
 
-module.exports = ErrorStore;
-
-
+export default ErrorStore;

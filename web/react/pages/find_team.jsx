@@ -3,11 +3,11 @@
 
 var FindTeam = require('../components/find_team.jsx');
 
-global.window.setup_find_team_page = function() {
-
+function setupFindTeamPage() {
     React.render(
         <FindTeam />,
         document.getElementById('find-team')
     );
+}
 
-};
+global.window.setup_find_team_page = setupFindTeamPage;

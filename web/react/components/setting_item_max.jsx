@@ -1,33 +1,68 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-module.exports = React.createClass({
-    render: function() {
-        var clientError = this.props.client_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.client_error }</label></div> : null;
-        var server_error = this.props.server_error ? <div className='form-group'><label className='col-sm-12 has-error'>{ this.props.server_error }</label></div> : null;
-        var extraInfo = this.props.extraInfo ? this.props.extraInfo : null;
+export default class SettingItemMax extends React.Component {
+    render() {
+        var clientError = null;
+        if (this.props.client_error) {
+            clientError = (<div className='form-group'><label className='col-sm-12 has-error'>{this.props.client_error}</label></div>);
+        }
+
+        var serverError = null;
+        if (this.props.server_error) {
+            serverError = (<div className='form-group'><label className='col-sm-12 has-error'>{this.props.server_error}</label></div>);
+        }
+
+        var extraInfo = null;
+        if (this.props.extraInfo) {
+            extraInfo = this.props.extraInfo;
+        }
+
+        var submit = '';
+        if (this.props.submit) {
+            submit = (<a
+                        className='btn btn-sm btn-primary'
+                        href='#'
+                        onClick={this.props.submit}>
+                        Submit</a>);
+        }
 
         var inputs = this.props.inputs;
 
         return (
-            <ul className="section-max form-horizontal">
-                <li className="col-sm-12 section-title">{this.props.title}</li>
-                <li className="col-sm-9 col-sm-offset-3">
-                    <ul className="setting-list">
-                        <li className="setting-list-item">
+            <ul className='section-max form-horizontal'>
+                <li className='col-sm-12 section-title'>{this.props.title}</li>
+                <li className='col-sm-9 col-sm-offset-3'>
+                    <ul className='setting-list'>
+                        <li className='setting-list-item'>
                             {inputs}
                             {extraInfo}
                         </li>
-                        <li className="setting-list-item">
+                        <li className='setting-list-item'>
                             <hr />
-                            { server_error }
-                            { clientError }
-                            { this.props.submit ? <a className="btn btn-sm btn-primary" href="#" onClick={this.props.submit}>Submit</a> : "" }
-                            <a className="btn btn-sm theme" href="#" onClick={this.props.updateSection}>Cancel</a>
+                            {serverError}
+                            {clientError}
+                            {submit}
+                            <a
+                                className='btn btn-sm theme'
+                                href='#'
+                                onClick={this.props.updateSection} >
+                                Cancel
+                            </a>
                         </li>
                     </ul>
                 </li>
             </ul>
         );
     }
-});
+}
+
+SettingItemMax.propTypes = {
+    inputs: React.PropTypes.array,
+    client_error: React.PropTypes.string,
+    server_error: React.PropTypes.string,
+    extraInfo: React.PropTypes.element,
+    updateSection: React.PropTypes.func,
+    submit: React.PropTypes.func,
+    title: React.PropTypes.string
+};

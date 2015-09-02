@@ -5,17 +5,24 @@ var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var asyncClient = require('../utils/async_client.jsx');
 var UserStore = require('../stores/user_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
 
-module.exports = React.createClass({
-    displayName: 'NewChannelModal',
-    handleSubmit: function(e) {
+export default class NewChannelModal extends React.Component {
+    constructor() {
+        super();
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.displayNameKeyUp = this.displayNameKeyUp.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+
+        this.state = {channelType: ''};
+    }
+    handleSubmit(e) {
         e.preventDefault();
 
         var channel = {};
         var state = {serverError: ''};
 
-        channel.display_name = this.refs.display_name.getDOMNode().value.trim();
+        channel.display_name = React.findDOMNode(this.refs.display_name).value.trim();
         if (!channel.display_name) {
             state.displayNameError = 'This field is required';
             state.inValid = true;
@@ -26,7 +33,7 @@ module.exports = React.createClass({
             state.displayNameError = '';
         }
 
-        channel.name = this.refs.channel_name.getDOMNode().value.trim();
+        channel.name = React.findDOMNode(this.refs.channel_name).value.trim();
         if (!channel.name) {
             state.nameError = 'This field is required';
             state.inValid = true;
@@ -52,54 +59,51 @@ module.exports = React.createClass({
         var cu = UserStore.getCurrentUser();
         channel.team_id = cu.team_id;
 
-        channel.description = this.refs.channel_desc.getDOMNode().value.trim();
+        channel.description = React.findDOMNode(this.refs.channel_desc).value.trim();
         channel.type = this.state.channelType;
 
         client.createChannel(channel,
-            function(data) {
-                $(this.refs.modal.getDOMNode()).modal('hide');
+            function success(data) {
+                $(React.findDOMNode(this.refs.modal)).modal('hide');
 
                 asyncClient.getChannel(data.id);
                 utils.switchChannel(data);
 
-                this.refs.display_name.getDOMNode().value = '';
-                this.refs.channel_name.getDOMNode().value = '';
-                this.refs.channel_desc.getDOMNode().value = '';
+                React.findDOMNode(this.refs.display_name).value = '';
+                React.findDOMNode(this.refs.channel_name).value = '';
+                React.findDOMNode(this.refs.channel_desc).value = '';
             }.bind(this),
-            function(err) {
+            function error(err) {
                 state.serverError = err.message;
                 state.inValid = true;
                 this.setState(state);
             }.bind(this)
         );
-    },
-    displayNameKeyUp: function() {
-        var displayName = this.refs.display_name.getDOMNode().value.trim();
+    }
+    displayNameKeyUp() {
+        var displayName = React.findDOMNode(this.refs.display_name).value.trim();
         var channelName = utils.cleanUpUrlable(displayName);
-        this.refs.channel_name.getDOMNode().value = channelName;
-    },
-    componentDidMount: function() {
+        React.findDOMNode(this.refs.channel_name).value = channelName;
+    }
+    componentDidMount() {
         var self = this;
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function(e) {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function onModalShow(e) {
             var button = e.relatedTarget;
             self.setState({channelType: $(button).attr('data-channeltype')});
         });
-        $(this.refs.modal.getDOMNode()).on('hidden.bs.modal', this.handleClose);
-    },
-    componentWillUnmount: function() {
-        $(this.refs.modal.getDOMNode()).off('hidden.bs.modal', this.handleClose);
-    },
-    handleClose: function() {
-        $(this.getDOMNode()).find('.form-control').each(function clearForms() {
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
+    }
+    componentWillUnmount() {
+        $(React.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
+    }
+    handleClose() {
+        $(React.findDOMNode(this)).find('.form-control').each(function clearForms() {
             this.value = '';
         });
 
         this.setState({channelType: '', displayNameError: '', nameError: '', serverError: '', inValid: false});
-    },
-    getInitialState: function() {
-        return {channelType: ''};
-    },
-    render: function() {
+    }
+    render() {
         var displayNameError = null;
         var nameError = null;
         var serverError = null;
@@ -124,11 +128,20 @@ module.exports = React.createClass({
         }
 
         return (
-            <div className='modal fade' id='new_channel' ref='modal' tabIndex='-1' role='dialog' aria-hidden='true'>
+            <div
+                className='modal fade'
+                id='new_channel'
+                ref='modal'
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'>
                 <div className='modal-dialog'>
                     <div className='modal-content'>
                         <div className='modal-header'>
-                            <button type='button' className='close' data-dismiss='modal'>
+                            <button
+                                type='button'
+                                className='close'
+                                data-dismiss='modal'>
                                 <span aria-hidden='true'>&times;</span>
                                 <span className='sr-only'>Cancel</span>
                             </button>
@@ -138,23 +151,49 @@ module.exports = React.createClass({
                             <div className='modal-body'>
                                 <div className={displayNameClass}>
                                     <label className='control-label'>Display Name</label>
-                                    <input onKeyUp={this.displayNameKeyUp} type='text' ref='display_name' className='form-control' placeholder='Enter display name' maxLength='22' />
+                                    <input
+                                        onKeyUp={this.displayNameKeyUp}
+                                        type='text'
+                                        ref='display_name'
+                                        className='form-control'
+                                        placeholder='Enter display name'
+                                        maxLength='22' />
                                     {displayNameError}
                                 </div>
                                 <div className={nameClass}>
                                     <label className='control-label'>Handle</label>
-                                    <input type='text' className='form-control' ref='channel_name' placeholder="lowercase alphanumeric's only" maxLength='22' />
+                                    <input
+                                        type='text'
+                                        className='form-control'
+                                        ref='channel_name'
+                                        placeholder="lowercase alphanumeric's only"
+                                        maxLength='22' />
                                     {nameError}
                                 </div>
                                 <div className='form-group'>
                                     <label className='control-label'>Description</label>
-                                    <textarea className='form-control no-resize' ref='channel_desc' rows='3' placeholder='Description' maxLength='1024'></textarea>
+                                    <textarea
+                                        className='form-control no-resize'
+                                        ref='channel_desc'
+                                        rows='3'
+                                        placeholder='Description'
+                                        maxLength='1024' />
                                 </div>
                                 {serverError}
                             </div>
                             <div className='modal-footer'>
-                                <button type='button' className='btn btn-default' data-dismiss='modal'>Cancel</button>
-                                <button onClick={this.handleSubmit} type='submit' className='btn btn-primary'>Create New {channelTerm}</button>
+                                <button
+                                    type='button'
+                                    className='btn btn-default'
+                                    data-dismiss='modal' >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={this.handleSubmit}
+                                    type='submit'
+                                    className='btn btn-primary' >
+                                    Create New {channelTerm}
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -162,4 +201,4 @@ module.exports = React.createClass({
             </div>
         );
     }
-});
+}

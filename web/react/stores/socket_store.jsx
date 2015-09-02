@@ -2,10 +2,8 @@
 // See License.txt for license information.
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var UserStore = require('./user_store.jsx')
+var UserStore = require('./user_store.jsx');
 var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
-var client = require('../utils/client.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -14,14 +12,24 @@ var CHANGE_EVENT = 'change';
 
 var conn;
 
-var SocketStore = assign({}, EventEmitter.prototype, {
-    initialize: function() {
+class SocketStoreClass extends EventEmitter {
+    constructor() {
+        super();
+
+        this.initialize = this.initialize.bind(this);
+        this.emitChange = this.emitChange.bind(this);
+        this.addChangeListener = this.addChangeListener.bind(this);
+        this.removeChangeListener = this.removeChangeListener.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
+
+        this.initialize();
+    }
+    initialize() {
         if (!UserStore.getCurrentId()) {
             return;
         }
 
-        var self = this;
-        self.setMaxListeners(0);
+        this.setMaxListeners(0);
 
         if (window.WebSocket && !conn) {
             var protocol = 'ws://';
@@ -29,24 +37,24 @@ var SocketStore = assign({}, EventEmitter.prototype, {
                 protocol = 'wss://';
             }
             var connUrl = protocol + location.host + '/api/v1/websocket';
-            console.log('connecting to ' + connUrl);
+            console.log('connecting to ' + connUrl); //eslint-disable-line no-console
             conn = new WebSocket(connUrl);
 
             conn.onclose = function closeConn(evt) {
-                console.log('websocket closed');
-                console.log(evt);
+                console.log('websocket closed'); //eslint-disable-line no-console
+                console.log(evt); //eslint-disable-line no-console
                 conn = null;
                 setTimeout(
                     function reconnect() {
-                        self.initialize();
-                    },
+                        this.initialize();
+                    }.bind(this),
                     3000
                 );
-            };
+            }.bind(this);
 
             conn.onerror = function connError(evt) {
-                console.log('websocket error');
-                console.log(evt);
+                console.log('websocket error'); //eslint-disable-line no-console
+                console.log(evt); //eslint-disable-line no-console
             };
 
             conn.onmessage = function connMessage(evt) {
@@ -56,17 +64,17 @@ var SocketStore = assign({}, EventEmitter.prototype, {
                 });
             };
         }
-    },
-    emitChange: function(msg) {
+    }
+    emitChange(msg) {
         this.emit(CHANGE_EVENT, msg);
-    },
-    addChangeListener: function(callback) {
+    }
+    addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
-    },
-    removeChangeListener: function(callback) {
+    }
+    removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
-    },
-    sendMessage: function(msg) {
+    }
+    sendMessage(msg) {
         if (conn && conn.readyState === WebSocket.OPEN) {
             conn.send(JSON.stringify(msg));
         } else if (!conn || conn.readyState === WebSocket.Closed) {
@@ -74,19 +82,20 @@ var SocketStore = assign({}, EventEmitter.prototype, {
             this.initialize();
         }
     }
-});
+}
 
-SocketStore.dispatchToken = AppDispatcher.register(function(payload) {
+var SocketStore = new SocketStoreClass();
+
+SocketStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     var action = payload.action;
 
     switch (action.type) {
-        case ActionTypes.RECIEVED_MSG:
+    case ActionTypes.RECIEVED_MSG:
         SocketStore.emitChange(action.msg);
         break;
 
-        default:
+    default:
     }
 });
 
-SocketStore.initialize();
-module.exports = SocketStore;
+export default SocketStore;

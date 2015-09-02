@@ -12,81 +12,70 @@ function getPrefix() {
 // Also change model/utils.go ETAG_ROOT_VERSION
 var BROWSER_STORE_VERSION = '.5';
 
-module.exports = {
-    initialized: false,
+class BrowserStoreClass {
+    constructor() {
+        this.getItem = this.getItem.bind(this);
+        this.setItem = this.setItem.bind(this);
+        this.removeItem = this.removeItem.bind(this);
+        this.setGlobalItem = this.setGlobalItem.bind(this);
+        this.getGlobalItem = this.getGlobalItem.bind(this);
+        this.removeGlobalItem = this.removeGlobalItem.bind(this);
+        this.clear = this.clear.bind(this);
+        this.actionOnItemsWithPrefix = this.actionOnItemsWithPrefix.bind(this);
+        this.isLocalStorageSupported = this.isLocalStorageSupported.bind(this);
 
-    initialize: function() {
         var currentVersion = localStorage.getItem('local_storage_version');
         if (currentVersion !== BROWSER_STORE_VERSION) {
             this.clear();
             localStorage.setItem('local_storage_version', BROWSER_STORE_VERSION);
         }
-        this.initialized = true;
-    },
+    }
 
-    getItem: function(name, defaultValue) {
+    getItem(name, defaultValue) {
         return this.getGlobalItem(getPrefix() + name, defaultValue);
-    },
+    }
 
-    setItem: function(name, value) {
+    setItem(name, value) {
         this.setGlobalItem(getPrefix() + name, value);
-    },
+    }
 
-    removeItem: function(name) {
-        if (!this.initialized) {
-            this.initialize();
-        }
-
+    removeItem(name) {
         localStorage.removeItem(getPrefix() + name);
-    },
+    }
 
-    setGlobalItem: function(name, value) {
-        if (!this.initialized) {
-            this.initialize();
-        }
-
+    setGlobalItem(name, value) {
         localStorage.setItem(name, JSON.stringify(value));
-    },
+    }
 
-    getGlobalItem: function(name, defaultValue) {
-        if (!this.initialized) {
-            this.initialize();
-        }
-
+    getGlobalItem(name, defaultValue) {
         var result = null;
         try {
             result = JSON.parse(localStorage.getItem(name));
-        } catch (err) {}
+        } catch (err) {
+            result = null;
+        }
 
         if (result === null && typeof defaultValue !== 'undefined') {
             result = defaultValue;
         }
 
         return result;
-    },
+    }
 
-    removeGlobalItem: function(name) {
-        if (!this.initialized) {
-            this.initialize();
-        }
-
+    removeGlobalItem(name) {
         localStorage.removeItem(name);
-    },
+    }
 
-    clear: function() {
+    clear() {
         localStorage.clear();
         sessionStorage.clear();
-    },
+    }
 
     /**
      * Preforms the given action on each item that has the given prefix
      * Signature for action is action(key, value)
      */
-    actionOnItemsWithPrefix: function(prefix, action) {
-        if (!this.initialized) {
-            this.initialize();
-        }
-
+    actionOnItemsWithPrefix(prefix, action) {
         var globalPrefix = getPrefix();
         var globalPrefixiLen = globalPrefix.length;
         for (var key in localStorage) {
@@ -95,9 +84,9 @@ module.exports = {
                 action(userkey, this.getGlobalItem(key));
             }
         }
-    },
+    }
 
-    isLocalStorageSupported: function() {
+    isLocalStorageSupported() {
         try {
             sessionStorage.setItem('testSession', '1');
             sessionStorage.removeItem('testSession');
@@ -113,4 +102,7 @@ module.exports = {
             return false;
         }
     }
-};
+}
+
+var BrowserStore = new BrowserStoreClass();
+export default BrowserStore;
