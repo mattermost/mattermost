@@ -518,7 +518,7 @@ export default class PostList extends React.Component {
 
             var postCtl = (
                 <Post
-                    key={post.id}
+                    key={post.id + 'postKey'}
                     ref={post.id}
                     sameUser={sameUser}
                     sameRoot={sameRoot}

@@ -102,7 +102,10 @@ export default class ActivityLogModal extends React.Component {
             }
 
             activityList[i] = (
-                <div className='activity-log__table'>
+                <div
+                    key={'activityLogEntryKey' + i}
+                    className='activity-log__table'
+                >
                     <div className='activity-log__report'>
                         <div className='report__platform'><i className={devicePicture} />{currentSession.props.platform}</div>
                         <div className='report__info'>

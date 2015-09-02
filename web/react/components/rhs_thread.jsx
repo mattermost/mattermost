@@ -191,7 +191,7 @@ export default class RhsThread extends React.Component {
                             return (
                                 <Comment
                                     ref={comPost.id}
-                                    key={comPost.id}
+                                    key={comPost.id + 'commentKey'}
                                     post={comPost}
                                     selected={(comPost.id === selectedPost.id)}
                                 />

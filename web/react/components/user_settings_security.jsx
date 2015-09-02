@@ -113,7 +113,10 @@ export default class SecurityTab extends React.Component {
 
             if (this.props.user.auth_service === '') {
                 inputs.push(
-                    <div className='form-group'>
+                    <div
+                        key='currentPasswordUpdateForm'
+                        className='form-group'
+                    >
                         <label className='col-sm-5 control-label'>Current Password</label>
                         <div className='col-sm-7'>
                             <input
@@ -126,7 +129,10 @@ export default class SecurityTab extends React.Component {
                     </div>
                 );
                 inputs.push(
-                    <div className='form-group'>
+                    <div
+                        key='newPasswordUpdateForm'
+                        className='form-group'
+                    >
                         <label className='col-sm-5 control-label'>New Password</label>
                         <div className='col-sm-7'>
                             <input
@@ -139,7 +145,10 @@ export default class SecurityTab extends React.Component {
                     </div>
                 );
                 inputs.push(
-                    <div className='form-group'>
+                    <div
+                        key='retypeNewPasswordUpdateForm'
+                        className='form-group'
+                    >
                         <label className='col-sm-5 control-label'>Retype New Password</label>
                         <div className='col-sm-7'>
                             <input
@@ -155,7 +164,10 @@ export default class SecurityTab extends React.Component {
                 submit = this.submitPassword;
             } else {
                 inputs.push(
-                    <div className='form-group'>
+                    <div
+                        key='oauthPasswordInfo'
+                        className='form-group'
+                    >
                         <label className='col-sm-12'>Log in occurs through GitLab. Please see your GitLab account settings page to update your password.</label>
                     </div>
                 );

@@ -89,7 +89,10 @@ export default class AccessHistoryModal extends React.Component {
             }
 
             accessList[i] = (
-                <div className='access-history__table'>
+                <div
+                    key={'accessHistoryEntryKey' + i}
+                    className='access-history__table'
+                >
                     <div className='access__date'>{newDate}</div>
                     <div className='access__report'>
                         <div className='report__time'>{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})}</div>

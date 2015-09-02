@@ -274,6 +274,7 @@ export default class Navbar extends React.Component {
         if (currentId == null) {
             buttons.push(
                 <button
+                    key='navbar-toggle-collapse'
                     type='button'
                     className='navbar-toggle'
                     data-toggle='collapse'
@@ -288,6 +289,7 @@ export default class Navbar extends React.Component {
         } else {
             buttons.push(
                 <button
+                    key='navbar-toggle-sidebar'
                     type='button'
                     className='navbar-toggle'
                     data-toggle='collapse'
@@ -304,6 +306,7 @@ export default class Navbar extends React.Component {
 
             buttons.push(
                 <button
+                    key='navbar-toggle-menu'
                     type='button'
                     className='navbar-toggle menu-toggle pull-right'
                     data-toggle='collapse'

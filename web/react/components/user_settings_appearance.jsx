@@ -90,6 +90,7 @@ export default class UserSettingsAppearance extends React.Component {
                 for (var i = 0; i < config.ThemeColors.length; i++) {
                     themeButtons.push(
                         <button
+                            key={config.ThemeColors[i] + 'key' + i}
                             ref={config.ThemeColors[i]}
                             type='button'
                             className='btn btn-lg color-btn'
@@ -102,7 +103,10 @@ export default class UserSettingsAppearance extends React.Component {
                 var inputs = [];
 
                 inputs.push(
-                    <li className='setting-list-item'>
+                    <li
+                        key='themeColorSetting'
+                        className='setting-list-item'
+                    >
                         <div
                             className='btn-group'
                             data-toggle='buttons-radio'
