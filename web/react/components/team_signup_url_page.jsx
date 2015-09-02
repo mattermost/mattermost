@@ -43,7 +43,7 @@ export default class TeamSignupUrlPage extends React.Component {
 
         for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
             if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                this.setState({nameError: 'This team name is unavailable'});
+                this.setState({nameError: 'URL is taken or contains a reserved word'});
                 return;
             }
         }
