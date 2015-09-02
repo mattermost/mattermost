@@ -577,14 +577,14 @@ export default class PostList extends React.Component {
         var order = this.state.postList.order;
         var channelId = this.state.channel.id;
 
-        $(this.refs.loadmore.getDOMNode()).text('Retrieving more messages...');
+        $(React.findDOMNode(this.refs.loadmore)).text('Retrieving more messages...');
 
         Client.getPostsPage(
             channelId,
             order.length,
             Constants.POST_CHUNK_SIZE,
             function success(data) {
-                $(this.refs.loadmore.getDOMNode()).text('Load more messages');
+                $(React.findDOMNode(this.refs.loadmore)).text('Load more messages');
                 this.gotMorePosts = true;
                 this.setState({numToDisplay: this.state.numToDisplay + Constants.POST_CHUNK_SIZE});
 
@@ -609,7 +609,7 @@ export default class PostList extends React.Component {
                 Client.getProfiles();
             }.bind(this),
             function fail(err) {
-                $(this.refs.loadmore.getDOMNode()).text('Load more messages');
+                $(React.findDOMNode(this.refs.loadmore)).text('Load more messages');
                 AsyncClient.dispatchError(err, 'getPosts');
             }.bind(this)
         );

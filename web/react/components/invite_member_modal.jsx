@@ -37,7 +37,7 @@ export default class InviteMemberModal extends React.Component {
             var notEmpty = false;
             for (var i = 0; i < self.state.inviteIds.length; i++) {
                 var index = self.state.inviteIds[i];
-                if (self.refs['email' + index].getDOMNode().value.trim() !== '') {
+                if (React.findDOMNode(self.refs['email' + index]).value.trim() !== '') {
                     notEmpty = true;
                     break;
                 }
@@ -70,7 +70,7 @@ export default class InviteMemberModal extends React.Component {
         for (var i = 0; i < count; i++) {
             var index = inviteIds[i];
             var invite = {};
-            invite.email = this.refs['email' + index].getDOMNode().value.trim();
+            invite.email = React.findDOMNode(this.refs['email' + index]).value.trim();
             if (!invite.email || !utils.isEmail(invite.email)) {
                 emailErrors[index] = 'Please enter a valid email address';
                 valid = false;
@@ -79,7 +79,7 @@ export default class InviteMemberModal extends React.Component {
             }
 
             if (config.AllowInviteNames) {
-                invite.firstName = this.refs['first_name' + index].getDOMNode().value.trim();
+                invite.firstName = React.findDOMNode(this.refs['first_name' + index]).value.trim();
                 if (!invite.firstName && config.RequireInviteNames) {
                     firstNameErrors[index] = 'This is a required field';
                     valid = false;
@@ -87,7 +87,7 @@ export default class InviteMemberModal extends React.Component {
                     firstNameErrors[index] = '';
                 }
 
-                invite.lastName = this.refs['last_name' + index].getDOMNode().value.trim();
+                invite.lastName = React.findDOMNode(this.refs['last_name' + index]).value.trim();
                 if (!invite.lastName && config.RequireInviteNames) {
                     lastNameErrors[index] = 'This is a required field';
                     valid = false;
@@ -110,8 +110,8 @@ export default class InviteMemberModal extends React.Component {
 
         Client.inviteMembers(data,
             function success() {
-                $(this.refs.modal.getDOMNode()).attr('data-confirm', 'true');
-                $(this.refs.modal.getDOMNode()).modal('hide');
+                $(React.findDOMNode(this.refs.modal)).attr('data-confirm', 'true');
+                $(React.findDOMNode(this.refs.modal)).modal('hide');
             }.bind(this),
             function fail(err) {
                 if (err.message === 'This person is already on your team') {
@@ -125,8 +125,8 @@ export default class InviteMemberModal extends React.Component {
     }
 
     componentDidUpdate() {
-        $(this.refs.modalBody.getDOMNode()).css('max-height', $(window).height() - 200);
-        $(this.refs.modalBody.getDOMNode()).css('overflow-y', 'scroll');
+        $(React.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
+        $(React.findDOMNode(this.refs.modalBody)).css('overflow-y', 'scroll');
     }
 
     addInviteFields() {
@@ -141,10 +141,10 @@ export default class InviteMemberModal extends React.Component {
 
         for (var i = 0; i < inviteIds.length; i++) {
             var index = inviteIds[i];
-            this.refs['email' + index].getDOMNode().value = '';
+            React.findDOMNode(this.refs['email' + index]).value = '';
             if (config.AllowInviteNames) {
-                this.refs['first_name' + index].getDOMNode().value = '';
-                this.refs['last_name' + index].getDOMNode().value = '';
+                React.findDOMNode(this.refs['first_name' + index]).value = '';
+                React.findDOMNode(this.refs['last_name' + index]).value = '';
             }
         }
 

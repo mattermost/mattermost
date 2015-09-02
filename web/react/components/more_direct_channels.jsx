@@ -16,7 +16,7 @@ export default class MoreDirectChannels extends React.Component {
 
     componentDidMount() {
         var self = this;
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function showModal(e) {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function showModal(e) {
             var button = e.relatedTarget;
             self.setState({channels: $(button).data('channels')});
         });
@@ -44,7 +44,7 @@ export default class MoreDirectChannels extends React.Component {
                 handleClick = function clickHandler(e) {
                     e.preventDefault();
                     utils.switchChannel(channel, channel.teammate_username);
-                    $(self.refs.modal.getDOMNode()).modal('hide');
+                    $(React.findDOMNode(self.refs.modal)).modal('hide');
                 };
             } else {
                 // It's a direct message channel that doesn't exist yet so let's create it now
@@ -66,7 +66,7 @@ export default class MoreDirectChannels extends React.Component {
 
                         Client.createDirectChannel(channel, otherUserId,
                             function success(data) {
-                                $(self.refs.modal.getDOMNode()).modal('hide');
+                                $(React.findDOMNode(self.refs.modal)).modal('hide');
                                 self.setState({loadingDMChannel: -1});
                                 AsyncClient.getChannel(data.id);
                                 utils.switchChannel(data);
