@@ -20,15 +20,15 @@ export default class TeamSignupAllowedDomainsPage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        if (this.refs.open_network.getDOMNode().checked) {
+        if (React.findDOMNode(this.refs.open_network).checked) {
             this.props.state.wizard = 'send_invites';
             this.props.state.team.type = 'O';
             this.props.updateParent(this.props.state);
             return;
         }
 
-        if (this.refs.allow.getDOMNode().checked) {
-            var name = this.refs.name.getDOMNode().value.trim();
+        if (React.findDOMNode(this.refs.allow).checked) {
+            var name = React.findDOMNode(this.refs.name).value.trim();
             var domainRegex = /^\w+\.\w+$/;
             if (!name) {
                 this.setState({nameError: 'This field is required'});

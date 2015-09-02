@@ -59,14 +59,14 @@ export default class UserSettingsAppearance extends React.Component {
     }
     componentDidMount() {
         if (this.props.activeSection === 'theme') {
-            $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
+            $(React.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
     }
     componentDidUpdate() {
         if (this.props.activeSection === 'theme') {
             $('.color-btn').removeClass('active-border');
-            $(this.refs[this.state.theme].getDOMNode()).addClass('active-border');
+            $(React.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
     }
     componentWillUnmount() {

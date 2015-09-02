@@ -107,7 +107,6 @@ export default class SecurityTab extends React.Component {
 
         var updateSectionStatus;
         var passwordSection;
-        var self = this;
         if (this.props.activeSection === 'password') {
             var inputs = [];
             var submit = null;
@@ -163,10 +162,10 @@ export default class SecurityTab extends React.Component {
             }
 
             updateSectionStatus = function resetSection(e) {
-                self.props.updateSection('');
-                self.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
+                this.props.updateSection('');
+                this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
                 e.preventDefault();
-            };
+            }.bind(this);
 
             passwordSection = (
                 <SettingItemMax
@@ -201,8 +200,8 @@ export default class SecurityTab extends React.Component {
             }
 
             updateSectionStatus = function updateSection() {
-                self.props.updateSection('password');
-            };
+                this.props.updateSection('password');
+            }.bind(this);
 
             passwordSection = (
                 <SettingItemMin

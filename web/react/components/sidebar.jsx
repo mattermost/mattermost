@@ -272,25 +272,25 @@ export default class Sidebar extends React.Component {
         this.updateUnreadIndicators();
     }
     updateUnreadIndicators() {
-        var container = $(this.refs.container.getDOMNode());
+        var container = $(React.findDOMNode(this.refs.container));
 
         if (this.firstUnreadChannel) {
-            var firstUnreadElement = $(this.refs[this.firstUnreadChannel].getDOMNode());
+            var firstUnreadElement = $(React.findDOMNode(this.refs[this.firstUnreadChannel]));
 
             if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
-                $(this.refs.topUnreadIndicator.getDOMNode()).css('display', 'initial');
+                $(React.findDOMNode(this.refs.topUnreadIndicator)).css('display', 'initial');
             } else {
-                $(this.refs.topUnreadIndicator.getDOMNode()).css('display', 'none');
+                $(React.findDOMNode(this.refs.topUnreadIndicator)).css('display', 'none');
             }
         }
 
         if (this.lastUnreadChannel) {
-            var lastUnreadElement = $(this.refs[this.lastUnreadChannel].getDOMNode());
+            var lastUnreadElement = $(React.findDOMNode(this.refs[this.lastUnreadChannel]));
 
             if (lastUnreadElement.position().top > container.height()) {
-                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'initial');
+                $(React.findDOMNode(this.refs.bottomUnreadIndicator)).css('display', 'initial');
             } else {
-                $(this.refs.bottomUnreadIndicator.getDOMNode()).css('display', 'none');
+                $(React.findDOMNode(this.refs.bottomUnreadIndicator)).css('display', 'none');
             }
         }
     }
@@ -315,10 +315,10 @@ export default class Sidebar extends React.Component {
         if (unread) {
             titleClass = 'unread-title';
 
-            if (!self.firstUnreadChannel) {
-                self.firstUnreadChannel = channel.name;
+            if (!this.firstUnreadChannel) {
+                this.firstUnreadChannel = channel.name;
             }
-            self.lastUnreadChannel = channel.name;
+            this.lastUnreadChannel = channel.name;
         }
 
         var badge = null;
@@ -335,7 +335,7 @@ export default class Sidebar extends React.Component {
                 badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
                 this.badgesActive = true;
             }
-        } else if (self.state.loadingDMChannel === index && channel.type === 'D') {
+        } else if (this.state.loadingDMChannel === index && channel.type === 'D') {
             badge = (
                 <img
                     className='channel-loading-gif pull-right'
@@ -377,19 +377,19 @@ export default class Sidebar extends React.Component {
             // It's a direct message channel that doesn't exist yet so let's create it now
             var otherUserId = Utils.getUserIdFromChannelName(channel);
 
-            if (self.state.loadingDMChannel === -1) {
+            if (this.state.loadingDMChannel === -1) {
                 handleClick = function clickHandler(e) {
                     e.preventDefault();
-                    self.setState({loadingDMChannel: index});
+                    this.setState({loadingDMChannel: index});
 
                     Client.createDirectChannel(channel, otherUserId,
                         function success(data) {
-                            self.setState({loadingDMChannel: -1});
+                            this.setState({loadingDMChannel: -1});
                             AsyncClient.getChannel(data.id);
                             Utils.switchChannel(data);
                         },
                         function error() {
-                            self.setState({loadingDMChannel: -1});
+                            this.setState({loadingDMChannel: -1});
                             window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
                         }
                     );

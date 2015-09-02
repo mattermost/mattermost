@@ -2,33 +2,24 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
-var ZeroClipboardMixin = require('react-zeroclipboard-mixin');
-
-ZeroClipboardMixin.ZeroClipboard.config({
-    swfPath: '../../static/flash/ZeroClipboard.swf'
-});
 
 export default class GetLinkModal extends React.Component {
     constructor(props) {
         super(props);
-
-        this.zeroclipboardElementsSelector = '[data-copy-btn]';
-        this.mixins = [ZeroClipboardMixin];
 
         this.handleClick = this.handleClick.bind(this);
 
         this.state = {copiedLink: false};
     }
     componentDidMount() {
-        var self = this;
         if (this.refs.modal) {
-            $(this.refs.modal.getDOMNode()).on('show.bs.modal', function show(e) {
+            $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function show(e) {
                 var button = e.relatedTarget;
-                self.setState({title: $(button).attr('data-title'), value: $(button).attr('data-value')});
-            });
-            $(this.refs.modal.getDOMNode()).on('hide.bs.modal', function hide() {
-                self.setState({copiedLink: false});
-            });
+                this.setState({title: $(button).attr('data-title'), value: $(button).attr('data-value')});
+            }.bind(this));
+            $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', function hide() {
+                this.setState({copiedLink: false});
+            }.bind(this));
         }
     }
     handleClick() {

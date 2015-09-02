@@ -52,7 +52,7 @@ export default class FeatureTab extends React.Component {
     }
     handleValetRadio(val) {
         this.setState({allowValet: val});
-        this.refs.wrapper.getDOMNode().focus();
+        React.findDOMNode(this.refs.wrapper).focus();
     }
     onUpdateSection(e) {
         e.preventDefault();
@@ -73,7 +73,6 @@ export default class FeatureTab extends React.Component {
         }
 
         var valetSection;
-        var self = this;
 
         if (this.props.activeSection === 'valet') {
             var valetActive = [false, false];
@@ -92,7 +91,7 @@ export default class FeatureTab extends React.Component {
                             <input
                                 type='radio'
                                 checked={valetActive[0]}
-                                onChange={self.handleValetRadio.bind(this, 'true')}
+                                onChange={this.handleValetRadio.bind(this, 'true')}
                             >
                                 On
                             </input>
@@ -104,7 +103,7 @@ export default class FeatureTab extends React.Component {
                             <input
                                 type='radio'
                                 checked={valetActive[1]}
-                                onChange={self.handleValetRadio.bind(this, 'false')}
+                                onChange={this.handleValetRadio.bind(this, 'false')}
                             >
                                 Off
                             </input>

@@ -26,7 +26,7 @@ export default class ChannelNotifications extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
 
-        $(this.refs.modal.getDOMNode()).on('show.bs.modal', function showModal(e) {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function showModal(e) {
             var button = e.relatedTarget;
             var channelId = button.getAttribute('data-channelid');
 
@@ -95,11 +95,11 @@ export default class ChannelNotifications extends React.Component {
     }
     handleRadioClick(notifyLevel) {
         this.setState({notifyLevel: notifyLevel, quietMode: false});
-        this.refs.modal.getDOMNode().focus();
+        React.findDOMNode(this.refs.modal).focus();
     }
     handleQuietToggle(quietMode) {
         this.setState({notifyLevel: 'none', quietMode: quietMode});
-        this.refs.modal.getDOMNode().focus();
+        React.findDOMNode(this.refs.modal).focus();
     }
     createDesktopSection(serverError) {
         var handleUpdateSection;

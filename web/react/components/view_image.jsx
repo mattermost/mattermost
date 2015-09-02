@@ -66,22 +66,21 @@ export default class ViewImageModal extends React.Component {
         var fileType = Utils.getFileType(fileInfo.ext);
 
         if (fileType === 'image') {
-            var self = this;
             var img = new Image();
             img.load(this.getPreviewImagePath(filename),
                 function load() {
-                    var progress = self.state.progress;
+                    var progress = this.state.progress;
                     progress[id] = img.completedPercentage;
-                    self.setState({progress: progress});
-                });
+                    this.setState({progress: progress});
+                }.bind(this));
             img.onload = (function onload(imgid) {
                 return function onloadReturn() {
-                    var loaded = self.state.loaded;
+                    var loaded = this.state.loaded;
                     loaded[imgid] = true;
-                    self.setState({loaded: loaded});
-                    $(self.refs.image.getDOMNode()).css('max-height', imgHeight);
-                };
-            }(id));
+                    this.setState({loaded: loaded});
+                    $(React.findDOMNode(this.refs.image)).css('max-height', imgHeight);
+                }.bind(this);
+            }.bind(this)(id));
             var images = this.state.images;
             images[id] = img;
             this.setState({images: images});
@@ -95,48 +94,47 @@ export default class ViewImageModal extends React.Component {
     componentDidUpdate() {
         if (this.state.loaded[this.state.imgId]) {
             if (this.refs.imageWrap) {
-                $(this.refs.imageWrap.getDOMNode()).removeClass('default');
+                $(React.findDOMNode(this.refs.imageWrap)).removeClass('default');
             }
         }
     }
     componentDidMount() {
-        var self = this;
         $('#' + this.props.modalId).on('shown.bs.modal', function onModalShow() {
-            self.setState({viewed: true});
-            self.loadImage(self.state.imgId);
-        });
+            this.setState({viewed: true});
+            this.loadImage(this.state.imgId);
+        }.bind(this));
 
-        $(this.refs.modal.getDOMNode()).click(function onModalClick(e) {
-            if (e.target === this || e.target === self.refs.imageBody.getDOMNode()) {
+        $(React.findDOMNode(this.refs.modal)).click(function onModalClick(e) {
+            if (e.target === this || e.target === React.findDOMNode(this.refs.imageBody)) {
                 $('.image_modal').modal('hide');
             }
-        });
+        }.bind(this));
 
-        $(this.refs.imageWrap.getDOMNode()).hover(
+        $(React.findDOMNode(this.refs.imageWrap)).hover(
             function onModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-            }, function offModalHover() {
-                $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-            }
+                $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
+            }.bind(this), function offModalHover() {
+                $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
+            }.bind(this)
         );
 
         if (this.refs.previewArrowLeft) {
-            $(this.refs.previewArrowLeft.getDOMNode()).hover(
+            $(React.findDOMNode(this.refs.previewArrowLeft)).hover(
                 function onModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-                }, function offModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-                }
+                    $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
+                }.bind(this), function offModalHover() {
+                    $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
+                }.bind(this)
             );
         }
 
         if (this.refs.previewArrowRight) {
-            $(this.refs.previewArrowRight.getDOMNode()).hover(
+            $(React.findDOMNode(this.refs.previewArrowRight)).hover(
                 function onModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).addClass('footer--show');
-                }, function offModalHover() {
-                    $(self.refs.imageFooter.getDOMNode()).removeClass('footer--show');
-                }
+                    $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
+                }.bind(this), function offModalHover() {
+                    $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
+                }.bind(this)
             );
         }
 
@@ -242,17 +240,15 @@ export default class ViewImageModal extends React.Component {
 
                 // asynchronously request the actual size of this file
                 if (!(filename in this.state.fileSizes)) {
-                    var self = this;
-
                     Client.getFileInfo(
                         filename,
                         function success(data) {
-                            if (self.canSetState) {
-                                var fileSizes = self.state.fileSizes;
+                            if (this.canSetState) {
+                                var fileSizes = this.state.fileSizes;
                                 fileSizes[filename] = parseInt(data.size, 10);
-                                self.setState(fileSizes);
+                                this.setState(fileSizes);
                             }
-                        },
+                        }.bind(this),
                         function fail() {}
                     );
                 }

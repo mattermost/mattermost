@@ -22,7 +22,7 @@ export default class TeamSignupPasswordPage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        var password = this.refs.password.getDOMNode().value.trim();
+        var password = React.findDOMNode(this.refs.password).value.trim();
         if (!password || password.length < 5) {
             this.setState({passwordError: 'Please enter at least 5 characters'});
             return;
