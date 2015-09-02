@@ -8,7 +8,13 @@ var Constants = require('../utils/constants.jsx');
 export default class FileAttachmentList extends React.Component {
     constructor(props) {
         super(props);
+
+        this.handleImageClick = this.handleImageClick.bind(this);
+
         this.state = {startImgId: 0};
+    }
+    handleImageClick(e) {
+        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'), 10)});
     }
     render() {
         var filenames = this.props.filenames;
@@ -39,9 +45,6 @@ export default class FileAttachmentList extends React.Component {
                     filenames={filenames} />
             </div>
         );
-    }
-    handleImageClick(e) {
-        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'), 10)});
     }
 }
 
