@@ -16,6 +16,7 @@ export default class UserProfile extends React.Component {
         super(props);
 
         this.uniqueId = nextId();
+        this.onChange = this.onChange.bind(this);
 
         this.state = this.getStateFromStores(this.props.userId);
     }
