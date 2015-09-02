@@ -19,7 +19,7 @@ export default class FileUpload extends React.Component {
     }
 
     handleChange() {
-        var element = $(this.refs.fileInput.getDOMNode());
+        var element = $(React.findDOMNode(this.refs.fileInput));
         var files = element.prop('files');
 
         var channelId = this.props.channelId || ChannelStore.getCurrentId();
@@ -149,7 +149,7 @@ export default class FileUpload extends React.Component {
     }
 
     componentDidMount() {
-        var inputDiv = this.refs.input.getDOMNode();
+        var inputDiv = React.findDOMNode(this.refs.input);
         var self = this;
 
         if (this.props.postType === 'post') {
