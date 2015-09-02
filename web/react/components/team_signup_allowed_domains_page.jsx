@@ -7,6 +7,9 @@ export default class TeamSignupAllowedDomainsPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.submitBack = this.submitBack.bind(this);
+        this.submitNext = this.submitNext.bind(this);
+
         this.state = {};
     }
     submitBack(e) {
