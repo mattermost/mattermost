@@ -142,7 +142,7 @@ export default class NotificationsTab extends React.Component {
         this.props.updateTab('general');
     }
     updateSection(section) {
-        this.setState(this.getInitialState());
+        this.setState(getNotificationsStateFromStores());
         this.props.updateSection(section);
     }
     componentDidMount() {
