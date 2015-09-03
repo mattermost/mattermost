@@ -154,7 +154,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seoncds]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seconds]"})
 	}
 
 	return false
