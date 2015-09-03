@@ -8,7 +8,8 @@
     "keymirror": "^0.1.1",
     "object-assign": "^3.0.0",
     "react": "^0.13.3",
-    "react-zeroclipboard-mixin": "^0.1.0"
+    "react-zeroclipboard-mixin": "^0.1.0",
+    "twemoji": "^1.4.1"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
