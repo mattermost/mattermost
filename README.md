@@ -26,7 +26,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - Attach sound, video and image files from mobile devices 
 - Define team-specific branding and color themes across your devices
 
-#### Enterprise Focused
+#### Enterprise Compatible
 
 - Self-host Mattermost entirely within your organization's insfrastructure
 - GitLab Mattermost omnibus supports install to over 100,000 organizations using GitLab
