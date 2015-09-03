@@ -296,7 +296,8 @@ export default class CreatePost extends React.Component {
                 <FilePreview
                     files={this.state.previews}
                     onRemove={this.removePreview}
-                    uploadsInProgress={this.state.uploadsInProgress} />
+                    uploadsInProgress={this.state.uploadsInProgress}
+                />
             );
         }
 
@@ -321,7 +322,8 @@ export default class CreatePost extends React.Component {
                             createMessage='Write a message...'
                             channelId={this.state.channelId}
                             id='post_textbox'
-                            ref='textbox' />
+                            ref='textbox'
+                        />
                         <FileUpload
                             ref='fileUpload'
                             getFileCount={this.getFileCount}
@@ -329,7 +331,8 @@ export default class CreatePost extends React.Component {
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
                             postType='post'
-                            channelId='' />
+                            channelId=''
+                        />
                     </div>
                     <div className={postFooterClassName}>
                         {postError}

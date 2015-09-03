@@ -19,11 +19,14 @@ export default class Mention extends React.Component {
         if (this.props.id === 'allmention' || this.props.id === 'channelmention') {
             icon = <span><i className='mention-img fa fa-users fa-2x'></i></span>;
         } else if (this.props.id != null) {
-            icon = (<span><img
-                            className='mention-img'
-                            src={'/api/v1/users/' + this.props.id + '/image?time=' + timestamp}
-                        />
-                    </span>);
+            icon = (
+                <span>
+                    <img
+                        className='mention-img'
+                        src={'/api/v1/users/' + this.props.id + '/image?time=' + timestamp}
+                    />
+                </span>
+            );
         } else {
             icon = <span><i className='mention-img fa fa-users fa-2x'></i></span>;
         }

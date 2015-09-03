@@ -559,7 +559,7 @@ export default class PostList extends React.Component {
                     >
                         <hr
                             className='separator__hr'
-                         />
+                        />
                         <div className='separator__text'>New Messages</div>
                     </div>
                 );

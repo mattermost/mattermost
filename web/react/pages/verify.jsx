@@ -8,7 +8,8 @@ global.window.setupVerifyPage = function setupVerifyPage(isVerified, teamURL, us
         <EmailVerify
             isVerified={isVerified}
             teamURL={teamURL}
-            userEmail={userEmail} />,
+            userEmail={userEmail}
+        />,
         document.getElementById('verify')
     );
 };

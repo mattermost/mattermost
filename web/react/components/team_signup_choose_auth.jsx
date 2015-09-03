@@ -22,7 +22,7 @@ export default class ChooseAuthPage extends React.Component {
                                 this.props.updatePage('service', Constants.GITLAB_SERVICE);
                             }.bind(this)
                         }
-                        >
+                    >
                         <span className='icon' />
                         <span>Create new {strings.Team} with GitLab Account</span>
                     </a>
@@ -40,7 +40,7 @@ export default class ChooseAuthPage extends React.Component {
                                 this.props.updatePage('email', '');
                             }.bind(this)
                         }
-                        >
+                    >
                         <span className='fa fa-envelope' />
                         <span>Create new {strings.Team} with email address</span>
                     </a>

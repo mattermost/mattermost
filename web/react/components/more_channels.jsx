@@ -86,15 +86,21 @@ export default class MoreChannels extends React.Component {
                                 {channels.map(function cMap(channel, index) {
                                     var joinButton;
                                     if (self.state.joiningChannel === index) {
-                                        joinButton = (<img
-                                                        className='join-channel-loading-gif'
-                                                        src='/static/images/load.gif'
-                                                    />);
+                                        joinButton = (
+                                            <img
+                                                className='join-channel-loading-gif'
+                                                src='/static/images/load.gif'
+                                            />
+                                            );
                                     } else {
-                                        joinButton = (<button
-                                                        onClick={self.handleJoin.bind(self, channel, index)}
-                                                        className='btn btn-primary'>Join
-                                                    </button>);
+                                        joinButton = (
+                                            <button
+                                                onClick={self.handleJoin.bind(self, channel, index)}
+                                                className='btn btn-primary'
+                                            >
+                                                Join
+                                            </button>
+                                            );
                                     }
 
                                     return (
@@ -152,7 +158,9 @@ export default class MoreChannels extends React.Component {
                                 data-channeltype={this.state.channelType}
                                 type='button'
                                 className='btn btn-primary channel-create-btn'
-                                onClick={this.handleNewChannel}>Create New Channel
+                                onClick={this.handleNewChannel}
+                            >
+                                Create New Channel
                             </button>
                         </div>
                         <div className='modal-body'>

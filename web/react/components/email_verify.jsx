@@ -24,12 +24,14 @@ export default class EmailVerify extends React.Component {
         } else {
             title = config.SiteName + ' Email Not Verified';
             body = <p>Please verify your email address. Check your inbox for an email.</p>;
-            resend = (<button
-                        onClick={this.handleResend}
-                        className='btn btn-primary'
-                    >
-                        Resend Email
-                    </button>);
+            resend = (
+                <button
+                    onClick={this.handleResend}
+                    className='btn btn-primary'
+                >
+                    Resend Email
+                </button>
+            );
         }
 
         return (

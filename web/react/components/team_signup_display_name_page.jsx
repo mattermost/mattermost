@@ -52,8 +52,8 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                 <form>
                     <img
                         className='signup-team-logo'
-                        src='/static/images/logo.png' />
-
+                        src='/static/images/logo.png'
+                    />
                     <h2>{utils.toTitleCase(strings.Team) + ' Name'}</h2>
                     <div className={nameDivClass}>
                         <div className='row'>
@@ -66,22 +66,27 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                                     maxLength='128'
                                     defaultValue={this.props.state.team.display_name}
                                     autoFocus={true}
-                                    onFocus={this.handleFocus} />
+                                    onFocus={this.handleFocus}
+                                />
                             </div>
                         </div>
                         {nameError}
                     </div>
-                    <div>{'Name your ' + strings.Team + ' in any language. Your ' + strings.Team + ' name shows in menus and headings.'}</div>
+                    <div>
+                        {'Name your ' + strings.Team + ' in any language. Your ' + strings.Team + ' name shows in menus and headings.'}
+                    </div>
                     <button
                         type='submit'
                         className='btn btn-primary margin--extra'
-                        onClick={this.submitNext} >
+                        onClick={this.submitNext}
+                    >
                         Next<i className='glyphicon glyphicon-chevron-right'></i>
                     </button>
                     <div className='margin--extra'>
                         <a
                             href='#'
-                            onClick={this.submitBack}>
+                            onClick={this.submitBack}
+                        >
                             Back to previous step
                         </a>
                     </div>

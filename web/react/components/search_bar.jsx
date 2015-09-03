@@ -116,19 +116,22 @@ export default class SearchBar extends React.Component {
             <div>
                 <div
                     className='sidebar__collapse'
-                    onClick={this.handleClose} >
+                    onClick={this.handleClose}
+                >
                     <span className='fa fa-angle-left'></span>
                 </div>
                 <span
                     className='search__clear'
-                    onClick={this.clearFocus}>
+                    onClick={this.clearFocus}
+                >
                     Cancel
                 </span>
                 <form
                     role='form'
                     className='search__form relative-div'
-                    onSubmit={this.handleSubmit}>
-                    <span className='glyphicon glyphicon-search sidebar__search-icon'></span>
+                    onSubmit={this.handleSubmit}
+                >
+                    <span className='glyphicon glyphicon-search sidebar__search-icon' />
                     <input
                         type='text'
                         ref='search'
@@ -136,7 +139,8 @@ export default class SearchBar extends React.Component {
                         placeholder='Search'
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
-                        onChange={this.handleUserInput} />
+                        onChange={this.handleUserInput}
+                    />
                     {isSearching}
                 </form>
             </div>

@@ -77,7 +77,10 @@ export default class FindTeam extends React.Component {
                     </div>
                     <button
                         className='btn btn-md btn-primary'
-                        type='submit'>Send</button>
+                        type='submit'
+                    >
+                        Send
+                    </button>
                 </form>
                 </div>
         );

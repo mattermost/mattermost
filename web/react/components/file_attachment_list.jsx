@@ -28,7 +28,8 @@ export default class FileAttachmentList extends React.Component {
                     filename={filenames[i]}
                     index={i}
                     modalId={modalId}
-                    handleImageClick={this.handleImageClick} />
+                    handleImageClick={this.handleImageClick}
+                />
             );
         }
 
@@ -42,7 +43,8 @@ export default class FileAttachmentList extends React.Component {
                     userId={this.props.userId}
                     modalId={modalId}
                     startId={this.state.startImgId}
-                    filenames={filenames} />
+                    filenames={filenames}
+                />
             </div>
         );
     }

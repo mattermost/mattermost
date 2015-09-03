@@ -8,7 +8,8 @@ function setupSignupTeamCompletePage(email, data, hash) {
         <SignupTeamComplete
             email={email}
             hash={hash}
-            data={data}/>,
+            data={data}
+        />,
         document.getElementById('signup-team-complete')
     );
 }

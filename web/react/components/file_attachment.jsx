@@ -101,10 +101,13 @@ export default class FileAttachment extends React.Component {
 
         var thumbnail;
         if (type === 'image') {
-            thumbnail = (<div
-                            ref={filename}
-                            className='post__load'
-                            style={{backgroundImage: 'url(/static/images/load.gif)'}} />);
+            thumbnail = (
+                <div
+                    ref={filename}
+                    className='post__load'
+                    style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                />
+            );
         } else {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }
@@ -135,20 +138,23 @@ export default class FileAttachment extends React.Component {
         return (
             <div
                 className='post-image__column'
-                key={filename}>
+                key={filename}
+            >
                 <a className='post-image__thumbnail'
                     href='#'
                     onClick={this.props.handleImageClick}
                     data-img-id={this.props.index}
                     data-toggle='modal'
-                    data-target={'#' + this.props.modalId} >
+                    data-target={'#' + this.props.modalId}
+                >
                     {thumbnail}
                 </a>
                 <div className='post-image__details'>
                     <div
                         data-toggle='tooltip'
                         title={filenameString}
-                        className='post-image__name' >
+                        className='post-image__name'
+                    >
                         {trimmedFilename}
                     </div>
                     <div>

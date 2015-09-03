@@ -143,7 +143,8 @@ export default class Post extends React.Component {
                         className='post-profile-img'
                         src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp}
                         height='36'
-                        width='36' />
+                        width='36'
+                    />
                 </div>
             );
         }
@@ -152,7 +153,8 @@ export default class Post extends React.Component {
             <div>
                 <div
                     id={post.id}
-                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss} >
+                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}
+                >
                     {profilePic}
                     <div className='post__content'>
                         <PostHeader
@@ -161,21 +163,24 @@ export default class Post extends React.Component {
                             sameRoot={this.props.sameRoot}
                             commentCount={commentCount}
                             handleCommentClick={this.handleCommentClick}
-                            isLastComment={this.props.isLastComment} />
+                            isLastComment={this.props.isLastComment}
+                        />
                         <PostBody
                             post={post}
                             sameRoot={this.props.sameRoot}
                             parentPost={parentPost}
                             posts={posts}
                             handleCommentClick={this.handleCommentClick}
-                            retryPost={this.retryPost} />
+                            retryPost={this.retryPost}
+                        />
                         <PostInfo
                             ref='info'
                             post={post}
                             sameRoot={this.props.sameRoot}
                             commentCount={commentCount}
                             handleCommentClick={this.handleCommentClick}
-                            allowReply='true' />
+                            allowReply='true'
+                        />
                     </div>
                 </div>
             </div>

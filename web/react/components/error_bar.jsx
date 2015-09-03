@@ -69,7 +69,8 @@ export default class ErrorBar extends React.Component {
                     <a
                         href='#'
                         className='error-bar__close'
-                        onClick={this.handleClose}>
+                        onClick={this.handleClose}
+                    >
                         &times;
                     </a>
                 </div>
