@@ -56,7 +56,7 @@ There are multiple ways to install Mattermost depending on your needs.
 
 - [Developer Machine Setup](doc/install/dev-setup.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. 
  
-#### Production Deployment 
+#### Production Deployment (for Beta2 and later)
 
 Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 
 
