@@ -121,7 +121,6 @@ export default class Textbox extends React.Component {
         }
         this.addedMention = false;
         this.refs.commands.getSuggestedCommands(nextProps.messageText);
-        this.resize();
     }
     updateMentionTab(mentionText) {
         // using setTimeout so dispatch isn't called during an in progress dispatch
@@ -135,7 +134,6 @@ export default class Textbox extends React.Component {
     }
     handleChange() {
         this.props.onUserInput(React.findDOMNode(this.refs.message).value);
-        this.resize();
     }
     handleKeyPress(e) {
         const text = React.findDOMNode(this.refs.message).value;
@@ -244,6 +242,8 @@ export default class Textbox extends React.Component {
         const e = React.findDOMNode(this.refs.message);
         const w = React.findDOMNode(this.refs.wrapper);
 
+        let prevHeight = $(e).height();
+
         const lht = parseInt($(e).css('lineHeight'), 10);
         const lines = e.scrollHeight / lht;
         let mod = 15;
@@ -258,6 +258,10 @@ export default class Textbox extends React.Component {
         } else {
             $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167);
             $(w).css({height: 'auto'}).height(167);
+        }
+
+        if (prevHeight !== $(e).height()) {
+            this.props.onHeightChange();
         }
     }
     handleFocus() {
@@ -316,5 +320,6 @@ Textbox.propTypes = {
     messageText: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
+    onHeightChange: React.PropTypes.func.isRequired,
     createMessage: React.PropTypes.string.isRequired
 };
