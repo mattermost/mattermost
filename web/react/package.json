@@ -21,7 +21,7 @@
   },
   "scripts": {
     "start": "watchify --extension=jsx -o ../static/js/bundle.js -v -d ./**/*.jsx",
-    "build": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs > ../static/js/bundle.min.js",
+    "build": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs -c -m --screw-ie8 > ../static/js/bundle.min.js",
     "test": "jest"
   },
   "browserify": {
