@@ -1,0 +1,362 @@
+
+{{define "admin_console"}}
+<!DOCTYPE html>
+<html>
+{{template "head" . }}
+<body>
+    <div id="error_bar"></div>
+
+    <div class="container-fluid">
+        <div class="modal fade" id="teamsModal" tabindex="-1" role="dialog" aria-labelledby="teamsModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="teamsModalLabel">Select a team</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table class="more-channel-table table">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Descartes</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Grouping</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Adventure</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Crossroads</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Sky scraping</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Outdoors</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Microsoft</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="more-channel-name">Apple</p>
+                                    </td>
+                                    <td class="td--action">
+                                        <button class="btn btn-primary">Join</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar--menu" id="sidebar-menu"></div>
+        <div class="sidebar--left sidebar--collapsable" id="sidebar-left">
+            <div>
+                <div class='team__header theme'>
+                    <a href='#'>
+                        <div class='header__info'>
+                            <div class='user__name'>@asaad</div>
+                            <div class='team__name'>Mattermost</div>
+                        </div>
+                    </a>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" data-reactid=".4.0.1.0.0"><span class="dropdown__icon" data-reactid=".4.0.1.0.0.0"><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="4px" height="16px" viewBox="0 0 8 32" enable-background="new 0 0 8 32" xml:space="preserve"> <g> <circle cx="4" cy="4.062" r="4"></circle> <circle cx="4" cy="16" r="4"></circle> <circle cx="4" cy="28" r="4"></circle> </g> </svg></span></a>
+                        </li>
+                    </ul>
+                </div>
+                <ul class="nav nav-pills nav-stacked">
+                    <li>
+                        <a href="#" class="nav__menu-item active"><span class="icon fa fa-gear"></span> <span>Basic Settings</span></a>
+                        <ul class="nav nav__sub-menu">
+                            <li><a href="#" class="active">Email Settings <span class='badge pull-right small'>1</span></a></li>
+                            <li><a href="#">Sub option 2</a></li>
+                            <li><a href="#">Sub option 3</a></li>
+                            <li><a href="#">Sub option 4</a></li>
+                            <li><a href="#">Sub option 5</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="nav__menu-item"><span class="icon fa fa-gear"></span> <span>App Center</span></a>
+                        <ul class="nav nav__sub-menu hide">
+                            <li><a href="#" class="active">Sub option 1</a></li>
+                            <li><a href="#">Sub option 2</a></li>
+                            <li><a href="#">Sub option 3</a></li>
+                            <li><a href="#">Sub option 4</a></li>
+                            <li><a href="#">Sub option 5</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                    <a href="#" class="nav__menu-item"><span class="icon fa fa-gear"></span> <span>Team Settings (306)</span> <span class="menu-icon--right"><i class="fa fa-plus"></i></span></a>
+                        <ul class="nav nav__sub-menu hide">
+                            <li><a href="#" class="nav__sub-menu-item active">Adal <span class="menu-icon--right menu__close">x</span></a></li>
+                            <li>
+                                <ul class="nav nav__inner-menu">
+                                    <li><a href="#" class="active">- Users</a></li>
+                                    <li><a href="#">- View Statistics</a></li>
+                                    <li><a href="#">- View Audit Log</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="#" class="nav__sub-menu-item">Boole <span class="menu-icon--right menu__close">x</span></a></li>
+                            <li>
+                                <ul class="nav nav__inner-menu hide">
+                                    <li><a href="#" class="active">- Users</a></li>
+                                    <li><a href="#">- View Statistics</a></li>
+                                    <li><a href="#">- View Audit Log</a></li>
+                                </ul>
+                            </li>
+                            <li><span data-toggle="modal" data-target="#teamsModal" class="nav-more">Select a team</span></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="inner__wrap channel__wrap">
+            <div class="row header">
+                <div id="navbar">
+                    <div class="navbar navbar-default navbar-fixed-top">
+                        <div class="container-fluid theme">
+                            <div class="navbar-header">
+                                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#sidebar-nav" data-reactid=".2.0.0.1"><span class="sr-only" data-reactid=".2.0.0.1.0">Toggle sidebar</span><span class="icon-bar" data-reactid=".2.0.0.1.1"></span><span class="icon-bar" data-reactid=".2.0.0.1.2"></span><span class="icon-bar" data-reactid=".2.0.0.1.3"></span></button>
+                                <button type="button" class="navbar-toggle menu-toggle pull-right" data-toggle="collapse" data-target="#sidebar-nav" data-reactid=".2.0.0.2"><span data-reactid=".2.0.0.2.0"><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="4px" height="16px" viewBox="0 0 8 32" enable-background="new 0 0 8 32" xml:space="preserve"> <g> <circle cx="4" cy="4.062" r="4"></circle> <circle cx="4" cy="16" r="4"></circle> <circle cx="4" cy="28" r="4"></circle> </g> </svg></span></button>
+                                <div class="navbar-brand" data-reactid=".2.0.0.3">
+                                    <div class="dropdown" data-reactid=".2.0.0.3.0">
+                                        <a href="#" class="dropdown-toggle theme" type="button" id="channel_header_dropdown" data-toggle="dropdown" aria-expanded="true">
+                                            <span class="heading">Email Settings</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row main">
+                <div id="app-content" class="app__content admin">
+                    <div class="wrapper--fixed">
+
+                        <div class="banner">
+                            <div class="banner__content">
+                                <h4 class="banner__heading">Banner Heading or whatever</h4>
+                                <p>Quisque quis lorem id orci consequat euismod. Etiam sagittis erat ut orci fermentum lobortis. Etiam commodo, quam non tristique volutpat, leo dolor tempor nisl, ut placerat neque justo in dui.</p>
+                            </div>
+                        </div>
+
+                        <h3>Email Settings</h3>
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="email">Bypass Email: <a href="#" data-trigger="hover click" data-toggle="popover" data-position="bottom" data-content="Here's some more help text inside a popover for the Bypass Email field just to show how popovers look.">(?)</a></label>
+                                <div class="col-sm-8">
+                                    <label class="radio-inline">
+                                        <input type="radio" name="byPassEmail" value="option1"> True
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="byPassEmail" value="option2"> False
+                                    </label>
+                                    <p class="help-text">This is some sample help text for the Bypass Email field</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="smtpUsername">SMTP Username:</label>
+                                <div class="col-sm-8">
+                                    <input type="email" class="form-control" id="smtpUsername" placeholder="Enter your SMTP username" value="">
+                                    <div class="help-text">
+                                        <div class="alert alert-warning"><i class="fa fa-warning"></i> This is some error text for the Bypass Email field</div>
+                                    </div>
+                                    <p class="help-text">This is some sample help text for the SMTP username field</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="smtpPassword">SMTP Password:</label>
+                                <div class="col-sm-8">
+                                    <input type="password" class="form-control" id="smtpPassword" placeholder="Enter your SMTP password" value="">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="smtpServer">SMTP Server:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="smtpServer" placeholder="Enter your SMTP server" value="">
+                                    <div class="help-text">
+                                        <a href="#" class="help-link">Test Connection</a>
+                                        <div class="alert alert-success"><i class="fa fa-check"></i> Connection successful</div>
+                                        <div class="alert alert-warning hide"><i class="fa fa-warning"></i> Connection unsuccessful</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Use TLS:</label>
+                                <div class="col-sm-8">
+                                    <label class="radio-inline">
+                                        <input type="radio" name="tls" value="option1"> True
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="tls" value="option2"> False
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Use Start TLS:</label>
+                                <div class="col-sm-8">
+                                    <label class="radio-inline">
+                                        <input type="radio" name="starttls" value="option1"> True
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="starttls" value="option2"> False
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="feedbackEmail">Feedback Email:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="feedbackEmail" placeholder="Enter your feedback email" value="">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4" for="feedbackUsername">Feedback Username:</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="feedbackUsername" placeholder="Enter your feedback username" value="">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-8">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox"> Remember me</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Collapsable -->
+                            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="headingOne">
+                                        <h3 class="panel-title">
+                                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                Advanced Settings <i class="fa fa-plus"></i><i class="fa fa-minus"></i>
+                                            </a>
+                                        </h3>
+                                    </div>
+                                    <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                                        <div class="panel-body">
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-4" for="feedbackUsername">Apple push server:</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" id="feedbackUsername" placeholder="Enter your Apple push server" value="">
+                                                    <p class="help-text">This is some sample help text for the Apple push server field</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-4" for="feedbackUsername">Apple push certificate public:</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" id="feedbackUsername" placeholder="Enter your public apple push certificate" value="">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-sm-4" for="feedbackUsername">Apple push certificate private:</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" id="feedbackUsername" placeholder="Enter your private apple push certificate" value="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    window.setup_admin_console_page();
+    
+    $(document).ready(function(){
+    $('.nav__menu-item').on('click', function(e){
+        e.preventDefault();
+        $(this).closest('.sidebar--collapsable').find('.nav__menu-item').removeClass('active');
+        $(this).addClass('active');
+        $(this).closest('.sidebar--collapsable').find('.nav__sub-menu').addClass('hide');
+        $(this).next('.nav__sub-menu').removeClass('hide');
+    });
+
+    $('.nav__sub-menu a').on('click', function(e){
+        e.preventDefault();
+        $(this).closest('.nav__sub-menu').find('a').removeClass('active');
+        $(this).addClass('active');
+    });
+
+    $('.nav__sub-menu-item').on('click', function(e){
+        e.preventDefault();
+        $(this).closest('.sidebar--collapsable').find('.nav__inner-menu').addClass('hide');
+        $(this).closest('li').next('li').find('.nav__inner-menu').removeClass('hide');
+        $(this).closest('li').next('li').find('.nav__inner-menu li:first a').addClass('active');
+    });
+
+    $('.nav__inner-menu a').on('click', function(e){
+        $(this).closest('.nav__inner-menu').closest('li').prev('li').find('a').addClass('active');
+    });
+
+    $('.nav__sub-menu .menu__close').on('click', function(e){
+        var menuItem = $(this).closest('li');
+        menuItem.next('li').remove();
+        menuItem.remove();
+    });
+
+    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="popover"]').popover()
+
+  });
+</script>
+</body>
+</html>
+{{end}}
