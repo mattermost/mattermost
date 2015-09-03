@@ -34,27 +34,27 @@ export default class CommandList extends React.Component {
 
         return (
             <div
-              className='modal fade'
-              ref='modal'
-              id='channel_info'
-              tabIndex='-1'
-              role='dialog'
-              aria-hidden='true'
+                className='modal fade'
+                ref='modal'
+                id='channel_info'
+                tabIndex='-1'
+                role='dialog'
+                aria-hidden='true'
             >
                <div className='modal-dialog'>
                   <div className='modal-content'>
                     <div className='modal-header'>
                       <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
+                          type='button'
+                          className='close'
+                          data-dismiss='modal'
+                          aria-label='Close'
                       >
                         <span aria-hidden='true'>&times;</span>
                       </button>
                       <h4
-                        className='modal-title'
-                        id='myModalLabel'
+                          className='modal-title'
+                          id='myModalLabel'
                       >
                         <span className='name'>{channel.display_name}</span>
                       </h4>
@@ -75,9 +75,9 @@ export default class CommandList extends React.Component {
                     </div>
                     <div className='modal-footer'>
                       <button
-                        type='button'
-                        className='btn btn-default'
-                        data-dismiss='modal'
+                          type='button'
+                          className='btn btn-default'
+                          data-dismiss='modal'
                       >Close</button>
                     </div>
                   </div>

@@ -12,7 +12,8 @@ function setupSignupUserCompletePage(email, name, uiName, id, data, hash, authSe
             email={email}
             hash={hash}
             data={data}
-            authServices={authServices} />,
+            authServices={authServices}
+        />,
         document.getElementById('signup-user-complete')
     );
 }

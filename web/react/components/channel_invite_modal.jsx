@@ -146,8 +146,8 @@ export default class ChannelInviteModal extends React.Component {
                 aria-hidden='true'
             >
               <div
-                className='modal-dialog'
-                role='document'
+                  className='modal-dialog'
+                  role='document'
               >
                 <div className='modal-content'>
                   <div className='modal-header'>

@@ -23,14 +23,16 @@ export default class MemberList extends React.Component {
         return (
             <div className='member-list-holder'>
                 {members.map(function mymembers(member) {
-                    return (<MemberListItem
-                                key={member.id}
-                                member={member}
-                                isAdmin={this.props.isAdmin}
-                                handleInvite={this.props.handleInvite}
-                                handleRemove={this.props.handleRemove}
-                                handleMakeAdmin={this.props.handleMakeAdmin}
-                            />);
+                    return (
+                        <MemberListItem
+                            key={member.id}
+                            member={member}
+                            isAdmin={this.props.isAdmin}
+                            handleInvite={this.props.handleInvite}
+                            handleRemove={this.props.handleRemove}
+                            handleMakeAdmin={this.props.handleMakeAdmin}
+                        />
+                    );
                 }, this)}
                 {message}
             </div>

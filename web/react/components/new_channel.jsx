@@ -134,14 +134,16 @@ export default class NewChannelModal extends React.Component {
                 ref='modal'
                 tabIndex='-1'
                 role='dialog'
-                aria-hidden='true'>
+                aria-hidden='true'
+            >
                 <div className='modal-dialog'>
                     <div className='modal-content'>
                         <div className='modal-header'>
                             <button
                                 type='button'
                                 className='close'
-                                data-dismiss='modal'>
+                                data-dismiss='modal'
+                            >
                                 <span aria-hidden='true'>&times;</span>
                                 <span className='sr-only'>Cancel</span>
                             </button>
@@ -157,7 +159,8 @@ export default class NewChannelModal extends React.Component {
                                         ref='display_name'
                                         className='form-control'
                                         placeholder='Enter display name'
-                                        maxLength='22' />
+                                        maxLength='22'
+                                    />
                                     {displayNameError}
                                 </div>
                                 <div className={nameClass}>
@@ -167,7 +170,8 @@ export default class NewChannelModal extends React.Component {
                                         className='form-control'
                                         ref='channel_name'
                                         placeholder="lowercase alphanumeric's only"
-                                        maxLength='22' />
+                                        maxLength='22'
+                                    />
                                     {nameError}
                                 </div>
                                 <div className='form-group'>
@@ -177,7 +181,8 @@ export default class NewChannelModal extends React.Component {
                                         ref='channel_desc'
                                         rows='3'
                                         placeholder='Description'
-                                        maxLength='1024' />
+                                        maxLength='1024'
+                                    />
                                 </div>
                                 {serverError}
                             </div>
@@ -185,13 +190,15 @@ export default class NewChannelModal extends React.Component {
                                 <button
                                     type='button'
                                     className='btn btn-default'
-                                    data-dismiss='modal' >
+                                    data-dismiss='modal'
+                                >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={this.handleSubmit}
                                     type='submit'
-                                    className='btn btn-primary' >
+                                    className='btn btn-primary'
+                                >
                                     Create New {channelTerm}
                                 </button>
                             </div>

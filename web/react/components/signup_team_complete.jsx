@@ -44,52 +44,66 @@ export default class SignupTeamComplete extends React.Component {
     }
     render() {
         if (this.state.wizard === 'welcome') {
-            return (<WelcomePage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <WelcomePage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         if (this.state.wizard === 'team_display_name') {
-            return (<TeamDisplayNamePage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <TeamDisplayNamePage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         if (this.state.wizard === 'team_url') {
-            return (<TeamURLPage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <TeamURLPage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         if (this.state.wizard === 'allowed_domains') {
-            return (<AllowedDomainsPage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <AllowedDomainsPage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         if (this.state.wizard === 'send_invites') {
-            return (<SendInivtesPage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <SendInivtesPage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         if (this.state.wizard === 'username') {
-            return (<UsernamePage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <UsernamePage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         if (this.state.wizard === 'password') {
-            return (<PasswordPage
-                        state={this.state}
-                        updateParent={this.updateParent}
-                    />);
+            return (
+                <PasswordPage
+                    state={this.state}
+                    updateParent={this.updateParent}
+                />
+            );
         }
 
         return (<div>You've already completed the signup process for this invitation or this invitation has expired.</div>);

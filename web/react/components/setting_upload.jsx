@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 export default class SettingsUpload extends React.Component {
-
     constructor(props) {
         super(props);
 
@@ -70,14 +69,19 @@ export default class SettingsUpload extends React.Component {
                 <li className='col-xs-offset-3 col-xs-8'>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
-                            <span className='btn btn-sm btn-primary btn-file sel-btn'>Select file<input
-                                ref='uploadinput'
-                                accept={this.props.fileTypesAccepted}
-                                type='file'
-                                onChange={this.onFileSelect}/></span>
+                            <span className='btn btn-sm btn-primary btn-file sel-btn'>
+                                Select file
+                                <input
+                                    ref='uploadinput'
+                                    accept={this.props.fileTypesAccepted}
+                                    type='file'
+                                    onChange={this.onFileSelect}
+                                />
+                            </span>
                             <a
                                 className={'btn btn-sm btn-primary'}
-                                onClick={this.doSubmit}>
+                                onClick={this.doSubmit}
+                            >
                                 Import
                             </a>
                             <div className='file-status file-name hide'></div>

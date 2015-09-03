@@ -73,7 +73,8 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
     React.render(
         <Sidebar
             teamDisplayName={teamName}
-            teamType={teamType} />,
+            teamType={teamType}
+        />,
         document.getElementById('sidebar-left')
     );
 
@@ -190,7 +191,8 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
     React.render(
         <SidebarRightMenu
             teamDisplayName={teamName}
-            teamType={teamType} />,
+            teamType={teamType}
+        />,
         document.getElementById('sidebar-menu')
     );
 
@@ -226,7 +228,8 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
 
     React.render(
         <FileUploadOverlay
-            overlayType='center' />,
+            overlayType='center'
+        />,
         document.getElementById('file_upload_overlay')
     );
 }

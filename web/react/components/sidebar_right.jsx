@@ -71,10 +71,12 @@ export default class SidebarRight extends React.Component {
         if (this.state.search_visible) {
             content = <SearchResults isMentionSearch={this.state.is_mention_search} />;
         } else if (this.state.post_right_visible) {
-            content = (<RhsThread
-                            fromSearch={this.state.from_search}
-                            isMentionSearch={this.state.is_mention_search}
-                        />);
+            content = (
+                <RhsThread
+                    fromSearch={this.state.from_search}
+                    isMentionSearch={this.state.is_mention_search}
+                />
+            );
         }
 
         return (

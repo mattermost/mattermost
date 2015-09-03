@@ -98,12 +98,13 @@ export default class SettingPicture extends React.Component {
                         <li className='setting-list-item'>
                             {serverError}
                             {clientError}
-                            <span className='btn btn-sm btn-primary btn-file sel-btn'
-                            >Select<input
-                                ref='input'
-                                accept='.jpg,.png,.bmp'
-                                type='file'
-                                onChange={this.props.pictureChange}
+                            <span className='btn btn-sm btn-primary btn-file sel-btn'>
+                                Select
+                                <input
+                                    ref='input'
+                                    accept='.jpg,.png,.bmp'
+                                    type='file'
+                                    onChange={this.props.pictureChange}
                                 />
                             </span>
                             {confirmButton}

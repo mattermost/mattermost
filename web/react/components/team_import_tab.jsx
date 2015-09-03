@@ -46,7 +46,8 @@ export default class TeamImportTab extends React.Component {
                 title='Import from Slack'
                 submit={this.doImportSlack}
                 helpText={uploadHelpText}
-                fileTypesAccepted='.zip'/>
+                fileTypesAccepted='.zip'
+            />
         );
 
         var messageSection;
@@ -62,14 +63,30 @@ export default class TeamImportTab extends React.Component {
             break;
         case 'done':
             messageSection = (
-                <p className='confirm-import alert alert-success'><i className='fa fa-check'></i> Import successful: <a href={this.state.link}
-                download='MattermostImportSummary.txt'>View Summary</a></p>
-            );
+                <p className='confirm-import alert alert-success'>
+                    <i className='fa fa-check' />
+                    {' Import successful: '}
+                    <a
+                        href={this.state.link}
+                        download='MattermostImportSummary.txt'
+                    >
+                        {'View Summary'}
+                    </a>
+                </p>
+        );
             break;
         case 'fail':
             messageSection = (
-                <p className='confirm-import alert alert-warning'><i className='fa fa-warning'></i> Import failure: <a href={this.state.link}
-                download='MattermostImportSummary.txt'>View Summary</a></p>
+                <p className='confirm-import alert alert-warning'>
+                    <i className='fa fa-warning' />
+                    {' Import failure: '}
+                    <a
+                        href={this.state.link}
+                        download='MattermostImportSummary.txt'
+                    >
+                        {'View Summary'}
+                    </a>
+                </p>
             );
             break;
         }

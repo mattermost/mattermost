@@ -38,7 +38,7 @@ travis:
 	@cd web/react/ && npm install
 
 	@echo Checking for style guide compliance
-	cd web/react && $(ESLINT) components/* dispatcher/* pages/* stores/* utils/*
+	cd web/react && $(ESLINT) --quiet components/* dispatcher/* pages/* stores/* utils/*
 
 	@$(GO) build $(GOFLAGS) ./...
 	@$(GO) install $(GOFLAGS) -a ./...

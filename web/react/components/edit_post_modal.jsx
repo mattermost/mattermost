@@ -88,7 +88,8 @@ export default class EditPostModal extends React.Component {
                 id='edit_post'
                 role='dialog'
                 tabIndex='-1'
-                aria-hidden='true' >
+                aria-hidden='true'
+            >
                 <div className='modal-dialog modal-push-down'>
                     <div className='modal-content'>
                         <div className='modal-header'>
@@ -97,7 +98,8 @@ export default class EditPostModal extends React.Component {
                                 className='close'
                                 data-dismiss='modal'
                                 aria-label='Close'
-                                onClick={this.handleEditClose}>
+                                onClick={this.handleEditClose}
+                            >
                                 <span aria-hidden='true'>&times;</span>
                             </button>
                         <h4 className='modal-title'>Edit {this.state.title}</h4>
@@ -110,20 +112,22 @@ export default class EditPostModal extends React.Component {
                                 createMessage='Edit the post...'
                                 id='edit_textbox'
                                 ref='editbox'
-                                />
+                            />
                             {error}
                         </div>
                         <div className='modal-footer'>
                             <button
                                 type='button'
                                 className='btn btn-default'
-                                data-dismiss='modal' >
+                                data-dismiss='modal'
+                            >
                                 Cancel
                             </button>
                             <button
                                 type='button'
                                 className='btn btn-primary'
-                                onClick={this.handleEdit}>
+                                onClick={this.handleEdit}
+                            >
                                 Save
                             </button>
                         </div>

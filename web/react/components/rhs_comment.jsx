@@ -172,7 +172,8 @@ export default class RhsComment extends React.Component {
                     filenames={post.filenames}
                     modalId={'rhs_comment_view_image_modal_' + post.id}
                     channelId={post.channel_id}
-                    userId={post.user_id} />
+                    userId={post.user_id}
+                />
             );
         }
 
