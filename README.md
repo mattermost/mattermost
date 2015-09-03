@@ -1,28 +1,36 @@
-# Mattermost is an open source, on-prem Slack Alternative
+# Mattermost is an open source, on-prem Slack-alternative
 
 Mattermost modernizes team communication without locking in your data to a single provider. 
 
 Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
 
-## Features 
+## All team communication in one place, searchable and accessible anywhere
 
-### Sharing Messaging and Files
+Please see the [features pages of the Mattermost website](http://www.mattermost.org/features/) for images and further description of the functionality listed below: 
 
-- Send messages and comments across public, private and 1-1 channels
+#### Sharing Messaging and Files
+
+- Send messages, comments, files and images across public, private and 1-1 channels
 - Personalize notifications for unreads and mentions by channel and keyword
-- Share files and images internally and externally
+- Use #hashtags to tag and find messages, discussions and files
 
-### Archiving and Search 
+#### Archiving and Search 
 
-- Search archives across channels for historical messages and comments 
-- Use #hashtags to tag and recall messages, threads and files
-- View recent mentions of your name and custom search terms
+- Import Slack user accounts and channel archives
+- Search public and private channels for historical messages and comments 
+- View recent mentions of your name, username, nickname, and custom search terms
 
-### Anywhere Access
+#### Anywhere Access
 
 - Use Mattermost from web-enabled PCs and phones
 - Attach sound, video and image files from mobile devices 
-- Define team-specific color themes across your devices
+- Define team-specific branding and color themes across your devices
+
+#### Enterprise Ready
+
+- Self-host Mattermost entirely within your organization's insfrastructure
+- GitLab Mattermost omnibus supports install to over 100,000 organizations using GitLab
+- LDAP/Active Directory connectivity to Mattermost enabled via GitLab Single-Sign-On
 
 ## Learn More
 
@@ -36,7 +44,7 @@ Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq).
 
 # Installing Mattermost
 
-Depending on your needs, there are multiple ways to install Mattermost: 
+There are multiple ways to install Mattermost depending on your needs. 
 
 ### Product Evaluation 
 
@@ -50,6 +58,8 @@ Depending on your needs, there are multiple ways to install Mattermost:
  
 ### Production Deployment 
 
+Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 
+
 - [GitLab Mattermost Production Installation](https://about.gitlab.com/downloads/) - Install Mattermost for production environments bundled with GitLab, a leading open source Git repository, using an omnibus package for Ubuntu 12.04, Ubuntu 14.04, Debian 7, Debian 8, and CentOS 6 (and RedHat/Oracle/Scientific Linux 6), CentOS 7 (and RedHat/Oracle/Scientific Linux 7). 
 
-Any issues at all, please let us know on the Mattermost forum at: http://forum.mattermost.org
+For technical questions and answers, please visit the [Mattermost forum](http://forum.mattermost.org).
