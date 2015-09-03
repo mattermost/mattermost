@@ -457,7 +457,7 @@ export function textToJsx(textin, options) {
     var inner = [];
 
     // Function specific regex
-    var hashRegex = /^href="#[^']+"|(#[A-Za-z]+[A-Za-z0-9_\-]*[A-Za-z0-9])$/g;
+    var hashRegex = /^href="#[^']+"|(^#[A-Za-z]+[A-Za-z0-9_\-]*[A-Za-z0-9])$/g;
 
     var implicitKeywords = UserStore.getCurrentMentionKeys();
 
