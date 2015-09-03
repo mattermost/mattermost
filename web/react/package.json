@@ -21,13 +21,12 @@
   },
   "scripts": {
     "start": "watchify --extension=jsx -o ../static/js/bundle.js -v -d ./**/*.jsx",
-    "build": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs  > ../static/js/bundle.min.js",
-    "build_old": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs -cm > ../static/js/bundle.min.js",
+    "build": "NODE_ENV=production browserify ./**/*.jsx | uglifyjs > ../static/js/bundle.min.js",
     "test": "jest"
   },
   "browserify": {
     "transform": [
-      ["babelify", {"blacklist": ["strict"]}],
+      "babelify",
       "envify"
     ]
   },
