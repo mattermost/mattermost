@@ -153,7 +153,7 @@
             "prefer-const": 1,
             "prefer-spread": 2,
             "prefer-reflect": 1,
-            "prefer-template": 1,
+            "prefer-template": 0,
             "require-yield": 2,
 
             // React Specific
