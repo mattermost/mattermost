@@ -21,7 +21,14 @@ func main() {
 	fmt.Println("Current working directory is set to " + pwd)
 
 	var config = flag.String("config", "config.json", "path to config file")
+	var action = flag.String("action", "none", "path to config file")
 	flag.Parse()
+
+	fmt.Println(action)
+
+	if len(action) > 0 {
+		return
+	}
 
 	utils.LoadConfig(*config)
 	api.NewServer()
