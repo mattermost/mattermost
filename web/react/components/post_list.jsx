@@ -118,6 +118,22 @@ export default class PostList extends React.Component {
             }
         }.bind(this));
 
+        $(document).on('touchmove', function stopScrollBounce(e) {
+            e.preventDefault();
+        });
+
+        $('body').on('touchmove', '.post-list-holder-by-time', function stopTMBubble(e) {
+            e.stopPropagation();
+        });
+
+        $('body').on('touchstart', '.post-list-holder-by-time', function bumperScrolling(e) {
+            if (e.currentTarget.scrollTop === 0) {
+                e.currentTarget.scrollTop = 1;
+            } else if (e.currentTarget.scrollHeight === e.currentTarget.scrollTop + e.currentTarget.offsetHeight) {
+                e.currentTarget.scrollTop -= 1;
+            }
+        });
+
         postHolder.scroll(function scroll() {
             var position = postHolder.scrollTop() + postHolder.height() + 14;
             var bottom = postHolder[0].scrollHeight;
