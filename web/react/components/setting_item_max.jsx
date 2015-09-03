@@ -15,7 +15,7 @@ export default class SettingItemMax extends React.Component {
 
         var extraInfo = null;
         if (this.props.extraInfo) {
-            extraInfo = this.props.extraInfo;
+            extraInfo = (<div className='setting-list__hint'>{this.props.extraInfo}</div>);
         }
 
         var submit = '';
