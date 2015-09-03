@@ -162,6 +162,13 @@ export default class ChannelNotifications extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
+            let curChannel = ChannelStore.get(this.state.channelId);
+            let extraInfo = (<span>These settings will override the global notification settings</span>);
+
+            if (curChannel && curChannel.display_name) {
+                extraInfo = (<span>These settings will override the global notification settings for the <b>{curChannel.display_name}</b> channel</span>);
+            }
+
             return (
                 <SettingItemMax
                     title='Send desktop notifications'
@@ -169,6 +176,7 @@ export default class ChannelNotifications extends React.Component {
                     submit={this.handleUpdate}
                     server_error={serverError}
                     updateSection={handleUpdateSection}
+                    extraInfo={extraInfo}
                 />
             );
         }
