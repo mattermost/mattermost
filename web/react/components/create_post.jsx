@@ -117,7 +117,6 @@ export default class CreatePost extends React.Component {
 
             Client.createPost(post, channel,
                 function handlePostSuccess(data) {
-                    this.resizePostHolder();
                     AsyncClient.getPosts();
 
                     let member = ChannelStore.getMember(channel.id);
@@ -129,7 +128,7 @@ export default class CreatePost extends React.Component {
                         type: ActionTypes.RECIEVED_POST,
                         post: data
                     });
-                }.bind(this),
+                },
                 function handlePostError(err) {
                     let state = {};
 
@@ -149,9 +148,6 @@ export default class CreatePost extends React.Component {
             );
         }
     }
-    componentDidUpdate() {
-        this.resizePostHolder();
-    }
     postMsgKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
@@ -166,7 +162,6 @@ export default class CreatePost extends React.Component {
         }
     }
     handleUserInput(messageText) {
-        this.resizePostHolder();
         this.setState({messageText: messageText});
 
         let draft = PostStore.getCurrentDraft();
@@ -296,7 +291,8 @@ export default class CreatePost extends React.Component {
                 <FilePreview
                     files={this.state.previews}
                     onRemove={this.removePreview}
-                    uploadsInProgress={this.state.uploadsInProgress} />
+                    uploadsInProgress={this.state.uploadsInProgress}
+                />
             );
         }
 
@@ -317,11 +313,13 @@ export default class CreatePost extends React.Component {
                         <Textbox
                             onUserInput={this.handleUserInput}
                             onKeyPress={this.postMsgKeyPress}
+                            onHeightChange={this.resizePostHolder}
                             messageText={this.state.messageText}
                             createMessage='Write a message...'
                             channelId={this.state.channelId}
                             id='post_textbox'
-                            ref='textbox' />
+                            ref='textbox'
+                        />
                         <FileUpload
                             ref='fileUpload'
                             getFileCount={this.getFileCount}
@@ -329,7 +327,8 @@ export default class CreatePost extends React.Component {
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
                             postType='post'
-                            channelId='' />
+                            channelId=''
+                        />
                     </div>
                     <div className={postFooterClassName}>
                         {postError}

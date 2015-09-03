@@ -61,15 +61,17 @@ export default class NavbarDropdown extends React.Component {
         if (currentUser != null) {
             isAdmin = currentUser.roles.indexOf('admin') > -1;
 
-            inviteLink = (<li>
-                            <a
-                                    href='#'
-                                    data-toggle='modal'
-                                    data-target='#invite_member'
-                                >
-                                Invite New Member
-                            </a>
-                        </li>);
+            inviteLink = (
+                <li>
+                    <a
+                        href='#'
+                        data-toggle='modal'
+                        data-target='#invite_member'
+                    >
+                        Invite New Member
+                    </a>
+                </li>
+            );
 
             if (this.props.teamType === 'O') {
                 teamLink = (
@@ -89,15 +91,17 @@ export default class NavbarDropdown extends React.Component {
         }
 
         if (isAdmin) {
-            manageLink = (<li>
-                            <a
-                                    href='#'
-                                    data-toggle='modal'
-                                    data-target='#team_members'
-                                >
-                                    Manage Team
-                            </a>
-                        </li>);
+            manageLink = (
+                <li>
+                    <a
+                        href='#'
+                        data-toggle='modal'
+                        data-target='#team_members'
+                    >
+                        Manage Team
+                    </a>
+                </li>
+            );
             teamSettings = (<li>
                                 <a
                                     href='#'
@@ -111,11 +115,13 @@ export default class NavbarDropdown extends React.Component {
 
         var teams = [];
 
-        teams.push(<li
-                        className='divider'
-                        key='div'
-                    >
-                    </li>);
+        teams.push(
+            <li
+                className='divider'
+                key='div'
+            >
+            </li>
+        );
         if (this.state.teams.length > 1 && this.state.currentTeam) {
             var curTeamName = this.state.currentTeam.name;
             this.state.teams.forEach(function listTeams(teamName) {

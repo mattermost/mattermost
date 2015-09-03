@@ -12,12 +12,14 @@ var FileAttachmentList = require('./file_attachment_list.jsx');
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
+var twemoji = require('twemoji');
 
 export default class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
         this.retryComment = this.retryComment.bind(this);
+        this.parseEmojis = this.parseEmojis.bind(this);
 
         this.state = {};
     }
@@ -51,12 +53,21 @@ export default class RhsComment extends React.Component {
         PostStore.updatePendingPost(post);
         this.forceUpdate();
     }
+    parseEmojis() {
+        twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+    }
+    componentDidMount() {
+        this.parseEmojis();
+    }
     shouldComponentUpdate(nextProps) {
         if (!Utils.areStatesEqual(nextProps.post, this.props.post)) {
             return true;
         }
 
         return false;
+    }
+    componentDidUpdate() {
+        this.parseEmojis();
     }
     render() {
         var post = this.props.post;
@@ -161,7 +172,8 @@ export default class RhsComment extends React.Component {
                     filenames={post.filenames}
                     modalId={'rhs_comment_view_image_modal_' + post.id}
                     channelId={post.channel_id}
-                    userId={post.user_id} />
+                    userId={post.user_id}
+                />
             );
         }
 

@@ -36,8 +36,10 @@ export default class MemberListItem extends React.Component {
             invite = (
                     <a
                         onClick={this.handleInvite}
-                        className='btn btn-sm btn-primary member-invite'>
-                        <i className='glyphicon glyphicon-envelope'/>  Add
+                        className='btn btn-sm btn-primary member-invite'
+                    >
+                        <i className='glyphicon glyphicon-envelope'/>
+                        {' Add'}
                     </a>
             );
         } else if (isAdmin && !isMemberAdmin && (member.id !== UserStore.getCurrentId())) {
@@ -50,7 +52,9 @@ export default class MemberListItem extends React.Component {
                                         <a
                                             href=''
                                             role='menuitem'
-                                            onClick={self.handleMakeAdmin}>Make Admin
+                                            onClick={self.handleMakeAdmin}
+                                        >
+                                            Make Admin
                                         </a>
                                     </li>);
             }
@@ -62,7 +66,9 @@ export default class MemberListItem extends React.Component {
                                             <a
                                                 href=''
                                                 role='menuitem'
-                                                onClick={self.handleRemove}>Remove Member
+                                                onClick={self.handleRemove}
+                                            >
+                                                Remove Member
                                             </a>
                                         </li>);
             }
@@ -75,14 +81,16 @@ export default class MemberListItem extends React.Component {
                                 type='button'
                                 id='channel_header_dropdown'
                                 data-toggle='dropdown'
-                                aria-expanded='true' >
+                                aria-expanded='true'
+                            >
                                 <span className='text-capitalize'>{member.roles || 'Member'} </span>
                                 <span className='caret'></span>
                             </a>
                             <ul
                                 className='dropdown-menu member-menu'
                                 role='menu'
-                                aria-labelledby='channel_header_dropdown'>
+                                aria-labelledby='channel_header_dropdown'
+                            >
                                 {makeAdminOption}
                                 {handleRemoveOption}
                             </ul>
@@ -98,7 +106,8 @@ export default class MemberListItem extends React.Component {
                     className='post-profile-img pull-left'
                     src={'/api/v1/users/' + member.id + '/image?time=' + timestamp}
                     height='36'
-                    width='36' />
+                    width='36'
+                />
                 <span className='member-name'>{member.username}</span>
                 <span className='member-email'>{member.email}</span>
                 {invite}

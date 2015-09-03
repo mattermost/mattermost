@@ -18,7 +18,6 @@ export default class RhsThread extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onChangeAll = this.onChangeAll.bind(this);
-        this.onTimeChange = this.onTimeChange.bind(this);
 
         this.state = this.getStateFromStores();
     }
@@ -44,7 +43,6 @@ export default class RhsThread extends React.Component {
     componentDidMount() {
         PostStore.addSelectedPostChangeListener(this.onChange);
         PostStore.addChangeListener(this.onChangeAll);
-        UserStore.addStatusesChangeListener(this.onTimeChange);
         this.resize();
         $(window).resize(function resize() {
             this.resize();
@@ -58,7 +56,6 @@ export default class RhsThread extends React.Component {
     componentWillUnmount() {
         PostStore.removeSelectedPostChangeListener(this.onChange);
         PostStore.removeChangeListener(this.onChangeAll);
-        UserStore.removeStatusesChangeListener(this.onTimeChange);
     }
     onChange() {
         var newState = this.getStateFromStores();
@@ -94,14 +91,6 @@ export default class RhsThread extends React.Component {
         var newState = this.getStateFromStores();
         if (!utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
-        }
-    }
-    onTimeChange() {
-        for (var id in this.state.postList.posts) {
-            if (!this.refs[id]) {
-                continue;
-            }
-            this.refs[id].forceUpdate();
         }
     }
     resize() {
@@ -173,8 +162,7 @@ export default class RhsThread extends React.Component {
 
         return (
             <div className='post-right__container'>
-                <FileUploadOverlay
-                    overlayType='right' />
+                <FileUploadOverlay overlayType='right' />
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
                     <RhsHeaderPost

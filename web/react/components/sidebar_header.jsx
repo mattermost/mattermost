@@ -29,10 +29,12 @@ export default class SidebarHeader extends React.Component {
         }
 
         if (me.last_picture_update) {
-            profilePicture = (<img
-                                className='user__picture'
-                                src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at}
-                            />);
+            profilePicture = (
+                <img
+                    className='user__picture'
+                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at}
+                />
+            );
         }
 
         return (

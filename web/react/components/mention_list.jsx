@@ -216,7 +216,8 @@ export default class MentionList extends React.Component {
                         listId={index}
                         isFocused={isFocused}
                         handleMouseEnter={this.handleMouseEnter.bind(this, index)}
-                        handleClick={this.handleClick} />
+                        handleClick={this.handleClick}
+                    />
                 );
                 index++;
             }
@@ -240,11 +241,13 @@ export default class MentionList extends React.Component {
         return (
             <div
                 className='mentions--top'
-                style={style}>
+                style={style}
+            >
                 <div
                     ref='mentionlist'
                     className='mentions-box'
-                    id='mentionsbox'>
+                    id='mentionsbox'
+                >
                     {mentions}
                 </div>
             </div>

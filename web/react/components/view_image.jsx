@@ -307,7 +307,8 @@ export default class ViewImageModal extends React.Component {
                     ref='previewArrowLeft'
                     className='modal-prev-bar'
                     href='#'
-                    onClick={this.handlePrev}>
+                    onClick={this.handlePrev}
+                >
                     <i className='image-control image-prev'/>
                 </a>
             );
@@ -317,7 +318,8 @@ export default class ViewImageModal extends React.Component {
                     ref='previewArrowRight'
                     className='modal-next-bar'
                     href='#'
-                    onClick={this.handleNext}>
+                    onClick={this.handleNext}
+                >
                     <i className='image-control image-next'/>
                 </a>
             );
@@ -351,7 +353,7 @@ export default class ViewImageModal extends React.Component {
                                     ref='imageFooter'
                                     className='modal-button-bar'
                                 >
-                                    <span className='pull-left text'>{'File ' + (this.state.imgId + 1) + ' of ' + this.props.filenames.length}</span>
+                                <span className='pull-left text'>{'File ' + (this.state.imgId + 1) + ' of ' + this.props.filenames.length}</span>
                                     <div className='image-links'>
                                         {publicLink}
                                         <a

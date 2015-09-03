@@ -15,16 +15,20 @@ export default class SettingItemMax extends React.Component {
 
         var extraInfo = null;
         if (this.props.extraInfo) {
-            extraInfo = this.props.extraInfo;
+            extraInfo = (<div className='setting-list__hint'>{this.props.extraInfo}</div>);
         }
 
         var submit = '';
         if (this.props.submit) {
-            submit = (<a
-                        className='btn btn-sm btn-primary'
-                        href='#'
-                        onClick={this.props.submit}>
-                        Submit</a>);
+            submit = (
+                <a
+                    className='btn btn-sm btn-primary'
+                    href='#'
+                    onClick={this.props.submit}
+                >
+                    Submit
+                </a>
+            );
         }
 
         var inputs = this.props.inputs;
@@ -46,7 +50,8 @@ export default class SettingItemMax extends React.Component {
                             <a
                                 className='btn btn-sm theme'
                                 href='#'
-                                onClick={this.props.updateSection} >
+                                onClick={this.props.updateSection}
+                            >
                                 Cancel
                             </a>
                         </li>

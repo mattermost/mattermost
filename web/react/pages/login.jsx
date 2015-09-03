@@ -8,7 +8,8 @@ function setupLoginPage(teamDisplayName, teamName, authServices) {
         <Login
             teamDisplayName={teamDisplayName}
             teamName={teamName}
-            authServices={authServices} />,
+            authServices={authServices}
+        />,
         document.getElementById('login')
     );
 }
