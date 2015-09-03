@@ -267,6 +267,27 @@ export default class UserSettingsGeneralTab extends React.Component {
                 </div>
             );
 
+            function notifClick(e) {
+                e.preventDefault();
+                this.updateSection('');
+                this.props.updateTab('notifications');
+            }
+
+            let notifLink = (
+                <a
+                    href='#'
+                    onClick={notifClick.bind(this)} >
+                    Notifications
+                </a>
+            );
+
+            let extraInfo = (
+                <span>
+                    By default, you will receive mention notifications when someone types your first name.
+                    Go to {notifLink} settings to change this default.
+                </span>
+            );
+
             nameSection = (
                 <SettingItemMax
                     title='Full Name'
@@ -278,6 +299,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                         this.updateSection('');
                         e.preventDefault();
                     }.bind(this)}
+                    extraInfo={extraInfo}
                 />
             );
         } else {
@@ -326,6 +348,13 @@ export default class UserSettingsGeneralTab extends React.Component {
                 </div>
             );
 
+            let extraInfo = (
+                <span>
+                    Use Nickname for a name you might be called that is different from your first name and user name.
+                    This is most often used when two or more people have similar sounding names and usernames.
+                </span>
+            );
+
             nicknameSection = (
                 <SettingItemMax
                     title='Nickname'
@@ -337,6 +366,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                         this.updateSection('');
                         e.preventDefault();
                     }.bind(this)}
+                    extraInfo={extraInfo}
                 />
             );
         } else {
@@ -375,6 +405,8 @@ export default class UserSettingsGeneralTab extends React.Component {
                 </div>
             );
 
+            let extraInfo = (<span>Pick something easy for teammates to recognize and recall.</span>);
+
             usernameSection = (
                 <SettingItemMax
                     title='Username'
@@ -386,6 +418,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                         this.updateSection('');
                         e.preventDefault();
                     }.bind(this)}
+                    extraInfo={extraInfo}
                 />
             );
         } else {
@@ -524,5 +557,6 @@ export default class UserSettingsGeneralTab extends React.Component {
 UserSettingsGeneralTab.propTypes = {
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
+    updateTab: React.PropTypes.func,
     activeSection: React.PropTypes.string
 };

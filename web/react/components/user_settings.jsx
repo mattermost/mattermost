@@ -40,6 +40,7 @@ export default class UserSettings extends React.Component {
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
                     />
                 </div>
             );
