@@ -226,8 +226,6 @@ dist: install
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
 
-	cp APACHE-2.0.txt $(DIST_PATH)
-	cp GNU-AGPL-3.0.txt $(DIST_PATH)
 	cp LICENSE.txt $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
