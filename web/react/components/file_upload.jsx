@@ -10,6 +10,7 @@ export default class FileUpload extends React.Component {
     constructor(props) {
         super(props);
 
+        this.uploadFiles = this.uploadFiles.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleDrop = this.handleDrop.bind(this);
 
@@ -33,39 +34,28 @@ export default class FileUpload extends React.Component {
         this.props.onUploadError(err, clientId);
     }
 
-    handleChange() {
-        var element = $(React.findDOMNode(this.refs.fileInput));
-        var files = element.prop('files');
+    uploadFiles(files) {
+        // clear any existing errors
+        this.props.onUploadError(null);
 
         var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
-        this.props.onUploadError(null);
+        var uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
+        var numUploads = 0;
 
-        // This looks redundant, but must be done this way due to
-        // setState being an asynchronous call
-        var numFiles = 0;
-        for (let i = 0; i < files.length; i++) {
-            if (files[i].size <= Constants.MAX_FILE_SIZE) {
-                numFiles++;
-            }
-        }
+        // keep track of how many files have been too large
+        var tooLargeFiles = [];
 
-        var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId), numFiles);
-
-        if (numFiles > numToUpload) {
-            this.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
-        }
-
-        for (let i = 0; i < files.length && i < numToUpload; i++) {
+        for (let i = 0; i < files.length && numUploads < uploadsRemaining; i++) {
             if (files[i].size > Constants.MAX_FILE_SIZE) {
-                this.props.onUploadError('Files must be no more than ' + Constants.MAX_FILE_SIZE / 1000000 + ' MB');
+                tooLargeFiles.push(files[i]);
                 continue;
             }
 
-            // generate a unique id that can be used by other components to refer back to this file upload
+            // generate a unique id that can be used by other components to refer back to this upload
             var clientId = utils.generateId();
 
-            // Prepare data to be uploaded.
+            // prepare data to be uploaded
             var formData = new FormData();
             formData.append('channel_id', channelId);
             formData.append('files', files[i], files[i].name);
@@ -81,7 +71,25 @@ export default class FileUpload extends React.Component {
             this.setState({requests: requests});
 
             this.props.onUploadStart([clientId], channelId);
+
+            numUploads += 1;
         }
+
+        if (files.length > uploadsRemaining) {
+            this.props.onUploadError(`Uploads limited to ${Constants.MAX_UPLOAD_FILES} files maximum. Please use additional posts for more files.`);
+        } else if (tooLargeFiles.length > 1) {
+            var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
+
+            this.props.onUploadError(`Files above ${Constants.MAX_FILE_SIZE / 1000000}MB could not be uploaded: ${tooLargeFilenames}`);
+        } else if (tooLargeFiles.length > 0) {
+            this.props.onUploadError(`File above ${Constants.MAX_FILE_SIZE / 1000000}MB could not be uploaded: ${tooLargeFiles[0].name}`);
+        }
+    }
+
+    handleChange() {
+        var element = $(React.findDOMNode(this.refs.fileInput));
+
+        this.uploadFiles(element.prop('files'));
 
         // clear file input for all modern browsers
         try {
@@ -99,43 +107,9 @@ export default class FileUpload extends React.Component {
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
-        var channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         if (typeof files !== 'string' && files.length) {
-            var numFiles = files.length;
-
-            var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId), numFiles);
-
-            if (numFiles > numToUpload) {
-                this.props.onUploadError('Uploads limited to ' + Constants.MAX_UPLOAD_FILES + ' files maximum. Please use additional posts for more files.');
-            }
-
-            for (var i = 0; i < files.length && i < numToUpload; i++) {
-                if (files[i].size > Constants.MAX_FILE_SIZE) {
-                    this.props.onUploadError('Files must be no more than ' + Constants.MAX_FILE_SIZE / 1000000 + ' MB');
-                    continue;
-                }
-
-                // generate a unique id that can be used by other components to refer back to this file upload
-                var clientId = utils.generateId();
-
-                // Prepare data to be uploaded.
-                var formData = new FormData();
-                formData.append('channel_id', channelId);
-                formData.append('files', files[i], files[i].name);
-                formData.append('client_ids', clientId);
-
-                var request = client.uploadFile(formData,
-                    this.fileUploadSuccess.bind(this, channelId),
-                    this.fileUploadFail.bind(this, clientId)
-                );
-
-                var requests = this.state.requests;
-                requests[clientId] = request;
-                this.setState({requests: requests});
-
-                this.props.onUploadStart([clientId], channelId);
-            }
+            this.uploadFiles(files);
         } else {
             this.props.onUploadError('Invalid file upload', -1);
         }
