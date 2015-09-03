@@ -42,21 +42,21 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 
 Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq).
 
-# Installing Mattermost
+## Installing Mattermost
 
 There are multiple ways to install Mattermost depending on your needs. 
 
-### Product Evaluation 
+#### Quick Start Install for Product Evaluation 
 
 - [Local Machine Install and Upgrade with Docker](doc/install/single-container-install.md) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
 
 - [AWS EBS Install and Upgrade with Docker](doc/install/aws-ebs-setup.md) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
 
-### Development 
+#### Development Install 
 
 - [Developer Machine Setup](scripts/README_DEV.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. 
  
-### Production Deployment 
+#### Production Deployment 
 
 Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 
 
