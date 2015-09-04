@@ -925,7 +925,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_roles := props["new_roles"]
-	if model.IsValidRoles(new_roles) {
+	if !model.IsValidRoles(new_roles) {
 		c.SetInvalidParam("updateRoles", "new_roles")
 		return
 	}

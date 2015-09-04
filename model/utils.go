@@ -151,7 +151,7 @@ func IsValidEmail(email string) bool {
 var reservedName = []string{
 	"www",
 	"web",
-	"admin",
+	//"admin",
 	"support",
 	"notify",
 	"test",

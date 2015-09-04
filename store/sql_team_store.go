@@ -35,10 +35,6 @@ func (s SqlTeamStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
-	return s.SaveWithValidate(team, true)
-}
-
-func (s SqlTeamStore) SaveWithValidate(team *model.Team, validate bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -54,12 +50,10 @@ func (s SqlTeamStore) SaveWithValidate(team *model.Team, validate bool) StoreCha
 
 		team.PreSave()
 
-		if validate {
-			if result.Err = team.IsValid(); result.Err != nil {
-				storeChannel <- result
-				close(storeChannel)
-				return
-			}
+		if result.Err = team.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
 		}
 
 		if err := s.GetMaster().Insert(team); err != nil {

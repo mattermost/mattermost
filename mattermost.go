@@ -257,6 +257,12 @@ func cmdResetPassword() {
 			os.Exit(1)
 		}
 
+		if len(flagPassword) < 5 {
+			fmt.Fprintln(os.Stderr, "flag invalid argument needs to be more than 4 characters: -password")
+			flag.Usage()
+			os.Exit(1)
+		}
+
 		c := &api.Context{}
 		c.RequestId = model.NewId()
 		c.IpAddress = "cmd_line"

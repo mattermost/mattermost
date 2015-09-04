@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 export function setupAdminConsolePage() {
-    console.log('setting up admin page');
+
 }
 
 global.window.setup_admin_console_page = setupAdminConsolePage;

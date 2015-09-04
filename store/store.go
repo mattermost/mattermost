@@ -39,7 +39,6 @@ type Store interface {
 
 type TeamStore interface {
 	Save(team *model.Team) StoreChannel
-	SaveWithValidate(team *model.Team, validate bool) StoreChannel
 	Update(team *model.Team) StoreChannel
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) StoreChannel
