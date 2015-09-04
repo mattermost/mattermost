@@ -498,7 +498,7 @@ export function textToJsx(textin, options) {
 
                 // do both a non-case sensitive and case senstive check
                 let mClass = '';
-                if (('@' + name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@' + name) !== -1) {
+                if (implicitKeywords.indexOf('@' + name.toLowerCase()) !== -1 || implicitKeywords.indexOf('@' + name) !== -1) {
                     mClass = mentionClass;
                 }
 
