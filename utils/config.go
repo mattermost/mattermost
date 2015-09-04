@@ -6,7 +6,6 @@ package utils
 import (
 	l4g "code.google.com/p/log4go"
 	"encoding/json"
-	"net/mail"
 	"os"
 	"path/filepath"
 )
@@ -149,7 +148,7 @@ func (o *Config) ToJson() string {
 var Cfg *Config = &Config{}
 var SanitizeOptions map[string]bool = map[string]bool{}
 
-func findConfigFile(fileName string) string {
+func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("/tmp/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("/tmp/" + fileName)
 	} else if _, err := os.Stat("./config/" + fileName); err == nil {
@@ -174,6 +173,14 @@ func FindDir(dir string) string {
 	}
 
 	return fileName + "/"
+}
+
+func ConfigureCmdLineLog() {
+	ls := LogSettings{}
+	ls.ConsoleEnable = true
+	ls.ConsoleLevel = "ERROR"
+	ls.FileEnable = false
+	configureLog(ls)
 }
 
 func configureLog(s LogSettings) {
@@ -220,8 +227,7 @@ func configureLog(s LogSettings) {
 // then ../config/fileName and last it will look at fileName
 func LoadConfig(fileName string) {
 
-	fileName = findConfigFile(fileName)
-	l4g.Info("Loading config file at " + fileName)
+	fileName = FindConfigFile(fileName)
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -232,24 +238,13 @@ func LoadConfig(fileName string) {
 	config := Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
-		panic("Error decoding configuration " + err.Error())
-	}
-
-	// Check for a valid email for feedback, if not then do feedback@domain
-	if _, err := mail.ParseAddress(config.EmailSettings.FeedbackEmail); err != nil {
-		l4g.Error("Misconfigured feedback email setting: %s", config.EmailSettings.FeedbackEmail)
-		config.EmailSettings.FeedbackEmail = "feedback@localhost"
+		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
 	}
 
 	configureLog(config.LogSettings)
 
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions()
-
-	// Validates our mail settings
-	if err := CheckMailSettings(); err != nil {
-		l4g.Error("Email settings are not valid err=%v", err)
-	}
 }
 
 func getSanitizeOptions() map[string]bool {

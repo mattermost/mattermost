@@ -285,7 +285,7 @@ func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) b
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	if strings.Contains(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) && IsPrivateIpAddress(c.IpAddress) {
+	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) && IsPrivateIpAddress(c.IpAddress) {
 		return true
 	}
 	return false
@@ -297,7 +297,7 @@ func (c *Context) IsTeamAdmin(userId string) bool {
 		return false
 	} else {
 		user := uresult.Data.(*model.User)
-		return strings.Contains(c.Session.Roles, model.ROLE_ADMIN) && user.TeamId == c.Session.TeamId
+		return model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) && user.TeamId == c.Session.TeamId
 	}
 }
 

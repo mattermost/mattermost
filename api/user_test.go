@@ -684,6 +684,7 @@ func TestUserUpdateRoles(t *testing.T) {
 	data["user_id"] = user2.Id
 
 	if result, err := Client.UpdateUserRoles(data); err != nil {
+		t.Log(data["new_roles"])
 		t.Fatal(err)
 	} else {
 		if result.Data.(*model.User).Roles != "admin" {
