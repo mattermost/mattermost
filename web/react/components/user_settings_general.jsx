@@ -273,15 +273,16 @@ export default class UserSettingsGeneralTab extends React.Component {
                 this.props.updateTab('notifications');
             }
 
-            let notifLink = (
+            const notifLink = (
                 <a
                     href='#'
-                    onClick={notifClick.bind(this)} >
+                    onClick={notifClick.bind(this)}
+                >
                     Notifications
                 </a>
             );
 
-            let extraInfo = (
+            const extraInfo = (
                 <span>
                     By default, you will receive mention notifications when someone types your first name.
                     Go to {notifLink} settings to change this default.
@@ -348,7 +349,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 </div>
             );
 
-            let extraInfo = (
+            const extraInfo = (
                 <span>
                     Use Nickname for a name you might be called that is different from your first name and user name.
                     This is most often used when two or more people have similar sounding names and usernames.
@@ -405,7 +406,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 </div>
             );
 
-            let extraInfo = (<span>Pick something easy for teammates to recognize and recall.</span>);
+            const extraInfo = (<span>Pick something easy for teammates to recognize and recall.</span>);
 
             usernameSection = (
                 <SettingItemMax
