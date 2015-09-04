@@ -1,7 +1,7 @@
 
 ## SMTP Email Setup
 
-In some product evaluation setups email is intentionally bypassed using a `ByPassEmail=true` option. This option allows account creation and system operation without having to set up an email service (email verification is bypassed). 
+In some product evaluation setups email is intentionally bypassed using a `ByPassEmail=true` option. This option allows account creation and system operation without having to set up an email service (e.g. no email verification is required for account creation). This also means neither email notifications nor password reset by email are available.
 
 To enable email, turn this option off by setting `ByPassEmail=false` and configuring an SMTP email service as follows: 
 
