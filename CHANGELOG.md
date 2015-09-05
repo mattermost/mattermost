@@ -56,7 +56,7 @@ Documentation
 
 ### Contributors
 
-Many thanks to our external contributors, in no particular order: 
+Many thanks to our external contributors. In no particular order: 
 
 - [CtrlZvi](https://github.com/CtrlZvi)
 - [BastienDurel](https://github.com/BastienDurel)
@@ -65,7 +65,7 @@ Many thanks to our external contributors, in no particular order:
 - [zackify](https://github.com/zackify)
 - [willstacey](https://github.com/willstacey)
 
-Special thanks to GitLab community for issue reports and feedback, in no particular order: 
+Special thanks to GitLab Mattermost early adopter community for issue reports and feedback. In no particular order: 
 
 - [Chryb](https://gitlab.com/u/Chryb)
 - [cookacounty](https://gitlab.com/u/cookacounty)
@@ -148,7 +148,7 @@ Documentation
 
 ### Contributors 
 
-Many thanks to our external contributors, in no particular order: 
+Many thanks to our external contributors. In no particular order: 
 
 - [ralder](https://github.com/ralder)
 - [jedisct1](https://github.com/jedisct1)
