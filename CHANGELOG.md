@@ -4,7 +4,7 @@
 
 Released 2015-09-05
 
-### Release highlights
+### Release Highlights
 
 #### Improved GitLab Mattermost support 
 
@@ -15,36 +15,45 @@ New features, improvements, and bug fixes recommended by the GitLab community we
 #### Slack Import (Preview)
 
 Preview of Slack import functionality supports the processing of an "Export" file from Slack containing account information and public channel archives from a Slack team.   
-- In the feature preview, emails and usernames from Slack are used to create new Mattermost accounts, which users can activate by going to the Password Reset screen in Mattermost to set new credentials. Once logged in, users will have access to previous Slack messages shared in public channels, now imported to Mattermost.  
+
+- In the feature preview, emails and usernames from Slack are used to create new Mattermost accounts, which users can activate by going to the Password Reset screen in Mattermost to set new credentials. 
+- Once logged in, users will have access to previous Slack messages shared in public channels, now imported to Mattermost.  
 
 Limitations: 
-- Slack does not currently export any files or images that your team has stored in the Slack database. Mattermost will provide links to the location of your assets in Slack's web UI.
-- Slack does not currently export any content from your private groups or direct messages that your team has stored in the Slack database. 
+
+- Slack does not currently export any files or images that your team has stored in Slack's database. Mattermost will provide links to the location of your assets in Slack's web UI.
+- Slack does not currently export any content from your private groups or direct messages that your team has stored in Slack's database. 
 - The Preview release of Slack Import does not offer pre-checks or roll-back and will not import Slack accounts with username or email address collisions with existing Mattermost accounts. Also, Slack channel names with underscores will not import. These issues are being addressed in Mattermost v0.8.0.
   
 ### New Features 
 
 GitLab Mattermost 
+
 - Ability to create teams using GitLab SSO (previously GitLab SSO only supported account creation and sign-in)
 - Ability to restrict team creation to GitLab SSO and/or users with email verified from a specific list of domains.
 
 File and Image Sharing 
+
 - New drag-and-drop file sharing to messages and comments 
 - Ability to paste images from clipboard to messages and comments 
 
 Messaging, Comments and Notifications 
+
 - Send messages faster with from optimistic posting and retry on failure 
 
 Documentation 
+
 - New style guidelines for Go, React and Javascript 
 
 ### Improvements
 
 Messaging, Comments and Notifications 
+
 - Performance improvements to channel rendering
 - Added "Unread posts" in left hand sidebar when notification indicator is off-screen
 
 Documentation 
+
 - Install documentation improved based on early adopter feedback
 
 ### Bug Fixes
@@ -90,6 +99,7 @@ Special thanks to GitLab Mattermost early adopter community for issue reports an
 - [RavenB1](https://gitlab.com/u/RavenB1)
 
 Extra special thanks to GitLab community leaders for successful release of GitLab Mattermost Alpha: 
+
 - [marin](https://gitlab.com/u/marin)
 - [sytse](https://gitlab.com/u/sytse) 
 
@@ -98,7 +108,7 @@ Extra special thanks to GitLab community leaders for successful release of GitLa
 
 Released 2015-08-07
 
-### Release highlights
+### Release Highlights
 
 - Simplified on-prem install
 - Support for GitLab Mattermost (GitLab SSO, Postgres support, IE 10+ support) 
@@ -112,14 +122,17 @@ Released 2015-08-07
 ### New Features 
 
 GitLab Mattermost 
+
 - OAuth2 support for GitLab Single-Sign-On
 - PostgreSQL support for GitLab Mattermost users
 - Support for Internet Explorer 10+ for GitLab Mattermost users
 
 File and Image Sharing 
+
 - New thumbnails and formatting for files and images
 
 Messaging, Comments and Notifications 
+
 - Users now see posts they sent highlighted in a different color
 - Mentions can now also trigger on user-defined words 
 
@@ -163,21 +176,24 @@ Many thanks to our external contributors. In no particular order:
 
 Released 2015-06-24
 
-### Release highlights
+### Release Highlights
 
 - First release of Mattermost as a team communication service for sharing messagse and files across PCs and phones, with archiving and instant search.
  
 ### New Features
 
-- Sharing Messaging and Files
- - Send messages, comments, files and images across public, private and 1-1 channels
- - Personalize notifications for unreads and mentions by channel
- - Use #hashtags to tag and find messages, discussions and files
+Messaging and File Sharing
 
-- Archiving and Search 
- - Search public and private channels for historical messages and comments 
- - View recent mentions of your name, username, nickname, and custom search terms
+- Send messages, comments, files and images across public, private and 1-1 channels
+- Personalize notifications for unreads and mentions by channel
+- Use #hashtags to tag and find messages, discussions and files
 
-- Anywhere Access
- - Use Mattermost from web-enabled PCs and phones
- - Define team-specific branding and color themes across your devices
+Archiving and Search 
+ 
+- Search public and private channels for historical messages and comments 
+- View recent mentions of your name, username, nickname, and custom search terms
+
+Anywhere Access
+
+- Use Mattermost from web-enabled PCs and phones
+- Define team-specific branding and color themes across your devices
