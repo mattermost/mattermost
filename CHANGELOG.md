@@ -105,7 +105,7 @@ Released 2015-08-07
 
 ### Compatibility
 
-*Note: While use of Mattermost Preview (v0.5.0) and Mattermost Alpha (v0.6.0) in production is not recommended, we document compatibility considerations for a small number of organizations running Mattermost in productions, supported directly by Mattermost product team.*
+*Note: While use of Mattermost Preview (v0.5.0) and Mattermost Alpha (v0.6.0) in production is not recommended, we document compatibility considerations for a small number of organizations running Mattermost in production, supported directly by Mattermost product team.*
 
 - Switched Team URLs from team.domain.com to domain.com/team 
 
@@ -171,7 +171,7 @@ Released 2015-06-24
 
 - Sharing Messaging and Files
  - Send messages, comments, files and images across public, private and 1-1 channels
- - Personalize notifications for unreads and mentions by channel and keyword
+ - Personalize notifications for unreads and mentions by channel
  - Use #hashtags to tag and find messages, discussions and files
 
 - Archiving and Search 
