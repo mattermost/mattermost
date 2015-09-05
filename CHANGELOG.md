@@ -15,25 +15,26 @@ New features, improvements, and bug fixes recommended by the GitLab community we
 #### Slack Import (Preview)
 
 Preview of Slack import functionality supports the processing of an "Export" file from Slack containing account information and public channel archives from a Slack team.   
-- In the feature preview, emails and usernames from Slack are used to create new Mattermost accounts, which users can activate by going to the Password Reset screen in Mattermost to set new credentials. Once logged in, users will have access to previous Slack messages shared in public channels, now imported to Mattermost.  
+- In the feature preview, emails and usernames from Slack user accounts are used to create new Mattermost accounts, which users can activate by going to the Password Reset screen in Mattermost to set new credentials. 
+- Once logged in, users will have access to previous Slack messages shared in public channels, now imported to Mattermost.  
 
 Limitations: 
-- Slack does not currently export any files or images that your team has stored in the Slack database. Mattermost will provide links to the location of your assets in Slack's web UI.
-- Slack does not currently export any content from your private groups or direct messages that your team has stored in the Slack database. 
-- The Preview release of Slack Import does not offer pre-checks or roll-back and will not import Slack accounts with username or email address collisions with existing Mattermost accounts. Also, Slack channel names with underscores will not import. These issues are being addressed in Mattermost v0.8.0.
+- Because Slack does not allow export of the files and images your team previously uploaded into Slack's database, Mattermost provides links to the Slack web UI where each of your assets can be viewed, in place of having the asset available in your new Mattermost team site. 
+- Because Slack does not allow export of the content your team created in Slack's private groups and direct messages, Mattermost cannot recover these assets from Slack's database. 
+- The Preview release of Slack Import does not offer pre-checks or roll-back and will not import Slack accounts where usernames or email addresses collid with existing Mattermost accounts. Also, Slack channel names with underscores will not import. These issues are being addressed in Mattermost v0.8.0.
   
 ### New Features 
 
 GitLab Mattermost 
 - Ability to create teams using GitLab SSO (previously GitLab SSO only supported account creation and sign-in)
-- Ability to restrict team creation to GitLab SSO and/or users with email verified from a specific list of domains.
+- Ability to restrict team creation to GitLab SSO and/or users with email verified from a specific list of domains
 
 File and Image Sharing 
 - New drag-and-drop file sharing to messages and comments 
 - Ability to paste images from clipboard to messages and comments 
 
 Messaging, Comments and Notifications 
-- Send messages faster with from optimistic posting and retry on failure 
+- Send messages faster with optimistic posting and retry on failure 
 
 Documentation 
 - New style guidelines for Go, React and Javascript 
