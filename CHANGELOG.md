@@ -58,6 +58,8 @@ Documentation
 
 Many thanks to our external contributors. In no particular order: 
 
+- [asubset](https://github.com/asubset)
+- [felixbuenemann](https://github.com/felixbuenemann)
 - [CtrlZvi](https://github.com/CtrlZvi)
 - [BastienDurel](https://github.com/BastienDurel)
 - [manusajith](https://github.com/manusajith)
