@@ -115,9 +115,9 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 		}
 
 		if oldUserResult, err := us.GetMaster().Get(model.User{}, user.Id); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "We encounted an error finding the account", "user_id="+user.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.Update", "We encountered an error finding the account", "user_id="+user.Id+", "+err.Error())
 		} else if oldUserResult == nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't find the existing account to update", "user_id="+user.Id)
+			result.Err = model.NewAppError("SqlUserStore.Update", "We couldn't find the existing account to update. If you're using Single-Sign-On, please check Account Settings->Security to confirm SSO is enabled.", "user_id="+user.Id)
 		} else {
 			oldUser := oldUserResult.(*model.User)
 			user.CreateAt = oldUser.CreateAt
