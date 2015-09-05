@@ -1,5 +1,45 @@
 # Mattermost Changelog
 
+## UNDER DEVELOPMENT - Release v0.8.0 (Beta2) 
+
+The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes that have been committed to master and are on their way to the next stable release. 
+
+When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
+
+### Release Highlights
+
+- TBA 
+
+### New Features 
+
+- TBA
+
+### Improvements
+
+Documentation
+
+- Updated software and hardware requirements documentation
+- Re-organized install instructions out of README and into separate files
+- Consolidated licensing information into LICENSE.txt and NOTICE.txt
+
+Performance 
+
+- Enabled Javascript optimizations 
+
+Code Quality 
+
+- Reformatted Javascript per Mattermost Style Guide
+
+### Bug fixes
+
+- Fixed performance issue with slow typing on iOS 
+
+### Contributors
+
+Many thanks to our external contributors. In no particular order: 
+
+- TBA
+
 ## Release v0.7.0 (Beta1) 
 
 Released 2015-09-05
