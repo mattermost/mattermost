@@ -1,5 +1,9 @@
 # Mattermost Documentation 
 
+## General Information 
+
+- [Mattermost Release Numbering Scheme](install/release-numbering.md)
+
 ## Administrator Documentation 
 
 ### Installation 
