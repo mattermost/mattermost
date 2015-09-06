@@ -117,7 +117,7 @@ Many thanks to our external contributors. In no particular order:
 - [zackify](https://github.com/zackify)
 - [willstacey](https://github.com/willstacey)
 
-Special thanks to the GitLab Mattermost Alpha early adopter community who have influenced this release, and who play a pivotal role in bringing Mattermost to over 100,000 organizations using GitLab today. In no particular order: 
+Special thanks to the GitLab Mattermost early adopter community who influenced this release, and who play a pivotal role in bringing Mattermost to over 100,000 organizations using GitLab today. In no particular order: 
 
 - [cifvts](http://forum.mattermost.org/users/cifvts/activity)
 - [Chryb](https://gitlab.com/u/Chryb)
