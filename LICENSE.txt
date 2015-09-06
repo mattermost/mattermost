@@ -7,7 +7,7 @@ Mattermost server is made available under two separate licensing options:
 - Free Software Foundation’s GNU AGPL v.3.0, subject to the exceptions outlined in this policy; or 
 - Commercial licenses available from SpinPunch, Inc. by contacting commercial@mattermost.com 
 
-Admin Tools and Configuration Files (model/, web/static/, web/templates/, web/react/utils/, api/templates/ and all 
+Admin Tools and Configuration Files (api/templates/, config/, model/, web/react/utils/, web/static/, web/templates/ and all 
 subdirectories thereof) are made available under: 
 
 - Apache License v2.0 
