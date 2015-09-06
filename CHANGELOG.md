@@ -116,8 +116,9 @@ Many thanks to our external contributors. In no particular order:
 - [zackify](https://github.com/zackify)
 - [willstacey](https://github.com/willstacey)
 
-Special thanks to GitLab Mattermost early adopter community for issue reports and feedback. In no particular order: 
+Special thanks to the GitLab Mattermost Alpha early adopter community who have influenced this release, and who play a pivotal role in bringing Mattermost to over 100,000 organizations using GitLab today. In no particular order: 
 
+- [cifvts](http://forum.mattermost.org/users/cifvts/activity)
 - [Chryb](https://gitlab.com/u/Chryb)
 - [cookacounty](https://gitlab.com/u/cookacounty)
 - [bweston92](https://gitlab.com/u/bweston92)
@@ -137,6 +138,11 @@ Special thanks to GitLab Mattermost early adopter community for issue reports an
 - [stanhu](https://gitlab.com/u/stanhu)
 - [kohenkatz](https://gitlab.com/u/kohenkatz)
 - [RavenB1](https://gitlab.com/u/RavenB1)
+- [booksprint](http://forum.mattermost.org/users/booksprint/activity)
+- [scottcorscadden](http://forum.mattermost.org/users/scottcorscadden/activity)
+- [sskmani](http://forum.mattermost.org/users/sskmani/activity)
+- [gosure](http://forum.mattermost.org/users/gosure/activity)
+- [jigarshah](http://forum.mattermost.org/users/jigarshah/activity)
 
 Extra special thanks to GitLab community leaders for successful release of GitLab Mattermost Alpha: 
 
