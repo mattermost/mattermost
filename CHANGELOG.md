@@ -62,10 +62,10 @@ Preview of Slack import functionality supports the processing of an "Export" fil
 
 Limitations: 
 
-- Slack does not currently export any files or images that your team has stored in Slack's database. Mattermost will provide links to the location of your assets in Slack's web UI.
-- Slack does not currently export any content from your private groups or direct messages that your team has stored in Slack's database. 
-- The Preview release of Slack Import does not offer pre-checks or roll-back and will not import Slack accounts with username or email address collisions with existing Mattermost accounts. Also, Slack channel names with underscores will not import. These issues are being addressed in Mattermost v0.8.0.
-  
+- Slack does not export files or images your team has stored in Slack's database. Mattermost will provide links to the location of your assets in Slack's web UI.
+- Slack does not export any content from private groups or direct messages that your team has stored in Slack's database. 
+- The Preview release of Slack Import does not offer pre-checks or roll-back and will not import Slack accounts with username or email address collisions with existing Mattermost accounts. Also, Slack channel names with underscores will not import. Also, mentions do not yet resolve as Mattermost usernames (still show Slack ID). These issues are being addressed in [Mattermost v0.8.0 Migration Support](https://mattermost.atlassian.net/browse/PLT-22?filter=10002).
+
 ### New Features 
 
 GitLab Mattermost 
