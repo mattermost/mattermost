@@ -2,17 +2,18 @@
 
 ## UNDER DEVELOPMENT - Release v0.8.0 (Beta2) 
 
-The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes that have been committed to master and are on their way to the next stable release. 
+The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
-When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
+- **Release candidate anticipated:** September 28, 2015  
+- **Final release anticipated:** October 2, 2015
 
 ### Release Highlights
 
-- TBA 
+- [See Product Roadmap for anticipated features](https://mattermost.atlassian.net/issues/?filter=10002)
 
 ### New Features 
 
-- TBA
+- [See Product Roadmap for anticipated features](https://mattermost.atlassian.net/issues/?filter=10002)
 
 ### Improvements
 
@@ -30,7 +31,7 @@ Code Quality
 
 - Reformatted Javascript per Mattermost Style Guide
 
-### Bug fixes
+### Bug Fixes
 
 - Fixed performance issue with slow typing on iOS 
 
