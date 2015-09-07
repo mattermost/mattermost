@@ -1,9 +1,6 @@
-# Single Container Installation and Upgrade 
+# Local Machine Setup and Upgrade
 
 The following install instructions are for single-container installs of Mattermost using Docker for exploring product functionality and upgrading to newer versions.
-
-Local Machine Setup (Docker)
------------------------------
 
 ### Mac OSX ###
 
@@ -89,7 +86,7 @@ There are a few configuration settings you might want to adjust when setting up 
 
 The default single-container Docker instance for Mattermost is designed for product evaluation, and sets `ByPassEmail=true` so the product can run without enabling email, when doing so maybe difficult. 
 	
-To see the product's full functionality, [enabling SMTP email is recommended](doc/config/smtp-email-setup.md).
+To see the product's full functionality, [enabling SMTP email is recommended](/doc/config/smtp-email-setup.md).
 
 ## Upgrading Mattermost 
 
