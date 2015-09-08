@@ -55,6 +55,11 @@ export default class CreatePost extends React.Component {
             initialText: messageText
         };
     }
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.previews.length !== this.state.previews.length) {
+            this.resizePostHolder();
+        }
+    }
     handleSubmit(e) {
         e.preventDefault();
 
