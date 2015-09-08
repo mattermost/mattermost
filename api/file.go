@@ -40,6 +40,7 @@ func InitFile(r *mux.Router) {
 	sr.Handle("/get/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFile)).Methods("GET")
 	sr.Handle("/get_info/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:([A-Za-z0-9]+/)?.+(\\.[A-Za-z0-9]{3,})?}", ApiAppHandler(getFileInfo)).Methods("GET")
 	sr.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("POST")
+	sr.Handle("/get_export", ApiUserRequired(getExport)).Methods("GET")
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -414,6 +415,23 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(rData)))
 }
 
+func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin(c.Session.UserId) {
+		c.Err = model.NewAppError("getExport", "Only a team admin can retrieve exported data.", "userId="+c.Session.UserId)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+	data, err := readFile(EXPORT_PATH + EXPORT_FILENAME)
+	if err != nil {
+		c.Err = model.NewAppError("getExport", "Unable to retrieve exported file. Please re-export", err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+EXPORT_FILENAME)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Write(data)
+}
+
 func writeFile(f []byte, path string) *model.AppError {
 
 	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
@@ -487,4 +505,28 @@ func readFile(path string) ([]byte, *model.AppError) {
 	} else {
 		return nil, model.NewAppError("readFile", "File storage not configured properly. Please configure for either S3 or local server file storage.", "")
 	}
+}
+
+func openFileWriteStream(path string) (io.Writer, *model.AppError) {
+	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		return nil, model.NewAppError("openFileWriteStream", "S3 is not supported.", "")
+	} else if utils.Cfg.ServiceSettings.UseLocalStorage && len(utils.Cfg.ServiceSettings.StorageDirectory) > 0 {
+		if err := os.MkdirAll(filepath.Dir(utils.Cfg.ServiceSettings.StorageDirectory+path), 0774); err != nil {
+			return nil, model.NewAppError("openFileWriteStream", "Encountered an error creating the directory for the new file", err.Error())
+		}
+
+		if fileHandle, err := os.Create(utils.Cfg.ServiceSettings.StorageDirectory + path); err != nil {
+			return nil, model.NewAppError("openFileWriteStream", "Encountered an error writing to local server storage", err.Error())
+		} else {
+			fileHandle.Chmod(0644)
+			return fileHandle, nil
+		}
+
+	}
+
+	return nil, model.NewAppError("openFileWriteStream", "File storage not configured properly. Please configure for either S3 or local server file storage.", "")
+}
+
+func closeFileWriteStream(file io.Writer) {
+	file.(*os.File).Close()
 }

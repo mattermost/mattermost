@@ -117,3 +117,6 @@ func (o *Channel) PreUpdate() {
 func (o *Channel) ExtraUpdated() {
 	o.ExtraUpdateAt = GetMillis()
 }
+
+func (o *Channel) PreExport() {
+}
