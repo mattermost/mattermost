@@ -14,13 +14,15 @@
     width:800px;
     max-width: 100%;
     .modal-back {
-        width: 8px;
-        height: 13px;
-        background: url("../images/arrow-left.png");
-        @include background-size(100% 100%);
-        margin-right: 10px;
-        display: inline-block;
+        width: 40px;
+        height: 56px;
+        background: url("../images/arrow-left.png") no-repeat;
+        @include background-size(8px 13px);
+        background-position: center;
+        top: 0;
+        left: 0;
         cursor: pointer;
+        position: absolute;
     }
     .modal-body {
         padding: 0;
@@ -59,7 +61,7 @@
 
             .section-max {
                 background: #f2f2f2;
-                padding: 1em 0;
+                padding: 1em 0 1.3em;
                 margin-bottom: 0;
                 @include clearfix;
                 .section-title {

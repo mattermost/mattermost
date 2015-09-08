@@ -365,6 +365,9 @@
                     width: 100%;
                     z-index: 5;
                 }
+                .modal-title {
+                    padding-left: 15px;
+                }
                 .user-settings {
                     .tab-header {
                         display: none;
@@ -513,6 +516,12 @@
             height: 45px;
             position: relative;
             @include single-transition(all, 0.2s, linear);
+            .glyphicon-refresh-animate {
+                right: 33px;
+                top: 15px;
+                color: #fff;
+                color: rgba(255,255,255,0.5);
+            }
             .form-control {
                 border: none;
                 padding: 0 10px 0 31px;
