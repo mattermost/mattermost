@@ -243,6 +243,23 @@
     }
 }
 @media screen and (max-width: 768px) {
+    .file-details__container {
+        display: block;
+        .file-details__preview {
+            display: block;
+            width: 100%;
+            height: 150px;
+            border-right: none;
+            border-bottom: 1px solid #ddd;
+            img {
+                width: 64px;
+                height: 64px;
+            }
+        }
+        .file-details {
+            height: auto;
+        }
+    }
     .center-file-overlay {
         font-size: 1.3em;
     }
@@ -405,23 +422,23 @@
             margin-top: 0;
         }
         .remove-preview {
-            width: 50px;
-            height: 50px;
-            left: 50%;
-            top: 50%;
+            width: 28px;
+            height: 28px;
+            left: auto;
+            right: 0;
+            top: 0;
             background: #444;
-            margin: -25px 0 0 -25px;
-            @include border-radius(50px);
+            background: rgba(#000, 0.5);
             text-align: center;
             &:after {
                 display: none;
             }
             i {
-                line-height: 50px;
+                line-height: 29px;
                 top: auto;
                 right: auto;
                 position: relative;
-                font-size: 28px;
+                font-size: 16px;
             }
         }
     }
