@@ -34,9 +34,11 @@ export default class TeamImportTab extends React.Component {
     render() {
         var uploadHelpText = (
             <div>
-                <p>Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels. </p> <p>The Slack import to Mattermost is in "Preview". Slack bot posts and channels with underscores do not yet import. </p>
+                <p>{'Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team\'\s public channels.'}</p>
+                <p>{'The Slack import to Mattermost is in "Preview". Slack bot posts and channels with underscores do not yet import.'}</p>
             </div>
         );
+
         var uploadSection = (
             <SettingUpload
                 title='Import from Slack'
@@ -54,7 +56,7 @@ export default class TeamImportTab extends React.Component {
             break;
         case 'in-progress':
             messageSection = (
-                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'></i> Importing...</p>
+                <p className='confirm-import alert alert-warning'><i className='fa fa-spinner fa-pulse'></i>{' Importing...'}</p>
             );
             break;
         case 'done':
@@ -95,18 +97,18 @@ export default class TeamImportTab extends React.Component {
                         data-dismiss='modal'
                         aria-label='Close'
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'&times;'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
-                    ><i className='modal-back'></i>Import</h4>
+                    ><i className='modal-back'></i>{'Import'}</h4>
                 </div>
                 <div
                     ref='wrapper'
                     className='user-settings'
                 >
-                    <h3 className='tab-header'>Import</h3>
+                    <h3 className='tab-header'>{'Import'}</h3>
                     <div className='divider-dark first'/>
                     {uploadSection}
                     <div className='divider-dark'/>
