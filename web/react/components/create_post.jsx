@@ -55,6 +55,11 @@ export default class CreatePost extends React.Component {
             initialText: messageText
         };
     }
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.previews.length !== this.state.previews.length) {
+            this.resizePostHolder();
+        }
+    }
     handleSubmit(e) {
         e.preventDefault();
 
@@ -301,6 +306,15 @@ export default class CreatePost extends React.Component {
             postFooterClassName += ' has-error';
         }
 
+        const sendButton = (
+            <a
+                className='theme'
+                onClick={this.handleSubmit}
+            >
+                <i className='fa fa-paper-plane' />
+            </a>
+        );
+
         return (
             <form
                 id='create_post'
@@ -329,6 +343,7 @@ export default class CreatePost extends React.Component {
                             postType='post'
                             channelId=''
                         />
+                        {sendButton}
                     </div>
                     <div className={postFooterClassName}>
                         {postError}
