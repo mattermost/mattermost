@@ -143,6 +143,12 @@ body.ios {
 		&.hide-scroll::-webkit-scrollbar {
 			width: 0px !important;
 		}
+        &.inactive {
+            display: none;
+        }
+        &.active {
+            display: inline;
+        }
 	}
 	.post-list__table {
 		display: table;

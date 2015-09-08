@@ -64,9 +64,14 @@ export default class ChannelHeader extends React.Component {
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
             function handleLeaveSuccess() {
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.LEAVE_CHANNEL,
+                    id: this.state.channel.id
+                });
+
                 const townsquare = ChannelStore.getByName('town-square');
                 Utils.switchChannel(townsquare);
-            },
+            }.bind(this),
             function handleLeaveError(err) {
                 AsyncClient.dispatchError(err, 'handleLeave');
             }
