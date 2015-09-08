@@ -65,6 +65,6 @@ File usage per user varies significantly across industries. The below benchmarks
 
 - **High usage teams** - (25-100 MB/user/month) - Heaviest utlization comes from teams uploading a high number of large files into Mattermost on a regular basis. Examples include creative teams sharing and storing artwork and media with tags and commentary in a pipeline production process. 
  
-*Example:* A 30 person team with medium usage (5-25 MB/user/month) with a safety factor of 2x would require between 300 MB (30 users * 5 MB * 2x safety factor) and 1500 MB (30 users * 25 MB * 2x safety factor) of free space in the next year. 
+*Example:* A 30-person team with medium usage (5-25 MB/user/month) with a safety factor of 2x would require between 300 MB (30 users * 5 MB * 2x safety factor) and 1500 MB (30 users * 25 MB * 2x safety factor) of free space in the next year. 
 
 It's recommended to review storage utilization at least quarterly to ensure adequate free space is available. 
