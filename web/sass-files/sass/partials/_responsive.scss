@@ -409,9 +409,22 @@
             }
         }
     }
-    #post-create {
+    .post-create__container {
+        form {
+            padding: 0;
+        }
         .post-create-body {
             padding-bottom: 10px;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            .post-body__cell {
+                display: table-cell;
+                padding-left: 1em;
+            }
+            .send-button {
+                display: table-cell;
+            }
         }
         .post-create-footer .msg-typing {
             display: none;
