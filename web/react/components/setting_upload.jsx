@@ -64,9 +64,9 @@ export default class SettingsUpload extends React.Component {
         }
         return (
             <ul className='section-max'>
-                <li className='col-xs-12 section-title'>{this.props.title}</li>
-                <li className='col-xs-offset-3'>{this.props.helpText}</li>
-                <li className='col-xs-offset-3 col-xs-8'>
+                <li className='col-sm-12 section-title'>{this.props.title}</li>
+                <li className='col-sm-offset-3 col-sm-9'>{this.props.helpText}</li>
+                <li className='col-sm-offset-3 col-sm-9'>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
