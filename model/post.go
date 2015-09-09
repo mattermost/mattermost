@@ -147,3 +147,6 @@ func (o *Post) AddProp(key string, value string) {
 
 	o.Props[key] = value
 }
+
+func (o *Post) PreExport() {
+}
