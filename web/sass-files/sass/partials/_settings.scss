@@ -56,7 +56,11 @@
             .section-min {
                 padding: 1em 0;
                 margin-bottom: 0;
+                cursor: pointer;
                 @include clearfix;
+                &:hover {
+                    background: #f9f9f9;
+                }
             }
 
             .section-max {
@@ -97,7 +101,6 @@
             }
 
             .setting-list__hint {
-                color: #555;
                 margin-top: 20px;
             }
 

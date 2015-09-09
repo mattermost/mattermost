@@ -238,7 +238,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                     key='firstNameSetting'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>First Name</label>
+                    <label className='col-sm-5 control-label'>{'First Name'}</label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -255,7 +255,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                     key='lastNameSetting'
                     className='form-group'
                 >
-                    <label className='col-sm-5 control-label'>Last Name</label>
+                    <label className='col-sm-5 control-label'>{'Last Name'}</label>
                     <div className='col-sm-7'>
                         <input
                             className='form-control'
@@ -278,14 +278,14 @@ export default class UserSettingsGeneralTab extends React.Component {
                     href='#'
                     onClick={notifClick.bind(this)}
                 >
-                    Notifications
+                    {'Notifications'}
                 </a>
             );
 
             const extraInfo = (
                 <span>
-                    By default, you will receive mention notifications when someone types your first name.
-                    Go to {notifLink} settings to change this default.
+                    {'By default, you will receive mention notifications when someone types your first name. '}
+                    {'Go to '} {notifLink} {'settings to change this default.'}
                 </span>
             );
 
@@ -351,8 +351,8 @@ export default class UserSettingsGeneralTab extends React.Component {
 
             const extraInfo = (
                 <span>
-                    Use Nickname for a name you might be called that is different from your first name and user name.
-                    This is most often used when two or more people have similar sounding names and usernames.
+                    {'Use Nickname for a name you might be called that is different from your first name and user name.'}
+                    {'This is most often used when two or more people have similar sounding names and usernames.'}
                 </span>
             );
 
@@ -406,7 +406,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 </div>
             );
 
-            const extraInfo = (<span>Pick something easy for teammates to recognize and recall.</span>);
+            const extraInfo = (<span>{'Pick something easy for teammates to recognize and recall.'}</span>);
 
             usernameSection = (
                 <SettingItemMax
@@ -438,13 +438,13 @@ export default class UserSettingsGeneralTab extends React.Component {
             let helpText = <div>Email is used for notifications, and requires verification if changed.</div>;
 
             if (!this.state.emailEnabled) {
-                helpText = <div className='text-danger'><br />Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.</div>;
+                helpText = <div className='setting-list__hint text-danger'>{'Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'}</div>;
             }
 
             inputs.push(
                 <div key='emailSetting'>
                     <div className='form-group'>
-                        <label className='col-sm-5 control-label'>Primary Email</label>
+                        <label className='col-sm-5 control-label'>{'Primary Email'}</label>
                         <div className='col-sm-7'>
                             <input
                                 className='form-control'
@@ -526,18 +526,18 @@ export default class UserSettingsGeneralTab extends React.Component {
                         data-dismiss='modal'
                         aria-label='Close'
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
                     >
                         <i className='modal-back'></i>
-                        General Settings
+                        {'General Settings'}
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>General Settings</h3>
+                    <h3 className='tab-header'>{'General Settings'}</h3>
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>
