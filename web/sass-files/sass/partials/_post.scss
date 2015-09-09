@@ -200,7 +200,7 @@ body.ios {
 			height: 37px;
 			font-size: 18px;
 			line-height: 37px;
-			vertical-align: top;
+			vertical-align: bottom;
 			text-align: center;
 			@include single-transition(all, 0.15s);
 			&:active {
