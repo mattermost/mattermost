@@ -71,10 +71,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsUsernameValid(user.Username) {
-		c.Err = model.NewAppError("createUser", "That username is invalid", "might be using a resrved username")
-		return
-	}
+	// the user's username is checked to be valid when they are saved to the database
 
 	user.EmailVerified = false
 
