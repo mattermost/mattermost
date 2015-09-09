@@ -1,5 +1,7 @@
 # Mattermost is an open source, on-prem Slack-alternative
 
+[![Join the chat at https://gitter.im/mattermost/platform](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mattermost/platform?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Mattermost modernizes team communication without locking in your data to a single provider. 
 
 Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
