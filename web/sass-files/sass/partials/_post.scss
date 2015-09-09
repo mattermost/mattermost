@@ -188,6 +188,25 @@ body.ios {
 		max-width: 850px;
 		padding: 0 0 2px;
 		position: relative;
+		.post-body__cell {
+			vertical-align: top;
+			position: relative;
+		}
+		.send-button {
+			display: none;
+			cursor: pointer;
+			padding-right: 4px;
+			width: 45px;
+			height: 37px;
+			font-size: 18px;
+			line-height: 37px;
+			vertical-align: top;
+			text-align: center;
+			@include single-transition(all, 0.15s);
+			&:active {
+				@include opacity(0.75);
+			}
+		}
 		.custom-textarea {
 			padding-top: 8px;
 			padding-right: 28px;

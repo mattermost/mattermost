@@ -315,25 +315,33 @@ export default class CreatePost extends React.Component {
             >
                 <div className='post-create'>
                     <div className='post-create-body'>
-                        <Textbox
-                            onUserInput={this.handleUserInput}
-                            onKeyPress={this.postMsgKeyPress}
-                            onHeightChange={this.resizePostHolder}
-                            messageText={this.state.messageText}
-                            createMessage='Write a message...'
-                            channelId={this.state.channelId}
-                            id='post_textbox'
-                            ref='textbox'
-                        />
-                        <FileUpload
-                            ref='fileUpload'
-                            getFileCount={this.getFileCount}
-                            onUploadStart={this.handleUploadStart}
-                            onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError}
-                            postType='post'
-                            channelId=''
-                        />
+                        <div className='post-body__cell'>
+                            <Textbox
+                                onUserInput={this.handleUserInput}
+                                onKeyPress={this.postMsgKeyPress}
+                                onHeightChange={this.resizePostHolder}
+                                messageText={this.state.messageText}
+                                createMessage='Write a message...'
+                                channelId={this.state.channelId}
+                                id='post_textbox'
+                                ref='textbox'
+                            />
+                            <FileUpload
+                                ref='fileUpload'
+                                getFileCount={this.getFileCount}
+                                onUploadStart={this.handleUploadStart}
+                                onFileUpload={this.handleFileUploadComplete}
+                                onUploadError={this.handleUploadError}
+                                postType='post'
+                                channelId=''
+                            />
+                        </div>
+                        <a
+                            className='send-button theme'
+                            onClick={this.handleSubmit}
+                        >
+                            <i className='fa fa-paper-plane' />
+                        </a>
                     </div>
                     <div className={postFooterClassName}>
                         {postError}
