@@ -315,10 +315,12 @@ export default class Sidebar extends React.Component {
         if (unread) {
             titleClass = 'unread-title';
 
-            if (!this.firstUnreadChannel) {
-                this.firstUnreadChannel = channel.name;
+            if (channel.id !== activeId) {
+                if (!this.firstUnreadChannel) {
+                    this.firstUnreadChannel = channel.name;
+                }
+                this.lastUnreadChannel = channel.name;
             }
-            this.lastUnreadChannel = channel.name;
         }
 
         var badge = null;
