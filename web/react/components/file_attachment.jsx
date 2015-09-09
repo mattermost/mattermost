@@ -97,6 +97,7 @@ export default class FileAttachment extends React.Component {
         var filename = this.props.filename;
 
         var fileInfo = utils.splitFileLocation(filename);
+        var fileUrl = utils.getFileUrl(filename);
         var type = utils.getFileType(fileInfo.ext);
 
         var thumbnail;
@@ -150,14 +151,25 @@ export default class FileAttachment extends React.Component {
                     {thumbnail}
                 </a>
                 <div className='post-image__details'>
-                    <div
+                    <a
+                        href={fileUrl}
+                        download={filenameString}
                         data-toggle='tooltip'
                         title={filenameString}
                         className='post-image__name'
                     >
                         {trimmedFilename}
-                    </div>
+                    </a>
                     <div>
+                        <a
+                            href={fileUrl}
+                            download={filenameString}
+                            className='post-image__download'
+                        >
+                            <span
+                                className='fa fa-download'
+                            />
+                        </a>
                         <span className='post-image__type'>{fileInfo.ext.toUpperCase()}</span>
                         <span className='post-image__size'>{fileSizeString}</span>
                     </div>
