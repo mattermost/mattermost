@@ -61,6 +61,12 @@
                 &:hover {
                     background: #f9f9f9;
                 }
+                &:hover .fa {
+                    display: inline-block;
+                }
+                &:hover .section-edit {
+                    text-decoration: underline;
+                }
             }
 
             .section-max {
@@ -81,6 +87,12 @@
             .section-edit {
                 text-align: right;
                 margin-bottom: 5px;
+                .fa {
+                    margin-right: 7px;
+                    font-size: 12px;
+                    color: #aaa;
+                    display: none;
+                }
             }
 
             .section-describe {
