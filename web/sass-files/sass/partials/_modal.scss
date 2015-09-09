@@ -63,7 +63,6 @@
 			margin: 0;
 		}
 		button.close {
-			margin: -2px -2px 0 0;
 			color: #fff;
 			@include opacity(1);
 			z-index: 5;
@@ -71,7 +70,8 @@
 			height: 30px;
 			line-height: 30px;
 			@include single-transition(all, 0.25s, ease-in);
-			position: relative;
+			position: absolute;
+			right: 10px;
 			&:hover {
 				background: rgba(0, 0, 0, 0.1);
 			}

@@ -10,6 +10,10 @@
     &.sidebar--padded {
         padding-top: 44px;
     }
+    .dropdown-menu {
+        max-height: 300px;
+        overflow: auto;
+    }
     .search__form {
         margin: 0;
         padding: 1em 1em 0;
