@@ -152,6 +152,10 @@ export default class PostList extends React.Component {
         postHolder.off('scroll');
     }
     componentDidUpdate(prevProps, prevState) {
+        if (!this.props.isActive) {
+            return;
+        }
+
         $('.post-list__content div .post').removeClass('post--last');
         $('.post-list__content div:last-child .post').addClass('post--last');
 
@@ -219,8 +223,8 @@ export default class PostList extends React.Component {
     scrollToBottom(force) {
         this.isUserScroll = false;
         var postHolder = $(React.findDOMNode(this.refs.postlist));
-        if ($('#new_message')[0] && !this.userHasSeenNew && !force) {
-            $('#new_message')[0].scrollIntoView();
+        if ($('#new_message_' + this.props.channelId)[0] && !this.userHasSeenNew && !force) {
+            $('#new_message_' + this.props.channelId)[0].scrollIntoView();
         } else {
             postHolder.addClass('hide-scroll');
             postHolder[0].scrollTop = postHolder[0].scrollHeight;
@@ -539,7 +543,7 @@ export default class PostList extends React.Component {
                 // Temporary fix to solve ie10/11 rendering issue
                 let newSeparatorId = '';
                 if (!utils.isBrowserIE()) {
-                    newSeparatorId = 'new_message';
+                    newSeparatorId = 'new_message_' + this.props.channelId;
                 }
                 postCtls.push(
                     <div
