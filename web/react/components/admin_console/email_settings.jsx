@@ -11,7 +11,7 @@ export default class EmailSettings extends React.Component {
 
     render() {
         return (
-            <div>
+            <div className='wrapper--fixed'>
                 <h3>{'Email Settings'}</h3>
                 <form
                     className='form-horizontal'

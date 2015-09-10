@@ -31,7 +31,11 @@ export default class AdminController extends React.Component {
         }
 
         return (
-            <div>
+            <div className='container-fluid'>
+                <div
+                    className='sidebar--menu'
+                    id='sidebar-menu'
+                />
                 <AdminSidebar
                     selected={this.state.selected}
                     selectTab={this.selectTab}
@@ -45,9 +49,7 @@ export default class AdminController extends React.Component {
                             id='app-content'
                             className='app__content admin'
                         >
-                            <div className='wrapper--fixed'>
-                                {tab}
-                            </div>
+                        {tab}
                         </div>
                     </div>
                 </div>

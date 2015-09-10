@@ -26,6 +26,39 @@ export default class AdminSidebar extends React.Component {
         return '';
     }
 
+    componentDidMount() {
+        $('.nav__menu-item').on('click', function clickme(e) {
+            e.preventDefault();
+            $(this).closest('.sidebar--collapsable').find('.nav__menu-item').removeClass('active');
+            $(this).addClass('active');
+            $(this).closest('.sidebar--collapsable').find('.nav__sub-menu').addClass('hide');
+            $(this).next('.nav__sub-menu').removeClass('hide');
+        });
+
+        $('.nav__sub-menu a').on('click', function clickme(e) {
+            e.preventDefault();
+            $(this).closest('.nav__sub-menu').find('a').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        $('.nav__sub-menu-item').on('click', function clickme(e) {
+            e.preventDefault();
+            $(this).closest('.sidebar--collapsable').find('.nav__inner-menu').addClass('hide');
+            $(this).closest('li').next('li').find('.nav__inner-menu').removeClass('hide');
+            $(this).closest('li').next('li').find('.nav__inner-menu li:first a').addClass('active');
+        });
+
+        $('.nav__inner-menu a').on('click', function clickme() {
+            $(this).closest('.nav__inner-menu').closest('li').prev('li').find('a').addClass('active');
+        });
+
+        $('.nav__sub-menu .menu__close').on('click', function close() {
+            var menuItem = $(this).closest('li');
+            menuItem.next('li').remove();
+            menuItem.remove();
+        });
+    }
+
     render() {
         return (
             <div className='sidebar--left sidebar--collapsable'>

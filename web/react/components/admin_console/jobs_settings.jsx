@@ -11,7 +11,7 @@ export default class Jobs extends React.Component {
 
     render() {
         return (
-            <div>
+            <div className='wrapper--fixed'>
                 <h3>{' **************   JOB Settings'}</h3>
                 <form
                     className='form-horizontal'
