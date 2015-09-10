@@ -225,11 +225,6 @@ func cmdAssignRole() {
 		}
 
 		if !user.IsInRole(flagRole) {
-			if flagRole == model.ROLE_SYSTEM_ADMIN && team.Name != "admin" {
-				l4g.Error("system_admin can only be added to a user in the admin team")
-				flushLogAndExit(1)
-			}
-
 			api.UpdateRoles(c, user, flagRole)
 		}
 
