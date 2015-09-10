@@ -990,3 +990,38 @@ export function getConfig(success, error) {
         }
     });
 }
+module.exports.getConfig = getConfig;
+
+module.exports.registerOAuthApp = function(app, success, error) {
+    $.ajax({
+        url: '/api/v1/oauth/register',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(app),
+        success: success,
+        error: function(xhr, status, err) {
+            e = handleError('registerApp', xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_apps_register');
+};
+
+module.exports.allowOAuth2 = function(response_type, client_id, redirect_uri, state, scope, success, error) {
+    $.ajax({
+        url: '/api/v1/oauth/allow?response_type='+response_type+'&client_id='
+            +client_id+'&redirect_uri='+redirect_uri+'&scope='+scope+'&state='+state,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success: success,
+        error: function(xhr, status, err) {
+            e = handleError('allowOAuth2', xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_users_allow_oauth2');
+};

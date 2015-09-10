@@ -18,20 +18,22 @@ const (
 )
 
 type ServiceSettings struct {
-	SiteName             string
-	Mode                 string
-	AllowTesting         bool
-	UseSSL               bool
-	Port                 string
-	Version              string
-	InviteSalt           string
-	PublicLinkSalt       string
-	ResetSalt            string
-	AnalyticsUrl         string
-	UseLocalStorage      bool
-	StorageDirectory     string
-	AllowedLoginAttempts int
-	DisableEmailSignUp   bool
+	SiteName                   string
+	Mode                       string
+	AllowTesting               bool
+	UseSSL                     bool
+	Port                       string
+	Version                    string
+	InviteSalt                 string
+	PublicLinkSalt             string
+	ResetSalt                  string
+	TokenSalt                  string
+	AnalyticsUrl               string
+	UseLocalStorage            bool
+	StorageDirectory           string
+	AllowedLoginAttempts       int
+	DisableEmailSignUp         bool
+	EnableOAuthServiceProvider bool
 }
 
 type SSOSetting struct {

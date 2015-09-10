@@ -7,6 +7,7 @@ var NotificationsTab = require('./user_settings_notifications.jsx');
 var SecurityTab = require('./user_settings_security.jsx');
 var GeneralTab = require('./user_settings_general.jsx');
 var AppearanceTab = require('./user_settings_appearance.jsx');
+var DeveloperTab = require('./user_settings_developer.jsx');
 
 export default class UserSettings extends React.Component {
     constructor(props) {
@@ -73,6 +74,15 @@ export default class UserSettings extends React.Component {
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                         updateTab={this.props.updateTab}
+                    />
+                </div>
+            );
+        } else if (this.props.activeTab === 'developer') {
+            return (
+                <div>
+                    <DeveloperTab
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
                     />
                 </div>
             );

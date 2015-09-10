@@ -315,7 +315,7 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 				numPosts, _ = strconv.Atoi(tokens[numArgs+2])
 			}
 		}
-		client := model.NewClient(c.GetSiteURL() + "/api/v1")
+		client := model.NewClient(c.GetSiteURL(), c.GetSiteURL()+"/api/v1")
 
 		if doTeams {
 			if err := CreateBasicUser(client); err != nil {
@@ -375,7 +375,7 @@ func loadTestUsersCommand(c *Context, command *model.Command) bool {
 		if err == false {
 			usersr = utils.Range{10, 15}
 		}
-		client := model.NewClient(c.GetSiteURL() + "/api/v1")
+		client := model.NewClient(c.GetSiteURL(), c.GetSiteURL()+"/api/v1")
 		userCreator := NewAutoUserCreator(client, c.Session.TeamId)
 		userCreator.Fuzzy = doFuzz
 		userCreator.CreateTestUsers(usersr)
@@ -405,7 +405,7 @@ func loadTestChannelsCommand(c *Context, command *model.Command) bool {
 		if err == false {
 			channelsr = utils.Range{20, 30}
 		}
-		client := model.NewClient(c.GetSiteURL() + "/api/v1")
+		client := model.NewClient(c.GetSiteURL(), c.GetSiteURL()+"/api/v1")
 		client.MockSession(c.Session.Id)
 		channelCreator := NewAutoChannelCreator(client, c.Session.TeamId)
 		channelCreator.Fuzzy = doFuzz
@@ -457,7 +457,7 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 			}
 		}
 
-		client := model.NewClient(c.GetSiteURL() + "/api/v1")
+		client := model.NewClient(c.GetSiteURL(), c.GetSiteURL()+"/api/v1")
 		client.MockSession(c.Session.Id)
 		testPoster := NewAutoPostCreator(client, command.ChannelId)
 		testPoster.Fuzzy = doFuzz

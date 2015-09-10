@@ -62,7 +62,7 @@ func TestCreateChannel(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.DoPost("/channels/create", "garbage"); err == nil {
+	if _, err := Client.DoApiPost("/channels/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
 	}
 
@@ -627,7 +627,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 		currentEtag = cache_result.Etag
 	}
 
-	Client2 := model.NewClient("http://localhost:" + utils.Cfg.ServiceSettings.Port + "/api/v1")
+	Client2 := model.NewClient("http://localhost:"+utils.Cfg.ServiceSettings.Port, "http://localhost:"+utils.Cfg.ServiceSettings.Port+"/api/v1")
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "tester2@test.com", Nickname: "Tester 2", Password: "pwd"}
 	user2 = Client2.Must(Client2.CreateUser(user2, "")).Data.(*model.User)

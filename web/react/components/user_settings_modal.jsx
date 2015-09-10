@@ -3,6 +3,7 @@
 
 var SettingsSidebar = require('./settings_sidebar.jsx');
 var UserSettings = require('./user_settings.jsx');
+var ConfigStore = require('../stores/config_store.jsx');
 
 export default class UserSettingsModal extends React.Component {
     constructor(props) {
@@ -35,6 +36,9 @@ export default class UserSettingsModal extends React.Component {
         tabs.push({name: 'security', uiName: 'Security', icon: 'glyphicon glyphicon-lock'});
         tabs.push({name: 'notifications', uiName: 'Notifications', icon: 'glyphicon glyphicon-exclamation-sign'});
         tabs.push({name: 'appearance', uiName: 'Appearance', icon: 'glyphicon glyphicon-wrench'});
+        if (ConfigStore.getSettingAsBoolean('EnableOAuthServiceProvider', false)) {
+            tabs.push({name: 'developer', uiName: 'Developer', icon: 'glyphicon glyphicon-th'});
+        }
 
         return (
             <div

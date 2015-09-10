@@ -68,7 +68,7 @@ func TestCreateUser(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.DoPost("/users/create", "garbage"); err == nil {
+	if _, err := Client.DoApiPost("/users/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
 	}
 }
@@ -355,7 +355,7 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
-	Client.DoGet("/users/"+user.Id+"/image", "", "")
+	Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 		var auth aws.Auth
@@ -453,7 +453,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 			t.Fatal(upErr)
 		}
 
-		Client.DoGet("/users/"+user.Id+"/image", "", "")
+		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
 		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 			var auth aws.Auth

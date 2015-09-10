@@ -17,7 +17,7 @@ func Setup() {
 		NewServer()
 		StartServer()
 		InitApi()
-		Client = model.NewClient("http://localhost:" + utils.Cfg.ServiceSettings.Port + "/api/v1")
+		Client = model.NewClient("http://localhost:"+utils.Cfg.ServiceSettings.Port, "http://localhost:"+utils.Cfg.ServiceSettings.Port+"/api/v1")
 	}
 }
 
