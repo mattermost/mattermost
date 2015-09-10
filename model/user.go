@@ -335,11 +335,6 @@ func ComparePassword(hash string, password string) bool {
 	return err == nil
 }
 
-func IsUsernameValid(username string) bool {
-
-	return true
-}
-
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 var restrictedUsernames = []string{
