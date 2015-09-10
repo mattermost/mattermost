@@ -413,6 +413,9 @@
         }
     }
     .post-create__container {
+        .post-right__container & {
+            padding: 0 1em;
+        }
         form {
             padding: 0;
         }
@@ -425,13 +428,15 @@
                 display: table-cell;
                 padding-left: 45px;
             }
-            .btn-file {
-                width: 45px;
-                padding: 0;
-                line-height: 36px;
-                bottom: -2px;
-                left: 0;
-                top: auto;
+            .app__content & {
+                .btn-file {
+                    width: 45px;
+                    padding: 0;
+                    line-height: 36px;
+                    bottom: -2px;
+                    left: 0;
+                    top: auto;
+                }
             }
             .send-button {
                 display: table-cell;
