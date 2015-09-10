@@ -985,22 +985,25 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
 	// make sure there is at least 1 other active admin
-	if model.IsInRole(user.Roles, model.ROLE_ADMIN) && !model.IsInRole(roles, model.ROLE_ADMIN) {
-		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
-			c.Err = result.Err
-			return nil
-		} else {
-			activeAdmins := -1
-			profileUsers := result.Data.(map[string]*model.User)
-			for _, profileUser := range profileUsers {
-				if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_ADMIN) {
-					activeAdmins = activeAdmins + 1
-				}
-			}
 
-			if activeAdmins <= 0 {
-				c.Err = model.NewAppError("updateRoles", "There must be at least one active admin", "")
+	if !model.IsInRole(roles, model.ROLE_SYSTEM_ADMIN) {
+		if model.IsInRole(user.Roles, model.ROLE_ADMIN) && !model.IsInRole(roles, model.ROLE_ADMIN) {
+			if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+				c.Err = result.Err
 				return nil
+			} else {
+				activeAdmins := -1
+				profileUsers := result.Data.(map[string]*model.User)
+				for _, profileUser := range profileUsers {
+					if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_ADMIN) {
+						activeAdmins = activeAdmins + 1
+					}
+				}
+
+				if activeAdmins <= 0 {
+					c.Err = model.NewAppError("updateRoles", "There must be at least one active admin", "")
+					return nil
+				}
 			}
 		}
 	}

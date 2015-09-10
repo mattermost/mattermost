@@ -285,7 +285,8 @@ func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) b
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) && IsPrivateIpAddress(c.IpAddress) {
+	// TODO XXX FIXME && IsPrivateIpAddress(c.IpAddress)
+	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) {
 		return true
 	}
 	return false
