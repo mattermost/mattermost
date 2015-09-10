@@ -1,8 +1,8 @@
-# Mattermost is an open source, on-prem Slack-alternative
+# Mattermost
 
-Mattermost modernizes team communication without locking in your data to a single provider. 
+Mattermost is an open source, on-prem Slack-alternative. 
 
-Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
+It modernizes team communication without locking in your data to a single provider. Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
 
 ## All team communication in one place, searchable and accessible anywhere
 
