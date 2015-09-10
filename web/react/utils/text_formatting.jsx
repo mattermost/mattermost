@@ -12,6 +12,7 @@ export function formatText(text, options = {}) {
     output = stripLinks(output, tokens);
     output = stripAtMentions(output, tokens);
     output = stripSelfMentions(output, tokens);
+    output = stripHashtags(output, tokens);
 
     output = replaceTokens(output, tokens);
 
@@ -20,7 +21,6 @@ export function formatText(text, options = {}) {
     return output;
 
     // TODO highlight search terms
-    // TODO autolink hashtags
 
     // TODO leave space for markdown
 }
@@ -58,7 +58,7 @@ function stripLinks(text, tokens) {
     // we can't just use a static autolinker because we need to set replaceFn
     const autolinker = new Autolinker({
         urls: true,
-        email: false,
+        email: true,
         phone: false,
         twitter: false,
         hashtag: false,
@@ -72,13 +72,14 @@ function stripAtMentions(text, tokens) {
     let output = text;
 
     function stripAtMention(fullMatch, prefix, mention, username) {
-        if (Constants.SPECIAL_MENTIONS.indexOf(username) !== -1 || UserStore.getProfileByUsername(username)) {
+        const usernameLower = username.toLowerCase();
+        if (Constants.SPECIAL_MENTIONS.indexOf(usernameLower) !== -1 || UserStore.getProfileByUsername(usernameLower)) {
             const index = tokens.size;
             const alias = `ATMENTION${index}`;
 
             tokens.set(alias, {
-                value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
-                oreplaceLinkriginalText: mention
+                value: `<a class='mention-link' href='#' data-mention='${usernameLower}'>${mention}</a>`,
+                originalText: mention
             });
 
             return prefix + alias;
@@ -87,7 +88,7 @@ function stripAtMentions(text, tokens) {
         }
     }
 
-    output = output.replace(/(^|\s)(@([a-z0-9.\-_]+))/gi, stripAtMention);
+    output = output.replace(/(^|\s)(@([a-z0-9.\-_]*[a-z0-9]))/gi, stripAtMention);
 
     return output;
 }
@@ -135,6 +136,47 @@ function stripSelfMentions(text, tokens) {
     for (let mention of UserStore.getCurrentMentionKeys()) {
         output = output.replace(new RegExp(`(^|\\W)(${mention})\\b`, 'gi'), stripSelfMention);
     }
+
+    return output;
+}
+
+function stripHashtags(text, tokens) {
+    let output = text;
+
+    var newTokens = new Map();
+    for (let [alias, token] of tokens) {
+        if (token.originalText.startsWith('#')) {
+            const index = newTokens.size;
+            const newAlias = `HASHTAG${index}`;
+
+            newTokens.set(newAlias, {
+                value: `<a class='mention-link' href='#' data-mention='${token.originalText}'>${token.originalText}</a>`,
+                originalText: token.originalText
+            });
+
+            output = output.replace(alias, newAlias);
+        }
+    }
+
+    // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
+    for (let newToken of newTokens) {
+        tokens.set(newToken[0], newToken[1]);
+    }
+
+    // look for hashtags in the text
+    function stripHashtag(fullMatch, prefix, hashtag) {
+        const index = tokens.size;
+        const alias = `HASHTAG${index}`;
+
+        tokens.set(alias, {
+            value: `<a class='mention-link' href='#' data-mention='${hashtag}'>${hashtag}</a>`,
+            originalText: hashtag
+        });
+
+        return prefix + alias;
+    }
+
+    output = output.replace(/(^|\W)(#[a-zA-Z0-9.\-_]+)\b/g, stripHashtag);
 
     return output;
 }
