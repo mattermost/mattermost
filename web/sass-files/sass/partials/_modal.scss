@@ -140,6 +140,11 @@
 				&:hover td {
 					background: #f7f7f7;
 				}
+				&:first-child {
+					td {
+						border: none;
+					}
+				}
 				td {
 					width: 100%;
 					white-space: nowrap;
