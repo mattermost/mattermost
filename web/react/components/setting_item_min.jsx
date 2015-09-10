@@ -12,14 +12,18 @@ export default class SettingItemMin extends React.Component {
                         href='#'
                         onClick={this.props.updateSection}
                     >
-                        Edit
+                        <i className='fa fa-pencil'/>
+                        {'Edit'}
                     </a>
                 </li>
             );
         }
 
         return (
-            <ul className='section-min'>
+            <ul
+                className='section-min'
+                onClick={this.props.updateSection}
+            >
                 <li className='col-sm-10 section-title'>{this.props.title}</li>
                 {editButton}
                 <li className='col-sm-7 section-describe'>{this.props.describe}</li>

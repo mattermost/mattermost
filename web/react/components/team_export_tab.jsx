@@ -75,15 +75,13 @@ export default class TeamExportTab extends React.Component {
                     <li className='col-xs-offset-3 col-xs-8'>
                         <ul className='setting-list'>
                             <li className='setting-list-item'>
-                                <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                    <a
-                                        className='btn btn-sm btn-primary'
-                                        href='#'
-                                        onClick={this.doExport}
-                                    >
-                                    {'Export'}
-                                    </a>
-                                </span>
+                                <a
+                                    className='btn btn-sm btn-primary btn-file sel-btn'
+                                    href='#'
+                                    onClick={this.doExport}
+                                >
+                                {'Export'}
+                                </a>
                             </li>
                         </ul>
                     </li>

@@ -61,8 +61,8 @@
       cursor: pointer;
       z-index: 5;
       opacity: inherit;
-        text-shadow: 0 0px 3px #444;
-        text-shadow: 0 0px 3px rgba(0, 0, 0, 0.7);
+      text-shadow: 0 0px 3px #444;
+      text-shadow: 0 0px 3px rgba(0, 0, 0, 0.7);
     }
   }
 }
@@ -159,6 +159,14 @@
     padding: 7px;
     .post-image__name {
       margin-bottom: 3px;
+      display: block;
+      color: #333;
+    }
+    .post-image__download {
+      display: inline-block;
+      padding-right: 7px;
+      cursor: pointer;
+      color: #555;
     }
     .post-image__type {
       color: grey;
