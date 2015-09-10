@@ -53,8 +53,8 @@ func TestContext(t *testing.T) {
 		t.Fatal("should have permissions")
 	}
 
-	context.IpAddress = "125.0.0.1"
-	if context.HasPermissionsToUser("6", "") {
-		t.Fatal("shouldn't have permissions")
-	}
+	// context.IpAddress = "125.0.0.1"
+	// if context.HasPermissionsToUser("6", "") {
+	// 	t.Fatal("shouldn't have permissions")
+	// }
 }
