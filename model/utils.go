@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"code.google.com/p/go-uuid/uuid"
+	"crypto/md5"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
@@ -32,6 +33,7 @@ type AppError struct {
 	RequestId     string `json:"request_id"`     // The RequestId that's also set in the header
 	StatusCode    int    `json:"status_code"`    // The http status code
 	Where         string `json:"-"`              // The function where it happened in the form of Struct.Func
+	IsOAuth       bool   `json:"is_oauth"`       // Whether the error is OAuth specific
 }
 
 func (er *AppError) Error() string {
@@ -65,7 +67,21 @@ func NewAppError(where string, message string, details string) *AppError {
 	ap.Where = where
 	ap.DetailedError = details
 	ap.StatusCode = 500
+	ap.IsOAuth = false
 	return ap
+}
+
+func Md5Encrypt(salt string, text string) string {
+	m := md5.New()
+
+	io.WriteString(m, text)
+
+	textmd5 := fmt.Sprintf("%x", m.Sum(nil))
+
+	io.WriteString(m, salt)
+	io.WriteString(m, textmd5)
+
+	return fmt.Sprintf("%x", m.Sum(nil))
 }
 
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")

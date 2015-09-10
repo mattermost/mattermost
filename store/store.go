@@ -34,6 +34,7 @@ type Store interface {
 	User() UserStore
 	Audit() AuditStore
 	Session() SessionStore
+	OAuth() OAuthStore
 	Close()
 }
 
@@ -109,9 +110,25 @@ type SessionStore interface {
 	Remove(sessionIdOrAlt string) StoreChannel
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
+	GetByAccessToken(token string) StoreChannel
+	RemoveByAccessToken(token string) StoreChannel
 }
 
 type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
 	Get(user_id string, limit int) StoreChannel
+}
+
+type OAuthStore interface {
+	SaveApp(app *model.OAuthApp) StoreChannel
+	UpdateApp(app *model.OAuthApp) StoreChannel
+	GetApp(id string) StoreChannel
+	GetAppByUser(userId string) StoreChannel
+	SaveAuthData(authData *model.AuthData) StoreChannel
+	GetAuthData(code string) StoreChannel
+	RemoveAuthData(code string) StoreChannel
+	SaveAccessData(accessData *model.AccessData) StoreChannel
+	GetAccessData(token string) StoreChannel
+	GetAccessDataByAuthCode(authCode string) StoreChannel
+	RemoveAccessData(token string) StoreChannel
 }

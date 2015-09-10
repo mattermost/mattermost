@@ -53,7 +53,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a client for tests to use
-	client := model.NewClient("http://localhost:" + utils.Cfg.ServiceSettings.Port + "/api/v1")
+	client := model.NewClient("http://localhost:"+utils.Cfg.ServiceSettings.Port, "http://localhost:"+utils.Cfg.ServiceSettings.Port+"/api/v1")
 
 	// Check for username parameter and create a user if present
 	username, ok1 := params["username"]
@@ -65,7 +65,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
-			Name:       utils.RandomName(utils.Range{20, 20}, utils.LOWERCASE),
+			Name:        utils.RandomName(utils.Range{20, 20}, utils.LOWERCASE),
 			Email:       utils.RandomEmail(utils.Range{20, 20}, utils.LOWERCASE),
 			Type:        model.TEAM_OPEN,
 		}

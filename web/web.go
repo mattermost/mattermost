@@ -4,19 +4,18 @@
 package web
 
 import (
-	"fmt"
-	"html/template"
-	"net/http"
-	"strconv"
-	"strings"
-
 	l4g "code.google.com/p/log4go"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 	"gopkg.in/fsnotify.v1"
+	"html/template"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 var Templates *template.Template
@@ -59,6 +58,8 @@ func InitWeb() {
 	// Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")
 	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(loginCompleteOAuth)).Methods("GET")
+	mainrouter.Handle("/oauth/authorize", api.UserRequired(authorizeOAuth)).Methods("GET")
+	mainrouter.Handle("/oauth/access_token", api.ApiAppHandler(getAccessToken)).Methods("POST")
 
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
@@ -639,4 +640,180 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 			root(c, w, r)
 		}
 	}
+}
+
+func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewAppError("authorizeOAuth", "The system admin has turned off OAuth service providing.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if !CheckBrowserCompatability(c, r) {
+		return
+	}
+
+	responseType := r.URL.Query().Get("response_type")
+	clientId := r.URL.Query().Get("client_id")
+	redirect := r.URL.Query().Get("redirect_uri")
+	scope := r.URL.Query().Get("scope")
+	state := r.URL.Query().Get("state")
+
+	if len(responseType) == 0 || len(clientId) == 0 || len(redirect) == 0 {
+		c.Err = model.NewAppError("authorizeOAuth", "Missing one or more of response_type, client_id, or redirect_uri", "")
+		return
+	}
+
+	var app *model.OAuthApp
+	if result := <-api.Srv.Store.OAuth().GetApp(clientId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		app = result.Data.(*model.OAuthApp)
+	}
+
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().Get(c.Session.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	page := NewHtmlTemplatePage("authorize", "Authorize Application")
+	page.Props["TeamName"] = team.Name
+	page.Props["AppName"] = app.Name
+	page.Props["ResponseType"] = responseType
+	page.Props["ClientId"] = clientId
+	page.Props["RedirectUri"] = redirect
+	page.Props["Scope"] = scope
+	page.Props["State"] = state
+	page.Render(c, w)
+}
+
+func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewAppError("getAccessToken", "The system admin has turned off OAuth service providing.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	r.ParseForm()
+
+	grantType := r.FormValue("grant_type")
+	if grantType != model.ACCESS_TOKEN_GRANT_TYPE {
+		c.Err = model.NewAppError("getAccessToken", "invalid_request: Bad grant_type", "")
+		return
+	}
+
+	clientId := r.FormValue("client_id")
+	if len(clientId) != 26 {
+		c.Err = model.NewAppError("getAccessToken", "invalid_request: Bad client_id", "")
+		return
+	}
+
+	secret := r.FormValue("client_secret")
+	if len(secret) == 0 {
+		c.Err = model.NewAppError("getAccessToken", "invalid_request: Missing client_secret", "")
+		return
+	}
+
+	code := r.FormValue("code")
+	if len(code) == 0 {
+		c.Err = model.NewAppError("getAccessToken", "invalid_request: Missing code", "")
+		return
+	}
+
+	redirectUri := r.FormValue("redirect_uri")
+
+	achan := api.Srv.Store.OAuth().GetApp(clientId)
+	tchan := api.Srv.Store.OAuth().GetAccessDataByAuthCode(code)
+
+	authData := api.GetAuthData(code)
+
+	if authData == nil {
+		c.LogAudit("fail - invalid auth code")
+		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Invalid or expired authorization code", "")
+		return
+	}
+
+	if authData == nil || authData.IsExpired() {
+		c.LogAudit("fail - auth code either expired or missing")
+		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Invalid or expired authorization code", "")
+		return
+	}
+
+	if authData.RedirectUri != redirectUri {
+		c.LogAudit("fail - redirect uri provided did not match previous redirect uri")
+		c.Err = model.NewAppError("getAccessToken", "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri", "")
+		return
+	}
+
+	if !model.ComparePassword(code, fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
+		c.LogAudit("fail - auth code is invalid")
+		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Invalid or expired authorization code", "")
+		return
+	}
+
+	var app *model.OAuthApp
+	if result := <-achan; result.Err != nil {
+		c.Err = model.NewAppError("getAccessToken", "invalid_client: Invalid client credentials", "")
+		return
+	} else {
+		app = result.Data.(*model.OAuthApp)
+	}
+
+	if !model.ComparePassword(app.ClientSecret, secret) {
+		c.LogAudit("fail - invalid client credentials")
+		c.Err = model.NewAppError("getAccessToken", "invalid_client: Invalid client credentials", "")
+		return
+	}
+
+	callback := redirectUri
+	if len(callback) == 0 {
+		callback = app.CallbackUrls[0]
+	}
+
+	if result := <-tchan; result.Err != nil {
+		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while accessing database", "")
+		return
+	} else if result.Data != nil {
+		c.LogAudit("fail - auth code has been used previously")
+		accessData := result.Data.(*model.AccessData)
+
+		// Revoke access token, related auth code, and session from DB as well as from cache
+		if err := api.RevokeAccessToken(accessData.Token, true); err != nil {
+			l4g.Error("Encountered an error revoking an access token, err=" + err.Message)
+		}
+
+		c.Err = model.NewAppError("getAccessToken", "invalid_grant: Authorization code already exchanged for an access token", "")
+		return
+	}
+
+	accessToken := model.NewId()
+
+	accessData := &model.AccessData{AuthCode: authData.Code, UserId: authData.UserId, Token: accessToken, RedirectUri: callback, Scope: authData.Scope}
+
+	var savedData *model.AccessData
+	if result := <-api.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+		l4g.Error(result.Err)
+		c.Err = model.NewAppError("getAccessToken", "server_error: Encountered internal server error while accessing database", "")
+		return
+	} else {
+		savedData = result.Data.(*model.AccessData)
+	}
+
+	api.AddTokenToCache(savedData.Token, accessData)
+
+	accessRsp := &model.AccessResponse{AccessToken: accessToken, TokenType: model.ACCESS_TOKEN_TYPE, ExpiresIn: savedData.ExpiresIn, Scope: savedData.Scope}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
+	c.LogAuditWithUserId(accessData.UserId, "success")
+
+	w.Write([]byte(accessRsp.ToJson()))
 }
