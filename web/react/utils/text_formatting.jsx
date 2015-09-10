@@ -6,18 +6,19 @@ const UserStore = require('../stores/user_store.jsx');
 
 export function formatText(text, options = {}) {
     let output = sanitize(text);
+    let tokens = new Map();
 
-    let atMentions;
-    [output, atMentions] = stripAtMentions(output);
+    // TODO strip urls first
 
-    output = reinsertAtMentions(output, atMentions);
+    output = stripAtMentions(output, tokens);
+    output = stripSelfMentions(output, tokens);
+
+    output = replaceTokens(output, tokens);
 
     output = replaceNewlines(output, options.singleline);
 
     return output;
 
-    // TODO autolink @mentions
-    // TODO highlight mentions of self
     // TODO autolink urls
     // TODO highlight search terms
     // TODO autolink hashtags
@@ -36,16 +37,18 @@ export function sanitize(text) {
     return output;
 }
 
-function stripAtMentions(text) {
+function stripAtMentions(text, tokens) {
     let output = text;
-    let atMentions = new Map();
 
-    function stripAtMention(fullMatch, prefix, mentionText, username) {
+    function stripAtMention(fullMatch, prefix, mention, username) {
         if (Constants.SPECIAL_MENTIONS.indexOf(username) !== -1 || UserStore.getProfileByUsername(username)) {
-            const index = atMentions.size;
+            const index = tokens.size;
             const alias = `ATMENTION${index}`;
 
-            atMentions.set(alias, {mentionText: mentionText, username: username});
+            tokens.set(alias, {
+                value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
+                originalText: mention
+            });
 
             return prefix + alias;
         } else {
@@ -53,24 +56,73 @@ function stripAtMentions(text) {
         }
     }
 
-    output = output.replace(/(^|\s)(@([a-z0-9.\-_]+))/g, stripAtMention);
-
-    return [output, atMentions];
-}
-window.stripAtMentions = stripAtMentions;
-
-function reinsertAtMentions(text, atMentions) {
-    let output = text;
-
-    function reinsertAtMention(replacement, alias) {
-        output = output.replace(alias, `<a class='mention-link' href='#' data-mention=${replacement.username}>${replacement.mentionText}</a>`);
-    }
-
-    atMentions.forEach(reinsertAtMention);
+    output = output.replace(/(^|\s)(@([a-z0-9.\-_]+))/gi, stripAtMention);
 
     return output;
 }
-window.reinsertAtMentions = reinsertAtMentions;
+window.stripAtMentions = stripAtMentions;
+
+function stripSelfMentions(text, tokens) {
+    let output = text;
+
+    let mentionKeys = UserStore.getCurrentMentionKeys();
+
+    // look for any existing tokens which are self mentions and should be highlighted
+    var newTokens = new Map();
+    for (let [alias, token] of tokens) {
+        if (mentionKeys.indexOf(token.originalText) !== -1) {
+            const index = newTokens.size;
+            const newAlias = `SELFMENTION${index}`;
+
+            newTokens.set(newAlias, {
+                value: `<span class='mention-highlight'>${alias}</span>`,
+                originalText: token.originalText
+            });
+
+            output = output.replace(alias, newAlias);
+        }
+    }
+
+    // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
+    for (let newToken of newTokens) {
+        tokens.set(newToken[0], newToken[1]);
+    }
+
+    // look for self mentions in the text
+    function stripSelfMention(fullMatch, prefix, mention) {
+        const index = tokens.size;
+        const alias = `SELFMENTION${index}`;
+
+        tokens.set(alias, {
+            value: `<span class='mention-highlight'>${mention}</span>`,
+            originalText: mention
+        });
+
+        return prefix + alias;
+    }
+
+    for (let mention of UserStore.getCurrentMentionKeys()) {
+        output = output.replace(new RegExp(`(^|\\W)(${mention})\\b`, 'gi'), stripSelfMention);
+    }
+
+    return output;
+}
+
+function replaceTokens(text, tokens) {
+    let output = text;
+
+    // iterate backwards through the map so that we do replacement in the opposite order that we added tokens
+    const aliases = [...tokens.keys()];
+    for (let i = aliases.length - 1; i >= 0; i--) {
+        const alias = aliases[i];
+        const token = tokens.get(alias);
+        console.log('replacing ' + alias + ' with ' + token.value);
+        output = output.replace(alias, token.value);
+    }
+
+    return output;
+}
+window.replaceTokens = replaceTokens;
 
 function replaceNewlines(text, singleline) {
     if (!singleline) {
