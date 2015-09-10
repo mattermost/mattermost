@@ -5,6 +5,7 @@ const FileAttachmentList = require('./file_attachment_list.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
+const TextFormatting = require('../utils/text_formatting.jsx');
 const twemoji = require('twemoji');
 
 export default class PostBody extends React.Component {
@@ -12,6 +13,7 @@ export default class PostBody extends React.Component {
         super(props);
 
         this.parseEmojis = this.parseEmojis.bind(this);
+        this.handleClick = this.handleClick.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
         this.state = {links: linkData.links, message: linkData.text};
@@ -28,6 +30,12 @@ export default class PostBody extends React.Component {
     componentWillReceiveProps(nextProps) {
         const linkData = Utils.extractLinks(nextProps.post.message);
         this.setState({links: linkData.links, message: linkData.text});
+    }
+    handleClick(e) {
+        let mentionAttribute = e.target.getAttributeNode('data-mention');
+        if (mentionAttribute) {
+            Utils.searchForTerm(mentionAttribute.value);
+        }
     }
     render() {
         const post = this.props.post;
@@ -135,7 +143,7 @@ export default class PostBody extends React.Component {
                     key={`${post.id}_message`}
                     className={postClass}
                 >
-                    {loading}<span>{inner}</span>
+                    {loading}<span onClick={this.handleClick} dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}/>
                 </p>
                 {fileAttachmentHolder}
                 {embed}
