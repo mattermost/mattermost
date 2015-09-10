@@ -423,7 +423,15 @@
             table-layout: fixed;
             .post-body__cell {
                 display: table-cell;
-                padding-left: 1em;
+                padding-left: 45px;
+            }
+            .btn-file {
+                width: 45px;
+                padding: 0;
+                line-height: 36px;
+                bottom: -2px;
+                left: 0;
+                top: auto;
             }
             .send-button {
                 display: table-cell;
