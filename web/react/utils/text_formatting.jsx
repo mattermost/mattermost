@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const Autolinker = require('autolinker');
 const Constants = require('./constants.jsx');
 const UserStore = require('../stores/user_store.jsx');
 
@@ -8,8 +9,7 @@ export function formatText(text, options = {}) {
     let output = sanitize(text);
     let tokens = new Map();
 
-    // TODO strip urls first
-
+    output = stripLinks(output, tokens);
     output = stripAtMentions(output, tokens);
     output = stripSelfMentions(output, tokens);
 
@@ -19,7 +19,6 @@ export function formatText(text, options = {}) {
 
     return output;
 
-    // TODO autolink urls
     // TODO highlight search terms
     // TODO autolink hashtags
 
@@ -37,6 +36,38 @@ export function sanitize(text) {
     return output;
 }
 
+function stripLinks(text, tokens) {
+    function stripLink(autolinker, match) {
+        let text = match.getMatchedText();
+        let url = text;
+        if (!url.startsWith('http')) {
+            url = `http://${text}`;
+        }
+
+        const index = tokens.size;
+        const alias = `LINK${index}`;
+
+        tokens.set(alias, {
+            value: `<a class='theme' target='_blank' href='${url}'>${text}</a>`,
+            originalText: text
+        });
+
+        return alias;
+    }
+
+    // we can't just use a static autolinker because we need to set replaceFn
+    const autolinker = new Autolinker({
+        urls: true,
+        email: false,
+        phone: false,
+        twitter: false,
+        hashtag: false,
+        replaceFn: stripLink
+    });
+
+    return autolinker.link(text);
+}
+
 function stripAtMentions(text, tokens) {
     let output = text;
 
@@ -47,7 +78,7 @@ function stripAtMentions(text, tokens) {
 
             tokens.set(alias, {
                 value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
-                originalText: mention
+                oreplaceLinkriginalText: mention
             });
 
             return prefix + alias;
