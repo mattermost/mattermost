@@ -106,8 +106,8 @@ var tReservedDomains = []struct {
 }{
 	{"test-hello", true},
 	{"test", true},
-	//{"admin", true},
-	//{"Admin-punch", true},
+	{"admin", true},
+	{"Admin-punch", true},
 	{"spin-punch-admin", false},
 }
 
