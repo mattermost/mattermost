@@ -10,6 +10,7 @@ var ActionTypes = Constants.ActionTypes;
 var BrowserStore = require('../stores/browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
+var LEAVE_EVENT = 'leave';
 var MORE_CHANGE_EVENT = 'change';
 var EXTRA_INFO_EVENT = 'extra_info';
 
@@ -47,6 +48,15 @@ class ChannelStoreClass extends EventEmitter {
     }
     removeExtraInfoChangeListener(callback) {
         this.removeListener(EXTRA_INFO_EVENT, callback);
+    }
+    emitLeave(id) {
+        this.emit(LEAVE_EVENT, id);
+    }
+    addLeaveListener(callback) {
+        this.on(LEAVE_EVENT, callback);
+    }
+    removeLeaveListener(callback) {
+        this.removeListener(LEAVE_EVENT, callback);
     }
     findFirstBy(field, value) {
         var channels = this.pGetChannels();
@@ -270,6 +280,10 @@ ChannelStore.dispatchToken = AppDispatcher.register(function handleAction(payloa
         extraInfos[action.extra_info.id] = action.extra_info;
         ChannelStore.pStoreExtraInfos(extraInfos);
         ChannelStore.emitExtraInfoChange();
+        break;
+
+    case ActionTypes.LEAVE_CHANNEL:
+        ChannelStore.emitLeave(action.id);
         break;
 
     default:

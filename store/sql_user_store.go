@@ -452,3 +452,30 @@ func (us SqlUserStore) VerifyEmail(userId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "We encounted an error while finding user profiles", err.Error())
+		} else {
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

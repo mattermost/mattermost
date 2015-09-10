@@ -242,7 +242,7 @@ export default class Textbox extends React.Component {
         const e = React.findDOMNode(this.refs.message);
         const w = React.findDOMNode(this.refs.wrapper);
 
-        let prevHeight = $(e).height();
+        const prevHeight = $(e).height();
 
         const lht = parseInt($(e).css('lineHeight'), 10);
         const lines = e.scrollHeight / lht;
@@ -260,7 +260,7 @@ export default class Textbox extends React.Component {
             $(w).css({height: 'auto'}).height(167);
         }
 
-        if (prevHeight !== $(e).height()) {
+        if (prevHeight !== $(e).height() && this.props.onHeightChange) {
             this.props.onHeightChange();
         }
     }
@@ -320,6 +320,6 @@ Textbox.propTypes = {
     messageText: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
-    onHeightChange: React.PropTypes.func.isRequired,
+    onHeightChange: React.PropTypes.func,
     createMessage: React.PropTypes.string.isRequired
 };

@@ -5,7 +5,7 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Navbar = require('../components/navbar.jsx');
 var Sidebar = require('../components/sidebar.jsx');
 var ChannelHeader = require('../components/channel_header.jsx');
-var PostList = require('../components/post_list.jsx');
+var PostListContainer = require('../components/post_list_container.jsx');
 var CreatePost = require('../components/create_post.jsx');
 var SidebarRight = require('../components/sidebar_right.jsx');
 var SidebarRightMenu = require('../components/sidebar_right_menu.jsx');
@@ -159,7 +159,7 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
     );
 
     React.render(
-        <PostList />,
+        <PostListContainer />,
         document.getElementById('post-list')
     );
 

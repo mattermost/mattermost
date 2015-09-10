@@ -14,6 +14,6 @@ The following steps can be used to configure Mattermost to use GitLab as a singl
   * _TokenEndpoint_: `<your-gitlab-url>/oauth/token` 
   * _UserApiEndpoint_: `<your-gitlab-url>/api/v3/user`
 
-6. (Optional) If you would like to force all users to sign-up with GitLab only, in the _ServiceSettings_ section of config/config.json please set _AllowEmailSignUp_ to `false`.
+6. (Optional) If you would like to force all users to sign-up with GitLab only, in the _ServiceSettings_ section of config/config.json please set _DisableEmailSignUp_ to `true`.
 
 7. Restart your Mattermost server to see the changes take effect.

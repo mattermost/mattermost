@@ -317,6 +317,16 @@ func IsInRole(userRoles string, inRole string) bool {
 	return false
 }
 
+func (u *User) PreExport() {
+	u.Password = ""
+	u.AuthData = ""
+	u.LastActivityAt = 0
+	u.LastPingAt = 0
+	u.LastPasswordUpdate = 0
+	u.LastPictureUpdate = 0
+	u.FailedAttempts = 0
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	decoder := json.NewDecoder(data)
@@ -368,11 +378,6 @@ func ComparePassword(hash string, password string) bool {
 
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
-}
-
-func IsUsernameValid(username string) bool {
-
-	return true
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)

@@ -678,3 +678,25 @@ func (s SqlChannelStore) UpdateNotifyLevel(channelId, userId, notifyLevel string
 
 	return storeChannel
 }
+
+func (s SqlChannelStore) GetForExport(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Channel
+		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND Type = 'O'", map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "We couldn't get all the channels", "teamId="+teamId+", err="+err.Error())
+		} else {
+			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

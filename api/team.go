@@ -32,7 +32,9 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/update_name", ApiUserRequired(updateTeamDisplayName)).Methods("POST")
 	sr.Handle("/update_valet_feature", ApiUserRequired(updateValetFeature)).Methods("POST")
 	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
+	// These should be moved to the global admain console
 	sr.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
+	sr.Handle("/export_team", ApiUserRequired(exportTeam)).Methods("GET")
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -682,4 +684,23 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
 	w.Header().Set("Content-Type", "application/octet-stream")
 	http.ServeContent(w, r, "MattermostImportLog.txt", time.Now(), bytes.NewReader(log.Bytes()))
+}
+
+func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin(c.Session.UserId) {
+		c.Err = model.NewAppError("exportTeam", "Only a team admin can export data.", "userId="+c.Session.UserId)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	options := ExportOptionsFromJson(r.Body)
+
+	if link, err := ExportToFile(options); err != nil {
+		c.Err = err
+		return
+	} else {
+		result := map[string]string{}
+		result["link"] = link
+		w.Write([]byte(model.MapToJson(result)))
+	}
 }

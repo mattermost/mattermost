@@ -17,6 +17,8 @@ export default class ChannelLoader extends React.Component {
     constructor(props) {
         super(props);
 
+        this.intervalId = null;
+
         this.onSocketChange = this.onSocketChange.bind(this);
 
         this.state = {};
@@ -35,10 +37,12 @@ export default class ChannelLoader extends React.Component {
         PostStore.clearPendingPosts();
 
         /* Set up interval functions */
-        setInterval(
+        this.intervalId = setInterval(
             function pollStatuses() {
                 AsyncClient.getStatuses();
-            }, 30000);
+            },
+            30000
+        );
 
         /* Device tracking setup */
         var iOS = (/(iPad|iPhone|iPod)/g).test(navigator.userAgent);
@@ -49,12 +53,12 @@ export default class ChannelLoader extends React.Component {
         /* Set up tracking for whether the window is active */
         window.isActive = true;
 
-        $(window).focus(function windowFocus() {
+        $(window).on('focus', function windowFocus() {
             AsyncClient.updateLastViewedAt();
             window.isActive = true;
         });
 
-        $(window).blur(function windowBlur() {
+        $(window).on('blur', function windowBlur() {
             window.isActive = false;
         });
 
@@ -84,6 +88,54 @@ export default class ChannelLoader extends React.Component {
             Utils.changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background: ' + Utils.changeColor(user.props.theme, +10) + ';');
             $('.team__header').addClass('theme--gray');
         }
+
+        /* Setup global mouse events */
+        $('body').on('click.userpopover', function popOver(e) {
+            if ($(e.target).attr('data-toggle') !== 'popover' &&
+                $(e.target).parents('.popover.in').length === 0) {
+                $('.user-popover').popover('hide');
+            }
+        });
+
+        $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
+            if (ev.type === 'mouseenter') {
+                $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--after');
+                $(this).parent('div').next('.date-separator, .new-separator').addClass('hovered--before');
+            } else {
+                $(this).parent('div').prev('.date-separator, .new-separator').removeClass('hovered--after');
+                $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--before');
+            }
+        });
+
+        $('body').on('mouseenter mouseleave', '.post.post--comment.same--root', function mouseOver(ev) {
+            if (ev.type === 'mouseenter') {
+                $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--comment');
+                $(this).parent('div').next('.date-separator, .new-separator').addClass('hovered--comment');
+            } else {
+                $(this).parent('div').prev('.date-separator, .new-separator').removeClass('hovered--comment');
+                $(this).parent('div').next('.date-separator, .new-separator').removeClass('hovered--comment');
+            }
+        });
+
+        /* Setup modal events */
+        $('.modal').on('show.bs.modal', function onShow() {
+            $('.modal-body').css('overflow-y', 'auto');
+            $('.modal-body').css('max-height', $(window).height() * 0.7);
+        });
+    }
+    componentWillUnmount() {
+        clearInterval(this.intervalId);
+
+        $(window).off('focus');
+        $(window).off('blur');
+
+        SocketStore.removeChangeListener(this.onSocketChange);
+
+        $('body').off('click.userpopover');
+        $('body').off('mouseenter mouseleave', '.post');
+        $('body').off('mouseenter mouseleave', '.post.post--comment.same--root');
+
+        $('.modal').off('show.bs.modal');
     }
     onSocketChange(msg) {
         if (msg && msg.user_id && msg.user_id !== UserStore.getCurrentId()) {

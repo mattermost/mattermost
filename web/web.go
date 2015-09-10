@@ -560,6 +560,7 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		}
 
 		user.TeamId = team.Id
+		user.EmailVerified = true
 
 		ruser := api.CreateUser(c, team, user)
 		if c.Err != nil {

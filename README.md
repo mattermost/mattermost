@@ -1,8 +1,8 @@
-# Mattermost is an open source, on-prem Slack-alternative
+# Mattermost
 
-Mattermost modernizes team communication without locking in your data to a single provider. 
+Mattermost is an open source, on-prem Slack-alternative. 
 
-Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
+It modernizes team communication without locking in your data to a single provider. Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
 
 ## All team communication in one place, searchable and accessible anywhere
 
@@ -26,7 +26,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - Attach sound, video and image files from mobile devices 
 - Define team-specific branding and color themes across your devices
 
-#### Enterprise Focused
+#### Enterprise Compatible
 
 - Self-host Mattermost entirely within your organization's insfrastructure
 - GitLab Mattermost omnibus supports install to over 100,000 organizations using GitLab
@@ -56,10 +56,10 @@ There are multiple ways to install Mattermost depending on your needs.
 
 - [Developer Machine Setup](doc/install/dev-setup.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. 
  
-#### Production Deployment 
+#### Production Deployment (for Beta2 and later)
 
 Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 
 
-- [GitLab Mattermost Production Installation](https://about.gitlab.com/downloads/) - Install Mattermost for production environments bundled with GitLab, a leading open source Git repository, using an omnibus package for Ubuntu 12.04, Ubuntu 14.04, Debian 7, Debian 8, and CentOS 6 (and RedHat/Oracle/Scientific Linux 6), CentOS 7 (and RedHat/Oracle/Scientific Linux 7). 
+- [GitLab Mattermost Production Installation](https://gitlab.com/gitlab-org/gitlab-mattermost) - Install Mattermost for production environments bundled with GitLab, a leading open source Git repository, using an omnibus package for Ubuntu 12.04, Ubuntu 14.04, Debian 7, Debian 8, and CentOS 6 (and RedHat/Oracle/Scientific Linux 6), CentOS 7 (and RedHat/Oracle/Scientific Linux 7). 
 
 For technical questions and answers, please visit the [Mattermost forum](http://forum.mattermost.org).
