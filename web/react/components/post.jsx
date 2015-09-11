@@ -152,7 +152,7 @@ export default class Post extends React.Component {
         return (
             <div>
                 <div
-                    id={post.id}
+                    id={'post_' + post.id}
                     className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}
                 >
                     {profilePic}
