@@ -189,9 +189,15 @@ export default class PostList extends React.Component {
             this.scrollToBottom(true);
 
         // the user clicked 'load more messages'
-        } else if (this.gotMorePosts) {
-            var lastPost = oldPosts[oldOrder[prevState.numToDisplay]];
-            $('#' + lastPost.id)[0].scrollIntoView();
+        } else if (this.gotMorePosts && oldOrder.length > 0) {
+            let index;
+            if (prevState.numToDisplay >= oldOrder.length) {
+                index = oldOrder.length - 1;
+            } else {
+                index = prevState.numToDisplay;
+            }
+            const lastPost = oldPosts[oldOrder[index]];
+            $('#post_' + lastPost.id)[0].scrollIntoView();
             this.gotMorePosts = false;
         } else {
             this.scrollTo(this.prevScrollTop);
