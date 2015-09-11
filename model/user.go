@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ROLE_ADMIN           = "admin"
+	ROLE_TEAM_ADMIN      = "admin"
 	ROLE_SYSTEM_ADMIN    = "system_admin"
 	USER_AWAY_TIMEOUT    = 5 * 60 * 1000 // 5 minutes
 	USER_OFFLINE_TIMEOUT = 1 * 60 * 1000 // 1 minute
@@ -289,7 +289,7 @@ func isValidRole(role string) bool {
 		return true
 	}
 
-	if role == ROLE_ADMIN {
+	if role == ROLE_TEAM_ADMIN {
 		return true
 	}
 

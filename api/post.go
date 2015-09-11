@@ -716,7 +716,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) {
+		if post.UserId != c.Session.UserId && !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
 			c.Err = model.NewAppError("deletePost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return

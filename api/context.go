@@ -298,7 +298,7 @@ func (c *Context) IsTeamAdmin(userId string) bool {
 		return false
 	} else {
 		user := uresult.Data.(*model.User)
-		return model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) && user.TeamId == c.Session.TeamId
+		return model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && user.TeamId == c.Session.TeamId
 	}
 }
 
