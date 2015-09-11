@@ -13,16 +13,15 @@ export function formatText(text, options = {}) {
     output = stripAtMentions(output, tokens);
     output = stripSelfMentions(output, tokens);
     output = stripHashtags(output, tokens);
+    output = highlightSearchTerm(output, tokens, options.searchTerm);
 
     output = replaceTokens(output, tokens);
 
     output = replaceNewlines(output, options.singleline);
 
+    // TODO markdown
+
     return output;
-
-    // TODO highlight search terms
-
-    // TODO leave space for markdown
 }
 
 export function sanitize(text) {
@@ -176,9 +175,45 @@ function stripHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    output = output.replace(/(^|\W)(#[a-zA-Z0-9.\-_]+)\b/g, stripHashtag);
+    return output.replace(/(^|\W)(#[a-zA-Z0-9.\-_]+)\b/g, stripHashtag);
+}
 
-    return output;
+function highlightSearchTerm(text, tokens, searchTerm) {
+    let output = text;
+
+    var newTokens = new Map();
+    for (let [alias, token] of tokens) {
+        if (token.originalText === searchTerm) {
+            const index = newTokens.size;
+            const newAlias = `SEARCH_TERM${index}`;
+
+            newTokens.set(newAlias, {
+                value: `<span class='search-highlight'>${alias}</span>`,
+                originalText: token.originalText
+            });
+
+            output = output.replace(alias, newAlias);
+        }
+    }
+
+    // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
+    for (let newToken of newTokens) {
+        tokens.set(newToken[0], newToken[1]);
+    }
+
+    function replaceSearchTerm(fullMatch, prefix, word) {
+        const index = tokens.size;
+        const alias = `SEARCH_TERM${index}`;
+
+        tokens.set(alias, {
+            value: `<span class='search-highlight'>${word}</span>`,
+            originalText: word
+        });
+
+        return prefix + alias;
+    }
+
+    return output.replace(new RegExp(`(^|\\W)(${searchTerm})\b`, 'gi'), replaceSearchTerm);
 }
 
 function replaceTokens(text, tokens) {
