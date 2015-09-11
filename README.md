@@ -2,7 +2,7 @@
 
 Mattermost is an open source, on-prem Slack-alternative. 
 
-It modernizes team communication without locking in your data to a single provider. Offer your end users messaging and file sharing across PCs and phones with archiving and instant search--without losing control of your data. 
+It offers modern communication from behind your firewall, including messaging and file sharing across PCs and phones with archiving and instant search.
 
 ## All team communication in one place, searchable and accessible anywhere
 
@@ -26,12 +26,6 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - Attach sound, video and image files from mobile devices 
 - Define team-specific branding and color themes across your devices
 
-#### Enterprise Compatible
-
-- Self-host Mattermost entirely within your organization's insfrastructure
-- GitLab Mattermost omnibus supports install to over 100,000 organizations using GitLab
-- LDAP/Active Directory connectivity to Mattermost enabled via GitLab Single-Sign-On
-
 ## Learn More
 
 - [Product Vision and Target Audiences](http://www.mattermost.org/vision/) - What we're solving and for whom are we building
@@ -48,9 +42,9 @@ There are multiple ways to install Mattermost depending on your needs.
 
 #### Quick Start Install for Product Evaluation 
 
-- [Local Machine Install and Upgrade with Docker](doc/install/single-container-install.md) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
+- [Local Machine Install with Docker](doc/install/single-container-install.md) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
 
-- [AWS EBS Install and Upgrade with Docker](doc/install/aws-ebs-setup.md) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
+- [AWS EBS Install with Docker](doc/install/aws-ebs-setup.md) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
 
 #### Development Install 
 
