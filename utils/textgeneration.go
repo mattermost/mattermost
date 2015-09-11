@@ -141,17 +141,14 @@ var FUZZY_STRINGS_NAMES = []string{
 // Strings that should pass as acceptable emails
 var FUZZY_STRINGS_EMAILS = []string{
 	"sue@thatmightbe",
-	"sue@thatmightbe.",
 	"sue@thatmightbe.c",
 	"sue@thatmightbe.co",
 	"su+san@thatmightbe.com",
-	"a@b.中国",
 	"1@2.am",
 	"a@b.co.uk",
 	"a@b.cancerresearch",
 	"su+s+an@thatmightbe.com",
 	"per.iod@thatmightbe.com",
-	"per..iods@thatmightbe.com",
 }
 
 // Lovely giberish for all to use
