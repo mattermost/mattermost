@@ -52,6 +52,7 @@
 <script>
   window.setup_channel_page('{{ .Props.TeamDisplayName }}', '{{ .Props.TeamType }}', '{{ .Props.TeamId }}', '{{ .Props.ChannelName }}', '{{ .Props.ChannelId }}');
   $('body').tooltip( {selector: '[data-toggle=tooltip]'} );
+  $('.modal-body').css('max-height', $(window).height() * 0.7);
   $('.modal-body').perfectScrollbar();
 </script>
 </body>

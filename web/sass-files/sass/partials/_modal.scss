@@ -123,6 +123,7 @@
 	}
 	.more-channel-table {
 		margin: 0;
+		table-layout: fixed;
 		p {
 			font-size: 0.9em;
 			overflow: hidden;
@@ -154,7 +155,7 @@
 					&.td--action {
 						text-align: right;
 						padding: 8px 15px 8px 8px;
-						width: 70px;
+						width: 80px;
 						vertical-align: middle;
 					}
 				}
