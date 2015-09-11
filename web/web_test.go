@@ -36,9 +36,14 @@ func TearDown() {
 func TestStatic(t *testing.T) {
 	Setup()
 
-	resp, _ := http.Get(URL + "/static/images/favicon.ico")
+	// add a short delay to make sure the server is ready to receive requests
+	time.Sleep(1 * time.Second)
 
-	if resp.StatusCode != http.StatusOK {
+	resp, err := http.Get(URL + "/static/images/favicon.ico")
+
+	if err != nil {
+		t.Fatalf("got error while trying to get static files %v", err)
+	} else if resp.StatusCode != http.StatusOK {
 		t.Fatalf("couldn't get static files %v", resp.StatusCode)
 	}
 }
