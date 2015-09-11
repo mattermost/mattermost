@@ -34,7 +34,9 @@ module.exports = {
         CLICK_TEAM: null,
         RECIEVED_TEAM: null,
 
-        RECIEVED_CONFIG: null
+        RECIEVED_CONFIG: null,
+
+        RECIEVED_LOGS: null
     }),
 
     PayloadSources: keyMirror({

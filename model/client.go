@@ -338,6 +338,15 @@ func (c *Client) GetAudits(id string, etag string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetLogs() (*Result, *AppError) {
+	if r, err := c.DoGet("/admin/logs", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ArrayFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoPost("/channels/create", channel.ToJson()); err != nil {
 		return nil, err

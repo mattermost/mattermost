@@ -83,7 +83,15 @@ export default class AdminSidebar extends React.Component {
                                         {'Email Settings'}
                                     </a>
                                 </li>
-                                <li><a href='#'>{'Other Settings'}</a></li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('logs')}
+                                        onClick={this.handleClick.bind(null, 'logs')}
+                                    >
+                                        {'Logs'}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li>
