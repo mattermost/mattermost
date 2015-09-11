@@ -22,8 +22,8 @@ Developer Machine Setup
 	1. Download Homebrew from http://brew.sh/
 	2. `brew install node`
 5. Install Compass
-	1. Make sure you have the latest verison of Ruby
-	2. `gem install compass`
+	1. Run `ruby -v` and check the ruby version is 1.8.7 or higher
+	2. `sudo gem install compass`
 6. Download Mattermost  
 	`cd ~/go`  
 	`mkdir -p src/github.com/mattermost`  
