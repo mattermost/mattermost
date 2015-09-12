@@ -106,6 +106,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !h.isApi {
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+	} else {
+		// All api response bodies will be JSON formatted
+		w.Header().Set("Content-Type", "application/json")
 	}
 
 	sessionId := ""
