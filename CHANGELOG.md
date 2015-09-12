@@ -21,6 +21,8 @@ Documentation
 
 - Updated software and hardware requirements documentation
 - Re-organized install instructions out of README and into separate files
+- Added Code Contribution Guidelines
+- Added new hardware sizing recommendations 
 - Consolidated licensing information into LICENSE.txt and NOTICE.txt
 
 Performance 
@@ -33,7 +35,8 @@ Code Quality
 
 ### Bug Fixes
 
-- Fixed performance issue with slow typing on iOS 
+- Fixed performance issue with slow typing on iOS
+- Fixed issue so that SSO option automatically set EmailVerified=true (it was false previously)
 
 ### Contributors
 
