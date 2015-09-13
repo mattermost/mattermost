@@ -105,6 +105,14 @@ export default class ViewImageModal extends React.Component {
             this.loadImage(this.state.imgId);
         }.bind(this));
 
+        $('#' + this.props.modalId).on('hidden.bs.modal', function onModalHide() {
+            if (this.refs.video) {
+                var video = React.findDOMNode(this.refs.video);
+                video.pause();
+                video.currentTime = 0;
+            }
+        }.bind(this));
+
         $(React.findDOMNode(this.refs.modal)).click(function onModalClick(e) {
             if (e.target === this || e.target === React.findDOMNode(this.refs.imageBody)) {
                 $('.image_modal').modal('hide');
@@ -211,6 +219,12 @@ export default class ViewImageModal extends React.Component {
                         />
                     </a>
                 );
+            } else if (fileType === 'video' || fileType === 'audio') {
+                content = (
+                    <video ref='video' data-setup='{}' controls>
+                        <source src={Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename} />
+                    </video>
+                )
             } else {
                 // non-image files include a section providing details about the file
                 var infoString = 'File type ' + fileInfo.ext.toUpperCase();
