@@ -74,7 +74,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 			close(storeChannel)
 			return
 		} else if int(count) > utils.Cfg.TeamSettings.MaxUsersPerTeam {
-			result.Err = model.NewAppError("SqlUserStore.Save", "You've reached the limit of the number of allowed accounts.", "teamId="+user.TeamId)
+			result.Err = model.NewAppError("SqlUserStore.Save", "This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit.", "teamId="+user.TeamId)
 			storeChannel <- result
 			close(storeChannel)
 			return
