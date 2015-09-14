@@ -192,3 +192,26 @@ func TestCleanUsername(t *testing.T) {
 		t.Fatal("didn't clean name properly")
 	}
 }
+
+func TestRoles(t *testing.T) {
+
+	if !IsValidRoles("admin") {
+		t.Fatal()
+	}
+
+	if IsValidRoles("junk") {
+		t.Fatal()
+	}
+
+	if IsInRole("system_admin junk", "admin") {
+		t.Fatal()
+	}
+
+	if !IsInRole("system_admin junk", "system_admin") {
+		t.Fatal()
+	}
+
+	if IsInRole("admin", "system_admin") {
+		t.Fatal()
+	}
+}

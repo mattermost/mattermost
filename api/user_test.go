@@ -509,7 +509,7 @@ func TestUserUpdate(t *testing.T) {
 	user.TeamId = "12345678901234567890123456"
 	user.LastActivityAt = time2
 	user.LastPingAt = time2
-	user.Roles = model.ROLE_ADMIN
+	user.Roles = model.ROLE_TEAM_ADMIN
 	user.LastPasswordUpdate = 123
 
 	if result, err := Client.UpdateUser(user); err != nil {
@@ -684,6 +684,7 @@ func TestUserUpdateRoles(t *testing.T) {
 	data["user_id"] = user2.Id
 
 	if result, err := Client.UpdateUserRoles(data); err != nil {
+		t.Log(data["new_roles"])
 		t.Fatal(err)
 	} else {
 		if result.Data.(*model.User).Roles != "admin" {

@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	ROLE_ADMIN           = "admin"
+	ROLE_TEAM_ADMIN      = "admin"
 	ROLE_SYSTEM_ADMIN    = "system_admin"
-	ROLE_SYSTEM_SUPPORT  = "system_support"
 	USER_AWAY_TIMEOUT    = 5 * 60 * 1000 // 5 minutes
 	USER_OFFLINE_TIMEOUT = 1 * 60 * 1000 // 1 minute
 	USER_OFFLINE         = "offline"
@@ -270,6 +269,52 @@ func (u *User) GetDisplayName() string {
 	} else {
 		return u.Username
 	}
+}
+
+func IsValidRoles(userRoles string) bool {
+
+	roles := strings.Split(userRoles, " ")
+
+	for _, r := range roles {
+		if !isValidRole(r) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isValidRole(role string) bool {
+	if role == "" {
+		return true
+	}
+
+	if role == ROLE_TEAM_ADMIN {
+		return true
+	}
+
+	if role == ROLE_SYSTEM_ADMIN {
+		return true
+	}
+
+	return false
+}
+
+func (u *User) IsInRole(inRole string) bool {
+	return IsInRole(u.Roles, inRole)
+}
+
+func IsInRole(userRoles string, inRole string) bool {
+	roles := strings.Split(userRoles, " ")
+
+	for _, r := range roles {
+		if r == inRole {
+			return true
+		}
+
+	}
+
+	return false
 }
 
 func (u *User) PreExport() {

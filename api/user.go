@@ -170,7 +170,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 	channelRole := ""
 	if team.Email == user.Email {
-		user.Roles = model.ROLE_ADMIN
+		user.Roles = model.ROLE_TEAM_ADMIN
 		channelRole = model.CHANNEL_ROLE_ADMIN
 	} else {
 		user.Roles = ""
@@ -922,7 +922,16 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	new_roles := props["new_roles"]
-	// no check since we allow the clearing of Roles
+	if !model.IsValidRoles(new_roles) {
+		c.SetInvalidParam("updateRoles", "new_roles")
+		return
+	}
+
+	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) {
+		c.Err = model.NewAppError("updateRoles", "The system_admin role can only be set from the command line", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
 
 	var user *model.User
 	if result := <-Srv.Store.User().Get(user_id); result.Err != nil {
@@ -936,43 +945,15 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) && !c.IsSystemAdmin() {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("updateRoles", "You do not have the appropriate permissions", "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
-	// make sure there is at least 1 other active admin
-	if strings.Contains(user.Roles, model.ROLE_ADMIN) && !strings.Contains(new_roles, model.ROLE_ADMIN) {
-		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			activeAdmins := -1
-			profileUsers := result.Data.(map[string]*model.User)
-			for _, profileUser := range profileUsers {
-				if profileUser.DeleteAt == 0 && strings.Contains(profileUser.Roles, model.ROLE_ADMIN) {
-					activeAdmins = activeAdmins + 1
-				}
-			}
-
-			if activeAdmins <= 0 {
-				c.Err = model.NewAppError("updateRoles", "There must be at least one active admin", "userId="+user_id)
-				return
-			}
-		}
-	}
-
-	user.Roles = new_roles
-
-	var ruser *model.User
-	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
-		c.Err = result.Err
+	ruser := UpdateRoles(c, user, new_roles)
+	if c.Err != nil {
 		return
-	} else {
-		c.LogAuditWithUserId(user.Id, "roles="+new_roles)
-
-		ruser = result.Data.([2]*model.User)[0]
 	}
 
 	uchan := Srv.Store.Session().UpdateRoles(user.Id, new_roles)
@@ -999,6 +980,45 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
+func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
+	// make sure there is at least 1 other active admin
+
+	if !model.IsInRole(roles, model.ROLE_SYSTEM_ADMIN) {
+		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) && !model.IsInRole(roles, model.ROLE_TEAM_ADMIN) {
+			if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+				c.Err = result.Err
+				return nil
+			} else {
+				activeAdmins := -1
+				profileUsers := result.Data.(map[string]*model.User)
+				for _, profileUser := range profileUsers {
+					if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
+						activeAdmins = activeAdmins + 1
+					}
+				}
+
+				if activeAdmins <= 0 {
+					c.Err = model.NewAppError("updateRoles", "There must be at least one active admin", "")
+					return nil
+				}
+			}
+		}
+	}
+
+	user.Roles = roles
+
+	var ruser *model.User
+	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		c.LogAuditWithUserId(user.Id, "roles="+roles)
+		ruser = result.Data.([2]*model.User)[0]
+	}
+
+	return ruser
+}
+
 func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
@@ -1022,14 +1042,14 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) && !c.IsSystemAdmin() {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("updateActive", "You do not have the appropriate permissions", "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	// make sure there is at least 1 other active admin
-	if !active && strings.Contains(user.Roles, model.ROLE_ADMIN) {
+	if !active && model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
 		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
 			c.Err = result.Err
 			return
@@ -1037,7 +1057,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			activeAdmins := -1
 			profileUsers := result.Data.(map[string]*model.User)
 			for _, profileUser := range profileUsers {
-				if profileUser.DeleteAt == 0 && strings.Contains(profileUser.Roles, model.ROLE_ADMIN) {
+				if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
 					activeAdmins = activeAdmins + 1
 				}
 			}

@@ -4,29 +4,19 @@
     width: 100%;
     border: $border-gray;
     bottom: 38px;
-    overflow: auto;
     @extend %popover-box-shadow;
-    .sidebar--right & {
-        bottom: 100px;
-    }
 }
 
 .command-name {
     position: relative;
     width: 100%;
     background-color: #fff;
-    line-height: 24px;
-    padding: 5px 10px 8px;
+    height: 37px;
+    line-height: 37px;
+    padding: 2px 10px 2px 5px;
     z-index: 101;
-    font-size: 0.95em;
-    border-bottom: 1px solid #ddd;
     &:hover {
         background-color: #e8eaed;
-    }
-    .command__desc {
-        margin-left: 5px;
-        color: #999;
-        line-height: normal;
     }
 }
 

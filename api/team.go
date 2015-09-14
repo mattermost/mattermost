@@ -241,47 +241,55 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	team := model.TeamFromJson(r.Body)
+	rteam := CreateTeam(c, team)
+	if c.Err != nil {
+		return
+	}
+
+	w.Write([]byte(rteam.ToJson()))
+}
+
+func CreateTeam(c *Context, team *model.Team) *model.Team {
 	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
 		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
-		return
+		return nil
 	}
-
-	team := model.TeamFromJson(r.Body)
 
 	if team == nil {
 		c.SetInvalidParam("createTeam", "team")
-		return
+		return nil
 	}
 
 	if !isTreamCreationAllowed(c, team.Email) {
-		return
+		return nil
 	}
 
 	if utils.Cfg.ServiceSettings.Mode != utils.MODE_DEV {
-		c.Err = model.NewAppError("createTeam", "The mode does not allow network creation without a valid invite", "")
-		return
+		c.Err = model.NewAppError("CreateTeam", "The mode does not allow network creation without a valid invite", "")
+		return nil
 	}
 
 	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
 		c.Err = result.Err
-		return
+		return nil
 	} else {
 		rteam := result.Data.(*model.Team)
 
 		if _, err := CreateDefaultChannels(c, rteam.Id); err != nil {
 			c.Err = err
-			return
+			return nil
 		}
 
 		if rteam.AllowValet {
 			CreateValet(c, rteam)
 			if c.Err != nil {
-				return
+				return nil
 			}
 		}
 
-		w.Write([]byte(rteam.ToJson()))
+		return rteam
 	}
 }
 
@@ -469,7 +477,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			sender := user.GetDisplayName()
 
 			senderRole := ""
-			if strings.Contains(user.Roles, model.ROLE_ADMIN) || strings.Contains(user.Roles, model.ROLE_SYSTEM_ADMIN) {
+			if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) || model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) {
 				senderRole = "administrator"
 			} else {
 				senderRole = "member"
@@ -528,7 +536,7 @@ func updateTeamDisplayName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
 		c.Err = model.NewAppError("updateTeamDisplayName", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -568,7 +576,7 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !strings.Contains(c.Session.Roles, model.ROLE_ADMIN) {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
 		c.Err = model.NewAppError("updateValetFeature", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return

@@ -49,6 +49,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		}
 
 		team.PreSave()
+
 		if result.Err = team.IsValid(); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
