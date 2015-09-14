@@ -40,7 +40,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         e.preventDefault();
 
         var user = this.props.user;
-        var username = this.state.username.trim();
+        var username = this.state.username.trim().toLowerCase();
 
         var usernameError = utils.isValidUsername(username);
         if (usernameError === 'Cannot use a reserved word as a username.') {
