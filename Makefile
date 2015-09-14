@@ -156,6 +156,8 @@ clean:
 	rm -rf api/data/*
 	rm -rf logs/*
 
+	rm -rf Godeps/_workspace/pkg/
+
 
 run: install
 	mkdir -p web/static/js
