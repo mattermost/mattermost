@@ -50,6 +50,15 @@ func SlackConvertTimeStamp(ts string) int64 {
 	return timeStamp * 1000 // Convert to milliseconds
 }
 
+func SlackConvertChannelName(channelName string) string {
+	newName := strings.Trim(channelName, "_-")
+	if len(newName) == 1 {
+		return "slack-channel-" + newName
+	}
+
+	return newName
+}
+
 func SlackParseChannels(data io.Reader) []SlackChannel {
 	decoder := json.NewDecoder(data)
 
@@ -172,7 +181,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			TeamId:      teamId,
 			Type:        model.CHANNEL_OPEN,
 			DisplayName: sChannel.Name,
-			Name:        sChannel.Name,
+			Name:        SlackConvertChannelName(sChannel.Name),
 			Description: sChannel.Topic["value"],
 		}
 		mChannel := ImportChannel(&newChannel)
