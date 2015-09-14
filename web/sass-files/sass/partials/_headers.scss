@@ -145,6 +145,8 @@
 				li a {
 					padding: 3px 20px;
 					color: #555;
+					text-overflow: ellipsis;
+					overflow: hidden;
 				}
 			}
 			.dropdown__icon {

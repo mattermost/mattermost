@@ -12,7 +12,10 @@
     }
     .dropdown-menu {
         max-height: 300px;
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-width: 200px;
+        width: 200px;
     }
     .search__form {
         margin: 0;
