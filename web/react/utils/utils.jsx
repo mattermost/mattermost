@@ -1127,3 +1127,14 @@ export function importSlack(file, success, error) {
 
     client.importSlack(formData, success, error);
 }
+
+export function getTeamURLFromAddressBar() {
+    return window.location.href.split('/channels')[0];
+}
+
+export function getShortenedTeamURL() {
+    const teamURL = getTeamURLFromAddressBar();
+    if (teamURL.length > 24) {
+        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length - 1) + '/';
+    }
+}

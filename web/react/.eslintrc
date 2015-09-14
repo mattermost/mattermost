@@ -18,7 +18,8 @@
             "es6": true
         },
         "globals": {
-            "React": false
+            "React": false,
+            "ReactBootstrap": false
         },
         "rules": {
             "comma-dangle": [2, "never"],

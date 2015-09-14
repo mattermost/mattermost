@@ -53,7 +53,7 @@ export default class FileUpload extends React.Component {
             }
 
             // generate a unique id that can be used by other components to refer back to this upload
-            var clientId = utils.generateId();
+            let clientId = utils.generateId();
 
             // prepare data to be uploaded
             var formData = new FormData();
