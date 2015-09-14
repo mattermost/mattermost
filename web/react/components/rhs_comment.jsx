@@ -12,6 +12,7 @@ var FileAttachmentList = require('./file_attachment_list.jsx');
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
+var TextFormatting = require('../utils/text_formatting.jsx');
 var twemoji = require('twemoji');
 
 export default class RhsComment extends React.Component {
@@ -84,7 +85,6 @@ export default class RhsComment extends React.Component {
             type = 'Comment';
         }
 
-        var message = Utils.textToJsx(post.message);
         var timestamp = UserStore.getCurrentUser().update_at;
 
         var loading;
@@ -202,7 +202,13 @@ export default class RhsComment extends React.Component {
                         </li>
                     </ul>
                     <div className='post-body'>
-                        <p className={postClass}>{loading}{message}</p>
+                        <p className={postClass}>
+                            {loading}
+                            <span
+                                onClick={TextFormatting.handleClick}
+                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+                            />
+                        </p>
                         {fileAttachment}
                     </div>
                 </div>

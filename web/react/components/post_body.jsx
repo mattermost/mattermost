@@ -13,7 +13,6 @@ export default class PostBody extends React.Component {
         super(props);
 
         this.parseEmojis = this.parseEmojis.bind(this);
-        this.handleClick = this.handleClick.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
         this.state = {links: linkData.links, message: linkData.text};
@@ -31,17 +30,10 @@ export default class PostBody extends React.Component {
         const linkData = Utils.extractLinks(nextProps.post.message);
         this.setState({links: linkData.links, message: linkData.text});
     }
-    handleClick(e) {
-        let mentionAttribute = e.target.getAttributeNode('data-mention');
-        if (mentionAttribute) {
-            Utils.searchForTerm(mentionAttribute.value);
-        }
-    }
     render() {
         const post = this.props.post;
         const filenames = this.props.post.filenames;
         const parentPost = this.props.parentPost;
-        const inner = Utils.textToJsx(this.state.message);
 
         let comment = '';
         let postClass = '';
@@ -143,7 +135,11 @@ export default class PostBody extends React.Component {
                     key={`${post.id}_message`}
                     className={postClass}
                 >
-                    {loading}<span onClick={this.handleClick} dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}/>
+                    {loading}
+                    <span
+                        onClick={TextFormatting.handleClick}
+                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
+                    />
                 </p>
                 {fileAttachmentHolder}
                 {embed}

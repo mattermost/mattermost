@@ -332,7 +332,7 @@ export default class Navbar extends React.Component {
             popoverContent = React.renderToString(
                 <MessageWrapper
                     message={channel.description}
-                    options={{singleline: true, noMentionHighlight: true}}
+                    options={{singleline: true, mentionHighlight: false}}
                 />
             );
             isAdmin = this.state.member.roles.indexOf('admin') > -1;

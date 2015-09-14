@@ -4,6 +4,7 @@
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserProfile = require('./user_profile.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var TextFormatting = require('../utils/text_formatting.jsx');
 var utils = require('../utils/utils.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var twemoji = require('twemoji');
@@ -35,7 +36,6 @@ export default class RhsRootPost extends React.Component {
     }
     render() {
         var post = this.props.post;
-        var message = utils.textToJsx(post.message);
         var isOwner = UserStore.getCurrentId() === post.user_id;
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
@@ -140,7 +140,10 @@ export default class RhsRootPost extends React.Component {
                         </li>
                     </ul>
                     <div className='post-body'>
-                        <p>{message}</p>
+                        <p
+                            onClick={TextFormatting.handleClick}
+                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+                        />
                         {fileAttachment}
                     </div>
                 </div>
