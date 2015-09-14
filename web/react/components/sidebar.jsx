@@ -12,6 +12,7 @@ var Utils = require('../utils/utils.jsx');
 var SidebarHeader = require('./sidebar_header.jsx');
 var SearchBox = require('./search_bar.jsx');
 var Constants = require('../utils/constants.jsx');
+var NewChannelFlow = require('./new_channel_flow.jsx');
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -28,6 +29,7 @@ export default class Sidebar extends React.Component {
         this.createChannelElement = this.createChannelElement.bind(this);
 
         this.state = this.getStateFromStores();
+        this.state.modal = '';
         this.state.loadingDMChannel = -1;
     }
     getStateFromStores() {
@@ -473,8 +475,18 @@ export default class Sidebar extends React.Component {
             );
         }
 
+        let showChannelModal = false;
+        if (this.state.modal !== '') {
+            showChannelModal = true;
+        }
+
         return (
             <div>
+                <NewChannelFlow
+                    show={showChannelModal}
+                    channelType={this.state.modal}
+                    onModalDismissed={() => this.setState({modal: ''})}
+                />
                 <SidebarHeader
                     teamDisplayName={this.props.teamDisplayName}
                     teamType={this.props.teamType}
@@ -508,11 +520,9 @@ export default class Sidebar extends React.Component {
                                 <a
                                     className='add-channel-btn'
                                     href='#'
-                                    data-toggle='modal'
-                                    data-target='#new_channel'
-                                    data-channeltype='O'
+                                    onClick={() => this.setState({modal: 'O'})}
                                 >
-                                    +
+                                    {'+'}
                                 </a>
                             </h4>
                         </li>
@@ -537,11 +547,9 @@ export default class Sidebar extends React.Component {
                                 <a
                                     className='add-channel-btn'
                                     href='#'
-                                    data-toggle='modal'
-                                    data-target='#new_channel'
-                                    data-channeltype='P'
+                                    onClick={() => this.setState({modal: 'P'})}
                                 >
-                                    +
+                                    {'+'}
                                 </a>
                             </h4>
                         </li>

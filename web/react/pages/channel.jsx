@@ -17,7 +17,6 @@ var RenameChannelModal = require('../components/rename_channel_modal.jsx');
 var EditPostModal = require('../components/edit_post_modal.jsx');
 var DeletePostModal = require('../components/delete_post_modal.jsx');
 var MoreChannelsModal = require('../components/more_channels.jsx');
-var NewChannelModal = require('../components/new_channel.jsx');
 var PostDeletedModal = require('../components/post_deleted_modal.jsx');
 var ChannelNotificationsModal = require('../components/channel_notifications.jsx');
 var UserSettingsModal = require('../components/user_settings_modal.jsx');
@@ -151,11 +150,6 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
     React.render(
         <DirectChannelModal />,
         document.getElementById('direct_channel_modal')
-    );
-
-    React.render(
-        <NewChannelModal />,
-        document.getElementById('new_channel_modal')
     );
 
     React.render(
