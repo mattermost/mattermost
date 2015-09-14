@@ -274,26 +274,32 @@ export default class Sidebar extends React.Component {
         this.updateUnreadIndicators();
     }
     updateUnreadIndicators() {
-        var container = $(React.findDOMNode(this.refs.container));
+        const container = $(React.findDOMNode(this.refs.container));
+        const topUnreadIndicator = $(React.findDOMNode(this.refs.topUnreadIndicator));
+        const bottomUnreadIndicator = $(React.findDOMNode(this.refs.bottomUnreadIndicator));
 
         if (this.firstUnreadChannel) {
             var firstUnreadElement = $(React.findDOMNode(this.refs[this.firstUnreadChannel]));
 
             if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
-                $(React.findDOMNode(this.refs.topUnreadIndicator)).css('display', 'initial');
+                topUnreadIndicator.css('display', 'initial');
             } else {
-                $(React.findDOMNode(this.refs.topUnreadIndicator)).css('display', 'none');
+                topUnreadIndicator.css('display', 'none');
             }
+        } else {
+            topUnreadIndicator.css('display', 'none');
         }
 
         if (this.lastUnreadChannel) {
             var lastUnreadElement = $(React.findDOMNode(this.refs[this.lastUnreadChannel]));
 
             if (lastUnreadElement.position().top > container.height()) {
-                $(React.findDOMNode(this.refs.bottomUnreadIndicator)).css('display', 'initial');
+                bottomUnreadIndicator.css('display', 'initial');
             } else {
-                $(React.findDOMNode(this.refs.bottomUnreadIndicator)).css('display', 'none');
+                bottomUnreadIndicator.css('display', 'none');
             }
+        } else {
+            bottomUnreadIndicator.css('display', 'none');
         }
     }
     createChannelElement(channel, index) {
