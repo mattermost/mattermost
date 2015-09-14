@@ -202,7 +202,7 @@ func GetSubDomain(s string) (string, string) {
 
 func IsValidChannelIdentifier(s string) bool {
 
-	if !IsValidAlphaNum(s) {
+	if !IsValidAlphaNum(s, true) {
 		return false
 	}
 
@@ -213,10 +213,16 @@ func IsValidChannelIdentifier(s string) bool {
 	return true
 }
 
+var validAlphaNumUnderscore = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
 var validAlphaNum = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
 
-func IsValidAlphaNum(s string) bool {
-	match := validAlphaNum.MatchString(s)
+func IsValidAlphaNum(s string, allowUnderscores bool) bool {
+	var match bool
+	if allowUnderscores {
+		match = validAlphaNumUnderscore.MatchString(s)
+	} else {
+		match = validAlphaNum.MatchString(s)
+	}
 
 	if !match {
 		return false
