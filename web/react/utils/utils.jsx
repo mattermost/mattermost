@@ -828,14 +828,12 @@ export function isValidUsername(name) {
     } else if (name.length < 3 || name.length > 15) {
         error = 'Must be between 3 and 15 characters';
     } else if (!(/^[a-z0-9\.\-\_]+$/).test(name)) {
-        error = "Must contain only lowercase letters, numbers, and the symbols '.', '-', and '_'.";
+        error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
     } else if (!(/[a-z]/).test(name.charAt(0))) {
         error = 'First character must be a letter.';
     } else {
-        var lowerName = name.toLowerCase().trim();
-
         for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) {
-            if (lowerName === Constants.RESERVED_USERNAMES[i]) {
+            if (name === Constants.RESERVED_USERNAMES[i]) {
                 error = 'Cannot use a reserved word as a username.';
                 break;
             }

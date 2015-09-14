@@ -32,7 +32,7 @@ export default class SignupUserComplete extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        this.state.user.username = React.findDOMNode(this.refs.name).value.trim();
+        this.state.user.username = React.findDOMNode(this.refs.name).value.trim().toLowerCase();
         if (!this.state.user.username) {
             this.setState({nameError: 'This field is required', emailError: '', passwordError: '', serverError: ''});
             return;
