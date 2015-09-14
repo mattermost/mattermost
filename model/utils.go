@@ -213,7 +213,7 @@ func IsValidChannelIdentifier(s string) bool {
 	return true
 }
 
-var validAlphaNum = regexp.MustCompile(`^[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+$`)
+var validAlphaNum = regexp.MustCompile(`^[a-z0-9]+([a-z\-\_0-9]+|(__)?)[a-z0-9]+$`)
 
 func IsValidAlphaNum(s string) bool {
 	match := validAlphaNum.MatchString(s)
