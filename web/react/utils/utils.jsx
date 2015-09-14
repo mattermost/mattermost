@@ -832,10 +832,8 @@ export function isValidUsername(name) {
     } else if (!(/[a-z]/).test(name.charAt(0))) {
         error = 'First character must be a letter.';
     } else {
-        var lowerName = name;
-
         for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) {
-            if (lowerName === Constants.RESERVED_USERNAMES[i]) {
+            if (name === Constants.RESERVED_USERNAMES[i]) {
                 error = 'Cannot use a reserved word as a username.';
                 break;
             }
