@@ -170,7 +170,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 	channelRole := ""
 	if team.Email == user.Email {
-		user.Roles = model.ROLE_ADMIN
+		user.Roles = model.ROLE_TEAM_ADMIN
 		channelRole = model.CHANNEL_ROLE_ADMIN
 	} else {
 		user.Roles = ""
@@ -945,7 +945,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) && !c.IsSystemAdmin() {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("updateRoles", "You do not have the appropriate permissions", "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -984,7 +984,7 @@ func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
 	// make sure there is at least 1 other active admin
 
 	if !model.IsInRole(roles, model.ROLE_SYSTEM_ADMIN) {
-		if model.IsInRole(user.Roles, model.ROLE_ADMIN) && !model.IsInRole(roles, model.ROLE_ADMIN) {
+		if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) && !model.IsInRole(roles, model.ROLE_TEAM_ADMIN) {
 			if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
 				c.Err = result.Err
 				return nil
@@ -992,7 +992,7 @@ func UpdateRoles(c *Context, user *model.User, roles string) *model.User {
 				activeAdmins := -1
 				profileUsers := result.Data.(map[string]*model.User)
 				for _, profileUser := range profileUsers {
-					if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_ADMIN) {
+					if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
 						activeAdmins = activeAdmins + 1
 					}
 				}
@@ -1042,14 +1042,14 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) && !c.IsSystemAdmin() {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("updateActive", "You do not have the appropriate permissions", "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	// make sure there is at least 1 other active admin
-	if !active && model.IsInRole(user.Roles, model.ROLE_ADMIN) {
+	if !active && model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) {
 		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
 			c.Err = result.Err
 			return
@@ -1057,7 +1057,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			activeAdmins := -1
 			profileUsers := result.Data.(map[string]*model.User)
 			for _, profileUser := range profileUsers {
-				if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_ADMIN) {
+				if profileUser.DeleteAt == 0 && model.IsInRole(profileUser.Roles, model.ROLE_TEAM_ADMIN) {
 					activeAdmins = activeAdmins + 1
 				}
 			}

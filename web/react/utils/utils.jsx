@@ -828,14 +828,12 @@ export function isValidUsername(name) {
     } else if (name.length < 3 || name.length > 15) {
         error = 'Must be between 3 and 15 characters';
     } else if (!(/^[a-z0-9\.\-\_]+$/).test(name)) {
-        error = "Must contain only lowercase letters, numbers, and the symbols '.', '-', and '_'.";
+        error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
     } else if (!(/[a-z]/).test(name.charAt(0))) {
         error = 'First character must be a letter.';
     } else {
-        var lowerName = name.toLowerCase().trim();
-
         for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) {
-            if (lowerName === Constants.RESERVED_USERNAMES[i]) {
+            if (name === Constants.RESERVED_USERNAMES[i]) {
                 error = 'Cannot use a reserved word as a username.';
                 break;
             }
@@ -1126,4 +1124,15 @@ export function importSlack(file, success, error) {
     formData.append('importFrom', 'slack');
 
     client.importSlack(formData, success, error);
+}
+
+export function getTeamURLFromAddressBar() {
+    return window.location.href.split('/channels')[0];
+}
+
+export function getShortenedTeamURL() {
+    const teamURL = getTeamURLFromAddressBar();
+    if (teamURL.length > 24) {
+        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length - 1) + '/';
+    }
 }

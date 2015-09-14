@@ -477,7 +477,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			sender := user.GetDisplayName()
 
 			senderRole := ""
-			if model.IsInRole(user.Roles, model.ROLE_ADMIN) || model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) {
+			if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) || model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) {
 				senderRole = "administrator"
 			} else {
 				senderRole = "member"
@@ -536,7 +536,7 @@ func updateTeamDisplayName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
 		c.Err = model.NewAppError("updateTeamDisplayName", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -576,7 +576,7 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) {
+	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
 		c.Err = model.NewAppError("updateValetFeature", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return

@@ -106,6 +106,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !h.isApi {
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
+	} else {
+		// All api response bodies will be JSON formatted
+		w.Header().Set("Content-Type", "application/json")
 	}
 
 	sessionId := ""
@@ -308,7 +311,7 @@ func (c *Context) IsTeamAdmin(userId string) bool {
 		return false
 	} else {
 		user := uresult.Data.(*model.User)
-		return model.IsInRole(c.Session.Roles, model.ROLE_ADMIN) && user.TeamId == c.Session.TeamId
+		return model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && user.TeamId == c.Session.TeamId
 	}
 }
 

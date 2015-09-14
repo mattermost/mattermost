@@ -16,9 +16,10 @@
 ### Configuration 
 
 - [GitLab SSO Configuration](integrations/sso/gitlab-sso.md) 
-- [SMTP Email Setup](smtp-email-setup.md)
+- [SMTP Email Setup](config/smtp-email-setup.md)
 
 ## Developer Documentation 
 
-- [Developer Machine Setup](doc/install/dev-setup.md)
+- [Code Contribution Guidelines](developer/code-contribution.md)
+- [Developer Machine Setup](install/dev-setup.md)
 - [Mattermost Style Guide](developer/style-guide.md)

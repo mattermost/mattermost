@@ -1,0 +1,33 @@
+.form-horizontal {
+	.modal-intro {
+		margin: -10px 0 30px;
+	}
+	.form__label {
+		text-align: left;
+		padding-right: 3px;
+		font-weight: bold;
+		font-size: 1.1em;
+		&.light {
+			color: #999;
+			font-size: 1.05em;
+			font-style: italic;
+			padding-top: 2px;
+		}
+	}
+	.input__help {
+		color: #777;
+		margin: 10px 0 0 10px;
+		&.error {
+			color: #a94442;
+		}
+	}
+	.form-control {
+		font-weight: normal;
+	}
+	.form-group {
+		margin-bottom: 25px;
+		&.less {
+			margin-bottom: 10px;
+		}
+	}
+}

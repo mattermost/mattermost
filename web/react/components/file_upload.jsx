@@ -20,12 +20,11 @@ export default class FileUpload extends React.Component {
     }
 
     fileUploadSuccess(channelId, data) {
-        var parsedData = $.parseJSON(data);
-        this.props.onFileUpload(parsedData.filenames, parsedData.client_ids, channelId);
+        this.props.onFileUpload(data.filenames, data.client_ids, channelId);
 
         var requests = this.state.requests;
-        for (var j = 0; j < parsedData.client_ids.length; j++) {
-            delete requests[parsedData.client_ids[j]];
+        for (var j = 0; j < data.client_ids.length; j++) {
+            delete requests[data.client_ids[j]];
         }
         this.setState({requests: requests});
     }
@@ -53,7 +52,7 @@ export default class FileUpload extends React.Component {
             }
 
             // generate a unique id that can be used by other components to refer back to this upload
-            var clientId = utils.generateId();
+            let clientId = utils.generateId();
 
             // prepare data to be uploaded
             var formData = new FormData();
