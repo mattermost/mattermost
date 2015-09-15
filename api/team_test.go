@@ -103,7 +103,7 @@ func TestCreateTeam(t *testing.T) {
 		}
 	}
 
-	if _, err := Client.DoPost("/teams/create", "garbage"); err == nil {
+	if _, err := Client.DoApiPost("/teams/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
 	}
 }
