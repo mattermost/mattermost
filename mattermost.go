@@ -329,9 +329,9 @@ Usage:
             platform -create_user -team_name="name" -email="user@example.com" -password="mypassword"
 
     -assign_role                      Assigns role to a user.  It requres the -role,
-                                      -email and -team_name flag.  If you're assigning the
-                                      role="system_admin" role it must be for a user on the
-                                      team_name="admin"
+                                      -email and -team_name flag.  You may need to logout
+                                      of your current sessions for the new role to be
+                                      applied.
         Example:
             platform -assign_role -team_name="name" -email="user@example.com" -role="admin"
 

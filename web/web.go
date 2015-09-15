@@ -643,12 +643,10 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
-	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("adminConsole", "You do not have permission to access the admin console.", "")
-		c.Err.StatusCode = http.StatusForbidden
+	if !c.HasSystemAdminPermissions("adminConsole") {
 		return
-	} else {
-		page := NewHtmlTemplatePage("admin_console", "Admin Console")
-		page.Render(c, w)
 	}
+
+	page := NewHtmlTemplatePage("admin_console", "Admin Console")
+	page.Render(c, w)
 }

@@ -4,6 +4,7 @@
 var AdminSidebar = require('./admin_sidebar.jsx');
 var EmailTab = require('./email_settings.jsx');
 var JobsTab = require('./jobs_settings.jsx');
+var LogsTab = require('./logs.jsx');
 var Navbar = require('../../components/navbar.jsx');
 
 export default class AdminController extends React.Component {
@@ -28,6 +29,8 @@ export default class AdminController extends React.Component {
             tab = <EmailTab />;
         } else if (this.state.selected === 'job_settings') {
             tab = <JobsTab />;
+        } else if (this.state.selected === 'logs') {
+            tab = <LogsTab />;
         }
 
         return (

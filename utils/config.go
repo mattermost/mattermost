@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	MODE_DEV  = "dev"
-	MODE_BETA = "beta"
-	MODE_PROD = "prod"
+	MODE_DEV        = "dev"
+	MODE_BETA       = "beta"
+	MODE_PROD       = "prod"
+	LOG_ROTATE_SIZE = 10000
 )
 
 type ServiceSettings struct {
@@ -180,10 +181,10 @@ func ConfigureCmdLineLog() {
 	ls.ConsoleEnable = true
 	ls.ConsoleLevel = "ERROR"
 	ls.FileEnable = false
-	configureLog(ls)
+	configureLog(&ls)
 }
 
-func configureLog(s LogSettings) {
+func configureLog(s *LogSettings) {
 
 	l4g.Close()
 
@@ -217,7 +218,7 @@ func configureLog(s LogSettings) {
 		flw := l4g.NewFileLogWriter(s.FileLocation, false)
 		flw.SetFormat(s.FileFormat)
 		flw.SetRotate(true)
-		flw.SetRotateLines(100000)
+		flw.SetRotateLines(LOG_ROTATE_SIZE)
 		l4g.AddFilter("file", level, flw)
 	}
 }
@@ -241,7 +242,7 @@ func LoadConfig(fileName string) {
 		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
 	}
 
-	configureLog(config.LogSettings)
+	configureLog(&config.LogSettings)
 
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions()

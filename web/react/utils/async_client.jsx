@@ -319,6 +319,32 @@ export function getAudits() {
     );
 }
 
+export function getLogs() {
+    if (isCallInProgress('getLogs')) {
+        return;
+    }
+
+    callTracker.getLogs = utils.getTimestamp();
+    client.getLogs(
+        (data, textStatus, xhr) => {
+            callTracker.getLogs = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_LOGS,
+                logs: data
+            });
+        },
+        (err) => {
+            callTracker.getLogs = 0;
+            dispatchError(err, 'getLogs');
+        }
+    );
+}
+
 export function findTeams(email) {
     if (isCallInProgress('findTeams_' + email)) {
         return;

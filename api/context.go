@@ -295,6 +295,16 @@ func (c *Context) IsSystemAdmin() bool {
 	return false
 }
 
+func (c *Context) HasSystemAdminPermissions(where string) bool {
+	if c.IsSystemAdmin() {
+		return true
+	}
+
+	c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+c.Session.UserId)
+	c.Err.StatusCode = http.StatusForbidden
+	return false
+}
+
 func (c *Context) IsTeamAdmin(userId string) bool {
 	if uresult := <-Srv.Store.User().Get(userId); uresult.Err != nil {
 		c.Err = uresult.Err

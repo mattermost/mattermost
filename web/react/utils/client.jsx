@@ -294,6 +294,20 @@ export function getAudits(userId, success, error) {
     });
 }
 
+export function getLogs(success, error) {
+    $.ajax({
+        url: '/api/v1/admin/logs',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success: success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getLogs', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getMeSynchronous(success, error) {
     var currentUser = null;
     $.ajax({
