@@ -4,8 +4,6 @@
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
 
-var BrowserStore = require('../stores/browser_store.jsx');
-
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
@@ -35,17 +33,10 @@ class AdminStoreClass extends EventEmitter {
     }
 
     getLogs() {
-        //return BrowserStore.getItem('logs');
         return this.logs;
     }
 
     saveLogs(logs) {
-        // if (logs === null) {
-        //     BrowserStore.removeItem('logs');
-        // } else {
-        //     BrowserStore.setItem('logs', logs);
-        // }
-
         this.logs = logs;
     }
 }
