@@ -14,8 +14,6 @@ export function trackPage() {
 }
 
 function handleError(methodName, xhr, status, err) {
-    var LTracker = global.window.LTracker || [];
-
     var e = null;
     try {
         e = JSON.parse(xhr.responseText);
@@ -39,7 +37,6 @@ function handleError(methodName, xhr, status, err) {
 
     console.error(msg); //eslint-disable-line no-console
     console.error(e); //eslint-disable-line no-console
-    LTracker.push(msg);
 
     track('api', 'api_weberror', methodName, 'message', msg);
 

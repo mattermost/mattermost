@@ -3,10 +3,6 @@
 
 export var config = {
 
-    // Loggly configs
-    LogglyWriteKey: '',
-    LogglyConsoleErrors: true,
-
     // Segment configs
     SegmentWriteKey: '',
 
