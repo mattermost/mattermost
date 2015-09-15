@@ -5,6 +5,7 @@ const FileAttachmentList = require('./file_attachment_list.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
+const TextFormatting = require('../utils/text_formatting.jsx');
 const twemoji = require('twemoji');
 
 export default class PostBody extends React.Component {
@@ -33,7 +34,6 @@ export default class PostBody extends React.Component {
         const post = this.props.post;
         const filenames = this.props.post.filenames;
         const parentPost = this.props.parentPost;
-        const inner = Utils.textToJsx(this.state.message);
 
         let comment = '';
         let postClass = '';
@@ -135,7 +135,11 @@ export default class PostBody extends React.Component {
                     key={`${post.id}_message`}
                     className={postClass}
                 >
-                    {loading}<span>{inner}</span>
+                    {loading}
+                    <span
+                        onClick={TextFormatting.handleClick}
+                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
+                    />
                 </p>
                 {fileAttachmentHolder}
                 {embed}

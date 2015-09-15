@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
+var TextFormatting = require('../utils/text_formatting.jsx');
 
 export default class MessageWrapper extends React.Component {
     constructor(props) {
@@ -10,10 +10,7 @@ export default class MessageWrapper extends React.Component {
     }
     render() {
         if (this.props.message) {
-            var inner = Utils.textToJsx(this.props.message, this.props.options);
-            return (
-                <div>{inner}</div>
-            );
+            return <div dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.message, this.props.options)}}/>;
         }
 
         return <div/>;
@@ -21,8 +18,7 @@ export default class MessageWrapper extends React.Component {
 }
 
 MessageWrapper.defaultProps = {
-    message: null,
-    options: null
+    message: ''
 };
 MessageWrapper.propTypes = {
     message: React.PropTypes.string,

@@ -10,6 +10,7 @@ var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
+var TextFormatting = require('../utils/text_formatting.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 export default class SearchResultsItem extends React.Component {
@@ -56,7 +57,6 @@ export default class SearchResultsItem extends React.Component {
     }
 
     render() {
-        var message = utils.textToJsx(this.props.post.message, {searchTerm: this.props.term, noMentionHighlight: !this.props.isMentionSearch});
         var channelName = '';
         var channel = ChannelStore.get(this.props.post.channel_id);
         var timestamp = UserStore.getCurrentUser().update_at;
@@ -67,6 +67,11 @@ export default class SearchResultsItem extends React.Component {
                 channelName = 'Private Message';
             }
         }
+
+        const formattingOptions = {
+            searchTerm: this.props.term,
+            mentionHighlight: this.props.isMentionSearch
+        };
 
         return (
             <div
@@ -91,7 +96,12 @@ export default class SearchResultsItem extends React.Component {
                             </time>
                         </li>
                     </ul>
-                    <div className='search-item-snippet'><span>{message}</span></div>
+                    <div className='search-item-snippet'>
+                        <span
+                            onClick={this.handleClick}
+                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
+                        />
+                    </div>
                 </div>
             </div>
         );

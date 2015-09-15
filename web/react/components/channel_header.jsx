@@ -8,6 +8,7 @@ const SocketStore = require('../stores/socket_store.jsx');
 const NavbarSearchBox = require('./search_bar.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
 const Client = require('../utils/client.jsx');
+const TextFormatting = require('../utils/text_formatting.jsx');
 const Utils = require('../utils/utils.jsx');
 const MessageWrapper = require('./message_wrapper.jsx');
 const PopoverListMembers = require('./popover_list_members.jsx');
@@ -107,7 +108,6 @@ export default class ChannelHeader extends React.Component {
         }
 
         const channel = this.state.channel;
-        const description = Utils.textToJsx(channel.description, {singleline: true, noMentionHighlight: true});
         const popoverContent = React.renderToString(<MessageWrapper message={channel.description}/>);
         let channelTitle = channel.display_name;
         const currentId = UserStore.getCurrentId();
@@ -326,9 +326,9 @@ export default class ChannelHeader extends React.Component {
                                 data-toggle='popover'
                                 data-content={popoverContent}
                                 className='description'
-                            >
-                                {description}
-                            </div>
+                                onClick={TextFormatting.handleClick}
+                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.description, {singleline: true, mentionHighlight: false})}}
+                            />
                         </div>
                     </th>
                     <th>
