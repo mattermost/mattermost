@@ -1,4 +1,4 @@
-/* perfect-scrollbar v0.6.3 */
+/* perfect-scrollbar v0.6.5 */
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
@@ -100,13 +100,15 @@ exports.list = function (element) {
  */
 'use strict';
 
-exports.e = function (tagName, className) {
+var DOM = {};
+
+DOM.e = function (tagName, className) {
   var element = document.createElement(tagName);
   element.className = className;
   return element;
 };
 
-exports.appendTo = function (child, parent) {
+DOM.appendTo = function (child, parent) {
   parent.appendChild(child);
   return child;
 };
@@ -134,7 +136,7 @@ function cssMultiSet(element, obj) {
   return element;
 }
 
-exports.css = function (element, styleNameOrObject, styleValue) {
+DOM.css = function (element, styleNameOrObject, styleValue) {
   if (typeof styleNameOrObject === 'object') {
     // multiple set with object
     return cssMultiSet(element, styleNameOrObject);
@@ -147,7 +149,7 @@ exports.css = function (element, styleNameOrObject, styleValue) {
   }
 };
 
-exports.matches = function (element, query) {
+DOM.matches = function (element, query) {
   if (typeof element.matches !== 'undefined') {
     return element.matches(query);
   } else {
@@ -163,7 +165,7 @@ exports.matches = function (element, query) {
   }
 };
 
-exports.remove = function (element) {
+DOM.remove = function (element) {
   if (typeof element.remove !== 'undefined') {
     element.remove();
   } else {
@@ -172,6 +174,14 @@ exports.remove = function (element) {
     }
   }
 };
+
+DOM.queryChildren = function (element, selector) {
+  return Array.prototype.filter.call(element.childNodes, function (child) {
+    return DOM.matches(child, selector);
+  });
+};
+
+module.exports = DOM;
 
 },{}],4:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
@@ -386,7 +396,8 @@ module.exports = {
   suppressScrollX: false,
   suppressScrollY: false,
   scrollXMarginOffset: 0,
-  scrollYMarginOffset: 0
+  scrollYMarginOffset: 0,
+  stopPropagationOnClick: true
 };
 
 },{}],9:[function(require,module,exports){
@@ -401,6 +412,10 @@ var d = require('../lib/dom')
 
 module.exports = function (element) {
   var i = instances.get(element);
+
+  if (!i) {
+    return;
+  }
 
   i.event.unbindAll();
   d.remove(i.scrollbarX);
@@ -428,7 +443,9 @@ function bindClickRailHandler(element, i) {
   }
   var stopPropagation = window.Event.prototype.stopPropagation.bind;
 
-  i.event.bind(i.scrollbarY, 'click', stopPropagation);
+  if (i.settings.stopPropagationOnClick) {
+    i.event.bind(i.scrollbarY, 'click', stopPropagation);
+  }
   i.event.bind(i.scrollbarYRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarYHeight / 2);
     var positionTop = i.railYRatio * (e.pageY - window.scrollY - pageOffset(i.scrollbarYRail).top - halfOfScrollbarLength);
@@ -447,7 +464,9 @@ function bindClickRailHandler(element, i) {
     e.stopPropagation();
   });
 
-  i.event.bind(i.scrollbarX, 'click', stopPropagation);
+  if (i.settings.stopPropagationOnClick) {
+    i.event.bind(i.scrollbarX, 'click', stopPropagation);
+  }
   i.event.bind(i.scrollbarXRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarXWidth / 2);
     var positionLeft = i.railXRatio * (e.pageX - window.scrollX - pageOffset(i.scrollbarXRail).left - halfOfScrollbarLength);
@@ -662,6 +681,12 @@ function bindKeyboardHandler(element, i) {
       deltaY = 90;
       break;
     case 32: // space bar
+      if (e.shiftKey) {
+        deltaY = 90;
+      } else {
+        deltaY = -90;
+      }
+      break;
     case 34: // page down
       deltaY = -90;
       break;
@@ -1368,10 +1393,23 @@ module.exports = function (element) {
   i.contentWidth = element.scrollWidth;
   i.contentHeight = element.scrollHeight;
 
+  var existingRails;
   if (!element.contains(i.scrollbarXRail)) {
+    existingRails = d.queryChildren(element, '.ps-scrollbar-x-rail');
+    if (existingRails.length > 0) {
+      existingRails.forEach(function (rail) {
+        d.remove(rail);
+      });
+    }
     d.appendTo(i.scrollbarXRail, element);
   }
   if (!element.contains(i.scrollbarYRail)) {
+    existingRails = d.queryChildren(element, '.ps-scrollbar-y-rail');
+    if (existingRails.length > 0) {
+      existingRails.forEach(function (rail) {
+        d.remove(rail);
+      });
+    }
     d.appendTo(i.scrollbarYRail, element);
   }
 
@@ -1427,6 +1465,10 @@ var d = require('../lib/dom')
 
 module.exports = function (element) {
   var i = instances.get(element);
+
+  if (!i) {
+    return;
+  }
 
   // Recalcuate negative scrollLeft adjustment
   i.negativeScrollAdjustment = i.isNegativeScroll ? element.scrollWidth - element.clientWidth : 0;
