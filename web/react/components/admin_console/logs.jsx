@@ -69,16 +69,6 @@ export default class Logs extends React.Component {
             }
         }
 
-        var divStyle = {
-            overflow: 'scroll',
-            width: '100%',
-            height: '800px',
-            border: '1px solid #ddd',
-            marginTop: '10px',
-            padding: '5px',
-            backgroundColor: 'white'
-        };
-
         return (
             <div className='panel'>
                 <h3>{'Server Logs'}</h3>
@@ -89,7 +79,7 @@ export default class Logs extends React.Component {
                 >
                     {'Reload'}
                 </button>
-                <div style={divStyle}>
+                <div className='log__panel'>
                     {content}
                 </div>
             </div>
