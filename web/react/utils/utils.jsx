@@ -934,6 +934,6 @@ export function getTeamURLFromAddressBar() {
 export function getShortenedTeamURL() {
     const teamURL = getTeamURLFromAddressBar();
     if (teamURL.length > 24) {
-        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length - 1) + '/';
+        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length) + '/';
     }
 }
