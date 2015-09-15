@@ -14,11 +14,13 @@ In addition all code must be run though the official go formatter tool [gofmt](h
 
 ## Javascript
 
-Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
+Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](/web/react/.eslintrc)
 
 Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
 
-The following is an abridged version of the [Airbnb Javascript Style Guide](https://github.com/airbnb/javascript/blob/master/README.md#airbnb-javascript-style-guide-), with modifications. Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
+You can run eslint using the makefile by using `make check`
+
+The following is a subset of what ESLint checks for. ESLint is always the authority. 
 
 ### Whitespace
 
@@ -53,10 +55,10 @@ function myFunction ( parm1, parm2 ){
 
 ```javascript
 // Correct
-var x = 1;
+let x = 1;
 
 // Incorrect
-var x = 1
+let x = 1
 ```
 
 ### Variables
@@ -110,7 +112,7 @@ if (something)
 
 ### Strings
 
-- Use template strings instead of concatenation.
+- Use of template strings is preferred instead of concatenation.
 
 ```javascript
 // Correct
@@ -126,17 +128,18 @@ function wrongGetStr(stuff) {
 
 ## React-JSX
 
-Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors or warnings running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](https://github.com/mattermost/platform/blob/master/web/react/.eslintrc.json)
+Part of the build process is running ESLint. ESLint is the final authority on all style issues. PRs will not be accepted unless there are no errors running ESLint. The ESLint configuration file can be found in: [web/react/.eslintrc](/web/react/.eslintrc)
 
 Instructions on how to use ESLint with your favourite editor can be found here: [http://eslint.org/docs/user-guide/integrations](http://eslint.org/docs/user-guide/integrations)
 
-This is an abridged version of the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#airbnb-reactjsx-style-guide). Anything that is unclear here follow that guide. If there is a conflict, follow what is said below. 
+You can run eslint using the makefile by using `make check`
+
+The following is a subset of what ESLint checks for. ESLint is always the authority. 
 
 ### General
 
 - Include only one React component per file.
 - Use class \<name\> extends React.Component over React.createClass unless you need mixins
-- CapitalCamelCase with .jsx extension for component filenames.
 - Filenames should be the component name.
 
 ### Alignment
