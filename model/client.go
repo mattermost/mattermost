@@ -23,6 +23,7 @@ const (
 	HEADER_FORWARDED       = "X-Forwarded-For"
 	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
 	HEADER_TOKEN           = "token"
+	HEADER_BEARER          = "BEARER"
 	HEADER_AUTH            = "Authorization"
 )
 
@@ -33,22 +34,37 @@ type Result struct {
 }
 
 type Client struct {
-	Url        string       // The location of the server like "http://localhost/api/v1"
+	Url        string       // The location of the server like "http://localhost:8065"
+	ApiUrl     string       // The api location of the server like "http://localhost:8065/api/v1"
 	HttpClient *http.Client // The http client
 	AuthToken  string
+	AuthType   string
 }
 
 // NewClient constructs a new client with convienence methods for talking to
 // the server.
-func NewClient(url string) *Client {
-	return &Client{url, &http.Client{}, ""}
+func NewClient(url, apiUrl string) *Client {
+	return &Client{url, apiUrl, &http.Client{}, "", ""}
 }
 
-func (c *Client) DoPost(url string, data string) (*http.Response, *AppError) {
+func (c *Client) DoPost(url string, data, contentType string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest("POST", c.Url+url, strings.NewReader(data))
+	rq.Header.Set("Content-Type", contentType)
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, NewAppError(url, "We encountered an error while connecting to the server", err.Error())
+	} else if rp.StatusCode >= 300 {
+		return nil, AppErrorFromJson(rp.Body)
+	} else {
+		return rp, nil
+	}
+}
+
+func (c *Client) DoApiPost(url string, data string) (*http.Response, *AppError) {
+	rq, _ := http.NewRequest("POST", c.ApiUrl+url, strings.NewReader(data))
 
 	if len(c.AuthToken) > 0 {
-		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
@@ -60,15 +76,15 @@ func (c *Client) DoPost(url string, data string) (*http.Response, *AppError) {
 	}
 }
 
-func (c *Client) DoGet(url string, data string, etag string) (*http.Response, *AppError) {
-	rq, _ := http.NewRequest("GET", c.Url+url, strings.NewReader(data))
+func (c *Client) DoApiGet(url string, data string, etag string) (*http.Response, *AppError) {
+	rq, _ := http.NewRequest("GET", c.ApiUrl+url, strings.NewReader(data))
 
 	if len(etag) > 0 {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
 	}
 
 	if len(c.AuthToken) > 0 {
-		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
@@ -106,7 +122,7 @@ func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppErro
 	m := make(map[string]string)
 	m["email"] = email
 	m["display_name"] = displayName
-	if r, err := c.DoPost("/teams/signup", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/teams/signup", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -115,7 +131,7 @@ func (c *Client) SignupTeam(email string, displayName string) (*Result, *AppErro
 }
 
 func (c *Client) CreateTeamFromSignup(teamSignup *TeamSignup) (*Result, *AppError) {
-	if r, err := c.DoPost("/teams/create_from_signup", teamSignup.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/teams/create_from_signup", teamSignup.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -124,7 +140,7 @@ func (c *Client) CreateTeamFromSignup(teamSignup *TeamSignup) (*Result, *AppErro
 }
 
 func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {
-	if r, err := c.DoPost("/teams/create", team.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/teams/create", team.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -136,7 +152,7 @@ func (c *Client) FindTeamByName(name string, allServers bool) (*Result, *AppErro
 	m := make(map[string]string)
 	m["name"] = name
 	m["all"] = fmt.Sprintf("%v", allServers)
-	if r, err := c.DoPost("/teams/find_team_by_name", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/teams/find_team_by_name", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		val := false
@@ -152,7 +168,7 @@ func (c *Client) FindTeamByName(name string, allServers bool) (*Result, *AppErro
 func (c *Client) FindTeams(email string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["email"] = email
-	if r, err := c.DoPost("/teams/find_teams", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/teams/find_teams", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 
@@ -164,7 +180,7 @@ func (c *Client) FindTeams(email string) (*Result, *AppError) {
 func (c *Client) FindTeamsSendEmail(email string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["email"] = email
-	if r, err := c.DoPost("/teams/email_teams", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/teams/email_teams", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -173,7 +189,7 @@ func (c *Client) FindTeamsSendEmail(email string) (*Result, *AppError) {
 }
 
 func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
-	if r, err := c.DoPost("/teams/invite_members", invites.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/teams/invite_members", invites.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -182,7 +198,7 @@ func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 }
 
 func (c *Client) UpdateTeamDisplayName(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/teams/update_name", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/teams/update_name", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -191,7 +207,7 @@ func (c *Client) UpdateTeamDisplayName(data map[string]string) (*Result, *AppErr
 }
 
 func (c *Client) UpdateValetFeature(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/teams/update_valet_feature", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/teams/update_valet_feature", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -200,7 +216,7 @@ func (c *Client) UpdateValetFeature(data map[string]string) (*Result, *AppError)
 }
 
 func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/create", user.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/users/create", user.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -209,7 +225,7 @@ func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 }
 
 func (c *Client) CreateUserFromSignup(user *User, data string, hash string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/create?d="+data+"&h="+hash, user.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/users/create?d="+data+"&h="+hash, user.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -218,7 +234,7 @@ func (c *Client) CreateUserFromSignup(user *User, data string, hash string) (*Re
 }
 
 func (c *Client) GetUser(id string, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/users/"+id, "", etag); err != nil {
+	if r, err := c.DoApiGet("/users/"+id, "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -227,7 +243,7 @@ func (c *Client) GetUser(id string, etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetMe(etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/users/me", "", etag); err != nil {
+	if r, err := c.DoApiGet("/users/me", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -236,7 +252,7 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/users/profiles", "", etag); err != nil {
+	if r, err := c.DoApiGet("/users/profiles", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -269,10 +285,11 @@ func (c *Client) LoginByEmailWithDevice(name string, email string, password stri
 }
 
 func (c *Client) login(m map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/login", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/users/login", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		c.AuthToken = r.Header.Get(HEADER_TOKEN)
+		c.AuthType = HEADER_BEARER
 		sessionId := getCookie(SESSION_TOKEN, r)
 
 		if c.AuthToken != sessionId.Value {
@@ -285,21 +302,32 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 }
 
 func (c *Client) Logout() (*Result, *AppError) {
-	if r, err := c.DoPost("/users/logout", ""); err != nil {
+	if r, err := c.DoApiPost("/users/logout", ""); err != nil {
 		return nil, err
 	} else {
 		c.AuthToken = ""
+		c.AuthType = HEADER_BEARER
 
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 
+func (c *Client) SetOAuthToken(token string) {
+	c.AuthToken = token
+	c.AuthType = HEADER_TOKEN
+}
+
+func (c *Client) ClearOAuthToken() {
+	c.AuthToken = ""
+	c.AuthType = HEADER_BEARER
+}
+
 func (c *Client) RevokeSession(sessionAltId string) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["id"] = sessionAltId
 
-	if r, err := c.DoPost("/users/revoke_session", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/users/revoke_session", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -308,7 +336,7 @@ func (c *Client) RevokeSession(sessionAltId string) (*Result, *AppError) {
 }
 
 func (c *Client) GetSessions(id string) (*Result, *AppError) {
-	if r, err := c.DoGet("/users/"+id+"/sessions", "", ""); err != nil {
+	if r, err := c.DoApiGet("/users/"+id+"/sessions", "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -321,7 +349,7 @@ func (c *Client) Command(channelId string, command string, suggest bool) (*Resul
 	m["command"] = command
 	m["channelId"] = channelId
 	m["suggest"] = strconv.FormatBool(suggest)
-	if r, err := c.DoPost("/command", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/command", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -330,7 +358,7 @@ func (c *Client) Command(channelId string, command string, suggest bool) (*Resul
 }
 
 func (c *Client) GetAudits(id string, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/users/"+id+"/audits", "", etag); err != nil {
+	if r, err := c.DoApiGet("/users/"+id+"/audits", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -339,7 +367,7 @@ func (c *Client) GetAudits(id string, etag string) (*Result, *AppError) {
 }
 
 func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/create", channel.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/channels/create", channel.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -348,7 +376,7 @@ func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 }
 
 func (c *Client) CreateDirectChannel(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/create_direct", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/channels/create_direct", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -357,7 +385,7 @@ func (c *Client) CreateDirectChannel(data map[string]string) (*Result, *AppError
 }
 
 func (c *Client) UpdateChannel(channel *Channel) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/update", channel.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/channels/update", channel.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -366,7 +394,7 @@ func (c *Client) UpdateChannel(channel *Channel) (*Result, *AppError) {
 }
 
 func (c *Client) UpdateChannelDesc(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/update_desc", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/channels/update_desc", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -375,7 +403,7 @@ func (c *Client) UpdateChannelDesc(data map[string]string) (*Result, *AppError) 
 }
 
 func (c *Client) UpdateNotifyLevel(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/update_notify_level", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/channels/update_notify_level", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -384,7 +412,7 @@ func (c *Client) UpdateNotifyLevel(data map[string]string) (*Result, *AppError) 
 }
 
 func (c *Client) GetChannels(etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/channels/", "", etag); err != nil {
+	if r, err := c.DoApiGet("/channels/", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -393,7 +421,7 @@ func (c *Client) GetChannels(etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/channels/"+id+"/", "", etag); err != nil {
+	if r, err := c.DoApiGet("/channels/"+id+"/", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -402,7 +430,7 @@ func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/channels/more", "", etag); err != nil {
+	if r, err := c.DoApiGet("/channels/more", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -411,7 +439,7 @@ func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/channels/counts", "", etag); err != nil {
+	if r, err := c.DoApiGet("/channels/counts", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -420,7 +448,7 @@ func (c *Client) GetChannelCounts(etag string) (*Result, *AppError) {
 }
 
 func (c *Client) JoinChannel(id string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+id+"/join", ""); err != nil {
+	if r, err := c.DoApiPost("/channels/"+id+"/join", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -429,7 +457,7 @@ func (c *Client) JoinChannel(id string) (*Result, *AppError) {
 }
 
 func (c *Client) LeaveChannel(id string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+id+"/leave", ""); err != nil {
+	if r, err := c.DoApiPost("/channels/"+id+"/leave", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -438,7 +466,7 @@ func (c *Client) LeaveChannel(id string) (*Result, *AppError) {
 }
 
 func (c *Client) DeleteChannel(id string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+id+"/delete", ""); err != nil {
+	if r, err := c.DoApiPost("/channels/"+id+"/delete", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -449,7 +477,7 @@ func (c *Client) DeleteChannel(id string) (*Result, *AppError) {
 func (c *Client) AddChannelMember(id, user_id string) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["user_id"] = user_id
-	if r, err := c.DoPost("/channels/"+id+"/add", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/channels/"+id+"/add", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -460,7 +488,7 @@ func (c *Client) AddChannelMember(id, user_id string) (*Result, *AppError) {
 func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["user_id"] = user_id
-	if r, err := c.DoPost("/channels/"+id+"/remove", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/channels/"+id+"/remove", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -469,7 +497,7 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 }
 
 func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+channelId+"/update_last_viewed_at", ""); err != nil {
+	if r, err := c.DoApiPost("/channels/"+channelId+"/update_last_viewed_at", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -478,7 +506,7 @@ func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
 }
 
 func (c *Client) GetChannelExtraInfo(id string, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/channels/"+id+"/extra_info", "", etag); err != nil {
+	if r, err := c.DoApiGet("/channels/"+id+"/extra_info", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -487,7 +515,7 @@ func (c *Client) GetChannelExtraInfo(id string, etag string) (*Result, *AppError
 }
 
 func (c *Client) CreatePost(post *Post) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+post.ChannelId+"/create", post.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/create", post.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -496,7 +524,7 @@ func (c *Client) CreatePost(post *Post) (*Result, *AppError) {
 }
 
 func (c *Client) CreateValetPost(post *Post) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+post.ChannelId+"/valet_create", post.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/valet_create", post.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -505,7 +533,7 @@ func (c *Client) CreateValetPost(post *Post) (*Result, *AppError) {
 }
 
 func (c *Client) UpdatePost(post *Post) (*Result, *AppError) {
-	if r, err := c.DoPost("/channels/"+post.ChannelId+"/update", post.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/update", post.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -514,7 +542,7 @@ func (c *Client) UpdatePost(post *Post) (*Result, *AppError) {
 }
 
 func (c *Client) GetPosts(channelId string, offset int, limit int, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet(fmt.Sprintf("/channels/%v/posts/%v/%v", channelId, offset, limit), "", etag); err != nil {
+	if r, err := c.DoApiGet(fmt.Sprintf("/channels/%v/posts/%v/%v", channelId, offset, limit), "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -523,7 +551,7 @@ func (c *Client) GetPosts(channelId string, offset int, limit int, etag string) 
 }
 
 func (c *Client) GetPostsSince(channelId string, time int64) (*Result, *AppError) {
-	if r, err := c.DoGet(fmt.Sprintf("/channels/%v/posts/%v", channelId, time), "", ""); err != nil {
+	if r, err := c.DoApiGet(fmt.Sprintf("/channels/%v/posts/%v", channelId, time), "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -532,7 +560,7 @@ func (c *Client) GetPostsSince(channelId string, time int64) (*Result, *AppError
 }
 
 func (c *Client) GetPost(channelId string, postId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoGet(fmt.Sprintf("/channels/%v/post/%v", channelId, postId), "", etag); err != nil {
+	if r, err := c.DoApiGet(fmt.Sprintf("/channels/%v/post/%v", channelId, postId), "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -541,7 +569,7 @@ func (c *Client) GetPost(channelId string, postId string, etag string) (*Result,
 }
 
 func (c *Client) DeletePost(channelId string, postId string) (*Result, *AppError) {
-	if r, err := c.DoPost(fmt.Sprintf("/channels/%v/post/%v/delete", channelId, postId), ""); err != nil {
+	if r, err := c.DoApiPost(fmt.Sprintf("/channels/%v/post/%v/delete", channelId, postId), ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -550,7 +578,7 @@ func (c *Client) DeletePost(channelId string, postId string) (*Result, *AppError
 }
 
 func (c *Client) SearchPosts(terms string) (*Result, *AppError) {
-	if r, err := c.DoGet("/posts/search?terms="+url.QueryEscape(terms), "", ""); err != nil {
+	if r, err := c.DoApiGet("/posts/search?terms="+url.QueryEscape(terms), "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -559,7 +587,7 @@ func (c *Client) SearchPosts(terms string) (*Result, *AppError) {
 }
 
 func (c *Client) UploadFile(url string, data []byte, contentType string) (*Result, *AppError) {
-	rq, _ := http.NewRequest("POST", c.Url+url, bytes.NewReader(data))
+	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
 
 	if len(c.AuthToken) > 0 {
@@ -581,7 +609,7 @@ func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
 	if isFullUrl {
 		rq, _ = http.NewRequest("GET", url, nil)
 	} else {
-		rq, _ = http.NewRequest("GET", c.Url+"/files/get"+url, nil)
+		rq, _ = http.NewRequest("GET", c.ApiUrl+"/files/get"+url, nil)
 	}
 
 	if len(c.AuthToken) > 0 {
@@ -600,7 +628,7 @@ func (c *Client) GetFile(url string, isFullUrl bool) (*Result, *AppError) {
 
 func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
 	var rq *http.Request
-	rq, _ = http.NewRequest("GET", c.Url+"/files/get_info"+url, nil)
+	rq, _ = http.NewRequest("GET", c.ApiUrl+"/files/get_info"+url, nil)
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
@@ -617,7 +645,7 @@ func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
 }
 
 func (c *Client) GetPublicLink(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/files/get_public_link", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/files/get_public_link", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -626,7 +654,7 @@ func (c *Client) GetPublicLink(data map[string]string) (*Result, *AppError) {
 }
 
 func (c *Client) UpdateUser(user *User) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/update", user.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/users/update", user.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -635,7 +663,7 @@ func (c *Client) UpdateUser(user *User) (*Result, *AppError) {
 }
 
 func (c *Client) UpdateUserRoles(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/update_roles", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/users/update_roles", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -647,7 +675,7 @@ func (c *Client) UpdateActive(userId string, active bool) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["user_id"] = userId
 	data["active"] = strconv.FormatBool(active)
-	if r, err := c.DoPost("/users/update_active", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/users/update_active", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -656,7 +684,7 @@ func (c *Client) UpdateActive(userId string, active bool) (*Result, *AppError) {
 }
 
 func (c *Client) UpdateUserNotify(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/update_notify", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/users/update_notify", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -670,7 +698,7 @@ func (c *Client) UpdateUserPassword(userId, currentPassword, newPassword string)
 	data["new_password"] = newPassword
 	data["user_id"] = userId
 
-	if r, err := c.DoPost("/users/newpassword", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/users/newpassword", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -679,7 +707,7 @@ func (c *Client) UpdateUserPassword(userId, currentPassword, newPassword string)
 }
 
 func (c *Client) SendPasswordReset(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/send_password_reset", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/users/send_password_reset", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -688,7 +716,7 @@ func (c *Client) SendPasswordReset(data map[string]string) (*Result, *AppError) 
 }
 
 func (c *Client) ResetPassword(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoPost("/users/reset_password", MapToJson(data)); err != nil {
+	if r, err := c.DoApiPost("/users/reset_password", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -697,7 +725,7 @@ func (c *Client) ResetPassword(data map[string]string) (*Result, *AppError) {
 }
 
 func (c *Client) GetStatuses() (*Result, *AppError) {
-	if r, err := c.DoGet("/users/status", "", ""); err != nil {
+	if r, err := c.DoApiGet("/users/status", "", ""); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -706,11 +734,38 @@ func (c *Client) GetStatuses() (*Result, *AppError) {
 }
 
 func (c *Client) GetMyTeam(etag string) (*Result, *AppError) {
-	if r, err := c.DoGet("/teams/me", "", etag); err != nil {
+	if r, err := c.DoApiGet("/teams/me", "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) RegisterApp(app *OAuthApp) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/oauth/register", app.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OAuthAppFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) AllowOAuth(rspType, clientId, redirect, scope, state string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/oauth/allow?response_type="+rspType+"&client_id="+clientId+"&redirect_uri="+url.QueryEscape(redirect)+"&scope="+scope+"&state="+url.QueryEscape(state), "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
+	if r, err := c.DoPost("/oauth/access_token", data.Encode(), "application/x-www-form-urlencoded"); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), AccessResponseFromJson(r.Body)}, nil
 	}
 }
 

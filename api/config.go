@@ -24,6 +24,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	settings := make(map[string]string)
 
 	settings["ByPassEmail"] = strconv.FormatBool(utils.Cfg.EmailSettings.ByPassEmail)
+	settings["EnableOAuthServiceProvider"] = strconv.FormatBool(utils.Cfg.ServiceSettings.EnableOAuthServiceProvider)
 
 	if bytes, err := json.Marshal(settings); err != nil {
 		c.Err = model.NewAppError("getConfig", "Unable to marshall configuration data", err.Error())

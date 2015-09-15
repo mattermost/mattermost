@@ -118,7 +118,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Should have been forbidden")
 	}
 
-	if _, err = Client.DoPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
+	if _, err = Client.DoApiPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
 		t.Fatal("should have been an error")
 	}
 }
@@ -203,7 +203,7 @@ func TestCreateValetPost(t *testing.T) {
 			t.Fatal("Should have been forbidden")
 		}
 
-		if _, err = Client.DoPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
+		if _, err = Client.DoApiPost("/channels/"+channel3.Id+"/create", "garbage"); err == nil {
 			t.Fatal("should have been an error")
 		}
 	} else {
