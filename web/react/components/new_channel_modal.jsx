@@ -127,7 +127,7 @@ export default class NewChannelModal extends React.Component {
                                             href='#'
                                             onClick={this.props.onChangeURLPressed}
                                         >
-                                            {'change this URL'}
+                                            {'Edit'}
                                         </a>
                                         {')'}
                                     </p>
