@@ -56,7 +56,7 @@ function autolinkUrls(text, tokens) {
         const linkText = match.getMatchedText();
         let url = linkText;
 
-        if (!url.startsWith('http')) {
+        if (!url.lastIndexOf('http', 0) === 0) {
             url = `http://${linkText}`;
         }
 
@@ -160,7 +160,7 @@ function autolinkHashtags(text, tokens) {
 
     var newTokens = new Map();
     for (const [alias, token] of tokens) {
-        if (token.originalText.startsWith('#')) {
+        if (token.originalText.lastIndexOf('#', 0) === 0) {
             const index = tokens.size + newTokens.size;
             const newAlias = `__MM_HASHTAG${index}__`;
 
