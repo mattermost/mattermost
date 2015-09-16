@@ -34,13 +34,10 @@ var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
 var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
 
-var AsyncClient = require('../utils/async_client.jsx');
-
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 function setupChannelPage(props) {
-
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: props.ChannelName,

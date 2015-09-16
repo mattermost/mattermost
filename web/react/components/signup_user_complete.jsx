@@ -250,7 +250,6 @@ export default class SignupUserComplete extends React.Component {
                     {signupMessage}
                     {emailSignup}
                     {serverError}
-                    {termsDisclaimer}
                 </form>
             </div>
         );
