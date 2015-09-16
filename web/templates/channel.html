@@ -50,7 +50,7 @@
   <div id="activity_log_modal"></div>
   <div id="removed_from_channel_modal"></div>
 <script>
-  window.setup_channel_page('{{ .Props.TeamDisplayName }}', '{{ .Props.TeamType }}', '{{ .Props.TeamId }}', '{{ .Props.ChannelName }}', '{{ .Props.ChannelId }}');
+  window.setup_channel_page({{ .Props }});
   $('body').tooltip( {selector: '[data-toggle=tooltip]'} );
   $('.modal-body').css('max-height', $(window).height() * 0.7);
   $('.modal-body').perfectScrollbar();

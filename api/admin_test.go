@@ -33,3 +33,12 @@ func TestGetLogs(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestGetClientProperties(t *testing.T) {
+	Setup()
+
+	if _, err := Client.GetClientProperties(); err != nil {
+
+		t.Fatal(err)
+	}
+}

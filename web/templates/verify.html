@@ -9,7 +9,7 @@
         </div>
     </div>
     <script>
-        window.setupVerifyPage('{{.Props.IsVerified}}', '{{.Props.TeamURL}}', '{{.Props.UserEmail}}');
+        window.setupVerifyPage({{ .Props }});
     </script>
 </body>
 </html>

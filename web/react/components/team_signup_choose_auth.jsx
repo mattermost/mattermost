@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var Constants = require('../utils/constants.jsx');
-import {strings} from '../utils/config.js';
 
 export default class ChooseAuthPage extends React.Component {
     constructor(props) {
@@ -24,7 +23,7 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>Create new {strings.Team} with GitLab Account</span>
+                        <span>Create new team with GitLab Account</span>
                     </a>
             );
         }
@@ -42,7 +41,7 @@ export default class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='fa fa-envelope' />
-                        <span>Create new {strings.Team} with email address</span>
+                        <span>Create new team with email address</span>
                     </a>
             );
         }
@@ -55,7 +54,7 @@ export default class ChooseAuthPage extends React.Component {
             <div>
                 {buttons}
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{'Find my ' + strings.Team}</a></span>
+                    <span><a href='/find_team'>{'Find my team'}</a></span>
                 </div>
             </div>
         );

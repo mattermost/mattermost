@@ -6,7 +6,6 @@ const Client = require('../utils/client.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const BrowserStore = require('../stores/browser_store.jsx');
 const Constants = require('../utils/constants.jsx');
-import {config, strings} from '../utils/config.js';
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -177,7 +176,7 @@ export default class Login extends React.Component {
             <div className='signup-team__container'>
                 <h5 className='margin--less'>Sign in to:</h5>
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
-                <h2 className='signup-team__subdomain'>on {config.SiteName}</h2>
+                <h2 className='signup-team__subdomain'>on {global.window.config.SiteName}</h2>
                 <form onSubmit={this.handleSubmit}>
                     <div className={'form-group' + errorClass}>
                         {serverError}
@@ -185,11 +184,11 @@ export default class Login extends React.Component {
                     {loginMessage}
                     {emailSignup}
                     <div className='form-group margin--extra form-group--small'>
-                        <span><a href='/find_team'>{'Find other ' + strings.TeamPlural}</a></span>
+                        <span><a href='/find_team'>{'Find other teams'}</a></span>
                     </div>
                     {forgotPassword}
                     <div className='margin--extra'>
-                        <span>{'Want to create your own ' + strings.Team + '? '}
+                        <span>{'Want to create your own team? '}
                             <a
                                 href='/'
                                 className='signup-team-login'

@@ -3,7 +3,6 @@
 
 var NavbarDropdown = require('./navbar_dropdown.jsx');
 var UserStore = require('../stores/user_store.jsx');
-import {config} from '../utils/config.js';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
@@ -59,7 +58,7 @@ export default class SidebarHeader extends React.Component {
 }
 
 SidebarHeader.defaultProps = {
-    teamDisplayName: config.SiteName,
+    teamDisplayName: global.window.config.SiteName,
     teamType: ''
 };
 SidebarHeader.propTypes = {

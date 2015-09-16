@@ -6,7 +6,8 @@ var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 var Client = require('../utils/client.jsx');
 var Utils = require('../utils/utils.jsx');
-import {config} from '../utils/config.js';
+
+var ThemeColors = ['#2389d7', '#008a17', '#dc4fad', '#ac193d', '#0072c6', '#d24726', '#ff8f32', '#82ba00', '#03b3b2', '#008299', '#4617b4', '#8c0095', '#004b8b', '#004b8b', '#570000', '#380000', '#585858', '#000000'];
 
 export default class UserSettingsAppearance extends React.Component {
     constructor(props) {
@@ -21,8 +22,8 @@ export default class UserSettingsAppearance extends React.Component {
     getStateFromStores() {
         var user = UserStore.getCurrentUser();
         var theme = '#2389d7';
-        if (config.ThemeColors != null) {
-            theme = config.ThemeColors[0];
+        if (ThemeColors != null) {
+            theme = ThemeColors[0];
         }
         if (user.props && user.props.theme) {
             theme = user.props.theme;
@@ -83,18 +84,18 @@ export default class UserSettingsAppearance extends React.Component {
         var themeSection;
         var self = this;
 
-        if (config.ThemeColors != null) {
+        if (ThemeColors != null) {
             if (this.props.activeSection === 'theme') {
                 var themeButtons = [];
 
-                for (var i = 0; i < config.ThemeColors.length; i++) {
+                for (var i = 0; i < ThemeColors.length; i++) {
                     themeButtons.push(
                         <button
-                            key={config.ThemeColors[i] + 'key' + i}
-                            ref={config.ThemeColors[i]}
+                            key={ThemeColors[i] + 'key' + i}
+                            ref={ThemeColors[i]}
                             type='button'
                             className='btn btn-lg color-btn'
-                            style={{backgroundColor: config.ThemeColors[i]}}
+                            style={{backgroundColor: ThemeColors[i]}}
                             onClick={this.updateTheme}
                         />
                     );

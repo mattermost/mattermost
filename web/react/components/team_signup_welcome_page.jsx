@@ -4,7 +4,6 @@
 var Utils = require('../utils/utils.jsx');
 var Client = require('../utils/client.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
-import {config} from '../utils/config.js';
 
 export default class TeamSignupWelcomePage extends React.Component {
     constructor(props) {
@@ -112,7 +111,7 @@ export default class TeamSignupWelcomePage extends React.Component {
                         src='/static/images/logo.png'
                     />
                     <h3 className='sub-heading'>Welcome to:</h3>
-                    <h1 className='margin--top-none'>{config.SiteName}</h1>
+                    <h1 className='margin--top-none'>{global.window.config.SiteName}</h1>
                 </p>
                 <p className='margin--less'>Let's set up your new team</p>
                 <p>

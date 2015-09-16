@@ -86,16 +86,14 @@
         "ShowSkypeId": true,
         "ShowFullName": true
     },
+    "ClientSettings": {
+        "SegmentDeveloperKey": "",
+        "GoogleDeveloperKey": ""
+    },
     "TeamSettings": {
         "MaxUsersPerTeam": 150,
         "AllowPublicLink": true,
         "AllowValetDefault": false,
-        "TermsLink": "/static/help/configure_links.html",
-        "PrivacyLink": "/static/help/configure_links.html",
-        "AboutLink": "/static/help/configure_links.html",
-        "HelpLink": "/static/help/configure_links.html",
-        "ReportProblemLink": "/static/help/configure_links.html",
-        "TourLink": "/static/help/configure_links.html",
         "DefaultThemeColor": "#2389D7",
         "DisableTeamCreation": false,
         "RestrictCreationToDomains": ""

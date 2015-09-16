@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var Client = require('../utils/client.jsx');
-import {strings} from '../utils/config.js';
 
 export default class TeamSignupAllowedDomainsPage extends React.Component {
     constructor(props) {
@@ -77,12 +76,12 @@ export default class TeamSignupAllowedDomainsPage extends React.Component {
                                     ref='allow'
                                     defaultChecked={true}
                                 />
-                                {' Allow sign up and ' + strings.Team + ' discovery with a ' + strings.Company + ' email address.'}
+                                {' Allow sign up and team discovery with a company email address.'}
                             </label>
                         </div>
                     </p>
-                    <p>{'Check this box to allow your ' + strings.Team + ' members to sign up using their ' + strings.Company + ' email addresses if you share the same domain--otherwise, you need to invite everyone yourself.'}</p>
-                    <h4>{'Your ' + strings.Team + '\'s domain for emails'}</h4>
+                    <p>{'Check this box to allow your team members to sign up using their company email addresses if you share the same domain--otherwise, you need to invite everyone yourself.'}</p>
+                    <h4>{'Your team\'s domain for emails'}</h4>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-9'>

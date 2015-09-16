@@ -29,12 +29,9 @@ type Context struct {
 }
 
 type Page struct {
-	TemplateName  string
-	Title         string
-	SiteName      string
-	FeedbackEmail string
-	SiteURL       string
-	Props         map[string]string
+	TemplateName string
+	Props        map[string]string
+	ClientProps  map[string]string
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {

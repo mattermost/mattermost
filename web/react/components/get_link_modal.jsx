@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
-import {strings} from '../utils/config.js';
 
 export default class GetLinkModal extends React.Component {
     constructor(props) {
@@ -76,9 +75,9 @@ export default class GetLinkModal extends React.Component {
                             </div>
                             <div className='modal-body'>
                                 <p>
-                                Send {strings.Team + 'mates'} the link below for them to sign-up to this {strings.Team} site.
+                                Send teammates the link below for them to sign-up to this team site.
                                 <br /><br />
-                                Be careful not to share this link publicly, since anyone with the link can join your {strings.Team}.
+                                Be careful not to share this link publicly, since anyone with the link can join your team.
                                 </p>
                                 <textarea
                                     className='form-control no-resize'

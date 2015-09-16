@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {config} from '../utils/config.js';
-
 export default class SettingPicture extends React.Component {
     constructor(props) {
         super(props);
@@ -81,7 +79,7 @@ export default class SettingPicture extends React.Component {
                 >Save</a>
             );
         }
-        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + config.ProfileWidth + 'px in width and ' + config.ProfileHeight + 'px height.';
+        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + global.window.config.ProfileWidth + 'px in width and ' + global.window.config.ProfileHeight + 'px height.';
 
         var self = this;
         return (

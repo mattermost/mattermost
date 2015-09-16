@@ -1,7 +1,7 @@
 {{define "footer"}}
 <div class="footer-pane col-xs-12">
     <div class="col-xs-12">
-        <span class="pull-right footer-site-name">{{ .SiteName }}</span>
+        <span class="pull-right footer-site-name">{{ .ClientProps.SiteName }}</span>
     </div>
     <div class="col-xs-12">
         <span class="pull-right footer-link copyright">© 2015 SpinPunch</span>
@@ -12,9 +12,9 @@
     </div>
 </div>
 <script>
-    document.getElementById("help_link").setAttribute("href", config.HelpLink);
-    document.getElementById("terms_link").setAttribute("href", config.TermsLink);
-    document.getElementById("privacy_link").setAttribute("href", config.PrivacyLink);
-    document.getElementById("about_link").setAttribute("href", config.AboutLink);
+    document.getElementById("help_link").setAttribute("href", '/static/help/help.html');
+    document.getElementById("terms_link").setAttribute("href", '/static/help/terms.html');
+    document.getElementById("privacy_link").setAttribute("href", '/static/help/privacy.html');
+    document.getElementById("about_link").setAttribute("href", '/static/help/about.html');
 </script>
 {{end}}

@@ -2,10 +2,8 @@
 // See License.txt for license information.
 
 var EmailItem = require('./team_signup_email_item.jsx');
-var Utils = require('../utils/utils.jsx');
 var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
-import {strings, config} from '../utils/config.js';
 
 export default class TeamSignupSendInvitesPage extends React.Component {
     constructor(props) {
@@ -26,12 +24,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
     }
     submitBack(e) {
         e.preventDefault();
-
-        if (config.AllowSignupDomainsWizard) {
-            this.props.state.wizard = 'allowed_domains';
-        } else {
-            this.props.state.wizard = 'team_url';
-        }
+        this.props.state.wizard = 'team_url';
 
         this.props.updateParent(this.props.state);
     }
@@ -138,7 +131,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
 
             bottomContent = (
                 <p className='color--light'>
-                    {'if you prefer, you can invite ' + strings.Team + ' members later'}
+                    {'if you prefer, you can invite team members later'}
                     <br />
                     {' and '}
                     <a
@@ -153,7 +146,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         } else {
             content = (
                 <div className='form-group color--light'>
-                    {'Email is currently disabled for your ' + strings.Team + ', and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}
+                    {'Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}
                 </div>
             );
         }
@@ -165,7 +158,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{'Invite ' + Utils.toTitleCase(strings.Team) + ' Members'}</h2>
+                    <h2>{'Invite Team Members'}</h2>
                     {content}
                     <div className='form-group'>
                         <button

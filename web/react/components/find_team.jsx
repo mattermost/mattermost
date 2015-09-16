@@ -3,7 +3,6 @@
 
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
-import {strings} from '../utils/config.js';
 
 export default class FindTeam extends React.Component {
     constructor(props) {
@@ -51,8 +50,8 @@ export default class FindTeam extends React.Component {
         if (this.state.sent) {
             return (
                 <div>
-                    <h4>{'Find Your ' + utils.toTitleCase(strings.Team)}</h4>
-                    <p>{'An email was sent with links to any ' + strings.TeamPlural + ' to which you are a member.'}</p>
+                    <h4>{'Find Your team'}</h4>
+                    <p>{'An email was sent with links to any teams to which you are a member.'}</p>
                 </div>
             );
         }
@@ -61,7 +60,7 @@ export default class FindTeam extends React.Component {
         <div>
                 <h4>Find Your Team</h4>
                 <form onSubmit={this.handleSubmit}>
-                    <p>{'Get an email with links to any ' + strings.TeamPlural + ' to which you are a member.'}</p>
+                    <p>{'Get an email with links to any teams to which you are a member.'}</p>
                     <div className='form-group'>
                         <label className='control-label'>Email</label>
                         <div className={emailErrorClass}>

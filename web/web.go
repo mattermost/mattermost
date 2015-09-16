@@ -30,10 +30,8 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 	}
 
 	props := make(map[string]string)
-	props["AnalyticsUrl"] = utils.Cfg.ServiceSettings.AnalyticsUrl
-	props["ProfileHeight"] = fmt.Sprintf("%v", utils.Cfg.ImageSettings.ProfileHeight)
-	props["ProfileWidth"] = fmt.Sprintf("%v", utils.Cfg.ImageSettings.ProfileWidth)
-	return &HtmlTemplatePage{TemplateName: templateName, Title: title, SiteName: utils.Cfg.ServiceSettings.SiteName, Props: props}
+	props["Title"] = title
+	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientProps: utils.ClientProperties}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
@@ -344,7 +342,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("channel", "")
-	page.Title = name + " - " + team.DisplayName + " " + page.SiteName
+	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientProps["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamType"] = team.Type
 	page.Props["TeamId"] = team.Id
@@ -447,7 +445,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("password_reset", "")
-	page.Title = "Reset Password - " + page.SiteName
+	page.Props["Title"] = "Reset Password " + page.ClientProps["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
 	page.Props["Hash"] = hash
 	page.Props["Data"] = data

@@ -4,10 +4,13 @@
 package utils
 
 import (
-	l4g "code.google.com/p/log4go"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+
+	l4g "code.google.com/p/log4go"
 )
 
 const (
@@ -109,15 +112,15 @@ type PrivacySettings struct {
 	ShowFullName     bool
 }
 
+type ClientSettings struct {
+	SegmentDeveloperKey string
+	GoogleDeveloperKey  string
+}
+
 type TeamSettings struct {
 	MaxUsersPerTeam           int
 	AllowPublicLink           bool
 	AllowValetDefault         bool
-	TermsLink                 string
-	PrivacyLink               string
-	AboutLink                 string
-	HelpLink                  string
-	ReportProblemLink         string
 	TourLink                  string
 	DefaultThemeColor         string
 	DisableTeamCreation       bool
@@ -133,6 +136,7 @@ type Config struct {
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
+	ClientSettings    ClientSettings
 	TeamSettings      TeamSettings
 	SSOSettings       map[string]SSOSetting
 }
@@ -147,6 +151,8 @@ func (o *Config) ToJson() string {
 }
 
 var Cfg *Config = &Config{}
+var CfgLastModified int64 = 0
+var ClientProperties map[string]string = map[string]string{}
 var SanitizeOptions map[string]bool = map[string]bool{}
 
 func FindConfigFile(fileName string) string {
@@ -242,20 +248,44 @@ func LoadConfig(fileName string) {
 		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
 	}
 
+	if info, err := file.Stat(); err != nil {
+		panic("Error getting config info file=" + fileName + ", err=" + err.Error())
+	} else {
+		CfgLastModified = info.ModTime().Unix()
+	}
+
 	configureLog(&config.LogSettings)
 
 	Cfg = &config
-	SanitizeOptions = getSanitizeOptions()
+	SanitizeOptions = getSanitizeOptions(Cfg)
+	ClientProperties = getClientProperties(Cfg)
 }
 
-func getSanitizeOptions() map[string]bool {
+func getSanitizeOptions(c *Config) map[string]bool {
 	options := map[string]bool{}
-	options["fullname"] = Cfg.PrivacySettings.ShowFullName
-	options["email"] = Cfg.PrivacySettings.ShowEmailAddress
-	options["skypeid"] = Cfg.PrivacySettings.ShowSkypeId
-	options["phonenumber"] = Cfg.PrivacySettings.ShowPhoneNumber
+	options["fullname"] = c.PrivacySettings.ShowFullName
+	options["email"] = c.PrivacySettings.ShowEmailAddress
+	options["skypeid"] = c.PrivacySettings.ShowSkypeId
+	options["phonenumber"] = c.PrivacySettings.ShowPhoneNumber
 
 	return options
+}
+
+func getClientProperties(c *Config) map[string]string {
+	props := make(map[string]string)
+
+	props["Version"] = c.ServiceSettings.Version
+	props["SiteName"] = c.ServiceSettings.SiteName
+	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
+	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
+	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)
+	props["SegmentDeveloperKey"] = c.ClientSettings.SegmentDeveloperKey
+	props["GoogleDeveloperKey"] = c.ClientSettings.GoogleDeveloperKey
+	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
+	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
+	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
+
+	return props
 }
 
 func IsS3Configured() bool {
