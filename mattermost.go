@@ -318,24 +318,24 @@ Usage:
                                            role can only be created on the
                                            team named "admin"
 
-    -create_team                      Creates a team.  It requres the -team_name
+    -create_team                      Creates a team.  It requires the -team_name
                                       and -email flag to create a team.
         Example:
             platform -create_team -team_name="name" -email="user@example.com"
 
-    -create_user                      Creates a user.  It requres the -team_name,
+    -create_user                      Creates a user.  It requires the -team_name,
                                       -email and -password flag to create a user.
         Example:
             platform -create_user -team_name="name" -email="user@example.com" -password="mypassword"
 
-    -assign_role                      Assigns role to a user.  It requres the -role,
+    -assign_role                      Assigns role to a user.  It requires the -role,
                                       -email and -team_name flag.  You may need to logout
                                       of your current sessions for the new role to be
                                       applied.
         Example:
             platform -assign_role -team_name="name" -email="user@example.com" -role="admin"
 
-    -reset_password                   Resets the password for a user.  It requres the
+    -reset_password                   Resets the password for a user.  It requires the
                                       -team_name, -email and -password flag.
         Example:
             platform -reset_password -team_name="name" -email="user@example.com" -paossword="newpassword"
