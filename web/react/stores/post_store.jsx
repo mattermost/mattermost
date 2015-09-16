@@ -297,6 +297,7 @@ class PostStoreClass extends EventEmitter {
 
         post.message = '(message deleted)';
         post.state = Constants.POST_DELETED;
+        post.filenames = [];
 
         posts[post.id] = post;
         this.storeUnseenDeletedPosts(post.channel_id, posts);
