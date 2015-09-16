@@ -6,7 +6,6 @@ var SignupTeam = require('../components/signup_team.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 
 function setupSignupTeamPage(props) {
-    AsyncClient.getConfig();
 
     var services = JSON.parse(props.AuthServices);
 

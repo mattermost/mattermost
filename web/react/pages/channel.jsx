@@ -40,7 +40,6 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 function setupChannelPage(props) {
-    AsyncClient.getConfig();
 
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
