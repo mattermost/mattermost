@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -97,7 +98,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.setSiteURL(protocol + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version)
+	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version+fmt.Sprintf(".%v", utils.CfgLastModified))
 
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {
