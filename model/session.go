@@ -14,6 +14,8 @@ const (
 	SESSION_TIME_WEB_IN_SECS    = 60 * 60 * 24 * SESSION_TIME_WEB_IN_DAYS
 	SESSION_TIME_MOBILE_IN_DAYS = 30
 	SESSION_TIME_MOBILE_IN_SECS = 60 * 60 * 24 * SESSION_TIME_MOBILE_IN_DAYS
+	SESSION_TIME_OAUTH_IN_DAYS  = 365
+	SESSION_TIME_OAUTH_IN_SECS  = 60 * 60 * 24 * SESSION_TIME_OAUTH_IN_DAYS
 	SESSION_CACHE_IN_SECS       = 60 * 10
 	SESSION_CACHE_SIZE          = 10000
 	SESSION_PROP_PLATFORM       = "platform"
@@ -23,7 +25,7 @@ const (
 
 type Session struct {
 	Id             string    `json:"id"`
-	AltId          string    `json:"alt_id"`
+	Token          string    `json:"token"`
 	CreateAt       int64     `json:"create_at"`
 	ExpiresAt      int64     `json:"expires_at"`
 	LastActivityAt int64     `json:"last_activity_at"`
@@ -31,6 +33,7 @@ type Session struct {
 	TeamId         string    `json:"team_id"`
 	DeviceId       string    `json:"device_id"`
 	Roles          string    `json:"roles"`
+	IsOAuth        bool      `json:"is_oauth"`
 	Props          StringMap `json:"props"`
 }
 
@@ -59,7 +62,7 @@ func (me *Session) PreSave() {
 		me.Id = NewId()
 	}
 
-	me.AltId = NewId()
+	me.Token = NewId()
 
 	me.CreateAt = GetMillis()
 	me.LastActivityAt = me.CreateAt
@@ -70,7 +73,7 @@ func (me *Session) PreSave() {
 }
 
 func (me *Session) Sanitize() {
-	me.Id = ""
+	me.Token = ""
 }
 
 func (me *Session) IsExpired() bool {

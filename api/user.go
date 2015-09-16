@@ -336,7 +336,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		return
 	}
 
-	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, DeviceId: deviceId}
+	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
 
 	maxAge := model.SESSION_TIME_WEB_IN_SECS
 
@@ -378,13 +378,13 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		return
 	} else {
 		session = result.Data.(*model.Session)
-		sessionCache.Add(session.Id, session)
+		AddSessionToCache(session)
 	}
 
-	w.Header().Set(model.HEADER_TOKEN, session.Id)
+	w.Header().Set(model.HEADER_TOKEN, session.Token)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_TOKEN,
-		Value:    session.Id,
+		Value:    session.Token,
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: true,
@@ -430,25 +430,27 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
-	altId := props["id"]
+	id := props["id"]
 
-	if result := <-Srv.Store.Session().GetSessions(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Session().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		sessions := result.Data.([]*model.Session)
+		session := result.Data.(*model.Session)
 
-		for _, session := range sessions {
-			if session.AltId == altId {
-				c.LogAudit("session_id=" + session.AltId)
-				sessionCache.Remove(session.Id)
-				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
-					c.Err = result.Err
-					return
-				} else {
-					w.Write([]byte(model.MapToJson(props)))
-					return
-				}
+		c.LogAudit("session_id=" + session.Id)
+
+		if session.IsOAuth {
+			RevokeAccessToken(session.Token)
+		} else {
+			sessionCache.Remove(session.Token)
+
+			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				c.Err = result.Err
+				return
+			} else {
+				w.Write([]byte(model.MapToJson(props)))
+				return
 			}
 		}
 	}
@@ -462,8 +464,8 @@ func RevokeAllSession(c *Context, userId string) {
 		sessions := result.Data.([]*model.Session)
 
 		for _, session := range sessions {
-			c.LogAuditWithUserId(userId, "session_id="+session.AltId)
-			sessionCache.Remove(session.Id)
+			c.LogAuditWithUserId(userId, "session_id="+session.Id)
+			sessionCache.Remove(session.Token)
 			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 				c.Err = result.Err
 				return

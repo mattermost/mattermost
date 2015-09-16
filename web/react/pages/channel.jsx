@@ -33,6 +33,7 @@ var AccessHistoryModal = require('../components/access_history_modal.jsx');
 var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
 var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
+var RegisterAppModal = require('../components/register_app_modal.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -221,6 +222,11 @@ function setupChannelPage(props) {
             overlayType='center'
         />,
         document.getElementById('file_upload_overlay')
+    );
+
+    React.render(
+        <RegisterAppModal />,
+        document.getElementById('register_app_modal')
     );
 }
 

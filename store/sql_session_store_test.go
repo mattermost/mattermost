@@ -80,7 +80,7 @@ func TestSessionRemove(t *testing.T) {
 	}
 }
 
-func TestSessionRemoveAlt(t *testing.T) {
+func TestSessionRemoveToken(t *testing.T) {
 	Setup()
 
 	s1 := model.Session{}
@@ -96,7 +96,7 @@ func TestSessionRemoveAlt(t *testing.T) {
 		}
 	}
 
-	Must(store.Session().Remove(s1.AltId))
+	Must(store.Session().Remove(s1.Token))
 
 	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")

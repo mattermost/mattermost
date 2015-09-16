@@ -18,7 +18,7 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Session{}, "Sessions").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("AltId").SetMaxSize(26)
+		table.ColMap("Token").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)
 		table.ColMap("DeviceId").SetMaxSize(128)
@@ -34,7 +34,7 @@ func (me SqlSessionStore) UpgradeSchemaIfNeeded() {
 
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
-	me.CreateIndexIfNotExists("idx_sessions_alt_id", "Sessions", "AltId")
+	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
 }
 
 func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
@@ -70,19 +70,21 @@ func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) Get(id string) StoreChannel {
+func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		if obj, err := me.GetReplica().Get(model.Session{}, id); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "We encounted an error finding the session", "id="+id+", "+err.Error())
-		} else if obj == nil {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "We couldn't find the existing session", "id="+id)
+		var sessions []*model.Session
+
+		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+			result.Err = model.NewAppError("SqlSessionStore.Get", "We encounted an error finding the session", "sessionIdOrToken="+sessionIdOrToken+", "+err.Error())
+		} else if sessions == nil || len(sessions) == 0 {
+			result.Err = model.NewAppError("SqlSessionStore.Get", "We encounted an error finding the session", "sessionIdOrToken="+sessionIdOrToken)
 		} else {
-			result.Data = obj.(*model.Session)
+			result.Data = sessions[0]
 		}
 
 		storeChannel <- result
@@ -120,15 +122,15 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) Remove(sessionIdOrAlt string) StoreChannel {
+func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or AltId = :AltId", map[string]interface{}{"Id": sessionIdOrAlt, "AltId": sessionIdOrAlt})
+		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
 		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "We couldn't remove the session", "id="+sessionIdOrAlt+", err="+err.Error())
+			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "We couldn't remove the session", "id="+sessionIdOrToken+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -181,7 +183,6 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) StoreChannel {
 
 	go func() {
 		result := StoreResult{}
-
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId", map[string]interface{}{"Roles": roles, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.UpdateRoles", "We couldn't update the roles", "userId="+userId)
 		} else {

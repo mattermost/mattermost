@@ -1,0 +1,26 @@
+{{define "authorize"}}
+<html>
+{{template "head" . }}
+<body class="white">
+	<div class="container-fluid">
+		<div class="inner__wrap">
+			<div class="row content">
+				<div class="signup-header">
+					{{.Props.TeamName}}
+				</div>
+				<div class="col-sm-12">
+						<div id="authorize"></div>
+				</div>
+				<div class="footer-push"></div>
+			</div>
+			<div class="row footer">
+				{{template "footer" . }}
+			</div>
+		</div>
+	</div>
+	<script>
+		window.setup_authorize_page('{{ .Props.TeamName }}', '{{ .Props.AppName }}', '{{ .Props.ResponseType }}', '{{ .Props.ClientId }}', '{{ .Props.RedirectUri }}', '{{ .Props.Scope }}', '{{ .Props.State }}' );
+	</script>
+</body>
+</html>
+{{end}}

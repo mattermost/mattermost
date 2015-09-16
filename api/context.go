@@ -80,9 +80,36 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.RequestId = model.NewId()
 	c.IpAddress = GetIpAddress(r)
 
+	token := ""
+	isTokenFromQueryString := false
+
+	// Attempt to parse token out of the header
+	authHeader := r.Header.Get(model.HEADER_AUTH)
+	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
+		// Default session token
+		token = authHeader[7:]
+
+	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
+		// OAuth token
+		token = authHeader[6:]
+	}
+
+	// Attempt to parse the token from the cookie
+	if len(token) == 0 {
+		if cookie, err := r.Cookie(model.SESSION_TOKEN); err == nil {
+			token = cookie.Value
+		}
+	}
+
+	// Attempt to parse token out of the query string
+	if len(token) == 0 {
+		token = r.URL.Query().Get("access_token")
+		isTokenFromQueryString = true
+	}
+
 	protocol := "http"
 
-	// if the request came from the ELB then assume this is produciton
+	// If the request came from the ELB then assume this is produciton
 	// and redirect all http requests to https
 	if utils.Cfg.ServiceSettings.UseSSL {
 		forwardProto := r.Header.Get(model.HEADER_FORWARDED_PROTO)
@@ -105,36 +132,19 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Content-Security-Policy", "frame-ancestors none")
 	} else {
-		// All api response bodies will be JSON formatted
+		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
 	}
 
-	sessionId := ""
-
-	// attempt to parse the session token from the header
-	if ah := r.Header.Get(model.HEADER_AUTH); ah != "" {
-		if len(ah) > 6 && strings.ToUpper(ah[0:6]) == "BEARER" {
-			sessionId = ah[7:]
-		}
-	}
-
-	// attempt to parse the session token from the cookie
-	if sessionId == "" {
-		if cookie, err := r.Cookie(model.SESSION_TOKEN); err == nil {
-			sessionId = cookie.Value
-		}
-	}
-
-	if sessionId != "" {
-
+	if len(token) != 0 {
 		var session *model.Session
-		if ts, ok := sessionCache.Get(sessionId); ok {
+		if ts, ok := sessionCache.Get(token); ok {
 			session = ts.(*model.Session)
 		}
 
 		if session == nil {
-			if sessionResult := <-Srv.Store.Session().Get(sessionId); sessionResult.Err != nil {
-				c.LogError(model.NewAppError("ServeHTTP", "Invalid session", "id="+sessionId+", err="+sessionResult.Err.DetailedError))
+			if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
+				c.LogError(model.NewAppError("ServeHTTP", "Invalid session", "token="+token+", err="+sessionResult.Err.DetailedError))
 			} else {
 				session = sessionResult.Data.(*model.Session)
 			}
@@ -142,7 +152,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w)
-			c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "id="+sessionId)
+			c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "token="+token)
+			c.Err.StatusCode = http.StatusUnauthorized
+		} else if !session.IsOAuth && isTokenFromQueryString {
+			c.Err = model.NewAppError("ServeHTTP", "Session is not OAuth but token was provided in the query string", "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
 			c.Session = *session
@@ -166,10 +179,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SystemAdminRequired()
 	}
 
-	if c.Err == nil && h.isUserActivity && sessionId != "" && len(c.Session.UserId) > 0 {
+	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
 		go func() {
-			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, sessionId, model.GetMillis())).Err; err != nil {
-				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, sessionId, err)
+			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
+				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, c.Session.Id, err)
 			}
 		}()
 	}
@@ -197,7 +210,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Context) LogAudit(extraInfo string) {
-	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.AltId}
+	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
 	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
@@ -209,7 +222,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.Session.UserId)
 	}
 
-	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.AltId}
+	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
 	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
@@ -315,7 +328,7 @@ func (c *Context) IsTeamAdmin(userId string) bool {
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter) {
 
-	sessionCache.Remove(c.Session.Id)
+	sessionCache.Remove(c.Session.Token)
 
 	cookie := &http.Cookie{
 		Name:     model.SESSION_TOKEN,
@@ -470,4 +483,8 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 	err.StatusCode = http.StatusNotFound
 	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
 	RenderWebError(err, w, r)
+}
+
+func AddSessionToCache(session *model.Session) {
+	sessionCache.Add(session.Token, session)
 }

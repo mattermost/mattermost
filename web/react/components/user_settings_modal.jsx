@@ -17,8 +17,8 @@ export default class UserSettingsModal extends React.Component {
         $('body').on('click', '.modal-back', function changeDisplay() {
             $(this).closest('.modal-dialog').removeClass('display--content');
         });
-        $('body').on('click', '.modal-header .close', function closeModal() {
-            setTimeout(function finishClose() {
+        $('body').on('click', '.modal-header .close', () => {
+            setTimeout(() => {
                 $('.modal-dialog.display--content').removeClass('display--content');
             }, 500);
         });
@@ -35,6 +35,9 @@ export default class UserSettingsModal extends React.Component {
         tabs.push({name: 'security', uiName: 'Security', icon: 'glyphicon glyphicon-lock'});
         tabs.push({name: 'notifications', uiName: 'Notifications', icon: 'glyphicon glyphicon-exclamation-sign'});
         tabs.push({name: 'appearance', uiName: 'Appearance', icon: 'glyphicon glyphicon-wrench'});
+        if (global.window.config.EnableOAuthServiceProvider) {
+            tabs.push({name: 'developer', uiName: 'Developer', icon: 'glyphicon glyphicon-th'});
+        }
 
         return (
             <div
@@ -54,13 +57,13 @@ export default class UserSettingsModal extends React.Component {
                         data-dismiss='modal'
                         aria-label='Close'
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'x'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
                     >
-                        Account Settings
+                        {'Account Settings'}
                     </h4>
                   </div>
                   <div className='modal-body'>
