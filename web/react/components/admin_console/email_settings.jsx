@@ -300,7 +300,7 @@ export default class EmailSettings extends React.Component {
                                 type='submit'
                                 className='btn btn-primary'
                             >
-                                {'Submit'}
+                                {'Save'}
                             </button>
                         </div>
                     </div>

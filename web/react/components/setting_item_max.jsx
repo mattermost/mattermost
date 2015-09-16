@@ -26,7 +26,7 @@ export default class SettingItemMax extends React.Component {
                     href='#'
                     onClick={this.props.submit}
                 >
-                    Submit
+                    Save
                 </a>
             );
         }

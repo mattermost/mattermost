@@ -348,6 +348,11 @@ export default class Sidebar extends React.Component {
             );
         }
 
+        var badgeClass;
+        if (msgCount > 0) {
+            badgeClass = 'has-badge';
+        }
+
         // set up status icon for direct message channels
         var status = null;
         if (channel.type === 'D') {
@@ -408,7 +413,7 @@ export default class Sidebar extends React.Component {
                 className={linkClass}
             >
                 <a
-                    className={'sidebar-channel ' + titleClass}
+                    className={'sidebar-channel ' + titleClass + ' ' + badgeClass}
                     href={href}
                     onClick={handleClick}
                 >

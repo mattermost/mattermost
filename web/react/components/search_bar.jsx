@@ -75,6 +75,9 @@ export default class SearchBar extends React.Component {
         PostStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
     }
+    handleMouseInput(e) {
+        e.preventDefault();
+    }
     handleUserFocus(e) {
         e.target.select();
         $('.search-bar__container').addClass('focused');
@@ -140,6 +143,7 @@ export default class SearchBar extends React.Component {
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onChange={this.handleUserInput}
+                        onMouseUp={this.handleMouseInput}
                     />
                     {isSearching}
                 </form>
