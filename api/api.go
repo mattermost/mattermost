@@ -17,7 +17,6 @@ var ServerTemplates *template.Template
 type ServerTemplatePage Page
 
 func NewServerTemplatePage(templateName string) *ServerTemplatePage {
-
 	return &ServerTemplatePage{
 		TemplateName: templateName,
 		Props:        make(map[string]string),
