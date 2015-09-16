@@ -278,6 +278,7 @@ func getClientProperties(c *Config) map[string]string {
 	props["Version"] = c.ServiceSettings.Version
 	props["SiteName"] = c.ServiceSettings.SiteName
 	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
+	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)
 	props["SegmentDeveloperKey"] = c.ClientSettings.SegmentDeveloperKey
