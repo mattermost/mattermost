@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {config} from '../utils/config.js';
-
 export default class EmailVerify extends React.Component {
     constructor(props) {
         super(props);
@@ -19,10 +17,10 @@ export default class EmailVerify extends React.Component {
         var body = '';
         var resend = '';
         if (this.props.isVerified === 'true') {
-            title = config.SiteName + ' Email Verified';
+            title = global.window.config.SiteName + ' Email Verified';
             body = <p>Your email has been verified! Click <a href={this.props.teamURL + '?email=' + this.props.userEmail}>here</a> to log in.</p>;
         } else {
-            title = config.SiteName + ' Email Not Verified';
+            title = global.window.config.SiteName + ' Email Not Verified';
             body = <p>Please verify your email address. Check your inbox for an email.</p>;
             resend = (
                 <button

@@ -347,6 +347,15 @@ func (c *Client) GetLogs() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetClientProperties() (*Result, *AppError) {
+	if r, err := c.DoGet("/admin/client_props", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoPost("/channels/create", channel.ToJson()); err != nil {
 		return nil, err

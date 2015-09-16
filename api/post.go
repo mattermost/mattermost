@@ -378,7 +378,8 @@ func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {
 				location, _ := time.LoadLocation("UTC")
 				tm := time.Unix(post.CreateAt/1000, 0).In(location)
 
-				subjectPage := NewServerTemplatePage("post_subject", siteURL)
+				subjectPage := NewServerTemplatePage("post_subject")
+				subjectPage.Props["SiteURL"] = siteURL
 				subjectPage.Props["TeamDisplayName"] = teamDisplayName
 				subjectPage.Props["SubjectText"] = subjectText
 				subjectPage.Props["Month"] = tm.Month().String()[:3]
@@ -396,7 +397,8 @@ func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {
 						continue
 					}
 
-					bodyPage := NewServerTemplatePage("post_body", siteURL)
+					bodyPage := NewServerTemplatePage("post_body")
+					bodyPage.Props["SiteURL"] = siteURL
 					bodyPage.Props["Nickname"] = profileMap[id].FirstName
 					bodyPage.Props["TeamDisplayName"] = teamDisplayName
 					bodyPage.Props["ChannelName"] = channelName

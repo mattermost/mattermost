@@ -583,27 +583,3 @@ export function getMyTeam() {
         }
     );
 }
-
-export function getConfig() {
-    if (isCallInProgress('getConfig')) {
-        return;
-    }
-
-    callTracker.getConfig = utils.getTimestamp();
-    client.getConfig(
-        function getConfigSuccess(data, textStatus, xhr) {
-            callTracker.getConfig = 0;
-
-            if (data && xhr.status !== 304) {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_CONFIG,
-                    settings: data
-                });
-            }
-        },
-        function getConfigFailure(err) {
-            callTracker.getConfig = 0;
-            dispatchError(err, 'getConfig');
-        }
-    );
-}

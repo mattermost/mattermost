@@ -6,7 +6,6 @@ const SettingItemMax = require('./setting_item_max.jsx');
 
 const Client = require('../utils/client.jsx');
 const Utils = require('../utils/utils.jsx');
-import {strings} from '../utils/config.js';
 
 export default class GeneralTab extends React.Component {
     constructor(props) {
@@ -30,7 +29,7 @@ export default class GeneralTab extends React.Component {
             state.clientError = 'This field is required';
             valid = false;
         } else if (name === this.props.teamDisplayName) {
-            state.clientError = 'Please choose a new name for your ' + strings.Team;
+            state.clientError = 'Please choose a new name for your team';
             valid = false;
         } else {
             state.clientError = '';
@@ -99,7 +98,7 @@ export default class GeneralTab extends React.Component {
         if (this.props.activeSection === 'name') {
             let inputs = [];
 
-            let teamNameLabel = Utils.toTitleCase(strings.Team) + ' Name';
+            let teamNameLabel = 'Team Name';
             if (Utils.isMobile()) {
                 teamNameLabel = '';
             }
@@ -123,7 +122,7 @@ export default class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMax
-                    title={`${Utils.toTitleCase(strings.Team)} Name`}
+                    title={`Team Name`}
                     inputs={inputs}
                     submit={this.handleNameSubmit}
                     server_error={serverError}
@@ -136,7 +135,7 @@ export default class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMin
-                    title={`${Utils.toTitleCase(strings.Team)} Name`}
+                    title={`Team Name`}
                     describe={describe}
                     updateSection={this.onUpdateSection}
                 />

@@ -6,7 +6,6 @@ var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var Constants = require('../utils/constants.jsx');
-import {config} from '../utils/config.js';
 
 export default class SignupUserComplete extends React.Component {
     constructor(props) {
@@ -136,7 +135,7 @@ export default class SignupUserComplete extends React.Component {
         // set up the email entry and hide it if an email was provided
         var yourEmailIs = '';
         if (this.state.user.email) {
-            yourEmailIs = <span>Your email address is {this.state.user.email}. You'll use this address to sign in to {config.SiteName}.</span>;
+            yourEmailIs = <span>Your email address is {this.state.user.email}. You'll use this address to sign in to {global.window.config.SiteName}.</span>;
         }
 
         var emailContainerStyle = 'margin--extra';
@@ -237,11 +236,6 @@ export default class SignupUserComplete extends React.Component {
             );
         }
 
-        var termsDisclaimer = null;
-        if (config.ShowTermsDuringSignup) {
-            termsDisclaimer = <p>By creating an account and using Mattermost you are agreeing to our <a href={config.TermsLink}>Terms of Service</a>. If you do not agree, you cannot use this service.</p>;
-        }
-
         return (
             <div>
                 <form>
@@ -251,12 +245,11 @@ export default class SignupUserComplete extends React.Component {
                     />
                     <h5 className='margin--less'>Welcome to:</h5>
                     <h2 className='signup-team__name'>{this.props.teamDisplayName}</h2>
-                    <h2 className='signup-team__subdomain'>on {config.SiteName}</h2>
+                    <h2 className='signup-team__subdomain'>on {global.window.config.SiteName}</h2>
                     <h4 className='color--light'>Let's create your account</h4>
                     {signupMessage}
                     {emailSignup}
                     {serverError}
-                    {termsDisclaimer}
                 </form>
             </div>
         );

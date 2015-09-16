@@ -2,11 +2,9 @@
 // See License.txt for license information.
 
 var utils = require('../utils/utils.jsx');
-var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
-import {config} from '../utils/config.js';
 
 export default class InviteMemberModal extends React.Component {
     constructor(props) {
@@ -23,7 +21,7 @@ export default class InviteMemberModal extends React.Component {
             emailErrors: {},
             firstNameErrors: {},
             lastNameErrors: {},
-            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
+            emailEnabled: !global.window.config.ByPassEmail
         };
     }
 
@@ -79,23 +77,9 @@ export default class InviteMemberModal extends React.Component {
                 emailErrors[index] = '';
             }
 
-            if (config.AllowInviteNames) {
-                invite.firstName = React.findDOMNode(this.refs['first_name' + index]).value.trim();
-                if (!invite.firstName && config.RequireInviteNames) {
-                    firstNameErrors[index] = 'This is a required field';
-                    valid = false;
-                } else {
-                    firstNameErrors[index] = '';
-                }
+            invite.firstName = React.findDOMNode(this.refs['first_name' + index]).value.trim();
 
-                invite.lastName = React.findDOMNode(this.refs['last_name' + index]).value.trim();
-                if (!invite.lastName && config.RequireInviteNames) {
-                    lastNameErrors[index] = 'This is a required field';
-                    valid = false;
-                } else {
-                    lastNameErrors[index] = '';
-                }
-            }
+            invite.lastName = React.findDOMNode(this.refs['last_name' + index]).value.trim();
 
             invites.push(invite);
         }
@@ -143,10 +127,8 @@ export default class InviteMemberModal extends React.Component {
         for (var i = 0; i < inviteIds.length; i++) {
             var index = inviteIds[i];
             React.findDOMNode(this.refs['email' + index]).value = '';
-            if (config.AllowInviteNames) {
-                React.findDOMNode(this.refs['first_name' + index]).value = '';
-                React.findDOMNode(this.refs['last_name' + index]).value = '';
-            }
+            React.findDOMNode(this.refs['first_name' + index]).value = '';
+            React.findDOMNode(this.refs['last_name' + index]).value = '';
         }
 
         this.setState({
@@ -210,44 +192,43 @@ export default class InviteMemberModal extends React.Component {
                 }
 
                 var nameFields = null;
-                if (config.AllowInviteNames) {
-                    var firstNameClass = 'form-group';
-                    if (firstNameError) {
-                        firstNameClass += ' has-error';
-                    }
-                    var lastNameClass = 'form-group';
-                    if (lastNameError) {
-                        lastNameClass += ' has-error';
-                    }
-                    nameFields = (<div className='row--invite'>
-                                    <div className='col-sm-6'>
-                                        <div className={firstNameClass}>
-                                            <input
-                                                type='text'
-                                                className='form-control'
-                                                ref={'first_name' + index}
-                                                placeholder='First name'
-                                                maxLength='64'
-                                                disabled={!this.state.emailEnabled}
-                                            />
-                                            {firstNameError}
-                                        </div>
-                                    </div>
-                                    <div className='col-sm-6'>
-                                        <div className={lastNameClass}>
-                                            <input
-                                                type='text'
-                                                className='form-control'
-                                                ref={'last_name' + index}
-                                                placeholder='Last name'
-                                                maxLength='64'
-                                                disabled={!this.state.emailEnabled}
-                                            />
-                                            {lastNameError}
-                                        </div>
-                                    </div>
-                                </div>);
+
+                var firstNameClass = 'form-group';
+                if (firstNameError) {
+                    firstNameClass += ' has-error';
                 }
+                var lastNameClass = 'form-group';
+                if (lastNameError) {
+                    lastNameClass += ' has-error';
+                }
+                nameFields = (<div className='row--invite'>
+                                <div className='col-sm-6'>
+                                    <div className={firstNameClass}>
+                                        <input
+                                            type='text'
+                                            className='form-control'
+                                            ref={'first_name' + index}
+                                            placeholder='First name'
+                                            maxLength='64'
+                                            disabled={!this.state.emailEnabled}
+                                        />
+                                        {firstNameError}
+                                    </div>
+                                </div>
+                                <div className='col-sm-6'>
+                                    <div className={lastNameClass}>
+                                        <input
+                                            type='text'
+                                            className='form-control'
+                                            ref={'last_name' + index}
+                                            placeholder='Last name'
+                                            maxLength='64'
+                                            disabled={!this.state.emailEnabled}
+                                        />
+                                        {lastNameError}
+                                    </div>
+                                </div>
+                            </div>);
 
                 inviteSections[index] = (
                     <div key={'key' + index}>

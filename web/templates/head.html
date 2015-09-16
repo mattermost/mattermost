@@ -3,20 +3,25 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="robots" content="noindex, nofollow">
 
-    <title>{{ .Title }}</title>
+    <title>{{ .Props.Title }}</title>
 
     <!-- iOS add to homescreen -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="{{ .Title }}">
-    <meta name="application-name" content="{{ .Title }}">
+    <meta name="apple-mobile-web-app-title" content="{{ .Props.Title }}">
+    <meta name="application-name" content="{{ .Props.Title }}">
     <meta name="format-detection" content="telephone=no">
     <!-- iOS add to homescreen -->
 
     <!-- Android add to homescreen -->
     <link rel="manifest" href="/static/config/manifest.json">
     <!-- Android add to homescreen -->
+
+    <script>
+        window.config = {{ .ClientProps }};
+    </script>
+
 
     <link rel="stylesheet" href="/static/css/bootstrap-3.3.5.min.css">
     <link rel="stylesheet" href="/static/css/jasny-bootstrap.min.css" rel="stylesheet">
@@ -35,9 +40,7 @@
 
     <script src="/static/js/jquery-dragster/jquery.dragster.js"></script>
 
-    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1','packages':['annotationchart']}]}"></script>
 
-    <script type="text/javascript" src="https://cloudfront.loggly.com/js/loggly.tracker.js" async></script>
     <style id="antiClickjack">body{display:none !important;}</style>
     <script src="/static/js/bundle.js"></script>
     <script type="text/javascript">
@@ -46,28 +49,8 @@
             blocker.parentNode.removeChild(blocker);
         }
     </script>
-    <script>
-        if (window.config == null) {
-            window.config = {};
-        }
-        window.config.SiteName = '{{ .SiteName }}';
-		window.config.ProfileWidth = '{{ .Props.ProfileWidth }}'
-		window.config.ProfileHeight = '{{ .Props.ProfileHeight }}'
-    </script>
-
-
-    <script>
-        if (window.config.LogglyWriteKey != null && window.config.LogglyWriteKey !== "") {
-            var LTracker = LTracker || [];
-            window.LTracker = LTracker;
-            LTracker.push({'logglyKey': window.config.LogglyWriteKey, 'sendConsoleErrors' : window.config.LogglyConsoleErrors });
-        } else {
-            window.LTracker = [];
-            console.warn("config.js missing LogglyWriteKey, Loggly analytics is not reporting");
-        }
-    </script>
     <script type="text/javascript">
-        if (window.config.SegmentWriteKey != null && window.config.SegmentWriteKey !== "") {
+        if (window.config.SegmentDeveloperKey != null && window.config.SegmentDeveloperKey !== "") {
             !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
             analytics.load(window.config.SegmentWriteKey);
             var user = window.UserStore.getCurrentUser(true);
@@ -88,7 +71,6 @@
             analytics = {};
             analytics.page = function(){};
             analytics.track = function(){};
-            console.warn("config.js missing SegmentWriteKey, SegmentIO analytics is not tracking");
         }
     </script>
     <!-- Snowplow starts plowing -->
@@ -100,7 +82,7 @@
             n.src=w;g.parentNode.insertBefore(n,g)}}(window,document,"script","//d1fc8wv8zag5ca.cloudfront.net/2.4.2/sp.js","snowplow"));
 
             window.snowplow('newTracker', 'cf', '{{ .Props.AnalyticsUrl }}', {
-              appId: '{{ .SiteName }}'
+              appId: window.config.SiteName
             });
 
             var user = window.UserStore.getCurrentUser(true);
@@ -111,7 +93,6 @@
             window.snowplow('trackPageView');
         } else {
             window.snowplow = function(){};
-            console.warn("config.json missing AnalyticsUrl, Snowplow analytics is not tracking");
         }
     </script>
     <!-- Snowplow stops plowing -->

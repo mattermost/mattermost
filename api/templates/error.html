@@ -1,7 +1,7 @@
 <html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	<title>{{ .SiteName }} - Error</title>
+	<title>{{ .ClientProps.SiteName }} - Error</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
@@ -12,9 +12,9 @@
 	<div class="container-fluid">
 		<div class="error__container">
 			<div class="error__icon"><i class="fa fa-exclamation-triangle"></i></div>
-			<h2>{{ .SiteName }} needs your help:</h2>
+			<h2>{{ .ClientProps.SiteName }} needs your help:</h2>
 			<p>{{.Message}}</p>
-			<a href="{{.SiteURL}}">Go back to team site</a>
+			<a href="{{.Props.SiteURL}}">Go back to team site</a>
 		</div>
 	</div>
 </body>

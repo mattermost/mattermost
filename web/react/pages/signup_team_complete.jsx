@@ -3,12 +3,12 @@
 
 var SignupTeamComplete = require('../components/signup_team_complete.jsx');
 
-function setupSignupTeamCompletePage(email, data, hash) {
+function setupSignupTeamCompletePage(props) {
     React.render(
         <SignupTeamComplete
-            email={email}
-            hash={hash}
-            data={data}
+            email={props.Email}
+            hash={props.Hash}
+            data={props.Data}
         />,
         document.getElementById('signup-team-complete')
     );

@@ -3,12 +3,12 @@
 
 var Login = require('../components/login.jsx');
 
-function setupLoginPage(teamDisplayName, teamName, authServices) {
+function setupLoginPage(props) {
     React.render(
         <Login
-            teamDisplayName={teamDisplayName}
-            teamName={teamName}
-            authServices={authServices}
+            teamDisplayName={props.TeamDisplayName}
+            teamName={props.TeamName}
+            authServices={props.AuthServices}
         />,
         document.getElementById('login')
     );

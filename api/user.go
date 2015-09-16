@@ -216,8 +216,10 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 func fireAndForgetWelcomeEmail(name, email, teamDisplayName, link, siteURL string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("welcome_subject", siteURL)
-		bodyPage := NewServerTemplatePage("welcome_body", siteURL)
+		subjectPage := NewServerTemplatePage("welcome_subject")
+		subjectPage.Props["SiteURL"] = siteURL
+		bodyPage := NewServerTemplatePage("welcome_body")
+		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["Nickname"] = name
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["FeedbackName"] = utils.Cfg.EmailSettings.FeedbackName
@@ -235,9 +237,11 @@ func FireAndForgetVerifyEmail(userId, userEmail, teamName, teamDisplayName, site
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
 
-		subjectPage := NewServerTemplatePage("verify_subject", siteURL)
+		subjectPage := NewServerTemplatePage("verify_subject")
+		subjectPage.Props["SiteURL"] = siteURL
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage("verify_body", siteURL)
+		bodyPage := NewServerTemplatePage("verify_body")
+		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["VerifyUrl"] = link
 
@@ -1133,8 +1137,10 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	link := fmt.Sprintf("%s/reset_password?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
 
-	subjectPage := NewServerTemplatePage("reset_subject", c.GetSiteURL())
-	bodyPage := NewServerTemplatePage("reset_body", c.GetSiteURL())
+	subjectPage := NewServerTemplatePage("reset_subject")
+	subjectPage.Props["SiteURL"] = c.GetSiteURL()
+	bodyPage := NewServerTemplatePage("reset_body")
+	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["ResetUrl"] = link
 
 	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
@@ -1233,9 +1239,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 func fireAndForgetPasswordChangeEmail(email, teamDisplayName, teamURL, siteURL, method string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("password_change_subject", siteURL)
+		subjectPage := NewServerTemplatePage("password_change_subject")
+		subjectPage.Props["SiteURL"] = siteURL
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage("password_change_body", siteURL)
+		bodyPage := NewServerTemplatePage("password_change_body")
+		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["TeamURL"] = teamURL
 		bodyPage.Props["Method"] = method
@@ -1250,9 +1258,11 @@ func fireAndForgetPasswordChangeEmail(email, teamDisplayName, teamURL, siteURL, 
 func fireAndForgetEmailChangeEmail(email, teamDisplayName, teamURL, siteURL string) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage("email_change_subject", siteURL)
+		subjectPage := NewServerTemplatePage("email_change_subject")
+		subjectPage.Props["SiteURL"] = siteURL
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage("email_change_body", siteURL)
+		bodyPage := NewServerTemplatePage("email_change_body")
+		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["TeamURL"] = teamURL
 

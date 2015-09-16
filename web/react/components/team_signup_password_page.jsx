@@ -4,7 +4,6 @@
 var Client = require('../utils/client.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
-import {strings, config} from '../utils/config.js';
 
 export default class TeamSignupPasswordPage extends React.Component {
     constructor(props) {
@@ -123,13 +122,13 @@ export default class TeamSignupPasswordPage extends React.Component {
                             type='submit'
                             className='btn btn-primary margin--extra'
                             id='finish-button'
-                            data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Creating ' + strings.Team + '...'}
+                            data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Creating team...'}
                             onClick={this.submitNext}
                         >
                             Finish
                         </button>
                     </div>
-                    <p>By proceeding to create your account and use {config.SiteName}, you agree to our <a href={config.TermsLink}>Terms of Service</a> and <a href={config.PrivacyLink}>Privacy Policy</a>. If you do not agree, you cannot use {config.SiteName}.</p>
+                    <p>By proceeding to create your account and use {global.window.config.SiteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {global.window.config.SiteName}.</p>
                     <div className='margin--extra'>
                         <a
                             href='#'

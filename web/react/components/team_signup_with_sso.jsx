@@ -4,7 +4,6 @@
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var Constants = require('../utils/constants.jsx');
-import {strings} from '../utils/config.js';
 
 export default class SSOSignUpPage extends React.Component {
     constructor(props) {
@@ -84,7 +83,7 @@ export default class SSOSignUpPage extends React.Component {
                     disabled={disabled}
                 >
                     <span className='icon'/>
-                    <span>Create {strings.Team} with GitLab Account</span>
+                    <span>Create team with GitLab Account</span>
                 </a>
             );
         }
@@ -111,7 +110,7 @@ export default class SSOSignUpPage extends React.Component {
                     {serverError}
                 </div>
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{'Find my ' + strings.Team}</a></span>
+                    <span><a href='/find_team'>{'Find my team'}</a></span>
                 </div>
             </form>
         );

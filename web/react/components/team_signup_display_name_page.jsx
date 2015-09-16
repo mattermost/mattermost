@@ -3,7 +3,6 @@
 
 var utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
-import {strings} from '../utils/config.js';
 
 export default class TeamSignupDisplayNamePage extends React.Component {
     constructor(props) {
@@ -54,7 +53,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{utils.toTitleCase(strings.Team) + ' Name'}</h2>
+                    <h2>{'Team Name'}</h2>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-9'>
@@ -73,7 +72,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                         {nameError}
                     </div>
                     <div>
-                        {'Name your ' + strings.Team + ' in any language. Your ' + strings.Team + ' name shows in menus and headings.'}
+                        {'Name your team in any language. Your team name shows in menus and headings.'}
                     </div>
                     <button
                         type='submit'

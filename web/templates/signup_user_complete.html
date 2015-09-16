@@ -19,7 +19,7 @@
         </div>
     </div>
     <script>
-    window.setup_signup_user_complete_page('{{.Props.Email}}', '{{.Props.TeamName}}', '{{.Props.TeamDisplayName}}', '{{.Props.TeamId}}', '{{.Props.Data}}', '{{.Props.Hash}}', '{{.Props.AuthServices}}');
+    window.setup_signup_user_complete_page({{ .Props }});
     </script>
 </body>
 </html>

@@ -56,8 +56,10 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage("signup_team_subject", c.GetSiteURL())
-	bodyPage := NewServerTemplatePage("signup_team_body", c.GetSiteURL())
+	subjectPage := NewServerTemplatePage("signup_team_subject")
+	subjectPage.Props["SiteURL"] = c.GetSiteURL()
+	bodyPage := NewServerTemplatePage("signup_team_body")
+	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["TourUrl"] = utils.Cfg.TeamSettings.TourLink
 
 	props := make(map[string]string)
@@ -401,8 +403,10 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage("find_teams_subject", c.GetSiteURL())
-	bodyPage := NewServerTemplatePage("find_teams_body", c.GetSiteURL())
+	subjectPage := NewServerTemplatePage("find_teams_subject")
+	subjectPage.Props["SiteURL"] = c.GetSiteURL()
+	bodyPage := NewServerTemplatePage("find_teams_body")
+	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 
 	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
 		c.Err = result.Err
@@ -483,16 +487,17 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				senderRole = "member"
 			}
 
-			subjectPage := NewServerTemplatePage("invite_subject", c.GetSiteURL())
+			subjectPage := NewServerTemplatePage("invite_subject")
+			subjectPage.Props["SiteURL"] = c.GetSiteURL()
 			subjectPage.Props["SenderName"] = sender
 			subjectPage.Props["TeamDisplayName"] = team.DisplayName
-			bodyPage := NewServerTemplatePage("invite_body", c.GetSiteURL())
+
+			bodyPage := NewServerTemplatePage("invite_body")
+			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["TeamDisplayName"] = team.DisplayName
 			bodyPage.Props["SenderName"] = sender
 			bodyPage.Props["SenderStatus"] = senderRole
-
 			bodyPage.Props["Email"] = invite
-
 			props := make(map[string]string)
 			props["email"] = invite
 			props["id"] = team.Id

@@ -3,7 +3,6 @@
 
 const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
-import {strings} from '../utils/config.js';
 
 export default class EmailSignUpPage extends React.Component {
     constructor() {
@@ -70,7 +69,7 @@ export default class EmailSignUpPage extends React.Component {
                     </button>
                 </div>
                 <div className='form-group margin--extra-2x'>
-                    <span><a href='/find_team'>{`Find my ${strings.Team}`}</a></span>
+                    <span><a href='/find_team'>{`Find my team`}</a></span>
                 </div>
             </form>
         );

@@ -34,23 +34,19 @@ var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
 var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
 
-var AsyncClient = require('../utils/async_client.jsx');
-
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
-    AsyncClient.getConfig();
-
+function setupChannelPage(props) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
-        name: channelName,
-        id: channelId
+        name: props.ChannelName,
+        id: props.ChannelId
     });
 
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_TEAM,
-        id: teamId
+        id: props.TeamId
     });
 
     // ChannelLoader must be rendered first
@@ -65,14 +61,14 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
     );
 
     React.render(
-        <Navbar teamDisplayName={teamName} />,
+        <Navbar teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('navbar')
     );
 
     React.render(
         <Sidebar
-            teamDisplayName={teamName}
-            teamType={teamType}
+            teamDisplayName={props.TeamDisplayName}
+            teamType={props.TeamType}
         />,
         document.getElementById('sidebar-left')
     );
@@ -88,17 +84,17 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
     );
 
     React.render(
-        <TeamSettingsModal teamDisplayName={teamName} />,
+        <TeamSettingsModal teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('team_settings_modal')
     );
 
     React.render(
-        <TeamMembersModal teamDisplayName={teamName} />,
+        <TeamMembersModal teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('team_members_modal')
     );
 
     React.render(
-        <MemberInviteModal teamType={teamType} />,
+        <MemberInviteModal teamType={props.TeamType} />,
         document.getElementById('invite_member_modal')
     );
 
@@ -184,8 +180,8 @@ function setupChannelPage(teamName, teamType, teamId, channelName, channelId) {
 
     React.render(
         <SidebarRightMenu
-            teamDisplayName={teamName}
-            teamType={teamType}
+            teamDisplayName={props.TeamDisplayName}
+            teamType={props.TeamType}
         />,
         document.getElementById('sidebar-menu')
     );

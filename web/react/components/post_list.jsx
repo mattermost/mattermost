@@ -15,8 +15,6 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
-import {strings} from '../utils/config.js';
-
 export default class PostList extends React.Component {
     constructor(props) {
         super(props);
@@ -347,7 +345,7 @@ export default class PostList extends React.Component {
 
         return (
             <div className='channel-intro'>
-                <p className='channel-intro-text'>{'This is the start of your private message history with this ' + strings.Team + 'mate. Private messages and files shared here are not shown to people outside this area.'}</p>
+                <p className='channel-intro-text'>{'This is the start of your private message history with this teammate. Private messages and files shared here are not shown to people outside this area.'}</p>
             </div>
         );
     }
@@ -369,7 +367,7 @@ export default class PostList extends React.Component {
                 <p className='channel-intro__content'>
                     Welcome to {channel.display_name}!
                     <br/><br/>
-                    This is the first channel {strings.Team}mates see when they
+                    This is the first channel teammates see when they
                     <br/>
                     sign up - use it for posting updates everyone needs to know.
                     <br/><br/>

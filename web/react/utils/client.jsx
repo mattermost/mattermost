@@ -14,8 +14,6 @@ export function trackPage() {
 }
 
 function handleError(methodName, xhr, status, err) {
-    var LTracker = global.window.LTracker || [];
-
     var e = null;
     try {
         e = JSON.parse(xhr.responseText);
@@ -39,7 +37,6 @@ function handleError(methodName, xhr, status, err) {
 
     console.error(msg); //eslint-disable-line no-console
     console.error(e); //eslint-disable-line no-console
-    LTracker.push(msg);
 
     track('api', 'api_weberror', methodName, 'message', msg);
 
@@ -989,18 +986,4 @@ export function updateValetFeature(data, success, error) {
     });
 
     track('api', 'api_teams_update_valet_feature');
-}
-
-export function getConfig(success, error) {
-    $.ajax({
-        url: '/api/v1/config/get_all',
-        dataType: 'json',
-        type: 'GET',
-        ifModified: true,
-        success: success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('getConfig', xhr, status, err);
-            error(e);
-        }
-    });
 }

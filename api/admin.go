@@ -20,6 +20,7 @@ func InitAdmin(r *mux.Router) {
 
 	sr := r.PathPrefix("/admin").Subrouter()
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
+	sr.Handle("/client_props", ApiAppHandler(getClientProperties)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -48,4 +49,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.ArrayToJson(lines)))
+}
+
+func getClientProperties(c *Context, w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(model.MapToJson(utils.ClientProperties)))
 }

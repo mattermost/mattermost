@@ -9,7 +9,7 @@
                         <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
                             <tr>
                                 <td style="padding: 20px 20px 10px; text-align:left;">
-                                    <img src="{{.SiteURL}}/static/images/{{.SiteName}}-logodark.png" width="130px" style="opacity: 0.5" alt="">
+                                    <img src="{{.Props.SiteURL}}/static/images/{{.ClientProps.SiteName}}-logodark.png" width="130px" style="opacity: 0.5" alt="">
                                 </td>
                             </tr>
                             <tr>
@@ -17,15 +17,15 @@
                                     <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 10px;">You joined the {{.Props.TeamDisplayName}} team at {{.SiteName}}!</h2>
-                                                <p>Please let me know if you have any questions.<br>Enjoy your stay at <a href="{{.Props.TeamURL}}">{{.SiteName}}</a>.</p>
+                                                <h2 style="font-weight: normal; margin-top: 10px;">You joined the {{.Props.TeamDisplayName}} team at {{.ClientProps.SiteName}}!</h2>
+                                                <p>Please let me know if you have any questions.<br>Enjoy your stay at <a href="{{.Props.TeamURL}}">{{.ClientProps.SiteName}}</a>.</p>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td style="color: #999; padding-top: 20px; line-height: 25px; font-size: 13px;">
                                                 Any questions at all, mail us any time: <a href="mailto:{{.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.FeedbackEmail}}</a>.<br>
                                                 Best wishes,<br>
-                                                The {{.SiteName}} Team<br>
+                                                The {{.ClientProps.SiteName}} Team<br>
                                             </td>
                                         </tr>
                                     </table>
@@ -34,7 +34,7 @@
                             <tr>
                                 <td style="text-align: center;color: #AAA; font-size: 11px; padding-bottom: 10px;">
                                     <p style="margin: 25px 0;">
-                                        <img width="65" src="{{.SiteURL}}/static/images/circles.png" alt="">
+                                        <img width="65" src="{{.Props.SiteURL}}/static/images/circles.png" alt="">
                                     </p>
                                     <p style="padding: 0 50px;">
                                         (c) 2015 SpinPunch, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>

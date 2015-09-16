@@ -9,7 +9,6 @@ var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
 var Autolinker = require('autolinker');
-import {config} from '../utils/config.js';
 
 export function isEmail(email) {
     var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -295,12 +294,12 @@ function getYoutubeEmbed(link) {
         $('.post-list-holder-by-time').scrollTop($('.post-list-holder-by-time')[0].scrollHeight);
     }
 
-    if (config.GoogleDeveloperKey) {
+    if (global.window.config.GoogleDeveloperKey) {
         $.ajax({
             async: true,
             url: 'https://www.googleapis.com/youtube/v3/videos',
             type: 'GET',
-            data: {part: 'snippet', id: youtubeId, key: config.GoogleDeveloperKey},
+            data: {part: 'snippet', id: youtubeId, key: global.window.config.GoogleDeveloperKey},
             success: success
         });
     }

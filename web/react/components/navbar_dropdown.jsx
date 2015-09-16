@@ -7,7 +7,6 @@ var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
-import {config} from '../utils/config.js';
 
 function getStateFromStores() {
     return {teams: UserStore.getTeams(), currentTeam: TeamStore.getCurrent()};
@@ -188,7 +187,7 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 target='_blank'
-                                href={config.HelpLink}
+                                href='/static/help/help.html'
                             >
                                 Help
                             </a>
@@ -196,7 +195,7 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 target='_blank'
-                                href={config.ReportProblemLink}
+                                href='/static/help/report_problem.html'
                             >
                                 Report a Problem
                             </a>

@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -29,12 +30,9 @@ type Context struct {
 }
 
 type Page struct {
-	TemplateName  string
-	Title         string
-	SiteName      string
-	FeedbackEmail string
-	SiteURL       string
-	Props         map[string]string
+	TemplateName string
+	Props        map[string]string
+	ClientProps  map[string]string
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -100,7 +98,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.setSiteURL(protocol + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version)
+	w.Header().Set(model.HEADER_VERSION_ID, utils.Cfg.ServiceSettings.Version+fmt.Sprintf(".%v", utils.CfgLastModified))
 
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {

@@ -4,12 +4,12 @@
 var ChannelStore = require('../stores/channel_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
-function setupHomePage(teamURL) {
+function setupHomePage(props) {
     var last = ChannelStore.getLastVisitedName();
     if (last == null || last.length === 0) {
-        window.location = teamURL + '/channels/' + Constants.DEFAULT_CHANNEL;
+        window.location = props.TeamURL + '/channels/' + Constants.DEFAULT_CHANNEL;
     } else {
-        window.location = teamURL + '/channels/' + last;
+        window.location = props.TeamURL + '/channels/' + last;
     }
 }
 

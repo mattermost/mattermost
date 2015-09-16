@@ -4,7 +4,6 @@
 const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
 const Constants = require('../utils/constants.jsx');
-import {strings, config} from '../utils/config.js';
 
 export default class TeamSignupUrlPage extends React.Component {
     constructor(props) {
@@ -51,12 +50,8 @@ export default class TeamSignupUrlPage extends React.Component {
         Client.findTeamByName(name,
             function success(data) {
                 if (!data) {
-                    if (config.AllowSignupDomainsWizard) {
-                        this.props.state.wizard = 'allowed_domains';
-                    } else {
-                        this.props.state.wizard = 'send_invites';
-                        this.props.state.team.type = 'O';
-                    }
+                    this.props.state.wizard = 'send_invites';
+                    this.props.state.team.type = 'O';
 
                     this.props.state.team.name = name;
                     this.props.updateParent(this.props.state);
@@ -97,7 +92,7 @@ export default class TeamSignupUrlPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{`${Utils.toTitleCase(strings.Team)} URL`}</h2>
+                    <h2>{`Team URL`}</h2>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-11'>
@@ -124,7 +119,7 @@ export default class TeamSignupUrlPage extends React.Component {
                         </div>
                         {nameError}
                     </div>
-                    <p>{`Choose the web address of your new ${strings.Team}:`}</p>
+                    <p>{`Choose the web address of your new team:`}</p>
                     <ul className='color--light'>
                         <li>Short and memorable is best</li>
                         <li>Use lowercase letters, numbers and dashes</li>
