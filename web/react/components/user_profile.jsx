@@ -57,7 +57,7 @@ export default class UserProfile extends React.Component {
         }
 
         var dataContent = '<img class="user-popover__image" src="/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at + '" height="128" width="128" />';
-        if (!global.window.config.ShowEmail) {
+        if (!global.window.config.ShowEmailAddress) {
             dataContent += '<div class="text-nowrap">Email not shared</div>';
         } else {
             dataContent += '<div data-toggle="tooltip" title="' + this.state.profile.email + '"><a href="mailto:' + this.state.profile.email + '" class="text-nowrap text-lowercase user-popover__email">' + this.state.profile.email + '</a></div>';

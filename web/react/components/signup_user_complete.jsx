@@ -236,11 +236,6 @@ export default class SignupUserComplete extends React.Component {
             );
         }
 
-        var termsDisclaimer = null;
-        if (global.window.config.ShowTermsDuringSignup) {
-            termsDisclaimer = <p>By creating an account and using Mattermost you are agreeing to our <a href='/static/help/terms.html'>Terms of Service</a>. If you do not agree, you cannot use this service.</p>;
-        }
-
         return (
             <div>
                 <form>

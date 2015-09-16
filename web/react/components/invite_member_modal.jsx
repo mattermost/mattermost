@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var utils = require('../utils/utils.jsx');
-var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
@@ -22,7 +21,7 @@ export default class InviteMemberModal extends React.Component {
             emailErrors: {},
             firstNameErrors: {},
             lastNameErrors: {},
-            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
+            emailEnabled: !global.window.config.ByPassEmail
         };
     }
 

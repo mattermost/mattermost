@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
-var ConfigStore = require('../stores/config_store.jsx');
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 var SettingPicture = require('./setting_picture.jsx');
@@ -209,7 +208,7 @@ export default class UserSettingsGeneralTab extends React.Component {
     }
     setupInitialState(props) {
         var user = props.user;
-        var emailEnabled = !ConfigStore.getSettingAsBoolean('ByPassEmail', false);
+        var emailEnabled = !global.window.config.ByPassEmail;
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
                         email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
     }

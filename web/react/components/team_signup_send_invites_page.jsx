@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var EmailItem = require('./team_signup_email_item.jsx');
-var ConfigStore = require('../stores/config_store.jsx');
 var Client = require('../utils/client.jsx');
 
 export default class TeamSignupSendInvitesPage extends React.Component {
@@ -14,7 +13,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         this.submitSkip = this.submitSkip.bind(this);
         this.keySubmit = this.keySubmit.bind(this);
         this.state = {
-            emailEnabled: !ConfigStore.getSettingAsBoolean('ByPassEmail', false)
+            emailEnabled: !global.window.config.ByPassEmail
         };
 
         if (!this.state.emailEnabled) {

@@ -42,7 +42,6 @@ func InitApi() {
 	InitWebSocket(r)
 	InitFile(r)
 	InitCommand(r)
-	InitConfig(r)
 	InitAdmin(r)
 
 	templatesDir := utils.FindDir("api/templates")

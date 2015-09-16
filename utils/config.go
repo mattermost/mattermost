@@ -282,7 +282,9 @@ func getClientProperties(c *Config) map[string]string {
 	props["SegmentDeveloperKey"] = c.ClientSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ClientSettings.GoogleDeveloperKey
 	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
+	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
+	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 
 	return props
