@@ -23,7 +23,8 @@
         "UseLocalStorage": true,
         "StorageDirectory": "/mattermost/data/",
         "AllowedLoginAttempts": 10,
-        "DisableEmailSignUp": false
+        "DisableEmailSignUp": false,
+        "EnableOAuthServiceProvider": false
     },
     "SSOSettings": {
         "gitlab": {

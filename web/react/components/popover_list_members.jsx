@@ -25,7 +25,7 @@ export default class PopoverListMembers extends React.Component {
 
         $('#member_popover').popover({placement: 'bottom', trigger: 'click', html: true});
         $('body').on('click', function onClick(e) {
-            if ($(e.target.parentNode.parentNode)[0] !== $('#member_popover')[0] && $(e.target).parents('.popover.in').length === 0) {
+            if (e.target.parentNode && $(e.target.parentNode.parentNode)[0] !== $('#member_popover')[0] && $(e.target).parents('.popover.in').length === 0) {
                 $('#member_popover').popover('hide');
             }
         });

@@ -38,6 +38,7 @@ type SqlStore struct {
 	user     UserStore
 	audit    AuditStore
 	session  SessionStore
+	oauth    OAuthStore
 }
 
 func NewSqlStore() Store {
@@ -55,21 +56,20 @@ func NewSqlStore() Store {
 			utils.Cfg.SqlSettings.Trace)
 	}
 
+	// Temporary upgrade code, remove after 0.8.0 release
+	if sqlStore.DoesColumnExist("Sessions", "AltId") {
+		sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
+	}
+
 	sqlStore.team = NewSqlTeamStore(sqlStore)
 	sqlStore.channel = NewSqlChannelStore(sqlStore)
 	sqlStore.post = NewSqlPostStore(sqlStore)
 	sqlStore.user = NewSqlUserStore(sqlStore)
 	sqlStore.audit = NewSqlAuditStore(sqlStore)
 	sqlStore.session = NewSqlSessionStore(sqlStore)
+	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
 
 	sqlStore.master.CreateTablesIfNotExists()
-
-	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
-	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
-	sqlStore.post.(*SqlPostStore).CreateIndexesIfNotExists()
-	sqlStore.user.(*SqlUserStore).CreateIndexesIfNotExists()
-	sqlStore.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
-	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 
 	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded()
 	sqlStore.channel.(*SqlChannelStore).UpgradeSchemaIfNeeded()
@@ -77,6 +77,15 @@ func NewSqlStore() Store {
 	sqlStore.user.(*SqlUserStore).UpgradeSchemaIfNeeded()
 	sqlStore.audit.(*SqlAuditStore).UpgradeSchemaIfNeeded()
 	sqlStore.session.(*SqlSessionStore).UpgradeSchemaIfNeeded()
+	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
+
+	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
+	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
+	sqlStore.post.(*SqlPostStore).CreateIndexesIfNotExists()
+	sqlStore.user.(*SqlUserStore).CreateIndexesIfNotExists()
+	sqlStore.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
+	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists()
+	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
 
 	return sqlStore
 }
@@ -361,6 +370,10 @@ func (ss SqlStore) Session() SessionStore {
 
 func (ss SqlStore) Audit() AuditStore {
 	return ss.audit
+}
+
+func (ss SqlStore) OAuth() OAuthStore {
+	return ss.oauth
 }
 
 type mattermConverter struct{}

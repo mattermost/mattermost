@@ -32,6 +32,7 @@ type AppError struct {
 	RequestId     string `json:"request_id"`     // The RequestId that's also set in the header
 	StatusCode    int    `json:"status_code"`    // The http status code
 	Where         string `json:"-"`              // The function where it happened in the form of Struct.Func
+	IsOAuth       bool   `json:"is_oauth"`       // Whether the error is OAuth specific
 }
 
 func (er *AppError) Error() string {
@@ -65,6 +66,7 @@ func NewAppError(where string, message string, details string) *AppError {
 	ap.Where = where
 	ap.DetailedError = details
 	ap.StatusCode = 500
+	ap.IsOAuth = false
 	return ap
 }
 

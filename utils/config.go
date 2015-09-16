@@ -21,20 +21,21 @@ const (
 )
 
 type ServiceSettings struct {
-	SiteName             string
-	Mode                 string
-	AllowTesting         bool
-	UseSSL               bool
-	Port                 string
-	Version              string
-	InviteSalt           string
-	PublicLinkSalt       string
-	ResetSalt            string
-	AnalyticsUrl         string
-	UseLocalStorage      bool
-	StorageDirectory     string
-	AllowedLoginAttempts int
-	DisableEmailSignUp   bool
+	SiteName                   string
+	Mode                       string
+	AllowTesting               bool
+	UseSSL                     bool
+	Port                       string
+	Version                    string
+	InviteSalt                 string
+	PublicLinkSalt             string
+	ResetSalt                  string
+	AnalyticsUrl               string
+	UseLocalStorage            bool
+	StorageDirectory           string
+	AllowedLoginAttempts       int
+	DisableEmailSignUp         bool
+	EnableOAuthServiceProvider bool
 }
 
 type SSOSetting struct {
@@ -286,6 +287,7 @@ func getClientProperties(c *Config) map[string]string {
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
+	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 
 	return props
 }

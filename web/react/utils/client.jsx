@@ -987,3 +987,36 @@ export function updateValetFeature(data, success, error) {
 
     track('api', 'api_teams_update_valet_feature');
 }
+
+export function registerOAuthApp(app, success, error) {
+    $.ajax({
+        url: '/api/v1/oauth/register',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(app),
+        success: success,
+        error: (xhr, status, err) => {
+            const e = handleError('registerApp', xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_apps_register');
+}
+
+export function allowOAuth2(responseType, clientId, redirectUri, state, scope, success, error) {
+    $.ajax({
+        url: '/api/v1/oauth/allow?response_type=' + responseType + '&client_id=' + clientId + '&redirect_uri=' + redirectUri + '&scope=' + scope + '&state=' + state,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success: success,
+        error: (xhr, status, err) => {
+            const e = handleError('allowOAuth2', xhr, status, err);
+            error(e);
+        }
+    });
+
+    module.exports.track('api', 'api_users_allow_oauth2');
+}
