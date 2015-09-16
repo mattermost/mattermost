@@ -30,6 +30,9 @@
     }
     .badge {
         background-color: $primary-color;
+        position: absolute;
+        right: 10px;
+        top: 5px;
     }
     .status {
         position:relative;
@@ -90,6 +93,12 @@
                 line-height: 1.5;
                 border-radius: 0;
                 color: #999;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                &.has-badge {
+                    padding-right: 30px;
+                }
                 &.nav-more {
                     text-decoration: underline;
                 }
@@ -104,6 +113,7 @@
             &.active {
                 a, a:hover, a:focus {
                     color: #111;
+                    padding-right: 10px;
                     background-color: #e1e1e1;
                     border-radius: 0;
                     font-weight: 400;

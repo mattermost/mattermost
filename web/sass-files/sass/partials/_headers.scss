@@ -133,7 +133,7 @@
 		.navbar-right {
 			font-size: 0.85em;
 			position: absolute;
-			top: 10px;
+			top: 11px;
 			right: 22px;
 			z-index: 5;
 			.dropdown-toggle {
@@ -171,7 +171,6 @@
 		}
 		.team__name, .user__name {
 			display: block;
-			line-height: 18px;
 			font-weight: 600;
 			font-size: 16px;
 			max-width: 80%;
@@ -180,9 +179,14 @@
 			text-overflow: ellipsis;
 			text-decoration: none;
 		}
+		.team__name {
+			line-height: 22px;
+			margin-top: -2px;
+		}
 		.user__name {
 			@include single-transition(all, 0.1s, linear);
 			font-size: 14px;
+			line-height: 18px;
 			font-weight: 400;
 			color: #eee;
 			color: rgba(#fff, 0.8);

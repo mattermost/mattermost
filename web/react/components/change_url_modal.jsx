@@ -159,7 +159,7 @@ ChangeUrlModal.defaultProps = {
     title: 'Change URL',
     desciption: '',
     urlLabel: 'URL',
-    submitButtonText: 'Submit',
+    submitButtonText: 'Save',
     currentURL: '',
     serverError: ''
 };

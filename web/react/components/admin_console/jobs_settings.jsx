@@ -172,7 +172,7 @@ export default class Jobs extends React.Component {
                                 type='submit'
                                 className='btn btn-primary'
                             >
-                                {'Submit'}
+                                {'Save'}
                             </button>
                         </div>
                     </div>
