@@ -6,6 +6,7 @@ dist
 npm-debug.log
 
 bundle*.js
+model/version.go
 
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)

@@ -56,6 +56,8 @@ func NewSqlStore() Store {
 			utils.Cfg.SqlSettings.Trace)
 	}
 
+	//version := sqlStore.GetCurrentSchemaVersion()
+
 	// Temporary upgrade code, remove after 0.8.0 release
 	if sqlStore.DoesColumnExist("Sessions", "AltId") {
 		sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
@@ -129,6 +131,11 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 	}
 
 	return dbmap
+}
+
+func (ss SqlStore) GetCurrentSchemaVersion() string {
+	version, _ := ss.GetMaster().SelectStr("SELECT PropVal FROM MattermostSystem WHERE PropName='SchemaVersion'")
+	return version
 }
 
 func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {

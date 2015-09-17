@@ -23,6 +23,7 @@ import (
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdAssignRole bool
+var flagCmdVersion bool
 var flagCmdResetPassword bool
 var flagConfigFile string
 var flagEmail string
@@ -83,14 +84,16 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
+	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 
 	flag.Parse()
 
-	flagRunCmds = flagCmdCreateTeam || flagCmdCreateUser || flagCmdAssignRole || flagCmdResetPassword
+	flagRunCmds = flagCmdCreateTeam || flagCmdCreateUser || flagCmdAssignRole || flagCmdResetPassword || flagCmdVersion
 }
 
 func runCmds() {
+	cmdVersion()
 	cmdCreateTeam()
 	cmdCreateUser()
 	cmdAssignRole()
@@ -179,6 +182,16 @@ func cmdCreateUser() {
 				flushLogAndExit(1)
 			}
 		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdVersion() {
+	if flagCmdVersion {
+		fmt.Fprintln(os.Stderr, "Version: "+model.GetFullVersion())
+		fmt.Fprintln(os.Stderr, "Build Number: "+model.BUILD_NUMBER)
+		fmt.Fprintln(os.Stderr, "Build Date: "+model.BUILD_DATE)
 
 		os.Exit(0)
 	}
@@ -297,6 +310,8 @@ var usage = `Mattermost commands to help configure the system
 Usage:
 
     platform [options]
+
+    -version                          Display the current version
 
     -config="config.json"             Path to the config file
 

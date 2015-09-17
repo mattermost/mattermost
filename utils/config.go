@@ -11,6 +11,8 @@ import (
 	"strconv"
 
 	l4g "code.google.com/p/log4go"
+
+	"github.com/mattermost/platform/model"
 )
 
 const (
@@ -26,7 +28,6 @@ type ServiceSettings struct {
 	AllowTesting               bool
 	UseSSL                     bool
 	Port                       string
-	Version                    string
 	InviteSalt                 string
 	PublicLinkSalt             string
 	ResetSalt                  string
@@ -275,7 +276,10 @@ func getSanitizeOptions(c *Config) map[string]bool {
 func getClientProperties(c *Config) map[string]string {
 	props := make(map[string]string)
 
-	props["Version"] = c.ServiceSettings.Version
+	props["Version"] = model.GetFullVersion()
+	props["BuildNumber"] = model.BUILD_NUMBER
+	props["BuildDate"] = model.BUILD_DATE
+
 	props["SiteName"] = c.ServiceSettings.SiteName
 	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
