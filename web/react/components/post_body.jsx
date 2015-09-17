@@ -18,7 +18,7 @@ export default class PostBody extends React.Component {
         this.state = {links: linkData.links, message: linkData.text};
     }
 
-    getTextNodesIn(nodeIn) {
+    getAllChildNodes(nodeIn) {
         var textNodes = [];
 
         function getTextNodes(node) {
@@ -35,7 +35,7 @@ export default class PostBody extends React.Component {
 
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
-        this.getTextNodesIn(React.findDOMNode(this)).forEach((current) => {
+        this.getAllChildNodes(React.findDOMNode(this)).forEach((current) => {
             global.window.emojify.run(current);
         });
     }
