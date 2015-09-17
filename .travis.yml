@@ -1,6 +1,10 @@
 language: go
 go:
 - 1.4.2
+- 1.5.1
+env:
+- TRAVIS_DB=mysql
+- TRAVIS_DB=postgres
 before_install:
 - gem install compass
 - sudo apt-get update -qq
@@ -24,6 +28,9 @@ before_script:
 - mysql -e "CREATE DATABASE IF NOT EXISTS mattermost_test ;" -uroot
 - mysql -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mostest' ;"  -uroot
 - mysql -e "GRANT ALL ON mattermost_test.* TO 'mmuser'@'%' ;" -uroot
+- psql -c "create database mattermost_test ;" -U postgres
+- psql -c "create user mmuser with password 'mostest' ;" -U postgres
+- psql -c 'grant all privileges on database "mattermost_test" to mmuser ;' -U postgres
 services:
 - redis-server
 addons:
@@ -38,6 +45,8 @@ deploy:
    on:
      repo: mattermost/platform
      tags: true
+     go: 1.4.2
+     condition: $TRAVIS_DB = mysql
 
  - provider: s3
    access_key_id: AKIAJCO3KJYEGWJIKDIQ
@@ -52,3 +61,5 @@ deploy:
    on:
      repo: mattermost/platform
      branch: master
+     go: 1.4.2
+     condition: $TRAVIS_DB = mysql
