@@ -251,6 +251,17 @@ export default class SecurityTab extends React.Component {
                     <div className='divider-dark first'/>
                     {passwordSection}
                     <div className='divider-dark'/>
+                    <ul
+                        className='section-min'
+                    >
+                        <li className='col-sm-10 section-title'>{'Version ' + global.window.config.Version}</li>
+                        <li className='col-sm-7 section-describe'>
+                            <div className='text-nowrap'>{'Build Number: ' + global.window.config.BuildNumber}</div>
+                            <div className='text-nowrap'>{'Build Date: ' + global.window.config.BuildDate}</div>
+                            <div className='text-nowrap'>{'Build Hash: ' + global.window.config.BuildHash}</div>
+                        </li>
+                    </ul>
+                    <div className='divider-dark'/>
                     <br></br>
                     <a
                         data-toggle='modal'

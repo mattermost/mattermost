@@ -77,18 +77,6 @@ export default class DeveloperTab extends React.Component {
                     <h3 className='tab-header'>{'Developer Settings'}</h3>
                     <div className='divider-dark first'/>
                     {appSection}
-                    <div className='divider-dark first'/>
-                    <ul
-                        className='section-min'
-                    >
-                        <li className='col-sm-10 section-title'>{'Version'}</li>
-                        <li className='col-sm-7 section-describe'>
-                            {'Version: ' + global.window.config.Version}<br/>
-                            {'Build Number: ' + global.window.config.BuildNumber}<br/>
-                            {'Build Date: ' + global.window.config.BuildDate}<br/>
-                            {'Build Hash: ' + global.window.config.BuildHash}<br/>
-                        </li>
-                    </ul>
                     <div className='divider-dark'/>
                 </div>
             </div>
