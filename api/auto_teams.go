@@ -52,7 +52,7 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, bool) {
 	}
 	team := &model.Team{
 		DisplayName: teamDisplayName,
-		Name:       teamName,
+		Name:        teamName,
 		Email:       teamEmail,
 		Type:        model.TEAM_OPEN,
 	}

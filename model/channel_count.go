@@ -20,7 +20,7 @@ type ChannelCounts struct {
 func (o *ChannelCounts) Etag() string {
 
 	ids := []string{}
-	for id, _ := range o.Counts {
+	for id := range o.Counts {
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
