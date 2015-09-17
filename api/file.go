@@ -86,7 +86,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i, _ := range files {
+	for i := range files {
 		file, err := files[i].Open()
 		defer file.Close()
 		if err != nil {

@@ -40,6 +40,15 @@ travis:
 
 	@echo Checking for style guide compliance
 	cd web/react && $(ESLINT) --quiet components/* dispatcher/* pages/* stores/* utils/*
+	@echo Running gofmt
+	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ mattermost.go 2>&1))
+	@echo "$(GOFMT_OUTPUT)"
+	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
+		echo "gofmt sucess"; \
+	else \
+		echo "gofmt failure"; \
+		exit 1; \
+	fi
 
 	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
 	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
@@ -112,6 +121,15 @@ install:
 check: install
 	@echo Running ESLint...
 	-cd web/react && $(ESLINT) components/* dispatcher/* pages/* stores/* utils/*
+	@echo Running gofmt
+	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ mattermost.go 2>&1))
+	@echo "$(GOFMT_OUTPUT)"
+	@if [[ ! "$(GOFMT_OUTPUT)" ]]; then \
+		echo "gofmt sucess"; \
+	else \
+		echo "gofmt failure"; \
+		exit 1; \
+	fi
 
 test: install
 	@mkdir -p logs

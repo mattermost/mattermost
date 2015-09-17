@@ -100,6 +100,10 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isTreamCreationAllowed(c, team.Email) {
+		return
+	}
+
 	team.PreSave()
 
 	team.Name = model.CleanTeamName(team.Name)
