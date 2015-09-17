@@ -11,7 +11,7 @@
 - [Software and Hardware Requirements](install/requirements.md)
 - [Local Machine Setup ](install/single-container-install.md)
 - [AWS Elastic Beanstalk Setup](install/aws-ebs-setup.md)
-- [Developer Machine Setup](doc/install/dev-setup.md)
+- [Developer Machine Setup](install/dev-setup.md)
 
 ### Configuration 
 
