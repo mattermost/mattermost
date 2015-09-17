@@ -230,7 +230,7 @@ func IsValidAlphaNum(s string, allowUnderscores bool) bool {
 
 func Etag(parts ...interface{}) string {
 
-	etag := GetFullVersion()
+	etag := CurrentVersion
 
 	for _, part := range parts {
 		etag += fmt.Sprintf(".%v", part)

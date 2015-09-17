@@ -43,7 +43,7 @@ func main() {
 	}
 
 	pwd, _ := os.Getwd()
-	l4g.Info("Current version is %v (%v/%v)", model.GetFullVersion(), model.BUILD_NUMBER, model.BUILD_DATE)
+	l4g.Info("Current version is %v (%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
 	l4g.Info("Current working directory is %v", pwd)
 	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
 
@@ -190,9 +190,10 @@ func cmdCreateUser() {
 
 func cmdVersion() {
 	if flagCmdVersion {
-		fmt.Fprintln(os.Stderr, "Version: "+model.GetFullVersion())
-		fmt.Fprintln(os.Stderr, "Build Number: "+model.BUILD_NUMBER)
-		fmt.Fprintln(os.Stderr, "Build Date: "+model.BUILD_DATE)
+		fmt.Fprintln(os.Stderr, "Version: "+model.CurrentVersion)
+		fmt.Fprintln(os.Stderr, "Build Number: "+model.BuildNumber)
+		fmt.Fprintln(os.Stderr, "Build Date: "+model.BuildDate)
+		fmt.Fprintln(os.Stderr, "Build Hash: "+model.BuildHash)
 
 		os.Exit(0)
 	}

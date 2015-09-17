@@ -196,9 +196,9 @@ func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 		var et etagPosts
 		err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.0.%v", model.GetFullVersion(), model.GetMillis())
+			result.Data = fmt.Sprintf("%v.0.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v.%v", model.GetFullVersion(), et.Id, et.UpdateAt)
+			result.Data = fmt.Sprintf("%v.%v.%v", model.CurrentVersion, et.Id, et.UpdateAt)
 		}
 
 		storeChannel <- result

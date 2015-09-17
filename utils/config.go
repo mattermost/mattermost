@@ -276,9 +276,10 @@ func getSanitizeOptions(c *Config) map[string]bool {
 func getClientProperties(c *Config) map[string]string {
 	props := make(map[string]string)
 
-	props["Version"] = model.GetFullVersion()
-	props["BuildNumber"] = model.BUILD_NUMBER
-	props["BuildDate"] = model.BUILD_DATE
+	props["Version"] = model.CurrentVersion
+	props["BuildNumber"] = model.BuildNumber
+	props["BuildDate"] = model.BuildDate
+	props["BuildHash"] = model.BuildHash
 
 	props["SiteName"] = c.ServiceSettings.SiteName
 	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)

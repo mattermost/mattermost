@@ -37,14 +37,14 @@ func TestPostStoreGet(t *testing.T) {
 	o1.Message = "a" + model.NewId() + "b"
 
 	etag1 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
-	if strings.Index(etag1, model.GetFullVersion()+".0.") != 0 {
+	if strings.Index(etag1, model.CurrentVersion+".0.") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	etag2 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
-	if strings.Index(etag2, model.GetFullVersion()+"."+o1.Id) != 0 {
+	if strings.Index(etag2, model.CurrentVersion+"."+o1.Id) != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
@@ -136,7 +136,7 @@ func TestPostStoreDelete(t *testing.T) {
 	o1.Message = "a" + model.NewId() + "b"
 
 	etag1 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
-	if strings.Index(etag1, model.GetFullVersion()+".0.") != 0 {
+	if strings.Index(etag1, model.CurrentVersion+".0.") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
@@ -160,7 +160,7 @@ func TestPostStoreDelete(t *testing.T) {
 	}
 
 	etag2 := (<-store.Post().GetEtag(o1.ChannelId)).Data.(string)
-	if strings.Index(etag2, model.GetFullVersion()+"."+o1.Id) != 0 {
+	if strings.Index(etag2, model.CurrentVersion+"."+o1.Id) != 0 {
 		t.Fatal("Invalid Etag")
 	}
 }

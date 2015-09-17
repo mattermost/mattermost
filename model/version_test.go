@@ -8,9 +8,7 @@ import (
 	"testing"
 )
 
-func TestVersion(t *testing.T) {
-	GetFullVersion()
-
+func TestSplitVersion(t *testing.T) {
 	major1, minor1, patch1 := SplitVersion("junk")
 	if major1 != 0 || minor1 != 0 || patch1 != 0 {
 		t.Fatal()
@@ -35,38 +33,42 @@ func TestVersion(t *testing.T) {
 	if major5 != 1 || minor5 != 2 || patch5 != 3 {
 		t.Fatal()
 	}
+}
 
-	if IsLastVersion(GetFullVersion()) {
+func TestGetPreviousVersion(t *testing.T) {
+	if major, minor := GetPreviousVersion("0.8.0"); major != 0 || minor != 7 {
+		t.Fatal(major, minor)
+	}
+
+	if major, minor := GetPreviousVersion("0.7.0"); major != 0 || minor != 6 {
+		t.Fatal(major, minor)
+	}
+
+	if major, minor := GetPreviousVersion("0.7.1"); major != 0 || minor != 6 {
+		t.Fatal(major, minor)
+	}
+
+	if major, minor := GetPreviousVersion("0.7111.1"); major != 0 || minor != 0 {
+		t.Fatal(major, minor)
+	}
+}
+
+func TestIsCurrentVersion(t *testing.T) {
+	major, minor, patch := SplitVersion(CurrentVersion)
+
+	if !IsCurrentVersion(CurrentVersion) {
 		t.Fatal()
 	}
 
-	if !IsLastVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR-1, VERSION_PATCH)) {
+	if !IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major, minor, patch+100)) {
 		t.Fatal()
 	}
 
-	// pacth should not affect current version check
-	if !IsLastVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR-1, VERSION_PATCH+1)) {
+	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major, minor+1, patch)) {
 		t.Fatal()
 	}
 
-	if IsLastVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR+1, VERSION_PATCH)) {
-		t.Fatal()
-	}
-
-	if !IsCurrentVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)) {
-		t.Fatal()
-	}
-
-	// pacth should not affect current version check
-	if !IsCurrentVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH+1)) {
-		t.Fatal()
-	}
-
-	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR+1, VERSION_PATCH)) {
-		t.Fatal()
-	}
-
-	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", VERSION_MAJOR+1, VERSION_MINOR, VERSION_PATCH)) {
+	if IsCurrentVersion(fmt.Sprintf("%v.%v.%v", major+1, minor, patch)) {
 		t.Fatal()
 	}
 }

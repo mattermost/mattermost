@@ -83,11 +83,10 @@ export default class DeveloperTab extends React.Component {
                     >
                         <li className='col-sm-10 section-title'>{'Version'}</li>
                         <li className='col-sm-7 section-describe'>
-                            {
-                                global.window.config.Version + ' (' +
-                                global.window.config.BuildNumber + '/' +
-                                global.window.config.BuildDate + ')'
-                            }
+                            {'Version: ' + global.window.config.Version}<br/>
+                            {'Build Number: ' + global.window.config.BuildNumber}<br/>
+                            {'Build Date: ' + global.window.config.BuildDate}<br/>
+                            {'Build Hash: ' + global.window.config.BuildHash}<br/>
                         </li>
                     </ul>
                     <div className='divider-dark'/>

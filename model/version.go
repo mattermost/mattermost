@@ -4,22 +4,25 @@
 package model
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
 
-const (
-	VERSION_MAJOR = 0
-	VERSION_MINOR = 8
-	VERSION_PATCH = 0
-	BUILD_NUMBER  = "_BUILD_NUMBER_"
-	BUILD_DATE    = "_BUILD_DATE_"
-)
-
-func GetFullVersion() string {
-	return fmt.Sprintf("%v.%v.%v", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+// This is a list of all the current viersions including any patches.
+// It should be maitained in chronological order with most current
+// release at the front of the list.
+var versions = []string{
+	"0.8.0",
+	"0.7.1",
+	"0.7.0",
+	"0.6.0",
+	"0.5.0",
 }
+
+var CurrentVersion string = versions[0]
+var BuildNumber = "developer"
+var BuildDate = "unknown"
+var BuildHash = "unknown"
 
 func SplitVersion(version string) (int64, int64, int64) {
 	parts := strings.Split(version, ".")
@@ -43,32 +46,41 @@ func SplitVersion(version string) (int64, int64, int64) {
 	return major, minor, patch
 }
 
-func GetPreviousVersion(version string) (int64, int64) {
-	major, minor, _ := SplitVersion(version)
+func GetPreviousVersion(currentVersion string) (int64, int64) {
+	currentIndex := -1
+	currentMajor, currentMinor, _ := SplitVersion(currentVersion)
 
-	if minor == 0 {
-		major = major - 1
-		minor = 9
-	} else {
-		minor = minor - 1
+	for index, version := range versions {
+		major, minor, _ := SplitVersion(version)
+
+		if currentMajor == major && currentMinor == minor {
+			currentIndex = index
+		}
+
+		if currentIndex >= 0 {
+			if currentMajor != major || currentMinor != minor {
+				return major, minor
+			}
+		}
 	}
 
-	return major, minor
+	return 0, 0
 }
 
 func IsCurrentVersion(versionToCheck string) bool {
+	currentMajor, currentMinor, _ := SplitVersion(CurrentVersion)
 	toCheckMajor, toCheckMinor, _ := SplitVersion(versionToCheck)
 
-	if toCheckMajor == VERSION_MAJOR && toCheckMinor == VERSION_MINOR {
+	if toCheckMajor == currentMajor && toCheckMinor == currentMinor {
 		return true
 	} else {
 		return false
 	}
 }
 
-func IsLastVersion(versionToCheck string) bool {
+func IsPreviousVersion(versionToCheck string) bool {
 	toCheckMajor, toCheckMinor, _ := SplitVersion(versionToCheck)
-	prevMajor, prevMinor := GetPreviousVersion(GetFullVersion())
+	prevMajor, prevMinor := GetPreviousVersion(CurrentVersion)
 
 	if toCheckMajor == prevMajor && toCheckMinor == prevMinor {
 		return true

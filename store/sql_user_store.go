@@ -325,9 +325,9 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users WHERE TeamId = :TeamId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.GetFullVersion(), model.GetMillis())
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.GetFullVersion(), updateAt)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 		}
 
 		storeChannel <- result
