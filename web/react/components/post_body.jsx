@@ -17,19 +17,42 @@ export default class PostBody extends React.Component {
         const linkData = Utils.extractLinks(this.props.post.message);
         this.state = {links: linkData.links, message: linkData.text};
     }
+
+    getTextNodesIn(nodeIn) {
+        var textNodes = [];
+
+        function getTextNodes(node) {
+            textNodes.push(node);
+
+            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+                getTextNodes(node.childNodes[i]);
+            }
+        }
+
+        getTextNodes(nodeIn);
+        return textNodes;
+    }
+
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        this.getTextNodesIn(React.findDOMNode(this)).forEach((current) => {
+            global.window.emojify.run(current);
+        });
     }
+
     componentDidMount() {
         this.parseEmojis();
     }
+
     componentDidUpdate() {
         this.parseEmojis();
     }
+
     componentWillReceiveProps(nextProps) {
         const linkData = Utils.extractLinks(nextProps.post.message);
         this.setState({links: linkData.links, message: linkData.text});
     }
+
     render() {
         const post = this.props.post;
         const filenames = this.props.post.filenames;
@@ -75,7 +98,7 @@ export default class PostBody extends React.Component {
             comment = (
                 <p className='post-link'>
                     <span>
-                        Commented on {name}{apostrophe} message:
+                        {'Commented on '}{name}{apostrophe}{' message:'}
                         <a
                             className='theme'
                             onClick={this.props.handleCommentClick}
@@ -98,7 +121,7 @@ export default class PostBody extends React.Component {
                     href='#'
                     onClick={this.props.retryPost}
                 >
-                    Retry
+                    {'Retry'}
                 </a>
             );
         } else if (post.state === Constants.POST_LOADING) {
@@ -133,6 +156,7 @@ export default class PostBody extends React.Component {
                 {comment}
                 <p
                     key={`${post.id}_message`}
+                    id={`${post.id}_message`}
                     className={postClass}
                 >
                     {loading}
