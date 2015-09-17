@@ -43,6 +43,7 @@ func main() {
 	}
 
 	pwd, _ := os.Getwd()
+	l4g.Info("Current version is %v (%v/%v)", model.GetFullVersion(), model.BUILD_NUMBER, model.BUILD_DATE)
 	l4g.Info("Current working directory is %v", pwd)
 	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
 
