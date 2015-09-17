@@ -3,7 +3,7 @@
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
-BUILD_DATE=`date +'%y.%m.%d %H:%M:%S'`
+BUILD_DATE = $(shell date -u)
 
 GO=$(GOPATH)/bin/godep go
 ESLINT=node_modules/eslint/bin/eslint.js

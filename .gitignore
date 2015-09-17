@@ -7,6 +7,7 @@ npm-debug.log
 
 bundle*.js
 model/version.go
+model/version.go.bak
 
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
