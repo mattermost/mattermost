@@ -5,10 +5,10 @@ package api
 
 import (
 	"bytes"
-	"code.google.com/p/freetype-go/freetype"
 	l4g "code.google.com/p/log4go"
 	b64 "encoding/base64"
 	"fmt"
+	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"

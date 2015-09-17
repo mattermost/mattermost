@@ -1,11 +1,7 @@
 {
 	"ImportPath": "github.com/mattermost/platform",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.4.2",
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/freetype-go/freetype",
-			"Rev": "46c3056cafbb4da11c4087a892c7d2bfa4224a8f"
-		},
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
 			"Comment": "null-15",
@@ -55,6 +51,11 @@
 		{
 			"ImportPath": "github.com/goamz/goamz/s3",
 			"Rev": "ad637a587dd8314770a1084481dd7b5d4fa1232f"
+		},
+		{
+			"ImportPath": "github.com/golang/freetype",
+			"Comment": "release-116-g41fa49a",
+			"Rev": "41fa49aa5b23cc7c4082c9aaaf2da41e195602d9"
 		},
 		{
 			"ImportPath": "github.com/golang/groupcache/lru",
@@ -112,7 +113,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/image/bmp",
-			"Rev": "eb11b45157c1b71f30b3cec66306f1cd779a689e"
+			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
+		},
+		{
+			"ImportPath": "golang.org/x/image/font",
+			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
+		},
+		{
+			"ImportPath": "golang.org/x/image/math/fixed",
+			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
 		},
 		{
 			"ImportPath": "gopkg.in/fsnotify.v1",
