@@ -39,6 +39,7 @@ type SqlStore struct {
 	audit    AuditStore
 	session  SessionStore
 	oauth    OAuthStore
+	system   SystemStore
 }
 
 func NewSqlStore() Store {
@@ -56,7 +57,24 @@ func NewSqlStore() Store {
 			utils.Cfg.SqlSettings.Trace)
 	}
 
-	//version := sqlStore.GetCurrentSchemaVersion()
+	schemaVersion := sqlStore.GetCurrentSchemaVersion()
+
+	// If the version is already set then we are potentially in an 'upgrade needed' state
+	if schemaVersion != "" {
+		// Check to see if it's the most current database schema version
+		if !model.IsCurrentVersion(schemaVersion) {
+			// If we are upgrading from the previous version then print a warning and continue
+			if model.IsLastVersion(schemaVersion) {
+				l4g.Warn("The database schema version of " + schemaVersion + " appears to be out of date")
+				l4g.Warn("Attempting to upgrade the database schema version to " + model.GetFullVersion())
+			} else {
+				// If this is an 'upgrade needed' state but the user is attempting to skip a version then halt the world
+				l4g.Critical("The database schema version of " + schemaVersion + " cannot be upgraded.  You must not skip a version.")
+				time.Sleep(time.Second)
+				panic("The database schema version of " + schemaVersion + " cannot be upgraded.  You must not skip a version.")
+			}
+		}
+	}
 
 	// Temporary upgrade code, remove after 0.8.0 release
 	if sqlStore.DoesColumnExist("Sessions", "AltId") {
@@ -70,6 +88,7 @@ func NewSqlStore() Store {
 	sqlStore.audit = NewSqlAuditStore(sqlStore)
 	sqlStore.session = NewSqlSessionStore(sqlStore)
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
+	sqlStore.system = NewSqlSystemStore(sqlStore)
 
 	sqlStore.master.CreateTablesIfNotExists()
 
@@ -80,6 +99,7 @@ func NewSqlStore() Store {
 	sqlStore.audit.(*SqlAuditStore).UpgradeSchemaIfNeeded()
 	sqlStore.session.(*SqlSessionStore).UpgradeSchemaIfNeeded()
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
+	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -88,6 +108,17 @@ func NewSqlStore() Store {
 	sqlStore.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
 	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
+	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
+
+	if model.IsLastVersion(schemaVersion) {
+		sqlStore.system.Update(&model.System{Name: "Version", Value: model.GetFullVersion()})
+		l4g.Warn("The database schema has been upgraded to version " + model.GetFullVersion())
+	}
+
+	if schemaVersion == "" {
+		sqlStore.system.Save(&model.System{Name: "Version", Value: model.GetFullVersion()})
+		l4g.Info("The database schema has been set to version " + model.GetFullVersion())
+	}
 
 	return sqlStore
 }
@@ -134,7 +165,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 }
 
 func (ss SqlStore) GetCurrentSchemaVersion() string {
-	version, _ := ss.GetMaster().SelectStr("SELECT PropVal FROM MattermostSystem WHERE PropName='SchemaVersion'")
+	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
 }
 
@@ -381,6 +412,10 @@ func (ss SqlStore) Audit() AuditStore {
 
 func (ss SqlStore) OAuth() OAuthStore {
 	return ss.oauth
+}
+
+func (ss SqlStore) System() SystemStore {
+	return ss.system
 }
 
 type mattermConverter struct{}

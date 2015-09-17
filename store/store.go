@@ -35,6 +35,7 @@ type Store interface {
 	Audit() AuditStore
 	Session() SessionStore
 	OAuth() OAuthStore
+	System() SystemStore
 	Close()
 }
 
@@ -129,4 +130,10 @@ type OAuthStore interface {
 	GetAccessData(token string) StoreChannel
 	GetAccessDataByAuthCode(authCode string) StoreChannel
 	RemoveAccessData(token string) StoreChannel
+}
+
+type SystemStore interface {
+	Save(system *model.System) StoreChannel
+	Update(system *model.System) StoreChannel
+	Get() StoreChannel
 }
