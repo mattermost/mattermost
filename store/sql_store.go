@@ -77,8 +77,10 @@ func NewSqlStore() Store {
 	}
 
 	// Temporary upgrade code, remove after 0.8.0 release
-	if sqlStore.DoesColumnExist("Sessions", "AltId") {
-		sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
+	if sqlStore.DoesTableExist("Sessions") {
+		if sqlStore.DoesColumnExist("Sessions", "AltId") {
+			sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
+		}
 	}
 
 	sqlStore.team = NewSqlTeamStore(sqlStore)
@@ -167,6 +169,51 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 func (ss SqlStore) GetCurrentSchemaVersion() string {
 	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
+}
+
+func (ss SqlStore) DoesTableExist(tableName string) bool {
+	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
+			strings.ToLower(tableName),
+		)
+
+		if err != nil {
+			l4g.Critical("Failed to check if table exists %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to check if table exists " + err.Error())
+		}
+
+		return count > 0
+
+	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+
+		count, err := ss.GetMaster().SelectInt(
+			`SELECT
+		    COUNT(0) AS table_exists
+			FROM
+			    information_schema.TABLES
+			WHERE
+			    TABLE_SCHEMA = DATABASE()
+			        AND TABLE_NAME = ?
+		    `,
+			tableName,
+		)
+
+		if err != nil {
+			l4g.Critical("Failed to check if table exists %v", err)
+			time.Sleep(time.Second)
+			panic("Failed to check if table exists " + err.Error())
+		}
+
+		return count > 0
+
+	} else {
+		l4g.Critical("Failed to check if column exists because of missing driver")
+		time.Sleep(time.Second)
+		panic("Failed to check if column exists because of missing driver")
+	}
+
 }
 
 func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
