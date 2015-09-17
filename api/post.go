@@ -353,7 +353,7 @@ func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {
 					}
 				}
 
-				for id, _ := range toEmailMap {
+				for id := range toEmailMap {
 					fireAndForgetMentionUpdate(post.ChannelId, id)
 				}
 			}
