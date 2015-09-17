@@ -13,7 +13,6 @@
 		"AllowTesting" : false,
         "UseSSL": false,
         "Port": "8065",
-        "Version": "developer",
         "Shards": {
         },
         "InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6",
