@@ -3,6 +3,8 @@
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
+BUILD_DATE = $(shell date -u)
+BUILD_HASH = $(shell git rev-parse HEAD)
 
 GO=$(GOPATH)/bin/godep go
 ESLINT=node_modules/eslint/bin/eslint.js
@@ -53,6 +55,10 @@ travis:
 		echo "gofmt failure"; \
 		exit 1; \
 	fi
+
+	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
 
 	@$(GO) build $(GOFLAGS) ./...
 	@$(GO) install $(GOFLAGS) ./...
@@ -226,6 +232,10 @@ cleandb:
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
 dist: install
+
+	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
 
 	@$(GO) build $(GOFLAGS) -i ./...
 	@$(GO) install $(GOFLAGS) ./...

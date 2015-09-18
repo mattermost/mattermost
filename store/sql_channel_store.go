@@ -37,7 +37,6 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("Channels", "CreatorId", "varchar(26)", "character varying(26)", "")
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {

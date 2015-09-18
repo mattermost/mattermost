@@ -23,6 +23,7 @@ import (
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdAssignRole bool
+var flagCmdVersion bool
 var flagCmdResetPassword bool
 var flagConfigFile string
 var flagEmail string
@@ -42,6 +43,7 @@ func main() {
 	}
 
 	pwd, _ := os.Getwd()
+	l4g.Info("Current version is %v (%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
 	l4g.Info("Current working directory is %v", pwd)
 	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
 
@@ -83,14 +85,16 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdCreateTeam, "create_team", false, "")
 	flag.BoolVar(&flagCmdCreateUser, "create_user", false, "")
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
+	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
 
 	flag.Parse()
 
-	flagRunCmds = flagCmdCreateTeam || flagCmdCreateUser || flagCmdAssignRole || flagCmdResetPassword
+	flagRunCmds = flagCmdCreateTeam || flagCmdCreateUser || flagCmdAssignRole || flagCmdResetPassword || flagCmdVersion
 }
 
 func runCmds() {
+	cmdVersion()
 	cmdCreateTeam()
 	cmdCreateUser()
 	cmdAssignRole()
@@ -179,6 +183,17 @@ func cmdCreateUser() {
 				flushLogAndExit(1)
 			}
 		}
+
+		os.Exit(0)
+	}
+}
+
+func cmdVersion() {
+	if flagCmdVersion {
+		fmt.Fprintln(os.Stderr, "Version: "+model.CurrentVersion)
+		fmt.Fprintln(os.Stderr, "Build Number: "+model.BuildNumber)
+		fmt.Fprintln(os.Stderr, "Build Date: "+model.BuildDate)
+		fmt.Fprintln(os.Stderr, "Build Hash: "+model.BuildHash)
 
 		os.Exit(0)
 	}
@@ -297,6 +312,8 @@ var usage = `Mattermost commands to help configure the system
 Usage:
 
     platform [options]
+
+    -version                          Display the current version
 
     -config="config.json"             Path to the config file
 

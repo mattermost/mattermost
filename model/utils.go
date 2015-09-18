@@ -16,11 +16,6 @@ import (
 	"time"
 )
 
-const (
-	// Also change web/react/stores/browser_store.jsx BROWSER_STORE_VERSION
-	ETAG_ROOT_VERSION = "12"
-)
-
 type StringMap map[string]string
 type StringArray []string
 type EncryptStringMap map[string]string
@@ -235,7 +230,7 @@ func IsValidAlphaNum(s string, allowUnderscores bool) bool {
 
 func Etag(parts ...interface{}) string {
 
-	etag := ETAG_ROOT_VERSION
+	etag := CurrentVersion
 
 	for _, part := range parts {
 		etag += fmt.Sprintf(".%v", part)
