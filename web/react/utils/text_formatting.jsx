@@ -56,7 +56,7 @@ function autolinkUrls(text, tokens) {
         const linkText = match.getMatchedText();
         let url = linkText;
 
-        if (!url.lastIndexOf('http', 0) === 0) {
+        if (url.lastIndexOf('http', 0) !== 0) {
             url = `http://${linkText}`;
         }
 
