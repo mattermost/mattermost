@@ -154,7 +154,7 @@ export default class PostBody extends React.Component {
         return (
             <div className='post-body'>
                 {comment}
-                <p
+                <div
                     key={`${post.id}_message`}
                     id={`${post.id}_message`}
                     className={postClass}
@@ -164,7 +164,7 @@ export default class PostBody extends React.Component {
                         onClick={TextFormatting.handleClick}
                         dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
                     />
-                </p>
+                </div>
                 {fileAttachmentHolder}
                 {embed}
             </div>

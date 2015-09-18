@@ -6,6 +6,10 @@ const Constants = require('./constants.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
 
+const marked = require('marked');
+
+const markdownRenderer = new marked.Renderer();
+
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
 // as part of the second parameter:
@@ -28,6 +32,11 @@ export function formatText(text, options = {}) {
     if (!('mentionHighlight' in options) || options.mentionHighlight) {
         output = highlightCurrentMentions(output, tokens);
     }
+
+    // perform markdown parsing while we have an html-free input string
+    console.log('output before marked ' + output);
+    output = marked(output, {renderer: markdownRenderer});
+    console.log('output after marked ' + output);
 
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
