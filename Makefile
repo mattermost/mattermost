@@ -32,6 +32,11 @@ all: travis
 travis:
 	@echo building for travis
 
+	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
+		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
+		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
+	fi
+
 	rm -Rf $(DIST_ROOT)
 	@$(GO) clean $(GOFLAGS) -i ./...
 
