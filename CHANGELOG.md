@@ -13,7 +13,18 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 ### New Features 
 
-- [See Product Roadmap for anticipated features](https://mattermost.atlassian.net/issues/?filter=10002)
+Messaging, Comments and Notifications
+
+- (Preview) Added emoji support http://www.emoji-cheat-sheet.com/
+
+Admin Console 
+
+- (Preview) Ability to view server logs and change config settings
+
+Integrations
+
+- (Preview) Added API for incoming webhooks
+- (Preview) Added OAuth2 as a service provider to allow for more secure connection to external apps 
 
 ### Improvements
 
@@ -42,7 +53,11 @@ Code Quality
 
 Many thanks to our external contributors. In no particular order: 
 
-- TBA
+- [Trozz](https://github.com/Trozz)
+- [LAndres](https://github.com/LAndreas)
+- [JessBot](https://github.com/JessBot)
+- [apaatsio](https://github.com/apaatsio)
+- [chengweiv5](https://github.com/chengweiv5)
 
 ## Release v0.7.0 (Beta1) 
 
