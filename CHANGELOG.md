@@ -15,7 +15,7 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 Messaging, Comments and Notifications
 
-- (Preview) Added emoji support http://www.emoji-cheat-sheet.com/
+- (Preview) Added support for emoji codes rendering to image files
 
 Admin Console 
 
