@@ -21,6 +21,7 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -28,7 +29,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"mime"
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
