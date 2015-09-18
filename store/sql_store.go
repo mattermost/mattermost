@@ -144,6 +144,10 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		)
 
 		if err != nil {
+			if err.Error() == "pq: relation \""+strings.ToLower(tableName)+"\" does not exist" {
+				return false
+			}
+
 			l4g.Critical("Failed to check if column exists %v", err)
 			time.Sleep(time.Second)
 			panic("Failed to check if column exists " + err.Error())
