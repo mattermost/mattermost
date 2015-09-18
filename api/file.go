@@ -28,6 +28,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"mime"
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
@@ -349,7 +350,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
-	w.Header().Set("Content-Type", "") // need to provide proper Content-Type in the future
+	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(filename)))
 	w.Write(f)
 }
 
