@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var NavbarDropdown = require('./navbar_dropdown.jsx');
-var UserStore = require('../stores/user_store.jsx');
+var AdminNavbarDropdown = require('./admin_navbar_dropdown.jsx');
+var UserStore = require('../../stores/user_store.jsx');
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
@@ -12,13 +12,18 @@ export default class SidebarHeader extends React.Component {
 
         this.state = {};
     }
-    toggleDropdown() {
+
+    toggleDropdown(e) {
+        e.preventDefault();
+
         if (this.refs.dropdown.blockToggle) {
             this.refs.dropdown.blockToggle = false;
             return;
         }
+
         $('.team__header').find('.dropdown-toggle').dropdown('toggle');
     }
+
     render() {
         var me = UserStore.getCurrentUser();
         var profilePicture = null;
@@ -45,23 +50,11 @@ export default class SidebarHeader extends React.Component {
                     {profilePicture}
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
-                        <div className='team__name'>{this.props.teamDisplayName}</div>
+                        <div className='team__name'>{'System Console'}</div>
                     </div>
                 </a>
-                <NavbarDropdown
-                    ref='dropdown'
-                    teamType={this.props.teamType}
-                />
+                <AdminNavbarDropdown ref='dropdown' />
             </div>
         );
     }
 }
-
-SidebarHeader.defaultProps = {
-    teamDisplayName: global.window.config.SiteName,
-    teamType: ''
-};
-SidebarHeader.propTypes = {
-    teamDisplayName: React.PropTypes.string,
-    teamType: React.PropTypes.string
-};

@@ -30,12 +30,12 @@ export default class NavbarDropdown extends React.Component {
         UserStore.addTeamsChangeListener(this.onListenerChange);
         TeamStore.addChangeListener(this.onListenerChange);
 
-        $(React.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', function resetDropdown() {
+        $(React.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
             this.blockToggle = true;
-            setTimeout(function blockTimeout() {
+            setTimeout(() => {
                 this.blockToggle = false;
-            }.bind(this), 100);
-        }.bind(this));
+            }, 100);
+        });
     }
     componentWillUnmount() {
         UserStore.removeTeamsChangeListener(this.onListenerChange);
@@ -53,12 +53,16 @@ export default class NavbarDropdown extends React.Component {
         var teamLink = '';
         var inviteLink = '';
         var manageLink = '';
+        var sysAdminLink = '';
+        var adminDivider = '';
         var currentUser = UserStore.getCurrentUser();
         var isAdmin = false;
+        var isSystemAdmin = false;
         var teamSettings = null;
 
         if (currentUser != null) {
-            isAdmin = currentUser.roles.indexOf('admin') > -1;
+            isAdmin = Utils.isAdmin(currentUser.roles);
+            isSystemAdmin = Utils.isInRole(currentUser.roles, 'system_admin');
 
             inviteLink = (
                 <li>
@@ -67,7 +71,7 @@ export default class NavbarDropdown extends React.Component {
                         data-toggle='modal'
                         data-target='#invite_member'
                     >
-                        Invite New Member
+                        {'Invite New Member'}
                     </a>
                 </li>
             );
@@ -82,7 +86,7 @@ export default class NavbarDropdown extends React.Component {
                             data-title='Team Invite'
                             data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id}
                         >
-                            Get Team Invite Link
+                            {'Get Team Invite Link'}
                         </a>
                     </li>
                 );
@@ -97,19 +101,36 @@ export default class NavbarDropdown extends React.Component {
                         data-toggle='modal'
                         data-target='#team_members'
                     >
-                        Manage Team
+                        {'Manage Team'}
                     </a>
                 </li>
             );
-            teamSettings = (<li>
-                                <a
-                                    href='#'
-                                    data-toggle='modal'
-                                    data-target='#team_settings'
-                                >
-                                    Team Settings
-                                </a>
-                            </li>);
+
+            adminDivider = (<li className='divider'></li>);
+
+            teamSettings = (
+                <li>
+                    <a
+                        href='#'
+                        data-toggle='modal'
+                        data-target='#team_settings'
+                    >
+                        {'Team Settings'}
+                    </a>
+                </li>
+            );
+        }
+
+        if (isSystemAdmin) {
+            sysAdminLink = (
+                <li>
+                    <a
+                        href='/admin_console'
+                    >
+                        {'System Console'}
+                    </a>
+                </li>
+            );
         }
 
         var teams = [];
@@ -123,9 +144,9 @@ export default class NavbarDropdown extends React.Component {
         );
         if (this.state.teams.length > 1 && this.state.currentTeam) {
             var curTeamName = this.state.currentTeam.name;
-            this.state.teams.forEach(function listTeams(teamName) {
+            this.state.teams.forEach((teamName) => {
                 if (teamName !== curTeamName) {
-                    teams.push(<li key={teamName}><a href={Utils.getWindowLocationOrigin() + '/' + teamName}>Switch to {teamName}</a></li>);
+                    teams.push(<li key={teamName}><a href={Utils.getWindowLocationOrigin() + '/' + teamName}>{'Switch to ' + teamName}</a></li>);
                 }
             });
         }
@@ -135,7 +156,7 @@ export default class NavbarDropdown extends React.Component {
                             target='_blank'
                             href={Utils.getWindowLocationOrigin() + '/signup_team'}
                         >
-                            Create a New Team
+                            {'Create a New Team'}
                         </a>
                     </li>);
 
@@ -167,29 +188,31 @@ export default class NavbarDropdown extends React.Component {
                                 data-toggle='modal'
                                 data-target='#user_settings'
                             >
-                                Account Settings
+                                {'Account Settings'}
                             </a>
                         </li>
-                        {teamSettings}
                         {inviteLink}
                         {teamLink}
+                        {adminDivider}
+                        {teamSettings}
                         {manageLink}
+                        {sysAdminLink}
+                        {teams}
+                        <li className='divider'></li>
                         <li>
                             <a
                                 href='#'
                                 onClick={this.handleLogoutClick}
                             >
-                                Logout
+                                {'Logout'}
                             </a>
                         </li>
-                        {teams}
-                        <li className='divider'></li>
                         <li>
                             <a
                                 target='_blank'
                                 href='/static/help/help.html'
                             >
-                                Help
+                                {'Help'}
                             </a>
                         </li>
                         <li>
@@ -197,7 +220,7 @@ export default class NavbarDropdown extends React.Component {
                                 target='_blank'
                                 href='/static/help/report_problem.html'
                             >
-                                Report a Problem
+                                {'Report a Problem'}
                             </a>
                         </li>
                     </ul>

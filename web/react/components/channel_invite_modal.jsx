@@ -121,7 +121,7 @@ export default class ChannelInviteModal extends React.Component {
         var currentMember = ChannelStore.getCurrentMember();
         var isAdmin = false;
         if (currentMember) {
-            isAdmin = currentMember.roles.indexOf('admin') > -1 || UserStore.getCurrentUser().roles.indexOf('admin') > -1;
+            isAdmin = utils.isAdmin(currentMember.roles) || utils.isAdmin(UserStore.getCurrentUser().roles);
         }
 
         var content;

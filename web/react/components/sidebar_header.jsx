@@ -12,7 +12,8 @@ export default class SidebarHeader extends React.Component {
 
         this.state = {};
     }
-    toggleDropdown() {
+    toggleDropdown(e) {
+        e.preventDefault();
         if (this.refs.dropdown.blockToggle) {
             this.refs.dropdown.blockToggle = false;
             return;
