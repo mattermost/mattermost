@@ -33,6 +33,27 @@ import (
 	"time"
 )
 
+const (
+	/*
+	  EXIF Image Orientations
+	  1        2       3      4         5            6           7          8
+
+	  888888  888888      88  88      8888888888  88                  88  8888888888
+	  88          88      88  88      88  88      88  88          88  88      88  88
+	  8888      8888    8888  8888    88          8888888888  8888888888          88
+	  88          88      88  88
+	  88          88  888888  888888
+	*/
+	Upright            = 1
+	UprightMirrored    = 2
+	UpsideDown         = 3
+	UpsideDownMirrored = 4
+	RotatedCWMirrored  = 5
+	RotatedCCW         = 6
+	RotatedCCWMirrored = 7
+	RotatedCW          = 8
+)
+
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
 
 func InitFile(r *mux.Router) {
@@ -154,9 +175,10 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 
 				// Create a temporary image that will be manipulated and then used to make the thumbnail and preview image
 				var temp *image.RGBA
-				if orientation >= 1 && orientation <= 4 {
+				switch orientation {
+				case Upright, UprightMirrored, UpsideDown, UpsideDownMirrored:
 					temp = image.NewRGBA(img.Bounds())
-				} else {
+				case RotatedCCW, RotatedCCWMirrored, RotatedCW, RotatedCWMirrored:
 					bounds := img.Bounds()
 					temp = image.NewRGBA(image.Rect(bounds.Min.Y, bounds.Min.X, bounds.Max.Y, bounds.Max.X))
 
@@ -168,25 +190,25 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 
 				// Copy the original image onto the temporary one while rotating it as necessary
 				switch orientation {
-				case 3, 4:
+				case UpsideDown, UpsideDownMirrored:
 					// rotate 180 degrees
 					err := graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: math.Pi})
 					if err != nil {
 						l4g.Error("Unable to rotate image")
 					}
-				case 5, 8:
+				case RotatedCW, RotatedCWMirrored:
 					// rotate 90 degrees CCW
 					graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: 3 * math.Pi / 2})
 					if err != nil {
 						l4g.Error("Unable to rotate image")
 					}
-				case 6, 7:
+				case RotatedCCW, RotatedCCWMirrored:
 					// rotate 90 degrees CW
 					graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: math.Pi / 2})
 					if err != nil {
 						l4g.Error("Unable to rotate image")
 					}
-				case 1, 2:
+				case Upright, UprightMirrored:
 					draw.Draw(temp, temp.Bounds(), img, img.Bounds().Min, draw.Over)
 				}
 
@@ -250,14 +272,14 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 
 func getImageOrientation(imageData []byte) (int, error) {
 	if exifData, err := exif.Decode(bytes.NewReader(imageData)); err != nil {
-		return 1, err
+		return Upright, err
 	} else {
 		if tag, err := exifData.Get("Orientation"); err != nil {
-			return 1, err
+			return Upright, err
 		} else {
 			orientation, err := tag.Int(0)
 			if err != nil {
-				return 1, err
+				return Upright, err
 			} else {
 				return orientation, nil
 			}
