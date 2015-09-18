@@ -193,12 +193,6 @@ export default class NavbarDropdown extends React.Component {
                         </li>
                         {inviteLink}
                         {teamLink}
-                        {adminDivider}
-                        {teamSettings}
-                        {manageLink}
-                        {sysAdminLink}
-                        {teams}
-                        <li className='divider'></li>
                         <li>
                             <a
                                 href='#'
@@ -207,6 +201,12 @@ export default class NavbarDropdown extends React.Component {
                                 {'Logout'}
                             </a>
                         </li>
+                        {adminDivider}
+                        {teamSettings}
+                        {manageLink}
+                        {sysAdminLink}
+                        {teams}
+                        <li className='divider'></li>
                         <li>
                             <a
                                 target='_blank'
