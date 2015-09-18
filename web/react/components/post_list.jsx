@@ -419,7 +419,7 @@ export default class PostList extends React.Component {
 
         var members = ChannelStore.getExtraInfo(channel.id).members;
         for (var i = 0; i < members.length; i++) {
-            if (members[i].roles.indexOf('admin') > -1) {
+            if (utils.isAdmin(members[i].roles)) {
                 return members[i].username;
             }
         }

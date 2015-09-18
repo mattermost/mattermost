@@ -297,9 +297,38 @@ export function getLogs(success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getLogs', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getConfig(success, error) {
+    $.ajax({
+        url: '/api/v1/admin/config',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getConfig', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function saveConfig(config, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/save_config',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(config),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('saveConfig', xhr, status, err);
             error(e);
         }
     });

@@ -9,12 +9,11 @@
     },
     "ServiceSettings": {
         "SiteName": "Mattermost",
-        "Mode" : "dev",
-        "AllowTesting" : false,
+        "Mode": "dev",
+        "AllowTesting": false,
         "UseSSL": false,
         "Port": "8065",
-        "Shards": {
-        },
+        "Version": "developer",
         "InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6",
         "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
@@ -25,21 +24,12 @@
         "DisableEmailSignUp": false,
         "EnableOAuthServiceProvider": false
     },
-    "SSOSettings": {
-        "gitlab": {
-            "Allow": false,
-            "Secret" : "",
-            "Id": "",
-            "Scope": "",
-            "AuthEndpoint": "",
-            "TokenEndpoint": "",
-            "UserApiEndpoint": ""
-        }
-    },
     "SqlSettings": {
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8",
-        "DataSourceReplicas": ["mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"],
+        "DataSourceReplicas": [
+            "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"
+        ],
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
@@ -61,7 +51,7 @@
         "InitialFont": "luximbi.ttf"
     },
     "EmailSettings": {
-        "ByPassEmail" : true,
+        "ByPassEmail": true,
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
@@ -94,8 +84,20 @@
         "MaxUsersPerTeam": 150,
         "AllowPublicLink": true,
         "AllowValetDefault": false,
+        "TourLink": "",
         "DefaultThemeColor": "#2389D7",
         "DisableTeamCreation": false,
         "RestrictCreationToDomains": ""
+    },
+    "SSOSettings": {
+        "gitlab": {
+            "Allow": false,
+            "Secret": "",
+            "Id": "",
+            "Scope": "",
+            "AuthEndpoint": "",
+            "TokenEndpoint": "",
+            "UserApiEndpoint": ""
+        }
     }
 }

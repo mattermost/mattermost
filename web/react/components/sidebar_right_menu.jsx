@@ -26,7 +26,7 @@ export default class SidebarRightMenu extends React.Component {
         var isAdmin = false;
 
         if (currentUser != null) {
-            isAdmin = currentUser.roles.indexOf('admin') > -1;
+            isAdmin = utils.isAdmin(currentUser.roles);
 
             inviteLink = (
                 <li>

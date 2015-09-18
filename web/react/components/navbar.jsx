@@ -8,6 +8,7 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var MessageWrapper = require('./message_wrapper.jsx');
 var NotifyCounts = require('./notify_counts.jsx');
+const Utils = require('../utils/utils.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -335,7 +336,7 @@ export default class Navbar extends React.Component {
                     options={{singleline: true, mentionHighlight: false}}
                 />
             );
-            isAdmin = this.state.member.roles.indexOf('admin') > -1;
+            isAdmin = Utils.isAdmin(this.state.member.roles);
 
             if (channel.type === 'O') {
                 channelTitle = channel.display_name;

@@ -21,9 +21,11 @@ export default class Logs extends React.Component {
         AdminStore.addLogChangeListener(this.onLogListenerChange);
         AsyncClient.getLogs();
     }
+
     componentWillUnmount() {
         AdminStore.removeLogChangeListener(this.onLogListenerChange);
     }
+
     onLogListenerChange() {
         this.setState({
             logs: AdminStore.getLogs()

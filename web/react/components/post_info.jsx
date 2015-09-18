@@ -20,7 +20,7 @@ export default class PostInfo extends React.Component {
     createDropdown() {
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() === post.user_id;
-        var isAdmin = UserStore.getCurrentUser().roles.indexOf('admin') > -1;
+        var isAdmin = utils.isAdmin(UserStore.getCurrentUser().roles);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
             return '';
