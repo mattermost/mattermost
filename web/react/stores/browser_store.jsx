@@ -9,9 +9,6 @@ function getPrefix() {
     return UserStore.getCurrentId() + '_';
 }
 
-// Also change model/utils.go ETAG_ROOT_VERSION
-var BROWSER_STORE_VERSION = '.5';
-
 class BrowserStoreClass {
     constructor() {
         this.getItem = this.getItem.bind(this);
@@ -25,9 +22,9 @@ class BrowserStoreClass {
         this.isLocalStorageSupported = this.isLocalStorageSupported.bind(this);
 
         var currentVersion = localStorage.getItem('local_storage_version');
-        if (currentVersion !== BROWSER_STORE_VERSION) {
+        if (currentVersion !== global.window.config.Version) {
             this.clear();
-            localStorage.setItem('local_storage_version', BROWSER_STORE_VERSION);
+            localStorage.setItem('local_storage_version', global.window.config.Version);
         }
     }
 
