@@ -790,4 +790,5 @@ func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 
 func (c *Client) MockSession(sessionToken string) {
 	c.AuthToken = sessionToken
+	c.AuthType = HEADER_BEARER
 }
