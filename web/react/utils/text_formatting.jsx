@@ -33,7 +33,9 @@ export function formatText(text, options = {}) {
     output = replaceTokens(output, tokens);
 
     // replace newlines with html line breaks
-    output = replaceNewlines(output, options.singleline);
+    if (options.singleline) {
+        output = replaceNewlines(output);
+    }
 
     return output;
 }
@@ -246,11 +248,7 @@ function replaceTokens(text, tokens) {
     return output;
 }
 
-function replaceNewlines(text, singleline) {
-    if (!singleline) {
-        return text.replace(/\n/g, '<br />');
-    }
-
+function replaceNewlines(text) {
     return text.replace(/\n/g, ' ');
 }
 
