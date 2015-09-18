@@ -345,6 +345,32 @@ export function getLogs() {
     );
 }
 
+export function getConfig() {
+    if (isCallInProgress('getConfig')) {
+        return;
+    }
+
+    callTracker.getConfig = utils.getTimestamp();
+    client.getConfig(
+        (data, textStatus, xhr) => {
+            callTracker.getConfig = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_CONFIG,
+                config: data
+            });
+        },
+        (err) => {
+            callTracker.getConfig = 0;
+            dispatchError(err, 'getConfig');
+        }
+    );
+}
+
 export function findTeams(email) {
     if (isCallInProgress('findTeams_' + email)) {
         return;

@@ -27,36 +27,36 @@ export default class AdminSidebar extends React.Component {
     }
 
     componentDidMount() {
-        $('.nav__menu-item').on('click', function clickme(e) {
-            e.preventDefault();
-            $(this).closest('.sidebar--collapsable').find('.nav__menu-item').removeClass('active');
-            $(this).addClass('active');
-            $(this).closest('.sidebar--collapsable').find('.nav__sub-menu').addClass('hide');
-            $(this).next('.nav__sub-menu').removeClass('hide');
-        });
+        // $('.nav__menu-item').on('click', function clickme(e) {
+        //     e.preventDefault();
+        //     $(this).closest('.sidebar--collapsable').find('.nav__menu-item').removeClass('active');
+        //     $(this).addClass('active');
+        //     $(this).closest('.sidebar--collapsable').find('.nav__sub-menu').addClass('hide');
+        //     $(this).next('.nav__sub-menu').removeClass('hide');
+        // });
 
-        $('.nav__sub-menu a').on('click', function clickme(e) {
-            e.preventDefault();
-            $(this).closest('.nav__sub-menu').find('a').removeClass('active');
-            $(this).addClass('active');
-        });
+        // $('.nav__sub-menu a').on('click', function clickme(e) {
+        //     e.preventDefault();
+        //     $(this).closest('.nav__sub-menu').find('a').removeClass('active');
+        //     $(this).addClass('active');
+        // });
 
-        $('.nav__sub-menu-item').on('click', function clickme(e) {
-            e.preventDefault();
-            $(this).closest('.sidebar--collapsable').find('.nav__inner-menu').addClass('hide');
-            $(this).closest('li').next('li').find('.nav__inner-menu').removeClass('hide');
-            $(this).closest('li').next('li').find('.nav__inner-menu li:first a').addClass('active');
-        });
+        // $('.nav__sub-menu-item').on('click', function clickme(e) {
+        //     e.preventDefault();
+        //     $(this).closest('.sidebar--collapsable').find('.nav__inner-menu').addClass('hide');
+        //     $(this).closest('li').next('li').find('.nav__inner-menu').removeClass('hide');
+        //     $(this).closest('li').next('li').find('.nav__inner-menu li:first a').addClass('active');
+        // });
 
-        $('.nav__inner-menu a').on('click', function clickme() {
-            $(this).closest('.nav__inner-menu').closest('li').prev('li').find('a').addClass('active');
-        });
+        // $('.nav__inner-menu a').on('click', function clickme() {
+        //     $(this).closest('.nav__inner-menu').closest('li').prev('li').find('a').addClass('active');
+        // });
 
-        $('.nav__sub-menu .menu__close').on('click', function close() {
-            var menuItem = $(this).closest('li');
-            menuItem.next('li').remove();
-            menuItem.remove();
-        });
+        // $('.nav__sub-menu .menu__close').on('click', function close() {
+        //     var menuItem = $(this).closest('li');
+        //     menuItem.next('li').remove();
+        //     menuItem.remove();
+        // });
     }
 
     render() {
@@ -69,10 +69,6 @@ export default class AdminSidebar extends React.Component {
                     />
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
-                            <a href='#'
-                                className='nav__menu-item active'
-                            >
-                                <span className='icon fa fa-gear'></span> <span>{'Basic Settings'}</span></a>
                             <ul className='nav nav__sub-menu'>
                                 <li>
                                     <a
@@ -86,22 +82,21 @@ export default class AdminSidebar extends React.Component {
                                 <li>
                                     <a
                                         href='#'
+                                        className={this.isSelected('log_settings')}
+                                        onClick={this.handleClick.bind(null, 'log_settings')}
+                                    >
+                                        {'Log Settings'}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
                                         className={this.isSelected('logs')}
                                         onClick={this.handleClick.bind(null, 'logs')}
                                     >
                                         {'Logs'}
                                     </a>
                                 </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a
-                                href='#'
-                                className='nav__menu-item'
-                            >
-                                <span className='icon fa fa-gear'></span> <span>{'Jobs'}</span>
-                            </a>
-                            <ul className='nav nav__sub-menu hide'>
                                 <li>
                                     <a
                                         href='#'
@@ -110,85 +105,6 @@ export default class AdminSidebar extends React.Component {
                                     >
                                         {'Job Settings'}
                                     </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a
-                                href='#'
-                                className='nav__menu-item'
-                            >
-                                <span className='icon fa fa-gear'></span>
-                                <span>{'Team Settings (306)'}</span>
-                                <span className='menu-icon--right'>
-                                    <i className='fa fa-plus'></i>
-                                </span>
-                            </a>
-                            <ul className='nav nav__sub-menu hide'>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className='nav__sub-menu-item active'
-                                    >
-                                        {'Adal '}
-                                        <span className='menu-icon--right menu__close'>{'x'}</span>
-                                </a>
-                                </li>
-                                <li>
-                                    <ul className='nav nav__inner-menu'>
-                                        <li>
-                                            <a
-                                                href='#'
-                                                className='active'
-                                            >
-                                                {'- Users'}
-                                            </a>
-                                        </li>
-                                        <li><a href='#'>{'- View Statistics'}</a></li>
-                                        <li>
-                                            <a href='#'>
-                                                {'- View Audit Log'}
-                                                <span className='badge pull-right small'>{'1'}</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className='nav__sub-menu-item'
-                                    >
-                                        {'Boole '}
-                                        <span className='menu-icon--right menu__close'>{'x'}</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <ul className='nav nav__inner-menu hide'>
-                                        <li>
-                                            <a
-                                                href='#'
-                                                className='active'
-                                            >
-                                                {'- Users'}
-                                            </a>
-                                        </li>
-                                        <li><a href='#'>{'- View Statistics'}</a></li>
-                                        <li>
-                                            <a href='#'>
-                                                {'- View Audit Log'}
-                                                <span className='badge pull-right small'>{'1'}</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <span
-                                        data-toggle='modal'
-                                        data-target='#select-team'
-                                        className='nav-more'
-                                    >
-                                        {'Select a team'}
-                                    </span>
                                 </li>
                             </ul>
                         </li>
