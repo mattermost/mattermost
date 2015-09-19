@@ -3,12 +3,13 @@
 
 const Autolinker = require('autolinker');
 const Constants = require('./constants.jsx');
+const Markdown = require('./markdown.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
 
 const marked = require('marked');
 
-const markdownRenderer = new marked.Renderer();
+const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
