@@ -21,7 +21,14 @@ export function formatText(text, options = {}) {
     // TODO remove me
     options.markdown = true;
 
-    let output = sanitizeHtml(text);
+    // wait until marked can sanitize the html so that we don't break markdown block quotes
+    let output;
+    if (!options.markdown) {
+        output = sanitizeHtml(text);
+    } else {
+        output = text;
+    }
+
     const tokens = new Map();
 
     // replace important words and phrases with tokens
@@ -40,7 +47,10 @@ export function formatText(text, options = {}) {
     // perform markdown parsing while we have an html-free input string
     if (options.markdown) {
         console.log('output before marked ' + output);
-        output = marked(output, {renderer: markdownRenderer});
+        output = marked(output, {
+            renderer: markdownRenderer,
+            sanitize: true
+        });
         console.log('output after marked ' + output);
     }
 
