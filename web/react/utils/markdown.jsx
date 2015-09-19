@@ -5,10 +5,12 @@ const marked = require('marked');
 
 export class MattermostMarkdownRenderer extends marked.Renderer {
     link(href, title, text) {
-        if (href.lastIndexOf('http', 0) !== 0) {
-            href = `http://${href}`;
+        let outHref = href;
+
+        if (outHref.lastIndexOf('http', 0) !== 0) {
+            outHref = `http://${outHref}`;
         }
 
-        return super.link(href, title, text);
+        return super.link(outHref, title, text);
     }
 }

@@ -17,9 +17,11 @@ const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
+// - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
-    // TODO remove me
-    options.markdown = true;
+    if (!('markdown' in options)) {
+        options.markdown = true;
+    }
 
     // wait until marked can sanitize the html so that we don't break markdown block quotes
     let output;
@@ -46,12 +48,10 @@ export function formatText(text, options = {}) {
 
     // perform markdown parsing while we have an html-free input string
     if (options.markdown) {
-        console.log('output before marked ' + output);
         output = marked(output, {
             renderer: markdownRenderer,
             sanitize: true
         });
-        console.log('output after marked ' + output);
     }
 
     // reinsert tokens with formatted versions of the important words and phrases
