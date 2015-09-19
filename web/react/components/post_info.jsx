@@ -151,7 +151,10 @@ export default class PostInfo extends React.Component {
         return (
             <ul className='post-header post-info'>
                 <li className='post-header-col'>
-                    <time className='post-profile-time'>
+                    <time
+                        className='post-profile-time'
+                        title={new Date(post.create_at).toString()}
+                    >
                         {utils.displayDateTime(post.create_at)}
                     </time>
                 </li>
