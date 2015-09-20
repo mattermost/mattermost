@@ -43,6 +43,10 @@ Performance
 Code Quality 
 
 - Reformatted Javascript per Mattermost Style Guide
+ 
+UI
+
+- Added version, build number, build date and build hash under Account Settings -> Security (to be moved to "About" dialog later)
 
 ### Bug Fixes
 
