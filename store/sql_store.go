@@ -129,12 +129,12 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 
 	db, err := dbsql.Open(driver, dataSource)
 	if err != nil {
-		l4g.Critical("Failed to open sql connection to '%v' err:%v", dataSource, err)
+		l4g.Critical("Failed to open sql connection to err:%v", err)
 		time.Sleep(time.Second)
 		panic("Failed to open sql connection" + err.Error())
 	}
 
-	l4g.Info("Pinging sql %v database at '%v'", con_type, dataSource)
+	l4g.Info("Pinging sql %v database", con_type)
 	err = db.Ping()
 	if err != nil {
 		l4g.Critical("Failed to ping db err:%v", err)
