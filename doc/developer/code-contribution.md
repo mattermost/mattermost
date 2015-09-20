@@ -35,7 +35,16 @@ git checkout -b <branch name>
 
   For pull requests made by contributors not yet added to the approved contributor list, a reviewer may respond: 
   
-  ```Thanks @[username] for the pull request! Before we can review, we need to add you to the list of [approved contributors](https://docs.google.com/spreadsheets/d/1NTCeG-iL_VS9bFqtmHSfwETo5f-8MQ7oMDE5IUYJi_Y/pubhtml?gid=0&single=true).  Please help complete the Mattermost [contribution license agreement](http://www.mattermost.org/mattermost-contributor-agreement/), which is a standard procedure for many open source projects. More information is in the above link. Please let us know if you have any questions. We are very happy to have you join our growing community!``` 
+  ```
+  Thanks @[username] for the pull request! 
+  
+  Before we can review, we need to add you to the list of [approved contributors](https://docs.google.com/spreadsheets/d/1NTCeG-iL_VS9bFqtmHSfwETo5f-8MQ7oMDE5IUYJi_Y/pubhtml?gid=0&single=true).  
+  Please help complete the Mattermost [contribution license agreement](http://www.mattermost.org/mattermost-contributor-agreement/), which is a standard procedure for many open source projects. More information is in the above link. 
+  
+  Please let us know if you have any questions. 
+  
+  We are very happy to have you join our growing community!
+``` 
 
 
 2. When you submit your pull request please include the Ticket ID at the beginning of your pull request comment, followed by a colon. 
