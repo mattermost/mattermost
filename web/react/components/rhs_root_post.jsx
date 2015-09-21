@@ -20,6 +20,7 @@ export default class RhsRootPost extends React.Component {
     }
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        global.window.emojify.run(React.findDOMNode(this.refs.message_holder));
     }
     componentDidMount() {
         this.parseEmojis();
@@ -148,6 +149,7 @@ export default class RhsRootPost extends React.Component {
                     </ul>
                     <div className='post-body'>
                         <div
+                            ref='message_holder'
                             onClick={TextFormatting.handleClick}
                             dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
                         />
