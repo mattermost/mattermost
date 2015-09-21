@@ -10,12 +10,14 @@ export default class EmailVerify extends React.Component {
         this.state = {};
     }
     handleResend() {
-        window.location.href = window.location.href + '&resend=true';
+        const newAddress = window.location.href.replace('?resend_success=true', '').replace('&resend_success=true', '');
+        window.location.href = newAddress + '&resend=true';
     }
     render() {
         var title = '';
         var body = '';
         var resend = '';
+        let resendConfirm = '';
         if (this.props.isVerified === 'true') {
             title = global.window.config.SiteName + ' Email Verified';
             body = <p>Your email has been verified! Click <a href={this.props.teamURL + '?email=' + this.props.userEmail}>here</a> to log in.</p>;
@@ -30,6 +32,9 @@ export default class EmailVerify extends React.Component {
                     Resend Email
                 </button>
             );
+            if (window.location.href.indexOf('resend_success=true') > -1) {
+                resendConfirm = <div><br /><p className='alert alert-success'><i className='fa fa-check'></i>{' Verification email sent.'}</p></div>;
+            }
         }
 
         return (
@@ -41,6 +46,7 @@ export default class EmailVerify extends React.Component {
                     <div className='panel-body'>
                         {body}
                         {resend}
+                        {resendConfirm}
                     </div>
                 </div>
             </div>

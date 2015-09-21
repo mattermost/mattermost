@@ -375,7 +375,10 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			user := result.Data.(*model.User)
 			api.FireAndForgetVerifyEmail(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
-			http.Redirect(w, r, "/", http.StatusFound)
+
+			newAddress := strings.Replace(r.URL.String(), "?resend=true", "?resend_success=true", -1)
+			newAddress = strings.Replace(newAddress, "&resend=true", "&resend_success=true", -1)
+			http.Redirect(w, r, newAddress, http.StatusFound)
 			return
 		}
 	}
