@@ -11,6 +11,12 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = `http://${outHref}`;
         }
 
-        return super.link(outHref, title, text);
+        let output = '<a class="theme" href="' + outHref + '"';
+        if (title) {
+            output += ' title="' + title + '"';
+        }
+        output += '>' + text + '</a>';
+
+        return output;
     }
 }
