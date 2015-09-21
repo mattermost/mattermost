@@ -83,6 +83,7 @@ export default class PostList extends React.Component {
         };
     }
     componentDidMount() {
+        window.onload = () => this.scrollToBottom();
         if (this.props.isActive) {
             this.activate();
             this.loadFirstPosts(this.props.channelId);

@@ -35,9 +35,7 @@ export default class PostBody extends React.Component {
 
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
-        this.getAllChildNodes(React.findDOMNode(this)).forEach((current) => {
-            global.window.emojify.run(current);
-        });
+        global.window.emojify.run(React.findDOMNode(this.refs.message_span));
     }
 
     componentDidMount() {
@@ -161,6 +159,7 @@ export default class PostBody extends React.Component {
                 >
                     {loading}
                     <span
+                        ref='message_span'
                         onClick={TextFormatting.handleClick}
                         dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
                     />
