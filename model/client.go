@@ -48,7 +48,7 @@ func NewClient(url string) *Client {
 	return &Client{url, url + API_URL_SUFFIX, &http.Client{}, "", ""}
 }
 
-func (c *Client) DoPost(url string, data, contentType string) (*http.Response, *AppError) {
+func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppError) {
 	rq, _ := http.NewRequest("POST", c.Url+url, strings.NewReader(data))
 	rq.Header.Set("Content-Type", contentType)
 
@@ -803,6 +803,42 @@ func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), AccessResponseFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) CreateIncomingWebhook(hook *IncomingWebhook) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/hooks/incoming/create", hook.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) PostToWebhook(id, payload string) (*Result, *AppError) {
+	if r, err := c.DoPost("/hooks/"+id, payload, "application/x-www-form-urlencoded"); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
+	}
+}
+
+func (c *Client) DeleteIncomingWebhook(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/hooks/incoming/delete", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) ListIncomingWebhooks() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/hooks/incoming/list", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookListFromJson(r.Body)}, nil
 	}
 }
 

@@ -188,6 +188,7 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
+	props["AllowIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.AllowIncomingWebhooks)
 
 	return props
 }

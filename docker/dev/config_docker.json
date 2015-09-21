@@ -24,7 +24,8 @@
         "StorageDirectory": "/mattermost/data/",
         "AllowedLoginAttempts": 10,
         "DisableEmailSignUp": false,
-        "EnableOAuthServiceProvider": false
+        "EnableOAuthServiceProvider": false,
+        "AllowIncomingWebhooks": false
     },
     "SSOSettings": {
         "gitlab": {
