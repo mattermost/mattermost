@@ -3,6 +3,7 @@
 
 const Autolinker = require('autolinker');
 const Constants = require('./constants.jsx');
+const Emoticons = require('./emoticons.jsx');
 const Markdown = require('./markdown.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
@@ -17,6 +18,7 @@ const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
+// - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
     if (!('markdown' in options)) {
@@ -34,6 +36,10 @@ export function formatText(text, options = {}) {
     const tokens = new Map();
 
     // replace important words and phrases with tokens
+    if (!('emoticons' in options) || options.emoticon) {
+        output = Emoticons.handleEmoticons(output, tokens);
+    }
+
     output = autolinkUrls(output, tokens, !!options.markdown);
     output = autolinkAtMentions(output, tokens);
     output = autolinkHashtags(output, tokens);
