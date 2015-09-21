@@ -207,7 +207,7 @@ export default class RhsComment extends React.Component {
                     <div className='post-body'>
                         <p className={postClass}>
                             {loading}
-                            <span
+                            <div
                                 onClick={TextFormatting.handleClick}
                                 dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
                             />

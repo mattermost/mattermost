@@ -147,7 +147,7 @@ export default class RhsRootPost extends React.Component {
                         </li>
                     </ul>
                     <div className='post-body'>
-                        <p
+                        <div
                             onClick={TextFormatting.handleClick}
                             dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
                         />
