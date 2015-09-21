@@ -143,7 +143,6 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
-		page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 		page.Render(c, w)
 	} else {
 		page := NewHtmlTemplatePage("home", "Home")
@@ -159,7 +158,6 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("signup_team", "Signup")
-	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -191,7 +189,6 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("login", "Login")
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = teamName
-	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -277,7 +274,6 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	page.Props["TeamId"] = props["id"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
-	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 

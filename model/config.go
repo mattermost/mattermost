@@ -22,7 +22,6 @@ type ServiceSettings struct {
 	UseLocalStorage            bool
 	StorageDirectory           string
 	AllowedLoginAttempts       int
-	DisableEmailSignUp         bool
 	EnableOAuthServiceProvider bool
 }
 
@@ -73,14 +72,18 @@ type ImageSettings struct {
 }
 
 type EmailSettings struct {
-	ByPassEmail          bool
-	SMTPUsername         string
-	SMTPPassword         string
-	SMTPServer           string
-	UseTLS               bool
-	UseStartTLS          bool
-	FeedbackEmail        string
-	FeedbackName         string
+	AllowSignUpWithEmail     bool
+	SendEmailNotifications   bool
+	RequireEmailVerification bool
+	FeedbackName             string
+	FeedbackEmail            string
+	SMTPUsername             string
+	SMTPPassword             string
+	SMTPServer               string
+	SMTPPort                 string
+	ConnectionSecurity       string
+
+	// For Future Use
 	ApplePushServer      string
 	ApplePushCertPublic  string
 	ApplePushCertPrivate string

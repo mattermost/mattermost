@@ -24,6 +24,7 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
 	sr.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
 	sr.Handle("/client_props", ApiAppHandler(getClientProperties)).Methods("GET")
+	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -97,4 +98,30 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	utils.LoadConfig(utils.CfgFileName)
 	json := utils.Cfg.ToJson()
 	w.Write([]byte(json))
+}
+
+func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("testEmail") {
+		return
+	}
+
+	cfg := model.ConfigFromJson(r.Body)
+	if cfg == nil {
+		c.SetInvalidParam("testEmail", "config")
+		return
+	}
+
+	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		if err := utils.SendMailUsingConfig(result.Data.(*model.User).Email, "Mattermost - Testing Email Settings", "<br/><br/><br/>It appears your Mattermost email is setup correctly!", cfg); err != nil {
+			c.Err = err
+			return
+		}
+	}
+
+	m := make(map[string]string)
+	m["SUCCESS"] = "true"
+	w.Write([]byte(model.MapToJson(m)))
 }

@@ -334,6 +334,21 @@ export function saveConfig(config, success, error) {
     });
 }
 
+export function testEmail(config, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/test_email',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(config),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('testEmail', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getMeSynchronous(success, error) {
     var currentUser = null;
     $.ajax({

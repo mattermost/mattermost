@@ -21,7 +21,6 @@
         "UseLocalStorage": true,
         "StorageDirectory": "./data/",
         "AllowedLoginAttempts": 10,
-        "DisableEmailSignUp": false,
         "EnableOAuthServiceProvider": false
     },
     "SqlSettings": {
@@ -51,14 +50,16 @@
         "InitialFont": "luximbi.ttf"
     },
     "EmailSettings": {
-        "ByPassEmail": true,
+        "AllowSignUpWithEmail": true,
+        "SendEmailNotifications": false,
+        "RequireEmailVerification": false,
+        "FeedbackName": "",
+        "FeedbackEmail": "",
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
-        "UseTLS": false,
-        "UseStartTLS": false,
-        "FeedbackEmail": "",
-        "FeedbackName": "",
+        "SMTPPort": "",
+        "ConnectionSecurity": "",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",
         "ApplePushCertPrivate": ""

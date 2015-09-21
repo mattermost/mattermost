@@ -95,10 +95,8 @@ export default class Login extends React.Component {
             focusEmail = true;
         }
 
-        const authServices = JSON.parse(this.props.authServices);
-
         let loginMessage = [];
-        if (authServices.indexOf(Constants.GITLAB_SERVICE) !== -1) {
+        if (global.window.config.AllowSignUpWithGitLab) {
             loginMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
@@ -116,7 +114,7 @@ export default class Login extends React.Component {
         }
 
         let emailSignup;
-        if (authServices.indexOf(Constants.EMAIL_SERVICE) !== -1) {
+        if (global.window.config.AllowSignUpWithEmail) {
             emailSignup = (
                 <div>
                     <div className={'form-group' + errorClass}>
@@ -206,10 +204,8 @@ export default class Login extends React.Component {
 Login.defaultProps = {
     teamName: '',
     teamDisplayName: '',
-    authServices: ''
 };
 Login.propTypes = {
     teamName: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string,
-    authServices: React.PropTypes.string
 };

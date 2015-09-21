@@ -176,18 +176,24 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["BuildHash"] = model.BuildHash
 
 	props["SiteName"] = c.ServiceSettings.SiteName
-	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
+	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
+	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
+
+	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
+	props["AllowSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.AllowSignUpWithEmail)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
+
+	props["AllowSignUpWithGitLab"] = strconv.FormatBool(false)
+
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)
+
 	props["SegmentDeveloperKey"] = c.ClientSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ClientSettings.GoogleDeveloperKey
-	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
-	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
+
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
-	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 
 	return props
 }
@@ -198,21 +204,6 @@ func IsS3Configured() bool {
 	}
 
 	return true
-}
-
-func GetAllowedAuthServices() []string {
-	authServices := []string{}
-	for name, service := range Cfg.SSOSettings {
-		if service.Allow {
-			authServices = append(authServices, name)
-		}
-	}
-
-	if !Cfg.ServiceSettings.DisableEmailSignUp {
-		authServices = append(authServices, "email")
-	}
-
-	return authServices
 }
 
 func IsServiceAllowed(s string) bool {

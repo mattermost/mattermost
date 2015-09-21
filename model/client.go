@@ -403,6 +403,15 @@ func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) TestEmail(config *Config) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/test_email", config.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/channels/create", channel.ToJson()); err != nil {
 		return nil, err

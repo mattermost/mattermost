@@ -3,11 +3,9 @@
 
 var SignupTeam = require('../components/signup_team.jsx');
 
-function setupSignupTeamPage(props) {
-    var services = JSON.parse(props.AuthServices);
-
+function setupSignupTeamPage() {
     React.render(
-        <SignupTeam services={services} />,
+        <SignupTeam />,
         document.getElementById('signup-team')
     );
 }

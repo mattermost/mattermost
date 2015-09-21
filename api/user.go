@@ -58,7 +58,7 @@ func InitUser(r *mux.Router) {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
+	if !utils.Cfg.EmailSettings.AllowSignUpWithEmail {
 		c.Err = model.NewAppError("signupTeam", "User sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -324,7 +324,7 @@ func checkUserPassword(c *Context, user *model.User, password string) bool {
 func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 	c.LogAuditWithUserId(user.Id, "attempt")
 
-	if !user.EmailVerified && !utils.Cfg.EmailSettings.ByPassEmail {
+	if !user.EmailVerified && utils.Cfg.EmailSettings.RequireEmailVerification {
 		c.Err = model.NewAppError("Login", "Login failed because email address has not been verified", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return

@@ -12,7 +12,6 @@ function setupSignupUserCompletePage(props) {
             email={props.Email}
             hash={props.Hash}
             data={props.Data}
-            authServices={props.AuthServices}
         />,
         document.getElementById('signup-user-complete')
     );
