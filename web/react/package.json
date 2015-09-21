@@ -9,7 +9,8 @@
     "object-assign": "3.0.0",
     "react-zeroclipboard-mixin": "0.1.0",
     "twemoji": "1.4.1",
-    "babel-runtime": "5.8.24"
+    "babel-runtime": "5.8.24",
+    "marked": "0.3.5"
   },
   "devDependencies": {
     "browserify": "11.0.1",
