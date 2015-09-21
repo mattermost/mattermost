@@ -5,9 +5,10 @@
 	.form__label {
 		text-align: left;
 		padding-right: 3px;
-		font-weight: bold;
+		font-weight: 600;
 		font-size: 1.1em;
 		&.light {
+			font-weight: normal;
 			color: #999;
 			font-size: 1.05em;
 			font-style: italic;
@@ -17,6 +18,9 @@
 	.input__help {
 		color: #777;
 		margin: 10px 0 0 10px;
+		&.dark {
+			color: #222;
+		}
 		&.error {
 			color: #a94442;
 		}
