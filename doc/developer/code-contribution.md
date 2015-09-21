@@ -42,7 +42,7 @@ Before we can review, we need to add you to the list of approved contributors fo
 
 **Please help complete the Mattermost [contribution license agreement](http://www.mattermost.org/mattermost-contributor-agreement/)?**
 
-This is a standard procedure for many open source projects. You can view of list of past contributors who have completed the form [here](https://docs.google.com/spreadsheets/d/1NTCeG-iL_VS9bFqtmHSfwETo5f-8MQ7oMDE5IUYJi_Y/pubhtml?gid=0&single=true). 
+This is a standard procedure for many open source projects. You can view a list of past contributors who have completed the form [here](https://docs.google.com/spreadsheets/d/1NTCeG-iL_VS9bFqtmHSfwETo5f-8MQ7oMDE5IUYJi_Y/pubhtml?gid=0&single=true). 
 
 After completing the form, it should be processed within 24 hours and reviewers for your pull request will be able to proceed. 
 
