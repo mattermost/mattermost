@@ -68,6 +68,7 @@ export default class EmailSettings extends React.Component {
                     emailSuccess: true,
                     emailFail: null
                 });
+                $('#connection-button').button('reset');
             },
             (err) => {
                 this.setState({
