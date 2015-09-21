@@ -96,7 +96,7 @@ export default class Login extends React.Component {
         }
 
         let loginMessage = [];
-        if (global.window.config.AllowSignUpWithGitLab) {
+        if (global.window.config.AllowSignUpWithGitLab === 'true') {
             loginMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
@@ -114,7 +114,7 @@ export default class Login extends React.Component {
         }
 
         let emailSignup;
-        if (global.window.config.AllowSignUpWithEmail) {
+        if (global.window.config.AllowSignUpWithEmail === 'true') {
             emailSignup = (
                 <div>
                     <div className={'form-group' + errorClass}>

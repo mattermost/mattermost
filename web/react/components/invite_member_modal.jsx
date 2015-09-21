@@ -21,7 +21,7 @@ export default class InviteMemberModal extends React.Component {
             emailErrors: {},
             firstNameErrors: {},
             lastNameErrors: {},
-            emailEnabled: !global.window.config.SendEmailNotifications
+            emailEnabled: global.window.config.SendEmailNotifications === 'true'
         };
     }
 

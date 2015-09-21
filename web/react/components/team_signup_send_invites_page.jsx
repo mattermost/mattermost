@@ -13,7 +13,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         this.submitSkip = this.submitSkip.bind(this);
         this.keySubmit = this.keySubmit.bind(this);
         this.state = {
-            emailEnabled: !global.window.config.SendEmailNotifications
+            emailEnabled: global.window.config.SendEmailNotifications === 'true'
         };
 
         if (!this.state.emailEnabled) {
