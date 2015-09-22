@@ -76,7 +76,7 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 
 		if addMember {
 			cm := &model.ChannelMember{ChannelId: sc.Id, UserId: c.Session.UserId,
-				Roles: model.CHANNEL_ROLE_ADMIN, NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+				Roles: model.CHANNEL_ROLE_ADMIN, NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				return nil, cmresult.Err
@@ -135,7 +135,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		return nil, err
 	} else {
 		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId,
-			Roles: "", NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+			Roles: "", NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT}
 
 		if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 			return nil, cmresult.Err
@@ -372,7 +372,7 @@ func JoinChannel(c *Context, channelId string, role string) {
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: role}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, Roles: role}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				c.Err = cmresult.Err
@@ -405,7 +405,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "town-square"); result.Err != nil {
 		err = result.Err
 	} else {
-		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, Roles: channelRole}
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
@@ -414,7 +414,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "off-topic"); result.Err != nil {
 		err = result.Err
 	} else {
-		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, Roles: channelRole}
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
@@ -694,7 +694,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId, NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId, NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", userId, id, cmresult.Err)

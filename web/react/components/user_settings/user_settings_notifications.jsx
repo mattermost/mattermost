@@ -17,7 +17,7 @@ function getNotificationsStateFromStores() {
     if (user.notify_props && user.notify_props.desktop_sound) {
         sound = user.notify_props.desktop_sound;
     }
-    var desktop = 'all';
+    var desktop = 'default';
     if (user.notify_props && user.notify_props.desktop) {
         desktop = user.notify_props.desktop;
     }
