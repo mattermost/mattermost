@@ -247,7 +247,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(/(^|\W)(#[a-zA-Z0-9.\-_]+)\b/g, replaceHashtagWithToken);
+    return output.replace(/(^|\W)(#[a-zA-Z][a-zA-Z0-9.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
 function highlightSearchTerm(text, tokens, searchTerm) {
