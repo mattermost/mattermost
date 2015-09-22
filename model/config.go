@@ -25,8 +25,8 @@ type ServiceSettings struct {
 	SegmentDeveloperKey        string
 	GoogleDeveloperKey         string
 	EnableOAuthServiceProvider bool
-	EnableTesting              bool
 	EnableIncomingWebhooks     bool
+	EnableTesting              bool
 }
 
 type SSOSettings struct {
