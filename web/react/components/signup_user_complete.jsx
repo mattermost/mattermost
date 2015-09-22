@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
@@ -31,13 +31,26 @@ export default class SignupUserComplete extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const providedEmail = React.findDOMNode(this.refs.email).value.trim();
+        if (!providedEmail) {
+            this.setState({nameError: '', emailError: 'This field is required', passwordError: ''});
+            return;
+        }
+
+        if (!Utils.isEmail(providedEmail)) {
+            this.setState({nameError: '', emailError: 'Please enter a valid email address', passwordError: ''});
+            return;
+        }
+
+        this.state.user.email = providedEmail;
+
         this.state.user.username = React.findDOMNode(this.refs.name).value.trim().toLowerCase();
         if (!this.state.user.username) {
             this.setState({nameError: 'This field is required', emailError: '', passwordError: '', serverError: ''});
             return;
         }
 
-        var usernameError = utils.isValidUsername(this.state.user.username);
+        var usernameError = Utils.isValidUsername(this.state.user.username);
         if (usernameError === 'Cannot use a reserved word as a username.') {
             this.setState({nameError: 'This username is reserved, please choose a new one.', emailError: '', passwordError: '', serverError: ''});
             return;
@@ -48,12 +61,6 @@ export default class SignupUserComplete extends React.Component {
                 passwordError: '',
                 serverError: ''
             });
-            return;
-        }
-
-        this.state.user.email = React.findDOMNode(this.refs.email).value.trim();
-        if (!this.state.user.email) {
-            this.setState({nameError: '', emailError: 'This field is required', passwordError: ''});
             return;
         }
 
