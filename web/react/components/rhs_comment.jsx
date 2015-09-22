@@ -114,14 +114,7 @@ export default class RhsComment extends React.Component {
         var ownerOptions;
         if (isOwner && post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING) {
             ownerOptions = (
-                <div
-                    className='dropdown'
-                    onClick={
-                        function scroll() {
-                            $('.post-list-holder-by-time').scrollTop($('.post-list-holder-by-time').scrollTop() + 50);
-                        }
-                    }
-                >
+                <div className='dropdown'>
                     <a
                         href='#'
                         className='dropdown-toggle theme'
