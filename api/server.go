@@ -42,7 +42,7 @@ func StartServer() {
 
 	var handler http.Handler = Srv.Router
 
-	if utils.Cfg.RateLimitSettings.UseRateLimiter {
+	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
 		l4g.Info("RateLimiter is enabled")
 
 		vary := throttled.VaryBy{}

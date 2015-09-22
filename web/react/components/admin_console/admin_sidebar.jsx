@@ -83,6 +83,15 @@ export default class AdminSidebar extends React.Component {
                                         {'Privacy Settings'}
                                     </a>
                                 </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('rate_settings')}
+                                        onClick={this.handleClick.bind(this, 'rate_settings')}
+                                    >
+                                        {'Rate Limit Settings'}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     </ul>

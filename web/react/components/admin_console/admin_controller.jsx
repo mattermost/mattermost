@@ -11,6 +11,7 @@ var LogSettingsTab = require('./log_settings.jsx');
 var LogsTab = require('./logs.jsx');
 var ImageSettingsTab = require('./image_settings.jsx');
 var PrivacySettingsTab = require('./privacy_settings.jsx');
+var RateSettingsTab = require('./rate_settings.jsx');
 
 export default class AdminController extends React.Component {
     constructor(props) {
@@ -59,6 +60,8 @@ export default class AdminController extends React.Component {
                 tab = <ImageSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'privacy_settings') {
                 tab = <PrivacySettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'rate_settings') {
+                tab = <RateSettingsTab config={this.state.config} />;
             }
         }
 

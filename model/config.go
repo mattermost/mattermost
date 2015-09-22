@@ -30,6 +30,8 @@ type ServiceSettings struct {
 	AnalyticsUrl               string
 	AllowedLoginAttempts       int
 	EnableOAuthServiceProvider bool
+	SegmentDeveloperKey        string
+	GoogleDeveloperKey         string
 }
 
 type SSOSetting struct {
@@ -96,21 +98,16 @@ type EmailSettings struct {
 }
 
 type RateLimitSettings struct {
-	UseRateLimiter   bool
-	PerSec           int
-	MemoryStoreSize  int
-	VaryByRemoteAddr bool
-	VaryByHeader     string
+	EnableRateLimiter bool
+	PerSec            int
+	MemoryStoreSize   int
+	VaryByRemoteAddr  bool
+	VaryByHeader      string
 }
 
 type PrivacySettings struct {
 	ShowEmailAddress bool
 	ShowFullName     bool
-}
-
-type ClientSettings struct {
-	SegmentDeveloperKey string
-	GoogleDeveloperKey  string
 }
 
 type TeamSettings struct {
@@ -124,15 +121,14 @@ type TeamSettings struct {
 }
 
 type Config struct {
-	LogSettings       LogSettings
 	ServiceSettings   ServiceSettings
+	TeamSettings      TeamSettings
 	SqlSettings       SqlSettings
+	LogSettings       LogSettings
 	ImageSettings     ImageSettings
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
-	ClientSettings    ClientSettings
-	TeamSettings      TeamSettings
 	SSOSettings       map[string]SSOSetting
 }
 

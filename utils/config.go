@@ -176,6 +176,8 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["SiteName"] = c.ServiceSettings.SiteName
 	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
+	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
+	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["AllowSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.AllowSignUpWithEmail)
@@ -185,9 +187,6 @@ func getClientProperties(c *model.Config) map[string]string {
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)
-
-	props["SegmentDeveloperKey"] = c.ClientSettings.SegmentDeveloperKey
-	props["GoogleDeveloperKey"] = c.ClientSettings.GoogleDeveloperKey
 
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
