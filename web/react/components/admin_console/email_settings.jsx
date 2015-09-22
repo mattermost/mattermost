@@ -55,13 +55,13 @@ export default class EmailSettings extends React.Component {
 
         config.EmailSettings.InviteSalt = React.findDOMNode(this.refs.InviteSalt).value.trim();
         if (config.EmailSettings.InviteSalt === '') {
-            config.EmailSettings.InviteSalt = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            config.EmailSettings.InviteSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
             React.findDOMNode(this.refs.InviteSalt).value = config.EmailSettings.InviteSalt;
         }
 
         config.EmailSettings.PasswordResetSalt = React.findDOMNode(this.refs.PasswordResetSalt).value.trim();
         if (config.EmailSettings.PasswordResetSalt === '') {
-            config.EmailSettings.PasswordResetSalt = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            config.EmailSettings.PasswordResetSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
             React.findDOMNode(this.refs.PasswordResetSalt).value = config.EmailSettings.PasswordResetSalt;
         }
 
@@ -70,14 +70,14 @@ export default class EmailSettings extends React.Component {
 
     handleGenerateInvite(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.InviteSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        React.findDOMNode(this.refs.InviteSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }
 
     handleGenerateReset(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.PasswordResetSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        React.findDOMNode(this.refs.PasswordResetSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }

@@ -32,7 +32,7 @@ export default class ImageSettings extends React.Component {
 
     handleGenerate(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.PublicLinkSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        React.findDOMNode(this.refs.PublicLinkSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }
@@ -53,7 +53,7 @@ export default class ImageSettings extends React.Component {
         config.ImageSettings.PublicLinkSalt = React.findDOMNode(this.refs.PublicLinkSalt).value.trim();
 
         if (config.ImageSettings.PublicLinkSalt === '') {
-            config.ImageSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            config.ImageSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
             React.findDOMNode(this.refs.PublicLinkSalt).value = config.ImageSettings.PublicLinkSalt;
         }
 

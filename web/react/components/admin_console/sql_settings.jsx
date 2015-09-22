@@ -33,7 +33,7 @@ export default class SqlSettings extends React.Component {
         config.SqlSettings.AtRestEncryptKey = React.findDOMNode(this.refs.AtRestEncryptKey).value.trim();
 
         if (config.SqlSettings.AtRestEncryptKey === '') {
-            config.SqlSettings.AtRestEncryptKey = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            config.SqlSettings.AtRestEncryptKey = crypto.randomBytes(256).toString('base64').substring(0, 32);
             React.findDOMNode(this.refs.AtRestEncryptKey).value = config.SqlSettings.AtRestEncryptKey;
         }
 
@@ -73,7 +73,7 @@ export default class SqlSettings extends React.Component {
 
     handleGenerate(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.AtRestEncryptKey).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        React.findDOMNode(this.refs.AtRestEncryptKey).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }
