@@ -198,13 +198,13 @@ func getClientProperties(c *model.Config) map[string]string {
 	return props
 }
 
-func IsS3Configured() bool {
-	if Cfg.AWSSettings.S3AccessKeyId == "" || Cfg.AWSSettings.S3SecretAccessKey == "" || Cfg.AWSSettings.S3Region == "" || Cfg.AWSSettings.S3Bucket == "" {
-		return false
-	}
+// func IsS3Configured() bool {
+// 	if Cfg.AWSSettings.AmazonS3AccessKeyId == "" || Cfg.AWSSettingsAmazonS3SecretAccessKey == "" || Cfg.AWSSettingsAmazonS3Region == "" || Cfg.AWSSettingsAmazonS3Bucket == "" {
+// 		return false
+// 	}
 
-	return true
-}
+// 	return true
+// }
 
 func IsServiceAllowed(s string) bool {
 	if len(s) == 0 {

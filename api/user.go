@@ -704,7 +704,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		var img []byte
 
-		if !utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		if len(utils.Cfg.ImageSettings.DriverName) == 0 {
 			var err *model.AppError
 			if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 				c.Err = err
@@ -741,8 +741,8 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
-		c.Err = model.NewAppError("uploadProfileImage", "Unable to upload file. Amazon S3 not configured and local server storage turned off. ", "")
+	if len(utils.Cfg.ImageSettings.DriverName) == 0 {
+		c.Err = model.NewAppError("uploadProfileImage", "Unable to upload file. Image storage is not configured.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}

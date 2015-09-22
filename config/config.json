@@ -18,8 +18,6 @@
         "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
         "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
         "AnalyticsUrl": "",
-        "UseLocalStorage": true,
-        "StorageDirectory": "./data/",
         "AllowedLoginAttempts": 10,
         "EnableOAuthServiceProvider": false
     },
@@ -34,20 +32,20 @@
         "Trace": false,
         "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
     },
-    "AWSSettings": {
-        "S3AccessKeyId": "",
-        "S3SecretAccessKey": "",
-        "S3Bucket": "",
-        "S3Region": ""
-    },
     "ImageSettings": {
+        "DriverName": "local",
+        "Directory": "./data/",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
         "PreviewHeight": 0,
         "ProfileWidth": 128,
         "ProfileHeight": 128,
-        "InitialFont": "luximbi.ttf"
+        "InitialFont": "luximbi.ttf",
+        "AmazonS3AccessKeyId": "",
+        "AmazonS3SecretAccessKey": "",
+        "AmazonS3Bucket": "",
+        "AmazonS3Region": ""
     },
     "EmailSettings": {
         "AllowSignUpWithEmail": true,

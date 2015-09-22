@@ -81,11 +81,11 @@ func TestUploadFile(t *testing.T) {
 		fileId := strings.Split(filename, ".")[0]
 
 		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+		auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
+		auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
+		bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
 
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
@@ -264,11 +264,11 @@ func TestGetFile(t *testing.T) {
 
 		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+			auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
+			auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
 
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
+			bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
 
 			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
@@ -413,11 +413,11 @@ func TestGetPublicLink(t *testing.T) {
 		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 			// perform clean-up on s3
 			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+			auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
+			auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
 
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
+			bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
 
 			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]

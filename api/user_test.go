@@ -354,11 +354,11 @@ func TestUserCreateImage(t *testing.T) {
 
 	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+		auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
+		auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
+		bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
 
 		if err := bucket.Del("teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"); err != nil {
 			t.Fatal(err)
@@ -452,11 +452,11 @@ func TestUserUploadProfileImage(t *testing.T) {
 
 		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
 			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.S3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettings.S3SecretAccessKey
+			auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
+			auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
 
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettings.S3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettings.S3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
+			bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
 
 			if err := bucket.Del("teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"); err != nil {
 				t.Fatal(err)

@@ -8,6 +8,15 @@ import (
 	"io"
 )
 
+const (
+	CONN_SECURITY_NONE     = ""
+	CONN_SECURITY_TLS      = "TLS"
+	CONN_SECURITY_STARTTLS = "STARTTLS"
+
+	IMAGE_DRIVER_LOCAL = "local"
+	IMAGE_DRIVER_S3    = "amazons3"
+)
+
 type ServiceSettings struct {
 	SiteName                   string
 	Mode                       string
@@ -19,8 +28,6 @@ type ServiceSettings struct {
 	PublicLinkSalt             string
 	ResetSalt                  string
 	AnalyticsUrl               string
-	UseLocalStorage            bool
-	StorageDirectory           string
 	AllowedLoginAttempts       int
 	EnableOAuthServiceProvider bool
 }
@@ -54,21 +61,20 @@ type LogSettings struct {
 	FileLocation  string
 }
 
-type AWSSettings struct {
-	S3AccessKeyId     string
-	S3SecretAccessKey string
-	S3Bucket          string
-	S3Region          string
-}
-
 type ImageSettings struct {
-	ThumbnailWidth  uint
-	ThumbnailHeight uint
-	PreviewWidth    uint
-	PreviewHeight   uint
-	ProfileWidth    uint
-	ProfileHeight   uint
-	InitialFont     string
+	DriverName              string
+	Directory               string
+	ThumbnailWidth          uint
+	ThumbnailHeight         uint
+	PreviewWidth            uint
+	PreviewHeight           uint
+	ProfileWidth            uint
+	ProfileHeight           uint
+	InitialFont             string
+	AmazonS3AccessKeyId     string
+	AmazonS3SecretAccessKey string
+	AmazonS3Bucket          string
+	AmazonS3Region          string
 }
 
 type EmailSettings struct {
@@ -123,7 +129,6 @@ type Config struct {
 	LogSettings       LogSettings
 	ServiceSettings   ServiceSettings
 	SqlSettings       SqlSettings
-	AWSSettings       AWSSettings
 	ImageSettings     ImageSettings
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings

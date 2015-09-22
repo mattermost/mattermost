@@ -15,17 +15,11 @@ import (
 	"time"
 )
 
-const (
-	CONN_SECURITY_NONE     = ""
-	CONN_SECURITY_TLS      = "TLS"
-	CONN_SECURITY_STARTTLS = "STARTTLS"
-)
-
 func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	var conn net.Conn
 	var err error
 
-	if config.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS {
+	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: true,
 			ServerName:         config.EmailSettings.SMTPServer,
@@ -54,11 +48,11 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	// GO does not support plain auth over a non encrypted connection.
 	// so if not tls then no auth
 	auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
-	if config.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS {
+	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		if err = c.Auth(auth); err != nil {
 			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
 		}
-	} else if config.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS {
+	} else if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: true,
 			ServerName:         config.EmailSettings.SMTPServer,

@@ -65,6 +65,15 @@ export default class AdminSidebar extends React.Component {
                                         {'Logs'}
                                     </a>
                                 </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('image_settings')}
+                                        onClick={this.handleClick.bind(this, 'image_settings')}
+                                    >
+                                        {'Image Settings'}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     </ul>
