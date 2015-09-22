@@ -36,6 +36,7 @@ type Store interface {
 	Session() SessionStore
 	OAuth() OAuthStore
 	System() SystemStore
+	Webhook() WebhookStore
 	Close()
 }
 
@@ -136,4 +137,11 @@ type SystemStore interface {
 	Save(system *model.System) StoreChannel
 	Update(system *model.System) StoreChannel
 	Get() StoreChannel
+}
+
+type WebhookStore interface {
+	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
+	GetIncoming(id string) StoreChannel
+	GetIncomingByUser(userId string) StoreChannel
+	DeleteIncoming(webhookId string, time int64) StoreChannel
 }

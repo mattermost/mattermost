@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SettingItemMin = require('./setting_item_min.jsx');
-var SettingItemMax = require('./setting_item_max.jsx');
-var Client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var Constants = require('../utils/constants.jsx');
+var SettingItemMin = require('../setting_item_min.jsx');
+var SettingItemMax = require('../setting_item_max.jsx');
+var Client = require('../../utils/client.jsx');
+var AsyncClient = require('../../utils/async_client.jsx');
+var Constants = require('../../utils/constants.jsx');
 
 export default class SecurityTab extends React.Component {
     constructor(props) {

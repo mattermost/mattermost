@@ -40,6 +40,7 @@ type SqlStore struct {
 	session  SessionStore
 	oauth    OAuthStore
 	system   SystemStore
+	webhook  WebhookStore
 }
 
 func NewSqlStore() Store {
@@ -91,6 +92,7 @@ func NewSqlStore() Store {
 	sqlStore.session = NewSqlSessionStore(sqlStore)
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
 	sqlStore.system = NewSqlSystemStore(sqlStore)
+	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
 
 	sqlStore.master.CreateTablesIfNotExists()
 
@@ -102,6 +104,7 @@ func NewSqlStore() Store {
 	sqlStore.session.(*SqlSessionStore).UpgradeSchemaIfNeeded()
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
 	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
+	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -111,6 +114,7 @@ func NewSqlStore() Store {
 	sqlStore.session.(*SqlSessionStore).CreateIndexesIfNotExists()
 	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
 	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
+	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
 
 	if model.IsPreviousVersion(schemaVersion) {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
@@ -467,6 +471,10 @@ func (ss SqlStore) OAuth() OAuthStore {
 
 func (ss SqlStore) System() SystemStore {
 	return ss.system
+}
+
+func (ss SqlStore) Webhook() WebhookStore {
+	return ss.webhook
 }
 
 type mattermConverter struct{}

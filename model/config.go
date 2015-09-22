@@ -24,6 +24,7 @@ type ServiceSettings struct {
 	AllowedLoginAttempts       int
 	DisableEmailSignUp         bool
 	EnableOAuthServiceProvider bool
+	AllowIncomingWebhooks      bool
 }
 
 type SSOSetting struct {

@@ -1,13 +1,14 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var utils = require('../utils/utils.jsx');
+var UserStore = require('../../stores/user_store.jsx');
+var utils = require('../../utils/utils.jsx');
 var NotificationsTab = require('./user_settings_notifications.jsx');
 var SecurityTab = require('./user_settings_security.jsx');
 var GeneralTab = require('./user_settings_general.jsx');
 var AppearanceTab = require('./user_settings_appearance.jsx');
 var DeveloperTab = require('./user_settings_developer.jsx');
+var IntegrationsTab = require('./user_settings_integrations.jsx');
 
 export default class UserSettings extends React.Component {
     constructor(props) {
@@ -83,6 +84,17 @@ export default class UserSettings extends React.Component {
                     <DeveloperTab
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
+                    />
+                </div>
+            );
+        } else if (this.props.activeTab === 'integrations') {
+            return (
+                <div>
+                    <IntegrationsTab
+                        user={this.state.user}
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
                     />
                 </div>
             );

@@ -59,7 +59,7 @@ export function createTeamFromSignup(teamSignup, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(teamSignup),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createTeamFromSignup', xhr, status, err);
             error(e);
@@ -74,7 +74,7 @@ export function createTeamWithSSO(team, service, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(team),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createTeamWithSSO', xhr, status, err);
             error(e);
@@ -89,7 +89,7 @@ export function createUser(user, data, emailHash, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(user),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createUser', xhr, status, err);
             error(e);
@@ -106,7 +106,7 @@ export function updateUser(user, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(user),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateUser', xhr, status, err);
             error(e);
@@ -123,7 +123,7 @@ export function updatePassword(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('newPassword', xhr, status, err);
             error(e);
@@ -140,7 +140,7 @@ export function updateUserNotifyProps(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateUserNotifyProps', xhr, status, err);
             error(e);
@@ -155,7 +155,7 @@ export function updateRoles(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateRoles', xhr, status, err);
             error(e);
@@ -176,7 +176,7 @@ export function updateActive(userId, active, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateActive', xhr, status, err);
             error(e);
@@ -193,7 +193,7 @@ export function sendPasswordReset(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('sendPasswordReset', xhr, status, err);
             error(e);
@@ -210,7 +210,7 @@ export function resetPassword(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('resetPassword', xhr, status, err);
             error(e);
@@ -254,7 +254,7 @@ export function revokeSession(altId, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({id: altId}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('revokeSession', xhr, status, err);
             error(e);
@@ -269,7 +269,7 @@ export function getSessions(userId, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getSessions', xhr, status, err);
             error(e);
@@ -283,7 +283,7 @@ export function getAudits(userId, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getAudits', xhr, status, err);
             error(e);
@@ -367,7 +367,7 @@ export function inviteMembers(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('inviteMembers', xhr, status, err);
             error(e);
@@ -384,7 +384,7 @@ export function updateTeamDisplayName(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateTeamDisplayName', xhr, status, err);
             error(e);
@@ -401,7 +401,7 @@ export function signupTeam(email, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({email: email}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('singupTeam', xhr, status, err);
             error(e);
@@ -418,7 +418,7 @@ export function createTeam(team, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(team),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createTeam', xhr, status, err);
             error(e);
@@ -433,7 +433,7 @@ export function findTeamByName(teamName, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({name: teamName}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('findTeamByName', xhr, status, err);
             error(e);
@@ -448,7 +448,7 @@ export function findTeamsSendEmail(email, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({email: email}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('findTeamsSendEmail', xhr, status, err);
             error(e);
@@ -465,7 +465,7 @@ export function findTeams(email, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({email: email}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('findTeams', xhr, status, err);
             error(e);
@@ -480,7 +480,7 @@ export function createChannel(channel, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(channel),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createChannel', xhr, status, err);
             error(e);
@@ -497,7 +497,7 @@ export function createDirectChannel(channel, userId, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({user_id: userId}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createDirectChannel', xhr, status, err);
             error(e);
@@ -514,7 +514,7 @@ export function updateChannel(channel, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(channel),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateChannel', xhr, status, err);
             error(e);
@@ -531,7 +531,7 @@ export function updateChannelDesc(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateChannelDesc', xhr, status, err);
             error(e);
@@ -548,7 +548,7 @@ export function updateNotifyLevel(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateNotifyLevel', xhr, status, err);
             error(e);
@@ -562,7 +562,7 @@ export function joinChannel(id, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('joinChannel', xhr, status, err);
             error(e);
@@ -578,7 +578,7 @@ export function leaveChannel(id, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('leaveChannel', xhr, status, err);
             error(e);
@@ -594,7 +594,7 @@ export function deleteChannel(id, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('deleteChannel', xhr, status, err);
             error(e);
@@ -610,7 +610,7 @@ export function updateLastViewedAt(channelId, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateLastViewedAt', xhr, status, err);
             error(e);
@@ -624,7 +624,7 @@ export function getChannels(success, error) {
         url: '/api/v1/channels/',
         dataType: 'json',
         type: 'GET',
-        success: success,
+        success,
         ifModified: true,
         error: function onError(xhr, status, err) {
             var e = handleError('getChannels', xhr, status, err);
@@ -639,7 +639,7 @@ export function getChannel(id, success, error) {
         url: '/api/v1/channels/' + id + '/',
         dataType: 'json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getChannel', xhr, status, err);
             error(e);
@@ -654,7 +654,7 @@ export function getMoreChannels(success, error) {
         url: '/api/v1/channels/more',
         dataType: 'json',
         type: 'GET',
-        success: success,
+        success,
         ifModified: true,
         error: function onError(xhr, status, err) {
             var e = handleError('getMoreChannels', xhr, status, err);
@@ -669,7 +669,7 @@ export function getChannelCounts(success, error) {
         url: '/api/v1/channels/counts',
         dataType: 'json',
         type: 'GET',
-        success: success,
+        success,
         ifModified: true,
         error: function onError(xhr, status, err) {
             var e = handleError('getChannelCounts', xhr, status, err);
@@ -683,7 +683,7 @@ export function getChannelExtraInfo(id, success, error) {
         url: '/api/v1/channels/' + id + '/extra_info',
         dataType: 'json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getChannelExtraInfo', xhr, status, err);
             error(e);
@@ -698,7 +698,7 @@ export function executeCommand(channelId, command, suggest, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify({channelId: channelId, command: command, suggest: '' + suggest}),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('executeCommand', xhr, status, err);
             error(e);
@@ -713,7 +713,7 @@ export function getPostsPage(channelId, offset, limit, success, error, complete)
         dataType: 'json',
         type: 'GET',
         ifModified: true,
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getPosts', xhr, status, err);
             error(e);
@@ -728,7 +728,7 @@ export function getPosts(channelId, since, success, error, complete) {
         dataType: 'json',
         type: 'GET',
         ifModified: true,
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getPosts', xhr, status, err);
             error(e);
@@ -744,7 +744,7 @@ export function getPost(channelId, postId, success, error) {
         dataType: 'json',
         type: 'GET',
         ifModified: false,
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getPost', xhr, status, err);
             error(e);
@@ -758,7 +758,7 @@ export function search(terms, success, error) {
         dataType: 'json',
         type: 'GET',
         data: {terms: terms},
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('search', xhr, status, err);
             error(e);
@@ -774,7 +774,7 @@ export function deletePost(channelId, id, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('deletePost', xhr, status, err);
             error(e);
@@ -791,7 +791,7 @@ export function createPost(post, channel, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(post),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('createPost', xhr, status, err);
             error(e);
@@ -817,7 +817,7 @@ export function updatePost(post, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(post),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updatePost', xhr, status, err);
             error(e);
@@ -834,7 +834,7 @@ export function addChannelMember(id, data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('addChannelMember', xhr, status, err);
             error(e);
@@ -851,7 +851,7 @@ export function removeChannelMember(id, data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('removeChannelMember', xhr, status, err);
             error(e);
@@ -868,7 +868,7 @@ export function getProfiles(success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         ifModified: true,
         error: function onError(xhr, status, err) {
             var e = handleError('getProfiles', xhr, status, err);
@@ -885,7 +885,7 @@ export function uploadFile(formData, success, error) {
         cache: false,
         contentType: false,
         processData: false,
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             if (err !== 'abort') {
                 var e = handleError('uploadFile', xhr, status, err);
@@ -905,7 +905,7 @@ export function getFileInfo(filename, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getFileInfo', xhr, status, err);
             error(e);
@@ -919,7 +919,7 @@ export function getPublicLink(data, success, error) {
         dataType: 'json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getPublicLink', xhr, status, err);
             error(e);
@@ -935,7 +935,7 @@ export function uploadProfileImage(imageData, success, error) {
         cache: false,
         contentType: false,
         processData: false,
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('uploadProfileImage', xhr, status, err);
             error(e);
@@ -951,7 +951,7 @@ export function importSlack(fileData, success, error) {
         cache: false,
         contentType: false,
         processData: false,
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('importTeam', xhr, status, err);
             error(e);
@@ -964,7 +964,7 @@ export function exportTeam(success, error) {
         url: '/api/v1/teams/export_team',
         type: 'GET',
         dataType: 'json',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('exportTeam', xhr, status, err);
             error(e);
@@ -978,7 +978,7 @@ export function getStatuses(success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('getStatuses', xhr, status, err);
             error(e);
@@ -991,7 +991,7 @@ export function getMyTeam(success, error) {
         url: '/api/v1/teams/me',
         dataType: 'json',
         type: 'GET',
-        success: success,
+        success,
         ifModified: true,
         error: function onError(xhr, status, err) {
             var e = handleError('getMyTeam', xhr, status, err);
@@ -1007,7 +1007,7 @@ export function updateValetFeature(data, success, error) {
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: success,
+        success,
         error: function onError(xhr, status, err) {
             var e = handleError('updateValetFeature', xhr, status, err);
             error(e);
@@ -1040,7 +1040,7 @@ export function allowOAuth2(responseType, clientId, redirectUri, state, scope, s
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success: success,
+        success,
         error: (xhr, status, err) => {
             const e = handleError('allowOAuth2', xhr, status, err);
             error(e);
@@ -1048,4 +1048,47 @@ export function allowOAuth2(responseType, clientId, redirectUri, state, scope, s
     });
 
     module.exports.track('api', 'api_users_allow_oauth2');
+}
+
+export function addIncomingHook(hook, success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/incoming/create',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(hook),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('addIncomingHook', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function deleteIncomingHook(data, success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/incoming/delete',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('deleteIncomingHook', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function listIncomingHooks(success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/incoming/list',
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('listIncomingHooks', xhr, status, err);
+            error(e);
+        }
+    });
 }
