@@ -40,7 +40,7 @@ export default class CreatePost extends React.Component {
         let previews = [];
         let messageText = '';
         let uploadsInProgress = [];
-        if (draft && draft.previews && draft.message) {
+        if (draft && (draft.message || (draft.previews && draft.previews.length))) {
             previews = draft.previews;
             messageText = draft.message;
             uploadsInProgress = draft.uploadsInProgress;
@@ -258,7 +258,7 @@ export default class CreatePost extends React.Component {
             let previews = [];
             let messageText = '';
             let uploadsInProgress = [];
-            if (draft && draft.previews && draft.message) {
+            if (draft && (draft.message || (draft.previews && draft.previews.length))) {
                 previews = draft.previews;
                 messageText = draft.message;
                 uploadsInProgress = draft.uploadsInProgress;
