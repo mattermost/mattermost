@@ -104,14 +104,28 @@ export default class ChannelNotifications extends React.Component {
     createDesktopSection(serverError) {
         var handleUpdateSection;
 
+        const user = UserStore.getCurrentUser();
+        const globalNotifyLevel = user.notify_props.desktop;
+
+        let globalNotifyLevelName;
+        if (globalNotifyLevel === 'all') {
+            globalNotifyLevelName = 'For all activity';
+        } else if (globalNotifyLevel === 'mention') {
+            globalNotifyLevelName = 'Only for mentions';
+        } else {
+            globalNotifyLevelName = 'Never';
+        }
+
         if (this.state.activeSection === 'desktop') {
-            var notifyActive = [false, false, false];
-            if (this.state.notifyLevel === 'mention') {
-                notifyActive[1] = true;
-            } else if (this.state.notifyLevel === 'all') {
+            var notifyActive = [false, false, false, false];
+            if (this.state.notifyLevel === 'default') {
                 notifyActive[0] = true;
-            } else {
+            } else if (this.state.notifyLevel === 'all') {
+                notifyActive[1] = true;
+            } else if (this.state.notifyLevel === 'mention') {
                 notifyActive[2] = true;
+            } else {
+                notifyActive[3] = true;
             }
 
             var inputs = [];
@@ -123,9 +137,9 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[0]}
-                                onChange={this.handleRadioClick.bind(this, 'all')}
+                                onChange={this.handleRadioClick.bind(this, 'default')}
                             >
-                                For all activity
+                                {`Global default (${globalNotifyLevelName})`}
                             </input>
                         </label>
                         <br/>
@@ -135,9 +149,9 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[1]}
-                                onChange={this.handleRadioClick.bind(this, 'mention')}
+                                onChange={this.handleRadioClick.bind(this, 'all')}
                             >
-                                Only for mentions
+                                {'For all activity'}
                             </input>
                         </label>
                         <br/>
@@ -147,9 +161,21 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[2]}
+                                onChange={this.handleRadioClick.bind(this, 'mention')}
+                            >
+                                {'Only for mentions'}
+                            </input>
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={notifyActive[3]}
                                 onChange={this.handleRadioClick.bind(this, 'none')}
                             >
-                                Never
+                                {'Never'}
                             </input>
                         </label>
                     </div>
@@ -162,24 +188,13 @@ export default class ChannelNotifications extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
-            let curChannel = ChannelStore.get(this.state.channelId);
-            let extraInfo = (
+            const extraInfo = (
                 <span>
-                    These settings will override the global notification settings.
+                    {'Selecting an option other than "Default" will override the global notification settings.'}
                     <br/>
-                    Desktop notifications are available on Firefox, Safari, and Chrome.
+                    {'Desktop notifications are available on Firefox, Safari, and Chrome.'}
                 </span>
             );
-
-            if (curChannel && curChannel.display_name) {
-                extraInfo = (
-                    <span>
-                        These settings will override the global notification settings for the <b>{curChannel.display_name}</b> channel.
-                        <br/>
-                        Desktop notifications are available on Firefox, Safari, and Chrome.
-                    </span>
-                );
-            }
 
             return (
                 <SettingItemMax
@@ -194,7 +209,9 @@ export default class ChannelNotifications extends React.Component {
         }
 
         var describe;
-        if (this.state.notifyLevel === 'mention') {
+        if (this.state.notifyLevel === 'default') {
+            describe = `Global default (${globalNotifyLevelName})`;
+        } else if (this.state.notifyLevel === 'mention') {
             describe = 'Only for mentions';
         } else if (this.state.notifyLevel === 'all') {
             describe = 'For all activity';

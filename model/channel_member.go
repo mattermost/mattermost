@@ -11,10 +11,11 @@ import (
 
 const (
 	CHANNEL_ROLE_ADMIN     = "admin"
+	CHANNEL_NOTIFY_DEFAULT = "default"
 	CHANNEL_NOTIFY_ALL     = "all"
 	CHANNEL_NOTIFY_MENTION = "mention"
 	CHANNEL_NOTIFY_NONE    = "none"
-	CHANNEL_NOTIFY_QUIET   = "quiet"
+	CHANNEL_NOTIFY_QUIET   = "quiet" // TODO deprecate me
 )
 
 type ChannelMember struct {
@@ -76,5 +77,9 @@ func (o *ChannelMember) PreSave() {
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {
-	return notifyLevel == CHANNEL_NOTIFY_ALL || notifyLevel == CHANNEL_NOTIFY_MENTION || notifyLevel == CHANNEL_NOTIFY_NONE || notifyLevel == CHANNEL_NOTIFY_QUIET
+	return notifyLevel == CHANNEL_NOTIFY_DEFAULT ||
+		notifyLevel == CHANNEL_NOTIFY_ALL ||
+		notifyLevel == CHANNEL_NOTIFY_MENTION ||
+		notifyLevel == CHANNEL_NOTIFY_NONE ||
+		notifyLevel == CHANNEL_NOTIFY_QUIET
 }
