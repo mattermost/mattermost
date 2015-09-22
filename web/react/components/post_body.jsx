@@ -35,7 +35,6 @@ export default class PostBody extends React.Component {
 
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
-        global.window.emojify.run(React.findDOMNode(this.refs.message_span));
     }
 
     componentDidMount() {
