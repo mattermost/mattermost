@@ -21,6 +21,7 @@ const (
 	HEADER_ETAG_SERVER     = "ETag"
 	HEADER_ETAG_CLIENT     = "If-None-Match"
 	HEADER_FORWARDED       = "X-Forwarded-For"
+	HEADER_REAL_IP         = "X-Real-IP"
 	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
 	HEADER_TOKEN           = "token"
 	HEADER_BEARER          = "BEARER"

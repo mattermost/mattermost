@@ -204,7 +204,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	data := r.FormValue("d")
 	hash := r.FormValue("h")
 
-	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 		c.Err = model.NewAppError("signupTeamComplete", "The signup link does not appear to be valid", "")
 		return
 	}
@@ -253,7 +253,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		}
 	} else {
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			c.Err = model.NewAppError("signupTeamComplete", "The signup link does not appear to be valid", "")
 			return
 		}
@@ -414,7 +414,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if len(hash) == 0 || len(data) == 0 {
 		isResetLink = false
 	} else {
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.ResetSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt)) {
 			c.Err = model.NewAppError("resetPassword", "The reset link does not appear to be valid", "")
 			return
 		}
@@ -476,7 +476,7 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			c.Err = model.NewAppError("signupWithOAuth", "The signup link does not appear to be valid", "")
 			return
 		}

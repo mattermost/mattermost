@@ -151,7 +151,7 @@ func TestLogin(t *testing.T) {
 	props["display_name"] = rteam2.Data.(*model.Team).DisplayName
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	ruser2, _ := Client.CreateUserFromSignup(&user2, data, hash)
 
@@ -814,7 +814,7 @@ func TestResetPassword(t *testing.T) {
 	props["user_id"] = user.Id
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 	data["data"] = model.MapToJson(props)
-	data["hash"] = model.HashPassword(fmt.Sprintf("%v:%v", data["data"], utils.Cfg.ServiceSettings.ResetSalt))
+	data["hash"] = model.HashPassword(fmt.Sprintf("%v:%v", data["data"], utils.Cfg.EmailSettings.PasswordResetSalt))
 	data["name"] = team.Name
 
 	if _, err := Client.ResetPassword(data); err != nil {

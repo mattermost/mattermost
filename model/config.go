@@ -20,23 +20,16 @@ const (
 )
 
 type ServiceSettings struct {
-	Mode                       string
-	AllowTesting               bool
-	UseSSL                     bool
-	Port                       string
-	Version                    string
-	InviteSalt                 string
-	PublicLinkSalt             string
-	ResetSalt                  string
-	AnalyticsUrl               string
-	AllowedLoginAttempts       int
-	EnableOAuthServiceProvider bool
+	ListenAddress              string
+	MaximumLoginAttempts       int
 	SegmentDeveloperKey        string
 	GoogleDeveloperKey         string
+	EnableOAuthServiceProvider bool
+	EnableTesting              bool
 }
 
 type SSOSettings struct {
-	Allow           bool
+	Enable          bool
 	Secret          string
 	Id              string
 	Scope           string
@@ -56,9 +49,9 @@ type SqlSettings struct {
 }
 
 type LogSettings struct {
-	ConsoleEnable bool
+	EnableConsole bool
 	ConsoleLevel  string
-	FileEnable    bool
+	EnableFile    bool
 	FileLevel     string
 	FileFormat    string
 	FileLocation  string
@@ -68,6 +61,7 @@ type ImageSettings struct {
 	DriverName              string
 	Directory               string
 	EnablePublicLink        bool
+	PublicLinkSalt          string
 	ThumbnailWidth          uint
 	ThumbnailHeight         uint
 	PreviewWidth            uint
@@ -82,7 +76,7 @@ type ImageSettings struct {
 }
 
 type EmailSettings struct {
-	AllowSignUpWithEmail     bool
+	EnableSignUpWithEmail    bool
 	SendEmailNotifications   bool
 	RequireEmailVerification bool
 	FeedbackName             string
@@ -92,6 +86,8 @@ type EmailSettings struct {
 	SMTPServer               string
 	SMTPPort                 string
 	ConnectionSecurity       string
+	InviteSalt               string
+	PasswordResetSalt        string
 
 	// For Future Use
 	ApplePushServer      string

@@ -207,7 +207,7 @@ export default class SqlSettings extends React.Component {
                                 className='form-control'
                                 id='AtRestEncryptKey'
                                 ref='AtRestEncryptKey'
-                                placeholder='Ex "10"'
+                                placeholder='Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
                                 defaultValue={this.props.config.SqlSettings.AtRestEncryptKey}
                                 onChange={this.handleChange}
                             />

@@ -3,6 +3,7 @@
 
 var Client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
+var crypto = require('crypto');
 
 export default class EmailSettings extends React.Component {
     constructor(props) {
@@ -12,6 +13,8 @@ export default class EmailSettings extends React.Component {
         this.handleTestConnection = this.handleTestConnection.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.buildConfig = this.buildConfig.bind(this);
+        this.handleGenerateInvite = this.handleGenerateInvite.bind(this);
+        this.handleGenerateReset = this.handleGenerateReset.bind(this);
 
         this.state = {
             sendEmailNotifications: this.props.config.EmailSettings.SendEmailNotifications,
@@ -38,7 +41,7 @@ export default class EmailSettings extends React.Component {
 
     buildConfig() {
         var config = this.props.config;
-        config.EmailSettings.AllowSignUpWithEmail = React.findDOMNode(this.refs.allowSignUpWithEmail).checked;
+        config.EmailSettings.EnableSignUpWithEmail = React.findDOMNode(this.refs.allowSignUpWithEmail).checked;
         config.EmailSettings.SendEmailNotifications = React.findDOMNode(this.refs.sendEmailNotifications).checked;
         config.EmailSettings.RequireEmailVerification = React.findDOMNode(this.refs.requireEmailVerification).checked;
         config.EmailSettings.SendEmailNotifications = React.findDOMNode(this.refs.sendEmailNotifications).checked;
@@ -49,7 +52,34 @@ export default class EmailSettings extends React.Component {
         config.EmailSettings.SMTPUsername = React.findDOMNode(this.refs.SMTPUsername).value.trim();
         config.EmailSettings.SMTPPassword = React.findDOMNode(this.refs.SMTPPassword).value.trim();
         config.EmailSettings.ConnectionSecurity = React.findDOMNode(this.refs.ConnectionSecurity).value.trim();
+
+        config.EmailSettings.InviteSalt = React.findDOMNode(this.refs.InviteSalt).value.trim();
+        if (config.EmailSettings.InviteSalt === '') {
+            config.EmailSettings.InviteSalt = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            React.findDOMNode(this.refs.InviteSalt).value = config.EmailSettings.InviteSalt;
+        }
+
+        config.EmailSettings.PasswordResetSalt = React.findDOMNode(this.refs.PasswordResetSalt).value.trim();
+        if (config.EmailSettings.PasswordResetSalt === '') {
+            config.EmailSettings.PasswordResetSalt = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            React.findDOMNode(this.refs.PasswordResetSalt).value = config.EmailSettings.PasswordResetSalt;
+        }
+
         return config;
+    }
+
+    handleGenerateInvite(e) {
+        e.preventDefault();
+        React.findDOMNode(this.refs.InviteSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        var s = {saveNeeded: true, serverError: this.state.serverError};
+        this.setState(s);
+    }
+
+    handleGenerateReset(e) {
+        e.preventDefault();
+        React.findDOMNode(this.refs.PasswordResetSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        var s = {saveNeeded: true, serverError: this.state.serverError};
+        this.setState(s);
     }
 
     handleTestConnection(e) {
@@ -166,7 +196,7 @@ export default class EmailSettings extends React.Component {
                                     name='allowSignUpWithEmail'
                                     value='true'
                                     ref='allowSignUpWithEmail'
-                                    defaultChecked={this.props.config.EmailSettings.AllowSignUpWithEmail}
+                                    defaultChecked={this.props.config.EmailSettings.EnableSignUpWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignUpWithEmail_true')}
                                 />
                                     {'true'}
@@ -176,7 +206,7 @@ export default class EmailSettings extends React.Component {
                                     type='radio'
                                     name='allowSignUpWithEmail'
                                     value='false'
-                                    defaultChecked={!this.props.config.EmailSettings.AllowSignUpWithEmail}
+                                    defaultChecked={!this.props.config.EmailSettings.EnableSignUpWithEmail}
                                     onChange={this.handleChange.bind(this, 'allowSignUpWithEmail_false')}
                                 />
                                     {'false'}
@@ -427,6 +457,68 @@ export default class EmailSettings extends React.Component {
                                 </button>
                                 {emailSuccess}
                                 {emailFail}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='InviteSalt'
+                        >
+                            {'Invite Salt:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='InviteSalt'
+                                ref='InviteSalt'
+                                placeholder='Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+                                defaultValue={this.props.config.EmailSettings.InviteSalt}
+                                onChange={this.handleChange}
+                                disabled={!this.state.sendEmailNotifications}
+                            />
+                            <p className='help-text'>{'32-character salt added to signing of email invites.'}</p>
+                            <div className='help-text'>
+                                <button
+                                    className='help-link'
+                                    onClick={this.handleGenerateInvite}
+                                    disabled={!this.state.sendEmailNotifications}
+                                >
+                                    {'Re-Generate'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='PasswordResetSalt'
+                        >
+                            {'Password Reset Salt:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='PasswordResetSalt'
+                                ref='PasswordResetSalt'
+                                placeholder='Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+                                defaultValue={this.props.config.EmailSettings.PasswordResetSalt}
+                                onChange={this.handleChange}
+                                disabled={!this.state.sendEmailNotifications}
+                            />
+                            <p className='help-text'>{'32-character salt added to signing of password reset emails.'}</p>
+                            <div className='help-text'>
+                                <button
+                                    className='help-link'
+                                    onClick={this.handleGenerateReset}
+                                    disabled={!this.state.sendEmailNotifications}
+                                >
+                                    {'Re-Generate'}
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -57,7 +57,7 @@ func main() {
 		api.StartServer()
 
 		// If we allow testing then listen for manual testing URL hits
-		if utils.Cfg.ServiceSettings.AllowTesting {
+		if utils.Cfg.ServiceSettings.EnableTesting {
 			manualtesting.InitManualTesting()
 		}
 

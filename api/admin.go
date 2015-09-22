@@ -35,7 +35,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var lines []string
 
-	if utils.Cfg.LogSettings.FileEnable {
+	if utils.Cfg.LogSettings.EnableFile {
 
 		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
 		if err != nil {
@@ -82,7 +82,7 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(cfg.ServiceSettings.Port) == 0 {
+	if len(cfg.ServiceSettings.ListenAddress) == 0 {
 		c.SetInvalidParam("saveConfig", "config")
 		return
 	}

@@ -4,12 +4,10 @@ var BrowserStore = require('../stores/browser_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
 export function track(category, action, label, prop, val) {
-    global.window.snowplow('trackStructEvent', category, action, label, prop, val);
     global.window.analytics.track(action, {category: category, label: label, property: prop, value: val});
 }
 
 export function trackPage() {
-    global.window.snowplow('trackPageView');
     global.window.analytics.page();
 }
 

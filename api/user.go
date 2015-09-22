@@ -58,7 +58,7 @@ func InitUser(r *mux.Router) {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.AllowSignUpWithEmail {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("signupTeam", "User sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -90,7 +90,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			c.Err = model.NewAppError("createUser", "The signup link does not appear to be valid", "")
 			return
 		}
@@ -287,7 +287,7 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 
 func checkUserPassword(c *Context, user *model.User, password string) bool {
 
-	if user.FailedAttempts >= utils.Cfg.ServiceSettings.AllowedLoginAttempts {
+	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = model.NewAppError("checkUserPassword", "Your account is locked because of too many failed password attempts. Please reset your password.", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
@@ -1129,7 +1129,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(newProps)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.ResetSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt))
 
 	link := fmt.Sprintf("%s/reset_password?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
 
@@ -1208,7 +1208,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", props["data"], utils.Cfg.ServiceSettings.ResetSalt)) {
+	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", props["data"], utils.Cfg.EmailSettings.PasswordResetSalt)) {
 		c.Err = model.NewAppError("resetPassword", "The reset password link does not appear to be valid", "")
 		return
 	}
@@ -1357,7 +1357,7 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri, loginHint string) {
 
 	sso := utils.Cfg.GetSSOService(service)
-	if sso != nil && !sso.Allow {
+	if sso != nil && !sso.Enable {
 		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
@@ -1385,7 +1385,7 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 
 func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
-	if sso != nil && !sso.Allow {
+	if sso != nil && !sso.Enable {
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
 	}
 

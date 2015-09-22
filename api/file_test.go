@@ -222,7 +222,7 @@ func TestGetFile(t *testing.T) {
 		newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 		data := model.MapToJson(newProps)
-		hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt))
+		hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ImageSettings.PublicLinkSalt))
 
 		Client.LoginByEmail(team2.Name, user2.Email, "pwd")
 

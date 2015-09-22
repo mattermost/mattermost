@@ -12,8 +12,8 @@ export default class LogSettings extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            consoleEnable: this.props.config.LogSettings.ConsoleEnable,
-            fileEnable: this.props.config.LogSettings.FileEnable,
+            consoleEnable: this.props.config.LogSettings.EnableConsole,
+            fileEnable: this.props.config.LogSettings.EnableFile,
             saveNeeded: false,
             serverError: null
         };
@@ -46,9 +46,9 @@ export default class LogSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.LogSettings.ConsoleEnable = React.findDOMNode(this.refs.consoleEnable).checked;
+        config.LogSettings.EnableConsole = React.findDOMNode(this.refs.consoleEnable).checked;
         config.LogSettings.ConsoleLevel = React.findDOMNode(this.refs.consoleLevel).value;
-        config.LogSettings.FileEnable = React.findDOMNode(this.refs.fileEnable).checked;
+        config.LogSettings.EnableFile = React.findDOMNode(this.refs.fileEnable).checked;
         config.LogSettings.FileLevel = React.findDOMNode(this.refs.fileLevel).value;
         config.LogSettings.FileLocation = React.findDOMNode(this.refs.fileLocation).value.trim();
         config.LogSettings.FileFormat = React.findDOMNode(this.refs.fileFormat).value.trim();
@@ -58,8 +58,8 @@ export default class LogSettings extends React.Component {
             () => {
                 AsyncClient.getConfig();
                 this.setState({
-                    consoleEnable: config.LogSettings.ConsoleEnable,
-                    fileEnable: config.LogSettings.FileEnable,
+                    consoleEnable: config.LogSettings.EnableConsole,
+                    fileEnable: config.LogSettings.EnableFile,
                     serverError: null,
                     saveNeeded: false
                 });
@@ -67,8 +67,8 @@ export default class LogSettings extends React.Component {
             },
             (err) => {
                 this.setState({
-                    consoleEnable: config.LogSettings.ConsoleEnable,
-                    fileEnable: config.LogSettings.FileEnable,
+                    consoleEnable: config.LogSettings.EnableConsole,
+                    fileEnable: config.LogSettings.EnableFile,
                     serverError: err.message,
                     saveNeeded: true
                 });
@@ -110,7 +110,7 @@ export default class LogSettings extends React.Component {
                                     name='consoleEnable'
                                     value='true'
                                     ref='consoleEnable'
-                                    defaultChecked={this.props.config.LogSettings.ConsoleEnable}
+                                    defaultChecked={this.props.config.LogSettings.EnableConsole}
                                     onChange={this.handleChange.bind(this, 'console_true')}
                                 />
                                     {'true'}
@@ -120,7 +120,7 @@ export default class LogSettings extends React.Component {
                                     type='radio'
                                     name='consoleEnable'
                                     value='false'
-                                    defaultChecked={!this.props.config.LogSettings.ConsoleEnable}
+                                    defaultChecked={!this.props.config.LogSettings.EnableConsole}
                                     onChange={this.handleChange.bind(this, 'console_false')}
                                 />
                                     {'false'}
@@ -166,7 +166,7 @@ export default class LogSettings extends React.Component {
                                     name='fileEnable'
                                     ref='fileEnable'
                                     value='true'
-                                    defaultChecked={this.props.config.LogSettings.FileEnable}
+                                    defaultChecked={this.props.config.LogSettings.EnableFile}
                                     onChange={this.handleChange.bind(this, 'file_true')}
                                 />
                                     {'true'}
@@ -176,7 +176,7 @@ export default class LogSettings extends React.Component {
                                     type='radio'
                                     name='fileEnable'
                                     value='false'
-                                    defaultChecked={!this.props.config.LogSettings.FileEnable}
+                                    defaultChecked={!this.props.config.LogSettings.EnableFile}
                                     onChange={this.handleChange.bind(this, 'file_false')}
                                 />
                                     {'false'}

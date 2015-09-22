@@ -58,9 +58,9 @@ func FindDir(dir string) string {
 
 func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
-	ls.ConsoleEnable = true
+	ls.EnableConsole = true
 	ls.ConsoleLevel = "ERROR"
-	ls.FileEnable = false
+	ls.EnableFile = false
 	configureLog(&ls)
 }
 
@@ -68,7 +68,7 @@ func configureLog(s *model.LogSettings) {
 
 	l4g.Close()
 
-	if s.ConsoleEnable {
+	if s.EnableConsole {
 		level := l4g.DEBUG
 		if s.ConsoleLevel == "INFO" {
 			level = l4g.INFO
@@ -79,7 +79,7 @@ func configureLog(s *model.LogSettings) {
 		l4g.AddFilter("stdout", level, l4g.NewConsoleLogWriter())
 	}
 
-	if s.FileEnable {
+	if s.EnableFile {
 
 		var fileFormat = s.FileFormat
 
@@ -174,16 +174,15 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["BuildHash"] = model.BuildHash
 
 	props["SiteName"] = c.TeamSettings.SiteName
-	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
-	props["AllowSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.AllowSignUpWithEmail)
+	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
-	props["AllowSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Allow)
+	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 

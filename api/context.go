@@ -107,21 +107,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	protocol := "http"
-
-	// If the request came from the ELB then assume this is produciton
-	// and redirect all http requests to https
-	if utils.Cfg.ServiceSettings.UseSSL {
-		forwardProto := r.Header.Get(model.HEADER_FORWARDED_PROTO)
-		if forwardProto == "http" {
-			l4g.Info("redirecting http request to https for %v", r.URL.Path)
-			http.Redirect(w, r, "https://"+r.Host, http.StatusTemporaryRedirect)
-			return
-		} else {
-			protocol = "https"
-		}
-	}
-
+	protocol := GetProtocol(r)
 	c.setSiteURL(protocol + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
@@ -206,6 +192,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				RenderWebError(c.Err, w, r)
 			}
 		}
+	}
+}
+
+func GetProtocol(r *http.Request) string {
+	if r.Header.Get(model.HEADER_FORWARDED_PROTO) == "https" {
+		return "https"
+	} else {
+		return "http"
 	}
 }
 
@@ -385,6 +379,11 @@ func (c *Context) GetSiteURL() string {
 
 func GetIpAddress(r *http.Request) string {
 	address := r.Header.Get(model.HEADER_FORWARDED)
+
+	if len(address) == 0 {
+		address = r.Header.Get(model.HEADER_REAL_IP)
+	}
+
 	if len(address) == 0 {
 		address, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
@@ -458,14 +457,7 @@ func IsPrivateIpAddress(ipAddress string) bool {
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
 
-	protocol := "http"
-	if utils.Cfg.ServiceSettings.UseSSL {
-		forwardProto := r.Header.Get(model.HEADER_FORWARDED_PROTO)
-		if forwardProto != "http" {
-			protocol = "https"
-		}
-	}
-
+	protocol := GetProtocol(r)
 	SiteURL := protocol + "://" + r.Host
 
 	m := make(map[string]string)

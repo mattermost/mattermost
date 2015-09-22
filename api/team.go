@@ -38,7 +38,7 @@ func InitTeam(r *mux.Router) {
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.AllowSignUpWithEmail {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("signupTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -66,7 +66,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_team_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
@@ -85,7 +85,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 	service := params["service"]
 
 	sso := utils.Cfg.GetSSOService(service)
-	if sso != nil && !sso.Allow {
+	if sso != nil && !sso.Enable {
 		c.SetInvalidParam("createTeamFromSSO", "service")
 		return
 	}
@@ -142,7 +142,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.AllowSignUpWithEmail {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("createTeamFromSignup", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -183,7 +183,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamSignup.User.TeamId = ""
 	teamSignup.User.Password = password
 
-	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.ServiceSettings.InviteSalt)) {
+	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.EmailSettings.InviteSalt)) {
 		c.Err = model.NewAppError("createTeamFromSignup", "The signup link does not appear to be valid", "")
 		return
 	}
@@ -243,7 +243,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateTeam(c *Context, team *model.Team) *model.Team {
-	if !utils.Cfg.EmailSettings.AllowSignUpWithEmail {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return nil
@@ -255,11 +255,6 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 	}
 
 	if !isTreamCreationAllowed(c, team.Email) {
-		return nil
-	}
-
-	if utils.Cfg.ServiceSettings.Mode != utils.MODE_DEV {
-		c.Err = model.NewAppError("CreateTeam", "The mode does not allow network creation without a valid invite", "")
 		return nil
 	}
 
@@ -488,10 +483,10 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			props["name"] = team.Name
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
-			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
+			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
-			if utils.Cfg.ServiceSettings.Mode == utils.MODE_DEV {
+			if !utils.Cfg.EmailSettings.SendEmailNotifications {
 				l4g.Info("sending invitation to %v %v", invite, bodyPage.Props["Link"])
 			}
 

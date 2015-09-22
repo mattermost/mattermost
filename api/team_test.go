@@ -30,7 +30,7 @@ func TestCreateFromSignupTeam(t *testing.T) {
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	user := model.User{Email: props["email"], Nickname: "Corey Hulen", Password: "hello"}

@@ -16,7 +16,7 @@ import (
 func TestSocket(t *testing.T) {
 	Setup()
 
-	url := "ws://localhost:" + utils.Cfg.ServiceSettings.Port + "/api/v1/websocket"
+	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress + "/api/v1/websocket"
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 

@@ -3,6 +3,7 @@
 
 var Client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
+var crypto = require('crypto');
 
 export default class ImageSettings extends React.Component {
     constructor(props) {
@@ -10,6 +11,7 @@ export default class ImageSettings extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleGenerate = this.handleGenerate.bind(this);
 
         this.state = {
             saveNeeded: false,
@@ -28,6 +30,13 @@ export default class ImageSettings extends React.Component {
         this.setState(s);
     }
 
+    handleGenerate(e) {
+        e.preventDefault();
+        React.findDOMNode(this.refs.PublicLinkSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 31);
+        var s = {saveNeeded: true, serverError: this.state.serverError};
+        this.setState(s);
+    }
+
     handleSubmit(e) {
         e.preventDefault();
         $('#save-button').button('loading');
@@ -40,6 +49,13 @@ export default class ImageSettings extends React.Component {
         config.ImageSettings.AmazonS3Bucket = React.findDOMNode(this.refs.AmazonS3Bucket).value;
         config.ImageSettings.AmazonS3Region = React.findDOMNode(this.refs.AmazonS3Region).value;
         config.ImageSettings.EnablePublicLink = React.findDOMNode(this.refs.EnablePublicLink).checked;
+
+        config.ImageSettings.PublicLinkSalt = React.findDOMNode(this.refs.PublicLinkSalt).value.trim();
+
+        if (config.ImageSettings.PublicLinkSalt === '') {
+            config.ImageSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 31);
+            React.findDOMNode(this.refs.PublicLinkSalt).value = config.ImageSettings.PublicLinkSalt;
+        }
 
         var thumbnailWidth = 120;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.ThumbnailWidth).value, 10))) {
@@ -421,6 +437,35 @@ export default class ImageSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'Allow users to share public links to files and images.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='PublicLinkSalt'
+                        >
+                            {'Public Link Salt:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='PublicLinkSalt'
+                                ref='PublicLinkSalt'
+                                placeholder='Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
+                                defaultValue={this.props.config.ImageSettings.PublicLinkSalt}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>{'32-character salt added to signing of public image links.'}</p>
+                            <div className='help-text'>
+                                <button
+                                    className='help-link'
+                                    onClick={this.handleGenerate}
+                                >
+                                    {'Re-Generate'}
+                                </button>
+                            </div>
                         </div>
                     </div>
 

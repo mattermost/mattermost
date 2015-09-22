@@ -38,7 +38,7 @@ func BenchmarkGetFile(b *testing.B) {
 	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(newProps)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ImageSettings.PublicLinkSalt))
 
 	// wait a bit for files to ready
 	time.Sleep(5 * time.Second)

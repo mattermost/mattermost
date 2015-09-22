@@ -1,18 +1,11 @@
 {
     "ServiceSettings": {
-        "Mode": "dev",
-        "AllowTesting": false,
-        "UseSSL": false,
-        "Port": "8065",
-        "Version": "developer",
-        "InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6",
-        "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
-        "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
-        "AnalyticsUrl": "",
-        "AllowedLoginAttempts": 10,
-        "EnableOAuthServiceProvider": false,
+        "ListenAddress": ":8065",
+        "MaximumLoginAttempts": 10,
         "SegmentDeveloperKey": "",
-        "GoogleDeveloperKey": ""
+        "GoogleDeveloperKey": "",
+        "EnableOAuthServiceProvider": false,
+        "EnableTesting": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -32,9 +25,9 @@
         "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"
     },
     "LogSettings": {
-        "ConsoleEnable": true,
+        "EnableConsole": true,
         "ConsoleLevel": "DEBUG",
-        "FileEnable": true,
+        "EnableFile": true,
         "FileLevel": "INFO",
         "FileFormat": "",
         "FileLocation": ""
@@ -43,6 +36,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": true,
+        "PublicLinkSalt": "LhaAWC6lYEKHTkBKsvyXNIOfUIT37AX",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -56,7 +50,7 @@
         "AmazonS3Region": ""
     },
     "EmailSettings": {
-        "AllowSignUpWithEmail": true,
+        "EnableSignUpWithEmail": true,
         "SendEmailNotifications": false,
         "RequireEmailVerification": false,
         "FeedbackName": "",
@@ -66,6 +60,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
+        "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo",
+        "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5e",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",
         "ApplePushCertPrivate": ""
@@ -82,7 +78,7 @@
         "ShowFullName": true
     },
     "GitLabSettings": {
-        "Allow": false,
+        "Enable": false,
         "Secret": "",
         "Id": "",
         "Scope": "",

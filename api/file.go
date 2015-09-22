@@ -399,7 +399,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	asyncGetFile(path, fileData)
 
 	if len(hash) > 0 && len(data) > 0 && len(teamId) == 26 {
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ImageSettings.PublicLinkSalt)) {
 			c.Err = model.NewAppError("getFile", "The public link does not appear to be valid", "")
 			return
 		}
@@ -477,7 +477,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(newProps)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.PublicLinkSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ImageSettings.PublicLinkSalt))
 
 	url := fmt.Sprintf("%s/api/v1/files/get/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL(), channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
 

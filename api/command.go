@@ -215,8 +215,8 @@ func joinCommand(c *Context, command *model.Command) bool {
 func loadTestCommand(c *Context, command *model.Command) bool {
 	cmd := "/loadtest"
 
-	// This command is only available when AllowTesting is true
-	if !utils.Cfg.ServiceSettings.AllowTesting {
+	// This command is only available when EnableTesting is true
+	if !utils.Cfg.ServiceSettings.EnableTesting {
 		return false
 	}
 
