@@ -355,6 +355,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	resend := r.URL.Query().Get("resend")
+	resendSuccess := r.URL.Query().Get("resend_success")
 	name := r.URL.Query().Get("teamname")
 	email := r.URL.Query().Get("email")
 	hashedId := r.URL.Query().Get("hid")
@@ -376,8 +377,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user := result.Data.(*model.User)
 			api.FireAndForgetVerifyEmail(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 
-			newAddress := strings.Replace(r.URL.String(), "?resend=true", "?resend_success=true", -1)
-			newAddress = strings.Replace(newAddress, "&resend=true", "&resend_success=true", -1)
+			newAddress := strings.Replace(r.URL.String(), "&resend=true", "&resend_success=true", -1)
 			http.Redirect(w, r, newAddress, http.StatusFound)
 			return
 		}
@@ -403,6 +403,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["IsVerified"] = isVerified
 	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
 	page.Props["UserEmail"] = email
+	page.Props["ResendSuccess"] = resendSuccess
 	page.Render(c, w)
 }
 
