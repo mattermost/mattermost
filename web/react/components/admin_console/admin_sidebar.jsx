@@ -74,6 +74,15 @@ export default class AdminSidebar extends React.Component {
                                         {'Image Settings'}
                                     </a>
                                 </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('privacy_settings')}
+                                        onClick={this.handleClick.bind(this, 'privacy_settings')}
+                                    >
+                                        {'Privacy Settings'}
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     </ul>

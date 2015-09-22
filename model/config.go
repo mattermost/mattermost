@@ -105,8 +105,6 @@ type RateLimitSettings struct {
 
 type PrivacySettings struct {
 	ShowEmailAddress bool
-	ShowPhoneNumber  bool
-	ShowSkypeId      bool
 	ShowFullName     bool
 }
 

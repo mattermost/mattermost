@@ -161,8 +161,6 @@ func getSanitizeOptions(c *model.Config) map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = c.PrivacySettings.ShowFullName
 	options["email"] = c.PrivacySettings.ShowEmailAddress
-	options["skypeid"] = c.PrivacySettings.ShowSkypeId
-	options["phonenumber"] = c.PrivacySettings.ShowPhoneNumber
 
 	return options
 }
