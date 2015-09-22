@@ -36,6 +36,7 @@ export default class ServiceSettings extends React.Component {
         config.ServiceSettings.SegmentDeveloperKey = React.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
         config.ServiceSettings.GoogleDeveloperKey = React.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
         config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
+        config.ServiceSettings.EnableIncomingWebhooks = React.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
         config.ServiceSettings.EnableTesting = React.findDOMNode(this.refs.EnableTesting).checked;
 
         var MaximumLoginAttempts = 10;
@@ -199,6 +200,39 @@ export default class ServiceSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'When enabled Mattermost will act as an Oauth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableIncomingWebhooks'
+                        >
+                            {'EnableIncomingWebhooks: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableIncomingWebhooks'
+                                    value='true'
+                                    ref='EnableIncomingWebhooks'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableIncomingWebhooks}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableIncomingWebhooks'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableIncomingWebhooks}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true incomming web hooks will be allowed.'}</p>
                         </div>
                     </div>
 
