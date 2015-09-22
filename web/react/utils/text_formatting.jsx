@@ -10,8 +10,6 @@ const Utils = require('./utils.jsx');
 
 const marked = require('marked');
 
-const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
-
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
 // as part of the second parameter:
@@ -25,13 +23,29 @@ export function formatText(text, options = {}) {
         options.markdown = true;
     }
 
-    // wait until marked can sanitize the html so that we don't break markdown block quotes
     let output;
-    if (!options.markdown) {
-        output = sanitizeHtml(text);
+
+    if (options.markdown) {
+        // the markdown renderer will call doFormatText as necessary so just call marked
+        output = marked(text, {
+            renderer: new Markdown.MattermostMarkdownRenderer(null, options),
+            sanitize: true
+        });
     } else {
-        output = text;
+        output = sanitizeHtml(text);
+        output = doFormatText(output, options);
     }
+
+    // replace newlines with spaces if necessary
+    if (options.singleline) {
+        output = replaceNewlines(output);
+    }
+
+    return output;
+}
+
+export function doFormatText(text, options) {
+    let output = text;
 
     const tokens = new Map();
 
@@ -52,21 +66,8 @@ export function formatText(text, options = {}) {
         output = highlightCurrentMentions(output, tokens);
     }
 
-    // perform markdown parsing while we have an html-free input string
-    if (options.markdown) {
-        output = marked(output, {
-            renderer: markdownRenderer,
-            sanitize: true
-        });
-    }
-
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
-
-    // replace newlines with html line breaks
-    if (options.singleline) {
-        output = replaceNewlines(output);
-    }
 
     return output;
 }
