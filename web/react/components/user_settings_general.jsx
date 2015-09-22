@@ -208,7 +208,7 @@ export default class UserSettingsGeneralTab extends React.Component {
     }
     setupInitialState(props) {
         var user = props.user;
-        var emailEnabled = !global.window.config.ByPassEmail;
+        var emailEnabled = global.window.config.ByPassEmail === 'false';
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
                         email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
     }
