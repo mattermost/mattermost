@@ -19,13 +19,9 @@ const marked = require('marked');
 // - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
-    if (!('markdown' in options)) {
-        options.markdown = true;
-    }
-
     let output;
 
-    if (options.markdown) {
+    if (!('markdown' in options) || options.markdown) {
         // the markdown renderer will call doFormatText as necessary so just call marked
         output = marked(text, {
             renderer: new Markdown.MattermostMarkdownRenderer(null, options),
@@ -44,13 +40,14 @@ export function formatText(text, options = {}) {
     return output;
 }
 
+// Performs most of the actual formatting work for formatText. Not intended to be called normally.
 export function doFormatText(text, options) {
     let output = text;
 
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    output = autolinkUrls(output, tokens, !!options.markdown);
+    output = autolinkUrls(output, tokens);
     output = autolinkAtMentions(output, tokens);
     output = autolinkHashtags(output, tokens);
 
@@ -85,7 +82,7 @@ export function sanitizeHtml(text) {
     return output;
 }
 
-function autolinkUrls(text, tokens, markdown) {
+function autolinkUrls(text, tokens) {
     function replaceUrlWithToken(autolinker, match) {
         const linkText = match.getMatchedText();
         let url = linkText;
@@ -115,30 +112,7 @@ function autolinkUrls(text, tokens, markdown) {
         replaceFn: replaceUrlWithToken
     });
 
-    let output = text;
-
-    // temporarily replace markdown links if markdown is enabled so that we don't accidentally parse them twice
-    const markdownLinkTokens = new Map();
-    if (markdown) {
-        function replaceMarkdownLinkWithToken(markdownLink) {
-            const index = markdownLinkTokens.size;
-            const alias = `MM_MARKDOWNLINK${index}`;
-
-            markdownLinkTokens.set(alias, {value: markdownLink});
-
-            return alias;
-        }
-
-        output = output.replace(/\]\([^\)]*\)/g, replaceMarkdownLinkWithToken);
-    }
-
-    output = autolinker.link(output);
-
-    if (markdown) {
-        output = replaceTokens(output, markdownLinkTokens);
-    }
-
-    return output;
+    return autolinker.link(text);
 }
 
 function autolinkAtMentions(text, tokens) {
