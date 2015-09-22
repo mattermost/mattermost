@@ -6,6 +6,10 @@ var client = require('../utils/client.jsx');
 var utils = require('../utils/utils.jsx');
 
 export default class SidebarRightMenu extends React.Component {
+    componentDidMount() {
+        $('.sidebar--left .dropdown-menu').perfectScrollbar();
+    }
+
     constructor(props) {
         super(props);
 
