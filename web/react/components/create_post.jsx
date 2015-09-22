@@ -23,6 +23,7 @@ export default class CreatePost extends React.Component {
 
         this.lastTime = 0;
 
+        this.getCurrentDraft = this.getCurrentDraft.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
@@ -36,29 +37,39 @@ export default class CreatePost extends React.Component {
 
         PostStore.clearDraftUploads();
 
-        const draft = PostStore.getCurrentDraft();
-        let previews = [];
-        let messageText = '';
-        let uploadsInProgress = [];
-        if (draft && (draft.message || (draft.previews && draft.previews.length))) {
-            previews = draft.previews;
-            messageText = draft.message;
-            uploadsInProgress = draft.uploadsInProgress;
-        }
+        const draft = this.getCurrentDraft();
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
-            messageText: messageText,
-            uploadsInProgress: uploadsInProgress,
-            previews: previews,
+            messageText: draft.messageText,
+            uploadsInProgress: draft.uploadsInProgress,
+            previews: draft.previews,
             submitting: false,
-            initialText: messageText
+            initialText: draft.messageText
         };
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.previews.length !== this.state.previews.length) {
             this.resizePostHolder();
         }
+    }
+    getCurrentDraft() {
+        const draft = PostStore.getCurrentDraft();
+        const safeDraft = {previews: [], messageText: '', uploadsInProgress: []};
+
+        if (draft) {
+            if (draft.message) {
+                safeDraft.messageText = draft.message;
+            }
+            if (draft.previews) {
+                safeDraft.previews = draft.previews;
+            }
+            if (draft.uploadsInProgress) {
+                safeDraft.uploadsInProgress = draft.uploadsInProgress;
+            }
+        }
+
+        return safeDraft;
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -253,18 +264,9 @@ export default class CreatePost extends React.Component {
     onChange() {
         const channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
-            let draft = PostStore.getCurrentDraft();
+            const draft = this.getCurrentDraft();
 
-            let previews = [];
-            let messageText = '';
-            let uploadsInProgress = [];
-            if (draft && (draft.message || (draft.previews && draft.previews.length))) {
-                previews = draft.previews;
-                messageText = draft.message;
-                uploadsInProgress = draft.uploadsInProgress;
-            }
-
-            this.setState({channelId: channelId, messageText: messageText, initialText: messageText, submitting: false, serverError: null, postError: null, previews: previews, uploadsInProgress: uploadsInProgress});
+            this.setState({channelId: channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
         }
     }
     getFileCount(channelId) {
