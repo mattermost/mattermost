@@ -471,7 +471,7 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	m := make(map[string]string)
 	m["Message"] = err.Message
 	m["Details"] = err.DetailedError
-	m["SiteName"] = utils.Cfg.ServiceSettings.SiteName
+	m["SiteName"] = utils.Cfg.TeamSettings.SiteName
 	m["SiteURL"] = SiteURL
 
 	w.WriteHeader(err.StatusCode)

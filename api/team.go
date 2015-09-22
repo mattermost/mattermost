@@ -60,7 +60,6 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	subjectPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage := NewServerTemplatePage("signup_team_body")
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage.Props["TourUrl"] = utils.Cfg.TeamSettings.TourLink
 
 	props := make(map[string]string)
 	props["email"] = email
@@ -123,8 +122,6 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 			count += 1
 		}
 	}
-
-	team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
 
 	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
 		c.Err = result.Err
@@ -207,8 +204,6 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamSignup.Team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
-
 	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -226,13 +221,6 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		ruser := CreateUser(c, rteam, &teamSignup.User)
 		if c.Err != nil {
 			return
-		}
-
-		if teamSignup.Team.AllowValet {
-			CreateValet(c, rteam)
-			if c.Err != nil {
-				return
-			}
 		}
 
 		InviteMembers(c, rteam, ruser, teamSignup.Invites)
@@ -286,13 +274,6 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 			return nil
 		}
 
-		if rteam.AllowValet {
-			CreateValet(c, rteam)
-			if c.Err != nil {
-				return nil
-			}
-		}
-
 		return rteam
 	}
 }
@@ -301,7 +282,7 @@ func isTreamCreationAllowed(c *Context, email string) bool {
 
 	email = strings.ToLower(email)
 
-	if utils.Cfg.TeamSettings.DisableTeamCreation {
+	if !utils.Cfg.TeamSettings.EnableTeamCreation {
 		c.Err = model.NewAppError("isTreamCreationAllowed", "Team creation has been disabled. Please ask your systems administrator for details.", "")
 		return false
 	}
@@ -567,8 +548,6 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowValet := allowValetStr == "true"
-
 	teamId := props["team_id"]
 	if len(teamId) > 0 && len(teamId) != 26 {
 		c.SetInvalidParam("updateValetFeature", "team_id")
@@ -596,8 +575,6 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		team = tResult.Data.(*model.Team)
 	}
-
-	team.AllowValet = allowValet
 
 	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
 		c.Err = result.Err

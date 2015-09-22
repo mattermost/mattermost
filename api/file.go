@@ -447,7 +447,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.Cfg.TeamSettings.AllowPublicLink {
+	if !utils.Cfg.ImageSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicLink", "Public links have been disabled", "")
 		c.Err.StatusCode = http.StatusForbidden
 	}

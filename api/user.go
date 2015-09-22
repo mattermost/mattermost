@@ -155,18 +155,12 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateValet(c *Context, team *model.Team) *model.User {
-	valet := &model.User{}
-	valet.TeamId = team.Id
-	valet.Email = utils.Cfg.EmailSettings.FeedbackEmail
-	valet.EmailVerified = true
-	valet.Username = model.BOT_USERNAME
-	valet.Password = model.NewId()
-
-	return CreateUser(c, team, valet)
-}
-
 func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
+
+	if !utils.Cfg.TeamSettings.EnableUserCreation {
+		c.Err = model.NewAppError("CreateUser", "User creation has been disabled. Please ask your systems administrator for details.", "")
+		return nil
+	}
 
 	channelRole := ""
 	if team.Email == user.Email {

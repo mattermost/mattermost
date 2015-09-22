@@ -311,26 +311,21 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 	}
 }
 
-// func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
+func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
 
-// 	// XXX TODO FIXME this should be removed after 0.6.0
-// 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-// 		return false
-// 	}
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
 
-// 	if !ss.DoesColumnExist(tableName, columnName) {
-// 		return false
-// 	}
+	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
+	if err != nil {
+		l4g.Critical("Failed to drop column %v", err)
+		time.Sleep(time.Second)
+		panic("Failed to drop column " + err.Error())
+	}
 
-// 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
-// 	if err != nil {
-// 		l4g.Critical("Failed to drop column %v", err)
-// 		time.Sleep(time.Second)
-// 		panic("Failed to drop column " + err.Error())
-// 	}
-
-// 	return true
-// }
+	return true
+}
 
 // func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
 

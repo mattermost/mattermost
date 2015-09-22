@@ -39,6 +39,7 @@ export default class ImageSettings extends React.Component {
         config.ImageSettings.AmazonS3SecretAccessKey = React.findDOMNode(this.refs.AmazonS3SecretAccessKey).value;
         config.ImageSettings.AmazonS3Bucket = React.findDOMNode(this.refs.AmazonS3Bucket).value;
         config.ImageSettings.AmazonS3Region = React.findDOMNode(this.refs.AmazonS3Region).value;
+        config.ImageSettings.EnablePublicLink = React.findDOMNode(this.refs.EnablePublicLink).checked;
 
         var thumbnailWidth = 120;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.ThumbnailWidth).value, 10))) {
@@ -387,6 +388,39 @@ export default class ImageSettings extends React.Component {
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Height of profile picture.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnablePublicLink'
+                        >
+                            {'Share Public File Link: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnablePublicLink'
+                                    value='true'
+                                    ref='EnablePublicLink'
+                                    defaultChecked={this.props.config.ImageSettings.EnablePublicLink}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnablePublicLink'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ImageSettings.EnablePublicLink}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'Allow users to share public links to files and images.'}</p>
                         </div>
                     </div>
 

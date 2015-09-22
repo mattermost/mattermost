@@ -25,7 +25,7 @@ type HtmlTemplatePage api.Page
 func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	if len(title) > 0 {
-		title = utils.Cfg.ServiceSettings.SiteName + " - " + title
+		title = utils.Cfg.TeamSettings.SiteName + " - " + title
 	}
 
 	props := make(map[string]string)

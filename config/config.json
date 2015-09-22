@@ -1,6 +1,5 @@
 {
     "ServiceSettings": {
-        "SiteName": "Mattermost",
         "Mode": "dev",
         "AllowTesting": false,
         "UseSSL": false,
@@ -16,12 +15,11 @@
         "GoogleDeveloperKey": ""
     },
     "TeamSettings": {
-        "MaxUsersPerTeam": 150,
-        "AllowPublicLink": true,
-        "AllowValetDefault": false,
-        "TourLink": "",
+        "SiteName": "Mattermost",
+        "MaxUsersPerTeam": 50,
         "DefaultThemeColor": "#2389D7",
-        "DisableTeamCreation": false,
+        "EnableTeamCreation": true,
+        "EnableUserCreation": true,
         "RestrictCreationToDomains": ""
     },
     "SqlSettings": {
@@ -44,6 +42,7 @@
     "ImageSettings": {
         "DriverName": "local",
         "Directory": "./data/",
+        "EnablePublicLink": true,
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,

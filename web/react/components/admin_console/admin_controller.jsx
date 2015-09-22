@@ -14,6 +14,8 @@ var PrivacySettingsTab = require('./privacy_settings.jsx');
 var RateSettingsTab = require('./rate_settings.jsx');
 var GitLabSettingsTab = require('./gitlab_settings.jsx');
 var SqlSettingsTab = require('./sql_settings.jsx');
+var TeamSettingsTab = require('./team_settings.jsx');
+
 
 export default class AdminController extends React.Component {
     constructor(props) {
@@ -24,7 +26,7 @@ export default class AdminController extends React.Component {
 
         this.state = {
             config: null,
-            selected: 'sql_settings'
+            selected: 'team_settings'
         };
     }
 
@@ -68,6 +70,8 @@ export default class AdminController extends React.Component {
                 tab = <GitLabSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'sql_settings') {
                 tab = <SqlSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'team_settings') {
+                tab = <TeamSettingsTab config={this.state.config} />;
             }
         }
 

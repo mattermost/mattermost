@@ -83,7 +83,7 @@ func TestGetConfig(t *testing.T) {
 	} else {
 		cfg := result.Data.(*model.Config)
 
-		if len(cfg.ServiceSettings.SiteName) == 0 {
+		if len(cfg.TeamSettings.SiteName) == 0 {
 			t.Fatal()
 		}
 	}
@@ -117,7 +117,7 @@ func TestSaveConfig(t *testing.T) {
 	} else {
 		cfg := result.Data.(*model.Config)
 
-		if len(cfg.ServiceSettings.SiteName) == 0 {
+		if len(cfg.TeamSettings.SiteName) == 0 {
 			t.Fatal()
 		}
 	}

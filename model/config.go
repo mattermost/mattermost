@@ -20,7 +20,6 @@ const (
 )
 
 type ServiceSettings struct {
-	SiteName                   string
 	Mode                       string
 	AllowTesting               bool
 	UseSSL                     bool
@@ -68,6 +67,7 @@ type LogSettings struct {
 type ImageSettings struct {
 	DriverName              string
 	Directory               string
+	EnablePublicLink        bool
 	ThumbnailWidth          uint
 	ThumbnailHeight         uint
 	PreviewWidth            uint
@@ -113,12 +113,11 @@ type PrivacySettings struct {
 }
 
 type TeamSettings struct {
+	SiteName                  string
 	MaxUsersPerTeam           int
-	AllowPublicLink           bool
-	AllowValetDefault         bool
-	TourLink                  string
 	DefaultThemeColor         string
-	DisableTeamCreation       bool
+	EnableTeamCreation        bool
+	EnableUserCreation        bool
 	RestrictCreationToDomains string
 }
 

@@ -41,6 +41,15 @@ export default class AdminSidebar extends React.Component {
                                 <li>
                                     <a
                                         href='#'
+                                        className={this.isSelected('team_settings')}
+                                        onClick={this.handleClick.bind(this, 'team_settings')}
+                                    >
+                                        {'Team Settings'}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
                                         className={this.isSelected('sql_settings')}
                                         onClick={this.handleClick.bind(this, 'sql_settings')}
                                     >
