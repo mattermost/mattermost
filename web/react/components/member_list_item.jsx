@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
+const Utils = require('../utils/utils.jsx');
 
 export default class MemberListItem extends React.Component {
     constructor(props) {
@@ -26,7 +27,7 @@ export default class MemberListItem extends React.Component {
     render() {
         var member = this.props.member;
         var isAdmin = this.props.isAdmin;
-        var isMemberAdmin = member.roles.indexOf('admin') > -1;
+        var isMemberAdmin = Utils.isAdmin(member.roles);
         var timestamp = UserStore.getCurrentUser().update_at;
 
         var invite;

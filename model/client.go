@@ -385,6 +385,24 @@ func (c *Client) GetClientProperties() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetConfig() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/admin/config", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ConfigFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/save_config", config.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ConfigFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) CreateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/channels/create", channel.ToJson()); err != nil {
 		return nil, err
@@ -790,4 +808,5 @@ func (c *Client) GetAccessToken(data url.Values) (*Result, *AppError) {
 
 func (c *Client) MockSession(sessionToken string) {
 	c.AuthToken = sessionToken
+	c.AuthType = HEADER_BEARER
 }

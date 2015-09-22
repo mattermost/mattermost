@@ -5,6 +5,7 @@ package api
 
 import (
 	"bytes"
+	"code.google.com/p/graphics-go/graphics"
 	l4g "code.google.com/p/log4go"
 	"fmt"
 	"github.com/goamz/goamz/aws"
@@ -13,6 +14,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/nfnt/resize"
+	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	"image"
 	"image/color"
@@ -21,6 +23,7 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
+	"math"
 	"mime"
 	"net/http"
 	"net/url"
@@ -29,6 +32,27 @@ import (
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	/*
+	  EXIF Image Orientations
+	  1        2       3      4         5            6           7          8
+
+	  888888  888888      88  88      8888888888  88                  88  8888888888
+	  88          88      88  88      88  88      88  88          88  88      88  88
+	  8888      8888    8888  8888    88          8888888888  8888888888          88
+	  88          88      88  88
+	  88          88  888888  888888
+	*/
+	Upright            = 1
+	UprightMirrored    = 2
+	UpsideDown         = 3
+	UpsideDownMirrored = 4
+	RotatedCWMirrored  = 5
+	RotatedCCW         = 6
+	RotatedCCWMirrored = 7
+	RotatedCW          = 8
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
@@ -144,25 +168,59 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 					return
 				}
 
-				// Decode image config
-				imgConfig, _, err := image.DecodeConfig(bytes.NewReader(fileData[i]))
-				if err != nil {
-					l4g.Error("Unable to decode image config channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
-					return
+				width := img.Bounds().Dx()
+				height := img.Bounds().Dy()
+
+				// Get the image's orientation and ignore any errors since not all images will have orientation data
+				orientation, _ := getImageOrientation(fileData[i])
+
+				// Create a temporary image that will be manipulated and then used to make the thumbnail and preview image
+				var temp *image.RGBA
+				switch orientation {
+				case Upright, UprightMirrored, UpsideDown, UpsideDownMirrored:
+					temp = image.NewRGBA(img.Bounds())
+				case RotatedCCW, RotatedCCWMirrored, RotatedCW, RotatedCWMirrored:
+					bounds := img.Bounds()
+					temp = image.NewRGBA(image.Rect(bounds.Min.Y, bounds.Min.X, bounds.Max.Y, bounds.Max.X))
+
+					width, height = height, width
 				}
 
-				// Remove transparency due to JPEG's lack of support of it
-				temp := image.NewRGBA(img.Bounds())
+				// Draw a white background since JPEGs lack transparency
 				draw.Draw(temp, temp.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-				draw.Draw(temp, temp.Bounds(), img, img.Bounds().Min, draw.Over)
+
+				// Copy the original image onto the temporary one while rotating it as necessary
+				switch orientation {
+				case UpsideDown, UpsideDownMirrored:
+					// rotate 180 degrees
+					err := graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: math.Pi})
+					if err != nil {
+						l4g.Error("Unable to rotate image")
+					}
+				case RotatedCW, RotatedCWMirrored:
+					// rotate 90 degrees CCW
+					graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: 3 * math.Pi / 2})
+					if err != nil {
+						l4g.Error("Unable to rotate image")
+					}
+				case RotatedCCW, RotatedCCWMirrored:
+					// rotate 90 degrees CW
+					graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: math.Pi / 2})
+					if err != nil {
+						l4g.Error("Unable to rotate image")
+					}
+				case Upright, UprightMirrored:
+					draw.Draw(temp, temp.Bounds(), img, img.Bounds().Min, draw.Over)
+				}
+
 				img = temp
 
 				// Create thumbnail
 				go func() {
 					thumbWidth := float64(utils.Cfg.ImageSettings.ThumbnailWidth)
 					thumbHeight := float64(utils.Cfg.ImageSettings.ThumbnailHeight)
-					imgWidth := float64(imgConfig.Width)
-					imgHeight := float64(imgConfig.Height)
+					imgWidth := float64(width)
+					imgHeight := float64(height)
 
 					var thumbnail image.Image
 					if imgHeight < thumbHeight && imgWidth < thumbWidth {
@@ -189,7 +247,7 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 				// Create preview
 				go func() {
 					var preview image.Image
-					if imgConfig.Width > int(utils.Cfg.ImageSettings.PreviewWidth) {
+					if width > int(utils.Cfg.ImageSettings.PreviewWidth) {
 						preview = resize.Resize(utils.Cfg.ImageSettings.PreviewWidth, utils.Cfg.ImageSettings.PreviewHeight, img, resize.Lanczos3)
 					} else {
 						preview = img
@@ -211,6 +269,23 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 			}()
 		}
 	}()
+}
+
+func getImageOrientation(imageData []byte) (int, error) {
+	if exifData, err := exif.Decode(bytes.NewReader(imageData)); err != nil {
+		return Upright, err
+	} else {
+		if tag, err := exifData.Get("Orientation"); err != nil {
+			return Upright, err
+		} else {
+			orientation, err := tag.Int(0)
+			if err != nil {
+				return Upright, err
+			} else {
+				return orientation, nil
+			}
+		}
+	}
 }
 
 type ImageGetResult struct {

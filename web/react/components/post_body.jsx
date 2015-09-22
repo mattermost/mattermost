@@ -35,9 +35,6 @@ export default class PostBody extends React.Component {
 
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
-        this.getAllChildNodes(React.findDOMNode(this)).forEach((current) => {
-            global.window.emojify.run(current);
-        });
     }
 
     componentDidMount() {
@@ -154,17 +151,18 @@ export default class PostBody extends React.Component {
         return (
             <div className='post-body'>
                 {comment}
-                <p
+                <div
                     key={`${post.id}_message`}
                     id={`${post.id}_message`}
                     className={postClass}
                 >
                     {loading}
                     <span
+                        ref='message_span'
                         onClick={TextFormatting.handleClick}
                         dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
                     />
-                </p>
+                </div>
                 {fileAttachmentHolder}
                 {embed}
             </div>

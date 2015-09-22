@@ -341,7 +341,7 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 				}
 			}
 		} else {
-			client.MockSession(c.Session.Id)
+			client.MockSession(c.Session.Token)
 			CreateTestEnviromentInTeam(
 				client,
 				c.Session.TeamId,
@@ -406,7 +406,7 @@ func loadTestChannelsCommand(c *Context, command *model.Command) bool {
 			channelsr = utils.Range{20, 30}
 		}
 		client := model.NewClient(c.GetSiteURL())
-		client.MockSession(c.Session.Id)
+		client.MockSession(c.Session.Token)
 		channelCreator := NewAutoChannelCreator(client, c.Session.TeamId)
 		channelCreator.Fuzzy = doFuzz
 		channelCreator.CreateTestChannels(channelsr)
@@ -458,7 +458,7 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		}
 
 		client := model.NewClient(c.GetSiteURL())
-		client.MockSession(c.Session.Id)
+		client.MockSession(c.Session.Token)
 		testPoster := NewAutoPostCreator(client, command.ChannelId)
 		testPoster.Fuzzy = doFuzz
 		testPoster.Users = usernames

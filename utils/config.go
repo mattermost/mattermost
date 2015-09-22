@@ -6,11 +6,14 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 
 	l4g "code.google.com/p/log4go"
+
+	"github.com/mattermost/platform/model"
 )
 
 const (
@@ -20,139 +23,9 @@ const (
 	LOG_ROTATE_SIZE = 10000
 )
 
-type ServiceSettings struct {
-	SiteName                   string
-	Mode                       string
-	AllowTesting               bool
-	UseSSL                     bool
-	Port                       string
-	Version                    string
-	InviteSalt                 string
-	PublicLinkSalt             string
-	ResetSalt                  string
-	AnalyticsUrl               string
-	UseLocalStorage            bool
-	StorageDirectory           string
-	AllowedLoginAttempts       int
-	DisableEmailSignUp         bool
-	EnableOAuthServiceProvider bool
-}
-
-type SSOSetting struct {
-	Allow           bool
-	Secret          string
-	Id              string
-	Scope           string
-	AuthEndpoint    string
-	TokenEndpoint   string
-	UserApiEndpoint string
-}
-
-type SqlSettings struct {
-	DriverName         string
-	DataSource         string
-	DataSourceReplicas []string
-	MaxIdleConns       int
-	MaxOpenConns       int
-	Trace              bool
-	AtRestEncryptKey   string
-}
-
-type LogSettings struct {
-	ConsoleEnable bool
-	ConsoleLevel  string
-	FileEnable    bool
-	FileLevel     string
-	FileFormat    string
-	FileLocation  string
-}
-
-type AWSSettings struct {
-	S3AccessKeyId     string
-	S3SecretAccessKey string
-	S3Bucket          string
-	S3Region          string
-}
-
-type ImageSettings struct {
-	ThumbnailWidth  uint
-	ThumbnailHeight uint
-	PreviewWidth    uint
-	PreviewHeight   uint
-	ProfileWidth    uint
-	ProfileHeight   uint
-	InitialFont     string
-}
-
-type EmailSettings struct {
-	ByPassEmail          bool
-	SMTPUsername         string
-	SMTPPassword         string
-	SMTPServer           string
-	UseTLS               bool
-	UseStartTLS          bool
-	FeedbackEmail        string
-	FeedbackName         string
-	ApplePushServer      string
-	ApplePushCertPublic  string
-	ApplePushCertPrivate string
-}
-
-type RateLimitSettings struct {
-	UseRateLimiter   bool
-	PerSec           int
-	MemoryStoreSize  int
-	VaryByRemoteAddr bool
-	VaryByHeader     string
-}
-
-type PrivacySettings struct {
-	ShowEmailAddress bool
-	ShowPhoneNumber  bool
-	ShowSkypeId      bool
-	ShowFullName     bool
-}
-
-type ClientSettings struct {
-	SegmentDeveloperKey string
-	GoogleDeveloperKey  string
-}
-
-type TeamSettings struct {
-	MaxUsersPerTeam           int
-	AllowPublicLink           bool
-	AllowValetDefault         bool
-	TourLink                  string
-	DefaultThemeColor         string
-	DisableTeamCreation       bool
-	RestrictCreationToDomains string
-}
-
-type Config struct {
-	LogSettings       LogSettings
-	ServiceSettings   ServiceSettings
-	SqlSettings       SqlSettings
-	AWSSettings       AWSSettings
-	ImageSettings     ImageSettings
-	EmailSettings     EmailSettings
-	RateLimitSettings RateLimitSettings
-	PrivacySettings   PrivacySettings
-	ClientSettings    ClientSettings
-	TeamSettings      TeamSettings
-	SSOSettings       map[string]SSOSetting
-}
-
-func (o *Config) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
-}
-
-var Cfg *Config = &Config{}
+var Cfg *model.Config = &model.Config{}
 var CfgLastModified int64 = 0
+var CfgFileName string = ""
 var ClientProperties map[string]string = map[string]string{}
 var SanitizeOptions map[string]bool = map[string]bool{}
 
@@ -184,14 +57,14 @@ func FindDir(dir string) string {
 }
 
 func ConfigureCmdLineLog() {
-	ls := LogSettings{}
+	ls := model.LogSettings{}
 	ls.ConsoleEnable = true
 	ls.ConsoleLevel = "ERROR"
 	ls.FileEnable = false
 	configureLog(&ls)
 }
 
-func configureLog(s *LogSettings) {
+func configureLog(s *model.LogSettings) {
 
 	l4g.Close()
 
@@ -207,12 +80,11 @@ func configureLog(s *LogSettings) {
 	}
 
 	if s.FileEnable {
-		if s.FileFormat == "" {
-			s.FileFormat = "[%D %T] [%L] %M"
-		}
 
-		if s.FileLocation == "" {
-			s.FileLocation = FindDir("logs") + "mattermost.log"
+		var fileFormat = s.FileFormat
+
+		if fileFormat == "" {
+			fileFormat = "[%D %T] [%L] %M"
 		}
 
 		level := l4g.DEBUG
@@ -222,12 +94,34 @@ func configureLog(s *LogSettings) {
 			level = l4g.ERROR
 		}
 
-		flw := l4g.NewFileLogWriter(s.FileLocation, false)
-		flw.SetFormat(s.FileFormat)
+		flw := l4g.NewFileLogWriter(GetLogFileLocation(s.FileLocation), false)
+		flw.SetFormat(fileFormat)
 		flw.SetRotate(true)
 		flw.SetRotateLines(LOG_ROTATE_SIZE)
 		l4g.AddFilter("file", level, flw)
 	}
+}
+
+func GetLogFileLocation(fileLocation string) string {
+	if fileLocation == "" {
+		return FindDir("logs") + "mattermost.log"
+	} else {
+		return fileLocation
+	}
+}
+
+func SaveConfig(fileName string, config *model.Config) *model.AppError {
+	b, err := json.MarshalIndent(config, "", "    ")
+	if err != nil {
+		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+	}
+
+	err = ioutil.WriteFile(fileName, b, 0644)
+	if err != nil {
+		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+	}
+
+	return nil
 }
 
 // LoadConfig will try to search around for the corresponding config file.
@@ -243,7 +137,7 @@ func LoadConfig(fileName string) {
 	}
 
 	decoder := json.NewDecoder(file)
-	config := Config{}
+	config := model.Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
 		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
@@ -253,6 +147,7 @@ func LoadConfig(fileName string) {
 		panic("Error getting config info file=" + fileName + ", err=" + err.Error())
 	} else {
 		CfgLastModified = info.ModTime().Unix()
+		CfgFileName = fileName
 	}
 
 	configureLog(&config.LogSettings)
@@ -262,7 +157,7 @@ func LoadConfig(fileName string) {
 	ClientProperties = getClientProperties(Cfg)
 }
 
-func getSanitizeOptions(c *Config) map[string]bool {
+func getSanitizeOptions(c *model.Config) map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = c.PrivacySettings.ShowFullName
 	options["email"] = c.PrivacySettings.ShowEmailAddress
@@ -272,10 +167,14 @@ func getSanitizeOptions(c *Config) map[string]bool {
 	return options
 }
 
-func getClientProperties(c *Config) map[string]string {
+func getClientProperties(c *model.Config) map[string]string {
 	props := make(map[string]string)
 
-	props["Version"] = c.ServiceSettings.Version
+	props["Version"] = model.CurrentVersion
+	props["BuildNumber"] = model.BuildNumber
+	props["BuildDate"] = model.BuildDate
+	props["BuildHash"] = model.BuildHash
+
 	props["SiteName"] = c.ServiceSettings.SiteName
 	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail

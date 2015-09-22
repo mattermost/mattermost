@@ -107,8 +107,8 @@ export default class NewChannelModal extends React.Component {
                                 {channelSwitchText}
                             </div>
                             <div className={displayNameClass}>
-                                <label className='col-sm-2 form__label control-label'>{'Name'}</label>
-                                <div className='col-sm-10'>
+                                <label className='col-sm-3 form__label control-label'>{'Name'}</label>
+                                <div className='col-sm-9'>
                                     <input
                                         onChange={this.handleChange}
                                         type='text'
@@ -121,7 +121,7 @@ export default class NewChannelModal extends React.Component {
                                         tabIndex='1'
                                     />
                                     {displayNameError}
-                                    <p className='input__help'>
+                                    <p className='input__help dark'>
                                         {'Channel URL: ' + prettyTeamURL + this.props.channelData.name + ' ('}
                                         <a
                                             href='#'
@@ -134,11 +134,11 @@ export default class NewChannelModal extends React.Component {
                                 </div>
                             </div>
                             <div className='form-group less'>
-                                <div className='col-sm-2'>
+                                <div className='col-sm-3'>
                                     <label className='form__label control-label'>{'Description'}</label>
                                     <label className='form__label light'>{'(optional)'}</label>
                                 </div>
-                                <div className='col-sm-10'>
+                                <div className='col-sm-9'>
                                     <textarea
                                         className='form-control no-resize'
                                         ref='channel_desc'
@@ -150,7 +150,7 @@ export default class NewChannelModal extends React.Component {
                                         tabIndex='2'
                                     />
                                     <p className='input__help'>
-                                        {'This is the purpose of your channel and helps others decide whether to join.'}
+                                        {'Description helps others decide whether to join this channel.'}
                                     </p>
                                     {serverError}
                                 </div>

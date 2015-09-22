@@ -13,6 +13,11 @@
 			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
 		},
 		{
+			"ImportPath": "code.google.com/p/graphics-go/graphics",
+			"Comment": "null-25",
+			"Rev": "f843bfcd8ac420072c7f6804599995b0a229070b"
+		},
+		{
 			"ImportPath": "code.google.com/p/log4go",
 			"Comment": "go.weekly.2012-02-22-1",
 			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
@@ -86,6 +91,14 @@
 		{
 			"ImportPath": "github.com/nfnt/resize",
 			"Rev": "dc93e1b98c579d90ee2fa15c1fd6dac34f6e7899"
+		},
+		{
+			"ImportPath": "github.com/rwcarlsen/goexif/exif",
+			"Rev": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8"
+		},
+		{
+			"ImportPath": "github.com/rwcarlsen/goexif/tiff",
+			"Rev": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8"
 		},
 		{
 			"ImportPath": "github.com/stretchr/objx",

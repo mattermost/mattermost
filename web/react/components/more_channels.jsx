@@ -6,6 +6,7 @@ var client = require('../utils/client.jsx');
 var asyncClient = require('../utils/async_client.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var LoadingScreen = require('./loading_screen.jsx');
+var NewChannelFlow = require('./new_channel_flow.jsx');
 
 function getStateFromStores() {
     return {
@@ -25,6 +26,7 @@ export default class MoreChannels extends React.Component {
         var initState = getStateFromStores();
         initState.channelType = '';
         initState.joiningChannel = -1;
+        initState.showNewChannelModal = false;
         this.state = initState;
     }
     componentDidMount() {
@@ -66,6 +68,7 @@ export default class MoreChannels extends React.Component {
     }
     handleNewChannel() {
         $(React.findDOMNode(this.refs.modal)).modal('hide');
+        this.setState({showNewChannelModal: true});
     }
     render() {
         var serverError;
@@ -148,20 +151,22 @@ export default class MoreChannels extends React.Component {
                                 className='close'
                                 data-dismiss='modal'
                             >
-                                <span aria-hidden='true'>&times;</span>
-                                <span className='sr-only'>Close</span>
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>{'Close'}</span>
                             </button>
-                            <h4 className='modal-title'>More Channels</h4>
+                            <h4 className='modal-title'>{'More Channels'}</h4>
                             <button
-                                data-toggle='modal'
-                                data-target='#new_channel'
-                                data-channeltype={this.state.channelType}
                                 type='button'
                                 className='btn btn-primary channel-create-btn'
                                 onClick={this.handleNewChannel}
                             >
-                                Create New Channel
+                                {'Create New Channel'}
                             </button>
+                            <NewChannelFlow
+                                show={this.state.showNewChannelModal}
+                                channelType={this.state.channelType}
+                                onModalDismissed={() => this.setState({showNewChannelModal: false})}
+                            />
                         </div>
                         <div className='modal-body'>
                             {moreChannels}
@@ -173,7 +178,7 @@ export default class MoreChannels extends React.Component {
                                 className='btn btn-default'
                                 data-dismiss='modal'
                             >
-                                Close
+                                {'Close'}
                             </button>
                         </div>
                     </div>

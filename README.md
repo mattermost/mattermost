@@ -48,8 +48,10 @@ There are multiple ways to install Mattermost depending on your needs.
 
 #### Development Install 
 
-- [Developer Machine Setup](doc/install/dev-setup.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. 
- 
+- [Developer Machine Setup](doc/install/dev-setup.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. Pull the latest stable release or pull the latest code from our development build. 
+
+[![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
+
 #### Production Deployment (for Beta2 and later)
 
 Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 

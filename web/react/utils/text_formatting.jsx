@@ -3,8 +3,14 @@
 
 const Autolinker = require('autolinker');
 const Constants = require('./constants.jsx');
+const Emoticons = require('./emoticons.jsx');
+const Markdown = require('./markdown.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
+
+const marked = require('marked');
+
+const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
@@ -12,12 +18,29 @@ const Utils = require('./utils.jsx');
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
+// - emoticons - Enables emoticon parsing. Defaults to true.
+// - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
-    let output = sanitizeHtml(text);
+    if (!('markdown' in options)) {
+        options.markdown = true;
+    }
+
+    // wait until marked can sanitize the html so that we don't break markdown block quotes
+    let output;
+    if (!options.markdown) {
+        output = sanitizeHtml(text);
+    } else {
+        output = text;
+    }
+
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    output = autolinkUrls(output, tokens);
+    if (!('emoticons' in options) || options.emoticon) {
+        output = Emoticons.handleEmoticons(output, tokens);
+    }
+
+    output = autolinkUrls(output, tokens, !!options.markdown);
     output = autolinkAtMentions(output, tokens);
     output = autolinkHashtags(output, tokens);
 
@@ -29,11 +52,21 @@ export function formatText(text, options = {}) {
         output = highlightCurrentMentions(output, tokens);
     }
 
+    // perform markdown parsing while we have an html-free input string
+    if (options.markdown) {
+        output = marked(output, {
+            renderer: markdownRenderer,
+            sanitize: true
+        });
+    }
+
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
 
     // replace newlines with html line breaks
-    output = replaceNewlines(output, options.singleline);
+    if (options.singleline) {
+        output = replaceNewlines(output);
+    }
 
     return output;
 }
@@ -51,17 +84,17 @@ export function sanitizeHtml(text) {
     return output;
 }
 
-function autolinkUrls(text, tokens) {
+function autolinkUrls(text, tokens, markdown) {
     function replaceUrlWithToken(autolinker, match) {
         const linkText = match.getMatchedText();
         let url = linkText;
 
-        if (!url.lastIndexOf('http', 0) === 0) {
+        if (url.lastIndexOf('http', 0) !== 0) {
             url = `http://${linkText}`;
         }
 
         const index = tokens.size;
-        const alias = `__MM_LINK${index}__`;
+        const alias = `MM_LINK${index}`;
 
         tokens.set(alias, {
             value: `<a class='theme' target='_blank' href='${url}'>${linkText}</a>`,
@@ -81,7 +114,30 @@ function autolinkUrls(text, tokens) {
         replaceFn: replaceUrlWithToken
     });
 
-    return autolinker.link(text);
+    let output = text;
+
+    // temporarily replace markdown links if markdown is enabled so that we don't accidentally parse them twice
+    const markdownLinkTokens = new Map();
+    if (markdown) {
+        function replaceMarkdownLinkWithToken(markdownLink) {
+            const index = markdownLinkTokens.size;
+            const alias = `MM_MARKDOWNLINK${index}`;
+
+            markdownLinkTokens.set(alias, {value: markdownLink});
+
+            return alias;
+        }
+
+        output = output.replace(/\]\([^\)]*\)/g, replaceMarkdownLinkWithToken);
+    }
+
+    output = autolinker.link(output);
+
+    if (markdown) {
+        output = replaceTokens(output, markdownLinkTokens);
+    }
+
+    return output;
 }
 
 function autolinkAtMentions(text, tokens) {
@@ -91,7 +147,7 @@ function autolinkAtMentions(text, tokens) {
         const usernameLower = username.toLowerCase();
         if (Constants.SPECIAL_MENTIONS.indexOf(usernameLower) !== -1 || UserStore.getProfileByUsername(usernameLower)) {
             const index = tokens.size;
-            const alias = `__MM_ATMENTION${index}__`;
+            const alias = `MM_ATMENTION${index}`;
 
             tokens.set(alias, {
                 value: `<a class='mention-link' href='#' data-mention='${usernameLower}'>${mention}</a>`,
@@ -119,7 +175,7 @@ function highlightCurrentMentions(text, tokens) {
     for (const [alias, token] of tokens) {
         if (mentionKeys.indexOf(token.originalText) !== -1) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `__MM_SELFMENTION${index}__`;
+            const newAlias = `MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
                 value: `<span class='mention-highlight'>${alias}</span>`,
@@ -138,7 +194,7 @@ function highlightCurrentMentions(text, tokens) {
     // look for self mentions in the text
     function replaceCurrentMentionWithToken(fullMatch, prefix, mention) {
         const index = tokens.size;
-        const alias = `__MM_SELFMENTION${index}__`;
+        const alias = `MM_SELFMENTION${index}`;
 
         tokens.set(alias, {
             value: `<span class='mention-highlight'>${mention}</span>`,
@@ -162,7 +218,7 @@ function autolinkHashtags(text, tokens) {
     for (const [alias, token] of tokens) {
         if (token.originalText.lastIndexOf('#', 0) === 0) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `__MM_HASHTAG${index}__`;
+            const newAlias = `MM_HASHTAG${index}`;
 
             newTokens.set(newAlias, {
                 value: `<a class='mention-link' href='#' data-hashtag='${token.originalText}'>${token.originalText}</a>`,
@@ -181,7 +237,7 @@ function autolinkHashtags(text, tokens) {
     // look for hashtags in the text
     function replaceHashtagWithToken(fullMatch, prefix, hashtag) {
         const index = tokens.size;
-        const alias = `__MM_HASHTAG${index}__`;
+        const alias = `MM_HASHTAG${index}`;
 
         tokens.set(alias, {
             value: `<a class='mention-link' href='#' data-hashtag='${hashtag}'>${hashtag}</a>`,
@@ -201,7 +257,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
     for (const [alias, token] of tokens) {
         if (token.originalText === searchTerm) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `__MM_SEARCHTERM${index}__`;
+            const newAlias = `MM_SEARCHTERM${index}`;
 
             newTokens.set(newAlias, {
                 value: `<span class='search-highlight'>${alias}</span>`,
@@ -219,7 +275,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
 
     function replaceSearchTermWithToken(fullMatch, prefix, word) {
         const index = tokens.size;
-        const alias = `__MM_SEARCHTERM${index}__`;
+        const alias = `MM_SEARCHTERM${index}`;
 
         tokens.set(alias, {
             value: `<span class='search-highlight'>${word}</span>`,
@@ -246,11 +302,7 @@ function replaceTokens(text, tokens) {
     return output;
 }
 
-function replaceNewlines(text, singleline) {
-    if (!singleline) {
-        return text.replace(/\n/g, '<br />');
-    }
-
+function replaceNewlines(text) {
     return text.replace(/\n/g, ' ');
 }
 

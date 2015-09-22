@@ -130,7 +130,7 @@ export default class ChannelMembers extends React.Component {
         const currentMember = ChannelStore.getCurrentMember();
         let isAdmin = false;
         if (currentMember) {
-            isAdmin = currentMember.roles.indexOf('admin') > -1 || UserStore.getCurrentUser().roles.indexOf('admin') > -1;
+            isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
         }
 
         var memberList = null;

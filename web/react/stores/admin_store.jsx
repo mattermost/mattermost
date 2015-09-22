@@ -8,16 +8,22 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 var LOG_CHANGE_EVENT = 'log_change';
+var CONFIG_CHANGE_EVENT = 'config_change';
 
 class AdminStoreClass extends EventEmitter {
     constructor() {
         super();
 
         this.logs = null;
+        this.config = null;
 
         this.emitLogChange = this.emitLogChange.bind(this);
         this.addLogChangeListener = this.addLogChangeListener.bind(this);
         this.removeLogChangeListener = this.removeLogChangeListener.bind(this);
+
+        this.emitConfigChange = this.emitConfigChange.bind(this);
+        this.addConfigChangeListener = this.addConfigChangeListener.bind(this);
+        this.removeConfigChangeListener = this.removeConfigChangeListener.bind(this);
     }
 
     emitLogChange() {
@@ -32,12 +38,32 @@ class AdminStoreClass extends EventEmitter {
         this.removeListener(LOG_CHANGE_EVENT, callback);
     }
 
+    emitConfigChange() {
+        this.emit(CONFIG_CHANGE_EVENT);
+    }
+
+    addConfigChangeListener(callback) {
+        this.on(CONFIG_CHANGE_EVENT, callback);
+    }
+
+    removeConfigChangeListener(callback) {
+        this.removeListener(CONFIG_CHANGE_EVENT, callback);
+    }
+
     getLogs() {
         return this.logs;
     }
 
     saveLogs(logs) {
         this.logs = logs;
+    }
+
+    getConfig() {
+        return this.config;
+    }
+
+    saveConfig(config) {
+        this.config = config;
     }
 }
 
@@ -50,6 +76,10 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECIEVED_LOGS:
         AdminStore.saveLogs(action.logs);
         AdminStore.emitLogChange();
+        break;
+    case ActionTypes.RECIEVED_CONFIG:
+        AdminStore.saveConfig(action.config);
+        AdminStore.emitConfigChange();
         break;
     default:
     }

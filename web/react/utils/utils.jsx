@@ -54,6 +54,29 @@ export function isTestDomain() {
     return false;
 }
 
+export function isInRole(roles, inRole) {
+    var parts = roles.split(' ');
+    for (var i = 0; i < parts.length; i++) {
+        if (parts[i] === inRole) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+export function isAdmin(roles) {
+    if (isInRole(roles, 'admin')) {
+        return true;
+    }
+
+    if (isInRole(roles, 'system_admin')) {
+        return true;
+    }
+
+    return false;
+}
+
 export function getDomainWithOutSub() {
     var parts = window.location.host.split('.');
 

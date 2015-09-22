@@ -3,6 +3,8 @@
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
+BUILD_DATE = $(shell date -u)
+BUILD_HASH = $(shell git rev-parse HEAD)
 
 GO=$(GOPATH)/bin/godep go
 ESLINT=node_modules/eslint/bin/eslint.js
@@ -32,6 +34,11 @@ all: travis
 travis:
 	@echo building for travis
 
+	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
+		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
+		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
+	fi
+
 	rm -Rf $(DIST_ROOT)
 	@$(GO) clean $(GOFLAGS) -i ./...
 
@@ -48,6 +55,10 @@ travis:
 		echo "gofmt failure"; \
 		exit 1; \
 	fi
+
+	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
 
 	@$(GO) build $(GOFLAGS) ./...
 	@$(GO) install $(GOFLAGS) ./...
@@ -221,6 +232,10 @@ cleandb:
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
 dist: install
+
+	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
 
 	@$(GO) build $(GOFLAGS) -i ./...
 	@$(GO) install $(GOFLAGS) ./...
