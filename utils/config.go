@@ -183,7 +183,7 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["AllowSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.AllowSignUpWithEmail)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
-	props["AllowSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSSOSettings.Allow)
+	props["AllowSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Allow)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)

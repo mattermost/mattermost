@@ -41,10 +41,28 @@ export default class AdminSidebar extends React.Component {
                                 <li>
                                     <a
                                         href='#'
+                                        className={this.isSelected('sql_settings')}
+                                        onClick={this.handleClick.bind(this, 'sql_settings')}
+                                    >
+                                        {'SQL Settings'}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
                                         className={this.isSelected('email_settings')}
                                         onClick={this.handleClick.bind(this, 'email_settings')}
                                     >
                                         {'Email Settings'}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('image_settings')}
+                                        onClick={this.handleClick.bind(this, 'image_settings')}
+                                    >
+                                        {'Image Settings'}
                                     </a>
                                 </li>
                                 <li>
@@ -68,10 +86,10 @@ export default class AdminSidebar extends React.Component {
                                 <li>
                                     <a
                                         href='#'
-                                        className={this.isSelected('image_settings')}
-                                        onClick={this.handleClick.bind(this, 'image_settings')}
+                                        className={this.isSelected('rate_settings')}
+                                        onClick={this.handleClick.bind(this, 'rate_settings')}
                                     >
-                                        {'Image Settings'}
+                                        {'Rate Limit Settings'}
                                     </a>
                                 </li>
                                 <li>
@@ -86,10 +104,10 @@ export default class AdminSidebar extends React.Component {
                                 <li>
                                     <a
                                         href='#'
-                                        className={this.isSelected('rate_settings')}
-                                        onClick={this.handleClick.bind(this, 'rate_settings')}
+                                        className={this.isSelected('gitlab_settings')}
+                                        onClick={this.handleClick.bind(this, 'gitlab_settings')}
                                     >
-                                        {'Rate Limit Settings'}
+                                        {'GitLab Settings'}
                                     </a>
                                 </li>
                             </ul>

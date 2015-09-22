@@ -162,7 +162,7 @@ export default class RateSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter}
                             />
-                            <p className='help-text'>{'Height of profile picture.'}</p>
+                            <p className='help-text'>{'Throttles API at this number of requests per second.'}</p>
                         </div>
                     </div>
 

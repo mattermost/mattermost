@@ -27,13 +27,11 @@
     "SqlSettings": {
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8",
-        "DataSourceReplicas": [
-            "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"
-        ],
+        "DataSourceReplicas": [],
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
+        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"
     },
     "LogSettings": {
         "ConsoleEnable": true,
@@ -84,7 +82,7 @@
         "ShowEmailAddress": true,
         "ShowFullName": true
     },
-    "GitLabSSOSettings": {
+    "GitLabSettings": {
         "Allow": false,
         "Secret": "",
         "Id": "",

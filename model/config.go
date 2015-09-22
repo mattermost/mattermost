@@ -131,7 +131,7 @@ type Config struct {
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
-	GitLabSSOSettings SSOSettings
+	GitLabSettings    SSOSettings
 }
 
 func (o *Config) ToJson() string {
@@ -145,7 +145,7 @@ func (o *Config) ToJson() string {
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
 	if service == SERVICE_GITLAB {
-		return &o.GitLabSSOSettings
+		return &o.GitLabSettings
 	}
 
 	return nil
