@@ -5,7 +5,8 @@
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "EnableTesting": false
+        "EnableTesting": false,
+        "EnableIncomingWebhooks": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

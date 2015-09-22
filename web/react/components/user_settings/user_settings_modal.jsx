@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SettingsSidebar = require('./settings_sidebar.jsx');
+var SettingsSidebar = require('../settings_sidebar.jsx');
 var UserSettings = require('./user_settings.jsx');
 
 export default class UserSettingsModal extends React.Component {
@@ -37,6 +37,9 @@ export default class UserSettingsModal extends React.Component {
         tabs.push({name: 'appearance', uiName: 'Appearance', icon: 'glyphicon glyphicon-wrench'});
         if (global.window.config.EnableOAuthServiceProvider === 'true') {
             tabs.push({name: 'developer', uiName: 'Developer', icon: 'glyphicon glyphicon-th'});
+        }
+        if (global.window.config.EnableIncomingWebhooks === 'true') {
+            tabs.push({name: 'integrations', uiName: 'Integrations', icon: 'glyphicon glyphicon-transfer'});
         }
 
         return (

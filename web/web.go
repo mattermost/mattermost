@@ -9,11 +9,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
 	"gopkg.in/fsnotify.v1"
 	"html/template"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -62,6 +64,8 @@ func InitWeb() {
 	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(signupCompleteOAuth)).Methods("GET")
 
 	mainrouter.Handle("/admin_console", api.UserRequired(adminConsole)).Methods("GET")
+
+	mainrouter.Handle("/hooks/{id:[A-Za-z0-9]+}", api.ApiAppHandler(incomingWebhook)).Methods("POST")
 
 	// ----------------------------------------------------------------------------------------------
 	// *ANYTHING* team specific should go below this line
@@ -833,4 +837,85 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	w.Write([]byte(accessRsp.ToJson()))
+}
+
+func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	hchan := api.Srv.Store.Webhook().GetIncoming(id)
+
+	r.ParseForm()
+
+	props := model.MapFromJson(strings.NewReader(r.FormValue("payload")))
+
+	text := props["text"]
+	if len(text) == 0 {
+		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
+		return
+	}
+
+	channelName := props["channel"]
+
+	var hook *model.IncomingWebhook
+	if result := <-hchan; result.Err != nil {
+		c.Err = model.NewAppError("incomingWebhook", "Invalid webhook", "err="+result.Err.Message)
+		return
+	} else {
+		hook = result.Data.(*model.IncomingWebhook)
+	}
+
+	var channel *model.Channel
+	var cchan store.StoreChannel
+
+	if len(channelName) != 0 {
+		if channelName[0] == '@' {
+			if result := <-api.Srv.Store.User().GetByUsername(hook.TeamId, channelName[1:]); result.Err != nil {
+				c.Err = model.NewAppError("incomingWebhook", "Couldn't find the user", "err="+result.Err.Message)
+				return
+			} else {
+				channelName = model.GetDMNameFromIds(result.Data.(*model.User).Id, hook.UserId)
+			}
+		} else if channelName[0] == '#' {
+			channelName = channelName[1:]
+		}
+
+		cchan = api.Srv.Store.Channel().GetByName(hook.TeamId, channelName)
+	} else {
+		cchan = api.Srv.Store.Channel().Get(hook.ChannelId)
+	}
+
+	// parse links into Markdown format
+	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
+
+	linkRegex := regexp.MustCompile(`<\s*(\S*)\s*>`)
+	text = linkRegex.ReplaceAllString(text, "${1}")
+
+	if result := <-cchan; result.Err != nil {
+		c.Err = model.NewAppError("incomingWebhook", "Couldn't find the channel", "err="+result.Err.Message)
+		return
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	pchan := api.Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
+
+	post := &model.Post{UserId: hook.UserId, ChannelId: channel.Id, Message: text}
+
+	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
+		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")
+		return
+	}
+
+	// create a mock session
+	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
+
+	if _, err := api.CreatePost(c, post, false); err != nil {
+		c.Err = model.NewAppError("incomingWebhook", "Error creating post", "err="+err.Message)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("ok"))
 }

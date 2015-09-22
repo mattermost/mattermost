@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SettingItemMin = require('./setting_item_min.jsx');
-var SettingItemMax = require('./setting_item_max.jsx');
+var SettingItemMin = require('../setting_item_min.jsx');
+var SettingItemMax = require('../setting_item_max.jsx');
 
 export default class DeveloperTab extends React.Component {
     constructor(props) {

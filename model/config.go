@@ -26,6 +26,7 @@ type ServiceSettings struct {
 	GoogleDeveloperKey         string
 	EnableOAuthServiceProvider bool
 	EnableTesting              bool
+	EnableIncomingWebhooks     bool
 }
 
 type SSOSettings struct {

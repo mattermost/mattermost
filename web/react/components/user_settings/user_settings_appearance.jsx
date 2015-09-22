@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var SettingItemMin = require('./setting_item_min.jsx');
-var SettingItemMax = require('./setting_item_max.jsx');
-var Client = require('../utils/client.jsx');
-var Utils = require('../utils/utils.jsx');
+var UserStore = require('../../stores/user_store.jsx');
+var SettingItemMin = require('../setting_item_min.jsx');
+var SettingItemMax = require('../setting_item_max.jsx');
+var Client = require('../../utils/client.jsx');
+var Utils = require('../../utils/utils.jsx');
 
 var ThemeColors = ['#2389d7', '#008a17', '#dc4fad', '#ac193d', '#0072c6', '#d24726', '#ff8f32', '#82ba00', '#03b3b2', '#008299', '#4617b4', '#8c0095', '#004b8b', '#004b8b', '#570000', '#380000', '#585858', '#000000'];
 

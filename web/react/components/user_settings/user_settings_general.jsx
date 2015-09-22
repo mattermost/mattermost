@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var SettingItemMin = require('./setting_item_min.jsx');
-var SettingItemMax = require('./setting_item_max.jsx');
-var SettingPicture = require('./setting_picture.jsx');
-var client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var utils = require('../utils/utils.jsx');
+var UserStore = require('../../stores/user_store.jsx');
+var SettingItemMin = require('../setting_item_min.jsx');
+var SettingItemMax = require('../setting_item_max.jsx');
+var SettingPicture = require('../setting_picture.jsx');
+var client = require('../../utils/client.jsx');
+var AsyncClient = require('../../utils/async_client.jsx');
+var utils = require('../../utils/utils.jsx');
 var assign = require('object-assign');
 
 export default class UserSettingsGeneralTab extends React.Component {

@@ -121,11 +121,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 	channel := new(model.Channel)
 
 	channel.DisplayName = ""
-	if otherUserId > c.Session.UserId {
-		channel.Name = c.Session.UserId + "__" + otherUserId
-	} else {
-		channel.Name = otherUserId + "__" + c.Session.UserId
-	}
+	channel.Name = model.GetDMNameFromIds(otherUserId, c.Session.UserId)
 
 	channel.TeamId = c.Session.TeamId
 	channel.Description = ""

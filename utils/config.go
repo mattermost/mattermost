@@ -175,8 +175,10 @@ func getClientProperties(c *model.Config) map[string]string {
 
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
+
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
+	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
