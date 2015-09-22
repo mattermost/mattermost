@@ -36,13 +36,13 @@ export function formatText(text, options = {}) {
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    if (!('emoticons' in options) || options.emoticon) {
-        output = Emoticons.handleEmoticons(output, tokens);
-    }
-
     output = autolinkUrls(output, tokens, !!options.markdown);
     output = autolinkAtMentions(output, tokens);
     output = autolinkHashtags(output, tokens);
+
+    if (!('emoticons' in options) || options.emoticon) {
+        output = Emoticons.handleEmoticons(output, tokens);
+    }
 
     if (options.searchTerm) {
         output = highlightSearchTerm(output, tokens, options.searchTerm);
