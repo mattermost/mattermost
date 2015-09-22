@@ -5,7 +5,6 @@ const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const BrowserStore = require('../stores/browser_store.jsx');
-const Constants = require('../utils/constants.jsx');
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -203,9 +202,9 @@ export default class Login extends React.Component {
 
 Login.defaultProps = {
     teamName: '',
-    teamDisplayName: '',
+    teamDisplayName: ''
 };
 Login.propTypes = {
     teamName: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
+    teamDisplayName: React.PropTypes.string
 };
