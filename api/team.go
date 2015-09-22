@@ -85,7 +85,8 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 
-	if !utils.IsServiceAllowed(service) {
+	sso := utils.Cfg.GetSSOService(service)
+	if sso != nil && !sso.Allow {
 		c.SetInvalidParam("createTeamFromSSO", "service")
 		return
 	}

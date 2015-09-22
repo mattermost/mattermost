@@ -183,7 +183,7 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["AllowSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.AllowSignUpWithEmail)
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
-	props["AllowSignUpWithGitLab"] = strconv.FormatBool(false)
+	props["AllowSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSSOSettings.Allow)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)
@@ -193,26 +193,4 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
 
 	return props
-}
-
-// func IsS3Configured() bool {
-// 	if Cfg.AWSSettings.AmazonS3AccessKeyId == "" || Cfg.AWSSettingsAmazonS3SecretAccessKey == "" || Cfg.AWSSettingsAmazonS3Region == "" || Cfg.AWSSettingsAmazonS3Bucket == "" {
-// 		return false
-// 	}
-
-// 	return true
-// }
-
-func IsServiceAllowed(s string) bool {
-	if len(s) == 0 {
-		return false
-	}
-
-	if service, ok := Cfg.SSOSettings[s]; ok {
-		if service.Allow {
-			return true
-		}
-	}
-
-	return false
 }

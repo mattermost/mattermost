@@ -352,19 +352,19 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
-	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+	if utils.Cfg.ImageSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
+		auth.AccessKey = utils.Cfg.ImageSettings.AmazonS3AccessKeyId
+		auth.SecretKey = utils.Cfg.ImageSettings.AmazonS3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
+		s := s3.New(auth, aws.Regions[utils.Cfg.ImageSettings.AmazonS3Region])
+		bucket := s.Bucket(utils.Cfg.ImageSettings.AmazonS3Bucket)
 
 		if err := bucket.Del("teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"); err != nil {
 			t.Fatal(err)
 		}
 	} else {
-		path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"
+		path := utils.Cfg.ImageSettings.Directory + "teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
@@ -382,7 +382,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
-	if utils.IsS3Configured() || utils.Cfg.ServiceSettings.UseLocalStorage {
+	if utils.Cfg.ImageSettings.DriverName != "" {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -450,19 +450,19 @@ func TestUserUploadProfileImage(t *testing.T) {
 
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
-		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		if utils.Cfg.ImageSettings.DriverName == model.IMAGE_DRIVER_S3 {
 			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
+			auth.AccessKey = utils.Cfg.ImageSettings.AmazonS3AccessKeyId
+			auth.SecretKey = utils.Cfg.ImageSettings.AmazonS3SecretAccessKey
 
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.ImageSettings.AmazonS3Region])
+			bucket := s.Bucket(utils.Cfg.ImageSettings.AmazonS3Bucket)
 
 			if err := bucket.Del("teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"); err != nil {
 				t.Fatal(err)
 			}
 		} else {
-			path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"
+			path := utils.Cfg.ImageSettings.Directory + "teams/" + user.TeamId + "/users/" + user.Id + "/profile.png"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}

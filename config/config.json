@@ -84,15 +84,13 @@
         "ShowEmailAddress": true,
         "ShowFullName": true
     },
-    "SSOSettings": {
-        "gitlab": {
-            "Allow": false,
-            "Secret": "",
-            "Id": "",
-            "Scope": "",
-            "AuthEndpoint": "",
-            "TokenEndpoint": "",
-            "UserApiEndpoint": ""
-        }
+    "GitLabSSOSettings": {
+        "Allow": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
     }
 }

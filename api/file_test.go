@@ -68,7 +68,7 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	resp, appErr := Client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
-	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+	if utils.Cfg.ImageSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		if appErr != nil {
 			t.Fatal(appErr)
 		}
@@ -81,11 +81,11 @@ func TestUploadFile(t *testing.T) {
 		fileId := strings.Split(filename, ".")[0]
 
 		var auth aws.Auth
-		auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
-		auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
+		auth.AccessKey = utils.Cfg.ImageSettings.AmazonS3AccessKeyId
+		auth.SecretKey = utils.Cfg.ImageSettings.AmazonS3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
-		bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
+		s := s3.New(auth, aws.Regions[utils.Cfg.ImageSettings.AmazonS3Region])
+		bucket := s.Bucket(utils.Cfg.ImageSettings.AmazonS3Bucket)
 
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
@@ -104,7 +104,7 @@ func TestUploadFile(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-	} else if utils.Cfg.ServiceSettings.UseLocalStorage && len(utils.Cfg.ServiceSettings.StorageDirectory) > 0 {
+	} else if utils.Cfg.ImageSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 		filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 		if strings.Contains(filename, "../") {
@@ -115,17 +115,17 @@ func TestUploadFile(t *testing.T) {
 		// wait a bit for files to ready
 		time.Sleep(5 * time.Second)
 
-		path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+		path := utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+		path = utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
 
-		path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+		path = utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
@@ -151,7 +151,7 @@ func TestGetFile(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.IsS3Configured() || utils.Cfg.ServiceSettings.UseLocalStorage {
+	if utils.Cfg.ImageSettings.DriverName != "" {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -262,13 +262,13 @@ func TestGetFile(t *testing.T) {
 			t.Fatal("Should have errored - user not logged in and link not public")
 		}
 
-		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		if utils.Cfg.ImageSettings.DriverName == model.IMAGE_DRIVER_S3 {
 			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
+			auth.AccessKey = utils.Cfg.ImageSettings.AmazonS3AccessKeyId
+			auth.SecretKey = utils.Cfg.ImageSettings.AmazonS3SecretAccessKey
 
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.ImageSettings.AmazonS3Region])
+			bucket := s.Bucket(utils.Cfg.ImageSettings.AmazonS3Bucket)
 
 			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
@@ -293,17 +293,17 @@ func TestGetFile(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+			path := utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+			path = utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+			path = utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
@@ -334,7 +334,7 @@ func TestGetPublicLink(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.IsS3Configured() || utils.Cfg.ServiceSettings.UseLocalStorage {
+	if utils.Cfg.ImageSettings.DriverName != "" {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -410,14 +410,14 @@ func TestGetPublicLink(t *testing.T) {
 			t.Fatal("should have errored, user not member of channel")
 		}
 
-		if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+		if utils.Cfg.ImageSettings.DriverName == model.IMAGE_DRIVER_S3 {
 			// perform clean-up on s3
 			var auth aws.Auth
-			auth.AccessKey = utils.Cfg.AWSSettings.AmazonS3AccessKeyId
-			auth.SecretKey = utils.Cfg.AWSSettingsAmazonS3SecretAccessKey
+			auth.AccessKey = utils.Cfg.ImageSettings.AmazonS3AccessKeyId
+			auth.SecretKey = utils.Cfg.ImageSettings.AmazonS3SecretAccessKey
 
-			s := s3.New(auth, aws.Regions[utils.Cfg.AWSSettingsAmazonS3Region])
-			bucket := s.Bucket(utils.Cfg.AWSSettingsAmazonS3Bucket)
+			s := s3.New(auth, aws.Regions[utils.Cfg.ImageSettings.AmazonS3Region])
+			bucket := s.Bucket(utils.Cfg.ImageSettings.AmazonS3Bucket)
 
 			filenames := strings.Split(resp.Data.(*model.FileUploadResponse).Filenames[0], "/")
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
@@ -442,17 +442,17 @@ func TestGetPublicLink(t *testing.T) {
 			filename := filenames[len(filenames)-2] + "/" + filenames[len(filenames)-1]
 			fileId := strings.Split(filename, ".")[0]
 
-			path := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
+			path := utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + filename
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
+			path = utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_thumb.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
 
-			path = utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
+			path = utils.Cfg.ImageSettings.Directory + "teams/" + team.Id + "/channels/" + channel1.Id + "/users/" + user1.Id + "/" + fileId + "_preview.jpg"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}

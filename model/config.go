@@ -15,6 +15,8 @@ const (
 
 	IMAGE_DRIVER_LOCAL = "local"
 	IMAGE_DRIVER_S3    = "amazons3"
+
+	SERVICE_GITLAB = "gitlab"
 )
 
 type ServiceSettings struct {
@@ -34,7 +36,7 @@ type ServiceSettings struct {
 	GoogleDeveloperKey         string
 }
 
-type SSOSetting struct {
+type SSOSettings struct {
 	Allow           bool
 	Secret          string
 	Id              string
@@ -129,7 +131,7 @@ type Config struct {
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
-	SSOSettings       map[string]SSOSetting
+	GitLabSSOSettings SSOSettings
 }
 
 func (o *Config) ToJson() string {
@@ -139,6 +141,14 @@ func (o *Config) ToJson() string {
 	} else {
 		return string(b)
 	}
+}
+
+func (o *Config) GetSSOService(service string) *SSOSettings {
+	if service == SERVICE_GITLAB {
+		return &o.GitLabSSOSettings
+	}
+
+	return nil
 }
 
 func ConfigFromJson(data io.Reader) *Config {

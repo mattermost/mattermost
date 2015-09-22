@@ -1362,15 +1362,16 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri, loginHint string) {
 
-	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+	sso := utils.Cfg.GetSSOService(service)
+	if sso != nil && !sso.Allow {
 		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
-	clientId := utils.Cfg.SSOSettings[service].Id
-	endpoint := utils.Cfg.SSOSettings[service].AuthEndpoint
-	scope := utils.Cfg.SSOSettings[service].Scope
+	clientId := sso.Id
+	endpoint := sso.AuthEndpoint
+	scope := sso.Scope
 
 	stateProps := map[string]string{"team": teamName, "hash": model.HashPassword(clientId)}
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
@@ -1389,7 +1390,8 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 }
 
 func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, *model.AppError) {
-	if s, ok := utils.Cfg.SSOSettings[service]; !ok || !s.Allow {
+	sso := utils.Cfg.GetSSOService(service)
+	if sso != nil && !sso.Allow {
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
 	}
 
@@ -1402,7 +1404,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
-	if !model.ComparePassword(stateProps["hash"], utils.Cfg.SSOSettings[service].Id) {
+	if !model.ComparePassword(stateProps["hash"], sso.Id) {
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
 	}
 
@@ -1414,14 +1416,14 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	tchan := Srv.Store.Team().GetByName(teamName)
 
 	p := url.Values{}
-	p.Set("client_id", utils.Cfg.SSOSettings[service].Id)
-	p.Set("client_secret", utils.Cfg.SSOSettings[service].Secret)
+	p.Set("client_id", sso.Id)
+	p.Set("client_secret", sso.Secret)
 	p.Set("code", code)
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", utils.Cfg.SSOSettings[service].TokenEndpoint, strings.NewReader(p.Encode()))
+	req, _ := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
@@ -1443,7 +1445,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	p = url.Values{}
 	p.Set("access_token", ar.AccessToken)
-	req, _ = http.NewRequest("GET", utils.Cfg.SSOSettings[service].UserApiEndpoint, strings.NewReader(""))
+	req, _ = http.NewRequest("GET", sso.UserApiEndpoint, strings.NewReader(""))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
