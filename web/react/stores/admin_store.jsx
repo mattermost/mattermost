@@ -4,11 +4,14 @@
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
 
+var BrowserStore = require('../stores/browser_store.jsx');
+
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 var LOG_CHANGE_EVENT = 'log_change';
 var CONFIG_CHANGE_EVENT = 'config_change';
+var ALL_TEAMS_EVENT = 'all_team_change';
 
 class AdminStoreClass extends EventEmitter {
     constructor() {
@@ -16,6 +19,7 @@ class AdminStoreClass extends EventEmitter {
 
         this.logs = null;
         this.config = null;
+        this.teams = null;
 
         this.emitLogChange = this.emitLogChange.bind(this);
         this.addLogChangeListener = this.addLogChangeListener.bind(this);
@@ -24,6 +28,10 @@ class AdminStoreClass extends EventEmitter {
         this.emitConfigChange = this.emitConfigChange.bind(this);
         this.addConfigChangeListener = this.addConfigChangeListener.bind(this);
         this.removeConfigChangeListener = this.removeConfigChangeListener.bind(this);
+
+        this.emitAllTeamsChange = this.emitAllTeamsChange.bind(this);
+        this.addAllTeamsChangeListener = this.addAllTeamsChangeListener.bind(this);
+        this.removeAllTeamsChangeListener = this.removeAllTeamsChangeListener.bind(this);
     }
 
     emitLogChange() {
@@ -50,6 +58,18 @@ class AdminStoreClass extends EventEmitter {
         this.removeListener(CONFIG_CHANGE_EVENT, callback);
     }
 
+    emitAllTeamsChange() {
+        this.emit(ALL_TEAMS_EVENT);
+    }
+
+    addAllTeamsChangeListener(callback) {
+        this.on(ALL_TEAMS_EVENT, callback);
+    }
+
+    removeAllTeamsChangeListener(callback) {
+        this.removeListener(ALL_TEAMS_EVENT, callback);
+    }
+
     getLogs() {
         return this.logs;
     }
@@ -64,6 +84,22 @@ class AdminStoreClass extends EventEmitter {
 
     saveConfig(config) {
         this.config = config;
+    }
+
+    getAllTeams() {
+        return this.teams;
+    }
+
+    saveAllTeams(teams) {
+        this.teams = teams;
+    }
+
+    getSelectedTeams() {
+        return BrowserStore.getItem('seleted_teams');
+    }
+
+    saveSelectedTeams(teams) {
+        BrowserStore.setItem('seleted_teams', teams);
     }
 }
 
@@ -80,6 +116,10 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECIEVED_CONFIG:
         AdminStore.saveConfig(action.config);
         AdminStore.emitConfigChange();
+        break;
+    case ActionTypes.RECIEVED_ALL_TEAMS:
+        AdminStore.saveAllTeams(action.teams);
+        AdminStore.emitAllTeamsChange();
         break;
     default:
     }

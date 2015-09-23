@@ -25,6 +25,7 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
 	sr.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	sr.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
+	sr.Handle("/all", ApiUserRequired(getAll)).Methods("GET")
 	sr.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 	sr.Handle("/find_teams", ApiAppHandler(findTeams)).Methods("POST")
 	sr.Handle("/email_teams", ApiAppHandler(emailTeams)).Methods("POST")
@@ -300,6 +301,53 @@ func isTreamCreationAllowed(c *Context, email string) bool {
 	}
 
 	return true
+}
+
+func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("getLogs") {
+		return
+	}
+
+	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teams := result.Data.([]*model.Team)
+		m := make(map[string]*model.Team)
+		for _, v := range teams {
+			m[v.Id] = v
+		}
+
+		w.Write([]byte(model.TeamMapToJson(m)))
+	}
+}
+
+func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	id := props["id"]
+
+	if result := <-Srv.Store.Session().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		session := result.Data.(*model.Session)
+
+		c.LogAudit("revoked_all=" + id)
+
+		if session.IsOAuth {
+			RevokeAccessToken(session.Token)
+		} else {
+			sessionCache.Remove(session.Token)
+
+			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				c.Err = result.Err
+				return
+			} else {
+				w.Write([]byte(model.MapToJson(props)))
+				return
+			}
+		}
+	}
 }
 
 func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {

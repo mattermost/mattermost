@@ -80,6 +80,29 @@ func TestSessionRemove(t *testing.T) {
 	}
 }
 
+func TestSessionRemoveAll(t *testing.T) {
+	Setup()
+
+	s1 := model.Session{}
+	s1.UserId = model.NewId()
+	s1.TeamId = model.NewId()
+	Must(store.Session().Save(&s1))
+
+	if rs1 := (<-store.Session().Get(s1.Id)); rs1.Err != nil {
+		t.Fatal(rs1.Err)
+	} else {
+		if rs1.Data.(*model.Session).Id != s1.Id {
+			t.Fatal("should match")
+		}
+	}
+
+	Must(store.Session().RemoveAllSessionsForTeam(s1.TeamId))
+
+	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
+		t.Fatal("should have been removed")
+	}
+}
+
 func TestSessionRemoveToken(t *testing.T) {
 	Setup()
 

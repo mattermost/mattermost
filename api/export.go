@@ -87,7 +87,7 @@ func ExportTeams(writer ExportWriter, options *ExportOptions) *model.AppError {
 	// Get the teams
 	var teams []*model.Team
 	if len(options.TeamsToExport) == 0 {
-		if result := <-Srv.Store.Team().GetForExport(); result.Err != nil {
+		if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
 			return result.Err
 		} else {
 			teams = result.Data.([]*model.Team)

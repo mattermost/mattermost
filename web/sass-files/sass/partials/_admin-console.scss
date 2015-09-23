@@ -19,6 +19,11 @@
                         background-color: $primary-color;
                     }
                 }
+                > h4 {
+                    background: #333;
+                    padding: 10px 10px;
+                    margin-top: 1px;
+                }
             }
             .menu-icon--right {
                 vertical-align: top;
@@ -29,10 +34,10 @@
                     font-size: 13px;
                     right: -2px;
                     position: relative;
+                    color: #fff;
                 }
             }
             &.nav__sub-menu {
-                padding: 5px 0;
                 background: #111;
                 -webkit-font-smoothing: auto;
                 li {
@@ -88,6 +93,7 @@
         overflow: auto;
         background-color: #f1f1f1;
         padding: 0 20px 20px;
+        min-height: 600px;
     }
     .wrapper--fixed {
         max-width: 800px;

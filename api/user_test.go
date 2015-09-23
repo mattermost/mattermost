@@ -228,6 +228,13 @@ func TestGetUser(t *testing.T) {
 	ruser2, _ := Client.CreateUser(&user2, "")
 	store.Must(Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
 
+	team2 := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam2, _ := Client.CreateTeam(&team2)
+
+	user3 := model.User{TeamId: rteam2.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser3, _ := Client.CreateUser(&user3, "")
+	store.Must(Srv.Store.User().VerifyEmail(ruser3.Data.(*model.User).Id))
+
 	Client.LoginByEmail(team.Name, user.Email, user.Password)
 
 	rId := ruser.Data.(*model.User).Id
@@ -276,12 +283,26 @@ func TestGetUser(t *testing.T) {
 			t.Log(cache_result.Data)
 			t.Fatal("cache should be empty")
 		}
+	}
 
+	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err == nil {
+		t.Fatal("shouldn't have access")
 	}
 
 	Client.AuthToken = ""
 	if _, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err == nil {
 		t.Fatal("shouldn't have accss")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if _, err := Client.GetProfiles(rteam2.Data.(*model.Team).Id, ""); err != nil {
+		t.Fatal(err)
 	}
 }
 
