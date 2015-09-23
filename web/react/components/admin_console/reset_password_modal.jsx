@@ -21,13 +21,11 @@ export default class ResetPasswordModal extends React.Component {
         var password = React.findDOMNode(this.refs.password).value;
 
         if (!password || password.length < 5) {
-            this.state.serverError = 'Please enter at least 5 characters.';
-            this.setState(this.state);
+            this.setState({serverError: 'Please enter at least 5 characters.'});
             return;
         }
 
-        this.state.serverError = null;
-        this.setState(this.state);
+        this.setState({serverError: null});
 
         var data = {};
         data.new_password = password;
@@ -39,15 +37,13 @@ export default class ResetPasswordModal extends React.Component {
                 this.props.onModalSubmit(React.findDOMNode(this.refs.password).value);
             },
             (err) => {
-                this.state.serverError = err.message;
-                this.setState(this.state);
+                this.setState({serverError: err.message});
             }
         );
     }
 
     doCancel() {
-        this.state.serverError = null;
-        this.setState(this.state);
+        this.setState({serverError: null});
         this.props.onModalDismissed();
     }
 

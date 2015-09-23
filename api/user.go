@@ -938,8 +938,8 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) {
-		c.Err = model.NewAppError("updateRoles", "The system_admin role can only be set from the command line", "")
+	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("updateRoles", "The system_admin role can only be set by another system admin", "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}

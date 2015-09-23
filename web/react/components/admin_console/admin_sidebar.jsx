@@ -195,15 +195,6 @@ export default class AdminSidebar extends React.Component {
                                 <li>
                                     <a
                                         href='#'
-                                        className={this.isSelected('logs')}
-                                        onClick={this.handleClick.bind(this, 'logs', null)}
-                                    >
-                                        {'Logs'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
                                         className={this.isSelected('rate_settings')}
                                         onClick={this.handleClick.bind(this, 'rate_settings', null)}
                                     >
@@ -244,6 +235,21 @@ export default class AdminSidebar extends React.Component {
                                 </li>
                                 <li>
                                     {teams}
+                                </li>
+                                <li>
+                                    <h4>
+                                        <span className='icon fa fa-gear'></span>
+                                        <span>{'OTHER'}</span>
+                                    </h4>
+                                </li>
+                                <li>
+                                    <a
+                                        href='#'
+                                        className={this.isSelected('logs')}
+                                        onClick={this.handleClick.bind(this, 'logs', null)}
+                                    >
+                                        {'Logs'}
+                                    </a>
                                 </li>
                             </ul>
                         </li>

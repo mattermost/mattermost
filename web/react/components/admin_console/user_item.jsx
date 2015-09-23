@@ -12,6 +12,7 @@ export default class UserItem extends React.Component {
         this.handleMakeActive = this.handleMakeActive.bind(this);
         this.handleMakeNotActive = this.handleMakeNotActive.bind(this);
         this.handleMakeAdmin = this.handleMakeAdmin.bind(this);
+        this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
 
         this.state = {};
@@ -75,6 +76,23 @@ export default class UserItem extends React.Component {
         );
     }
 
+    handleMakeSystemAdmin(e) {
+        e.preventDefault();
+        const data = {
+            user_id: this.props.user.id,
+            new_roles: 'system_admin'
+        };
+
+        Client.updateRoles(data,
+            () => {
+                this.props.refreshProfiles();
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+    }
+
     handleResetPassword(e) {
         e.preventDefault();
         this.props.doPasswordReset(this.props.user);
@@ -101,8 +119,9 @@ export default class UserItem extends React.Component {
         }
 
         const email = user.email;
-        let showMakeMember = (user.roles === 'admin') || user.roles === 'system_admin';
-        let showMakeAdmin = (user.roles === '') || user.roles === 'system_admin';
+        let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
+        let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
+        let showMakeSystemAdmin = user.roles === '' || user.roles === 'admin';
         let showMakeActive = false;
         let showMakeNotActive = user.roles !== 'system_admin';
 
@@ -111,8 +130,24 @@ export default class UserItem extends React.Component {
             currentRoles = 'Inactive';
             showMakeMember = false;
             showMakeAdmin = false;
+            showMakeSystemAdmin = false;
             showMakeActive = true;
             showMakeNotActive = false;
+        }
+
+        let makeSystemAdmin = null;
+        if (showMakeSystemAdmin) {
+            makeSystemAdmin = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleMakeSystemAdmin}
+                    >
+                        {'Make System Admin'}
+                    </a>
+                </li>
+            );
         }
 
         let makeAdmin = null;
@@ -206,6 +241,7 @@ export default class UserItem extends React.Component {
                         {makeMember}
                         {makeActive}
                         {makeNotActive}
+                        {makeSystemAdmin}
                         <li role='presentation'>
                             <a
                                 role='menuitem'

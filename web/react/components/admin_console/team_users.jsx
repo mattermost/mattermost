@@ -33,6 +33,14 @@ export default class UserList extends React.Component {
         this.getTeamProfiles(this.props.team.id);
     }
 
+    // this.setState({
+    //     teamId: this.state.teamId,
+    //     users: this.state.users,
+    //     serverError: this.state.serverError,
+    //     showPasswordModal: this.state.showPasswordModal,
+    //     user: this.state.user
+    // });
+
     getTeamProfiles(teamId) {
         Client.getProfilesForTeam(
             teamId,
@@ -56,33 +64,56 @@ export default class UserList extends React.Component {
                     return 0;
                 });
 
-                this.state.users = memberList;
-                this.setState(this.state);
+                this.setState({
+                    teamId: this.state.teamId,
+                    users: memberList,
+                    serverError: this.state.serverError,
+                    showPasswordModal: this.state.showPasswordModal,
+                    user: this.state.user
+                });
             },
             (err) => {
-                this.state.serverError = err.message;
-                this.state.users = null;
-                this.setState(this.state);
+                this.setState({
+                    teamId: this.state.teamId,
+                    users: null,
+                    serverError: err.message,
+                    showPasswordModal: this.state.showPasswordModal,
+                    user: this.state.user
+                });
             }
         );
     }
 
     doPasswordReset(user) {
-        this.state.showPasswordModal = true;
-        this.state.user = user;
-        this.setState(this.state);
+        this.setState({
+            teamId: this.state.teamId,
+            users: this.state.users,
+            serverError: this.state.serverError,
+            showPasswordModal: true,
+            user
+        });
     }
 
     doPasswordResetDismiss() {
         this.state.showPasswordModal = false;
         this.state.user = null;
-        this.setState(this.state);
+        this.setState({
+            teamId: this.state.teamId,
+            users: this.state.users,
+            serverError: this.state.serverError,
+            showPasswordModal: false,
+            user: null
+        });
     }
 
     doPasswordResetSubmit() {
-        this.state.showPasswordModal = false;
-        this.state.user = null;
-        this.setState(this.state);
+        this.setState({
+            teamId: this.state.teamId,
+            users: this.state.users,
+            serverError: this.state.serverError,
+            showPasswordModal: false,
+            user: null
+        });
     }
 
     componentWillReceiveProps(newProps) {
