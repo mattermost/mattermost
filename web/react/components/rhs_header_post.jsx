@@ -65,6 +65,7 @@ export default class RhsHeaderPost extends React.Component {
                     aria-label='Close'
                     onClick={this.handleClose}
                 >
+                    <i className='fa fa-sign-out'/>
                 </button>
             </div>
         );

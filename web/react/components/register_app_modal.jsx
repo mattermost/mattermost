@@ -228,7 +228,7 @@ export default class RegisterAppModal extends React.Component {
                             data-dismiss='modal'
                             aria-label='Close'
                         >
-                            <span aria-hidden='true'>{'x'}</span>
+                            <span aria-hidden='true'>{'×'}</span>
                         </button>
                         <h4
                             className='modal-title'

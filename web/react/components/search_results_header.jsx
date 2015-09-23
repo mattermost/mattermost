@@ -50,6 +50,7 @@ export default class SearchResultsHeader extends React.Component {
                     title='Close'
                     onClick={this.handleClose}
                 >
+                    <i className='fa fa-sign-out'/>
                 </button>
             </div>
         );

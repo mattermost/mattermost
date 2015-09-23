@@ -542,7 +542,119 @@ export function toTitleCase(str) {
     return str.replace(/\w\S*/g, doTitleCase);
 }
 
-export function changeCss(className, classValue) {
+export function applyTheme(theme) {
+    if (theme.sidebarBg) {
+        changeCss('.sidebar--left', 'background:' + theme.sidebarBg, 1);
+        changeCss('@media(max-width: 768px){.search-bar__container', 'background:' + theme.sidebarBg, 1);
+    }
+
+    if (theme.sidebarText) {
+        changeCss('.sidebar--left .nav li>a, .sidebar--right', 'color:' + theme.sidebarText, 1);
+        changeCss('.sidebar--left .nav li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.8), 1);
+        changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
+        changeCss('.sidebar--left, .sidebar--right .sidebar--right__header', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 1);
+        changeCss('.sidebar--right .sidebar-right__body', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
+        changeCss('.sidebar--left .status path', 'fill:' + changeOpacity(theme.sidebarText, 0.5), 1);
+    }
+
+    if (theme.sidebarUnreadText) {
+        changeCss('.sidebar--left .nav li>a.unread-title', 'color:' + theme.sidebarUnreadText + '!important;', 1);
+    }
+
+    if (theme.sidebarTextHoverBg) {
+        changeCss('.sidebar--left .nav li>a:hover, .sidebar--left .nav li>a:focus', 'background:' + theme.sidebarTextHoverBg, 1);
+    }
+
+    if (theme.sidebarTextHoverColor) {
+        changeCss('.sidebar--left .nav li>a:hover, .sidebar--left .nav li>a:focus', 'color:' + theme.sidebarTextHoverColor, 2);
+    }
+
+    if (theme.sidebarTextActiveBg) {
+        changeCss('.sidebar--left .nav li.active a, .sidebar--left .nav li.active a:hover, .sidebar--left .nav li.active a:focus', 'background:' + theme.sidebarTextActiveBg, 1);
+    }
+
+    if (theme.sidebarTextActiveColor) {
+        changeCss('.sidebar--left .nav li.active a, .sidebar--left .nav li.active a:hover, .sidebar--left .nav li.active a:focus', 'color:' + theme.sidebarTextActiveColor, 2);
+    }
+
+    if (theme.sidebarHeaderBg) {
+        changeCss('.sidebar--left .team__header, .sidebar--menu .team__header', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('.modal .modal-header', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('#navbar .navbar-default', 'background:' + theme.sidebarHeaderBg, 1);
+    }
+
+    if (theme.sidebarHeaderTextColor) {
+        changeCss('.sidebar--left .team__header .header__info, .sidebar--menu .team__header .header__info', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.sidebar--left .team__header .user__name, .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
+        changeCss('.sidebar--left .team__header:hover .user__name, .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.modal .modal-header .modal-title, .modal .modal-header .modal-title .name, .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('#navbar .navbar-default .navbar-brand .heading, ', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('#navbar .navbar-default .navbar-toggle .icon-bar, ', 'background:' + theme.sidebarHeaderTextColor, 1);
+    }
+
+    if (theme.onlineIndicator) {
+        changeCss('.sidebar--left .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+    }
+
+    if (theme.mentionBj) {
+        changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj, 1);
+        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj, 1);
+    }
+
+    if (theme.mentionColor) {
+        changeCss('.sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor, 2);
+        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor, 2);
+    }
+
+    if (theme.centerChannelBg) {
+        changeCss('.app__content', 'background:' + theme.centerChannelBg, 1);
+        changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
+        changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.search-bar__container .search__form .search-bar', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.sidebar--right', 'background:' + theme.centerChannelBg, 1);
+    }
+
+    if (theme.centerChannelColor) {
+        changeCss('.app__content', 'color:' + theme.centerChannelColor, 2);
+        changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.channel-header .heading', 'color:' + theme.centerChannelColor, 1);
+        changeCss('.channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
+        changeCss('.channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
+        changeCss('.custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2) + '!important; color: ' + theme.centerChannelColor, 1);
+        changeCss('.search-bar__container .search__form .search-bar', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: ' + theme.centerChannelColor, 2);
+        changeCss('.search-bar__container .search__form', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
+        changeCss('.date-separator .separator__text, .new-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.date-separator .separator__hr, .new-separator .separator__hr, .post-right__container .post.post--root hr, .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.channel-intro', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
+        changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
+        changeCss('@media(max-width: 1800px){.inner__wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
+        changeCss('.post:hover, .sidebar--right .sidebar--right__header', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.date-separator.hovered--before:after, .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.date-separator.hovered--after:before, .new-separator.hovered--after:before', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.post.current--user:hover .post-body ', 'background: none;', 1);
+        changeCss('.sidebar--right', 'color:' + theme.centerChannelColor, 2);
+    }
+
+    if (theme.linkColor) {
+        changeCss('a, a:focus, a:hover', 'color:' + theme.linkColor, 1);
+        changeCss('.post .comment-icon__container', 'fill:' + theme.linkColor, 1);
+    }
+
+    if (theme.buttonBg) {
+        changeCss('.btn.btn-primary', 'background:' + theme.buttonBg, 1);
+        changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.25), 1);
+    }
+
+    if (theme.buttonColor) {
+        changeCss('.btn.btn-primary', 'color:' + theme.buttonColor, 2);
+    }
+}
+
+export function changeCss(className, classValue, classRepeat) {
     // we need invisible container to store additional css definitions
     var cssMainContainer = $('#css-modifier-container');
     if (cssMainContainer.length === 0) {
@@ -552,9 +664,9 @@ export function changeCss(className, classValue) {
     }
 
     // and we need one div for each class
-    var classContainer = cssMainContainer.find('div[data-class="' + className + '"]');
+    var classContainer = cssMainContainer.find('div[data-class="' + className + classRepeat + '"]');
     if (classContainer.length === 0) {
-        classContainer = $('<div data-class="' + className + '"></div>');
+        classContainer = $('<div data-class="' + className + classRepeat + '"></div>');
         classContainer.appendTo(cssMainContainer);
     }
 
@@ -760,57 +872,47 @@ Image.prototype.load = function imageLoad(url, progressCallback) {
 Image.prototype.completedPercentage = 0;
 
 export function changeColor(colourIn, amt) {
-    var usePound = false;
-    var col = colourIn;
+    var hex = colourIn;
+    var lum = amt;
 
-    if (col[0] === '#') {
-        col = col.slice(1);
-        usePound = true;
+    // validate hex string
+    hex = String(hex).replace(/[^0-9a-f]/gi, '');
+    if (hex.length < 6) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    lum = lum || 0;
+
+    // convert to decimal and change luminosity
+    var rgb = '#';
+    var c;
+    var i;
+    for (i = 0; i < 3; i++) {
+        c = parseInt(hex.substr(i * 2, 2), 16);
+        c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+        rgb += ('00' + c).substr(c.length);
     }
 
-    var num = parseInt(col, 16);
-
-    var r = (num >> 16) + amt;
-
-    if (r > 255) {
-        r = 255;
-    } else if (r < 0) {
-        r = 0;
-    }
-
-    var b = ((num >> 8) & 0x00FF) + amt;
-
-    if (b > 255) {
-        b = 255;
-    } else if (b < 0) {
-        b = 0;
-    }
-
-    var g = (num & 0x0000FF) + amt;
-
-    if (g > 255) {
-        g = 255;
-    } else if (g < 0) {
-        g = 0;
-    }
-
-    var pound = '#';
-    if (!usePound) {
-        pound = '';
-    }
-
-    return pound + String('000000' + (g | (b << 8) | (r << 16)).toString(16)).slice(-6);
+    return rgb;
 }
 
 export function changeOpacity(oldColor, opacity) {
-    var col = oldColor;
-    if (col[0] === '#') {
-        col = col.slice(1);
+    var color = oldColor;
+    if (color[0] === '#') {
+        color = color.slice(1);
     }
 
-    var r = parseInt(col.substring(0, 2), 16);
-    var g = parseInt(col.substring(2, 4), 16);
-    var b = parseInt(col.substring(4, 6), 16);
+    if (color.length === 3) {
+        const tempColor = color;
+        color = '';
+
+        color += tempColor[0] + tempColor[0];
+        color += tempColor[1] + tempColor[1];
+        color += tempColor[2] + tempColor[2];
+    }
+
+    var r = parseInt(color.substring(0, 2), 16);
+    var g = parseInt(color.substring(2, 4), 16);
+    var b = parseInt(color.substring(4, 6), 16);
 
     return 'rgba(' + r + ',' + g + ',' + b + ',' + opacity + ')';
 }
