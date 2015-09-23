@@ -27,7 +27,7 @@ type HtmlTemplatePage api.Page
 func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	if len(title) > 0 {
-		title = utils.Cfg.ServiceSettings.SiteName + " - " + title
+		title = utils.Cfg.TeamSettings.SiteName + " - " + title
 	}
 
 	props := make(map[string]string)
@@ -147,7 +147,6 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
-		page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 		page.Render(c, w)
 	} else {
 		page := NewHtmlTemplatePage("home", "Home")
@@ -163,7 +162,6 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("signup_team", "Signup")
-	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -195,7 +193,6 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("login", "Login")
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = teamName
-	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -211,7 +208,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	data := r.FormValue("d")
 	hash := r.FormValue("h")
 
-	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 		c.Err = model.NewAppError("signupTeamComplete", "The signup link does not appear to be valid", "")
 		return
 	}
@@ -260,7 +257,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		}
 	} else {
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			c.Err = model.NewAppError("signupTeamComplete", "The signup link does not appear to be valid", "")
 			return
 		}
@@ -281,7 +278,6 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	page.Props["TeamId"] = props["id"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
-	page.Props["AuthServices"] = model.ArrayToJson(utils.GetAllowedAuthServices())
 	page.Render(c, w)
 }
 
@@ -426,7 +422,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if len(hash) == 0 || len(data) == 0 {
 		isResetLink = false
 	} else {
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.ResetSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.PasswordResetSalt)) {
 			c.Err = model.NewAppError("resetPassword", "The reset link does not appear to be valid", "")
 			return
 		}
@@ -488,7 +484,7 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt)) {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			c.Err = model.NewAppError("signupWithOAuth", "The signup link does not appear to be valid", "")
 			return
 		}

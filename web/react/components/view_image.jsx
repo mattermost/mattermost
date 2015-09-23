@@ -300,7 +300,7 @@ export default class ViewImageModal extends React.Component {
         }
 
         var publicLink = '';
-        if (global.window.config.AllowPublicLink) {
+        if (global.window.config.EnablePublicLink === 'true') {
             publicLink = (
                 <div>
                     <a

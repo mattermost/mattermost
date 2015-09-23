@@ -5,7 +5,6 @@ var Utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
-var Constants = require('../utils/constants.jsx');
 
 export default class SignupUserComplete extends React.Component {
     constructor(props) {
@@ -168,11 +167,8 @@ export default class SignupUserComplete extends React.Component {
             </div>
         );
 
-        // add options to log in using another service
-        var authServices = JSON.parse(this.props.authServices);
-
         var signupMessage = [];
-        if (authServices.indexOf(Constants.GITLAB_SERVICE) >= 0) {
+        if (global.window.config.EnableSignUpWithGitLab === 'true') {
             signupMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
@@ -185,7 +181,7 @@ export default class SignupUserComplete extends React.Component {
         }
 
         var emailSignup;
-        if (authServices.indexOf(Constants.EMAIL_SERVICE) !== -1) {
+        if (global.window.config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
                 <div>
                     <div className='inner__content'>
@@ -269,7 +265,6 @@ SignupUserComplete.defaultProps = {
     teamId: '',
     email: '',
     data: null,
-    authServices: '',
     teamDisplayName: ''
 };
 SignupUserComplete.propTypes = {
@@ -278,6 +273,5 @@ SignupUserComplete.propTypes = {
     teamId: React.PropTypes.string,
     email: React.PropTypes.string,
     data: React.PropTypes.string,
-    authServices: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string
 };

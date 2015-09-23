@@ -25,7 +25,6 @@ func InitPost(r *mux.Router) {
 
 	sr := r.PathPrefix("/channels/{id:[A-Za-z0-9]+}").Subrouter()
 	sr.Handle("/create", ApiUserRequired(createPost)).Methods("POST")
-	sr.Handle("/valet_create", ApiUserRequired(createValetPost)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updatePost)).Methods("POST")
 	sr.Handle("/posts/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequiredActivity(getPosts, false)).Methods("GET")
 	sr.Handle("/posts/{time:[0-9]+}", ApiUserRequiredActivity(getPostsSince, false)).Methods("GET")
@@ -58,75 +57,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(rp.ToJson()))
 	}
-}
-
-func createValetPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	tchan := Srv.Store.Team().Get(c.Session.TeamId)
-
-	post := model.PostFromJson(r.Body)
-	if post == nil {
-		c.SetInvalidParam("createValetPost", "post")
-		return
-	}
-
-	cchan := Srv.Store.Channel().CheckOpenChannelPermissions(c.Session.TeamId, post.ChannelId)
-
-	// Any one with access to the team can post as valet to any open channel
-	if !c.HasPermissionsToChannel(cchan, "createValetPost") {
-		return
-	}
-
-	// Make sure this team has the valet feature enabled
-	if tResult := <-tchan; tResult.Err != nil {
-		c.Err = model.NewAppError("createValetPost", "Could not find the team for this session, team_id="+c.Session.TeamId, "")
-		return
-	} else {
-		if !tResult.Data.(*model.Team).AllowValet {
-			c.Err = model.NewAppError("createValetPost", "The valet feature is currently turned off. Please contact your team administrator for details.", "")
-			c.Err.StatusCode = http.StatusNotImplemented
-			return
-		}
-	}
-
-	if rp, err := CreateValetPost(c, post); err != nil {
-		c.Err = err
-
-		if strings.Contains(c.Err.Message, "parameter") {
-			c.Err.StatusCode = http.StatusBadRequest
-		}
-
-		return
-	} else {
-		w.Write([]byte(rp.ToJson()))
-	}
-}
-
-func CreateValetPost(c *Context, post *model.Post) (*model.Post, *model.AppError) {
-	post.Hashtags, _ = model.ParseHashtags(post.Message)
-
-	post.Filenames = []string{} // no files allowed in valet posts yet
-
-	if result := <-Srv.Store.User().GetByUsername(c.Session.TeamId, "valet"); result.Err != nil {
-		// if the bot doesn't exist, create it
-		if tresult := <-Srv.Store.Team().Get(c.Session.TeamId); tresult.Err != nil {
-			return nil, tresult.Err
-		} else {
-			post.UserId = (CreateValet(c, tresult.Data.(*model.Team))).Id
-		}
-	} else {
-		post.UserId = result.Data.(*model.User).Id
-	}
-
-	var rpost *model.Post
-	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
-		return nil, result.Err
-	} else {
-		rpost = result.Data.(*model.Post)
-	}
-
-	fireAndForgetNotifications(rpost, c.Session.TeamId, c.GetSiteURL())
-
-	return rpost, nil
 }
 
 func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.Post, *model.AppError) {

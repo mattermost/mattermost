@@ -25,7 +25,7 @@ func Setup() {
 		api.StartServer()
 		api.InitApi()
 		InitWeb()
-		URL = "http://localhost:" + utils.Cfg.ServiceSettings.Port
+		URL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
 	}
 }
@@ -195,7 +195,7 @@ func TestIncomingWebhook(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = ApiClient.Must(ApiClient.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
 		hook1 = ApiClient.Must(ApiClient.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
 

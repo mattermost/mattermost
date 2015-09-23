@@ -1,71 +1,74 @@
 {
-    "LogSettings": {
-        "ConsoleEnable": true,
-        "ConsoleLevel": "DEBUG",
-        "FileEnable": true,
-        "FileLevel": "INFO",
-        "FileFormat": "",
-        "FileLocation": ""
-    },
     "ServiceSettings": {
-        "SiteName": "Mattermost",
-        "Mode": "dev",
-        "AllowTesting": false,
-        "UseSSL": false,
-        "Port": "8065",
-        "Version": "developer",
-        "InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6",
-        "PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4",
-        "ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t",
-        "AnalyticsUrl": "",
-        "UseLocalStorage": true,
-        "StorageDirectory": "./data/",
-        "AllowedLoginAttempts": 10,
-        "DisableEmailSignUp": false,
+        "ListenAddress": ":8065",
+        "MaximumLoginAttempts": 10,
+        "SegmentDeveloperKey": "",
+        "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "AllowIncomingWebhooks": false
+        "EnableIncomingWebhooks": false,
+        "EnableTesting": false
+    },
+    "TeamSettings": {
+        "SiteName": "Mattermost",
+        "MaxUsersPerTeam": 50,
+        "DefaultThemeColor": "#2389D7",
+        "EnableTeamCreation": true,
+        "EnableUserCreation": true,
+        "RestrictCreationToDomains": ""
     },
     "SqlSettings": {
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8",
-        "DataSourceReplicas": [
-            "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"
-        ],
+        "DataSourceReplicas": [],
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": "Ya0xMrybACJ3sZZVWQC7e31h5nSDWZFS"
+        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QVg"
     },
-    "AWSSettings": {
-        "S3AccessKeyId": "",
-        "S3SecretAccessKey": "",
-        "S3Bucket": "",
-        "S3Region": ""
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileFormat": "",
+        "FileLocation": ""
     },
-    "ImageSettings": {
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "./data/",
+        "EnablePublicLink": true,
+        "PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
         "PreviewHeight": 0,
         "ProfileWidth": 128,
         "ProfileHeight": 128,
-        "InitialFont": "luximbi.ttf"
+        "InitialFont": "luximbi.ttf",
+        "AmazonS3AccessKeyId": "",
+        "AmazonS3SecretAccessKey": "",
+        "AmazonS3Bucket": "",
+        "AmazonS3Region": ""
     },
     "EmailSettings": {
-        "ByPassEmail": true,
+        "EnableSignUpWithEmail": true,
+        "SendEmailNotifications": false,
+        "RequireEmailVerification": false,
+        "FeedbackName": "",
+        "FeedbackEmail": "",
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "",
-        "UseTLS": false,
-        "UseStartTLS": false,
-        "FeedbackEmail": "",
-        "FeedbackName": "",
+        "SMTPPort": "",
+        "ConnectionSecurity": "",
+        "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
+        "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",
         "ApplePushCertPrivate": ""
     },
     "RateLimitSettings": {
-        "UseRateLimiter": true,
+        "EnableRateLimiter": true,
         "PerSec": 10,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
@@ -73,32 +76,15 @@
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
-        "ShowPhoneNumber": true,
-        "ShowSkypeId": true,
         "ShowFullName": true
     },
-    "ClientSettings": {
-        "SegmentDeveloperKey": "",
-        "GoogleDeveloperKey": ""
-    },
-    "TeamSettings": {
-        "MaxUsersPerTeam": 150,
-        "AllowPublicLink": true,
-        "AllowValetDefault": false,
-        "TourLink": "",
-        "DefaultThemeColor": "#2389D7",
-        "DisableTeamCreation": false,
-        "RestrictCreationToDomains": ""
-    },
-    "SSOSettings": {
-        "gitlab": {
-            "Allow": false,
-            "Secret": "",
-            "Id": "",
-            "Scope": "",
-            "AuthEndpoint": "",
-            "TokenEndpoint": "",
-            "UserApiEndpoint": ""
-        }
+    "GitLabSettings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
     }
 }

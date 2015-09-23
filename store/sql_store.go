@@ -51,11 +51,18 @@ func NewSqlStore() Store {
 		utils.Cfg.SqlSettings.DataSource, utils.Cfg.SqlSettings.MaxIdleConns,
 		utils.Cfg.SqlSettings.MaxOpenConns, utils.Cfg.SqlSettings.Trace)
 
-	sqlStore.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
-	for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
-		sqlStore.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), utils.Cfg.SqlSettings.DriverName, replica,
+	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
+		sqlStore.replicas = make([]*gorp.DbMap, 1)
+		sqlStore.replicas[0] = setupConnection(fmt.Sprintf("replica-%v", 0), utils.Cfg.SqlSettings.DriverName, utils.Cfg.SqlSettings.DataSource,
 			utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
 			utils.Cfg.SqlSettings.Trace)
+	} else {
+		sqlStore.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
+		for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
+			sqlStore.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), utils.Cfg.SqlSettings.DriverName, replica,
+				utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
+				utils.Cfg.SqlSettings.Trace)
+		}
 	}
 
 	schemaVersion := sqlStore.GetCurrentSchemaVersion()
@@ -308,26 +315,21 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 	}
 }
 
-// func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
+func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
 
-// 	// XXX TODO FIXME this should be removed after 0.6.0
-// 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
-// 		return false
-// 	}
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
 
-// 	if !ss.DoesColumnExist(tableName, columnName) {
-// 		return false
-// 	}
+	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
+	if err != nil {
+		l4g.Critical("Failed to drop column %v", err)
+		time.Sleep(time.Second)
+		panic("Failed to drop column " + err.Error())
+	}
 
-// 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
-// 	if err != nil {
-// 		l4g.Critical("Failed to drop column %v", err)
-// 		time.Sleep(time.Second)
-// 		panic("Failed to drop column " + err.Error())
-// 	}
-
-// 	return true
-// }
+	return true
+}
 
 // func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
 

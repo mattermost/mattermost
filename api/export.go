@@ -278,11 +278,11 @@ func copyDirToExportWriter(writer ExportWriter, inPath string, outPath string) *
 }
 
 func ExportLocalStorage(writer ExportWriter, options *ExportOptions, teamId string) *model.AppError {
-	teamDir := utils.Cfg.ServiceSettings.StorageDirectory + "teams/" + teamId
+	teamDir := utils.Cfg.FileSettings.Directory + "teams/" + teamId
 
-	if utils.IsS3Configured() && !utils.Cfg.ServiceSettings.UseLocalStorage {
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		return model.NewAppError("ExportLocalStorage", "S3 is not supported for local storage export.", "")
-	} else if utils.Cfg.ServiceSettings.UseLocalStorage && len(utils.Cfg.ServiceSettings.StorageDirectory) > 0 {
+	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := copyDirToExportWriter(writer, teamDir, EXPORT_LOCAL_STORAGE_FOLDER); err != nil {
 			return err
 		}

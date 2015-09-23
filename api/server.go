@@ -38,11 +38,11 @@ func NewServer() {
 
 func StartServer() {
 	l4g.Info("Starting Server...")
-	l4g.Info("Server is listening on " + utils.Cfg.ServiceSettings.Port)
+	l4g.Info("Server is listening on " + utils.Cfg.ServiceSettings.ListenAddress)
 
 	var handler http.Handler = Srv.Router
 
-	if utils.Cfg.RateLimitSettings.UseRateLimiter {
+	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
 		l4g.Info("RateLimiter is enabled")
 
 		vary := throttled.VaryBy{}
@@ -71,7 +71,7 @@ func StartServer() {
 	}
 
 	go func() {
-		err := Srv.Server.ListenAndServe(":"+utils.Cfg.ServiceSettings.Port, handler)
+		err := Srv.Server.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handler)
 		if err != nil {
 			l4g.Critical("Error starting server, err:%v", err)
 			time.Sleep(time.Second)

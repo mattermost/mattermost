@@ -5,7 +5,6 @@ const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const BrowserStore = require('../stores/browser_store.jsx');
-const Constants = require('../utils/constants.jsx');
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -95,10 +94,8 @@ export default class Login extends React.Component {
             focusEmail = true;
         }
 
-        const authServices = JSON.parse(this.props.authServices);
-
         let loginMessage = [];
-        if (authServices.indexOf(Constants.GITLAB_SERVICE) !== -1) {
+        if (global.window.config.EnableSignUpWithGitLab === 'true') {
             loginMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
@@ -116,7 +113,7 @@ export default class Login extends React.Component {
         }
 
         let emailSignup;
-        if (authServices.indexOf(Constants.EMAIL_SERVICE) !== -1) {
+        if (global.window.config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
                 <div>
                     <div className={'form-group' + errorClass}>
@@ -205,11 +202,9 @@ export default class Login extends React.Component {
 
 Login.defaultProps = {
     teamName: '',
-    teamDisplayName: '',
-    authServices: ''
+    teamDisplayName: ''
 };
 Login.propTypes = {
     teamName: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
-    authServices: React.PropTypes.string
+    teamDisplayName: React.PropTypes.string
 };

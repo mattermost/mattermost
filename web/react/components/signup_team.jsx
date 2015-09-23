@@ -12,38 +12,42 @@ export default class TeamSignUp extends React.Component {
 
         this.updatePage = this.updatePage.bind(this);
 
-        if (props.services.length === 1) {
-            if (props.services[0] === Constants.EMAIL_SERVICE) {
-                this.state = {page: 'email', service: ''};
-            } else {
-                this.state = {page: 'service', service: props.services[0]};
-            }
-        } else {
-            this.state = {page: 'choose', service: ''};
+        var count = 0;
+
+        if (global.window.config.EnableSignUpWithEmail === 'true') {
+            count = count + 1;
+        }
+
+        if (global.window.config.EnableSignUpWithGitLab === 'true') {
+            count = count + 1;
+        }
+
+        if (count > 1) {
+            this.state = {page: 'choose'};
+        } else if (global.window.config.EnableSignUpWithEmail === 'true') {
+            this.state = {page: 'email'};
+        } else if (global.window.config.EnableSignUpWithGitLab === 'true') {
+            this.state = {page: 'gitlab'};
         }
     }
-    updatePage(page, service) {
-        this.setState({page: page, service: service});
+
+    updatePage(page) {
+        this.setState({page});
     }
+
     render() {
+        if (this.state.page === 'choose') {
+            return (
+                <ChoosePage
+                    updatePage={this.updatePage}
+                />
+            );
+        }
+
         if (this.state.page === 'email') {
             return <EmailSignUpPage />;
-        } else if (this.state.page === 'service' && this.state.service !== '') {
-            return <SSOSignupPage service={this.state.service} />;
+        } else if (this.state.page === 'gitlab') {
+            return <SSOSignupPage service={Constants.GITLAB_SERVICE} />;
         }
-
-        return (
-            <ChoosePage
-                services={this.props.services}
-                updatePage={this.updatePage}
-            />
-        );
     }
 }
-
-TeamSignUp.defaultProps = {
-    services: []
-};
-TeamSignUp.propTypes = {
-    services: React.PropTypes.array
-};

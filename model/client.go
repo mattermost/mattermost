@@ -21,6 +21,7 @@ const (
 	HEADER_ETAG_SERVER     = "ETag"
 	HEADER_ETAG_CLIENT     = "If-None-Match"
 	HEADER_FORWARDED       = "X-Forwarded-For"
+	HEADER_REAL_IP         = "X-Real-IP"
 	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
 	HEADER_TOKEN           = "token"
 	HEADER_BEARER          = "BEARER"
@@ -400,6 +401,15 @@ func (c *Client) SaveConfig(config *Config) (*Result, *AppError) {
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), ConfigFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) TestEmail(config *Config) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/admin/test_email", config.ToJson()); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
 	}
 }
 

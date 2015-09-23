@@ -15,43 +15,22 @@ import (
 	"time"
 )
 
-func CheckMailSettings() *model.AppError {
-	if len(Cfg.EmailSettings.SMTPServer) == 0 || Cfg.EmailSettings.ByPassEmail {
-		return model.NewAppError("CheckMailSettings", "No email settings present, mail will not be sent", "")
-	}
-	conn, err := connectToSMTPServer()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	c, err2 := newSMTPClient(conn)
-	if err2 != nil {
-		return err
-	}
-	defer c.Quit()
-	defer c.Close()
-
-	return nil
-}
-
-func connectToSMTPServer() (net.Conn, *model.AppError) {
-	host, _, _ := net.SplitHostPort(Cfg.EmailSettings.SMTPServer)
-
+func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	var conn net.Conn
 	var err error
 
-	if Cfg.EmailSettings.UseTLS {
+	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: true,
-			ServerName:         host,
+			ServerName:         config.EmailSettings.SMTPServer,
 		}
 
-		conn, err = tls.Dial("tcp", Cfg.EmailSettings.SMTPServer, tlsconfig)
+		conn, err = tls.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort, tlsconfig)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
 		}
 	} else {
-		conn, err = net.Dial("tcp", Cfg.EmailSettings.SMTPServer)
+		conn, err = net.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "Failed to open connection", err.Error())
 		}
@@ -60,24 +39,23 @@ func connectToSMTPServer() (net.Conn, *model.AppError) {
 	return conn, nil
 }
 
-func newSMTPClient(conn net.Conn) (*smtp.Client, *model.AppError) {
-	host, _, _ := net.SplitHostPort(Cfg.EmailSettings.SMTPServer)
-	c, err := smtp.NewClient(conn, host)
+func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
+	c, err := smtp.NewClient(conn, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if err != nil {
 		l4g.Error("Failed to open a connection to SMTP server %v", err)
 		return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
 	}
 	// GO does not support plain auth over a non encrypted connection.
 	// so if not tls then no auth
-	auth := smtp.PlainAuth("", Cfg.EmailSettings.SMTPUsername, Cfg.EmailSettings.SMTPPassword, host)
-	if Cfg.EmailSettings.UseTLS {
+	auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
+	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		if err = c.Auth(auth); err != nil {
 			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
 		}
-	} else if Cfg.EmailSettings.UseStartTLS {
+	} else if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: true,
-			ServerName:         host,
+			ServerName:         config.EmailSettings.SMTPServer,
 		}
 		c.StartTLS(tlsconfig)
 		if err = c.Auth(auth); err != nil {
@@ -88,12 +66,16 @@ func newSMTPClient(conn net.Conn) (*smtp.Client, *model.AppError) {
 }
 
 func SendMail(to, subject, body string) *model.AppError {
+	return SendMailUsingConfig(to, subject, body, Cfg)
+}
 
-	if len(Cfg.EmailSettings.SMTPServer) == 0 || Cfg.EmailSettings.ByPassEmail {
+func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.AppError {
+
+	if !config.EmailSettings.SendEmailNotifications {
 		return nil
 	}
 
-	fromMail := mail.Address{Cfg.EmailSettings.FeedbackName, Cfg.EmailSettings.FeedbackEmail}
+	fromMail := mail.Address{config.EmailSettings.FeedbackName, config.EmailSettings.FeedbackEmail}
 	toMail := mail.Address{"", to}
 
 	headers := make(map[string]string)
@@ -110,13 +92,13 @@ func SendMail(to, subject, body string) *model.AppError {
 	}
 	message += "\r\n<html><body>" + body + "</body></html>"
 
-	conn, err1 := connectToSMTPServer()
+	conn, err1 := connectToSMTPServer(config)
 	if err1 != nil {
 		return err1
 	}
 	defer conn.Close()
 
-	c, err2 := newSMTPClient(conn)
+	c, err2 := newSMTPClient(conn, config)
 	if err2 != nil {
 		return err2
 	}

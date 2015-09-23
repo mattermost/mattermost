@@ -58,9 +58,9 @@ func FindDir(dir string) string {
 
 func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
-	ls.ConsoleEnable = true
+	ls.EnableConsole = true
 	ls.ConsoleLevel = "ERROR"
-	ls.FileEnable = false
+	ls.EnableFile = false
 	configureLog(&ls)
 }
 
@@ -68,7 +68,7 @@ func configureLog(s *model.LogSettings) {
 
 	l4g.Close()
 
-	if s.ConsoleEnable {
+	if s.EnableConsole {
 		level := l4g.DEBUG
 		if s.ConsoleLevel == "INFO" {
 			level = l4g.INFO
@@ -79,7 +79,7 @@ func configureLog(s *model.LogSettings) {
 		l4g.AddFilter("stdout", level, l4g.NewConsoleLogWriter())
 	}
 
-	if s.FileEnable {
+	if s.EnableFile {
 
 		var fileFormat = s.FileFormat
 
@@ -161,8 +161,6 @@ func getSanitizeOptions(c *model.Config) map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = c.PrivacySettings.ShowFullName
 	options["email"] = c.PrivacySettings.ShowEmailAddress
-	options["skypeid"] = c.PrivacySettings.ShowSkypeId
-	options["phonenumber"] = c.PrivacySettings.ShowPhoneNumber
 
 	return options
 }
@@ -175,57 +173,24 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
 
-	props["SiteName"] = c.ServiceSettings.SiteName
-	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
-	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
-	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
-	props["AllowPublicLink"] = strconv.FormatBool(c.TeamSettings.AllowPublicLink)
-	props["SegmentDeveloperKey"] = c.ClientSettings.SegmentDeveloperKey
-	props["GoogleDeveloperKey"] = c.ClientSettings.GoogleDeveloperKey
-	props["AnalyticsUrl"] = c.ServiceSettings.AnalyticsUrl
-	props["ByPassEmail"] = strconv.FormatBool(c.EmailSettings.ByPassEmail)
-	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
-	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
-	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
+	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
-	props["AllowIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.AllowIncomingWebhooks)
+
+	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
+	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
+	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
+
+	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
+	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
+	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
+
+	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
+
+	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
+
+	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
+	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)
+	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
 
 	return props
-}
-
-func IsS3Configured() bool {
-	if Cfg.AWSSettings.S3AccessKeyId == "" || Cfg.AWSSettings.S3SecretAccessKey == "" || Cfg.AWSSettings.S3Region == "" || Cfg.AWSSettings.S3Bucket == "" {
-		return false
-	}
-
-	return true
-}
-
-func GetAllowedAuthServices() []string {
-	authServices := []string{}
-	for name, service := range Cfg.SSOSettings {
-		if service.Allow {
-			authServices = append(authServices, name)
-		}
-	}
-
-	if !Cfg.ServiceSettings.DisableEmailSignUp {
-		authServices = append(authServices, "email")
-	}
-
-	return authServices
-}
-
-func IsServiceAllowed(s string) bool {
-	if len(s) == 0 {
-		return false
-	}
-
-	if service, ok := Cfg.SSOSettings[s]; ok {
-		if service.Allow {
-			return true
-		}
-	}
-
-	return false
 }

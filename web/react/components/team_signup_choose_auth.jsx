@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Constants = require('../utils/constants.jsx');
-
 export default class ChooseAuthPage extends React.Component {
     constructor(props) {
         super(props);
@@ -10,7 +8,7 @@ export default class ChooseAuthPage extends React.Component {
     }
     render() {
         var buttons = [];
-        if (this.props.services.indexOf(Constants.GITLAB_SERVICE) !== -1) {
+        if (global.window.config.EnableSignUpWithGitLab === 'true') {
             buttons.push(
                     <a
                         className='btn btn-custom-login gitlab btn-full'
@@ -18,17 +16,17 @@ export default class ChooseAuthPage extends React.Component {
                         onClick={
                             function clickGit(e) {
                                 e.preventDefault();
-                                this.props.updatePage('service', Constants.GITLAB_SERVICE);
+                                this.props.updatePage('gitlab');
                             }.bind(this)
                         }
                     >
                         <span className='icon' />
-                        <span>Create new team with GitLab Account</span>
+                        <span>{'Create new team with GitLab Account'}</span>
                     </a>
             );
         }
 
-        if (this.props.services.indexOf(Constants.EMAIL_SERVICE) !== -1) {
+        if (global.window.config.EnableSignUpWithEmail === 'true') {
             buttons.push(
                     <a
                         className='btn btn-custom-login email btn-full'
@@ -36,18 +34,18 @@ export default class ChooseAuthPage extends React.Component {
                         onClick={
                             function clickEmail(e) {
                                 e.preventDefault();
-                                this.props.updatePage('email', '');
+                                this.props.updatePage('email');
                             }.bind(this)
                         }
                     >
                         <span className='fa fa-envelope' />
-                        <span>Create new team with email address</span>
+                        <span>{'Create new team with email address'}</span>
                     </a>
             );
         }
 
         if (buttons.length === 0) {
-            buttons = <span>No sign-up methods configured, please contact your system administrator.</span>;
+            buttons = <span>{'No sign-up methods configured, please contact your system administrator.'}</span>;
         }
 
         return (
@@ -61,10 +59,6 @@ export default class ChooseAuthPage extends React.Component {
     }
 }
 
-ChooseAuthPage.defaultProps = {
-    services: []
-};
 ChooseAuthPage.propTypes = {
-    services: React.PropTypes.array,
     updatePage: React.PropTypes.func
 };

@@ -21,7 +21,7 @@ func InitWebhook(r *mux.Router) {
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		c.Err = model.NewAppError("createIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -66,7 +66,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		c.Err = model.NewAppError("createIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -103,7 +103,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		c.Err = model.NewAppError("createIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return

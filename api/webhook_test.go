@@ -31,7 +31,7 @@ func TestCreateIncomingHook(t *testing.T) {
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 
-	if utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		var rhook *model.IncomingWebhook
 		if result, err := Client.CreateIncomingWebhook(hook); err != nil {
 			t.Fatal(err)
@@ -89,7 +89,7 @@ func TestListIncomingHooks(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
 		hook1 = Client.Must(Client.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
 
@@ -127,7 +127,7 @@ func TestDeleteIncomingHook(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.Cfg.ServiceSettings.AllowIncomingWebhooks {
+	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		hook := &model.IncomingWebhook{ChannelId: channel1.Id}
 		hook = Client.Must(Client.CreateIncomingWebhook(hook)).Data.(*model.IncomingWebhook)
 

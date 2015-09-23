@@ -4,12 +4,10 @@ var BrowserStore = require('../stores/browser_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
 export function track(category, action, label, prop, val) {
-    global.window.snowplow('trackStructEvent', category, action, label, prop, val);
     global.window.analytics.track(action, {category: category, label: label, property: prop, value: val});
 }
 
 export function trackPage() {
-    global.window.snowplow('trackPageView');
     global.window.analytics.page();
 }
 
@@ -329,6 +327,21 @@ export function saveConfig(config, success, error) {
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('saveConfig', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function testEmail(config, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/test_email',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(config),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('testEmail', xhr, status, err);
             error(e);
         }
     });

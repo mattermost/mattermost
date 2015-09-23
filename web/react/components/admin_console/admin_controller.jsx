@@ -9,6 +9,13 @@ var LoadingScreen = require('../loading_screen.jsx');
 var EmailSettingsTab = require('./email_settings.jsx');
 var LogSettingsTab = require('./log_settings.jsx');
 var LogsTab = require('./logs.jsx');
+var FileSettingsTab = require('./image_settings.jsx');
+var PrivacySettingsTab = require('./privacy_settings.jsx');
+var RateSettingsTab = require('./rate_settings.jsx');
+var GitLabSettingsTab = require('./gitlab_settings.jsx');
+var SqlSettingsTab = require('./sql_settings.jsx');
+var TeamSettingsTab = require('./team_settings.jsx');
+var ServiceSettingsTab = require('./service_settings.jsx');
 
 export default class AdminController extends React.Component {
     constructor(props) {
@@ -19,7 +26,7 @@ export default class AdminController extends React.Component {
 
         this.state = {
             config: null,
-            selected: 'email_settings'
+            selected: 'service_settings'
         };
     }
 
@@ -53,6 +60,20 @@ export default class AdminController extends React.Component {
                 tab = <LogSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'logs') {
                 tab = <LogsTab />;
+            } else if (this.state.selected === 'image_settings') {
+                tab = <FileSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'privacy_settings') {
+                tab = <PrivacySettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'rate_settings') {
+                tab = <RateSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'gitlab_settings') {
+                tab = <GitLabSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'sql_settings') {
+                tab = <SqlSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'team_settings') {
+                tab = <TeamSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'service_settings') {
+                tab = <ServiceSettingsTab config={this.state.config} />;
             }
         }
 

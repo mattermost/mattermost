@@ -83,7 +83,7 @@ func TestGetConfig(t *testing.T) {
 	} else {
 		cfg := result.Data.(*model.Config)
 
-		if len(cfg.ServiceSettings.SiteName) == 0 {
+		if len(cfg.TeamSettings.SiteName) == 0 {
 			t.Fatal()
 		}
 	}
@@ -117,8 +117,36 @@ func TestSaveConfig(t *testing.T) {
 	} else {
 		cfg := result.Data.(*model.Config)
 
-		if len(cfg.ServiceSettings.SiteName) == 0 {
+		if len(cfg.TeamSettings.SiteName) == 0 {
 			t.Fatal()
 		}
+	}
+}
+
+func TestEmailTest(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if _, err := Client.TestEmail(utils.Cfg); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if _, err := Client.TestEmail(utils.Cfg); err != nil {
+		t.Fatal(err)
 	}
 }

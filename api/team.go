@@ -38,7 +38,7 @@ func InitTeam(r *mux.Router) {
 }
 
 func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("signupTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -60,14 +60,13 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	subjectPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage := NewServerTemplatePage("signup_team_body")
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage.Props["TourUrl"] = utils.Cfg.TeamSettings.TourLink
 
 	props := make(map[string]string)
 	props["email"] = email
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 
 	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
+	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_team_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
@@ -76,10 +75,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if utils.Cfg.ServiceSettings.Mode == utils.MODE_DEV || utils.Cfg.EmailSettings.ByPassEmail {
-		m["follow_link"] = bodyPage.Props["Link"]
-	}
-
+	m["follow_link"] = bodyPage.Props["Link"]
 	w.Header().Set("Access-Control-Allow-Origin", " *")
 	w.Write([]byte(model.MapToJson(m)))
 }
@@ -88,7 +84,8 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 
-	if !utils.IsServiceAllowed(service) {
+	sso := utils.Cfg.GetSSOService(service)
+	if sso != nil && !sso.Enable {
 		c.SetInvalidParam("createTeamFromSSO", "service")
 		return
 	}
@@ -126,8 +123,6 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
-
 	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -147,7 +142,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("createTeamFromSignup", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -188,7 +183,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamSignup.User.TeamId = ""
 	teamSignup.User.Password = password
 
-	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.ServiceSettings.InviteSalt)) {
+	if !model.ComparePassword(teamSignup.Hash, fmt.Sprintf("%v:%v", teamSignup.Data, utils.Cfg.EmailSettings.InviteSalt)) {
 		c.Err = model.NewAppError("createTeamFromSignup", "The signup link does not appear to be valid", "")
 		return
 	}
@@ -209,8 +204,6 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamSignup.Team.AllowValet = utils.Cfg.TeamSettings.AllowValetDefault
-
 	if result := <-Srv.Store.Team().Save(&teamSignup.Team); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -228,13 +221,6 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		ruser := CreateUser(c, rteam, &teamSignup.User)
 		if c.Err != nil {
 			return
-		}
-
-		if teamSignup.Team.AllowValet {
-			CreateValet(c, rteam)
-			if c.Err != nil {
-				return
-			}
 		}
 
 		InviteMembers(c, rteam, ruser, teamSignup.Invites)
@@ -257,7 +243,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateTeam(c *Context, team *model.Team) *model.Team {
-	if utils.Cfg.ServiceSettings.DisableEmailSignUp {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return nil
@@ -272,11 +258,6 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 		return nil
 	}
 
-	if utils.Cfg.ServiceSettings.Mode != utils.MODE_DEV {
-		c.Err = model.NewAppError("CreateTeam", "The mode does not allow network creation without a valid invite", "")
-		return nil
-	}
-
 	if result := <-Srv.Store.Team().Save(team); result.Err != nil {
 		c.Err = result.Err
 		return nil
@@ -288,13 +269,6 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 			return nil
 		}
 
-		if rteam.AllowValet {
-			CreateValet(c, rteam)
-			if c.Err != nil {
-				return nil
-			}
-		}
-
 		return rteam
 	}
 }
@@ -303,7 +277,7 @@ func isTreamCreationAllowed(c *Context, email string) bool {
 
 	email = strings.ToLower(email)
 
-	if utils.Cfg.TeamSettings.DisableTeamCreation {
+	if !utils.Cfg.TeamSettings.EnableTeamCreation {
 		c.Err = model.NewAppError("isTreamCreationAllowed", "Team creation has been disabled. Please ask your systems administrator for details.", "")
 		return false
 	}
@@ -509,10 +483,10 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			props["name"] = team.Name
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
-			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.ServiceSettings.InviteSalt))
+			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", c.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
 
-			if utils.Cfg.ServiceSettings.Mode == utils.MODE_DEV {
+			if !utils.Cfg.EmailSettings.SendEmailNotifications {
 				l4g.Info("sending invitation to %v %v", invite, bodyPage.Props["Link"])
 			}
 
@@ -569,8 +543,6 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowValet := allowValetStr == "true"
-
 	teamId := props["team_id"]
 	if len(teamId) > 0 && len(teamId) != 26 {
 		c.SetInvalidParam("updateValetFeature", "team_id")
@@ -598,8 +570,6 @@ func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		team = tResult.Data.(*model.Team)
 	}
-
-	team.AllowValet = allowValet
 
 	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
 		c.Err = result.Err

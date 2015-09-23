@@ -42,7 +42,7 @@ func TestUserStoreSave(t *testing.T) {
 		t.Fatal("should be unique username")
 	}
 
-	for i := 0; i < 150; i++ {
+	for i := 0; i < 50; i++ {
 		u1.Id = ""
 		u1.Email = model.NewId()
 		u1.Username = model.NewId()
