@@ -232,9 +232,9 @@ export default class CreatePost extends React.Component {
         }
     }
     handleTextDrop(text) {
-        const originalText = this.state.messageText;
-        this.setState({messageText: originalText + text});
-        React.findDOMNode(this.refs.textbox).focus();
+        const newText = this.state.messageText + text;
+        this.handleUserInput(newText);
+        Utils.setCaretPosition(React.findDOMNode(this.refs.textbox.refs.message), newText.length);
     }
     removePreview(id) {
         let previews = this.state.previews;
