@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const Utils = require('../utils/utils.jsx');
 var client = require('../utils/client.jsx');
 
 export default class PasswordResetSendLink extends React.Component {
@@ -15,8 +16,8 @@ export default class PasswordResetSendLink extends React.Component {
         e.preventDefault();
         var state = {};
 
-        var email = React.findDOMNode(this.refs.email).value.trim();
-        if (!email) {
+        var email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
+        if (!email || !Utils.isEmail(email)) {
             state.error = 'Please enter a valid email address.';
             this.setState(state);
             return;
@@ -67,7 +68,7 @@ export default class PasswordResetSendLink extends React.Component {
                         <p>{'To reset your password, enter the email address you used to sign up for ' + this.props.teamDisplayName + '.'}</p>
                         <div className={formClass}>
                             <input
-                                type='text'
+                                type='email'
                                 className='form-control'
                                 name='email'
                                 ref='email'
