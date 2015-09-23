@@ -21,11 +21,6 @@ Admin Console
 
 - (Preview) Ability to view server logs and change config settings
 
-Integrations
-
-- (Preview) Added API for incoming webhooks
-- (Preview) Added OAuth2 as a service provider to allow for more secure connection to external apps 
-
 ### Improvements
 
 Documentation
