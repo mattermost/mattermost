@@ -326,8 +326,8 @@ export default class PostList extends React.Component {
                         <strong><UserProfile userId={teammate.id} /></strong>
                     </div>
                     <p className='channel-intro-text'>
-                        {'This is the start of your private message history with ' + teammateName + '.'}<br/>
-                        {'Private messages and files shared here are not shown to people outside this area.'}
+                        {'This is the start of your direct message history with ' + teammateName + '.'}<br/>
+                        {'Direct messages and files shared here are not shown to people outside this area.'}
                     </p>
                     <a
                         className='intro-links'
@@ -346,7 +346,7 @@ export default class PostList extends React.Component {
 
         return (
             <div className='channel-intro'>
-                <p className='channel-intro-text'>{'This is the start of your private message history with this teammate. Private messages and files shared here are not shown to people outside this area.'}</p>
+                <p className='channel-intro-text'>{'This is the start of your direct message history with this teammate. Direct messages and files shared here are not shown to people outside this area.'}</p>
             </div>
         );
     }

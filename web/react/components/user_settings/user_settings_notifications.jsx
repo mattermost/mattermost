@@ -241,7 +241,7 @@ export default class NotificationsTab extends React.Component {
                                 checked={notifyActive[1]}
                                 onChange={this.handleNotifyRadio.bind(this, 'mention')}
                             >
-                                Only for mentions and private messages
+                                Only for mentions and direct messages
                             </input>
                         </label>
                         <br/>
@@ -277,7 +277,7 @@ export default class NotificationsTab extends React.Component {
         } else {
             let describe = '';
             if (this.state.notifyLevel === 'mention') {
-                describe = 'Only for mentions and private messages';
+                describe = 'Only for mentions and direct messages';
             } else if (this.state.notifyLevel === 'none') {
                 describe = 'Never';
             } else {
@@ -414,7 +414,7 @@ export default class NotificationsTab extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'Email notifications are sent for mentions and private messages after you have been away from ' + global.window.config.SiteName + ' for 5 minutes.'}</div>
+                    <div><br/>{'Email notifications are sent for mentions and direct messages after you have been away from ' + global.window.config.SiteName + ' for 5 minutes.'}</div>
                 </div>
             );
 

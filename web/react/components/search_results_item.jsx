@@ -64,7 +64,7 @@ export default class SearchResultsItem extends React.Component {
         if (channel) {
             channelName = channel.display_name;
             if (channel.type === 'D') {
-                channelName = 'Private Message';
+                channelName = 'Direct Message';
             }
         }
 
