@@ -583,6 +583,21 @@ export function updateNotifyLevel(data, success, error) {
     });
 }
 
+export function updateMarkUnreadLevel(data, success, error) {
+    $.ajax({
+        url: '/api/v1/channels/update_mark_unread_level',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('updateMarkUnreadLevel', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function joinChannel(id, success, error) {
     $.ajax({
         url: '/api/v1/channels/' + id + '/join',
