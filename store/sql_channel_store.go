@@ -37,6 +37,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("ChannelMembers", "MarkUnreadLevel", "varchar(20)", "varchar(20)", model.CHANNEL_MARK_UNREAD_ALL)
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
@@ -669,6 +670,35 @@ func (s SqlChannelStore) UpdateNotifyLevel(channelId, userId, notifyLevel string
 			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "NotifyLevel": notifyLevel, "LastUpdateAt": updateAt})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateNotifyLevel", "We couldn't update the notify level", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) UpdateMarkUnreadLevel(channelId, userId, markUnreadLevel string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt := model.GetMillis()
+
+		_, err := s.GetMaster().Exec(
+			`UPDATE
+				ChannelMembers
+			SET
+				MarkUnreadLevel = :MarkUnreadLevel,
+				LastUpdateAt = :LastUpdateAt
+			WHERE
+				UserId = :UserId
+					AND ChannelId = :ChannelId`,
+			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "MarkUnreadLevel": markUnreadLevel, "LastUpdateAt": updateAt})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UpdateMarkUnreadLevel", "We couldn't update the mark unread level", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

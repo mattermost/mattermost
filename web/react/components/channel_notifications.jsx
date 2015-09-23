@@ -15,14 +15,24 @@ export default class ChannelNotifications extends React.Component {
 
         this.onListenerChange = this.onListenerChange.bind(this);
         this.updateSection = this.updateSection.bind(this);
-        this.handleUpdate = this.handleUpdate.bind(this);
-        this.handleRadioClick = this.handleRadioClick.bind(this);
-        this.handleQuietToggle = this.handleQuietToggle.bind(this);
-        this.createDesktopSection = this.createDesktopSection.bind(this);
-        this.createQuietSection = this.createQuietSection.bind(this);
 
-        this.state = {notifyLevel: '', title: '', channelId: '', activeSection: ''};
+        this.handleSubmitNotifyLevel = this.handleSubmitNotifyLevel.bind(this);
+        this.handleUpdateNotifyLevel = this.handleUpdateNotifyLevel.bind(this);
+        this.createNotifyLevelSection = this.createNotifyLevelSection.bind(this);
+
+        this.handleSubmitMarkUnreadLevel = this.handleSubmitMarkUnreadLevel.bind(this);
+        this.handleUpdateMarkUnreadLevel = this.handleUpdateMarkUnreadLevel.bind(this);
+        this.createMarkUnreadLevelSection = this.createMarkUnreadLevelSection.bind(this);
+
+        this.state = {
+            notifyLevel: '',
+            markUnreadLevel: '',
+            title: '',
+            channelId: '',
+            activeSection: ''
+        };
     }
+
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
 
@@ -30,33 +40,34 @@ export default class ChannelNotifications extends React.Component {
             var button = e.relatedTarget;
             var channelId = button.getAttribute('data-channelid');
 
-            var notifyLevel = ChannelStore.getMember(channelId).notify_level;
-            var quietMode = false;
+            const member = ChannelStore.getMember(channelId);
+            var notifyLevel = member.notify_level;
+            var markUnreadLevel = member.mark_unread_level;
 
-            if (notifyLevel === 'quiet') {
-                quietMode = true;
-            }
-
-            this.setState({notifyLevel: notifyLevel, quietMode: quietMode, title: button.getAttribute('data-title'), channelId: channelId});
+            this.setState({
+                notifyLevel,
+                markUnreadLevel,
+                title: button.getAttribute('data-title'),
+                channelId: channelId
+            });
         }.bind(this));
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
     }
+
     onListenerChange() {
         if (!this.state.channelId) {
             return;
         }
 
-        var notifyLevel = ChannelStore.getMember(this.state.channelId).notify_level;
-        var quietMode = false;
-        if (notifyLevel === 'quiet') {
-            quietMode = true;
-        }
+        const member = ChannelStore.getMember(this.state.channelId);
+        var notifyLevel = member.notify_level;
+        var markUnreadLevel = member.mark_unread_level;
 
         var newState = this.state;
         newState.notifyLevel = notifyLevel;
-        newState.quietMode = quietMode;
+        newState.markUnreadLevel = markUnreadLevel;
 
         if (!Utils.areStatesEqual(this.state, newState)) {
             this.setState(newState);
@@ -65,12 +76,10 @@ export default class ChannelNotifications extends React.Component {
     updateSection(section) {
         this.setState({activeSection: section});
     }
-    handleUpdate() {
+
+    handleSubmitNotifyLevel() {
         var channelId = this.state.channelId;
         var notifyLevel = this.state.notifyLevel;
-        if (this.state.quietMode) {
-            notifyLevel = 'quiet';
-        }
 
         var data = {};
         data.channel_id = channelId;
@@ -82,26 +91,24 @@ export default class ChannelNotifications extends React.Component {
         }
 
         Client.updateNotifyLevel(data,
-            function success() {
+            () => {
                 var member = ChannelStore.getMember(channelId);
                 member.notify_level = notifyLevel;
                 ChannelStore.setChannelMember(member);
                 this.updateSection('');
-            }.bind(this),
-            function error(err) {
+            },
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
-    handleRadioClick(notifyLevel) {
-        this.setState({notifyLevel: notifyLevel, quietMode: false});
+
+    handleUpdateNotifyLevel(notifyLevel) {
+        this.setState({notifyLevel});
         React.findDOMNode(this.refs.modal).focus();
     }
-    handleQuietToggle(quietMode) {
-        this.setState({notifyLevel: 'none', quietMode: quietMode});
-        React.findDOMNode(this.refs.modal).focus();
-    }
-    createDesktopSection(serverError) {
+
+    createNotifyLevelSection(serverError) {
         var handleUpdateSection;
 
         const user = UserStore.getCurrentUser();
@@ -137,7 +144,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[0]}
-                                onChange={this.handleRadioClick.bind(this, 'default')}
+                                onChange={this.handleUpdateNotifyLevel.bind(this, 'default')}
                             >
                                 {`Global default (${globalNotifyLevelName})`}
                             </input>
@@ -149,7 +156,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[1]}
-                                onChange={this.handleRadioClick.bind(this, 'all')}
+                                onChange={this.handleUpdateNotifyLevel.bind(this, 'all')}
                             >
                                 {'For all activity'}
                             </input>
@@ -161,7 +168,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[2]}
-                                onChange={this.handleRadioClick.bind(this, 'mention')}
+                                onChange={this.handleUpdateNotifyLevel.bind(this, 'mention')}
                             >
                                 {'Only for mentions'}
                             </input>
@@ -173,7 +180,7 @@ export default class ChannelNotifications extends React.Component {
                             <input
                                 type='radio'
                                 checked={notifyActive[3]}
-                                onChange={this.handleRadioClick.bind(this, 'none')}
+                                onChange={this.handleUpdateNotifyLevel.bind(this, 'none')}
                             >
                                 {'Never'}
                             </input>
@@ -200,7 +207,7 @@ export default class ChannelNotifications extends React.Component {
                 <SettingItemMax
                     title='Send desktop notifications'
                     inputs={inputs}
-                    submit={this.handleUpdate}
+                    submit={this.handleSubmitNotifyLevel}
                     server_error={serverError}
                     updateSection={handleUpdateSection}
                     extraInfo={extraInfo}
@@ -232,100 +239,121 @@ export default class ChannelNotifications extends React.Component {
             />
         );
     }
-    createQuietSection(serverError) {
-        var handleUpdateSection;
-        if (this.state.activeSection === 'quiet') {
-            var quietActive = [false, false];
-            if (this.state.quietMode) {
-                quietActive[0] = true;
-            } else {
-                quietActive[1] = true;
+
+    handleSubmitMarkUnreadLevel() {
+        const channelId = this.state.channelId;
+        const markUnreadLevel = this.state.markUnreadLevel;
+
+        const data = {
+            channel_id: channelId,
+            user_id: UserStore.getCurrentId(),
+            mark_unread_level: markUnreadLevel
+        };
+
+        if (!data.mark_unread_level || data.mark_unread_level.length === 0) {
+            return;
+        }
+
+        Client.updateMarkUnreadLevel(data,
+            () => {
+                var member = ChannelStore.getMember(channelId);
+                member.mark_unread_level = markUnreadLevel;
+                ChannelStore.setChannelMember(member);
+                this.updateSection('');
+            },
+            (err) => {
+                this.setState({serverError: err.message});
             }
+        );
+    }
 
-            var inputs = [];
+    handleUpdateMarkUnreadLevel(markUnreadLevel) {
+        this.setState({markUnreadLevel});
+        React.findDOMNode(this.refs.modal).focus();
+    }
 
-            inputs.push(
+    createMarkUnreadLevelSection(serverError) {
+        let content;
+
+        if (this.state.activeSection === 'markUnreadLevel') {
+            const inputs = [(
                 <div>
                     <div className='radio'>
                         <label>
                             <input
                                 type='radio'
-                                checked={quietActive[0]}
-                                onChange={this.handleQuietToggle.bind(this, true)}
+                                checked={this.state.markUnreadLevel === 'all'}
+                                onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'all')}
                             >
-                                On
+                                {'For all unread messages'}
                             </input>
                         </label>
-                        <br/>
+                        <br />
                     </div>
                     <div className='radio'>
                         <label>
                             <input
                                 type='radio'
-                                checked={quietActive[1]}
-                                onChange={this.handleQuietToggle.bind(this, false)}
+                                checked={this.state.markUnreadLevel === 'mention'}
+                                onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'mention')}
                             >
-                                Off
+                                {'Only for mentions'}
                             </input>
                         </label>
-                        <br/>
+                        <br />
                     </div>
                 </div>
-            );
+            )];
 
-            inputs.push(
-                <div>
-                    <br/>
-                    Enabling quiet mode will turn off desktop notifications and only mark the channel as unread if you have been mentioned.
-                </div>
-            );
-
-            handleUpdateSection = function updateSection(e) {
+            const handleUpdateSection = function handleUpdateSection(e) {
                 this.updateSection('');
                 this.onListenerChange();
                 e.preventDefault();
             }.bind(this);
 
-            return (
+            const extraInfo = <span>{'The channel name is bolded in the sidebar when there are unread messages. Selecting "Only for mentions" will bold the channel only when you are mentioned.'}</span>;
+
+            content = (
                 <SettingItemMax
-                    title='Quiet mode'
+                    title='Mark Channel Unread'
                     inputs={inputs}
-                    submit={this.handleUpdate}
+                    submit={this.handleSubmitMarkUnreadLevel}
                     server_error={serverError}
+                    updateSection={handleUpdateSection}
+                    extraInfo={extraInfo}
+                />
+            );
+        } else {
+            let describe;
+
+            if (!this.state.markUnreadLevel || this.state.markUnreadLevel === 'all') {
+                describe = 'For all unread messages';
+            } else {
+                describe = 'Only for mentions';
+            }
+
+            const handleUpdateSection = function handleUpdateSection(e) {
+                this.updateSection('markUnreadLevel');
+                e.preventDefault();
+            }.bind(this);
+
+            content = (
+                <SettingItemMin
+                    title='Mark Channel Unread'
+                    describe={describe}
                     updateSection={handleUpdateSection}
                 />
             );
         }
 
-        var describe;
-        if (this.state.quietMode) {
-            describe = 'On';
-        } else {
-            describe = 'Off';
-        }
-
-        handleUpdateSection = function updateSection(e) {
-            this.updateSection('quiet');
-            e.preventDefault();
-        }.bind(this);
-
-        return (
-            <SettingItemMin
-                title='Quiet mode'
-                describe={describe}
-                updateSection={handleUpdateSection}
-            />
-        );
+        return content;
     }
+
     render() {
         var serverError = null;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
-
-        var desktopSection = this.createDesktopSection(serverError);
-
-        var quietSection = this.createQuietSection(serverError);
 
         return (
             <div
@@ -358,9 +386,9 @@ export default class ChannelNotifications extends React.Component {
                                 >
                                     <br/>
                                     <div className='divider-dark first'/>
-                                    {desktopSection}
+                                    {this.createNotifyLevelSection(serverError)}
                                     <div className='divider-light'/>
-                                    {quietSection}
+                                    {this.createMarkUnreadLevelSection(serverError)}
                                     <div className='divider-dark'/>
                                 </div>
                             </div>
