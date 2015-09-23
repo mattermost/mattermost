@@ -81,6 +81,11 @@ export default class ChannelNotifications extends React.Component {
         var channelId = this.state.channelId;
         var notifyLevel = this.state.notifyLevel;
 
+        if (ChannelStore.getMember(channelId).notify_level === notifyLevel) {
+            this.updateSection('');
+            return;
+        }
+
         var data = {};
         data.channel_id = channelId;
         data.user_id = UserStore.getCurrentId();
@@ -243,6 +248,11 @@ export default class ChannelNotifications extends React.Component {
     handleSubmitMarkUnreadLevel() {
         const channelId = this.state.channelId;
         const markUnreadLevel = this.state.markUnreadLevel;
+
+        if (ChannelStore.getMember(channelId).mark_unread_level === markUnreadLevel) {
+            this.updateSection('');
+            return;
+        }
 
         const data = {
             channel_id: channelId,
