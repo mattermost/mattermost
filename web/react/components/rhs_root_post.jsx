@@ -20,7 +20,6 @@ export default class RhsRootPost extends React.Component {
     }
     parseEmojis() {
         twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
-        global.window.emojify.run(React.findDOMNode(this.refs.message_holder));
     }
     componentDidMount() {
         this.parseEmojis();
@@ -54,7 +53,7 @@ export default class RhsRootPost extends React.Component {
         var channelName;
         if (channel) {
             if (channel.type === 'D') {
-                channelName = 'Private Message';
+                channelName = 'Direct Message';
             } else {
                 channelName = channel.display_name;
             }

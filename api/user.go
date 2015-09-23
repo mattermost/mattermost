@@ -171,9 +171,6 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 
 	user.MakeNonNil()
-	if len(user.Props["theme"]) == 0 {
-		user.AddProp("theme", utils.Cfg.TeamSettings.DefaultThemeColor)
-	}
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		c.Err = result.Err

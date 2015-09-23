@@ -8,6 +8,16 @@
 			@include opacity(0.7);
 		}
 	}
+	a, a:focus, a:hover {
+		color: #2389D7;
+	}
+	.btn.btn-primary {
+		background: #4285f4;
+		&:hover, &:focus, &:active {
+			background: $primary-color--hover;
+			color: #fff;
+		}
+	}
 	.info__label {
 		font-weight: 600;
 		text-align: right;

@@ -32,6 +32,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("Roles").SetMaxSize(64)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("NotifyProps").SetMaxSize(2000)
+		table.ColMap("ThemeProps").SetMaxSize(2000)
 		table.SetUniqueTogether("Email", "TeamId")
 		table.SetUniqueTogether("Username", "TeamId")
 	}
@@ -40,6 +41,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
+	us.CreateColumnIfNotExists("Users", "ThemeProps", "varchar(2000)", "character varying(2000)", "{}")
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {

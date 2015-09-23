@@ -3,13 +3,12 @@
 
 const Autolinker = require('autolinker');
 const Constants = require('./constants.jsx');
+const Emoticons = require('./emoticons.jsx');
 const Markdown = require('./markdown.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
 
 const marked = require('marked');
-
-const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
@@ -17,26 +16,44 @@ const markdownRenderer = new Markdown.MattermostMarkdownRenderer();
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
 // - singleline - Specifies whether or not to remove newlines. Defaults to false.
+// - emoticons - Enables emoticon parsing. Defaults to true.
 // - markdown - Enables markdown parsing. Defaults to true.
 export function formatText(text, options = {}) {
-    if (!('markdown' in options)) {
-        options.markdown = true;
+    let output;
+
+    if (!('markdown' in options) || options.markdown) {
+        // the markdown renderer will call doFormatText as necessary so just call marked
+        output = marked(text, {
+            renderer: new Markdown.MattermostMarkdownRenderer(null, options),
+            sanitize: true
+        });
+    } else {
+        output = sanitizeHtml(text);
+        output = doFormatText(output, options);
     }
 
-    // wait until marked can sanitize the html so that we don't break markdown block quotes
-    let output;
-    if (!options.markdown) {
-        output = sanitizeHtml(text);
-    } else {
-        output = text;
+    // replace newlines with spaces if necessary
+    if (options.singleline) {
+        output = replaceNewlines(output);
     }
+
+    return output;
+}
+
+// Performs most of the actual formatting work for formatText. Not intended to be called normally.
+export function doFormatText(text, options) {
+    let output = text;
 
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    output = autolinkUrls(output, tokens, !!options.markdown);
+    output = autolinkUrls(output, tokens);
     output = autolinkAtMentions(output, tokens);
     output = autolinkHashtags(output, tokens);
+
+    if (!('emoticons' in options) || options.emoticon) {
+        output = Emoticons.handleEmoticons(output, tokens);
+    }
 
     if (options.searchTerm) {
         output = highlightSearchTerm(output, tokens, options.searchTerm);
@@ -46,21 +63,8 @@ export function formatText(text, options = {}) {
         output = highlightCurrentMentions(output, tokens);
     }
 
-    // perform markdown parsing while we have an html-free input string
-    if (options.markdown) {
-        output = marked(output, {
-            renderer: markdownRenderer,
-            sanitize: true
-        });
-    }
-
     // reinsert tokens with formatted versions of the important words and phrases
     output = replaceTokens(output, tokens);
-
-    // replace newlines with html line breaks
-    if (options.singleline) {
-        output = replaceNewlines(output);
-    }
 
     return output;
 }
@@ -78,7 +82,7 @@ export function sanitizeHtml(text) {
     return output;
 }
 
-function autolinkUrls(text, tokens, markdown) {
+function autolinkUrls(text, tokens) {
     function replaceUrlWithToken(autolinker, match) {
         const linkText = match.getMatchedText();
         let url = linkText;
@@ -108,30 +112,7 @@ function autolinkUrls(text, tokens, markdown) {
         replaceFn: replaceUrlWithToken
     });
 
-    let output = text;
-
-    // temporarily replace markdown links if markdown is enabled so that we don't accidentally parse them twice
-    const markdownLinkTokens = new Map();
-    if (markdown) {
-        function replaceMarkdownLinkWithToken(markdownLink) {
-            const index = markdownLinkTokens.size;
-            const alias = `MM_MARKDOWNLINK${index}`;
-
-            markdownLinkTokens.set(alias, {value: markdownLink});
-
-            return alias;
-        }
-
-        output = output.replace(/\]\([^\)]*\)/g, replaceMarkdownLinkWithToken);
-    }
-
-    output = autolinker.link(output);
-
-    if (markdown) {
-        output = replaceTokens(output, markdownLinkTokens);
-    }
-
-    return output;
+    return autolinker.link(text);
 }
 
 function autolinkAtMentions(text, tokens) {
@@ -241,7 +222,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(/(^|\W)(#[a-zA-Z0-9.\-_]+)\b/g, replaceHashtagWithToken);
+    return output.replace(/(^|\W)(#[a-zA-Z][a-zA-Z0-9.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
 function highlightSearchTerm(text, tokens, searchTerm) {

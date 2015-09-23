@@ -49,6 +49,7 @@ export default class PostListContainer extends React.Component {
         for (let i = 0; i <= this.state.postLists.length - 1; i++) {
             postListCtls.push(
                 <PostList
+                    key={'postlistkey' + i}
                     channelId={postLists[i]}
                     isActive={postLists[i] === channelId}
                 />

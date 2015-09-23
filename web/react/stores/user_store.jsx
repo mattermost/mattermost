@@ -14,6 +14,7 @@ var CHANGE_EVENT_SESSIONS = 'change_sessions';
 var CHANGE_EVENT_AUDITS = 'change_audits';
 var CHANGE_EVENT_TEAMS = 'change_teams';
 var CHANGE_EVENT_STATUSES = 'change_statuses';
+var TOGGLE_IMPORT_MODAL_EVENT = 'toggle_import_modal';
 
 class UserStoreClass extends EventEmitter {
     constructor() {
@@ -34,6 +35,9 @@ class UserStoreClass extends EventEmitter {
         this.emitStatusesChange = this.emitStatusesChange.bind(this);
         this.addStatusesChangeListener = this.addStatusesChangeListener.bind(this);
         this.removeStatusesChangeListener = this.removeStatusesChangeListener.bind(this);
+        this.emitToggleImportModal = this.emitToggleImportModal.bind(this);
+        this.addImportModalListener = this.addImportModalListener.bind(this);
+        this.removeImportModalListener = this.removeImportModalListener.bind(this);
         this.setCurrentId = this.setCurrentId.bind(this);
         this.getCurrentId = this.getCurrentId.bind(this);
         this.getCurrentUser = this.getCurrentUser.bind(this);
@@ -113,6 +117,15 @@ class UserStoreClass extends EventEmitter {
     }
     removeStatusesChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_STATUSES, callback);
+    }
+    emitToggleImportModal(value) {
+        this.emit(TOGGLE_IMPORT_MODAL_EVENT, value);
+    }
+    addImportModalListener(callback) {
+        this.on(TOGGLE_IMPORT_MODAL_EVENT, callback);
+    }
+    removeImportModalListener(callback) {
+        this.removeListener(TOGGLE_IMPORT_MODAL_EVENT, callback);
     }
     setCurrentId(id) {
         this.gCurrentId = id;
@@ -320,6 +333,9 @@ UserStore.dispatchToken = AppDispatcher.register(function registry(payload) {
     case ActionTypes.RECIEVED_STATUSES:
         UserStore.pSetStatuses(action.statuses);
         UserStore.emitStatusesChange();
+        break;
+    case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:
+        UserStore.emitToggleImportModal(action.value);
         break;
 
     default:

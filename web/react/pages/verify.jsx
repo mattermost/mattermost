@@ -9,6 +9,7 @@ global.window.setupVerifyPage = function setupVerifyPage(props) {
             isVerified={props.IsVerified}
             teamURL={props.TeamURL}
             userEmail={props.UserEmail}
+            resendSuccess={props.ResendSuccess}
         />,
         document.getElementById('verify')
     );

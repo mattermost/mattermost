@@ -1,9 +1,25 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const TextFormatting = require('./text_formatting.jsx');
+
 const marked = require('marked');
 
 export class MattermostMarkdownRenderer extends marked.Renderer {
+    constructor(options, formattingOptions = {}) {
+        super(options);
+
+        this.heading = this.heading.bind(this);
+        this.text = this.text.bind(this);
+
+        this.formattingOptions = formattingOptions;
+    }
+
+    heading(text, level, raw) {
+        const id = `${this.options.headerPrefix}${raw.toLowerCase().replace(/[^\w]+/g, '-')}`;
+        return `<h${level} id="${id}" class="markdown__heading">${text}</h${level}>`;
+    }
+
     link(href, title, text) {
         let outHref = href;
 
@@ -11,12 +27,20 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
             outHref = `http://${outHref}`;
         }
 
-        let output = '<a class="theme" href="' + outHref + '"';
+        let output = '<a class="theme markdown__link" href="' + outHref + '"';
         if (title) {
             output += ' title="' + title + '"';
         }
         output += '>' + text + '</a>';
 
         return output;
+    }
+
+    table(header, body) {
+        return `<table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
+    }
+
+    text(text) {
+        return TextFormatting.doFormatText(text, this.formattingOptions);
     }
 }
