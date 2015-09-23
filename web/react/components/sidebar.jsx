@@ -566,7 +566,7 @@ export default class Sidebar extends React.Component {
                         {privateChannelItems}
                     </ul>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>Private Messages</h4></li>
+                        <li><h4>Direct Messages</h4></li>
                         {directMessageItems}
                         {directMessageMore}
                     </ul>
