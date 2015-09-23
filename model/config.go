@@ -63,12 +63,12 @@ type FileSettings struct {
 	Directory               string
 	EnablePublicLink        bool
 	PublicLinkSalt          string
-	ThumbnailWidth          uint
-	ThumbnailHeight         uint
-	PreviewWidth            uint
-	PreviewHeight           uint
-	ProfileWidth            uint
-	ProfileHeight           uint
+	ThumbnailWidth          int
+	ThumbnailHeight         int
+	PreviewWidth            int
+	PreviewHeight           int
+	ProfileWidth            int
+	ProfileHeight           int
 	InitialFont             string
 	AmazonS3AccessKeyId     string
 	AmazonS3SecretAccessKey string

@@ -5,25 +5,21 @@ package api
 
 import (
 	"bytes"
-	"code.google.com/p/graphics-go/graphics"
 	l4g "code.google.com/p/log4go"
 	"fmt"
+	"github.com/disintegration/imaging"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/nfnt/resize"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	"image"
-	"image/color"
-	"image/draw"
 	_ "image/gif"
 	"image/jpeg"
 	"io"
 	"io/ioutil"
-	"math"
 	"mime"
 	"net/http"
 	"net/url"
@@ -174,46 +170,22 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 				// Get the image's orientation and ignore any errors since not all images will have orientation data
 				orientation, _ := getImageOrientation(fileData[i])
 
-				// Create a temporary image that will be manipulated and then used to make the thumbnail and preview image
-				var temp *image.RGBA
 				switch orientation {
-				case Upright, UprightMirrored, UpsideDown, UpsideDownMirrored:
-					temp = image.NewRGBA(img.Bounds())
-				case RotatedCCW, RotatedCCWMirrored, RotatedCW, RotatedCWMirrored:
-					bounds := img.Bounds()
-					temp = image.NewRGBA(image.Rect(bounds.Min.Y, bounds.Min.X, bounds.Max.Y, bounds.Max.X))
-
-					width, height = height, width
+				case UprightMirrored:
+					img = imaging.FlipH(img)
+				case UpsideDown:
+					img = imaging.Rotate180(img)
+				case UpsideDownMirrored:
+					img = imaging.FlipV(img)
+				case RotatedCWMirrored:
+					img = imaging.Transpose(img)
+				case RotatedCCW:
+					img = imaging.Rotate270(img)
+				case RotatedCCWMirrored:
+					img = imaging.Transverse(img)
+				case RotatedCW:
+					img = imaging.Rotate90(img)
 				}
-
-				// Draw a white background since JPEGs lack transparency
-				draw.Draw(temp, temp.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-
-				// Copy the original image onto the temporary one while rotating it as necessary
-				switch orientation {
-				case UpsideDown, UpsideDownMirrored:
-					// rotate 180 degrees
-					err := graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: math.Pi})
-					if err != nil {
-						l4g.Error("Unable to rotate image")
-					}
-				case RotatedCW, RotatedCWMirrored:
-					// rotate 90 degrees CCW
-					graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: 3 * math.Pi / 2})
-					if err != nil {
-						l4g.Error("Unable to rotate image")
-					}
-				case RotatedCCW, RotatedCCWMirrored:
-					// rotate 90 degrees CW
-					graphics.Rotate(temp, img, &graphics.RotateOptions{Angle: math.Pi / 2})
-					if err != nil {
-						l4g.Error("Unable to rotate image")
-					}
-				case Upright, UprightMirrored:
-					draw.Draw(temp, temp.Bounds(), img, img.Bounds().Min, draw.Over)
-				}
-
-				img = temp
 
 				// Create thumbnail
 				go func() {
@@ -226,9 +198,9 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 					if imgHeight < thumbHeight && imgWidth < thumbWidth {
 						thumbnail = img
 					} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
-						thumbnail = resize.Resize(0, utils.Cfg.FileSettings.ThumbnailHeight, img, resize.Lanczos3)
+						thumbnail = imaging.Resize(img, 0, utils.Cfg.FileSettings.ThumbnailHeight, imaging.Lanczos)
 					} else {
-						thumbnail = resize.Resize(utils.Cfg.FileSettings.ThumbnailWidth, 0, img, resize.Lanczos3)
+						thumbnail = imaging.Resize(img, utils.Cfg.FileSettings.ThumbnailWidth, 0, imaging.Lanczos)
 					}
 
 					buf := new(bytes.Buffer)
@@ -248,7 +220,7 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 				go func() {
 					var preview image.Image
 					if width > int(utils.Cfg.FileSettings.PreviewWidth) {
-						preview = resize.Resize(utils.Cfg.FileSettings.PreviewWidth, utils.Cfg.FileSettings.PreviewHeight, img, resize.Lanczos3)
+						preview = imaging.Resize(img, utils.Cfg.FileSettings.PreviewWidth, utils.Cfg.FileSettings.PreviewHeight, imaging.Lanczos)
 					} else {
 						preview = img
 					}
