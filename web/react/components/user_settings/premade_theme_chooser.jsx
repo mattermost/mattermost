@@ -31,7 +31,7 @@ export default class PremadeThemeChooser extends React.Component {
                             <label>
                                 <img
                                     className='img-responsive'
-                                    src={'/static/images/themes/' + premadeTheme.type + '.png'}
+                                    src={'/static/images/themes/' + premadeTheme.type.toLowerCase() + '.png'}
                                 />
                                 <div className='theme-label'>{Utils.toTitleCase(premadeTheme.type)}</div>
                             </label>
