@@ -103,6 +103,7 @@ type UserStore interface {
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetForExport(teamId string) StoreChannel
+	GetTotalUsersCount() StoreChannel
 }
 
 type SessionStore interface {

@@ -167,6 +167,19 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	if team.Email == user.Email {
 		user.Roles = model.ROLE_TEAM_ADMIN
 		channelRole = model.CHANNEL_ROLE_ADMIN
+
+		// Below is a speical case where the first user in the entire
+		// system is granted the system_admin role instead of admin
+		if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+			c.Err = result.Err
+			return nil
+		} else {
+			count := result.Data.(int64)
+			if count <= 0 {
+				user.Roles = model.ROLE_SYSTEM_ADMIN
+			}
+		}
+
 	} else {
 		user.Roles = ""
 	}
