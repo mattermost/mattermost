@@ -334,7 +334,7 @@ export default class Sidebar extends React.Component {
         var unread = false;
         if (channelMember) {
             msgCount = channel.total_msg_count - channelMember.msg_count;
-            unread = (msgCount > 0 && channelMember.notify_level !== 'quiet') || channelMember.mention_count > 0;
+            unread = (msgCount > 0 && channelMember.mark_unread_level !== 'mention') || channelMember.mention_count > 0;
         }
 
         var titleClass = '';
