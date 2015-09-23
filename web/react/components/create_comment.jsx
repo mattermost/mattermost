@@ -28,6 +28,7 @@ export default class CreateComment extends React.Component {
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
+        this.handleTextDrop = this.handleTextDrop.bind(this);
         this.removePreview = this.removePreview.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
@@ -178,6 +179,11 @@ export default class CreateComment extends React.Component {
             this.setState({serverError: err});
         }
     }
+    handleTextDrop(text) {
+        const originalText = this.state.messageText;
+        this.setState({messageText: originalText + text});
+        React.findDOMNode(this.refs.textbox).focus();
+    }
     removePreview(id) {
         let previews = this.state.previews;
         let uploadsInProgress = this.state.uploadsInProgress;
@@ -264,6 +270,7 @@ export default class CreateComment extends React.Component {
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
+                            onTextDrop={this.handleTextDrop}
                             postType='comment'
                             channelId={this.props.channelId}
                         />
