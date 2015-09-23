@@ -80,7 +80,7 @@ export default class AdminSidebar extends React.Component {
                                         className={this.isSelected('image_settings')}
                                         onClick={this.handleClick.bind(this, 'image_settings')}
                                     >
-                                        {'Image Settings'}
+                                        {'File Settings'}
                                     </a>
                                 </li>
                                 <li>

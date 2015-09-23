@@ -188,9 +188,9 @@ func getClientProperties(c *model.Config) map[string]string {
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 
-	props["EnablePublicLink"] = strconv.FormatBool(c.ImageSettings.EnablePublicLink)
-	props["ProfileHeight"] = fmt.Sprintf("%v", c.ImageSettings.ProfileHeight)
-	props["ProfileWidth"] = fmt.Sprintf("%v", c.ImageSettings.ProfileWidth)
+	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
+	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)
+	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
 
 	return props
 }

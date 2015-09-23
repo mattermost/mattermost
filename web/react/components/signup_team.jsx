@@ -4,7 +4,7 @@
 const ChoosePage = require('./team_signup_choose_auth.jsx');
 const EmailSignUpPage = require('./team_signup_with_email.jsx');
 const SSOSignupPage = require('./team_signup_with_sso.jsx');
-var Constants = require('../utils/constants.jsx');
+const Constants = require('../utils/constants.jsx');
 
 export default class TeamSignUp extends React.Component {
     constructor(props) {

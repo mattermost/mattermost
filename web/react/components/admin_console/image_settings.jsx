@@ -5,7 +5,7 @@ var Client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var crypto = require('crypto');
 
-export default class ImageSettings extends React.Component {
+export default class FileSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -16,7 +16,7 @@ export default class ImageSettings extends React.Component {
         this.state = {
             saveNeeded: false,
             serverError: null,
-            DriverName: this.props.config.ImageSettings.DriverName
+            DriverName: this.props.config.FileSettings.DriverName
         };
     }
 
@@ -42,61 +42,61 @@ export default class ImageSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.ImageSettings.DriverName = React.findDOMNode(this.refs.DriverName).value;
-        config.ImageSettings.Directory = React.findDOMNode(this.refs.Directory).value;
-        config.ImageSettings.AmazonS3AccessKeyId = React.findDOMNode(this.refs.AmazonS3AccessKeyId).value;
-        config.ImageSettings.AmazonS3SecretAccessKey = React.findDOMNode(this.refs.AmazonS3SecretAccessKey).value;
-        config.ImageSettings.AmazonS3Bucket = React.findDOMNode(this.refs.AmazonS3Bucket).value;
-        config.ImageSettings.AmazonS3Region = React.findDOMNode(this.refs.AmazonS3Region).value;
-        config.ImageSettings.EnablePublicLink = React.findDOMNode(this.refs.EnablePublicLink).checked;
+        config.FileSettings.DriverName = React.findDOMNode(this.refs.DriverName).value;
+        config.FileSettings.Directory = React.findDOMNode(this.refs.Directory).value;
+        config.FileSettings.AmazonS3AccessKeyId = React.findDOMNode(this.refs.AmazonS3AccessKeyId).value;
+        config.FileSettings.AmazonS3SecretAccessKey = React.findDOMNode(this.refs.AmazonS3SecretAccessKey).value;
+        config.FileSettings.AmazonS3Bucket = React.findDOMNode(this.refs.AmazonS3Bucket).value;
+        config.FileSettings.AmazonS3Region = React.findDOMNode(this.refs.AmazonS3Region).value;
+        config.FileSettings.EnablePublicLink = React.findDOMNode(this.refs.EnablePublicLink).checked;
 
-        config.ImageSettings.PublicLinkSalt = React.findDOMNode(this.refs.PublicLinkSalt).value.trim();
+        config.FileSettings.PublicLinkSalt = React.findDOMNode(this.refs.PublicLinkSalt).value.trim();
 
-        if (config.ImageSettings.PublicLinkSalt === '') {
-            config.ImageSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
-            React.findDOMNode(this.refs.PublicLinkSalt).value = config.ImageSettings.PublicLinkSalt;
+        if (config.FileSettings.PublicLinkSalt === '') {
+            config.FileSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
+            React.findDOMNode(this.refs.PublicLinkSalt).value = config.FileSettings.PublicLinkSalt;
         }
 
         var thumbnailWidth = 120;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.ThumbnailWidth).value, 10))) {
             thumbnailWidth = parseInt(React.findDOMNode(this.refs.ThumbnailWidth).value, 10);
         }
-        config.ImageSettings.ThumbnailWidth = thumbnailWidth;
+        config.FileSettings.ThumbnailWidth = thumbnailWidth;
         React.findDOMNode(this.refs.ThumbnailWidth).value = thumbnailWidth;
 
         var thumbnailHeight = 100;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.ThumbnailHeight).value, 10))) {
             thumbnailHeight = parseInt(React.findDOMNode(this.refs.ThumbnailHeight).value, 10);
         }
-        config.ImageSettings.ThumbnailHeight = thumbnailHeight;
+        config.FileSettings.ThumbnailHeight = thumbnailHeight;
         React.findDOMNode(this.refs.ThumbnailHeight).value = thumbnailHeight;
 
         var previewWidth = 1024;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.PreviewWidth).value, 10))) {
             previewWidth = parseInt(React.findDOMNode(this.refs.PreviewWidth).value, 10);
         }
-        config.ImageSettings.PreviewWidth = previewWidth;
+        config.FileSettings.PreviewWidth = previewWidth;
         React.findDOMNode(this.refs.PreviewWidth).value = previewWidth;
 
         var previewHeight = 0;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.PreviewHeight).value, 10))) {
             previewHeight = parseInt(React.findDOMNode(this.refs.PreviewHeight).value, 10);
         }
-        config.ImageSettings.PreviewHeight = previewHeight;
+        config.FileSettings.PreviewHeight = previewHeight;
         React.findDOMNode(this.refs.PreviewHeight).value = previewHeight;
 
         var profileWidth = 128;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.ProfileWidth).value, 10))) {
             profileWidth = parseInt(React.findDOMNode(this.refs.ProfileWidth).value, 10);
         }
-        config.ImageSettings.ProfileWidth = profileWidth;
+        config.FileSettings.ProfileWidth = profileWidth;
         React.findDOMNode(this.refs.ProfileWidth).value = profileWidth;
 
         var profileHeight = 128;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.ProfileHeight).value, 10))) {
             profileHeight = parseInt(React.findDOMNode(this.refs.ProfileHeight).value, 10);
         }
-        config.ImageSettings.ProfileHeight = profileHeight;
+        config.FileSettings.ProfileHeight = profileHeight;
         React.findDOMNode(this.refs.ProfileHeight).value = profileHeight;
 
         Client.saveConfig(
@@ -143,7 +143,7 @@ export default class ImageSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Image Settings'}</h3>
+                <h3>{'File Settings'}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -161,7 +161,7 @@ export default class ImageSettings extends React.Component {
                                 className='form-control'
                                 id='DriverName'
                                 ref='DriverName'
-                                defaultValue={this.props.config.ImageSettings.DriverName}
+                                defaultValue={this.props.config.FileSettings.DriverName}
                                 onChange={this.handleChange.bind(this, 'DriverName')}
                             >
                                 <option value=''>{'Disable File Storage'}</option>
@@ -185,7 +185,7 @@ export default class ImageSettings extends React.Component {
                                 id='Directory'
                                 ref='Directory'
                                 placeholder='Ex "./data/"'
-                                defaultValue={this.props.config.ImageSettings.Directory}
+                                defaultValue={this.props.config.FileSettings.Directory}
                                 onChange={this.handleChange}
                                 disabled={!enableFile}
                             />
@@ -207,7 +207,7 @@ export default class ImageSettings extends React.Component {
                                 id='AmazonS3AccessKeyId'
                                 ref='AmazonS3AccessKeyId'
                                 placeholder='Ex "AKIADTOVBGERKLCBV"'
-                                defaultValue={this.props.config.ImageSettings.AmazonS3AccessKeyId}
+                                defaultValue={this.props.config.FileSettings.AmazonS3AccessKeyId}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
@@ -229,7 +229,7 @@ export default class ImageSettings extends React.Component {
                                 id='AmazonS3SecretAccessKey'
                                 ref='AmazonS3SecretAccessKey'
                                 placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
-                                defaultValue={this.props.config.ImageSettings.AmazonS3SecretAccessKey}
+                                defaultValue={this.props.config.FileSettings.AmazonS3SecretAccessKey}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
@@ -251,7 +251,7 @@ export default class ImageSettings extends React.Component {
                                 id='AmazonS3Bucket'
                                 ref='AmazonS3Bucket'
                                 placeholder='Ex "mattermost-media"'
-                                defaultValue={this.props.config.ImageSettings.AmazonS3Bucket}
+                                defaultValue={this.props.config.FileSettings.AmazonS3Bucket}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
@@ -273,7 +273,7 @@ export default class ImageSettings extends React.Component {
                                 id='AmazonS3Region'
                                 ref='AmazonS3Region'
                                 placeholder='Ex "us-east-1"'
-                                defaultValue={this.props.config.ImageSettings.AmazonS3Region}
+                                defaultValue={this.props.config.FileSettings.AmazonS3Region}
                                 onChange={this.handleChange}
                                 disabled={!enableS3}
                             />
@@ -295,7 +295,7 @@ export default class ImageSettings extends React.Component {
                                 id='ThumbnailWidth'
                                 ref='ThumbnailWidth'
                                 placeholder='Ex "120"'
-                                defaultValue={this.props.config.ImageSettings.ThumbnailWidth}
+                                defaultValue={this.props.config.FileSettings.ThumbnailWidth}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'}</p>
@@ -316,7 +316,7 @@ export default class ImageSettings extends React.Component {
                                 id='ThumbnailHeight'
                                 ref='ThumbnailHeight'
                                 placeholder='Ex "100"'
-                                defaultValue={this.props.config.ImageSettings.ThumbnailHeight}
+                                defaultValue={this.props.config.FileSettings.ThumbnailHeight}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Height of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.'}</p>
@@ -337,7 +337,7 @@ export default class ImageSettings extends React.Component {
                                 id='PreviewWidth'
                                 ref='PreviewWidth'
                                 placeholder='Ex "1024"'
-                                defaultValue={this.props.config.ImageSettings.PreviewWidth}
+                                defaultValue={this.props.config.FileSettings.PreviewWidth}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Maximum width of preview image. Updating this value changes how preview images render in future, but does not change images created in the past.'}</p>
@@ -358,7 +358,7 @@ export default class ImageSettings extends React.Component {
                                 id='PreviewHeight'
                                 ref='PreviewHeight'
                                 placeholder='Ex "0"'
-                                defaultValue={this.props.config.ImageSettings.PreviewHeight}
+                                defaultValue={this.props.config.FileSettings.PreviewHeight}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Maximum height of preview image ("0": Sets to auto-size). Updating this value changes how preview images render in future, but does not change images created in the past.'}</p>
@@ -379,7 +379,7 @@ export default class ImageSettings extends React.Component {
                                 id='ProfileWidth'
                                 ref='ProfileWidth'
                                 placeholder='Ex "1024"'
-                                defaultValue={this.props.config.ImageSettings.ProfileWidth}
+                                defaultValue={this.props.config.FileSettings.ProfileWidth}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Width of profile picture.'}</p>
@@ -400,7 +400,7 @@ export default class ImageSettings extends React.Component {
                                 id='ProfileHeight'
                                 ref='ProfileHeight'
                                 placeholder='Ex "0"'
-                                defaultValue={this.props.config.ImageSettings.ProfileHeight}
+                                defaultValue={this.props.config.FileSettings.ProfileHeight}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Height of profile picture.'}</p>
@@ -421,7 +421,7 @@ export default class ImageSettings extends React.Component {
                                     name='EnablePublicLink'
                                     value='true'
                                     ref='EnablePublicLink'
-                                    defaultChecked={this.props.config.ImageSettings.EnablePublicLink}
+                                    defaultChecked={this.props.config.FileSettings.EnablePublicLink}
                                     onChange={this.handleChange}
                                 />
                                     {'true'}
@@ -431,7 +431,7 @@ export default class ImageSettings extends React.Component {
                                     type='radio'
                                     name='EnablePublicLink'
                                     value='false'
-                                    defaultChecked={!this.props.config.ImageSettings.EnablePublicLink}
+                                    defaultChecked={!this.props.config.FileSettings.EnablePublicLink}
                                     onChange={this.handleChange}
                                 />
                                     {'false'}
@@ -454,7 +454,7 @@ export default class ImageSettings extends React.Component {
                                 id='PublicLinkSalt'
                                 ref='PublicLinkSalt'
                                 placeholder='Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"'
-                                defaultValue={this.props.config.ImageSettings.PublicLinkSalt}
+                                defaultValue={this.props.config.FileSettings.PublicLinkSalt}
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'32-character salt added to signing of public image links.'}</p>
@@ -491,6 +491,6 @@ export default class ImageSettings extends React.Component {
     }
 }
 
-ImageSettings.propTypes = {
+FileSettings.propTypes = {
     config: React.PropTypes.object
 };
