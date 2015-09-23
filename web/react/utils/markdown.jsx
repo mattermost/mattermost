@@ -15,6 +15,14 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         this.formattingOptions = formattingOptions;
     }
 
+    br() {
+        if (this.formattingOptions.singleline) {
+            return ' ';
+        }
+
+        return super.br();
+    }
+
     heading(text, level, raw) {
         const id = `${this.options.headerPrefix}${raw.toLowerCase().replace(/[^\w]+/g, '-')}`;
         return `<h${level} id="${id}" class="markdown__heading">${text}</h${level}>`;
@@ -34,6 +42,14 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         output += '>' + text + '</a>';
 
         return output;
+    }
+
+    paragraph(text) {
+        if (this.formattingOptions.singleline) {
+            return `<p class="markdown__paragraph-inline">${text}</p>`;
+        }
+
+        return super.paragraph(text);
     }
 
     table(header, body) {
