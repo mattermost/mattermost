@@ -15,7 +15,6 @@ const (
 	CHANNEL_NOTIFY_ALL          = "all"
 	CHANNEL_NOTIFY_MENTION      = "mention"
 	CHANNEL_NOTIFY_NONE         = "none"
-	CHANNEL_NOTIFY_QUIET        = "quiet" // no longer used, should be considered functionally equivalent to CHANNEL_NOTIFY_NONE
 	CHANNEL_MARK_UNREAD_ALL     = "all"
 	CHANNEL_MARK_UNREAD_MENTION = "mention"
 )
@@ -87,8 +86,7 @@ func IsChannelNotifyLevelValid(notifyLevel string) bool {
 	return notifyLevel == CHANNEL_NOTIFY_DEFAULT ||
 		notifyLevel == CHANNEL_NOTIFY_ALL ||
 		notifyLevel == CHANNEL_NOTIFY_MENTION ||
-		notifyLevel == CHANNEL_NOTIFY_NONE ||
-		notifyLevel == CHANNEL_NOTIFY_QUIET
+		notifyLevel == CHANNEL_NOTIFY_NONE
 }
 
 func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
