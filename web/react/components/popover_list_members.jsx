@@ -65,7 +65,7 @@ export default class PopoverListMembers extends React.Component {
                 >
                     {count}
                     <span
-                        className='glyphicon glyphicon-user'
+                        className='fa fa-user'
                         aria-hidden='true'
                     />
                 </div>

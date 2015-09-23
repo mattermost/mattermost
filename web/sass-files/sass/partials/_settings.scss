@@ -79,6 +79,36 @@
                 }
             }
 
+            .appearance-section {
+                .premade-themes {
+                    .theme-label {
+                        font-weight: 400;
+                        margin-top: 5px;
+                    }
+                    img {
+                        border: 3px solid transparent;
+                    }
+                    .active {
+                        img {
+                            border-color: $primary-color;
+                        }
+                    }
+                }
+                .custom-label {
+                    font-weight: normal;
+                    font-size: 13px;
+                    width: 100%;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    margin-bottom: 0;
+                }
+                .radio {
+                    label {
+                        font-weight: 600;
+                    }
+                }
+            }
+
             .section-title {
                 margin-bottom: 5px;
                 font-weight: 600;
