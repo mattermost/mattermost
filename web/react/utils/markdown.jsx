@@ -31,7 +31,7 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         if (title) {
             output += ' title="' + title + '"';
         }
-        output += '>' + text + '</a>';
+        output += ' target="_blank">' + text + '</a>';
 
         return output;
     }
