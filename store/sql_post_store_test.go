@@ -485,6 +485,7 @@ func TestPostStoreSearch(t *testing.T) {
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
+	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
 	Must(store.Channel().SaveMember(&m1))
 
 	c2 := &model.Channel{}

@@ -885,6 +885,88 @@ func TestUpdateNotifyLevel(t *testing.T) {
 	}
 }
 
+func TestUpdateMarkUnreadLevel(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	data := make(map[string]string)
+	data["channel_id"] = channel1.Id
+	data["user_id"] = user.Id
+	data["mark_unread_level"] = model.CHANNEL_MARK_UNREAD_MENTION
+
+	timeBeforeUpdate := model.GetMillis()
+	time.Sleep(100 * time.Millisecond)
+
+	if _, err := Client.UpdateMarkUnreadLevel(data); err != nil {
+		t.Fatal(err)
+	}
+
+	rget := Client.Must(Client.GetChannels(""))
+	rdata := rget.Data.(*model.ChannelList)
+	if len(rdata.Members) == 0 || rdata.Members[channel1.Id].MarkUnreadLevel != data["mark_unread_level"] {
+		t.Fatal("MarkUnreadLevel did not update properly")
+	}
+
+	if rdata.Members[channel1.Id].LastUpdateAt <= timeBeforeUpdate {
+		t.Fatal("LastUpdateAt did not update")
+	}
+
+	data["user_id"] = "junk"
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - bad user id")
+	}
+
+	data["user_id"] = "12345678901234567890123456"
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - bad user id")
+	}
+
+	data["user_id"] = user.Id
+	data["channel_id"] = "junk"
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - bad channel id")
+	}
+
+	data["channel_id"] = "12345678901234567890123456"
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - bad channel id")
+	}
+
+	data["channel_id"] = channel1.Id
+	data["mark_unread_level"] = ""
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - empty notify level")
+	}
+
+	data["mark_unread_level"] = "junk"
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - bad notify level")
+	}
+
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+
+	data["channel_id"] = channel1.Id
+	data["user_id"] = user2.Id
+	data["mark_unread_level"] = model.CHANNEL_MARK_UNREAD_MENTION
+	if _, err := Client.UpdateMarkUnreadLevel(data); err == nil {
+		t.Fatal("Should have errored - user not in channel")
+	}
+}
+
 func TestFuzzyChannel(t *testing.T) {
 	Setup()
 
