@@ -93,6 +93,7 @@ export default class NewChannelModal extends React.Component {
             <span>
                 <Modal
                     show={this.props.show}
+                    bsSize='large'
                     onHide={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
@@ -122,7 +123,7 @@ export default class NewChannelModal extends React.Component {
                                     />
                                     {displayNameError}
                                     <p className='input__help dark'>
-                                        {'Channel URL: ' + prettyTeamURL + this.props.channelData.name + ' ('}
+                                        {'URL: ' + prettyTeamURL + this.props.channelData.name + ' ('}
                                         <a
                                             href='#'
                                             onClick={this.props.onChangeURLPressed}

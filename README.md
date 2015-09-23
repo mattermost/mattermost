@@ -32,7 +32,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - [Mattermost Forum](http://forum.mattermost.org/) - For technical questions and answers
 - [Issue Tracker](http://www.mattermost.org/filing-issues/) - For reporting bugs
 - [Feature Ideas Forum](http://www.mattermost.org/feature-requests/) - For sharing ideas for future versions 
-- [Contributuion Guidelines](http://www.mattermost.org/contribute-to-mattermost/) - For contributing code or feedback to the project
+- [Contribution Guidelines](http://www.mattermost.org/contribute-to-mattermost/) - For contributing code or feedback to the project
 
 Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq).
 

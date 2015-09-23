@@ -33,7 +33,7 @@
         "FileFormat": "",
         "FileLocation": ""
     },
-    "ImageSettings": {
+    "FileSettings": {
         "DriverName": "local",
         "Directory": "/mattermost/data/",
         "EnablePublicLink": true,

@@ -40,14 +40,11 @@ b, strong {
 
 a {
   word-break: break-word;
-}
-
-a.theme {
   color: $primary-color;
 }
 
-div.theme {
-  background-color: $primary-color;
+a:focus, a:hover {
+  color: $primary-color;
 }
 
 .tooltip {

@@ -172,9 +172,6 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 
 	user.MakeNonNil()
-	if len(user.Props["theme"]) == 0 {
-		user.AddProp("theme", utils.Cfg.TeamSettings.DefaultThemeColor)
-	}
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		c.Err = result.Err
@@ -663,7 +660,7 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 
 	initial := string(strings.ToUpper(username)[0])
 
-	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + utils.Cfg.ImageSettings.InitialFont)
+	fontBytes, err := ioutil.ReadFile(utils.FindDir("web/static/fonts") + utils.Cfg.FileSettings.InitialFont)
 	if err != nil {
 		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
 	}
@@ -672,8 +669,8 @@ func createProfileImage(username string, userId string) ([]byte, *model.AppError
 		return nil, model.NewAppError("createProfileImage", "Could not create default profile image font", err.Error())
 	}
 
-	width := int(utils.Cfg.ImageSettings.ProfileWidth)
-	height := int(utils.Cfg.ImageSettings.ProfileHeight)
+	width := int(utils.Cfg.FileSettings.ProfileWidth)
+	height := int(utils.Cfg.FileSettings.ProfileHeight)
 	color := colors[int64(seed)%int64(len(colors))]
 	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
 	srcImg := image.White
@@ -712,7 +709,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		var img []byte
 
-		if len(utils.Cfg.ImageSettings.DriverName) == 0 {
+		if len(utils.Cfg.FileSettings.DriverName) == 0 {
 			var err *model.AppError
 			if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
 				c.Err = err
@@ -749,7 +746,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(utils.Cfg.ImageSettings.DriverName) == 0 {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("uploadProfileImage", "Unable to upload file. Image storage is not configured.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -792,7 +789,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Scale profile image
-	img = resize.Resize(utils.Cfg.ImageSettings.ProfileWidth, utils.Cfg.ImageSettings.ProfileHeight, img, resize.Lanczos3)
+	img = resize.Resize(utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, img, resize.Lanczos3)
 
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)

@@ -33,11 +33,11 @@
         "FileFormat": "",
         "FileLocation": ""
     },
-    "ImageSettings": {
+    "FileSettings": {
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": true,
-        "PublicLinkSalt": "LhaAWC6lYEKHTkBKsvyXNIOfUIT37AXe",
+        "PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,

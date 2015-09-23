@@ -275,7 +275,7 @@ body.ios {
 	&.current--user {
 		.post-body {
 			@include border-radius(4px);
-			background: #f5f5f5;
+			background: rgba(#000, 0.05);
 		}
 	}
 	&.post--comment {

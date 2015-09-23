@@ -58,7 +58,7 @@ type LogSettings struct {
 	FileLocation  string
 }
 
-type ImageSettings struct {
+type FileSettings struct {
 	DriverName              string
 	Directory               string
 	EnablePublicLink        bool
@@ -123,7 +123,7 @@ type Config struct {
 	TeamSettings      TeamSettings
 	SqlSettings       SqlSettings
 	LogSettings       LogSettings
-	ImageSettings     ImageSettings
+	FileSettings      FileSettings
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
