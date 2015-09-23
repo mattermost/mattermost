@@ -1,0 +1,28 @@
+.markdown__heading {
+	font-weight: bold;
+}
+.markdown__table {
+	background: #fff;
+	margin: 5px 0 10px;
+	th, td {
+		padding: 6px 13px;
+		border: 1px solid #ddd;
+	}
+	tbody tr {
+		background: #fff;
+		&:nth-child(2n) {
+			background-color: #f8f8f8;
+		}
+	}
+}
+pre {
+	border: none;
+	background-color: #f7f7f7;
+	margin: 5px 0;
+	.current--user & {
+		background: #fff;
+	}
+	code {
+		color: #c7254e;
+	}
+}
