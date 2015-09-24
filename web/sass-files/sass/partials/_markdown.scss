@@ -1,6 +1,12 @@
 .markdown__heading {
 	font-weight: 700;
 }
+.markdown__paragraph-inline {
+    display: inline;
+    + .markdown__paragraph-inline {
+        margin-left: 4px;
+    }
+}
 .markdown__table {
 	background: #fff;
 	margin: 5px 0 10px;
@@ -26,6 +32,9 @@ pre {
 		color: #c7254e;
 	}
 }
+<<<<<<< HEAD
+=======
 code {
 	background: #fff;
 }
+>>>>>>> f12ae55a14b62955cd5be1c34cead31549178cc6
