@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var ErrorStore = require('../stores/error_store.jsx');
-var utils = require('../utils/utils.jsx');
 
 export default class ErrorBar extends React.Component {
     constructor() {
