@@ -1,5 +1,5 @@
 .markdown__heading {
-	font-weight: bold;
+	font-weight: 700;
 }
 .markdown__paragraph-inline {
     display: inline;
@@ -31,4 +31,7 @@ pre {
 	code {
 		color: #c7254e;
 	}
+}
+code {
+	background: #fff;
 }
