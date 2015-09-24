@@ -28,7 +28,6 @@ export default class TeamSettings extends React.Component {
 
         var config = this.props.config;
         config.TeamSettings.SiteName = React.findDOMNode(this.refs.SiteName).value.trim();
-        config.TeamSettings.DefaultThemeColor = React.findDOMNode(this.refs.DefaultThemeColor).value.trim();
         config.TeamSettings.RestrictCreationToDomains = React.findDOMNode(this.refs.RestrictCreationToDomains).value.trim();
         config.TeamSettings.EnableTeamCreation = React.findDOMNode(this.refs.EnableTeamCreation).checked;
         config.TeamSettings.EnableUserCreation = React.findDOMNode(this.refs.EnableUserCreation).checked;
@@ -119,27 +118,6 @@ export default class TeamSettings extends React.Component {
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Maximum number of users per team.'}</p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='DefaultThemeColor'
-                        >
-                            {'Default Theme Color:'}
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='DefaultThemeColor'
-                                ref='DefaultThemeColor'
-                                placeholder='Ex "#2389D7"'
-                                defaultValue={this.props.config.TeamSettings.DefaultThemeColor}
-                                onChange={this.handleChange}
-                            />
-                            <p className='help-text'>{'Default theme color for team sites.'}</p>
                         </div>
                     </div>
 
