@@ -36,7 +36,9 @@ export default class TeamSettingsModal extends React.Component {
         let tabs = [];
         tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
         tabs.push({name: 'import', uiName: 'Import', icon: 'glyphicon glyphicon-upload'});
-        tabs.push({name: 'export', uiName: 'Export', icon: 'glyphicon glyphicon-download'});
+
+        // To enable export uncomment this line
+        //tabs.push({name: 'export', uiName: 'Export', icon: 'glyphicon glyphicon-download'});
         tabs.push({name: 'feature', uiName: 'Advanced', icon: 'glyphicon glyphicon-wrench'});
 
         return (
