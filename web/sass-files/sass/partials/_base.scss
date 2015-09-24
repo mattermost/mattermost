@@ -34,8 +34,14 @@ body {
   }
 }
 
-b, strong {
-  font-weight: 600;
+.popover {
+  color: #333;
+  a {
+    color: $primary-color;
+    &:hover, &:focus {
+      color: $primary-color;
+    }
+  }
 }
 
 a {
