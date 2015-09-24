@@ -1,6 +1,12 @@
 .markdown__heading {
 	font-weight: bold;
 }
+.markdown__paragraph-inline {
+    display: inline;
+    + .markdown__paragraph-inline {
+        margin-left: 4px;
+    }
+}
 .markdown__table {
 	background: #fff;
 	margin: 5px 0 10px;
