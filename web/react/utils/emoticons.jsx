@@ -5,15 +5,14 @@ const emoticonPatterns = {
     smile: /:-?\)/g, // :)
     open_mouth: /:o/gi, // :o
     scream: /:-o/gi, // :-o
-    smirk: /[:;]-?]/g, // :]
-    grinning: /[:;]-?d/gi, // :D
+    smirk: /:-?]/g, // :]
+    grinning: /:-?d/gi, // :D
     stuck_out_tongue_closed_eyes: /x-d/gi, // x-d
-    stuck_out_tongue_winking_eye: /[:;]-?p/gi, // ;p
+    stuck_out_tongue_winking_eye: /:-?p/gi, // :p
     rage: /:-?[\[@]/g, // :@
     frowning: /:-?\(/g, // :(
     sob: /:['’]-?\(|:&#x27;\(/g, // :`(
     kissing_heart: /:-?\*/g, // :*
-    wink: /;-?\)/g, // ;)
     pensive: /:-?\//g, // :/
     confounded: /:-?s/gi, // :s
     flushed: /:-?\|/g, // :|

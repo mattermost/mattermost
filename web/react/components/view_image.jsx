@@ -40,7 +40,9 @@ export default class ViewImageModal extends React.Component {
         };
     }
     handleNext(e) {
-        e.stopPropagation();
+        if (e) {
+            e.stopPropagation();
+        }
         var id = this.state.imgId + 1;
         if (id > this.props.filenames.length - 1) {
             id = 0;
@@ -49,7 +51,9 @@ export default class ViewImageModal extends React.Component {
         this.loadImage(id);
     }
     handlePrev(e) {
-        e.stopPropagation();
+        if (e) {
+            e.stopPropagation();
+        }
         var id = this.state.imgId - 1;
         if (id < 0) {
             id = this.props.filenames.length - 1;
