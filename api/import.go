@@ -24,9 +24,6 @@ func ImportPost(post *model.Post) {
 
 func ImportUser(user *model.User) *model.User {
 	user.MakeNonNil()
-	if len(user.Props["theme"]) == 0 {
-		user.AddProp("theme", utils.Cfg.TeamSettings.DefaultThemeColor)
-	}
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error("Error saving user. err=%v", result.Err)
