@@ -16,6 +16,8 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	"image"
+	"image/color"
+	"image/draw"
 	_ "image/gif"
 	"image/jpeg"
 	"io"
@@ -158,7 +160,7 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 			name := filename[:strings.LastIndex(filename, ".")]
 			go func() {
 				// Decode image bytes into Image object
-				img, _, err := image.Decode(bytes.NewReader(fileData[i]))
+				img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
 				if err != nil {
 					l4g.Error("Unable to decode image channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
 					return
@@ -169,6 +171,13 @@ func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, ch
 
 				// Get the image's orientation and ignore any errors since not all images will have orientation data
 				orientation, _ := getImageOrientation(fileData[i])
+
+				if imgType == "png" {
+					dst := image.NewRGBA(img.Bounds())
+					draw.Draw(dst, dst.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
+					draw.Draw(dst, dst.Bounds(), img, img.Bounds().Min, draw.Over)
+					img = dst
+				}
 
 				switch orientation {
 				case UprightMirrored:
