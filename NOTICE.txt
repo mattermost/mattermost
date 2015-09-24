@@ -729,7 +729,7 @@ Legal Terms
 
 ---
 
-This product contains a modified portion of 'marked', A full-featured markdown parser and compiler, written in JavaScript. Built for speed.
+This product contains a modified portion of 'marked', a full-featured markdown parser and compiler, written in JavaScript. Built for speed.
 
 by Christopher Jeffrey 
 
