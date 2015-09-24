@@ -32,6 +32,7 @@
     }
     .settings-table {
         display: table;
+        table-layout: fixed;
         width: 100%;
         > div {
             display: table-cell;
@@ -125,6 +126,10 @@
                 }
             }
 
+            .font--small {
+                font-size: 13px;
+            }
+
             .section-describe {
                 color:grey;
             }
@@ -155,8 +160,18 @@
                 .has-error {
                     color: #a94442;
                 }
+                .padding-top {
+                    padding-top: 7px;
+                    &.x2 {
+                        padding-top: 14px;
+                    }
+                }
                 .control-label {
                     color: #555;
+                    font-weight: 600;
+                    &.text-left {
+                        text-align: left;
+                    }
                 }
                 hr {
                     border-color: #ccc;

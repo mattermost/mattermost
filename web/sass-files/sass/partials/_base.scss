@@ -44,6 +44,10 @@ body {
   }
 }
 
+.word-break--all {
+    word-break: break-all;
+}
+
 a {
   word-break: break-word;
   color: $primary-color;
