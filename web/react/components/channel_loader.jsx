@@ -109,6 +109,13 @@ export default class ChannelLoader extends React.Component {
             $('.modal-body').css('overflow-y', 'auto');
             $('.modal-body').css('max-height', $(window).height() * 0.7);
         });
+
+        /* Prevent backspace from navigating back a page */
+        $(window).on('keydown.preventBackspace', (e) => {
+            if (e.which === 8 && !$(e.target).is('input, textarea')) {
+                e.preventDefault();
+            }
+        });
     }
     componentWillUnmount() {
         clearInterval(this.intervalId);
@@ -123,6 +130,8 @@ export default class ChannelLoader extends React.Component {
         $('body').off('mouseenter mouseleave', '.post.post--comment.same--root');
 
         $('.modal').off('show.bs.modal');
+
+        $(window).off('keydown.preventBackspace');
     }
     onSocketChange(msg) {
         if (msg && msg.user_id && msg.user_id !== UserStore.getCurrentId()) {
