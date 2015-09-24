@@ -157,23 +157,23 @@
     border-left: 1px solid #ddd;
     font-size: 13px;
     padding: 7px;
+    color: #333;
     .post-image__name {
       margin-bottom: 3px;
       display: block;
-      color: #333;
     }
     .post-image__download {
       display: inline-block;
       padding-right: 7px;
       cursor: pointer;
-      color: #555;
+      @include opacity(0.7);
     }
     .post-image__type {
-      color: grey;
+      @include opacity(0.6);
     }
     .post-image__size {
       margin-left: 4px;
-      color: grey;
+      @include opacity(0.6);
     }
   }
   a {
