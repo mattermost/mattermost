@@ -145,14 +145,8 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(c.Session.UserId) == 0 {
-		page := NewHtmlTemplatePage("signup_team", "Signup")
-		page.Render(c, w)
-	} else {
-		page := NewHtmlTemplatePage("home", "Home")
-		page.Props["TeamURL"] = c.GetTeamURL()
-		page.Render(c, w)
-	}
+	page := NewHtmlTemplatePage("signup_team", "Signup")
+	page.Render(c, w)
 }
 
 func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -175,8 +169,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
 		l4g.Error("Couldn't find team name=%v, teamURL=%v, err=%v", teamName, c.GetTeamURL(), tResult.Err.Message)
-		// This should probably do somthing nicer
-		http.Redirect(w, r, "http://"+r.Host, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
 		team = tResult.Data.(*model.Team)
