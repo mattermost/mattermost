@@ -31,7 +31,6 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/email_teams", ApiAppHandler(emailTeams)).Methods("POST")
 	sr.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 	sr.Handle("/update_name", ApiUserRequired(updateTeamDisplayName)).Methods("POST")
-	sr.Handle("/update_valet_feature", ApiUserRequired(updateValetFeature)).Methods("POST")
 	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	// These should be moved to the global admain console
 	sr.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
@@ -574,52 +573,6 @@ func updateTeamDisplayName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-Srv.Store.Team().UpdateDisplayName(new_name, c.Session.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	}
-
-	w.Write([]byte(model.MapToJson(props)))
-}
-
-func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	props := model.MapFromJson(r.Body)
-
-	allowValetStr := props["allow_valet"]
-	if len(allowValetStr) == 0 {
-		c.SetInvalidParam("updateValetFeature", "allow_valet")
-		return
-	}
-
-	teamId := props["team_id"]
-	if len(teamId) > 0 && len(teamId) != 26 {
-		c.SetInvalidParam("updateValetFeature", "team_id")
-		return
-	} else if len(teamId) == 0 {
-		teamId = c.Session.TeamId
-	}
-
-	tchan := Srv.Store.Team().Get(teamId)
-
-	if !c.HasPermissionsToTeam(teamId, "updateValetFeature") {
-		return
-	}
-
-	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
-		c.Err = model.NewAppError("updateValetFeature", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	var team *model.Team
-	if tResult := <-tchan; tResult.Err != nil {
-		c.Err = tResult.Err
-		return
-	} else {
-		team = tResult.Data.(*model.Team)
-	}
-
-	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
 		c.Err = result.Err
 		return
 	}

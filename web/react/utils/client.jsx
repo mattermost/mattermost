@@ -1042,23 +1042,6 @@ export function getMyTeam(success, error) {
     });
 }
 
-export function updateValetFeature(data, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/update_valet_feature',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateValetFeature', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_teams_update_valet_feature');
-}
-
 export function registerOAuthApp(app, success, error) {
     $.ajax({
         url: '/api/v1/oauth/register',
