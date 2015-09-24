@@ -2,13 +2,17 @@
 	white-space:pre-wrap;
 	word-wrap:break-word;
 	background:transparent;
-	border:1px solid #ccc !important;
+	border:1px solid #ccc;
 	position:absolute;
 	top:0px;
 	height:auto;
 	resize: none;
 	line-height:20px;
 	min-height:36px;
+	&:focus {
+		border-color: #ccc;
+		box-shadow: none;
+	}
 }
 
 .bad-connection {
@@ -235,7 +239,6 @@ body.ios {
 			}
 		}
 		textarea {
-			border: none;
 			box-shadow: none;
 		}
 	}

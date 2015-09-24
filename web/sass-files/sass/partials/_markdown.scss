@@ -1,5 +1,5 @@
 .markdown__heading {
-	font-weight: bold;
+	font-weight: 700;
 }
 .markdown__table {
 	background: #fff;
@@ -25,4 +25,7 @@ pre {
 	code {
 		color: #c7254e;
 	}
+}
+code {
+	background: #fff;
 }
