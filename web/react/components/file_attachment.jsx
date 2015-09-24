@@ -143,10 +143,7 @@ export default class FileAttachment extends React.Component {
             >
                 <a className='post-image__thumbnail'
                     href='#'
-                    onClick={this.props.handleImageClick}
-                    data-img-id={this.props.index}
-                    data-toggle='modal'
-                    data-target={'#' + this.props.modalId}
+                    onClick={() => this.props.handleImageClick(this.props.index)}
                 >
                     {thumbnail}
                 </a>
@@ -187,9 +184,6 @@ FileAttachment.propTypes = {
     // the index of this attachment preview in the parent FileAttachmentList
     index: React.PropTypes.number.isRequired,
 
-    // the identifier of the modal dialog used to preview files
-    modalId: React.PropTypes.string.isRequired,
-
-    // handler for when the thumbnail is clicked
+    // handler for when the thumbnail is clicked passed the index above
     handleImageClick: React.PropTypes.func
 };

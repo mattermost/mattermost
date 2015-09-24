@@ -11,23 +11,21 @@ export default class FileAttachmentList extends React.Component {
 
         this.handleImageClick = this.handleImageClick.bind(this);
 
-        this.state = {startImgId: 0};
+        this.state = {showPreviewModal: false, startImgId: 0};
     }
-    handleImageClick(e) {
-        this.setState({startImgId: parseInt($(e.target.parentNode).attr('data-img-id'), 10)});
+    handleImageClick(indexClicked) {
+        this.setState({showPreviewModal: true, startImgId: indexClicked});
     }
     render() {
         var filenames = this.props.filenames;
-        var modalId = this.props.modalId;
 
         var postFiles = [];
         for (var i = 0; i < filenames.length && i < Constants.MAX_DISPLAY_FILES; i++) {
             postFiles.push(
                 <FileAttachment
-                    key={i}
+                    key={'file_attachment_' + i}
                     filename={filenames[i]}
                     index={i}
-                    modalId={modalId}
                     handleImageClick={this.handleImageClick}
                 />
             );
@@ -39,9 +37,10 @@ export default class FileAttachmentList extends React.Component {
                     {postFiles}
                 </div>
                 <ViewImageModal
+                    show={this.state.showPreviewModal}
+                    onModalDismissed={() => this.setState({showPreviewModal: false})}
                     channelId={this.props.channelId}
                     userId={this.props.userId}
-                    modalId={modalId}
                     startId={this.state.startImgId}
                     filenames={filenames}
                 />
@@ -54,9 +53,6 @@ FileAttachmentList.propTypes = {
 
     // a list of file pathes displayed by this
     filenames: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-
-    // the identifier of the modal dialog used to preview files
-    modalId: React.PropTypes.string.isRequired,
 
     // the channel that this is part of
     channelId: React.PropTypes.string,
