@@ -47,7 +47,7 @@ type TeamStore interface {
 	Get(id string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetTeamsForEmail(domain string) StoreChannel
-	GetForExport() StoreChannel
+	GetAll() StoreChannel
 }
 
 type ChannelStore interface {
@@ -103,6 +103,7 @@ type UserStore interface {
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetForExport(teamId string) StoreChannel
+	GetTotalUsersCount() StoreChannel
 }
 
 type SessionStore interface {
@@ -110,6 +111,7 @@ type SessionStore interface {
 	Get(sessionIdOrToken string) StoreChannel
 	GetSessions(userId string) StoreChannel
 	Remove(sessionIdOrToken string) StoreChannel
+	RemoveAllSessionsForTeam(teamId string) StoreChannel
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 }

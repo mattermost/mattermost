@@ -132,6 +132,39 @@ func TestFindTeamByEmail(t *testing.T) {
 	}
 }
 
+func TestGetAllTeams(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if _, err := Client.GetAllTeams(); err == nil {
+		t.Fatal("you shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if r1, err := Client.GetAllTeams(); err != nil {
+		t.Fatal(err)
+	} else {
+		teams := r1.Data.(map[string]*model.Team)
+		if teams[team.Id].Name != team.Name {
+			t.Fatal()
+		}
+	}
+}
+
 /*
 
 XXXXXX investigate and fix failing test

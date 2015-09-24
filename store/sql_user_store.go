@@ -481,3 +481,22 @@ func (us SqlUserStore) GetForExport(teamId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (us SqlUserStore) GetTotalUsersCount() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users"); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetTotalUsersCount", "We could not count the users", err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

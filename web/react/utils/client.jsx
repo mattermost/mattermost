@@ -347,6 +347,20 @@ export function testEmail(config, success, error) {
     });
 }
 
+export function getAllTeams(success, error) {
+    $.ajax({
+        url: '/api/v1/teams/all',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getAllTeams', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getMeSynchronous(success, error) {
     var currentUser = null;
     $.ajax({
@@ -885,6 +899,21 @@ export function getProfiles(success, error) {
         ifModified: true,
         error: function onError(xhr, status, err) {
             var e = handleError('getProfiles', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getProfilesForTeam(teamId, success, error) {
+    $.ajax({
+        cache: false,
+        url: '/api/v1/users/profiles/' + teamId,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getProfilesForTeam', xhr, status, err);
             error(e);
         }
     });
