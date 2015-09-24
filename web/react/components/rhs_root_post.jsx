@@ -133,10 +133,7 @@ export default class RhsRootPost extends React.Component {
                     <ul className='post-header'>
                         <li className='post-header-col'><strong><UserProfile userId={post.user_id} /></strong></li>
                         <li className='post-header-col'>
-                            <time
-                                className='post-profile-time'
-                                title={new Date(post.create_at).toString()}
-                            >
+                            <time className='post-profile-time'>
                                 {utils.displayCommentDateTime(post.create_at)}
                             </time>
                         </li>
