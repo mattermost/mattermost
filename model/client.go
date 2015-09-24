@@ -218,15 +218,6 @@ func (c *Client) UpdateTeamDisplayName(data map[string]string) (*Result, *AppErr
 	}
 }
 
-func (c *Client) UpdateValetFeature(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/teams/update_valet_feature", MapToJson(data)); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
 func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/create", user.ToJson()); err != nil {
 		return nil, err
@@ -573,15 +564,6 @@ func (c *Client) GetChannelExtraInfo(id string, etag string) (*Result, *AppError
 
 func (c *Client) CreatePost(post *Post) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/create", post.ToJson()); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
-	}
-}
-
-func (c *Client) CreateValetPost(post *Post) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/valet_create", post.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
