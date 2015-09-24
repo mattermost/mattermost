@@ -35,7 +35,7 @@ export default class TeamImportTab extends React.Component {
         var uploadHelpText = (
             <div>
                 <p>{'Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team\'\s public channels.'}</p>
-                <p>{'The Slack import to Mattermost is in "Preview". Slack bot posts do not yet import.'}</p>
+                <p>{'The Slack import to Mattermost is in "Preview". Slack bot posts do not yet import and Slack @mentions are not currently supported.'}</p>
             </div>
         );
 
