@@ -13,11 +13,6 @@
 			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
 		},
 		{
-			"ImportPath": "code.google.com/p/graphics-go/graphics",
-			"Comment": "null-25",
-			"Rev": "f843bfcd8ac420072c7f6804599995b0a229070b"
-		},
-		{
 			"ImportPath": "code.google.com/p/log4go",
 			"Comment": "go.weekly.2012-02-22-1",
 			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
@@ -30,6 +25,10 @@
 			"ImportPath": "github.com/braintree/manners",
 			"Comment": "0.3.1-2-g5280e25",
 			"Rev": "5280e250f2795914acbeb2bf3b55dd5a2d1fba52"
+		},
+		{
+			"ImportPath": "github.com/disintegration/imaging",
+			"Rev": "493653de80c32beeae336f3a3a3a125e7603459b"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
@@ -89,10 +88,6 @@
 			"Rev": "35c7f18f5261cc18c698a461053c119aebaf8542"
 		},
 		{
-			"ImportPath": "github.com/nfnt/resize",
-			"Rev": "dc93e1b98c579d90ee2fa15c1fd6dac34f6e7899"
-		},
-		{
 			"ImportPath": "github.com/rwcarlsen/goexif/exif",
 			"Rev": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8"
 		},
@@ -134,6 +129,10 @@
 		},
 		{
 			"ImportPath": "golang.org/x/image/math/fixed",
+			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
+		},
+		{
+			"ImportPath": "golang.org/x/image/tiff",
 			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
 		},
 		{
