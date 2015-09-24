@@ -5,7 +5,7 @@
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "EnableIncomingWebhooks": true,
+        "EnableIncomingWebhooks": false,
         "EnableTesting": false
     },
     "TeamSettings": {
