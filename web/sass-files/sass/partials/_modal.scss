@@ -190,15 +190,12 @@
 			position: relative;
 			max-width: 90%;
 			min-height: 100px;
-			min-width: 320px;
+			min-width: 240px;
 			@include border-radius(3px);
 			display: table;
 			margin: 0 auto;
 			&:hover {
 				@include border-radius(3px 3px 0 0);
-			}
-			&:hover .modal-close {
-				@include opacity(1);
 			}
 			&.default {
 				width: 100%;
@@ -213,8 +210,15 @@
 				right: -13px;
 				top: -13px;
 				@include opacity(0);
+				-webkit-transition: opacity 0.6s;
+				-moz-transition: opacity 0.6s;
+				-o-transition: opacity 0.6s;
+				transition: opacity 0.6s;
 				cursor: pointer;
 				z-index: 9999;
+				&.modal-close--show {
+					@include opacity(1);
+				}
 			}
 			> a {
 				background: #FFF;
@@ -226,7 +230,7 @@
 				max-height: 100%;
 			}
 		}
-		.image-content {
+		.modal-content{
 			box-shadow: none;
 			background: rgba(0, 0, 0, 0);
 			width: 100%;
@@ -309,6 +313,7 @@
 		}
 	}
 }
+
 
 // Invite New Member
 .invite {

@@ -111,7 +111,6 @@ export default class RhsRootPost extends React.Component {
             fileAttachment = (
                 <FileAttachmentList
                     filenames={post.filenames}
-                    modalId={'rhs_view_image_modal_' + post.id}
                     channelId={post.channel_id}
                     userId={post.user_id}
                 />

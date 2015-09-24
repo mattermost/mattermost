@@ -141,7 +141,6 @@ export default class PostBody extends React.Component {
             fileAttachmentHolder = (
                 <FileAttachmentList
                     filenames={filenames}
-                    modalId={`view_image_modal_${post.id}`}
                     channelId={post.channel_id}
                     userId={post.user_id}
                 />
