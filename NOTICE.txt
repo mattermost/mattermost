@@ -725,9 +725,14 @@ Legal Terms
 
     http://www.freetype.org
     
+--- end of FTL.TXT ---
+    
 ---
 
-This product contains a modified portion of emoji artwork by Apple Inc. and other contributors. 
+This product contains a modified portion of 'gemoji', a collection of emoji images and names by Apple Inc. and other contributors.
+
+* HOMEPAGE: 
+  * https://github.com/github/gemoji/blob/master/LICENSE
   
 * LICENSE: 
 
@@ -762,5 +767,3 @@ PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS 
 FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 DEALINGS IN THE SOFTWARE.
-
---- end of FTL.TXT ---
