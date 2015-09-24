@@ -1,11 +1,5 @@
 .markdown__heading {
-	font-weight: bold;
-}
-.markdown__paragraph-inline {
-    display: inline;
-    + .markdown__paragraph-inline {
-        margin-left: 4px;
-    }
+	font-weight: 700;
 }
 .markdown__table {
 	background: #fff;
@@ -31,4 +25,7 @@ pre {
 	code {
 		color: #c7254e;
 	}
+}
+code {
+	background: #fff;
 }
