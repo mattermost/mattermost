@@ -53,9 +53,12 @@ export default class CustomThemeChooser extends React.Component {
 
         const elements = [];
         let colors = '';
-        Constants.THEME_ELEMENTS.forEach((element) => {
+        Constants.THEME_ELEMENTS.forEach((element, index) => {
             elements.push(
-                <div className='col-sm-4 form-group'>
+                <div
+                    className='col-sm-4 form-group'
+                    key={'custom-theme-key' + index}
+                >
                     <label className='custom-label'>{element.uiName}</label>
                     <div
                         className='input-group color-picker'
