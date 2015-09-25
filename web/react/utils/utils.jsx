@@ -314,7 +314,6 @@ function getYoutubeEmbed(link) {
         $('.video-type.' + youtubeId).html('Youtube - ');
         $('.video-uploader.' + youtubeId).html(metadata.channelTitle);
         $('.video-title.' + youtubeId).find('a').html(metadata.title);
-        $('.post-list-holder-by-time').scrollTop($('.post-list-holder-by-time')[0].scrollHeight);
     }
 
     if (global.window.config.GoogleDeveloperKey) {
