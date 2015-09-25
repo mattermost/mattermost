@@ -287,7 +287,7 @@ export default class ServiceSettings extends React.Component {
 //             />
 //                 {'false'}
 //         </label>
-//         <p className='help-text'>{'When enabled Mattermost will act as an Oauth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
+//         <p className='help-text'>{'When enabled Mattermost will act as an OAuth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
 //     </div>
 // </div>
 
