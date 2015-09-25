@@ -81,6 +81,8 @@ export default class UserSettingsAppearance extends React.Component {
 
                 $('#user_settings').off('hidden.bs.modal', this.handleClose);
                 this.props.updateTab('general');
+                $('.ps-container.modal-body').scrollTop(0);
+                $('.ps-container.modal-body').perfectScrollbar('update');
                 $('#user_settings').modal('hide');
             },
             (err) => {
