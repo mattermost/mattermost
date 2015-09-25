@@ -84,8 +84,6 @@ export default class ChannelLoader extends React.Component {
             });
         });
 
-        $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
-
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
             if (ev.type === 'mouseenter') {
                 $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--after');

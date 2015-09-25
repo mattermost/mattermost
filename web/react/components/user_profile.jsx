@@ -32,6 +32,7 @@ export default class UserProfile extends React.Component {
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
         $('#profile_' + this.uniqueId).popover({placement: 'right', container: 'body', trigger: 'hover', html: true, delay: {show: 200, hide: 100}});
+        $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
