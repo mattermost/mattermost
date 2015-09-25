@@ -27,7 +27,7 @@ function handleError(methodName, xhr, status, err) {
         msg = 'error in ' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
         if (xhr.status === 0) {
-            e = {message: 'There appears to be a problem with your internet connection'};
+            e = {message: 'There appears to be a problem with your internet connection', connErrorCount: 1};
         } else {
             e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
         }
