@@ -105,18 +105,18 @@ export default class PostList extends React.Component {
         UserStore.addStatusesChangeListener(this.onTimeChange);
         SocketStore.addChangeListener(this.onSocketChange);
 
-        var postHolder = $(React.findDOMNode(this.refs.postlist));
+        const postHolder = $(React.findDOMNode(this.refs.postlist));
 
-        $(window).on('resize.' + this.props.channelId, function resize() {
+        $(window).resize(() => {
             this.resize();
             if (!this.scrolled) {
                 this.scrollToBottom();
             }
-        }.bind(this));
+        });
 
-        postHolder.on('scroll', function scroll() {
-            var position = postHolder.scrollTop() + postHolder.height() + 14;
-            var bottom = postHolder[0].scrollHeight;
+        postHolder.on('scroll', () => {
+            const position = postHolder.scrollTop() + postHolder.height() + 14;
+            const bottom = postHolder[0].scrollHeight;
 
             if (position >= bottom) {
                 this.scrolled = false;
@@ -128,7 +128,7 @@ export default class PostList extends React.Component {
                 this.userHasSeenNew = true;
             }
             this.isUserScroll = true;
-        }.bind(this));
+        });
 
         $('.post-list__content div .post').removeClass('post--last');
         $('.post-list__content div:last-child .post').addClass('post--last');
@@ -146,7 +146,7 @@ export default class PostList extends React.Component {
         UserStore.removeStatusesChangeListener(this.onTimeChange);
         SocketStore.removeChangeListener(this.onSocketChange);
         $('body').off('click.userpopover');
-        $(window).off('resize.' + this.props.channelId);
+        $(window).off('resize');
         var postHolder = $(React.findDOMNode(this.refs.postlist));
         postHolder.off('scroll');
     }
