@@ -17,15 +17,9 @@
                                     <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 10px;">You joined the {{.Props.TeamDisplayName}} team at {{.ClientProps.SiteName}}!</h2>
-                                                <p>Please let me know if you have any questions.<br>Enjoy your stay at <a href="{{.Props.TeamURL}}">{{.ClientProps.SiteName}}</a>.</p>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="color: #999; padding-top: 20px; line-height: 25px; font-size: 13px;">
-                                                Any questions at all, mail us any time: <a href="mailto:{{.ClientProps.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.ClientProps.FeedbackEmail}}</a>.<br>
-                                                Best wishes,<br>
-                                                The {{.ClientProps.SiteName}} Team<br>
+                                                <h2 style="font-weight: normal; margin-top: 10px;">You can sign-in to your new team from the web address:</h2>
+                                                <a href="{{.Props.TeamURL}}">{{.Props.TeamURL}}</a>
+                                                <p>Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.</p>
                                             </td>
                                         </tr>
                                     </table>
