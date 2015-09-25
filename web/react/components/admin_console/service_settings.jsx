@@ -103,7 +103,7 @@ export default class ServiceSettings extends React.Component {
                                 defaultValue={this.props.config.ServiceSettings.ListenAddress}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'The address to bind to and listen.  ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
+                            <p className='help-text'>{'The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
                         </div>
                     </div>
 
