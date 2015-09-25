@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var UserStore = require('../stores/user_store.jsx');
+
 export default class PopoverListMembers extends React.Component {
     componentDidMount() {
         const originalLeave = $.fn.popover.Constructor.prototype.leave;
@@ -32,22 +34,28 @@ export default class PopoverListMembers extends React.Component {
     }
     render() {
         let popoverHtml = '';
+        let count = 0;
+        let countText = '-';
         const members = this.props.members;
-        let count;
-        if (members.length > 20) {
-            count = '20+';
-        } else {
-            count = members.length || '-';
-        }
+        const teamMembers = UserStore.getProfilesUsernameMap();
 
-        if (members) {
+        if (members && teamMembers) {
             members.sort(function compareByLocal(a, b) {
                 return a.username.localeCompare(b.username);
             });
 
             members.forEach(function addMemberElement(m) {
-                popoverHtml += `<div class='text--nowrap'>${m.username}</div>`;
+                if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
+                    popoverHtml += `<div class='text--nowrap'>${m.username}</div>`;
+                    count++;
+                }
             });
+
+            if (count > 20) {
+                countText = '20+';
+            } else if (count > 0) {
+                countText = count.toString();
+            }
         }
 
         return (
@@ -63,7 +71,7 @@ export default class PopoverListMembers extends React.Component {
                     data-toggle='tooltip'
                     title='View Channel Members'
                 >
-                    {count}
+                    {countText}
                     <span
                         className='fa fa-user'
                         aria-hidden='true'
