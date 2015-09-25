@@ -182,7 +182,7 @@ module.exports = {
         },
         {
             id: 'sidebarText',
-            uiName: 'Sidebar text color'
+            uiName: 'Sidebar Text'
         },
         {
             id: 'sidebarHeaderBg',
@@ -190,51 +190,51 @@ module.exports = {
         },
         {
             id: 'sidebarHeaderTextColor',
-            uiName: 'Sidebar Header text color'
+            uiName: 'Sidebar Header Text'
         },
         {
             id: 'sidebarUnreadText',
-            uiName: 'Sidebar unread text color'
+            uiName: 'Sidebar Unread Text'
         },
         {
             id: 'sidebarTextHoverBg',
-            uiName: 'Sidebar text hover BG'
+            uiName: 'Sidebar Text Hover BG'
         },
         {
             id: 'sidebarTextHoverColor',
-            uiName: 'Sidebar text hover color'
+            uiName: 'Sidebar Text Hover Color'
         },
         {
             id: 'sidebarTextActiveBg',
-            uiName: 'Sidebar text active BG'
+            uiName: 'Sidebar Text Active BG'
         },
         {
             id: 'sidebarTextActiveColor',
-            uiName: 'Sidebar text active color'
+            uiName: 'Sidebar Text Active Color'
         },
         {
             id: 'onlineIndicator',
-            uiName: 'Online indicator'
+            uiName: 'Online Indicator'
         },
         {
             id: 'mentionBj',
-            uiName: 'Mention jewel BG'
+            uiName: 'Mention Jewel BG'
         },
         {
             id: 'mentionColor',
-            uiName: 'Mention jewel text color'
+            uiName: 'Mention Jewel Text'
         },
         {
             id: 'centerChannelBg',
-            uiName: 'Center channel BG'
+            uiName: 'Center Channel BG'
         },
         {
             id: 'centerChannelColor',
-            uiName: 'Center channel text color'
+            uiName: 'Center Channel Text'
         },
         {
             id: 'linkColor',
-            uiName: 'Link color'
+            uiName: 'Link Color'
         },
         {
             id: 'buttonBg',
@@ -243,7 +243,7 @@ module.exports = {
 
         {
             id: 'buttonColor',
-            uiName: 'Button Color'
+            uiName: 'Button Text'
         }
     ]
 };
