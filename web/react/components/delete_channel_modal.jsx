@@ -4,6 +4,7 @@
 const Client = require('../utils/client.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
@@ -24,7 +25,7 @@ export default class DeleteChannelModal extends React.Component {
         Client.deleteChannel(this.state.channelId,
             function handleDeleteSuccess() {
                 AsyncClient.getChannels(true);
-                window.location.href = '/';
+                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
             },
             function handleDeleteError(err) {
                 AsyncClient.dispatchError(err, 'handleDelete');

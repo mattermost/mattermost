@@ -42,7 +42,7 @@ export default class SSOSignUpPage extends React.Component {
                 if (data.follow_link) {
                     window.location.href = data.follow_link;
                 } else {
-                    window.location.href = '/';
+                    window.location.href = '/' + team.name + '/channels/town-square';
                 }
             },
             function fail(err) {

@@ -145,8 +145,14 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage("signup_team", "Signup")
-	page.Render(c, w)
+	if len(c.Session.UserId) == 0 {
+		page := NewHtmlTemplatePage("signup_team", "Signup")
+		page.Render(c, w)
+	} else {
+		page := NewHtmlTemplatePage("home", "Home")
+		page.Props["TeamURL"] = c.GetTeamURL()
+		page.Render(c, w)
+	}
 }
 
 func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
