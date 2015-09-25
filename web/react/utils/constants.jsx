@@ -134,6 +134,7 @@ module.exports = {
             mentionColor: '#ffffff',
             centerChannelBg: '#ffffff',
             centerChannelColor: '#333333',
+            newMessageSeparator: '#FF8800',
             linkColor: '#2389d7',
             buttonBg: '#2389d7',
             buttonColor: '#FFFFFF'
@@ -154,12 +155,13 @@ module.exports = {
             mentionColor: '#bfcde8',
             centerChannelBg: '#f2f4f8',
             centerChannelColor: '#333333',
+            newMessageSeparator: '#FF8800',
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF'
         },
-        dark: {
-            type: 'Dark',
+        mattermostDark: {
+            type: 'Mattermost Dark',
             sidebarBg: '#1B2C3E',
             sidebarText: '#bbbbbb',
             sidebarUnreadText: '#fff',
@@ -174,8 +176,30 @@ module.exports = {
             mentionColor: '#FFFFFF',
             centerChannelBg: '#2F3E4E',
             centerChannelColor: '#DDDDDD',
+            newMessageSeparator: '#5de5da',
             linkColor: '#A4FFEB',
             buttonBg: '#1dacfc',
+            buttonColor: '#FFFFFF'
+        },
+        windows10: {
+            type: 'Windows 10 Dark',
+            sidebarBg: '#171717',
+            sidebarText: '#eee',
+            sidebarUnreadText: '#fff',
+            sidebarTextHoverBg: '#302e30',
+            sidebarTextHoverColor: '#fff',
+            sidebarTextActiveBg: '#484748',
+            sidebarTextActiveColor: '#FFFFFF',
+            sidebarHeaderBg: '#1f1f1f',
+            sidebarHeaderTextColor: '#FFFFFF',
+            onlineIndicator: '#0177e7',
+            mentionBj: '#0177e7',
+            mentionColor: '#FFFFFF',
+            centerChannelBg: '#1F1F1F',
+            centerChannelColor: '#DDDDDD',
+            newMessageSeparator: '#CC992D',
+            linkColor: '#0177e7',
+            buttonBg: '#0177e7',
             buttonColor: '#FFFFFF'
         }
     },
@@ -235,6 +259,10 @@ module.exports = {
         {
             id: 'centerChannelColor',
             uiName: 'Center Channel Text'
+        },
+        {
+            id: 'newMessageSeparator',
+            uiName: 'New message separator'
         },
         {
             id: 'linkColor',
