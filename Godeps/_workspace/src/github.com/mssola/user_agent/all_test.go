@@ -40,6 +40,10 @@ var uastrings = []struct {
 	{"IE11b32Win7b64MDDRJS", "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; MDDRJS; rv:11.0) like Gecko"},
 	{"IE11Compatibility", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.3; Trident/7.0)"},
 
+	// Microsoft Edge
+	{"EdgeDesktop", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10240"},
+	{"EdgeMobile", "Mozilla/5.0 (Windows Phone 10.0; Android 4.2.1; DEVICE INFO) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Mobile Safari/537.36 Edge/12.10240"},
+
 	// Gecko
 	{"FirefoxMac", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0b8) Gecko/20100101 Firefox/4.0b8"},
 	{"FirefoxMacLoc", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.13) Gecko/20101203 Firefox/3.6.13"},
@@ -128,6 +132,10 @@ var expected = []string{
 	"Mozilla:5.0 Platform:Windows OS:Windows 7 Browser:Internet Explorer-11.0 Engine:Trident Bot:false Mobile:false",
 	"Mozilla:5.0 Platform:Windows OS:Windows 7 Browser:Internet Explorer-11.0 Engine:Trident Bot:false Mobile:false",
 	"Mozilla:4.0 Platform:Windows OS:Windows 8.1 Browser:Internet Explorer-7.0 Engine:Trident Bot:false Mobile:false",
+
+	// Microsoft Edge
+	"Mozilla:5.0 Platform:Windows OS:Windows NT 10.0 Browser:Edge-12.10240 Engine:EdgeHTML Bot:false Mobile:false",
+	"Mozilla:5.0 Platform:Windows OS:Windows Phone 10.0 Browser:Edge-12.10240 Engine:EdgeHTML Bot:false Mobile:true",
 
 	// Gecko
 	"Mozilla:5.0 Platform:Macintosh OS:Intel Mac OS X 10.6 Browser:Firefox-4.0b8 Engine:Gecko-20100101 Bot:false Mobile:false",
