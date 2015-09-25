@@ -817,6 +817,9 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
 
 	c.LogAudit("")
+
+	// write something as the response since jQuery expects a json response
+	w.Write([]byte("true"))
 }
 
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
