@@ -70,7 +70,7 @@ export default class SettingsUpload extends React.Component {
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                Select file
+                                Select ZIP file
                                 <input
                                     ref='uploadinput'
                                     accept={this.props.fileTypesAccepted}
