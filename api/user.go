@@ -198,7 +198,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		//fireAndForgetWelcomeEmail(ruser.FirstName, ruser.Email, team.Name, c.TeamURL+"/channels/town-square")
+		fireAndForgetWelcomeEmail(ruser.Email, team.DisplayName, c.GetTeamURLFromTeam(team))
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
@@ -218,17 +218,13 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func fireAndForgetWelcomeEmail(name, email, teamDisplayName, link, siteURL string) {
+func fireAndForgetWelcomeEmail(email, teamDisplayName, teamURL string) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject")
-		subjectPage.Props["SiteURL"] = siteURL
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage := NewServerTemplatePage("welcome_body")
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Nickname"] = name
-		bodyPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage.Props["FeedbackName"] = utils.Cfg.EmailSettings.FeedbackName
-		bodyPage.Props["TeamURL"] = link
+		bodyPage.Props["TeamURL"] = teamURL
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error("Failed to send welcome email successfully err=%v", err)
