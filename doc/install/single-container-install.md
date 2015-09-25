@@ -4,11 +4,11 @@ The following install instructions are for single-container installs of Mattermo
 
 ### Mac OSX ###
 
-1. Install Boot2Docker using instructions at: http://docs.docker.com/installation/mac/  
-    1. Start Boot2Docker from the command line and run: `boot2docker init eval “$(boot2docker shellinit)”`  
-2. Get your Docker IP address with: `boot2docker ip`
+1. Install Docker Toolbox using instructions at: http://docs.docker.com/installation/mac/  
+    1. Start Boot2Docker from the command line and run: `docker-machine create -d virtualbox dev”`  
+2. Get your Docker IP address with: `docker-machine ip deve`
 3. Use `sudo nano /etc/hosts` to add `<Docker IP> dockerhost` to your /etc/hosts file 
-4. Run: `boot2docker shellinit` and copy the export statements to your ~/.bash\_profile by running `sudo nano ~/.bash_profile`. Then run: `source ~/.bash_profile`
+4. Run: `docker-machine env dev` and copy the export statements to your ~/.bash\_profile by running `sudo nano ~/.bash_profile`. Then run: `source ~/.bash_profile`
 5. Run: `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
 6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser.
 
