@@ -185,7 +185,7 @@ body.ios {
 .post-create__container {
 	form {
 		width: 100%;
-		padding: 0 1em;
+		padding: 10px 1em 0 1em;
 		margin: 0;
 	}
 	.post-create-body {
@@ -229,12 +229,13 @@ body.ios {
 			right: 0;
 			position: absolute;
 			top: 1px;
-			color: #999;
+			color: #444;
+			@include opacity(0.5);
 			@include single-transition(all, 0.15s);
 			font-size: 16px;
 			padding: 7px 9px 6px;
 			&:hover, &:active {
-				color: #444;
+				@include opacity(0.9);
 				box-shadow: none;
 			}
 		}

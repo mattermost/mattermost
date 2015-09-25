@@ -153,7 +153,9 @@ export default class PostInfo extends React.Component {
                 <li className='post-header-col'>
                     <time
                         className='post-profile-time'
+                        data-toggle='tooltip'
                         title={`${utils.displayDate(post.create_at)} at ${utils.displayTime(post.create_at)}`}
+                        data-placement='top'
                     >
                         {utils.displayDateTime(post.create_at)}
                     </time>

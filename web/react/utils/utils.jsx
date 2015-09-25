@@ -616,8 +616,9 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelColor) {
-        changeCss('.app__content', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.app__content, .post-create__container .post-create-body .btn-file', 'color:' + theme.centerChannelColor, 1);
         changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.post-body hr', 'background:' + theme.centerChannelColor, 1);
         changeCss('.channel-header .heading', 'color:' + theme.centerChannelColor, 1);
         changeCss('.markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
