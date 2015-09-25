@@ -134,7 +134,7 @@ export default class ManageIncomingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <label>{' None'}</label>;
+            displayHooks = <label>{': None'}</label>;
         }
 
         const existingHooks = (

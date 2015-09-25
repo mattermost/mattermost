@@ -185,7 +185,7 @@ body.ios {
 .post-create__container {
 	form {
 		width: 100%;
-		padding: 10px 1em 0 1em;
+		padding: 0 1em;
 		margin: 0;
 	}
 	.post-create-body {
@@ -257,7 +257,7 @@ body.ios {
 			line-height: 18px;
 			display: inline-block;
 			font-size: 13px;
-			color: #777;
+			@include opacity(0.6);
 		}
 	}
 }

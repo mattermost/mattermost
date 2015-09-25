@@ -615,7 +615,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelColor) {
-        changeCss('.app__content, .post-create__container .post-create-body .btn-file', 'color:' + theme.centerChannelColor, 1);
+        changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .loading-screen .loading__content .round', 'color:' + theme.centerChannelColor, 1);
         changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
         changeCss('.post-body hr', 'background:' + theme.centerChannelColor, 1);
         changeCss('.channel-header .heading', 'color:' + theme.centerChannelColor, 1);
@@ -630,8 +630,8 @@ export function applyTheme(theme) {
         changeCss('.search-bar__container .search__form .search-bar', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: ' + theme.centerChannelColor, 2);
         changeCss('.search-bar__container .search__form', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
-        changeCss('.date-separator .separator__text, .new-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
-        changeCss('.date-separator .separator__hr, .new-separator .separator__hr, .post-right__container .post.post--root hr, .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.date-separator .separator__hr, .post-right__container .post.post--root hr, .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.channel-intro', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, .post.post--comment.other--root .post-comment, .post.same--root .post-body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
@@ -643,6 +643,11 @@ export function applyTheme(theme) {
         changeCss('.date-separator.hovered--after:before, .new-separator.hovered--after:before', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.post.current--user:hover .post-body ', 'background: none;', 1);
         changeCss('.sidebar--right', 'color:' + theme.centerChannelColor, 2);
+    }
+
+    if (theme.newMessageSeparator) {
+        changeCss('.new-separator .separator__text', 'color:' + theme.newMessageSeparator, 1);
+        changeCss('.new-separator .separator__hr', 'border-color:' + changeOpacity(theme.newMessageSeparator, 0.5), 1);
     }
 
     if (theme.linkColor) {
