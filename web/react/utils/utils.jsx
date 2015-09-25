@@ -4,6 +4,7 @@
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 var AsyncClient = require('./async_client.jsx');
@@ -113,7 +114,7 @@ export function notifyMe(title, body, channel) {
                     if (channel) {
                         switchChannel(channel);
                     } else {
-                        window.location.href = '/';
+                        window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
                     }
                 };
                 setTimeout(function closeNotificationOnTimeout() {

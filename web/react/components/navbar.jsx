@@ -262,7 +262,7 @@ export default class Navbar extends React.Component {
         return (
             <div className='navbar-brand'>
                 <a
-                    href='/'
+                    href={TeamStore.getCurrentTeamUrl() + '/channels/town-square'}
                     className='heading'
                 >
                     {channelTitle}
