@@ -1,10 +1,11 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../utils/client.jsx');
-var Utils = require('../utils/utils.jsx');
-var ViewImagePopoverBar = require('./view_image_popover_bar.jsx');
-var Modal = ReactBootstrap.Modal;
+const Client = require('../utils/client.jsx');
+const Utils = require('../utils/utils.jsx');
+const Constants = require('../utils/constants.jsx');
+const ViewImagePopoverBar = require('./view_image_popover_bar.jsx');
+const Modal = ReactBootstrap.Modal;
 
 export default class ViewImageModal extends React.Component {
     constructor(props) {
@@ -200,11 +201,20 @@ export default class ViewImageModal extends React.Component {
                     </a>
                 );
             } else if (fileType === 'video' || fileType === 'audio') {
+                let width = Constants.WEB_VIDEO_WIDTH;
+                let height = Constants.WEB_VIDEO_HEIGHT;
+                if (Utils.isMobile()) {
+                    width = Constants.MOBILE_VIDEO_WIDTH;
+                    height = Constants.MOBILE_VIDEO_HEIGHT;
+                }
+
                 content = (
                     <video
                         ref='video'
                         data-setup='{}'
                         controls='controls'
+                        width={width}
+                        height={height}
                     >
                         <source src={Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename} />
                     </video>
