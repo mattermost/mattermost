@@ -71,6 +71,13 @@ export default class RhsThread extends React.Component {
             return;
         }
 
+        if (!currentSelected.posts[currentSelected.order[0]]) {
+            if ($('#post_deleted').length > 0) {
+                $('#post_deleted').modal('show');
+                return;
+            }
+        }
+
         var currentPosts = PostStore.getPosts(currentSelected.posts[currentSelected.order[0]].channel_id);
 
         if (!currentPosts || currentPosts.order.length === 0) {
