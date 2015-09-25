@@ -459,7 +459,13 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	props := make(map[string]string)
 	props["Message"] = err.Message
 	props["Details"] = err.DetailedError
-	props["SiteURL"] = GetProtocol(r) + "://" + r.Host
+
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) > 1 {
+		props["SiteURL"] = GetProtocol(r) + "://" + r.Host + "/" + pathParts[1]
+	} else {
+		props["SiteURL"] = GetProtocol(r) + "://" + r.Host
+	}
 
 	w.WriteHeader(err.StatusCode)
 	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientProps: utils.ClientProperties})
