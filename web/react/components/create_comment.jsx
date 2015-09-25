@@ -43,6 +43,12 @@ export default class CreateComment extends React.Component {
             submitting: false
         };
     }
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.uploadsInProgress < this.state.uploadsInProgress) {
+            $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+            $('.post-right__scroll').perfectScrollbar('update');
+        }
+    }
     handleSubmit(e) {
         e.preventDefault();
 
