@@ -84,7 +84,7 @@ export default class SignupUserComplete extends React.Component {
                         if (this.props.hash > 0) {
                             BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: 'finished'}));
                         }
-                        window.location.href = '/';
+                        window.location.href = '/' + this.props.teamName + '/channels/town-square';
                     }.bind(this),
                     function emailLoginFailure(err) {
                         if (err.message === 'Login failed because email address has not been verified') {
