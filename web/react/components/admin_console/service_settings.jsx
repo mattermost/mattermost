@@ -199,7 +199,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true incoming webhooks will be allowed.'}</p>
+                            <p className='help-text'>{'When true, incoming webhooks will be allowed.'}</p>
                         </div>
                     </div>
 
@@ -232,7 +232,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true slash commands like /loadtest are enabled in the add comment box.  Changing this will require a server restart before taking effect.  Typically used for development.'}</p>
+                            <p className='help-text'>{'(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'}</p>
                         </div>
                     </div>
 
