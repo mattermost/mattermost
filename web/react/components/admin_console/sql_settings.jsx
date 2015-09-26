@@ -252,7 +252,7 @@ export default class SqlSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Output executing SQL statements to the log. Typically used for development.'}</p>
+                            <p className='help-text'>{'(Development Mode) When true, executing SQL statements are written to the log.'}</p>
                         </div>
                     </div>
 
