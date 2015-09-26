@@ -117,7 +117,7 @@ export default class TeamSettings extends React.Component {
                                 defaultValue={this.props.config.TeamSettings.MaxUsersPerTeam}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Maximum number of users per team.'}</p>
+                            <p className='help-text'>{'Maximum total number of users per team, including both active and inactive users.'}</p>
                         </div>
                     </div>
 
@@ -150,7 +150,7 @@ export default class TeamSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When false the ability to create teams is disabled. The create team button displays error when pressed.'}</p>
+                            <p className='help-text'>{'When false, the ability to create teams is disabled. The create team button displays error when pressed.'}</p>
                         </div>
                     </div>
 
@@ -183,7 +183,7 @@ export default class TeamSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When false the ability to create accounts is disabled. The create account button displays error when pressed.'}</p>
+                            <p className='help-text'>{'When false, the ability to create accounts is disabled. The create account button displays error when pressed.'}</p>
                         </div>
                     </div>
 
