@@ -182,7 +182,7 @@ module.exports = {
             buttonColor: '#FFFFFF'
         },
         windows10: {
-            type: 'Windows 10 Dark',
+            type: 'Windows Dark',
             sidebarBg: '#171717',
             sidebarText: '#eee',
             sidebarUnreadText: '#fff',
