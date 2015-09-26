@@ -101,7 +101,7 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='consoleEnable'
                         >
-                            {'Log to the Console: '}
+                            {'Log To The Console: '}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -157,7 +157,7 @@ export default class LogSettings extends React.Component {
                         <label
                             className='control-label col-sm-4'
                         >
-                            {'Log to File: '}
+                            {'Log To File: '}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -227,7 +227,7 @@ export default class LogSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.fileEnable}
                             />
-                            <p className='help-text'>{'File to which log files are written. If blank, will be set to ./logs/mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to a new file, for example mattermost.1.log, mattermost.2.log, and so forth.'}</p>
+                            <p className='help-text'>{'File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'}</p>
                         </div>
                     </div>
 
