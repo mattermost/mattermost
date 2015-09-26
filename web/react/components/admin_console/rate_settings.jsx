@@ -140,7 +140,7 @@ export default class RateSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When enabled throttles rate at which APIs respond.'}</p>
+                            <p className='help-text'>{'When true, APIs are throttled at rates specified below.'}</p>
                         </div>
                     </div>
 
@@ -184,7 +184,7 @@ export default class RateSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter}
                             />
-                            <p className='help-text'>{'Maximum number of users sessions connected to the system as determined by VaryByRemoteAddr and VaryByHeader variables.'}</p>
+                            <p className='help-text'>{'Maximum number of users sessions connected to the system as determined by "Vary By Remote Address" and "Vary By Header" settings below.'}</p>
                         </div>
                     </div>
 
@@ -193,7 +193,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='VaryByRemoteAddr'
                         >
-                            {'Limit By Remote Address: '}
+                            {'Vary By Remote Address: '}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -219,7 +219,7 @@ export default class RateSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Rate limit API access by IP address.'}</p>
+                            <p className='help-text'>{'When true, rate limit API access by IP address.'}</p>
                         </div>
                     </div>
 
@@ -228,7 +228,7 @@ export default class RateSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='VaryByHeader'
                         >
-                            {'Limit By Http Header:'}
+                            {'Vary By HTTP Header:'}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -241,7 +241,7 @@ export default class RateSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter || this.state.VaryByRemoteAddr}
                             />
-                            <p className='help-text'>{'When filled in, vary rate limiting by http header field specified (e.g. when configuring ngnix set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'}</p>
+                            <p className='help-text'>{'When filled in, vary rate limiting by HTTP header field specified (e.g. when configuring Ngnix set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'}</p>
                         </div>
                     </div>
 

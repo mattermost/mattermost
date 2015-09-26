@@ -114,7 +114,7 @@ export default class GitLabSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true Mattermost will allow team creation and account signup utilizing GitLab OAuth.'}</p>
+                            <p className='help-text'>{'When true, Mattermost allows team creation and account signup using GitLab OAuth. To configure, log in to your GitLab account and go to Applications -> Profile Settings. Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". Then use "Secret" and "Id" fields to complete the options below.'}</p>
                         </div>
                     </div>
 
@@ -136,7 +136,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Need help text.'}</p>
+                            <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab.'}</p>
                         </div>
                     </div>
 
@@ -158,7 +158,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Need help text.'}</p>
+                            <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab'}</p>
                         </div>
                     </div>
 
@@ -175,12 +175,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='Scope'
                                 ref='Scope'
-                                placeholder='Ex ""'
+                                placeholder='Not currently used by GitLab. Please leave blank'
                                 defaultValue={this.props.config.GitLabSettings.Scope}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Need help text.'}</p>
+                            <p className='help-text'>{'This field is not yet used by GitLab OAuth. Other OAuth providers may use this field to specify the scope of account data from OAuth provider that is sent to Mattermost.'}</p>
                         </div>
                     </div>
 
@@ -202,7 +202,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Need help text.'}</p>
+                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).'}</p>
                         </div>
                     </div>
 
@@ -224,7 +224,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Need help text.'}</p>
+                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/token.'}</p>
                         </div>
                     </div>
 
@@ -246,7 +246,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Need help text.'}</p>
+                            <p className='help-text'>{'Enter <your-gitlab-url>/api/v3/user.'}</p>
                         </div>
                     </div>
 

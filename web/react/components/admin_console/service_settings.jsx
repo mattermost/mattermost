@@ -103,7 +103,7 @@ export default class ServiceSettings extends React.Component {
                                 defaultValue={this.props.config.ServiceSettings.ListenAddress}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'The address to bind to and listen.  ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
+                            <p className='help-text'>{'The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
                         </div>
                     </div>
 
@@ -199,7 +199,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true incomming web hooks will be allowed.'}</p>
+                            <p className='help-text'>{'When true, incoming webhooks will be allowed.'}</p>
                         </div>
                     </div>
 
@@ -232,7 +232,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true slash commands like /loadtest are enabled in the add comment box.  Changing this will require a server restart before taking effect.  Typically used for development.'}</p>
+                            <p className='help-text'>{'(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'}</p>
                         </div>
                     </div>
 
@@ -287,7 +287,7 @@ export default class ServiceSettings extends React.Component {
 //             />
 //                 {'false'}
 //         </label>
-//         <p className='help-text'>{'When enabled Mattermost will act as an Oauth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
+//         <p className='help-text'>{'When enabled Mattermost will act as an OAuth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
 //     </div>
 // </div>
 

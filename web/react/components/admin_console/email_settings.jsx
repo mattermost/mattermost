@@ -211,7 +211,7 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production.  When true Mattermost will allow team creation and account signup utilizing email and password.  You would set this to false if you only wanted to allow signup from a service like OAuth or LDAP.'}</p>
+                            <p className='help-text'>{'When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or LDAP.'}</p>
                         </div>
                     </div>
 
@@ -244,7 +244,7 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true Mattermost will attempt to send email notifications.  Developers may set this field to false skipping sending emails for faster development.'}</p>
+                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.'}</p>
                         </div>
                     </div>
 
@@ -268,7 +268,6 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'true'}
                             </label>
-                            <label className='radio-inline'>
                                 <input
                                     type='radio'
                                     name='requireEmailVerification'
@@ -279,7 +278,7 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true Mattermost will not allow a user to login without first having recieved an email with a verification link.  Developers may set this field to false so skip sending verification emails for faster development.'}</p>
+                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.'}</p>
                         </div>
                     </div>
 
@@ -296,12 +295,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='feedbackName'
                                 ref='feedbackName'
-                                placeholder='Ex: "Mattermost", "System", "John Smith"'
+                                placeholder='Ex: "Mattermost Notification", "System", "No-Reply"'
                                 defaultValue={this.props.config.EmailSettings.FeedbackName}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'Name displayed on email account used when sending notification emails from Mattermost.'}</p>
+                            <p className='help-text'>{'Display name on email account used when sending notification emails from Mattermost.'}</p>
                         </div>
                     </div>
 
@@ -323,7 +322,7 @@ export default class EmailSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'Email displayed on email account used when sending notification emails from Mattermost.'}</p>
+                            <p className='help-text'>{'Email address displayed on email account used when sending notification emails from Mattermost.'}</p>
                         </div>
                     </div>
 
@@ -479,7 +478,7 @@ export default class EmailSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'32-character salt added to signing of email invites.'}</p>
+                            <p className='help-text'>{'32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
                             <div className='help-text'>
                                 <button
                                     className='help-link'
@@ -510,7 +509,7 @@ export default class EmailSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
                             />
-                            <p className='help-text'>{'32-character salt added to signing of password reset emails.'}</p>
+                            <p className='help-text'>{'32-character salt added to signing of password reset emails. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
                             <div className='help-text'>
                                 <button
                                     className='help-link'
