@@ -268,6 +268,7 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'true'}
                             </label>
+                            <label className='radio-inline'>
                                 <input
                                     type='radio'
                                     name='requireEmailVerification'
