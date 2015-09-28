@@ -23,3 +23,7 @@
 - [Code Contribution Guidelines](developer/code-contribution.md)
 - [Developer Machine Setup](install/dev-setup.md)
 - [Mattermost Style Guide](developer/style-guide.md)
+
+## End User Help
+
+- [Mattermost Markdown Formatting](help/enduser/markdown.md)
