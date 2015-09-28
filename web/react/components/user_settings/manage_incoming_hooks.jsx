@@ -107,23 +107,23 @@ export default class ManageIncomingHooks extends React.Component {
         this.state.hooks.forEach((hook) => {
             const c = ChannelStore.get(hook.channel_id);
             hooks.push(
-                <div>
-                    <div className='divider-light'></div>
-                    <span>
-                        <strong>{'URL: '}</strong>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}
-                    </span>
-                    <br/>
-                    <span>
+                <div className='font--small'>
+                    <div className='padding-top x2 divider-light'></div>
+                    <div className='padding-top x2'>
+                        <strong>{'URL: '}</strong><span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
+                    </div>
+                    <div className='padding-top'>
                         <strong>{'Channel: '}</strong>{c.name}
-                    </span>
-                    <br/>
-                    <a
-                        className={'btn btn-sm btn-primary'}
-                        href='#'
-                        onClick={this.removeHook.bind(this, hook.id)}
-                    >
-                        {'Remove'}
-                    </a>
+                    </div>
+                    <div className='padding-top'>
+                        <a
+                            className={'text-danger'}
+                            href='#'
+                            onClick={this.removeHook.bind(this, hook.id)}
+                        >
+                            {'Remove'}
+                        </a>
+                    </div>
                 </div>
             );
         });
@@ -134,41 +134,38 @@ export default class ManageIncomingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <label>{'None'}</label>;
+            displayHooks = <label>{': None'}</label>;
         }
 
         const existingHooks = (
-            <div>
-                <label className='control-label'>{'Existing incoming webhooks'}</label>
-                <br/>
+            <div className='padding-top x2'>
+                <label className='control-label padding-top x2'>{'Existing incoming webhooks'}</label>
                 {displayHooks}
             </div>
         );
 
         return (
-            <div
-                key='addIncomingHook'
-                className='form-group'
-            >
+            <div key='addIncomingHook'>
                 <label className='control-label'>{'Add a new incoming webhook'}</label>
-                <br/>
-                <div>
+                <div className='padding-top'>
                     <select
                         ref='channelName'
+                        className='form-control'
                         value={this.state.channelId}
                         onChange={this.updateChannelId}
                     >
                         {options}
                     </select>
-                    <br/>
                     {serverError}
-                    <a
-                        className={'btn btn-sm btn-primary' + disableButton}
-                        href='#'
-                        onClick={this.addNewHook}
-                    >
-                        {'Add'}
-                    </a>
+                    <div className='padding-top'>
+                        <a
+                            className={'btn btn-sm btn-primary' + disableButton}
+                            href='#'
+                            onClick={this.addNewHook}
+                        >
+                            {'Add'}
+                        </a>
+                    </div>
                 </div>
                 {existingHooks}
             </div>

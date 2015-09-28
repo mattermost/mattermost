@@ -2,13 +2,17 @@
 	white-space:pre-wrap;
 	word-wrap:break-word;
 	background:transparent;
-	border:1px solid #ccc !important;
+	border:1px solid #ccc;
 	position:absolute;
 	top:0px;
 	height:auto;
 	resize: none;
 	line-height:20px;
 	min-height:36px;
+	&:focus {
+		border-color: #ccc;
+		box-shadow: none;
+	}
 }
 
 .bad-connection {
@@ -225,17 +229,17 @@ body.ios {
 			right: 0;
 			position: absolute;
 			top: 1px;
-			color: #999;
+			color: #444;
+			@include opacity(0.5);
 			@include single-transition(all, 0.15s);
 			font-size: 16px;
 			padding: 7px 9px 6px;
 			&:hover, &:active {
-				color: #444;
+				@include opacity(0.9);
 				box-shadow: none;
 			}
 		}
 		textarea {
-			border: none;
 			box-shadow: none;
 		}
 	}
@@ -253,7 +257,7 @@ body.ios {
 			line-height: 18px;
 			display: inline-block;
 			font-size: 13px;
-			color: #777;
+			@include opacity(0.6);
 		}
 	}
 }

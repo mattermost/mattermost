@@ -63,10 +63,11 @@
 	padding-left: 10px;
 }
 
-.mention-highlight {
-	background-color:#fff2bb;
+.mention-link {
+	color: $primary-color;
 }
 
-.mention-link {
-	color:$primary-color;
+.mention-highlight {
+	background-color:#fff2bb;
+	color: #333;
 }

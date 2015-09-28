@@ -140,6 +140,24 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) StoreChannel {
 	return storeChannel
 }
 
+func (me SqlSessionStore) RemoveAllSessionsForTeam(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForTeam", "We couldn't remove all the sessions for the team", "id="+teamId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 

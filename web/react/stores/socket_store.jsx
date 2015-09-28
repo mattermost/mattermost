@@ -3,6 +3,7 @@
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var UserStore = require('./user_store.jsx');
+var ErrorStore = require('./error_store.jsx');
 var EventEmitter = require('events').EventEmitter;
 
 var Constants = require('../utils/constants.jsx');
@@ -21,6 +22,7 @@ class SocketStoreClass extends EventEmitter {
         this.addChangeListener = this.addChangeListener.bind(this);
         this.removeChangeListener = this.removeChangeListener.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.failCount = 0;
 
         this.initialize();
     }
@@ -37,27 +39,43 @@ class SocketStoreClass extends EventEmitter {
                 protocol = 'wss://';
             }
             var connUrl = protocol + location.host + '/api/v1/websocket';
-            console.log('connecting to ' + connUrl); //eslint-disable-line no-console
+            if (this.failCount === 0) {
+                console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
+            }
             conn = new WebSocket(connUrl);
 
-            conn.onclose = function closeConn(evt) {
-                console.log('websocket closed'); //eslint-disable-line no-console
-                console.log(evt); //eslint-disable-line no-console
-                conn = null;
-                setTimeout(
-                    function reconnect() {
-                        this.initialize();
-                    }.bind(this),
-                    3000
-                );
-            }.bind(this);
+            conn.onopen = () => {
+                if (this.failCount > 0) {
+                    console.log('websocket re-established connection'); //eslint-disable-line no-console
+                }
 
-            conn.onerror = function connError(evt) {
-                console.log('websocket error'); //eslint-disable-line no-console
-                console.log(evt); //eslint-disable-line no-console
+                this.failCount = 0;
+                ErrorStore.storeLastError(null);
+                ErrorStore.emitChange();
             };
 
-            conn.onmessage = function connMessage(evt) {
+            conn.onclose = () => {
+                conn = null;
+                setTimeout(
+                    () => {
+                        this.initialize();
+                    },
+                    3000
+                );
+            };
+
+            conn.onerror = (evt) => {
+                if (this.failCount === 0) {
+                    console.log('websocket error ' + evt); //eslint-disable-line no-console
+                }
+
+                this.failCount = this.failCount + 1;
+
+                ErrorStore.storeLastError({connErrorCount: this.failCount, message: 'We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.'});
+                ErrorStore.emitChange();
+            };
+
+            conn.onmessage = (evt) => {
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECIEVED_MSG,
                     msg: JSON.parse(evt.data)
@@ -86,7 +104,7 @@ class SocketStoreClass extends EventEmitter {
 
 var SocketStore = new SocketStoreClass();
 
-SocketStore.dispatchToken = AppDispatcher.register(function registry(payload) {
+SocketStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {

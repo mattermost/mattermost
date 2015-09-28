@@ -457,7 +457,7 @@ export default class FileSettings extends React.Component {
                                 defaultValue={this.props.config.FileSettings.PublicLinkSalt}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'32-character salt added to signing of public image links.'}</p>
+                            <p className='help-text'>{'32-character salt added to signing of public image links. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
                             <div className='help-text'>
                                 <button
                                     className='help-link'

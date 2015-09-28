@@ -163,10 +163,22 @@ export default class ChannelNotifications extends React.Component {
             }.bind(this);
 
             let curChannel = ChannelStore.get(this.state.channelId);
-            let extraInfo = (<span>These settings will override the global notification settings</span>);
+            let extraInfo = (
+                <span>
+                    These settings will override the global notification settings.
+                    <br/>
+                    Desktop notifications are available on Firefox, Safari, and Chrome.
+                </span>
+            );
 
             if (curChannel && curChannel.display_name) {
-                extraInfo = (<span>These settings will override the global notification settings for the <b>{curChannel.display_name}</b> channel</span>);
+                extraInfo = (
+                    <span>
+                        These settings will override the global notification settings for the <b>{curChannel.display_name}</b> channel.
+                        <br/>
+                        Desktop notifications are available on Firefox, Safari, and Chrome.
+                    </span>
+                );
             }
 
             return (

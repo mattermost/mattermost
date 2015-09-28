@@ -23,7 +23,10 @@ export default class PremadeThemeChooser extends React.Component {
                 }
 
                 premadeThemes.push(
-                    <div className='col-sm-3 premade-themes'>
+                    <div
+                        className='col-sm-3 premade-themes'
+                        key={'premade-theme-key' + k}
+                    >
                         <div
                             className={activeClass}
                             onClick={() => this.props.updateTheme(premadeTheme)}

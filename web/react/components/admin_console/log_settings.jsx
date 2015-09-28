@@ -101,7 +101,7 @@ export default class LogSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='consoleEnable'
                         >
-                            {'Log To the Console: '}
+                            {'Log To The Console: '}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -125,7 +125,7 @@ export default class LogSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to false in production. Developers may set this field to true to output log messages to console based on the console level option.  If true then the server will output messages to the standard output stream (stdout).'}</p>
+                            <p className='help-text'>{'Typically set to false in production. Developers may set this field to true to output log messages to console based on the console level option.  If true, server writes messages to the standard output stream (stdout).'}</p>
                         </div>
                     </div>
 
@@ -149,7 +149,7 @@ export default class LogSettings extends React.Component {
                                 <option value='INFO'>{'INFO'}</option>
                                 <option value='ERROR'>{'ERROR'}</option>
                             </select>
-                            <p className='help-text'>{'This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers debugging issues working on debugging issues.'}</p>
+                            <p className='help-text'>{'This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.'}</p>
                         </div>
                     </div>
 
@@ -181,7 +181,7 @@ export default class LogSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production.  When true log files are written to the file specified in file location field below.'}</p>
+                            <p className='help-text'>{'Typically set to true in production.  When true, log files are written to the log file specified in file location field below.'}</p>
                         </div>
                     </div>
 
@@ -205,7 +205,7 @@ export default class LogSettings extends React.Component {
                                 <option value='INFO'>{'INFO'}</option>
                                 <option value='ERROR'>{'ERROR'}</option>
                             </select>
-                            <p className='help-text'>{'This setting determines the level of detail at which log events are written to the file. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers debugging issues working on debugging issues.'}</p>
+                            <p className='help-text'>{'This setting determines the level of detail at which log events are written to the log file. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.'}</p>
                         </div>
                     </div>
 
@@ -227,7 +227,7 @@ export default class LogSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.fileEnable}
                             />
-                            <p className='help-text'>{'File to which log files are written. If blank, will be set to ./logs/mattermost.log. Log rotation is enabled and new files may be created in the same directory.'}</p>
+                            <p className='help-text'>{'File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'}</p>
                         </div>
                     </div>
 

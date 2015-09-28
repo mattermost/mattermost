@@ -27,7 +27,7 @@ function handleError(methodName, xhr, status, err) {
         msg = 'error in ' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
         if (xhr.status === 0) {
-            e = {message: 'There appears to be a problem with your internet connection'};
+            e = {message: 'There appears to be a problem with your internet connection', connErrorCount: 1};
         } else {
             e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
         }
@@ -342,6 +342,20 @@ export function testEmail(config, success, error) {
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('testEmail', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getAllTeams(success, error) {
+    $.ajax({
+        url: '/api/v1/teams/all',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getAllTeams', xhr, status, err);
             error(e);
         }
     });
@@ -890,6 +904,21 @@ export function getProfiles(success, error) {
     });
 }
 
+export function getProfilesForTeam(teamId, success, error) {
+    $.ajax({
+        cache: false,
+        url: '/api/v1/users/profiles/' + teamId,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getProfilesForTeam', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function uploadFile(formData, success, error) {
     var request = $.ajax({
         url: '/api/v1/files/upload',
@@ -1011,23 +1040,6 @@ export function getMyTeam(success, error) {
             error(e);
         }
     });
-}
-
-export function updateValetFeature(data, success, error) {
-    $.ajax({
-        url: '/api/v1/teams/update_valet_feature',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateValetFeature', xhr, status, err);
-            error(e);
-        }
-    });
-
-    track('api', 'api_teams_update_valet_feature');
 }
 
 export function registerOAuthApp(app, success, error) {

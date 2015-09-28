@@ -35,7 +35,7 @@ export default class ServiceSettings extends React.Component {
 
         config.ServiceSettings.SegmentDeveloperKey = React.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
         config.ServiceSettings.GoogleDeveloperKey = React.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
-        config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
+        //config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
         config.ServiceSettings.EnableIncomingWebhooks = React.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
         config.ServiceSettings.EnableTesting = React.findDOMNode(this.refs.EnableTesting).checked;
 
@@ -103,7 +103,7 @@ export default class ServiceSettings extends React.Component {
                                 defaultValue={this.props.config.ServiceSettings.ListenAddress}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'The address to bind to and listen.  ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
+                            <p className='help-text'>{'The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
                         </div>
                     </div>
 
@@ -173,42 +173,9 @@ export default class ServiceSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
-                            htmlFor='EnableOAuthServiceProvider'
-                        >
-                            {'Enable OAuth Service Provider: '}
-                        </label>
-                        <div className='col-sm-8'>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableOAuthServiceProvider'
-                                    value='true'
-                                    ref='EnableOAuthServiceProvider'
-                                    defaultChecked={this.props.config.ServiceSettings.EnableOAuthServiceProvider}
-                                    onChange={this.handleChange}
-                                />
-                                    {'true'}
-                            </label>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableOAuthServiceProvider'
-                                    value='false'
-                                    defaultChecked={!this.props.config.ServiceSettings.EnableOAuthServiceProvider}
-                                    onChange={this.handleChange}
-                                />
-                                    {'false'}
-                            </label>
-                            <p className='help-text'>{'When enabled Mattermost will act as an Oauth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
                             htmlFor='EnableIncomingWebhooks'
                         >
-                            {'EnableIncomingWebhooks: '}
+                            {'Enable Incoming Webhooks: '}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -232,7 +199,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true incomming web hooks will be allowed.'}</p>
+                            <p className='help-text'>{'When true, incoming webhooks will be allowed.'}</p>
                         </div>
                     </div>
 
@@ -265,7 +232,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true slash commands like /loadtest are enabled in the add comment box.  Changing this will require a server restart before taking effect.  Typically used for development.'}</p>
+                            <p className='help-text'>{'(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'}</p>
                         </div>
                     </div>
 
@@ -290,6 +257,39 @@ export default class ServiceSettings extends React.Component {
         );
     }
 }
+
+// <div className='form-group'>
+//     <label
+//         className='control-label col-sm-4'
+//         htmlFor='EnableOAuthServiceProvider'
+//     >
+//         {'Enable OAuth Service Provider: '}
+//     </label>
+//     <div className='col-sm-8'>
+//         <label className='radio-inline'>
+//             <input
+//                 type='radio'
+//                 name='EnableOAuthServiceProvider'
+//                 value='true'
+//                 ref='EnableOAuthServiceProvider'
+//                 defaultChecked={this.props.config.ServiceSettings.EnableOAuthServiceProvider}
+//                 onChange={this.handleChange}
+//             />
+//                 {'true'}
+//         </label>
+//         <label className='radio-inline'>
+//             <input
+//                 type='radio'
+//                 name='EnableOAuthServiceProvider'
+//                 value='false'
+//                 defaultChecked={!this.props.config.ServiceSettings.EnableOAuthServiceProvider}
+//                 onChange={this.handleChange}
+//             />
+//                 {'false'}
+//         </label>
+//         <p className='help-text'>{'When enabled Mattermost will act as an OAuth2 Provider.  Changing this will require a server restart before taking effect.'}</p>
+//     </div>
+// </div>
 
 ServiceSettings.propTypes = {
     config: React.PropTypes.object

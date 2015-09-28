@@ -25,12 +25,12 @@ func InitTeam(r *mux.Router) {
 	sr.Handle("/create_from_signup", ApiAppHandler(createTeamFromSignup)).Methods("POST")
 	sr.Handle("/create_with_sso/{service:[A-Za-z]+}", ApiAppHandler(createTeamFromSSO)).Methods("POST")
 	sr.Handle("/signup", ApiAppHandler(signupTeam)).Methods("POST")
+	sr.Handle("/all", ApiUserRequired(getAll)).Methods("GET")
 	sr.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
 	sr.Handle("/find_teams", ApiAppHandler(findTeams)).Methods("POST")
 	sr.Handle("/email_teams", ApiAppHandler(emailTeams)).Methods("POST")
 	sr.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
 	sr.Handle("/update_name", ApiUserRequired(updateTeamDisplayName)).Methods("POST")
-	sr.Handle("/update_valet_feature", ApiUserRequired(updateValetFeature)).Methods("POST")
 	sr.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
 	// These should be moved to the global admain console
 	sr.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
@@ -302,6 +302,53 @@ func isTreamCreationAllowed(c *Context, email string) bool {
 	return true
 }
 
+func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("getLogs") {
+		return
+	}
+
+	if result := <-Srv.Store.Team().GetAll(); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teams := result.Data.([]*model.Team)
+		m := make(map[string]*model.Team)
+		for _, v := range teams {
+			m[v.Id] = v
+		}
+
+		w.Write([]byte(model.TeamMapToJson(m)))
+	}
+}
+
+func revokeAllSessions(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	id := props["id"]
+
+	if result := <-Srv.Store.Session().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		session := result.Data.(*model.Session)
+
+		c.LogAudit("revoked_all=" + id)
+
+		if session.IsOAuth {
+			RevokeAccessToken(session.Token)
+		} else {
+			sessionCache.Remove(session.Token)
+
+			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				c.Err = result.Err
+				return
+			} else {
+				w.Write([]byte(model.MapToJson(props)))
+				return
+			}
+		}
+	}
+}
+
 func findTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	m := model.MapFromJson(r.Body)
@@ -526,52 +573,6 @@ func updateTeamDisplayName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-Srv.Store.Team().UpdateDisplayName(new_name, c.Session.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	}
-
-	w.Write([]byte(model.MapToJson(props)))
-}
-
-func updateValetFeature(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	props := model.MapFromJson(r.Body)
-
-	allowValetStr := props["allow_valet"]
-	if len(allowValetStr) == 0 {
-		c.SetInvalidParam("updateValetFeature", "allow_valet")
-		return
-	}
-
-	teamId := props["team_id"]
-	if len(teamId) > 0 && len(teamId) != 26 {
-		c.SetInvalidParam("updateValetFeature", "team_id")
-		return
-	} else if len(teamId) == 0 {
-		teamId = c.Session.TeamId
-	}
-
-	tchan := Srv.Store.Team().Get(teamId)
-
-	if !c.HasPermissionsToTeam(teamId, "updateValetFeature") {
-		return
-	}
-
-	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
-		c.Err = model.NewAppError("updateValetFeature", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	var team *model.Team
-	if tResult := <-tchan; tResult.Err != nil {
-		c.Err = tResult.Err
-		return
-	} else {
-		team = tResult.Data.(*model.Team)
-	}
-
-	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
 		c.Err = result.Err
 		return
 	}

@@ -99,7 +99,7 @@ export default class PrivacySettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Hides email address of users from other users including team administrator.'}</p>
+                            <p className='help-text'>{'When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'}</p>
                         </div>
                     </div>
 
@@ -132,7 +132,7 @@ export default class PrivacySettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Hides full name of users from other users including team administrator.'}</p>
+                            <p className='help-text'>{'When false, hides full name of users from other users including team owner and team administrators.'}</p>
                         </div>
                     </div>
 

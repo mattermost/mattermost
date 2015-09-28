@@ -25,7 +25,8 @@ export default class ActivityLogModal extends React.Component {
             clientError: null
         };
     }
-    submitRevoke(altId) {
+    submitRevoke(altId, e) {
+        e.preventDefault();
         Client.revokeSession(altId,
             function handleRevokeSuccess() {
                 AsyncClient.getSessions();
@@ -86,7 +87,7 @@ export default class ActivityLogModal extends React.Component {
                         <div>{`First time active: ${firstAccessTime.toDateString()}, ${lastAccessTime.toLocaleTimeString()}`}</div>
                         <div>{`OS: ${currentSession.props.os}`}</div>
                         <div>{`Browser: ${currentSession.props.browser}`}</div>
-                        <div>{`Session ID: ${currentSession.alt_id}`}</div>
+                        <div>{`Session ID: ${currentSession.id}`}</div>
                     </div>
                 );
             } else {
@@ -115,7 +116,7 @@ export default class ActivityLogModal extends React.Component {
                     </div>
                     <div className='activity-log__action'>
                         <button
-                            onClick={this.submitRevoke.bind(this, currentSession.alt_id)}
+                            onClick={this.submitRevoke.bind(this, currentSession.id)}
                             className='btn btn-primary'
                         >
                             Logout

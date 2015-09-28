@@ -51,6 +51,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
 	sr.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("GET")
 	sr.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
+	sr.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}", ApiUserRequired(getUser)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/sessions", ApiUserRequired(getSessions)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/audits", ApiUserRequired(getAudits)).Methods("GET")
@@ -166,6 +167,19 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	if team.Email == user.Email {
 		user.Roles = model.ROLE_TEAM_ADMIN
 		channelRole = model.CHANNEL_ROLE_ADMIN
+
+		// Below is a speical case where the first user in the entire
+		// system is granted the system_admin role instead of admin
+		if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
+			c.Err = result.Err
+			return nil
+		} else {
+			count := result.Data.(int64)
+			if count <= 0 {
+				user.Roles = model.ROLE_SYSTEM_ADMIN
+			}
+		}
+
 	} else {
 		user.Roles = ""
 	}
@@ -184,7 +198,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		//fireAndForgetWelcomeEmail(ruser.FirstName, ruser.Email, team.Name, c.TeamURL+"/channels/town-square")
+		fireAndForgetWelcomeEmail(ruser.Email, team.DisplayName, c.GetTeamURLFromTeam(team))
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
@@ -204,17 +218,13 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func fireAndForgetWelcomeEmail(name, email, teamDisplayName, link, siteURL string) {
+func fireAndForgetWelcomeEmail(email, teamDisplayName, teamURL string) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject")
-		subjectPage.Props["SiteURL"] = siteURL
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage := NewServerTemplatePage("welcome_body")
-		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["Nickname"] = name
-		bodyPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage.Props["FeedbackName"] = utils.Cfg.EmailSettings.FeedbackName
-		bodyPage.Props["TeamURL"] = link
+		bodyPage.Props["TeamURL"] = teamURL
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error("Failed to send welcome email successfully err=%v", err)
@@ -550,13 +560,26 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, ok := params["id"]
+	if ok {
+		// You must be system admin to access another team
+		if id != c.Session.TeamId {
+			if !c.HasSystemAdminPermissions("getProfiles") {
+				return
+			}
+		}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(c.Session.TeamId)).Data.(string)
+	} else {
+		id = c.Session.TeamId
+	}
+
+	etag := (<-Srv.Store.User().GetEtagForProfiles(id)).Data.(string)
 	if HandleEtag(etag, w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfiles(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -794,6 +817,9 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
 
 	c.LogAudit("")
+
+	// write something as the response since jQuery expects a json response
+	w.Write([]byte("true"))
 }
 
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -924,8 +950,8 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) {
-		c.Err = model.NewAppError("updateRoles", "The system_admin role can only be set from the command line", "")
+	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("updateRoles", "The system_admin role can only be set by another system admin", "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1155,29 +1181,35 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := props["hash"]
-	if len(hash) == 0 {
-		c.SetInvalidParam("resetPassword", "hash")
-		return
-	}
-
-	data := model.MapFromJson(strings.NewReader(props["data"]))
-
-	userId := data["user_id"]
-	if len(userId) != 26 {
-		c.SetInvalidParam("resetPassword", "data:user_id")
-		return
-	}
-
-	timeStr := data["time"]
-	if len(timeStr) == 0 {
-		c.SetInvalidParam("resetPassword", "data:time")
-		return
-	}
-
 	name := props["name"]
 	if len(name) == 0 {
 		c.SetInvalidParam("resetPassword", "name")
+		return
+	}
+
+	userId := props["user_id"]
+	hash := props["hash"]
+	timeStr := ""
+
+	if !c.IsSystemAdmin() {
+		if len(hash) == 0 {
+			c.SetInvalidParam("resetPassword", "hash")
+			return
+		}
+
+		data := model.MapFromJson(strings.NewReader(props["data"]))
+
+		userId = data["user_id"]
+
+		timeStr = data["time"]
+		if len(timeStr) == 0 {
+			c.SetInvalidParam("resetPassword", "data:time")
+			return
+		}
+	}
+
+	if len(userId) != 26 {
+		c.SetInvalidParam("resetPassword", "user_id")
 		return
 	}
 
@@ -1205,15 +1237,17 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", props["data"], utils.Cfg.EmailSettings.PasswordResetSalt)) {
-		c.Err = model.NewAppError("resetPassword", "The reset password link does not appear to be valid", "")
-		return
-	}
+	if !c.IsSystemAdmin() {
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", props["data"], utils.Cfg.EmailSettings.PasswordResetSalt)) {
+			c.Err = model.NewAppError("resetPassword", "The reset password link does not appear to be valid", "")
+			return
+		}
 
-	t, err := strconv.ParseInt(timeStr, 10, 64)
-	if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
-		c.Err = model.NewAppError("resetPassword", "The reset link has expired", "")
-		return
+		t, err := strconv.ParseInt(timeStr, 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60 { // one hour
+			c.Err = model.NewAppError("resetPassword", "The reset link has expired", "")
+			return
+		}
 	}
 
 	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	"image"
@@ -407,6 +408,19 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
 	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(filename)))
+
+	// attach extra headers to trigger a download on IE and Edge
+	ua := user_agent.New(r.UserAgent())
+	bname, _ := ua.Browser()
+
+	if bname == "Edge" || bname == "Internet Explorer" {
+		// trim off anything before the final / so we just get the file's name
+		parts := strings.Split(filename, "/")
+
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+parts[len(parts)-1]+"\"")
+	}
+
 	w.Write(f)
 }
 

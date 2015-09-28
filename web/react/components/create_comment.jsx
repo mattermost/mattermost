@@ -28,6 +28,7 @@ export default class CreateComment extends React.Component {
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
+        this.handleTextDrop = this.handleTextDrop.bind(this);
         this.removePreview = this.removePreview.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
@@ -41,6 +42,12 @@ export default class CreateComment extends React.Component {
             previews: draft.previews,
             submitting: false
         };
+    }
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.uploadsInProgress < this.state.uploadsInProgress) {
+            $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+            $('.post-right__scroll').perfectScrollbar('update');
+        }
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -178,6 +185,11 @@ export default class CreateComment extends React.Component {
             this.setState({serverError: err});
         }
     }
+    handleTextDrop(text) {
+        const newText = this.state.messageText + text;
+        this.handleUserInput(newText);
+        Utils.setCaretPosition(React.findDOMNode(this.refs.textbox.refs.message), newText.length);
+    }
     removePreview(id) {
         let previews = this.state.previews;
         let uploadsInProgress = this.state.uploadsInProgress;
@@ -264,6 +276,7 @@ export default class CreateComment extends React.Component {
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
+                            onTextDrop={this.handleTextDrop}
                             postType='comment'
                             channelId={this.props.channelId}
                         />

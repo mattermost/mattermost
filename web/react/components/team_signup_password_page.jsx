@@ -53,7 +53,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                         props.state.wizard = 'finished';
                         props.updateParent(props.state, true);
 
-                        window.location.href = '/';
+                        window.location.href = '/' + teamSignup.team.name + '/channels/town-square';
                     }.bind(this),
                     function loginFail(err) {
                         if (err.message === 'Login failed because email address has not been verified') {

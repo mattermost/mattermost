@@ -150,6 +150,16 @@ func (c *Client) CreateTeam(team *Team) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetAllTeams() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/teams/all", "", ""); err != nil {
+		return nil, err
+	} else {
+
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) FindTeamByName(name string, allServers bool) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["name"] = name
@@ -208,15 +218,6 @@ func (c *Client) UpdateTeamDisplayName(data map[string]string) (*Result, *AppErr
 	}
 }
 
-func (c *Client) UpdateValetFeature(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/teams/update_valet_feature", MapToJson(data)); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
 func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/create", user.ToJson()); err != nil {
 		return nil, err
@@ -254,7 +255,7 @@ func (c *Client) GetMe(etag string) (*Result, *AppError) {
 }
 
 func (c *Client) GetProfiles(teamId string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/profiles", "", etag); err != nil {
+	if r, err := c.DoApiGet("/users/profiles/"+teamId, "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -563,15 +564,6 @@ func (c *Client) GetChannelExtraInfo(id string, etag string) (*Result, *AppError
 
 func (c *Client) CreatePost(post *Post) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/create", post.ToJson()); err != nil {
-		return nil, err
-	} else {
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
-	}
-}
-
-func (c *Client) CreateValetPost(post *Post) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/channels/"+post.ChannelId+"/valet_create", post.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

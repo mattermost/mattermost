@@ -111,7 +111,6 @@ export default class RhsRootPost extends React.Component {
             fileAttachment = (
                 <FileAttachmentList
                     filenames={post.filenames}
-                    modalId={'rhs_view_image_modal_' + post.id}
                     channelId={post.channel_id}
                     userId={post.user_id}
                 />
@@ -133,10 +132,7 @@ export default class RhsRootPost extends React.Component {
                     <ul className='post-header'>
                         <li className='post-header-col'><strong><UserProfile userId={post.user_id} /></strong></li>
                         <li className='post-header-col'>
-                            <time
-                                className='post-profile-time'
-                                title={new Date(post.create_at).toString()}
-                            >
+                            <time className='post-profile-time'>
                                 {utils.displayCommentDateTime(post.create_at)}
                             </time>
                         </li>

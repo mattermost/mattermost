@@ -23,7 +23,6 @@ const (
 	USER_NOTIFY_ALL      = "all"
 	USER_NOTIFY_MENTION  = "mention"
 	USER_NOTIFY_NONE     = "none"
-	BOT_USERNAME         = "valet"
 )
 
 type User struct {

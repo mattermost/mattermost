@@ -175,8 +175,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
 		l4g.Error("Couldn't find team name=%v, teamURL=%v, err=%v", teamName, c.GetTeamURL(), tResult.Err.Message)
-		// This should probably do somthing nicer
-		http.Redirect(w, r, "http://"+r.Host, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
 		team = tResult.Data.(*model.Team)

@@ -110,7 +110,7 @@ export default class FileUpload extends React.Component {
         if (typeof files !== 'string' && files.length) {
             this.uploadFiles(files);
         } else {
-            this.props.onUploadError('Invalid file upload', -1);
+            this.props.onTextDrop(e.originalEvent.dataTransfer.getData('Text'));
         }
     }
 
@@ -266,6 +266,7 @@ FileUpload.propTypes = {
     getFileCount: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
+    onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string
 };

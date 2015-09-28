@@ -371,6 +371,32 @@ export function getConfig() {
     );
 }
 
+export function getAllTeams() {
+    if (isCallInProgress('getAllTeams')) {
+        return;
+    }
+
+    callTracker.getAllTeams = utils.getTimestamp();
+    client.getAllTeams(
+        (data, textStatus, xhr) => {
+            callTracker.getAllTeams = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_ALL_TEAMS,
+                teams: data
+            });
+        },
+        (err) => {
+            callTracker.getAllTeams = 0;
+            dispatchError(err, 'getAllTeams');
+        }
+    );
+}
+
 export function findTeams(email) {
     if (isCallInProgress('findTeams_' + email)) {
         return;

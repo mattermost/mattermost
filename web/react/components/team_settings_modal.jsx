@@ -20,8 +20,8 @@ export default class TeamSettingsModal extends React.Component {
         $('body').on('click', '.modal-back', function handleBackClick() {
             $(this).closest('.modal-dialog').removeClass('display--content');
         });
-        $('body').on('click', '.modal-header .close', function handleCloseClick() {
-            setTimeout(function removeContent() {
+        $('body').on('click', '.modal-header .close', () => {
+            setTimeout(() => {
                 $('.modal-dialog.display--content').removeClass('display--content');
             }, 500);
         });
@@ -33,11 +33,12 @@ export default class TeamSettingsModal extends React.Component {
         this.setState({activeSection: section});
     }
     render() {
-        let tabs = [];
+        const tabs = [];
         tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
         tabs.push({name: 'import', uiName: 'Import', icon: 'glyphicon glyphicon-upload'});
-        tabs.push({name: 'export', uiName: 'Export', icon: 'glyphicon glyphicon-download'});
-        tabs.push({name: 'feature', uiName: 'Advanced', icon: 'glyphicon glyphicon-wrench'});
+
+        // To enable export uncomment this line
+        //tabs.push({name: 'export', uiName: 'Export', icon: 'glyphicon glyphicon-download'});
 
         return (
             <div
@@ -63,7 +64,7 @@ export default class TeamSettingsModal extends React.Component {
                                 className='modal-title'
                                 ref='title'
                             >
-                                Team Settings
+                                {'Team Settings'}
                             </h4>
                         </div>
                         <div className='modal-body'>

@@ -456,18 +456,19 @@ func IsPrivateIpAddress(ipAddress string) bool {
 }
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
+	props := make(map[string]string)
+	props["Message"] = err.Message
+	props["Details"] = err.DetailedError
 
-	protocol := GetProtocol(r)
-	SiteURL := protocol + "://" + r.Host
-
-	m := make(map[string]string)
-	m["Message"] = err.Message
-	m["Details"] = err.DetailedError
-	m["SiteName"] = utils.Cfg.TeamSettings.SiteName
-	m["SiteURL"] = SiteURL
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) > 1 {
+		props["SiteURL"] = GetProtocol(r) + "://" + r.Host + "/" + pathParts[1]
+	} else {
+		props["SiteURL"] = GetProtocol(r) + "://" + r.Host
+	}
 
 	w.WriteHeader(err.StatusCode)
-	ServerTemplates.ExecuteTemplate(w, "error.html", m)
+	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientProps: utils.ClientProperties})
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {

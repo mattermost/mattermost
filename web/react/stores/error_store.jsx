@@ -48,7 +48,7 @@ class ErrorStoreClass extends EventEmitter {
 
 var ErrorStore = new ErrorStoreClass();
 
-ErrorStore.dispatchToken = AppDispatcher.register(function registry(payload) {
+ErrorStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
     switch (action.type) {
     case ActionTypes.RECIEVED_ERROR:

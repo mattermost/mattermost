@@ -3,6 +3,7 @@
 }
 .modal {
 	width: 100%;
+	color: #333;
 	&.image_modal {
 		.modal-backdrop.in {
 			@include opacity(0.7);
@@ -10,12 +11,26 @@
 	}
 	a, a:focus, a:hover {
 		color: #2389D7;
+		&.text-danger {
+			color: #a94442;
+		}
 	}
-	.btn.btn-primary {
-		background: #4285f4;
-		&:hover, &:focus, &:active {
-			background: $primary-color--hover;
-			color: #fff;
+	.custom-textarea {
+		color: inherit;
+		border-color: #ccc;
+		&:focus {
+			border-color: #ccc;
+			box-shadow: none;
+		}
+	}
+	.btn {
+		font-size: 13px;
+		&.btn-primary {
+			background: #4285f4;
+			&:hover, &:focus, &:active {
+				background: $primary-color--hover;
+				color: #fff;
+			}
 		}
 	}
 	.info__label {
@@ -181,15 +196,12 @@
 			position: relative;
 			max-width: 90%;
 			min-height: 100px;
-			min-width: 320px;
+			min-width: 240px;
 			@include border-radius(3px);
 			display: table;
 			margin: 0 auto;
 			&:hover {
 				@include border-radius(3px 3px 0 0);
-			}
-			&:hover .modal-close {
-				@include opacity(1);
 			}
 			&.default {
 				width: 100%;
@@ -204,8 +216,15 @@
 				right: -13px;
 				top: -13px;
 				@include opacity(0);
+				-webkit-transition: opacity 0.6s;
+				-moz-transition: opacity 0.6s;
+				-o-transition: opacity 0.6s;
+				transition: opacity 0.6s;
 				cursor: pointer;
 				z-index: 9999;
+				&.modal-close--show {
+					@include opacity(1);
+				}
 			}
 			> a {
 				background: #FFF;
@@ -217,7 +236,7 @@
 				max-height: 100%;
 			}
 		}
-		.image-content {
+		.modal-content{
 			box-shadow: none;
 			background: rgba(0, 0, 0, 0);
 			width: 100%;
@@ -300,6 +319,7 @@
 		}
 	}
 }
+
 
 // Invite New Member
 .invite {

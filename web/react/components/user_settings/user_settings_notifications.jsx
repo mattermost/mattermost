@@ -265,9 +265,12 @@ export default class NotificationsTab extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
+            const extraInfo = <span>{'Desktop notifications are available on Firefox, Safari, and Chrome.'}</span>;
+
             desktopSection = (
                 <SettingItemMax
                     title='Send desktop notifications'
+                    extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -343,9 +346,12 @@ export default class NotificationsTab extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
+            const extraInfo = <span>{'Desktop notification sounds are available on Firefox, Safari, Chrome, Internet Explorer, and Edge.'}</span>;
+
             soundSection = (
                 <SettingItemMax
                     title='Desktop notification sounds'
+                    extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}

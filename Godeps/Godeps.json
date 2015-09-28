@@ -84,8 +84,8 @@
 		},
 		{
 			"ImportPath": "github.com/mssola/user_agent",
-			"Comment": "v0.4.1-2-g35c7f18",
-			"Rev": "35c7f18f5261cc18c698a461053c119aebaf8542"
+			"Comment": "v0.4.1-4-ga163d6a",
+			"Rev": "a163d6a569f1cd264d2f8b2bf3c5d04ace5995eb"
 		},
 		{
 			"ImportPath": "github.com/rwcarlsen/goexif/exif",

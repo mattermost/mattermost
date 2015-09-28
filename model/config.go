@@ -112,7 +112,6 @@ type PrivacySettings struct {
 type TeamSettings struct {
 	SiteName                  string
 	MaxUsersPerTeam           int
-	DefaultThemeColor         string
 	EnableTeamCreation        bool
 	EnableUserCreation        bool
 	RestrictCreationToDomains string

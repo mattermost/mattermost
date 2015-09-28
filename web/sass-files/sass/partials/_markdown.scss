@@ -1,5 +1,21 @@
 .markdown__heading {
-	font-weight: bold;
+	font-weight: 700;
+}
+.markdown__paragraph-inline {
+	display: inline;
+	+ .markdown__paragraph-inline {
+		margin-left: 4px;
+	}
+}
+.post-body {
+	hr {
+		height: 4px;
+		padding: 0;
+		margin: 15px 0 16px;
+		background-color: #e7e7e7;
+		border: 0 none;
+		@include opacity(0.2);
+	}
 }
 .markdown__table {
 	background: #fff;
@@ -15,6 +31,26 @@
 		}
 	}
 }
+blockquote {
+	border: none;
+	position: relative;
+	font-size: 16px;
+	padding: 10px 10px 10px 38px;
+	margin-bottom: 0;
+	&:before {
+		font-family: FontAwesome;
+		font-weight: normal;
+		font-style: normal;
+		display: inline-block;
+		text-decoration: inherit;
+		content: "\f10d";
+		left: 8px;
+		top: 5px;
+		position: absolute;
+		font-size: 20px;
+		@include opacity(0.6);
+	}
+}
 pre {
 	border: none;
 	background-color: #f7f7f7;
@@ -25,4 +61,7 @@ pre {
 	code {
 		color: #c7254e;
 	}
+}
+code {
+	background: #fff;
 }

@@ -26,6 +26,7 @@ var ChannelInviteModal = require('../components/channel_invite_modal.jsx');
 var TeamMembersModal = require('../components/team_members.jsx');
 var DirectChannelModal = require('../components/more_direct_channels.jsx');
 var ErrorBar = require('../components/error_bar.jsx');
+var ErrorStore = require('../stores/error_store.jsx');
 var ChannelLoader = require('../components/channel_loader.jsx');
 var MentionList = require('../components/mention_list.jsx');
 var ChannelInfoModal = require('../components/channel_info_modal.jsx');
@@ -234,6 +235,11 @@ function setupChannelPage(props) {
         <RegisterAppModal />,
         document.getElementById('register_app_modal')
     );
+
+    if (global.window.config.SendEmailNotifications === 'false') {
+        ErrorStore.storeLastError({message: 'Preview Mode: Email notifications have not been configured'});
+        ErrorStore.emitChange();
+    }
 }
 
 global.window.setup_channel_page = setupChannelPage;

@@ -163,7 +163,6 @@ export default class RhsComment extends React.Component {
             fileAttachment = (
                 <FileAttachmentList
                     filenames={post.filenames}
-                    modalId={'rhs_comment_view_image_modal_' + post.id}
                     channelId={post.channel_id}
                     userId={post.user_id}
                 />
@@ -186,10 +185,7 @@ export default class RhsComment extends React.Component {
                             <strong><UserProfile userId={post.user_id} /></strong>
                         </li>
                         <li className='post-header-col'>
-                            <time
-                                className='post-profile-time'
-                                title={new Date(post.create_at).toString()}
-                            >
+                            <time className='post-profile-time'>
                                 {Utils.displayCommentDateTime(post.create_at)}
                             </time>
                         </li>

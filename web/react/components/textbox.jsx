@@ -5,7 +5,6 @@ const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 const PostStore = require('../stores/post_store.jsx');
 const CommandList = require('./command_list.jsx');
 const ErrorStore = require('../stores/error_store.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
 
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
@@ -18,7 +17,6 @@ export default class Textbox extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
-        this.onTimerInterrupt = this.onTimerInterrupt.bind(this);
         this.updateMentionTab = this.updateMentionTab.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -35,8 +33,7 @@ export default class Textbox extends React.Component {
         this.state = {
             mentionText: '-1',
             mentions: [],
-            connection: '',
-            timerInterrupt: null
+            connection: ''
         };
 
         this.caret = -1;
@@ -44,6 +41,7 @@ export default class Textbox extends React.Component {
         this.doProcessMentions = false;
         this.mentions = [];
     }
+
     getStateFromStores() {
         const error = ErrorStore.getLastError();
 
@@ -53,6 +51,7 @@ export default class Textbox extends React.Component {
 
         return {message: null};
     }
+
     componentDidMount() {
         PostStore.addAddMentionListener(this.onListenerChange);
         ErrorStore.addChangeListener(this.onRecievedError);
@@ -60,46 +59,28 @@ export default class Textbox extends React.Component {
         this.resize();
         this.updateMentionTab(null);
     }
+
     componentWillUnmount() {
         PostStore.removeAddMentionListener(this.onListenerChange);
         ErrorStore.removeChangeListener(this.onRecievedError);
     }
+
     onListenerChange(id, username) {
         if (id === this.props.id) {
             this.addMention(username);
         }
     }
+
     onRecievedError() {
-        const errorState = this.getStateFromStores();
+        const errorState = ErrorStore.getLastError();
 
-        if (this.state.timerInterrupt !== null) {
-            window.clearInterval(this.state.timerInterrupt);
-            this.setState({timerInterrupt: null});
-        }
-
-        if (errorState.message === 'There appears to be a problem with your internet connection') {
+        if (errorState && errorState.connErrorCount > 0) {
             this.setState({connection: 'bad-connection'});
-            const timerInterrupt = window.setInterval(this.onTimerInterrupt, 5000);
-            this.setState({timerInterrupt: timerInterrupt});
         } else {
             this.setState({connection: ''});
         }
     }
-    onTimerInterrupt() {
-        // Since these should only happen when you have no connection and slightly briefly after any
-        // performance hit should not matter
-        if (this.state.connection === 'bad-connection') {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECIEVED_ERROR,
-                err: null
-            });
 
-            AsyncClient.updateLastViewedAt();
-        }
-
-        window.clearInterval(this.state.timerInterrupt);
-        this.setState({timerInterrupt: null});
-    }
     componentDidUpdate() {
         if (this.caret >= 0) {
             Utils.setCaretPosition(React.findDOMNode(this.refs.message), this.caret);
@@ -111,6 +92,7 @@ export default class Textbox extends React.Component {
         }
         this.resize();
     }
+
     componentWillReceiveProps(nextProps) {
         if (!this.addedMention) {
             this.checkForNewMention(nextProps.messageText);
@@ -122,19 +104,22 @@ export default class Textbox extends React.Component {
         this.addedMention = false;
         this.refs.commands.getSuggestedCommands(nextProps.messageText);
     }
+
     updateMentionTab(mentionText) {
         // using setTimeout so dispatch isn't called during an in progress dispatch
-        setTimeout(function updateMentionTabAfterTimeout() {
+        setTimeout(() => {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_MENTION_DATA,
                 id: this.props.id,
                 mention_text: mentionText
             });
-        }.bind(this), 1);
+        }, 1);
     }
+
     handleChange() {
         this.props.onUserInput(React.findDOMNode(this.refs.message).value);
     }
+
     handleKeyPress(e) {
         const text = React.findDOMNode(this.refs.message).value;
 
@@ -157,6 +142,7 @@ export default class Textbox extends React.Component {
 
         this.props.onKeyPress(e);
     }
+
     handleKeyDown(e) {
         if (Utils.getSelectedText(React.findDOMNode(this.refs.message)) !== '') {
             this.doProcessMentions = true;
@@ -166,6 +152,7 @@ export default class Textbox extends React.Component {
             this.handleBackspace(e);
         }
     }
+
     handleBackspace() {
         const text = React.findDOMNode(this.refs.message).value;
         if (text.indexOf('/') === 0) {
@@ -185,6 +172,7 @@ export default class Textbox extends React.Component {
             this.doProcessMentions = true;
         }
     }
+
     checkForNewMention(text) {
         const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
 
@@ -211,6 +199,7 @@ export default class Textbox extends React.Component {
         const name = preText.substring(atIndex + 1, preText.length).toLowerCase();
         this.updateMentionTab(name);
     }
+
     addMention(name) {
         const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
 
@@ -233,11 +222,13 @@ export default class Textbox extends React.Component {
 
         this.props.onUserInput(`${prefix}@${name} ${suffix}`);
     }
+
     addCommand(cmd) {
         const elm = React.findDOMNode(this.refs.message);
         elm.value = cmd;
         this.handleChange();
     }
+
     resize() {
         const e = React.findDOMNode(this.refs.message);
         const w = React.findDOMNode(this.refs.wrapper);
@@ -264,21 +255,25 @@ export default class Textbox extends React.Component {
             this.props.onHeightChange();
         }
     }
+
     handleFocus() {
         const elm = React.findDOMNode(this.refs.message);
         if (elm.title === elm.value) {
             elm.value = '';
         }
     }
+
     handleBlur() {
         const elm = React.findDOMNode(this.refs.message);
         if (elm.value === '') {
             elm.value = elm.title;
         }
     }
+
     handlePaste() {
         this.doProcessMentions = true;
     }
+
     render() {
         return (
             <div

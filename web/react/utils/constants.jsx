@@ -35,8 +35,8 @@ module.exports = {
         RECIEVED_TEAM: null,
 
         RECIEVED_CONFIG: null,
-
         RECIEVED_LOGS: null,
+        RECIEVED_ALL_TEAMS: null,
 
         TOGGLE_IMPORT_THEME_MODAL: null
     }),
@@ -72,6 +72,10 @@ module.exports = {
     MAX_FILE_SIZE: 50000000, // 50 MB
     THUMBNAIL_WIDTH: 128,
     THUMBNAIL_HEIGHT: 100,
+    WEB_VIDEO_WIDTH: 640,
+    WEB_VIDEO_HEIGHT: 480,
+    MOBILE_VIDEO_WIDTH: 480,
+    MOBILE_VIDEO_HEIGHT: 360,
     DEFAULT_CHANNEL: 'town-square',
     OFFTOPIC_CHANNEL: 'off-topic',
     GITLAB_SERVICE: 'gitlab',
@@ -130,32 +134,34 @@ module.exports = {
             mentionColor: '#ffffff',
             centerChannelBg: '#ffffff',
             centerChannelColor: '#333333',
+            newMessageSeparator: '#FF8800',
             linkColor: '#2389d7',
             buttonBg: '#2389d7',
             buttonColor: '#FFFFFF'
         },
-        slack: {
-            type: 'Slack',
-            sidebarBg: '#4D394B',
-            sidebarText: '#ab9ba9',
-            sidebarUnreadText: '#FFFFFF',
-            sidebarTextHoverBg: '#3e313c',
-            sidebarTextHoverColor: '#ab9ba9',
-            sidebarTextActiveBg: '#4c9689',
+        organization: {
+            type: 'Organization',
+            sidebarBg: '#2071a7',
+            sidebarText: '#bfcde8',
+            sidebarUnreadText: '#fff',
+            sidebarTextHoverBg: '#136197',
+            sidebarTextHoverColor: '#bfcde8',
+            sidebarTextActiveBg: '#136197',
             sidebarTextActiveColor: '#FFFFFF',
-            sidebarHeaderBg: '#4D394B',
+            sidebarHeaderBg: '#2f81b7',
             sidebarHeaderTextColor: '#FFFFFF',
-            onlineIndicator: '#4c9689',
-            mentionBj: '#eb4d5c',
-            mentionColor: '#FFFFFF',
-            centerChannelBg: '#FFFFFF',
+            onlineIndicator: '#7DBE00',
+            mentionBj: '#136197',
+            mentionColor: '#bfcde8',
+            centerChannelBg: '#f2f4f8',
             centerChannelColor: '#333333',
-            linkColor: '#2389d7',
-            buttonBg: '#26a970',
+            newMessageSeparator: '#FF8800',
+            linkColor: '#2f81b7',
+            buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF'
         },
-        dark: {
-            type: 'Dark',
+        mattermostDark: {
+            type: 'Mattermost Dark',
             sidebarBg: '#1B2C3E',
             sidebarText: '#bbbbbb',
             sidebarUnreadText: '#fff',
@@ -165,13 +171,35 @@ module.exports = {
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1B2C3E',
             sidebarHeaderTextColor: '#FFFFFF',
-            onlineIndicator: '#4c9689',
+            onlineIndicator: '#55C5B2',
             mentionBj: '#B74A4A',
             mentionColor: '#FFFFFF',
             centerChannelBg: '#2F3E4E',
             centerChannelColor: '#DDDDDD',
+            newMessageSeparator: '#5de5da',
             linkColor: '#A4FFEB',
-            buttonBg: '#2B9C99',
+            buttonBg: '#1dacfc',
+            buttonColor: '#FFFFFF'
+        },
+        windows10: {
+            type: 'Windows Dark',
+            sidebarBg: '#171717',
+            sidebarText: '#eee',
+            sidebarUnreadText: '#fff',
+            sidebarTextHoverBg: '#302e30',
+            sidebarTextHoverColor: '#fff',
+            sidebarTextActiveBg: '#484748',
+            sidebarTextActiveColor: '#FFFFFF',
+            sidebarHeaderBg: '#1f1f1f',
+            sidebarHeaderTextColor: '#FFFFFF',
+            onlineIndicator: '#0177e7',
+            mentionBj: '#0177e7',
+            mentionColor: '#FFFFFF',
+            centerChannelBg: '#1F1F1F',
+            centerChannelColor: '#DDDDDD',
+            newMessageSeparator: '#CC992D',
+            linkColor: '#0177e7',
+            buttonBg: '#0177e7',
             buttonColor: '#FFFFFF'
         }
     },
@@ -182,7 +210,7 @@ module.exports = {
         },
         {
             id: 'sidebarText',
-            uiName: 'Sidebar text color'
+            uiName: 'Sidebar Text'
         },
         {
             id: 'sidebarHeaderBg',
@@ -190,51 +218,55 @@ module.exports = {
         },
         {
             id: 'sidebarHeaderTextColor',
-            uiName: 'Sidebar Header text color'
+            uiName: 'Sidebar Header Text'
         },
         {
             id: 'sidebarUnreadText',
-            uiName: 'Sidebar unread text color'
+            uiName: 'Sidebar Unread Text'
         },
         {
             id: 'sidebarTextHoverBg',
-            uiName: 'Sidebar text hover BG'
+            uiName: 'Sidebar Text Hover BG'
         },
         {
             id: 'sidebarTextHoverColor',
-            uiName: 'Sidebar text hover color'
+            uiName: 'Sidebar Text Hover Color'
         },
         {
             id: 'sidebarTextActiveBg',
-            uiName: 'Sidebar text active BG'
+            uiName: 'Sidebar Text Active BG'
         },
         {
             id: 'sidebarTextActiveColor',
-            uiName: 'Sidebar text active color'
+            uiName: 'Sidebar Text Active Color'
         },
         {
             id: 'onlineIndicator',
-            uiName: 'Online indicator'
+            uiName: 'Online Indicator'
         },
         {
             id: 'mentionBj',
-            uiName: 'Mention jewel BG'
+            uiName: 'Mention Jewel BG'
         },
         {
             id: 'mentionColor',
-            uiName: 'Mention jewel text color'
+            uiName: 'Mention Jewel Text'
         },
         {
             id: 'centerChannelBg',
-            uiName: 'Center channel BG'
+            uiName: 'Center Channel BG'
         },
         {
             id: 'centerChannelColor',
-            uiName: 'Center channel text color'
+            uiName: 'Center Channel Text'
+        },
+        {
+            id: 'newMessageSeparator',
+            uiName: 'New message separator'
         },
         {
             id: 'linkColor',
-            uiName: 'Link color'
+            uiName: 'Link Color'
         },
         {
             id: 'buttonBg',
@@ -243,7 +275,7 @@ module.exports = {
 
         {
             id: 'buttonColor',
-            uiName: 'Button Color'
+            uiName: 'Button Text'
         }
     ]
 };

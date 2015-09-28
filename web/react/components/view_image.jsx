@@ -1,8 +1,11 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../utils/client.jsx');
-var Utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
+const Utils = require('../utils/utils.jsx');
+const Constants = require('../utils/constants.jsx');
+const ViewImagePopoverBar = require('./view_image_popover_bar.jsx');
+const Modal = ReactBootstrap.Modal;
 
 export default class ViewImageModal extends React.Component {
     constructor(props) {
@@ -16,6 +19,10 @@ export default class ViewImageModal extends React.Component {
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.getPublicLink = this.getPublicLink.bind(this);
         this.getPreviewImagePath = this.getPreviewImagePath.bind(this);
+        this.onModalShown = this.onModalShown.bind(this);
+        this.onModalHidden = this.onModalHidden.bind(this);
+        this.onMouseEnterImage = this.onMouseEnterImage.bind(this);
+        this.onMouseLeaveImage = this.onMouseLeaveImage.bind(this);
 
         var loaded = [];
         var progress = [];
@@ -23,9 +30,20 @@ export default class ViewImageModal extends React.Component {
             loaded.push(false);
             progress.push(0);
         }
-        this.state = {imgId: this.props.startId, viewed: false, loaded: loaded, progress: progress, images: {}, fileSizes: {}};
+        this.state = {
+            imgId: this.props.startId,
+            imgHeight: '100%',
+            loaded: loaded,
+            progress: progress,
+            images: {},
+            fileSizes: {},
+            showFooter: false
+        };
     }
-    handleNext() {
+    handleNext(e) {
+        if (e) {
+            e.stopPropagation();
+        }
         var id = this.state.imgId + 1;
         if (id > this.props.filenames.length - 1) {
             id = 0;
@@ -33,7 +51,10 @@ export default class ViewImageModal extends React.Component {
         this.setState({imgId: id});
         this.loadImage(id);
     }
-    handlePrev() {
+    handlePrev(e) {
+        if (e) {
+            e.stopPropagation();
+        }
         var id = this.state.imgId - 1;
         if (id < 0) {
             id = this.props.filenames.length - 1;
@@ -50,15 +71,27 @@ export default class ViewImageModal extends React.Component {
             this.handlePrev();
         }
     }
-    componentWillReceiveProps(nextProps) {
+    onModalShown(nextProps) {
         this.setState({imgId: nextProps.startId});
+        this.loadImage(nextProps.startId);
+    }
+    onModalHidden() {
+        if (this.refs.video) {
+            var video = React.findDOMNode(this.refs.video);
+            video.pause();
+            video.currentTime = 0;
+        }
+    }
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.show === true && this.props.show === false) {
+            this.onModalShown(nextProps);
+        } else if (nextProps.show === false && this.props.show === true) {
+            this.onModalHidden();
+        }
     }
     loadImage(id) {
         var imgHeight = $(window).height() - 100;
-        if (this.state.loaded[id] || this.state.images[id]) {
-            $('.modal .modal-image .image-wrapper img').css('max-height', imgHeight);
-            return;
-        }
+        this.setState({imgHeight});
 
         var filename = this.props.filenames[id];
 
@@ -68,84 +101,27 @@ export default class ViewImageModal extends React.Component {
         if (fileType === 'image') {
             var img = new Image();
             img.load(this.getPreviewImagePath(filename),
-                function load() {
-                    var progress = this.state.progress;
-                    progress[id] = img.completedPercentage;
-                    this.setState({progress: progress});
-                }.bind(this));
-            img.onload = (function onload(imgid) {
-                return function onloadReturn() {
-                    var loaded = this.state.loaded;
-                    loaded[imgid] = true;
-                    this.setState({loaded: loaded});
-                    $(React.findDOMNode(this.refs.image)).css('max-height', imgHeight);
-                }.bind(this);
-            }.bind(this)(id));
+                     () => {
+                         const progress = this.state.progress;
+                         progress[id] = img.completedPercentage;
+                         this.setState({progress});
+                     });
+            img.onload = () => {
+                const loaded = this.state.loaded;
+                loaded[id] = true;
+                this.setState({loaded});
+            };
             var images = this.state.images;
             images[id] = img;
-            this.setState({images: images});
+            this.setState({images});
         } else {
             // there's nothing to load for non-image files
             var loaded = this.state.loaded;
             loaded[id] = true;
-            this.setState({loaded: loaded});
-        }
-    }
-    componentDidUpdate() {
-        if (this.state.loaded[this.state.imgId]) {
-            if (this.refs.imageWrap) {
-                $(React.findDOMNode(this.refs.imageWrap)).removeClass('default');
-            }
+            this.setState({loaded});
         }
     }
     componentDidMount() {
-        $('#' + this.props.modalId).on('shown.bs.modal', function onModalShow() {
-            this.setState({viewed: true});
-            this.loadImage(this.state.imgId);
-        }.bind(this));
-
-        $('#' + this.props.modalId).on('hidden.bs.modal', function onModalHide() {
-            if (this.refs.video) {
-                var video = React.findDOMNode(this.refs.video);
-                video.pause();
-                video.currentTime = 0;
-            }
-        }.bind(this));
-
-        $(React.findDOMNode(this.refs.modal)).click(function onModalClick(e) {
-            if (e.target === this || e.target === React.findDOMNode(this.refs.imageBody)) {
-                $('.image_modal').modal('hide');
-            }
-        }.bind(this));
-
-        $(React.findDOMNode(this.refs.imageWrap)).hover(
-            function onModalHover() {
-                $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
-            }.bind(this), function offModalHover() {
-                $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
-            }.bind(this)
-        );
-
-        if (this.refs.previewArrowLeft) {
-            $(React.findDOMNode(this.refs.previewArrowLeft)).hover(
-                function onModalHover() {
-                    $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
-                }.bind(this), function offModalHover() {
-                    $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
-                }.bind(this)
-            );
-        }
-
-        if (this.refs.previewArrowRight) {
-            $(React.findDOMNode(this.refs.previewArrowRight)).hover(
-                function onModalHover() {
-                    $(React.findDOMNode(this.refs.imageFooter)).addClass('footer--show');
-                }.bind(this), function offModalHover() {
-                    $(React.findDOMNode(this.refs.imageFooter)).removeClass('footer--show');
-                }.bind(this)
-            );
-        }
-
         $(window).on('keyup', this.handleKeyPress);
 
         // keep track of whether or not this component is mounted so we can safely set the state asynchronously
@@ -189,6 +165,12 @@ export default class ViewImageModal extends React.Component {
         // only images have proper previews, so just use a placeholder icon for non-images
         return Utils.getPreviewImagePathForFileType(fileType);
     }
+    onMouseEnterImage() {
+        this.setState({showFooter: true});
+    }
+    onMouseLeaveImage() {
+        this.setState({showFooter: false});
+    }
     render() {
         if (this.props.filenames.length < 1 || this.props.filenames.length - 1 < this.state.imgId) {
             return <div/>;
@@ -219,11 +201,20 @@ export default class ViewImageModal extends React.Component {
                     </a>
                 );
             } else if (fileType === 'video' || fileType === 'audio') {
+                let width = Constants.WEB_VIDEO_WIDTH;
+                let height = Constants.WEB_VIDEO_HEIGHT;
+                if (Utils.isMobile()) {
+                    width = Constants.MOBILE_VIDEO_WIDTH;
+                    height = Constants.MOBILE_VIDEO_HEIGHT;
+                }
+
                 content = (
                     <video
                         ref='video'
                         data-setup='{}'
                         controls='controls'
+                        width={width}
+                        height={height}
                     >
                         <source src={Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename} />
                     </video>
@@ -299,23 +290,6 @@ export default class ViewImageModal extends React.Component {
             bgClass = 'black-bg';
         }
 
-        var publicLink = '';
-        if (global.window.config.EnablePublicLink === 'true') {
-            publicLink = (
-                <div>
-                    <a
-                        href='#'
-                        className='public-link text'
-                        data-title='Public Image'
-                        onClick={this.getPublicLink}
-                    >
-                        Get Public Link
-                    </a>
-                    <span className='text'> | </span>
-                </div>
-            );
-        }
-
         var leftArrow = '';
         var rightArrow = '';
         if (this.props.filenames.length > 1) {
@@ -342,65 +316,61 @@ export default class ViewImageModal extends React.Component {
             );
         }
 
+        let closeButtonClass = 'modal-close';
+        if (this.state.showFooter) {
+            closeButtonClass += ' modal-close--show';
+        }
+
         return (
-            <div
-                className='modal fade image_modal'
-                ref='modal'
-                id={this.props.modalId}
-                tabIndex='-1'
-                role='dialog'
-                aria-hidden='true'
+            <Modal
+                show={this.props.show}
+                onHide={this.props.onModalDismissed}
+                className='image_modal'
+                dialogClassName='modal-image'
             >
-                <div className='modal-dialog modal-image'>
-                    <div className='modal-content image-content'>
+                <Modal.Body
+                    modalClassName='image-body'
+                    onClick={this.props.onModalDismissed}
+                >
+                    <div
+                        className={'image-wrapper ' + bgClass}
+                        style={{maxHeight: this.state.imgHeight}}
+                        onMouseEnter={this.onMouseEnterImage}
+                        onMouseLeave={this.onMouseLeaveImage}
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div
-                            ref='imageBody'
-                            className='modal-body image-body'
-                        >
-                            <div
-                                ref='imageWrap'
-                                className={'image-wrapper default ' + bgClass}
-                            >
-                                <div
-                                    className='modal-close'
-                                    data-dismiss='modal'
-                                />
-                                {content}
-                                <div
-                                    ref='imageFooter'
-                                    className='modal-button-bar'
-                                >
-                                <span className='pull-left text'>{'File ' + (this.state.imgId + 1) + ' of ' + this.props.filenames.length}</span>
-                                    <div className='image-links'>
-                                        {publicLink}
-                                        <a
-                                            href={fileUrl}
-                                            download={name}
-                                            className='text'
-                                        >
-                                            Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            {leftArrow}
-                            {rightArrow}
-                        </div>
+                            className={closeButtonClass}
+                            onClick={this.props.onModalDismissed}
+                        />
+                        {content}
+                        <ViewImagePopoverBar
+                            show={this.state.showFooter}
+                            fileId={this.state.imgId}
+                            totalFiles={this.props.filenames.length}
+                            filename={name}
+                            fileURL={fileUrl}
+                            onGetPublicLinkPressed={this.getPublicLink}
+                        />
                     </div>
-                </div>
-            </div>
+                    {leftArrow}
+                    {rightArrow}
+                </Modal.Body>
+            </Modal>
         );
     }
 }
 
 ViewImageModal.defaultProps = {
+    show: false,
     filenames: [],
-    modalId: '',
     channelId: '',
     userId: '',
     startId: 0
 };
 ViewImageModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onModalDismissed: React.PropTypes.func.isRequired,
     filenames: React.PropTypes.array,
     modalId: React.PropTypes.string,
     channelId: React.PropTypes.string,
