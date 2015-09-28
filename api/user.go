@@ -466,10 +466,14 @@ func RevokeAllSession(c *Context, userId string) {
 
 		for _, session := range sessions {
 			c.LogAuditWithUserId(userId, "session_id="+session.Id)
-			sessionCache.Remove(session.Token)
-			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
-				c.Err = result.Err
-				return
+			if session.IsOAuth {
+				RevokeAccessToken(session.Token)
+			} else {
+				sessionCache.Remove(session.Token)
+				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+					c.Err = result.Err
+					return
+				}
 			}
 		}
 	}
