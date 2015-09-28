@@ -10,8 +10,9 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 ### Release Highlights
 
 - System Console - UI for configuring deployments, managing teams, resetting user passwords and other admin features
-- Markdown support in messages, comments and channel descriptions - Including font formatting, emoticons, headings and tables - Ability to play and scrub video and audio files 
+- Markdown support in messages, comments and channel descriptions - Including font formatting, emoticons, headings and tables
 - Preset themes and detailed theme color options, plus ability to import themes from Slack 
+- Numerous performance improvements and optimizations 
 
 ### New Features 
 
