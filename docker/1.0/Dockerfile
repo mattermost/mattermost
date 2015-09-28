@@ -13,8 +13,6 @@ ENV MYSQL_DATABASE=mattermost_test
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
-RUN apt-get update && apt-get install -y perl --no-install-recommends && rm -rf /var/lib/apt/lists/*
-
 RUN apt-key adv --keyserver pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5
 
 ENV MYSQL_MAJOR 5.6
@@ -24,7 +22,7 @@ RUN echo "deb http://repo.mysql.com/apt/debian/ wheezy mysql-${MYSQL_MAJOR}" > /
 
 RUN apt-get update \
 	&& export DEBIAN_FRONTEND=noninteractive \
-	&& apt-get -y install mysql-server \
+	&& apt-get -y install perl wget mysql-server \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql
 
@@ -36,8 +34,8 @@ VOLUME /var/lib/mysql
 WORKDIR /mattermost
 
 # Copy over files
-ADD https://github.com/mattermost/platform/releases/download/v0.6.0/mattermost.tar.gz /
-RUN tar -zxvf /mattermost.tar.gz --strip-components=1
+ADD https://github.com/mattermost/platform/releases/download/v1.0.0-rc1/mattermost.tar.gz /
+RUN tar -zxvf /mattermost.tar.gz --strip-components=1 && rm /mattermost.tar.gz
 ADD config_docker.json /
 ADD docker-entry.sh /
 
