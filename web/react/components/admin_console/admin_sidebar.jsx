@@ -138,6 +138,8 @@ export default class AdminSidebar extends React.Component {
                                         <span>{'SETTINGS'}</span>
                                     </h4>
                                 </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
                                 <li>
                                     <a
                                         href='#'
@@ -219,6 +221,8 @@ export default class AdminSidebar extends React.Component {
                                         {'GitLab Settings'}
                                     </a>
                                 </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu'>
                                  <li>
                                     <h4>
                                         <span className='icon fa fa-gear'></span>
@@ -233,15 +237,21 @@ export default class AdminSidebar extends React.Component {
                                         </span>
                                     </h4>
                                 </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
                                 <li>
                                     {teams}
                                 </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu'>
                                 <li>
                                     <h4>
                                         <span className='icon fa fa-gear'></span>
                                         <span>{'OTHER'}</span>
                                     </h4>
                                 </li>
+                            </ul>
+                            <ul className='nav nav__sub-menu padded'>
                                 <li>
                                     <a
                                         href='#'

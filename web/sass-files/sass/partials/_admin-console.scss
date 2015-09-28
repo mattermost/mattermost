@@ -1,5 +1,5 @@
-.sidebar--left {
-    &.sidebar--collapsable {
+
+.sidebar--left {    &.sidebar--collapsable {
         background: #333;
         .team__header {
             background: transparent;
@@ -9,7 +9,7 @@
             li {
                 padding: 0;
                 .icon {
-                    width: 15px;
+                    width: 17px;
                 }
                 > a {
                     color: #fff;
@@ -22,7 +22,7 @@
                 > h4 {
                     background: #333;
                     padding: 10px 10px;
-                    margin-top: 1px;
+                    margin: 1px 0 0;
                 }
             }
             .menu-icon--right {
@@ -40,6 +40,9 @@
             &.nav__sub-menu {
                 background: #111;
                 -webkit-font-smoothing: auto;
+                &.padded {
+                    padding: 5px 0;
+                }
                 li {
                     > a {
                         font-size: 13px;
