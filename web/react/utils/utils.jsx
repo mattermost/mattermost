@@ -580,6 +580,7 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .team__header, .sidebar--menu .team__header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('.modal .modal-header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('#navbar .navbar-default', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('@media screen and (max-width: 768px) { .search-bar__container', 'background:' + theme.sidebarHeaderBg, 1);
     }
 
     if (theme.sidebarHeaderTextColor) {
