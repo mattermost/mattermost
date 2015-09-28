@@ -8,13 +8,13 @@ import (
 	l4g "code.google.com/p/log4go"
 	b64 "encoding/base64"
 	"fmt"
+	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
-	"github.com/nfnt/resize"
 	"hash/fnv"
 	"image"
 	"image/color"
@@ -798,7 +798,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Scale profile image
-	img = resize.Resize(utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, img, resize.Lanczos3)
+	img = imaging.Resize(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Lanczos)
 
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)
