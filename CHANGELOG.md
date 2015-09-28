@@ -1,6 +1,6 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT - Release v1.0.0
+## UNDER DEVELOPMENT - Release v1.0.0-RC1
 
 The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
@@ -9,7 +9,9 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 ### Release Highlights
 
-- [See Product Roadmap for anticipated features](https://mattermost.atlassian.net/issues/?filter=10002)
+- System Console - UI for configuring deployments, managing teams, resetting user passwords and other admin features
+- Markdown support in messages, comments and channel descriptions - Including font formatting, emoticons, headings and tables - Ability to play and scrub video and audio files 
+- Preset themes and detailed theme color options, plus ability to import themes from Slack 
 
 ### New Features 
 
@@ -17,12 +19,17 @@ Messaging, Comments and Notifications
 
 - Support for emoji codes rendering to image files
 - Full markdown support in messages, comments, and channel description 
+
+Files and Images 
+
 - Added ability to play video and audio files 
 
 System Console 
 
 - UI to change config.json settings
 - Ability to view log files from console
+- Ability to reset user passwords
+- Ability for IT admin to manage members across multiple teams from single interface
 
 User Interface
 
@@ -65,6 +72,7 @@ UI
 
 Many thanks to our external contributors. In no particular order: 
 
+- [jdeng](https://github.com/jdeng)
 - [Trozz](https://github.com/Trozz)
 - [LAndres](https://github.com/LAndreas)
 - [JessBot](https://github.com/JessBot)
