@@ -790,16 +790,12 @@ export function isValidUsername(name) {
     return error;
 }
 
-export function updateTabTitle(name) {
-    document.title = name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
-}
-
 export function updateAddressBar(channelName) {
     var teamURL = window.location.href.split('/channels')[0];
     history.replaceState('data', '', teamURL + '/channels/' + channelName);
 }
 
-export function switchChannel(channel, teammateName) {
+export function switchChannel(channel) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: channel.name,
@@ -807,12 +803,6 @@ export function switchChannel(channel, teammateName) {
     });
 
     updateAddressBar(channel.name);
-
-    if (channel.type === 'D' && teammateName) {
-        updateTabTitle(teammateName);
-    } else {
-        updateTabTitle(channel.display_name);
-    }
 
     AsyncClient.getChannels(true, true, true);
     AsyncClient.getChannelExtraInfo(true);
