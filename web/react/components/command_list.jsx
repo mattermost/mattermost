@@ -70,8 +70,8 @@ export default class CommandList extends React.Component {
                         className='command-name'
                         onClick={this.handleClick.bind(this, i)}
                     >
-                        <div className='command__title'><strong>{this.state.suggestions[i].suggestion}</strong></div>
-                        <div className='command__desc'>{this.state.suggestions[i].description}</div>
+                        <div className='command__title pull-left'><strong>{this.state.suggestions[i].suggestion}</strong></div>
+                        <div className='command__desc pull-right'>{this.state.suggestions[i].description}</div>
                     </div>
                 );
             }
