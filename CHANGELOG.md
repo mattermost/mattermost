@@ -1,6 +1,6 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT - Release v0.8.0 (Beta2) 
+## UNDER DEVELOPMENT - Release v1.0.0
 
 The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
@@ -15,11 +15,23 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 Messaging, Comments and Notifications
 
-- (Preview) Added support for emoji codes rendering to image files
+- Support for emoji codes rendering to image files
+- Full markdown support in messages, comments, and channel description 
+- Added ability to play video and audio files 
 
-Admin Console 
+System Console 
 
-- (Preview) Ability to view server logs and change config settings
+- UI to change config.json settings
+- Ability to view log files from console
+
+User Interface
+
+- Ability to set custom theme colors
+- Replaced single color themes with pre-set themes
+- Added ability to import themes from Slack
+
+Integrations
+- (Preview) Initial support for incoming webhooks 
 
 ### Improvements
 
@@ -30,6 +42,7 @@ Documentation
 - Added Code Contribution Guidelines
 - Added new hardware sizing recommendations 
 - Consolidated licensing information into LICENSE.txt and NOTICE.txt
+- Added markdown documentation 
 
 Performance 
 
@@ -41,11 +54,11 @@ Code Quality
  
 UI
 
-- Added version, build number, build date and build hash under Account Settings -> Security (to be moved to "About" dialog later)
+- Added version, build number, build date and build hash under Account Settings -> Security
 
 ### Bug Fixes
 
-- Fixed performance issue with slow typing on iOS
+- Numerous performance improvements
 - Fixed issue so that SSO option automatically set EmailVerified=true (it was false previously)
 
 ### Contributors
