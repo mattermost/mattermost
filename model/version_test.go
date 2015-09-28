@@ -36,7 +36,7 @@ func TestSplitVersion(t *testing.T) {
 }
 
 func TestGetPreviousVersion(t *testing.T) {
-	if major, minor := GetPreviousVersion("0.8.0"); major != 0 || minor != 7 {
+	if major, minor := GetPreviousVersion("1.0.0"); major != 0 || minor != 7 {
 		t.Fatal(major, minor)
 	}
 
