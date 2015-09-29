@@ -21,7 +21,7 @@ export default class ManageIncomingHooks extends React.Component {
         this.getHooks();
     }
     addNewHook() {
-        let hook = {}; //eslint-disable-line prefer-const
+        const hook = {};
         hook.channel_id = this.state.channelId;
 
         Client.addIncomingHook(
@@ -40,13 +40,13 @@ export default class ManageIncomingHooks extends React.Component {
         );
     }
     removeHook(id) {
-        let data = {}; //eslint-disable-line prefer-const
+        const data = {};
         data.id = id;
 
         Client.deleteIncomingHook(
             data,
             () => {
-                let hooks = this.state.hooks; //eslint-disable-line prefer-const
+                const hooks = this.state.hooks;
                 let index = -1;
                 for (let i = 0; i < hooks.length; i++) {
                     if (hooks[i].id === id) {
@@ -69,7 +69,7 @@ export default class ManageIncomingHooks extends React.Component {
     getHooks() {
         Client.listIncomingHooks(
             (data) => {
-                let state = this.state; //eslint-disable-line prefer-const
+                const state = this.state;
 
                 if (data) {
                     state.hooks = data;
@@ -93,9 +93,11 @@ export default class ManageIncomingHooks extends React.Component {
         }
 
         const channels = ChannelStore.getAll();
-        let options = []; //eslint-disable-line prefer-const
+        const options = [];
         channels.forEach((channel) => {
-            options.push(<option value={channel.id}>{channel.name}</option>);
+            if (channel.type !== Constants.DM_CHANNEL) {
+                options.push(<option value={channel.id}>{channel.name}</option>);
+            }
         });
 
         let disableButton = '';
@@ -103,7 +105,7 @@ export default class ManageIncomingHooks extends React.Component {
             disableButton = ' disable';
         }
 
-        let hooks = []; //eslint-disable-line prefer-const
+        const hooks = [];
         this.state.hooks.forEach((hook) => {
             const c = ChannelStore.get(hook.channel_id);
             hooks.push(
