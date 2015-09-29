@@ -47,6 +47,7 @@ export default class SettingsUpload extends React.Component {
         }
         $(e.target).closest('li').find('.file-status').addClass('hide');
         $(e.target).closest('li').find('.file-name').removeClass('hide').html(filename);
+        $(React.findDOMNode(this.refs.importButton)).removeClass('disabled');
     }
 
     render() {
@@ -79,7 +80,8 @@ export default class SettingsUpload extends React.Component {
                                 />
                             </span>
                             <a
-                                className={'btn btn-sm btn-primary'}
+                                ref='importButton'
+                                className={'btn btn-sm btn-primary disabled'}
                                 onClick={this.doSubmit}
                             >
                                 Import
