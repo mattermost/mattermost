@@ -55,13 +55,14 @@
   * ```~$ sudo touch /etc/init/mattermost.conf```
   * ```~$ sudo vi /etc/init/mattermost.conf```
   * Copy the following lines into `/etc/init/mattermost.conf`
-  * ```start on runlevel [2345]
-	stop on runlevel [016]
-	respawn
-	chdir /home/ubuntu/mattermost
-	setuid ubuntu
-	exec bin/platform
-	``` 
+```
+start on runlevel [2345]
+stop on runlevel [016]
+respawn
+chdir /home/ubuntu/mattermost
+setuid ubuntu
+exec bin/platform
+```   
   * You can manage the process by typing:
   * ```~$ sudo start mattermost```
   * Verify the service is running by typing:
@@ -90,8 +91,9 @@
   * Create a configuration for Mattermost
   * ```~$ sudo touch /etc/nginx/sites-available/mattermost```
   * Below is a sample configuration with the minimum settings required to configure Mattermost.
-  * ```
-    server {
+  * 
+ ```
+   server {
 	  server_name mattermost.example.com;
       location / {
 		  client_max_body_size 50M;
@@ -104,7 +106,8 @@
 		  proxy_set_header   X-Frame-Options   SAMEORIGIN;
           proxy_pass http://localhost:8065;
       }
-    }```
+    }
+```
   * Remove the existing file with
   * ```~$ sudo rm /etc/nginx/sites-enabled/default```
   * Link the mattermost config by typing:
@@ -122,7 +125,7 @@
   * ```~$ cd ~/cert```
   * ```~$ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mattermost.key -out mattermost.crt```
   * Input the following info 
-  ```
+```
     Country Name (2 letter code) [AU]:US
     State or Province Name (full name) [Some-State]:California
     Locality Name (eg, city) []:Palo Alto
@@ -132,7 +135,8 @@
     Email Address []:admin@mattermost.example.com
 ```
 1. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines
-  * ```
+  * 
+```
   server {
        listen         80;
        server_name    mattermost.example.com;
@@ -155,8 +159,7 @@
 		location / {
 			gzip off;
 			proxy_set_header X-Forwarded-Ssl on;
-	```
-
+```
 ## Finish Mattermost Server setup
 1. Navigate to https://mattermost.example.com and create a team and user.
 1. The first user in the system is automatically granted the `system_admin` role, which gives you access to the System Console.
