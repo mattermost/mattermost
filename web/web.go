@@ -850,7 +850,12 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	props := model.MapFromJson(strings.NewReader(r.FormValue("payload")))
+	var props map[string]string
+	if r.Header.Get("Content-Type") == "application/json" {
+		props = model.MapFromJson(r.Body)
+	} else {
+		props = model.MapFromJson(strings.NewReader(r.FormValue("payload")))
+	}
 
 	text := props["text"]
 	if len(text) == 0 {
