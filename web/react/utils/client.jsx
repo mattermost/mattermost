@@ -332,6 +332,20 @@ export function saveConfig(config, success, error) {
     });
 }
 
+export function logClientError(msg) {
+    var l = {};
+    l.level = 'ERROR';
+    l.message = msg;
+
+    $.ajax({
+        url: '/api/v1/admin/log_client',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(l)
+    });
+}
+
 export function testEmail(config, success, error) {
     $.ajax({
         url: '/api/v1/admin/test_email',
