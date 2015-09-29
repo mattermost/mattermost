@@ -32,6 +32,7 @@ func TestChannelMemberIsValid(t *testing.T) {
 
 	o.Roles = "missing"
 	o.NotifyLevel = CHANNEL_NOTIFY_ALL
+	o.MarkUnreadLevel = CHANNEL_MARK_UNREAD_ALL
 	o.UserId = NewId()
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
@@ -49,6 +50,16 @@ func TestChannelMemberIsValid(t *testing.T) {
 	}
 
 	o.NotifyLevel = CHANNEL_NOTIFY_ALL
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.MarkUnreadLevel = "123456789012345678901"
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.MarkUnreadLevel = CHANNEL_MARK_UNREAD_ALL
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

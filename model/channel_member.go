@@ -10,22 +10,25 @@ import (
 )
 
 const (
-	CHANNEL_ROLE_ADMIN     = "admin"
-	CHANNEL_NOTIFY_ALL     = "all"
-	CHANNEL_NOTIFY_MENTION = "mention"
-	CHANNEL_NOTIFY_NONE    = "none"
-	CHANNEL_NOTIFY_QUIET   = "quiet"
+	CHANNEL_ROLE_ADMIN          = "admin"
+	CHANNEL_NOTIFY_DEFAULT      = "default"
+	CHANNEL_NOTIFY_ALL          = "all"
+	CHANNEL_NOTIFY_MENTION      = "mention"
+	CHANNEL_NOTIFY_NONE         = "none"
+	CHANNEL_MARK_UNREAD_ALL     = "all"
+	CHANNEL_MARK_UNREAD_MENTION = "mention"
 )
 
 type ChannelMember struct {
-	ChannelId    string `json:"channel_id"`
-	UserId       string `json:"user_id"`
-	Roles        string `json:"roles"`
-	LastViewedAt int64  `json:"last_viewed_at"`
-	MsgCount     int64  `json:"msg_count"`
-	MentionCount int64  `json:"mention_count"`
-	NotifyLevel  string `json:"notify_level"`
-	LastUpdateAt int64  `json:"last_update_at"`
+	ChannelId       string `json:"channel_id"`
+	UserId          string `json:"user_id"`
+	Roles           string `json:"roles"`
+	LastViewedAt    int64  `json:"last_viewed_at"`
+	MsgCount        int64  `json:"msg_count"`
+	MentionCount    int64  `json:"mention_count"`
+	NotifyLevel     string `json:"notify_level"`
+	MarkUnreadLevel string `json:"mark_unread_level"`
+	LastUpdateAt    int64  `json:"last_update_at"`
 }
 
 func (o *ChannelMember) ToJson() string {
@@ -68,6 +71,10 @@ func (o *ChannelMember) IsValid() *AppError {
 		return NewAppError("ChannelMember.IsValid", "Invalid notify level", "notify_level="+o.NotifyLevel)
 	}
 
+	if len(o.MarkUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(o.MarkUnreadLevel) {
+		return NewAppError("ChannelMember.IsValid", "Invalid mark unread level", "mark_unread_level="+o.MarkUnreadLevel)
+	}
+
 	return nil
 }
 
@@ -76,5 +83,12 @@ func (o *ChannelMember) PreSave() {
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {
-	return notifyLevel == CHANNEL_NOTIFY_ALL || notifyLevel == CHANNEL_NOTIFY_MENTION || notifyLevel == CHANNEL_NOTIFY_NONE || notifyLevel == CHANNEL_NOTIFY_QUIET
+	return notifyLevel == CHANNEL_NOTIFY_DEFAULT ||
+		notifyLevel == CHANNEL_NOTIFY_ALL ||
+		notifyLevel == CHANNEL_NOTIFY_MENTION ||
+		notifyLevel == CHANNEL_NOTIFY_NONE
+}
+
+func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
+	return markUnreadLevel == CHANNEL_MARK_UNREAD_ALL || markUnreadLevel == CHANNEL_MARK_UNREAD_MENTION
 }

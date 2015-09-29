@@ -200,13 +200,17 @@ export default class Sidebar extends React.Component {
                 }
                 var channel = ChannelStore.get(msg.channel_id);
 
-                var user = UserStore.getCurrentUser();
-                if (user.notify_props && ((user.notify_props.desktop === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== 'D') || user.notify_props.desktop === 'none')) {
-                    return;
+                const user = UserStore.getCurrentUser();
+                const member = ChannelStore.getMember(msg.channel_id);
+
+                var notifyLevel = member.notify_level;
+                if (notifyLevel === 'default') {
+                    notifyLevel = user.notify_props.desktop;
                 }
 
-                var member = ChannelStore.getMember(msg.channel_id);
-                if ((member.notify_level === 'mention' && mentions.indexOf(user.id) === -1) || member.notify_level === 'none' || member.notify_level === 'quiet') {
+                if (notifyLevel === 'none') {
+                    return;
+                } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== 'D') {
                     return;
                 }
 
@@ -325,7 +329,7 @@ export default class Sidebar extends React.Component {
         var unread = false;
         if (channelMember) {
             msgCount = channel.total_msg_count - channelMember.msg_count;
-            unread = (msgCount > 0 && channelMember.notify_level !== 'quiet') || channelMember.mention_count > 0;
+            unread = (msgCount > 0 && channelMember.mark_unread_level !== 'mention') || channelMember.mention_count > 0;
         }
 
         var titleClass = '';
