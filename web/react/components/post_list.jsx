@@ -128,6 +128,15 @@ export default class PostList extends React.Component {
                 this.userHasSeenNew = true;
             }
             this.isUserScroll = true;
+
+            $('.top-visible-post').removeClass('top-visible-post');
+
+            $(React.findDOMNode(this.refs.postlistcontent)).children().each(function select() {
+                if ($(this).position().top + $(this).height() / 2 > 0) {
+                    $(this).addClass('top-visible-post');
+                    return false;
+                }
+            });
         });
 
         $('.post-list__content div .post').removeClass('post--last');
@@ -665,7 +674,10 @@ export default class PostList extends React.Component {
                 className={'post-list-holder-by-time ' + activeClass}
             >
                 <div className='post-list__table'>
-                    <div className='post-list__content'>
+                    <div
+                        ref='postlistcontent'
+                        className='post-list__content'
+                    >
                         {moreMessages}
                         {postCtls}
                     </div>
