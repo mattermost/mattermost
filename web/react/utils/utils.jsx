@@ -78,6 +78,14 @@ export function isAdmin(roles) {
     return false;
 }
 
+export function isSystemAdmin(roles) {
+    if (isInRole(roles, 'system_admin')) {
+        return true;
+    }
+
+    return false;
+}
+
 export function getDomainWithOutSub() {
     var parts = window.location.host.split('.');
 

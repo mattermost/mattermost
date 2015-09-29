@@ -62,7 +62,7 @@ export default class NavbarDropdown extends React.Component {
 
         if (currentUser != null) {
             isAdmin = Utils.isAdmin(currentUser.roles);
-            isSystemAdmin = Utils.isInRole(currentUser.roles, 'system_admin');
+            isSystemAdmin = Utils.isSystemAdmin(currentUser.roles);
 
             inviteLink = (
                 <li>
