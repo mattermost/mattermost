@@ -388,7 +388,6 @@ export function toTitleCase(str) {
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.sidebar--left', 'background:' + theme.sidebarBg, 1);
-        changeCss('@media(max-width: 768px){.search-bar__container', 'background:' + theme.sidebarBg, 1);
     }
 
     if (theme.sidebarText) {
@@ -423,6 +422,7 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .team__header, .sidebar--menu .team__header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('.modal .modal-header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('#navbar .navbar-default', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('@media(max-width: 768px){.search-bar__container', 'background:' + theme.sidebarHeaderBg, 1);
     }
 
     if (theme.sidebarHeaderTextColor) {
@@ -430,7 +430,7 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .team__header .user__name, .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.sidebar--left .team__header:hover .user__name, .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.modal .modal-header .modal-title, .modal .modal-header .modal-title .name, .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);
-        changeCss('#navbar .navbar-default .navbar-brand .heading, ', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('#navbar .navbar-default .navbar-brand .heading', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('#navbar .navbar-default .navbar-toggle .icon-bar, ', 'background:' + theme.sidebarHeaderTextColor, 1);
     }
 
@@ -452,7 +452,6 @@ export function applyTheme(theme) {
         changeCss('.app__content, .markdown__table, .markdown__table tbody tr, .command-box', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
-        changeCss('.search-bar__container .search__form .search-bar', 'background:' + theme.centerChannelBg, 1);
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
         changeCss('.post-image__column .post-image__details', 'background:' + theme.centerChannelBg, 1);
         changeCss('.sidebar--right', 'background:' + theme.centerChannelBg, 1);
@@ -475,7 +474,7 @@ export function applyTheme(theme) {
         changeCss('.post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.post-image__column .post-image__details', 'color:' + theme.centerChannelColor, 2);
         changeCss('.post-image__column a, .post-image__column a:hover, .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.search-bar__container .search__form .search-bar', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: ' + theme.centerChannelColor, 2);
+        changeCss('.search-bar__container .search__form .search-bar', 'background:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.search-bar__container .search__form', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
