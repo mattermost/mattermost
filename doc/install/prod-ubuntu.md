@@ -92,6 +92,7 @@
   * Below is a sample configuration with the minimum settings required to configure Mattermost.
   * ```
     server {
+	  server_name mattermost.example.com;
       location / {
 		  client_max_body_size 50M;
 		  proxy_set_header Upgrade $http_upgrade;
@@ -114,57 +115,70 @@
   * ```~$ curl http://localhost```
   * You should see a page titles *Mattermost - Signup*
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1. Download [latest stable compiled verison of Mattermost](https://github.com/mattermost/platform/releases) from GitHub 
-2. Set up machine with Ubuntu 14.04 with 2GB of RAM or similar 
-3. Install and configure Ngnix as a proxy to Mattermost 
-4. Install SSL certificate 
-5. Configure proxy pass thru
-6. Install Postgres 9.3+ or MySQL 5.2+ (optionally, this install could be made on another machine)
-7. Create a database using following SQL commands:  
-
-   ```
-   DROP DATABASE mattermost;
-   CREATE DATABASE mattermost;
-   CREATE USER mmuser WITH PASSWORD 'mostest';
-   GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
-   ```
-8. Replace and configure SQL settings section of config.json file with:  
-
-   ```
-"DriverName": "mysql",
-"DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8",
-"DataSourceReplicas": ["mmuser:mostest@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8"],
-   ```
-or 
-   ```
-"DriverName": "postgres",
-"DataSource": "postgres://mmuser:password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10",
-"DataSourceReplicas": ["postgres://mmuser:password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10"],
-```
-9. [Set up email notifications](https://github.com/mattermost/platform/blob/master/doc/config/smtp-email-setup.md)
-10. On Ubuntu configure upstart to manage the mattermost process (or configure something similar using systemd) then copy following lines to /etc/init/mattermost.conf
-
+## Setup Nginx with SSL (Recommended)
+1. You will need a SSL cert from a certificate athority.
+1. For simplicity we will generate a test certificate.
+  * ```~$ mkdir ~/cert```
+  * ```~$ cd ~/cert```
+  * ```~$ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mattermost.key -out mattermost.crt```
+  * Input the following info 
   ```
-  start on runlevel [2345]
-  stop on runlevel [016]
-  respawn
-  chdir /home/ubuntu/mattermost
-  setuid ubuntu
-  exec bin/platform
-  ``` 
-11. Run `sudo start mattermost`
-12. Then `curl localhost:8065`
+    Country Name (2 letter code) [AU]:US
+    State or Province Name (full name) [Some-State]:California
+    Locality Name (eg, city) []:Palo Alto
+    Organization Name (eg, company) [Internet Widgits Pty Ltd]:Example LLC
+    Organizational Unit Name (eg, section) []:
+    Common Name (e.g. server FQDN or YOUR name) []:mattermost.example.com
+    Email Address []:admin@mattermost.example.com
+```
+1. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines
+  * ```
+  server {
+       listen         80;
+       server_name    mattermost.example.com;
+       return         301 https://$server_name$request_uri;
+  }
+  
+  server {
+        listen 443 ssl;
+        server_name mattermost.example.com;
+		
+        ssl on;
+        ssl_certificate /home/ubuntu/cert/mattermost.crt;
+        ssl_certificate_key /home/ubuntu/cert/mattermost.key;
+        ssl_session_timeout 5m;
+        ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+        ssl_prefer_server_ciphers on;
+		
+		# add to location / above
+		location / {
+			gzip off;
+			proxy_set_header X-Forwarded-Ssl on;
+	```
+
+## Finish Mattermost Server setup
+1. Navigate to https://mattermost.example.com and create a team and user.
+1. The first user in the system is automatically granted the `system_admin` role, which gives you access to the System Console.
+1. From the `town-square` channel click the dropdown and choose the `System Console` option
+1. Update Email Settings.  We recommend using an email sending service.  The example below assumes AmazonSES.
+  * Set *Send Email Notifications* to true
+  * Set *Require Email Verification* to true
+  * Set *Feedback Name* to `No-Reply`
+  * Set *Feedback Email* to `mattermost@example.com`
+  * Set *SMTP Username* to `AFIADTOVDKDLGERR`
+  * Set *SMTP Password* to `DFKJoiweklsjdflkjOIGHLSDFJewiskdjf`
+  * Set *SMTP Server* to `email-smtp.us-east-1.amazonaws.com`
+  * Set *SMTP Port* to `465`
+  * Set *Connection Security* to `TLS`
+  * Save the Settings
+1. Update File Settings
+  * Change *Local Directory Location* from `./data/` to `/mattermost/data`
+1. Update Log Settings
+  * Set *Log to The Console* to false  
+1. Update Rate Limit Settings
+  * Set *Vary By Remote Address* to false
+  * Set *Vary By HTTP Header* to X-Real-IP
+1. Feel free to modify other settings.
+1. Restart the Mattermost Service by typing:
+  * ```~$ sudo restart mattermost```
