@@ -12,7 +12,7 @@ export default class SettingsUpload extends React.Component {
         this.state = {
             clientError: this.props.clientError,
             serverError: this.props.serverError,
-            importClass: ' disabled'
+            fileSelected: ''
         };
     }
 
@@ -20,7 +20,7 @@ export default class SettingsUpload extends React.Component {
         this.setState({
             clientError: this.props.clientError,
             serverError: this.props.serverError,
-            importClass: ' disabled'
+            fileSelected: ''
         });
     }
 
@@ -29,7 +29,7 @@ export default class SettingsUpload extends React.Component {
         this.setState({
             clientError: '',
             serverError: '',
-            importClass: ' disabled'
+            fileSelected: ''
         });
     }
 
@@ -44,15 +44,13 @@ export default class SettingsUpload extends React.Component {
     }
 
     onFileSelect(e) {
-        this.setState({
-            importClass: ''
-        });
         var filename = $(e.target).val();
         if (filename.substring(3, 11) === 'fakepath') {
             filename = filename.substring(12);
         }
-        $(e.target).closest('li').find('.file-status').addClass('hide');
-        $(e.target).closest('li').find('.file-name').removeClass('hide').html(filename);
+        this.setState({
+            fileSelected: filename
+        });
     }
 
     render() {
@@ -68,9 +66,47 @@ export default class SettingsUpload extends React.Component {
                 <div className='file-status'>{this.state.serverError}</div>
             );
         }
-        var importClass = '';
-        if (this.state.importClass) {
-            importClass = ' disabled';
+        var fileSelected = (
+            <div>
+                <span className='btn btn-sm btn-primary btn-file sel-btn'>
+                    {'Select file'}
+                    <input
+                        ref='uploadinput'
+                        accept={this.props.fileTypesAccepted}
+                        type='file'
+                        onChange={this.onFileSelect}
+                    />
+                </span>
+                <a
+                    className={'btn btn-sm btn-primary disabled'}
+                    onClick={this.doSubmit}
+                >
+                    {'Import'}
+                </a>
+                <div className='file-status file-name hidden'></div>
+            </div>
+        );
+        if (this.state.fileSelected) {
+            fileSelected = (
+                <div>
+                    <span className='btn btn-sm btn-primary btn-file sel-btn'>
+                        {'Select file'}
+                        <input
+                            ref='uploadinput'
+                            accept={this.props.fileTypesAccepted}
+                            type='file'
+                            onChange={this.onFileSelect}
+                        />
+                    </span>
+                    <a
+                        className={'btn btn-sm btn-primary'}
+                        onClick={this.doSubmit}
+                    >
+                        {'Import'}
+                    </a>
+                    <div className='file-status file-name'>{this.state.fileSelected}</div>
+                </div>
+            );
         }
         return (
             <ul className='section-max'>
@@ -79,22 +115,7 @@ export default class SettingsUpload extends React.Component {
                 <li className='col-sm-offset-3 col-sm-9'>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
-                            <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                {'Select file'}
-                                <input
-                                    ref='uploadinput'
-                                    accept={this.props.fileTypesAccepted}
-                                    type='file'
-                                    onChange={this.onFileSelect}
-                                />
-                            </span>
-                            <a
-                                className={'btn btn-sm btn-primary' + importClass}
-                                onClick={this.doSubmit}
-                            >
-                                {'Import'}
-                            </a>
-                            <div className='file-status file-name hide'></div>
+                            {fileSelected}
                             {serverError}
                             {clientError}
                         </li>
