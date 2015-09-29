@@ -73,6 +73,12 @@ export default class SqlSettings extends React.Component {
 
     handleGenerate(e) {
         e.preventDefault();
+
+        var cfm = global.window.confirm('Warning: re-generating this salt may cause some columns in the database to return empty results.');
+        if (cfm === false) {
+            return;
+        }
+
         React.findDOMNode(this.refs.AtRestEncryptKey).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
