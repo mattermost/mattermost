@@ -160,9 +160,9 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 
 	if driver == "sqlite3" {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}}
-	} else if driver == "mysql" {
+	} else if driver == model.DATABASE_DRIVER_MYSQL {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}}
-	} else if driver == "postgres" {
+	} else if driver == model.DATABASE_DRIVER_POSTGRES {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}}
 	} else {
 		l4g.Critical("Failed to create dialect specific driver")
@@ -183,7 +183,7 @@ func (ss SqlStore) GetCurrentSchemaVersion() string {
 }
 
 func (ss SqlStore) DoesTableExist(tableName string) bool {
-	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
@@ -197,7 +197,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 
 		return count > 0
 
-	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT
@@ -228,7 +228,7 @@ func (ss SqlStore) DoesTableExist(tableName string) bool {
 }
 
 func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
-	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
 			FROM   pg_attribute
@@ -251,7 +251,7 @@ func (ss SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 
 		return count > 0
 
-	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT
@@ -288,7 +288,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		return false
 	}
 
-	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			l4g.Critical("Failed to create column %v", err)
@@ -298,7 +298,7 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 
 		return true
 
-	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			l4g.Critical("Failed to create column %v", err)
@@ -334,7 +334,7 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 // func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
 
 // 	// XXX TODO FIXME this should be removed after 0.6.0
-// 	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+// 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 // 		return false
 // 	}
 
@@ -363,7 +363,7 @@ func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName st
 
 func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, fullText bool) {
 
-	if utils.Cfg.SqlSettings.DriverName == "postgres" {
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if err == nil {
@@ -383,7 +383,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 			time.Sleep(time.Second)
 			panic("Failed to create index " + err.Error())
 		}
-	} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {

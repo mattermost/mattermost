@@ -418,7 +418,7 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 
 		var posts []*model.Post
 
-		if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
@@ -451,7 +451,7 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 				result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
 
 			}
-		} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			searchQuery := fmt.Sprintf(`SELECT
 				    *
 				FROM
