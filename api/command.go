@@ -195,7 +195,7 @@ func joinCommand(c *Context, command *model.Command) bool {
 						return false
 					}
 
-					command.GotoLocation = "/channels/" + v.Name
+					command.GotoLocation = c.GetTeamURL() + "/channels/" + v.Name
 					command.Response = model.RESP_EXECUTED
 					return true
 				}
