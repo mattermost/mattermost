@@ -553,13 +553,7 @@
                 padding: 0 10px 0 31px;
                 background: rgba(black, 0.2);
                 @include border-radius(3px);
-                color: #fff;
-            }
-            input[type=text] {
-                @include input-placeholder {
-                    color: #fff;
-                    color: rgba(#fff, 0.5);
-                }
+                color: inherit;
             }
         }
     }
