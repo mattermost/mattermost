@@ -197,12 +197,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='AuthEndpoint'
                                 ref='AuthEndpoint'
-                                placeholder='Ex ""'
+                                placeholder='Ex "https://localhost:3000/oauth/authorize"'
                                 defaultValue={this.props.config.GitLabSettings.AuthEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).'}</p>
+                            <p className='help-text'>{'Enter https://<your-gitlab-url>/oauth/authorize.'}</p>
                         </div>
                     </div>
 
@@ -219,12 +219,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='TokenEndpoint'
                                 ref='TokenEndpoint'
-                                placeholder='Ex ""'
+                                placeholder='Ex "https://localhost:3000/oauth/token"'
                                 defaultValue={this.props.config.GitLabSettings.TokenEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/token.'}</p>
+                            <p className='help-text'>{'Enter https://<your-gitlab-url>/oauth/token.'}</p>
                         </div>
                     </div>
 
@@ -241,12 +241,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='UserApiEndpoint'
                                 ref='UserApiEndpoint'
-                                placeholder='Ex ""'
+                                placeholder='Ex "https://localhost:3000/api/v3/user"'
                                 defaultValue={this.props.config.GitLabSettings.UserApiEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/api/v3/user.'}</p>
+                            <p className='help-text'>{'Enter https://<your-gitlab-url>/api/v3/user.'}</p>
                         </div>
                     </div>
 
