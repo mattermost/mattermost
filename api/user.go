@@ -1420,7 +1420,7 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 
 func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
-	if sso != nil && !sso.Enable {
+	if sso == nil || !sso.Enable {
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
 	}
 
@@ -1462,6 +1462,9 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
+		if ar == nil {
+			return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad response from token request", "")
+		}
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
