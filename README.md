@@ -52,9 +52,11 @@ There are multiple ways to install Mattermost depending on your needs.
 
 [![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
 
-#### Production Deployment (for Beta2 and later)
+#### Production Deployment
 
 Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 
+
+- [Production Install on Ubuntu 14.04](https://github.com/mattermost/platform/blob/release-1.0.0/doc/install/prod-ubuntu.md) - Install Mattermost for production environments. 
 
 - [GitLab Mattermost Production Installation](https://gitlab.com/gitlab-org/gitlab-mattermost) - Install Mattermost for production environments bundled with GitLab, a leading open source Git repository, using an omnibus package for Ubuntu 12.04, Ubuntu 14.04, Debian 7, Debian 8, and CentOS 6 (and RedHat/Oracle/Scientific Linux 6), CentOS 7 (and RedHat/Oracle/Scientific Linux 7). 
 
