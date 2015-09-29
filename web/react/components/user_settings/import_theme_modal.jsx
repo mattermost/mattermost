@@ -140,7 +140,7 @@ export default class ImportThemeModal extends React.Component {
                     >
                         <Modal.Body>
                             <p>
-                                {'To import a theme, go to a Slack team and look for “”Preferences” -> Sidebar Theme”. Open the custom theme option, copy the theme color values and paste them here:'}
+                                {'To import a theme, go to a Slack team and look for “Preferences -> Sidebar Theme”. Open the custom theme option, copy the theme color values and paste them here:'}
                             </p>
                             <div className='form-group less'>
                                 <div className='col-sm-9'>
