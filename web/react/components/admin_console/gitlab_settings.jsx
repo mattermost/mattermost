@@ -40,7 +40,6 @@ export default class GitLabSettings extends React.Component {
         config.GitLabSettings.Allow = React.findDOMNode(this.refs.Allow).checked;
         config.GitLabSettings.Secret = React.findDOMNode(this.refs.Secret).value.trim();
         config.GitLabSettings.Id = React.findDOMNode(this.refs.Id).value.trim();
-        //config.GitLabSettings.Scope = React.findDOMNode(this.refs.Scope).value.trim();
         config.GitLabSettings.AuthEndpoint = React.findDOMNode(this.refs.AuthEndpoint).value.trim();
         config.GitLabSettings.TokenEndpoint = React.findDOMNode(this.refs.TokenEndpoint).value.trim();
         config.GitLabSettings.UserApiEndpoint = React.findDOMNode(this.refs.UserApiEndpoint).value.trim();
@@ -121,28 +120,6 @@ export default class GitLabSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
-                            htmlFor='Secret'
-                        >
-                            {'Secret:'}
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='Secret'
-                                ref='Secret'
-                                placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
-                                defaultValue={this.props.config.GitLabSettings.Secret}
-                                onChange={this.handleChange}
-                                disabled={!this.state.Allow}
-                            />
-                            <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab.'}</p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
                             htmlFor='Id'
                         >
                             {'Id:'}
@@ -159,6 +136,28 @@ export default class GitLabSettings extends React.Component {
                                 disabled={!this.state.Allow}
                             />
                             <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='Secret'
+                        >
+                            {'Secret:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='Secret'
+                                ref='Secret'
+                                placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+                                defaultValue={this.props.config.GitLabSettings.Secret}
+                                onChange={this.handleChange}
+                                disabled={!this.state.Allow}
+                            />
+                            <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab.'}</p>
                         </div>
                     </div>
 
@@ -250,6 +249,8 @@ export default class GitLabSettings extends React.Component {
     }
 }
 
+
+//config.GitLabSettings.Scope = React.findDOMNode(this.refs.Scope).value.trim();
 //  <div className='form-group'>
 //     <label
 //         className='control-label col-sm-4'
