@@ -11,14 +11,16 @@ export default class SettingsUpload extends React.Component {
 
         this.state = {
             clientError: this.props.clientError,
-            serverError: this.props.serverError
+            serverError: this.props.serverError,
+            importClass: ' disabled'
         };
     }
 
     componentWillReceiveProps() {
         this.setState({
             clientError: this.props.clientError,
-            serverError: this.props.serverError
+            serverError: this.props.serverError,
+            importClass: ' disabled'
         });
     }
 
@@ -26,7 +28,8 @@ export default class SettingsUpload extends React.Component {
         e.preventDefault();
         this.setState({
             clientError: '',
-            serverError: ''
+            serverError: '',
+            importClass: ' disabled'
         });
     }
 
@@ -41,13 +44,15 @@ export default class SettingsUpload extends React.Component {
     }
 
     onFileSelect(e) {
+        this.setState({
+            importClass: ''
+        });
         var filename = $(e.target).val();
         if (filename.substring(3, 11) === 'fakepath') {
             filename = filename.substring(12);
         }
         $(e.target).closest('li').find('.file-status').addClass('hide');
         $(e.target).closest('li').find('.file-name').removeClass('hide').html(filename);
-        $(React.findDOMNode(this.refs.importButton)).removeClass('disabled');
     }
 
     render() {
@@ -63,6 +68,10 @@ export default class SettingsUpload extends React.Component {
                 <div className='file-status'>{this.state.serverError}</div>
             );
         }
+        var importClass = '';
+        if (this.state.importClass) {
+            importClass = ' disabled';
+        }
         return (
             <ul className='section-max'>
                 <li className='col-sm-12 section-title'>{this.props.title}</li>
@@ -71,7 +80,7 @@ export default class SettingsUpload extends React.Component {
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                Select file
+                                {'Select file'}
                                 <input
                                     ref='uploadinput'
                                     accept={this.props.fileTypesAccepted}
@@ -80,11 +89,10 @@ export default class SettingsUpload extends React.Component {
                                 />
                             </span>
                             <a
-                                ref='importButton'
-                                className={'btn btn-sm btn-primary disabled'}
+                                className={'btn btn-sm btn-primary' + importClass}
                                 onClick={this.doSubmit}
                             >
-                                Import
+                                {'Import'}
                             </a>
                             <div className='file-status file-name hide'></div>
                             {serverError}
