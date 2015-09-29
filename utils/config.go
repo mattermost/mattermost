@@ -151,6 +151,7 @@ func LoadConfig(fileName string) {
 	}
 
 	configureLog(&config.LogSettings)
+	TestConnection(&config)
 
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions(Cfg)
