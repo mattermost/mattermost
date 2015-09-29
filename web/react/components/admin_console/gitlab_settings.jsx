@@ -202,7 +202,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).'}</p>
+                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).  Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
                         </div>
                     </div>
 
@@ -224,7 +224,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/token.'}</p>
+                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
                         </div>
                     </div>
 
@@ -246,7 +246,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Allow}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/api/v3/user.'}</p>
+                            <p className='help-text'>{'Enter <your-gitlab-url>/api/v3/user.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
                         </div>
                     </div>
 
