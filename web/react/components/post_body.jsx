@@ -12,7 +12,10 @@ export default class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
+        this.receivedYoutubeData = false;
+
         this.parseEmojis = this.parseEmojis.bind(this);
+        this.createYoutubeEmbed = this.createYoutubeEmbed.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
         this.state = {links: linkData.links, message: linkData.text};
@@ -48,6 +51,123 @@ export default class PostBody extends React.Component {
     componentWillReceiveProps(nextProps) {
         const linkData = Utils.extractLinks(nextProps.post.message);
         this.setState({links: linkData.links, message: linkData.text});
+    }
+
+    handleYoutubeTime(link) {
+        const timeRegex = /[\\?&]t=([0-9hms]+)/;
+
+        const time = link.trim().match(timeRegex);
+        if (!time || !time[1]) {
+            return '';
+        }
+
+        const hours = time[1].match(/([0-9]+)h/);
+        const minutes = time[1].match(/([0-9]+)m/);
+        const seconds = time[1].match(/([0-9]+)s/);
+
+        let ticks = 0;
+
+        if (hours && hours[1]) {
+            ticks += parseInt(hours[1], 10) * 3600;
+        }
+
+        if (minutes && minutes[1]) {
+            ticks += parseInt(minutes[1], 10) * 60;
+        }
+
+        if (seconds && seconds[1]) {
+            ticks += parseInt(seconds[1], 10);
+        }
+
+        return '&start=' + ticks.toString();
+    }
+
+    createYoutubeEmbed(link) {
+        const ytRegex = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|watch\?(?:[a-zA-Z-_]+=[a-zA-Z0-9-_]+&)+v=)([^#\&\?]*).*/;
+
+        const match = link.trim().match(ytRegex);
+        if (!match || match[1].length !== 11) {
+            return null;
+        }
+
+        const youtubeId = match[1];
+        const time = this.handleYoutubeTime(link);
+
+        function onClick(e) {
+            var div = $(e.target).closest('.video-thumbnail__container')[0];
+            var iframe = document.createElement('iframe');
+            iframe.setAttribute('src',
+                                'https://www.youtube.com/embed/' +
+                                div.id +
+                                '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1' +
+                                time);
+            iframe.setAttribute('width', '480px');
+            iframe.setAttribute('height', '360px');
+            iframe.setAttribute('type', 'text/html');
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allowfullscreen', 'allowfullscreen');
+
+            div.parentNode.replaceChild(iframe, div);
+        }
+
+        function success(data) {
+            if (!data.items.length || !data.items[0].snippet) {
+                return null;
+            }
+            var metadata = data.items[0].snippet;
+            this.receivedYoutubeData = true;
+            this.setState({youtubeUploader: metadata.channelTitle, youtubeTitle: metadata.title});
+        }
+
+        if (global.window.config.GoogleDeveloperKey && !this.receivedYoutubeData) {
+            $.ajax({
+                async: true,
+                url: 'https://www.googleapis.com/youtube/v3/videos',
+                type: 'GET',
+                data: {part: 'snippet', id: youtubeId, key: global.window.config.GoogleDeveloperKey},
+                success
+            });
+        }
+
+        let header = 'Youtube';
+        if (this.state.youtubeTitle) {
+            header = header + ' - ';
+        }
+
+        let uploader = this.state.youtubeUploader;
+        if (!uploader) {
+            uploader = 'unknown';
+        }
+
+        return (
+            <div className='post-comment'>
+                <h4>
+                    <span className='video-type'>{header}</span>
+                    <span className='video-title'><a href={link}>{this.state.youtubeTitle}</a></span>
+                </h4>
+                <h4 className='video-uploader'>{uploader}</h4>
+                <div
+                    className='video-div embed-responsive-item'
+                    id={youtubeId}
+                    onClick={onClick}
+                >
+                    <div className='embed-responsive embed-responsive-4by3 video-div__placeholder'>
+                        <div
+                            id={youtubeId}
+                            className='video-thumbnail__container'
+                        >
+                            <img
+                                className='video-thumbnail'
+                                src={'https://i.ytimg.com/vi/' + youtubeId + '/hqdefault.jpg'}
+                            />
+                            <div className='block'>
+                                <span className='play-button'><span/></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     render() {
@@ -133,7 +253,7 @@ export default class PostBody extends React.Component {
 
         let embed;
         if (filenames.length === 0 && this.state.links) {
-            embed = Utils.getEmbed(this.state.links[0]);
+            embed = this.createYoutubeEmbed(this.state.links[0]);
         }
 
         let fileAttachmentHolder = '';
