@@ -40,7 +40,7 @@ export default class GitLabSettings extends React.Component {
         config.GitLabSettings.Allow = React.findDOMNode(this.refs.Allow).checked;
         config.GitLabSettings.Secret = React.findDOMNode(this.refs.Secret).value.trim();
         config.GitLabSettings.Id = React.findDOMNode(this.refs.Id).value.trim();
-        config.GitLabSettings.Scope = React.findDOMNode(this.refs.Scope).value.trim();
+        //config.GitLabSettings.Scope = React.findDOMNode(this.refs.Scope).value.trim();
         config.GitLabSettings.AuthEndpoint = React.findDOMNode(this.refs.AuthEndpoint).value.trim();
         config.GitLabSettings.TokenEndpoint = React.findDOMNode(this.refs.TokenEndpoint).value.trim();
         config.GitLabSettings.UserApiEndpoint = React.findDOMNode(this.refs.UserApiEndpoint).value.trim();
@@ -165,28 +165,6 @@ export default class GitLabSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
-                            htmlFor='Scope'
-                        >
-                            {'Scope:'}
-                        </label>
-                        <div className='col-sm-8'>
-                            <input
-                                type='text'
-                                className='form-control'
-                                id='Scope'
-                                ref='Scope'
-                                placeholder='Not currently used by GitLab. Please leave blank'
-                                defaultValue={this.props.config.GitLabSettings.Scope}
-                                onChange={this.handleChange}
-                                disabled={!this.state.Allow}
-                            />
-                            <p className='help-text'>{'This field is not yet used by GitLab OAuth. Other OAuth providers may use this field to specify the scope of account data from OAuth provider that is sent to Mattermost.'}</p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
                             htmlFor='AuthEndpoint'
                         >
                             {'Auth Endpoint:'}
@@ -271,6 +249,28 @@ export default class GitLabSettings extends React.Component {
         );
     }
 }
+
+//  <div className='form-group'>
+//     <label
+//         className='control-label col-sm-4'
+//         htmlFor='Scope'
+//     >
+//         {'Scope:'}
+//     </label>
+//     <div className='col-sm-8'>
+//         <input
+//             type='text'
+//             className='form-control'
+//             id='Scope'
+//             ref='Scope'
+//             placeholder='Not currently used by GitLab. Please leave blank'
+//             defaultValue={this.props.config.GitLabSettings.Scope}
+//             onChange={this.handleChange}
+//             disabled={!this.state.Allow}
+//         />
+//         <p className='help-text'>{'This field is not yet used by GitLab OAuth. Other OAuth providers may use this field to specify the scope of account data from OAuth provider that is sent to Mattermost.'}</p>
+//     </div>
+// </div>
 
 GitLabSettings.propTypes = {
     config: React.PropTypes.object
