@@ -43,7 +43,7 @@ export default class MoreDirectChannels extends React.Component {
 
                 handleClick = function clickHandler(e) {
                     e.preventDefault();
-                    utils.switchChannel(channel, channel.teammate_username);
+                    utils.switchChannel(channel);
                     $(React.findDOMNode(self.refs.modal)).modal('hide');
                 };
             } else {

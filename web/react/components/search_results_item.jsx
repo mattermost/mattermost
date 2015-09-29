@@ -47,13 +47,8 @@ export default class SearchResultsItem extends React.Component {
         );
 
         var postChannel = ChannelStore.get(this.props.post.channel_id);
-        var teammate = '';
 
-        if (postChannel.type === 'D') {
-            teammate = utils.getDirectTeammate(this.props.post.channel_id).username;
-        }
-
-        utils.switchChannel(postChannel, teammate);
+        utils.switchChannel(postChannel);
     }
 
     render() {
