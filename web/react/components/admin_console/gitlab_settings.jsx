@@ -12,7 +12,7 @@ export default class GitLabSettings extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            Allow: this.props.config.GitLabSettings.Allow,
+            Enable: this.props.config.GitLabSettings.Enable,
             saveNeeded: false,
             serverError: null
         };
@@ -21,12 +21,12 @@ export default class GitLabSettings extends React.Component {
     handleChange(action) {
         var s = {saveNeeded: true, serverError: this.state.serverError};
 
-        if (action === 'AllowTrue') {
-            s.Allow = true;
+        if (action === 'EnableTrue') {
+            s.Enable = true;
         }
 
-        if (action === 'AllowFalse') {
-            s.Allow = false;
+        if (action === 'EnableFalse') {
+            s.Enable = false;
         }
 
         this.setState(s);
@@ -37,7 +37,7 @@ export default class GitLabSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.GitLabSettings.Allow = React.findDOMNode(this.refs.Allow).checked;
+        config.GitLabSettings.Enable = React.findDOMNode(this.refs.Enable).checked;
         config.GitLabSettings.Secret = React.findDOMNode(this.refs.Secret).value.trim();
         config.GitLabSettings.Id = React.findDOMNode(this.refs.Id).value.trim();
         config.GitLabSettings.AuthEndpoint = React.findDOMNode(this.refs.AuthEndpoint).value.trim();
@@ -87,7 +87,7 @@ export default class GitLabSettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
-                            htmlFor='Allow'
+                            htmlFor='Enable'
                         >
                             {'Enable Sign Up With GitLab: '}
                         </label>
@@ -95,21 +95,21 @@ export default class GitLabSettings extends React.Component {
                             <label className='radio-inline'>
                                 <input
                                     type='radio'
-                                    name='Allow'
+                                    name='Enable'
                                     value='true'
-                                    ref='Allow'
-                                    defaultChecked={this.props.config.GitLabSettings.Allow}
-                                    onChange={this.handleChange.bind(this, 'AllowTrue')}
+                                    ref='Enable'
+                                    defaultChecked={this.props.config.GitLabSettings.Enable}
+                                    onChange={this.handleChange.bind(this, 'EnableTrue')}
                                 />
                                     {'true'}
                             </label>
                             <label className='radio-inline'>
                                 <input
                                     type='radio'
-                                    name='Allow'
+                                    name='Enable'
                                     value='false'
-                                    defaultChecked={!this.props.config.GitLabSettings.Allow}
-                                    onChange={this.handleChange.bind(this, 'AllowFalse')}
+                                    defaultChecked={!this.props.config.GitLabSettings.Enable}
+                                    onChange={this.handleChange.bind(this, 'EnableFalse')}
                                 />
                                     {'false'}
                             </label>
@@ -133,7 +133,7 @@ export default class GitLabSettings extends React.Component {
                                 placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
                                 defaultValue={this.props.config.GitLabSettings.Id}
                                 onChange={this.handleChange}
-                                disabled={!this.state.Allow}
+                                disabled={!this.state.Enable}
                             />
                             <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab'}</p>
                         </div>
@@ -155,7 +155,7 @@ export default class GitLabSettings extends React.Component {
                                 placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
                                 defaultValue={this.props.config.GitLabSettings.Secret}
                                 onChange={this.handleChange}
-                                disabled={!this.state.Allow}
+                                disabled={!this.state.Enable}
                             />
                             <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab.'}</p>
                         </div>
@@ -177,7 +177,7 @@ export default class GitLabSettings extends React.Component {
                                 placeholder='Ex ""'
                                 defaultValue={this.props.config.GitLabSettings.AuthEndpoint}
                                 onChange={this.handleChange}
-                                disabled={!this.state.Allow}
+                                disabled={!this.state.Enable}
                             />
                             <p className='help-text'>{'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).  Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
                         </div>
@@ -199,7 +199,7 @@ export default class GitLabSettings extends React.Component {
                                 placeholder='Ex ""'
                                 defaultValue={this.props.config.GitLabSettings.TokenEndpoint}
                                 onChange={this.handleChange}
-                                disabled={!this.state.Allow}
+                                disabled={!this.state.Enable}
                             />
                             <p className='help-text'>{'Enter <your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
                         </div>
@@ -221,7 +221,7 @@ export default class GitLabSettings extends React.Component {
                                 placeholder='Ex ""'
                                 defaultValue={this.props.config.GitLabSettings.UserApiEndpoint}
                                 onChange={this.handleChange}
-                                disabled={!this.state.Allow}
+                                disabled={!this.state.Enable}
                             />
                             <p className='help-text'>{'Enter <your-gitlab-url>/api/v3/user.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
                         </div>
