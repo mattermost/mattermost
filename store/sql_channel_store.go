@@ -583,7 +583,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 
 		var query string
 
-		if utils.Cfg.SqlSettings.DriverName == "postgres" {
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = `UPDATE
 				ChannelMembers
 			SET
@@ -597,7 +597,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelId string, userId string) Sto
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
 			        AND ChannelId = :ChannelId`
-		} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			query = `UPDATE
 				ChannelMembers, Channels
 			SET
