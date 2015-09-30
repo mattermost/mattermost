@@ -459,8 +459,8 @@ func (c *Client) UpdateNotifyLevel(data map[string]string) (*Result, *AppError) 
 	}
 }
 
-func (c *Client) UpdateMarkUnreadLevel(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/channels/update_mark_unread_level", MapToJson(data)); err != nil {
+func (c *Client) UpdateNotifyProps(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/channels/update_notify_props", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

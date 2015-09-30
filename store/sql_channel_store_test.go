@@ -136,14 +136,14 @@ func TestChannelStoreDelete(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o2.Id
 	m2.UserId = m1.UserId
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m2.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m2))
 
 	if r := <-store.Channel().Delete(o1.Id, model.GetMillis()); r.Err != nil {
@@ -225,14 +225,14 @@ func TestChannelMemberStore(t *testing.T) {
 	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
 	o1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	o1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	o1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&o1))
 
 	o2 := model.ChannelMember{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u2.Id
 	o2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	o2.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&o2))
 
 	c1t2 := (<-store.Channel().Get(c1.Id)).Data.(*model.Channel)
@@ -296,7 +296,7 @@ func TestChannelStorePermissionsTo(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	count := (<-store.Channel().CheckPermissionsTo(o1.TeamId, o1.Id, m1.UserId)).Data.(int64)
@@ -377,21 +377,21 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o1.Id
 	m2.UserId = model.NewId()
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m2.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m2))
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o2.Id
 	m3.UserId = model.NewId()
 	m3.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m3.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m3))
 
 	cresult := <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
@@ -423,21 +423,21 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o1.Id
 	m2.UserId = model.NewId()
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m2.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m2))
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o2.Id
 	m3.UserId = model.NewId()
 	m3.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m3.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m3))
 
 	o3 := model.Channel{}
@@ -494,21 +494,21 @@ func TestChannelStoreGetChannelCounts(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o1.Id
 	m2.UserId = model.NewId()
 	m2.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m2.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m2))
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o2.Id
 	m3.UserId = model.NewId()
 	m3.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m3.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m3))
 
 	cresult := <-store.Channel().GetChannelCounts(o1.TeamId, m1.UserId)
@@ -538,7 +538,7 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	err := (<-store.Channel().UpdateLastViewedAt(m1.ChannelId, m1.UserId)).Err
@@ -567,7 +567,7 @@ func TestChannelStoreIncrementMentionCount(t *testing.T) {
 	m1.ChannelId = o1.Id
 	m1.UserId = model.NewId()
 	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
-	m1.MarkUnreadLevel = model.CHANNEL_MARK_UNREAD_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	err := (<-store.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)).Err

@@ -42,7 +42,7 @@ export default class ChannelNotifications extends React.Component {
 
             const member = ChannelStore.getMember(channelId);
             var notifyLevel = member.notify_level;
-            var markUnreadLevel = member.mark_unread_level;
+            var markUnreadLevel = member.notify_props.mark_unread;
 
             this.setState({
                 notifyLevel,
@@ -63,7 +63,7 @@ export default class ChannelNotifications extends React.Component {
 
         const member = ChannelStore.getMember(this.state.channelId);
         var notifyLevel = member.notify_level;
-        var markUnreadLevel = member.mark_unread_level;
+        var markUnreadLevel = member.notify_props.mark_unread;
 
         var newState = this.state;
         newState.notifyLevel = notifyLevel;
@@ -249,7 +249,7 @@ export default class ChannelNotifications extends React.Component {
         const channelId = this.state.channelId;
         const markUnreadLevel = this.state.markUnreadLevel;
 
-        if (ChannelStore.getMember(channelId).mark_unread_level === markUnreadLevel) {
+        if (ChannelStore.getMember(channelId).notify_props.mark_unread === markUnreadLevel) {
             this.updateSection('');
             return;
         }
@@ -257,17 +257,13 @@ export default class ChannelNotifications extends React.Component {
         const data = {
             channel_id: channelId,
             user_id: UserStore.getCurrentId(),
-            mark_unread_level: markUnreadLevel
+            mark_unread: markUnreadLevel
         };
 
-        if (!data.mark_unread_level || data.mark_unread_level.length === 0) {
-            return;
-        }
-
-        Client.updateMarkUnreadLevel(data,
+        Client.updateNotifyProps(data,
             () => {
                 var member = ChannelStore.getMember(channelId);
-                member.mark_unread_level = markUnreadLevel;
+                member.notify_props.mark_unread = markUnreadLevel;
                 ChannelStore.setChannelMember(member);
                 this.updateSection('');
             },

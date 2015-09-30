@@ -24,7 +24,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	sr.Handle("/update_desc", ApiUserRequired(updateChannelDesc)).Methods("POST")
 	sr.Handle("/update_notify_level", ApiUserRequired(updateNotifyLevel)).Methods("POST")
-	sr.Handle("/update_mark_unread_level", ApiUserRequired(updateMarkUnreadLevel)).Methods("POST")
+	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(joinChannel)).Methods("POST")
@@ -77,7 +77,7 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 
 		if addMember {
 			cm := &model.ChannelMember{ChannelId: sc.Id, UserId: c.Session.UserId, Roles: model.CHANNEL_ROLE_ADMIN,
-				NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, MarkUnreadLevel: model.CHANNEL_MARK_UNREAD_ALL}
+				NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				return nil, cmresult.Err
@@ -136,7 +136,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		return nil, err
 	} else {
 		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId, Roles: "",
-			NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, MarkUnreadLevel: model.CHANNEL_MARK_UNREAD_ALL}
+			NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 		if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 			return nil, cmresult.Err
@@ -374,7 +374,7 @@ func JoinChannel(c *Context, channelId string, role string) {
 
 		if channel.Type == model.CHANNEL_OPEN {
 			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, Roles: role,
-				NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, MarkUnreadLevel: model.CHANNEL_MARK_UNREAD_ALL}
+				NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				c.Err = cmresult.Err
@@ -408,7 +408,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, Roles: channelRole,
-			NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, MarkUnreadLevel: model.CHANNEL_MARK_UNREAD_ALL}
+			NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
@@ -419,7 +419,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, Roles: channelRole,
-			NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, MarkUnreadLevel: model.CHANNEL_MARK_UNREAD_ALL}
+			NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
@@ -700,7 +700,8 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId, NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, MarkUnreadLevel: model.CHANNEL_MARK_UNREAD_ALL}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId,
+				NotifyLevel: model.CHANNEL_NOTIFY_DEFAULT, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", userId, id, cmresult.Err)
@@ -790,6 +791,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
+// TODO remove me
 func updateNotifyLevel(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapFromJson(r.Body)
 	userId := data["user_id"]
@@ -828,8 +830,9 @@ func updateNotifyLevel(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(data)))
 }
 
-func updateMarkUnreadLevel(c *Context, w http.ResponseWriter, r *http.Request) {
+func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapFromJson(r.Body)
+
 	userId := data["user_id"]
 	if len(userId) != 26 {
 		c.SetInvalidParam("updateMarkUnreadLevel", "user_id")
@@ -842,26 +845,39 @@ func updateMarkUnreadLevel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	markUnreadLevel := data["mark_unread_level"]
-	if len(markUnreadLevel) == 0 || !model.IsChannelMarkUnreadLevelValid(markUnreadLevel) {
-		c.SetInvalidParam("updateMarkUnreadLevel", "mark_unread_level")
-		return
-	}
-
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 
-	if !c.HasPermissionsToUser(userId, "updateMarkUnreadLevel") {
+	if !c.HasPermissionsToUser(userId, "updateNotifyLevel") {
 		return
 	}
 
-	if !c.HasPermissionsToChannel(cchan, "updateMarkUnreadLevel") {
+	if !c.HasPermissionsToChannel(cchan, "updateNotifyLevel") {
 		return
 	}
 
-	if result := <-Srv.Store.Channel().UpdateMarkUnreadLevel(channelId, userId, markUnreadLevel); result.Err != nil {
+	result := <-Srv.Store.Channel().GetMember(channelId, userId)
+	if result.Err != nil {
 		c.Err = result.Err
 		return
 	}
 
-	w.Write([]byte(model.MapToJson(data)))
+	member := result.Data.(model.ChannelMember)
+
+	// update whichever notify properties have been provided, but don't change the others
+	if markUnread, exists := data["mark_unread"]; exists {
+		member.NotifyProps["mark_unread"] = markUnread
+	}
+
+	if desktop, exists := data["desktop"]; exists {
+		member.NotifyProps["desktop"] = desktop
+	}
+
+	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		// return the updated notify properties including any unchanged ones
+		w.Write([]byte(model.MapToJson(member.NotifyProps)))
+	}
+
 }

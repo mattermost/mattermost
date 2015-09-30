@@ -20,15 +20,15 @@ const (
 )
 
 type ChannelMember struct {
-	ChannelId       string `json:"channel_id"`
-	UserId          string `json:"user_id"`
-	Roles           string `json:"roles"`
-	LastViewedAt    int64  `json:"last_viewed_at"`
-	MsgCount        int64  `json:"msg_count"`
-	MentionCount    int64  `json:"mention_count"`
-	NotifyLevel     string `json:"notify_level"`
-	MarkUnreadLevel string `json:"mark_unread_level"`
-	LastUpdateAt    int64  `json:"last_update_at"`
+	ChannelId    string    `json:"channel_id"`
+	UserId       string    `json:"user_id"`
+	Roles        string    `json:"roles"`
+	LastViewedAt int64     `json:"last_viewed_at"`
+	MsgCount     int64     `json:"msg_count"`
+	MentionCount int64     `json:"mention_count"`
+	NotifyProps  StringMap `json:"notify_props"`
+	NotifyLevel  string    `json:"notify_level"`
+	LastUpdateAt int64     `json:"last_update_at"`
 }
 
 func (o *ChannelMember) ToJson() string {
@@ -71,14 +71,19 @@ func (o *ChannelMember) IsValid() *AppError {
 		return NewAppError("ChannelMember.IsValid", "Invalid notify level", "notify_level="+o.NotifyLevel)
 	}
 
-	if len(o.MarkUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(o.MarkUnreadLevel) {
-		return NewAppError("ChannelMember.IsValid", "Invalid mark unread level", "mark_unread_level="+o.MarkUnreadLevel)
+	markUnreadLevel := o.NotifyProps["mark_unread"]
+	if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
+		return NewAppError("ChannelMember.IsValid", "Invalid mark unread level", "mark_unread_level="+markUnreadLevel)
 	}
 
 	return nil
 }
 
 func (o *ChannelMember) PreSave() {
+	o.LastUpdateAt = GetMillis()
+}
+
+func (o *ChannelMember) PreUpdate() {
 	o.LastUpdateAt = GetMillis()
 }
 
@@ -91,4 +96,11 @@ func IsChannelNotifyLevelValid(notifyLevel string) bool {
 
 func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
 	return markUnreadLevel == CHANNEL_MARK_UNREAD_ALL || markUnreadLevel == CHANNEL_MARK_UNREAD_MENTION
+}
+
+func GetDefaultChannelNotifyProps() StringMap {
+	return StringMap{
+		"desktop":     CHANNEL_NOTIFY_DEFAULT,
+		"mark_unread": CHANNEL_MARK_UNREAD_ALL,
+	}
 }
