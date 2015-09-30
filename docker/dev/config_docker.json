@@ -22,7 +22,7 @@
         "MaxIdleConns": 10,
         "MaxOpenConns": 10,
         "Trace": false,
-        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"
+        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QVg"
     },
     "LogSettings": {
         "EnableConsole": false,
@@ -36,7 +36,7 @@
         "DriverName": "local",
         "Directory": "/mattermost/data/",
         "EnablePublicLink": true,
-        "PublicLinkSalt": "LhaAWC6lYEKHTkBKsvyXNIOfUIT37AX",
+        "PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -60,8 +60,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo",
-        "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5e",
+        "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
+        "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         "ApplePushServer": "",
         "ApplePushCertPublic": "",
         "ApplePushCertPrivate": ""
