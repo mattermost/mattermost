@@ -568,22 +568,6 @@ export function updateChannelDesc(data, success, error) {
     track('api', 'api_channels_desc');
 }
 
-// TODO remove me
-export function updateNotifyLevel(data, success, error) {
-    $.ajax({
-        url: '/api/v1/channels/update_notify_level',
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-        success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateNotifyLevel', xhr, status, err);
-            error(e);
-        }
-    });
-}
-
 export function updateNotifyProps(data, success, error) {
     $.ajax({
         url: '/api/v1/channels/update_notify_props',

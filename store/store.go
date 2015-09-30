@@ -72,7 +72,6 @@ type ChannelStore interface {
 	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
-	UpdateNotifyLevel(channelId string, userId string, notifyLevel string) StoreChannel
 }
 
 type PostStore interface {

@@ -78,8 +78,7 @@ func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
 			l4g.Error(err.Error())
 		}
 
-		// TODO uncomment me
-		// s.RemoveColumnIfExists("ChannelMembers", "NotifyLevel")
+		s.RemoveColumnIfExists("ChannelMembers", "NotifyLevel")
 	}
 }
 
@@ -712,36 +711,6 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.IncrementMentionCount", "We couldn't increment the mention count", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-// TODO remove me
-func (s SqlChannelStore) UpdateNotifyLevel(channelId, userId, notifyLevel string) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		result := StoreResult{}
-
-		updateAt := model.GetMillis()
-
-		_, err := s.GetMaster().Exec(
-			`UPDATE
-				ChannelMembers
-			SET
-				NotifyLevel = :NotifyLevel,
-				LastUpdateAt = :LastUpdateAt
-			WHERE
-				UserId = :UserId
-					AND ChannelId = :ChannelId`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "NotifyLevel": notifyLevel, "LastUpdateAt": updateAt})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.UpdateNotifyLevel", "We couldn't update the notify level", "channel_id="+channelId+", user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

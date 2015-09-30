@@ -27,7 +27,6 @@ type ChannelMember struct {
 	MsgCount     int64     `json:"msg_count"`
 	MentionCount int64     `json:"mention_count"`
 	NotifyProps  StringMap `json:"notify_props"`
-	NotifyLevel  string    `json:"notify_level"`
 	LastUpdateAt int64     `json:"last_update_at"`
 }
 
@@ -67,8 +66,9 @@ func (o *ChannelMember) IsValid() *AppError {
 		}
 	}
 
-	if len(o.NotifyLevel) > 20 || !IsChannelNotifyLevelValid(o.NotifyLevel) {
-		return NewAppError("ChannelMember.IsValid", "Invalid notify level", "notify_level="+o.NotifyLevel)
+	notifyLevel := o.NotifyProps["desktop"]
+	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
+		return NewAppError("ChannelMember.IsValid", "Invalid notify level", "notify_level="+notifyLevel)
 	}
 
 	markUnreadLevel := o.NotifyProps["mark_unread"]

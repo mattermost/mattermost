@@ -41,7 +41,7 @@ export default class ChannelNotifications extends React.Component {
             var channelId = button.getAttribute('data-channelid');
 
             const member = ChannelStore.getMember(channelId);
-            var notifyLevel = member.notify_level;
+            var notifyLevel = member.notify_props.desktop;
             var markUnreadLevel = member.notify_props.mark_unread;
 
             this.setState({
@@ -62,7 +62,7 @@ export default class ChannelNotifications extends React.Component {
         }
 
         const member = ChannelStore.getMember(this.state.channelId);
-        var notifyLevel = member.notify_level;
+        var notifyLevel = member.notify_props.desktop;
         var markUnreadLevel = member.notify_props.mark_unread;
 
         var newState = this.state;
@@ -81,7 +81,7 @@ export default class ChannelNotifications extends React.Component {
         var channelId = this.state.channelId;
         var notifyLevel = this.state.notifyLevel;
 
-        if (ChannelStore.getMember(channelId).notify_level === notifyLevel) {
+        if (ChannelStore.getMember(channelId).notify_props.desktop === notifyLevel) {
             this.updateSection('');
             return;
         }
@@ -89,16 +89,12 @@ export default class ChannelNotifications extends React.Component {
         var data = {};
         data.channel_id = channelId;
         data.user_id = UserStore.getCurrentId();
-        data.notify_level = notifyLevel;
+        data.desktop = notifyLevel;
 
-        if (!data.notify_level || data.notify_level.length === 0) {
-            return;
-        }
-
-        Client.updateNotifyLevel(data,
+        Client.updateNotifyProps(data,
             () => {
                 var member = ChannelStore.getMember(channelId);
-                member.notify_level = notifyLevel;
+                member.notify_props.desktop = notifyLevel;
                 ChannelStore.setChannelMember(member);
                 this.updateSection('');
             },
