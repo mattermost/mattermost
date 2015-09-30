@@ -23,12 +23,14 @@ export default class SSOSignUpPage extends React.Component {
 
         team.display_name = this.state.name;
 
-        if (team.display_name.length <= 2) {
+        if (!team.display_name) {
+            state.nameError = 'Please enter a team name';
+            this.setState(state);
             return;
         }
 
-        if (!team.display_name) {
-            state.nameError = 'Please enter a team name';
+        if (team.display_name.length <= 2) {
+            state.nameError = 'Name must be 3 or more characters up to a maximum of 15';
             this.setState(state);
             return;
         }
