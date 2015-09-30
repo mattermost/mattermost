@@ -998,7 +998,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		sessions := result.Data.([]*model.Session)
 		for _, s := range sessions {
-			sessionCache.Remove(s.Id)
+			sessionCache.Remove(s.Token)
 		}
 	}
 
