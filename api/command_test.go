@@ -6,6 +6,7 @@ package api
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -175,6 +176,8 @@ func TestEchoCommand(t *testing.T) {
 	if r1.Response != model.RESP_EXECUTED {
 		t.Fatal("Echo command failed to execute")
 	}
+
+	time.Sleep(100 * time.Millisecond)
 
 	p1 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
 	if len(p1.Order) != 1 {
