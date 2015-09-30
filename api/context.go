@@ -292,14 +292,6 @@ func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) b
 	return true
 }
 
-func (c *Context) IsSystemAdmin() bool {
-	// TODO XXX FIXME && IsPrivateIpAddress(c.IpAddress)
-	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) {
-		return true
-	}
-	return false
-}
-
 func (c *Context) HasSystemAdminPermissions(where string) bool {
 	if c.IsSystemAdmin() {
 		return true
@@ -310,14 +302,19 @@ func (c *Context) HasSystemAdminPermissions(where string) bool {
 	return false
 }
 
-func (c *Context) IsTeamAdmin(userId string) bool {
-	if uresult := <-Srv.Store.User().Get(userId); uresult.Err != nil {
-		c.Err = uresult.Err
-		return false
-	} else {
-		user := uresult.Data.(*model.User)
-		return model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && user.TeamId == c.Session.TeamId
+func (c *Context) IsSystemAdmin() bool {
+	// TODO XXX FIXME && IsPrivateIpAddress(c.IpAddress)
+	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) {
+		return true
 	}
+	return false
+}
+
+func (c *Context) IsTeamAdmin() bool {
+	if model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) || c.IsSystemAdmin() {
+		return true
+	}
+	return false
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter) {
