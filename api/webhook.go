@@ -86,7 +86,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
+		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate conditions")
 			c.Err = model.NewAppError("deleteIncomingHook", "Inappropriate permissions to delete incoming webhook", "user_id="+c.Session.UserId)
 			return

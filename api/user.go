@@ -973,7 +973,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && !c.IsSystemAdmin() {
+	if !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("updateRoles", "You do not have the appropriate permissions", "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -1070,7 +1070,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) && !c.IsSystemAdmin() {
+	if !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("updateActive", "You do not have the appropriate permissions", "userId="+user_id)
 		c.Err.StatusCode = http.StatusForbidden
 		return
