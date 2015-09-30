@@ -23,7 +23,7 @@ export default class SSOSignUpPage extends React.Component {
 
         team.display_name = this.state.name;
 
-        if (team.display_name.length <= 3) {
+        if (team.display_name.length <= 2) {
             return;
         }
 
@@ -68,7 +68,7 @@ export default class SSOSignUpPage extends React.Component {
         }
 
         var disabled = false;
-        if (this.state.name.length <= 3) {
+        if (this.state.name.length <= 2) {
             disabled = true;
         }
 
