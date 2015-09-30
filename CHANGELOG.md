@@ -1,18 +1,17 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT - Release v1.0.0-RC1
+## UNDER DEVELOPMENT - Release v1.0.0-RC2
 
 The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
-- **Release candidate anticipated:** September 28, 2015  
 - **Final release anticipated:** October 2, 2015
 
 ### Release Highlights
 
 - System Console - UI for configuring deployments, managing teams, resetting user passwords and other admin features
-- Markdown support in messages, comments and channel descriptions - Including font formatting, emoticons, headings and tables
-- Preset themes and detailed theme color options, plus ability to import themes from Slack 
-- Numerous performance improvements and optimizations 
+- Markdown - Markdown support in messages, comments and channel descriptions - Including font formatting, emoticons, headings and tables
+- Themes - Preset themes and detailed theme color options, plus ability to import themes from Slack 
+- Performance - Numerous performance improvements and optimizations 
 
 ### New Features 
 
@@ -39,12 +38,14 @@ User Interface
 - Added ability to import themes from Slack
 
 Integrations
+
 - (Preview) Initial support for incoming webhooks 
 
 ### Improvements
 
 Documentation
 
+- Added production installation instructions 
 - Updated software and hardware requirements documentation
 - Re-organized install instructions out of README and into separate files
 - Added Code Contribution Guidelines
@@ -59,10 +60,14 @@ Performance
 Code Quality 
 
 - Reformatted Javascript per Mattermost Style Guide
- 
+
 UI
 
 - Added version, build number, build date and build hash under Account Settings -> Security
+
+Licensing 
+
+- Compiled version of Mattermost v1.0.0 now available under MIT license
 
 ### Bug Fixes
 
