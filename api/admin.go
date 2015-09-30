@@ -82,17 +82,10 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(cfg.ServiceSettings.ListenAddress) == 0 {
-		c.SetInvalidParam("saveConfig", "config")
+	if err := cfg.IsValid(); err != nil {
+		c.Err = err
 		return
 	}
-
-	if cfg.TeamSettings.MaxUsersPerTeam == 0 {
-		c.SetInvalidParam("saveConfig", "config")
-		return
-	}
-
-	// TODO run some cleanup validators
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)

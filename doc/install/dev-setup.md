@@ -3,13 +3,14 @@ Developer Machine Setup
 
 ### Mac OS X ###
 
-1. Download and set up Boot2Docker
+1. Download and set up Docker Toolbox
 	1. Follow the instructions at http://docs.docker.com/installation/mac/
-		1. Use the Boot2Docker command-line utility
-		2. If you do command-line setup use: `boot2docker init eval “$(boot2docker shellinit)”`
-	2. Get your Docker IP address with `boot2docker ip`
+	2. Start a new docker host  
+		`docker-machine create -d virtualbox dev`
+	2. Get the IP address of your docker host  
+		`docker-machine ip dev`
 	3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost`
-	4. Run `boot2docker shellinit` and copy the export statements to your ~/.bash_profile
+	4. Run `docker-machine env dev` and copy the export statements to your ~/.bash_profile
 2. Download Go (version 1.4.2) from http://golang.org/dl/
 3. Set up your Go workspace
 	1. `mkdir ~/go`

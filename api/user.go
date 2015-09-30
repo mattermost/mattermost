@@ -198,7 +198,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		fireAndForgetWelcomeEmail(ruser.Email, team.DisplayName, c.GetTeamURLFromTeam(team))
+		fireAndForgetWelcomeEmail(ruser.Email, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
@@ -218,12 +218,13 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func fireAndForgetWelcomeEmail(email, teamDisplayName, teamURL string) {
+func fireAndForgetWelcomeEmail(email, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject")
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage := NewServerTemplatePage("welcome_body")
+		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["TeamURL"] = teamURL
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
@@ -997,7 +998,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		sessions := result.Data.([]*model.Session)
 		for _, s := range sessions {
-			sessionCache.Remove(s.Id)
+			sessionCache.Remove(s.Token)
 		}
 	}
 

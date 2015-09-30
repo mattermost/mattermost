@@ -20,6 +20,11 @@ You can send the message by including a JSON string as the `payload` parameter i
 payload={"text": "Hello, this is some text."}
 ```
 
+In addition, if `Content-Type` is specified as `application/json` in the headers of the HTTP request then the body of the request can be direct JSON.
+```
+{"text": "Hello, this is some text."}
+```
+
 It is also possible to post richly formatted messages using [Markdown](../../help/enduser/markdown.md).
 ```
 payload={"text": "# A Header\nThe _text_ below **the** header."}

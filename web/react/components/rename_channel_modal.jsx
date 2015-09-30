@@ -78,7 +78,6 @@ export default class RenameChannelModal extends React.Component {
                 $(React.findDOMNode(this.refs.modal)).modal('hide');
 
                 AsyncClient.getChannel(channel.id);
-                Utils.updateTabTitle(channel.display_name);
                 Utils.updateAddressBar(channel.name);
 
                 React.findDOMNode(this.refs.displayName).value = '';

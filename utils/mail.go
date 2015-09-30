@@ -65,13 +65,34 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	return c, nil
 }
 
+func TestConnection(config *model.Config) {
+	if !config.EmailSettings.SendEmailNotifications {
+		return
+	}
+
+	conn, err1 := connectToSMTPServer(config)
+	if err1 != nil {
+		l4g.Error("SMTP server settings do not appear to be configured properly err=%v details=%v", err1.Message, err1.DetailedError)
+		return
+	}
+	defer conn.Close()
+
+	c, err2 := newSMTPClient(conn, config)
+	if err2 != nil {
+		l4g.Error("SMTP connection settings do not appear to be configured properly err=%v details=%v", err2.Message, err2.DetailedError)
+		return
+	}
+	defer c.Quit()
+	defer c.Close()
+}
+
 func SendMail(to, subject, body string) *model.AppError {
 	return SendMailUsingConfig(to, subject, body, Cfg)
 }
 
 func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.AppError {
 
-	if !config.EmailSettings.SendEmailNotifications {
+	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
 

@@ -78,6 +78,14 @@ export function isAdmin(roles) {
     return false;
 }
 
+export function isSystemAdmin(roles) {
+    if (isInRole(roles, 'system_admin')) {
+        return true;
+    }
+
+    return false;
+}
+
 export function getDomainWithOutSub() {
     var parts = window.location.host.split('.');
 
@@ -388,7 +396,6 @@ export function toTitleCase(str) {
 export function applyTheme(theme) {
     if (theme.sidebarBg) {
         changeCss('.sidebar--left', 'background:' + theme.sidebarBg, 1);
-        changeCss('@media(max-width: 768px){.search-bar__container', 'background:' + theme.sidebarBg, 1);
     }
 
     if (theme.sidebarText) {
@@ -423,6 +430,7 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .team__header, .sidebar--menu .team__header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('.modal .modal-header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('#navbar .navbar-default', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('@media(max-width: 768px){.search-bar__container', 'background:' + theme.sidebarHeaderBg, 1);
     }
 
     if (theme.sidebarHeaderTextColor) {
@@ -430,8 +438,9 @@ export function applyTheme(theme) {
         changeCss('.sidebar--left .team__header .user__name, .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.sidebar--left .team__header:hover .user__name, .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.modal .modal-header .modal-title, .modal .modal-header .modal-title .name, .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);
-        changeCss('#navbar .navbar-default .navbar-brand .heading, ', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('#navbar .navbar-default .navbar-brand .heading', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('#navbar .navbar-default .navbar-toggle .icon-bar, ', 'background:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('@media(max-width: 768px){.search-bar__container', 'color:' + theme.sidebarHeaderTextColor, 2);
     }
 
     if (theme.onlineIndicator) {
@@ -449,29 +458,32 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelBg) {
-        changeCss('.app__content, .markdown__table, .markdown__table tbody tr', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.app__content, .markdown__table, .markdown__table tbody tr, .command-box', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
-        changeCss('.search-bar__container .search__form .search-bar', 'background:' + theme.centerChannelBg, 1);
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
         changeCss('.post-image__column .post-image__details', 'background:' + theme.centerChannelBg, 1);
         changeCss('.sidebar--right', 'background:' + theme.centerChannelBg, 1);
     }
 
     if (theme.centerChannelColor) {
-        changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .loading-screen .loading__content .round', 'color:' + theme.centerChannelColor, 1);
+        changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .loading-screen .loading__content .round, .command-name', 'color:' + theme.centerChannelColor, 1);
         changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.mentions--top, .command-box', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 3);
+        changeCss('.mentions--top, .command-box', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 2);
+        changeCss('.mentions--top, .command-box', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 1);
         changeCss('.post-body hr', 'background:' + theme.centerChannelColor, 1);
         changeCss('.channel-header .heading', 'color:' + theme.centerChannelColor, 1);
         changeCss('.markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
-        changeCss('.custom-textarea, .custom-textarea:focus, .preview-container .preview-div, .post-image__column .post-image__details, .sidebar--right .sidebar-right__body, .markdown__table th, .markdown__table td', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.custom-textarea, .custom-textarea:focus, .preview-container .preview-div, .post-image__column .post-image__details, .sidebar--right .sidebar-right__body, .markdown__table th, .markdown__table td, .command-box', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.command-name', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.custom-textarea', 'color:' + theme.centerChannelColor, 1);
         changeCss('.post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.post-image__column .post-image__details', 'color:' + theme.centerChannelColor, 2);
         changeCss('.post-image__column a, .post-image__column a:hover, .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.search-bar__container .search__form .search-bar', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: ' + theme.centerChannelColor, 2);
+        changeCss('.search-bar__container .search__form .search-bar', 'background:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.search-bar__container .search__form', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
@@ -484,7 +496,7 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 1800px){.inner__wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('.post:hover, .sidebar--right .sidebar--right__header', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.date-separator.hovered--before:after, .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
-        changeCss('.date-separator.hovered--after:before, .new-separator.hovered--after:before', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.date-separator.hovered--after:before, .new-separator.hovered--after:before, .command-name:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.post.current--user:hover .post-body ', 'background: none;', 1);
         changeCss('.sidebar--right', 'color:' + theme.centerChannelColor, 2);
     }
@@ -508,7 +520,6 @@ export function applyTheme(theme) {
         changeCss('.btn.btn-primary', 'color:' + theme.buttonColor, 2);
     }
 }
-
 export function changeCss(className, classValue, classRepeat) {
     // we need invisible container to store additional css definitions
     var cssMainContainer = $('#css-modifier-container');
@@ -633,16 +644,12 @@ export function isValidUsername(name) {
     return error;
 }
 
-export function updateTabTitle(name) {
-    document.title = name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
-}
-
 export function updateAddressBar(channelName) {
     var teamURL = window.location.href.split('/channels')[0];
     history.replaceState('data', '', teamURL + '/channels/' + channelName);
 }
 
-export function switchChannel(channel, teammateName) {
+export function switchChannel(channel) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: channel.name,
@@ -650,12 +657,6 @@ export function switchChannel(channel, teammateName) {
     });
 
     updateAddressBar(channel.name);
-
-    if (channel.type === 'D' && teammateName) {
-        updateTabTitle(teammateName);
-    } else {
-        updateTabTitle(channel.display_name);
-    }
 
     AsyncClient.getChannels(true, true, true);
     AsyncClient.getChannelExtraInfo(true);

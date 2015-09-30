@@ -288,7 +288,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='feedbackName'
                         >
-                            {'Feedback Name:'}
+                            {'Notification Display Name:'}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -310,7 +310,7 @@ export default class EmailSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='feedbackEmail'
                         >
-                            {'Feedback Email:'}
+                            {'Notification Email Address:'}
                         </label>
                         <div className='col-sm-8'>
                             <input

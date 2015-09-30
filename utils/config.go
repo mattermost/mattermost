@@ -150,7 +150,12 @@ func LoadConfig(fileName string) {
 		CfgFileName = fileName
 	}
 
+	if err := config.IsValid(); err != nil {
+		panic("Error validating config file=" + fileName + ", err=" + err.Message)
+	}
+
 	configureLog(&config.LogSettings)
+	TestConnection(&config)
 
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions(Cfg)

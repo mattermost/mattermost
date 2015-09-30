@@ -75,7 +75,10 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m["follow_link"] = bodyPage.Props["Link"]
+	if !utils.Cfg.EmailSettings.RequireEmailVerification {
+		m["follow_link"] = bodyPage.Props["Link"]
+	}
+
 	w.Header().Set("Access-Control-Allow-Origin", " *")
 	w.Write([]byte(model.MapToJson(m)))
 }

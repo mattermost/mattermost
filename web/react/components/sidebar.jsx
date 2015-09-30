@@ -268,14 +268,19 @@ export default class Sidebar extends React.Component {
         }
     }
     updateTitle() {
-        var channel = ChannelStore.getCurrent();
+        const channel = ChannelStore.getCurrent();
         if (channel) {
-            if (channel.type === 'D') {
-                var teammateUsername = Utils.getDirectTeammate(channel.id).username;
-                document.title = teammateUsername + ' ' + document.title.substring(document.title.lastIndexOf('-'));
-            } else {
-                document.title = channel.display_name + ' ' + document.title.substring(document.title.lastIndexOf('-'));
+            let currentSiteName = '';
+            if (global.window.config.SiteName != null) {
+                currentSiteName = global.window.config.SiteName;
             }
+
+            let currentChannelName = channel.display_name;
+            if (channel.type === 'D') {
+                currentChannelName = Utils.getDirectTeammate(channel.id).username;
+            }
+
+            document.title = currentChannelName + ' - ' + this.props.teamDisplayName + ' ' + currentSiteName;
         }
     }
     onScroll() {
