@@ -92,7 +92,7 @@ travis:
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
 
-	cp LICENSE.txt $(DIST_PATH)
+	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
@@ -261,7 +261,7 @@ dist: install
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
 
-	cp LICENSE.txt $(DIST_PATH)
+	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
