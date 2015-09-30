@@ -35,8 +35,8 @@ export default class TeamSignupUrlPage extends React.Component {
         if (cleanedName !== name || !urlRegex.test(name)) {
             this.setState({nameError: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."});
             return;
-        } else if (cleanedName.length <= 3 || cleanedName.length > 15) {
-            this.setState({nameError: 'Name must be 4 or more characters up to a maximum of 15'});
+        } else if (cleanedName.length <= 2 || cleanedName.length > 15) {
+            this.setState({nameError: 'Name must be 3 or more characters up to a maximum of 15'});
             return;
         }
 
