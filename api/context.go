@@ -310,7 +310,7 @@ func (c *Context) IsSystemAdmin() bool {
 	return false
 }
 
-func (c *Context) IsTeamAdmin(userId string) bool {
+func (c *Context) IsTeamAdmin() bool {
 	if model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) || c.IsSystemAdmin() {
 		return true
 	}

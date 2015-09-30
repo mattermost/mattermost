@@ -507,7 +507,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin(c.Session.UserId) {
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("getExport", "Only a team admin can retrieve exported data.", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return

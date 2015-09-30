@@ -633,7 +633,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		post := result.Data.(*model.PostList).Posts[postId]
 
-		if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin(post.UserId) {
+		if !c.HasPermissionsToChannel(cchan, "deletePost") && !c.IsTeamAdmin() {
 			return
 		}
 
@@ -648,7 +648,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
+		if post.UserId != c.Session.UserId && !c.IsTeamAdmin() {
 			c.Err = model.NewAppError("deletePost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return

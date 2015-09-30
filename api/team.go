@@ -506,7 +506,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			sender := user.GetDisplayName()
 
 			senderRole := ""
-			if model.IsInRole(user.Roles, model.ROLE_TEAM_ADMIN) || model.IsInRole(user.Roles, model.ROLE_SYSTEM_ADMIN) {
+			if c.IsTeamAdmin() {
 				senderRole = "administrator"
 			} else {
 				senderRole = "member"
@@ -566,7 +566,7 @@ func updateTeamDisplayName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsInRole(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
+	if !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("updateTeamDisplayName", "You do not have the appropriate permissions", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -600,7 +600,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") || !c.IsTeamAdmin(c.Session.UserId) {
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "import") || !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("importTeam", "Only a team admin can import data.", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -667,7 +667,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func exportTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin(c.Session.UserId) {
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("exportTeam", "Only a team admin can export data.", "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
