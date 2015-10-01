@@ -32,12 +32,32 @@ func (o *Preference) ToJson() string {
 	}
 }
 
+func PreferenceListToJson(o []*Preference) string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 func PreferenceFromJson(data io.Reader) *Preference {
 	decoder := json.NewDecoder(data)
 	var o Preference
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o
+	} else {
+		return nil
+	}
+}
+
+func PreferenceListFromJson(data io.Reader) []*Preference {
+	decoder := json.NewDecoder(data)
+	var o []*Preference
+	err := decoder.Decode(&o)
+	if err == nil {
+		return o
 	} else {
 		return nil
 	}

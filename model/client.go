@@ -844,6 +844,24 @@ func (c *Client) ListIncomingWebhooks() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) SetPreferences(preferences []*Preference) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/preferences/set", PreferenceListToJson(preferences)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
+	}
+}
+
+func (c *Client) GetPreferencesByName(category string, name string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/preferences/"+category+"/"+name, "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PreferenceListFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) MockSession(sessionToken string) {
 	c.AuthToken = sessionToken
 	c.AuthType = HEADER_BEARER
