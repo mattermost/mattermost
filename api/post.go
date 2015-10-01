@@ -191,7 +191,7 @@ func fireAndForgetWebhookEvent(c *Context, post *model.Post) {
 		}
 
 		teams := make(map[string]*model.Team)
-		for _, _ = range isTeamBeingFetched {
+		for range isTeamBeingFetched {
 			team := <-tchan
 			if team != nil {
 				teams[team.Id] = team
