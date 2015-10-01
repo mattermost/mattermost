@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -61,6 +63,8 @@ func main() {
 			manualtesting.InitManualTesting()
 		}
 
+		diagnosticsJob()
+
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
 		c := make(chan os.Signal)
@@ -69,6 +73,53 @@ func main() {
 
 		api.StopServer()
 	}
+}
+
+func diagnosticsJob() {
+	go func() {
+		for {
+			if utils.Cfg.PrivacySettings.EnableDiagnostic && model.BuildNumber != "_BUILD_NUMBER_" {
+				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+					props := result.Data.(model.StringMap)
+					lastTime, _ := strconv.ParseInt(props["LastDiagnosticTime"], 10, 0)
+					currentTime := model.GetMillis()
+
+					if (currentTime - lastTime) > 1000*60*60*24*7 {
+						l4g.Info("Sending error and diagnostic information to mattermost")
+
+						id := props["DiagnosticId"]
+						if len(id) == 0 {
+							id = model.NewId()
+							systemId := &model.System{Name: "DiagnosticId", Value: id}
+							<-api.Srv.Store.System().Save(systemId)
+						}
+
+						systemLastTime := &model.System{Name: "LastDiagnosticTime", Value: strconv.FormatInt(currentTime, 10)}
+						if lastTime == 0 {
+							<-api.Srv.Store.System().Save(systemLastTime)
+						} else {
+							<-api.Srv.Store.System().Update(systemLastTime)
+						}
+
+						m := make(map[string]string)
+						m[utils.PROP_DIAGNOSTIC_ID] = id
+						m[utils.PROP_DIAGNOSTIC_BUILD] = model.CurrentVersion + "." + model.BuildNumber
+						m[utils.PROP_DIAGNOSTIC_DATABASE] = utils.Cfg.SqlSettings.DriverName
+						m[utils.PROP_DIAGNOSTIC_OS] = runtime.GOOS
+						m[utils.PROP_DIAGNOSTIC_CATEGORY] = utils.VAL_DIAGNOSTIC_CATEGORY_DEFALUT
+
+						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+							m[utils.PROP_DIAGNOSTIC_USER_COUNT] = strconv.FormatInt(ucr.Data.(int64), 10)
+						}
+
+						utils.SendDiagnostic(m)
+					}
+				}
+			}
+
+			time.Sleep(time.Hour * 24)
+		}
+	}()
 }
 
 func parseCmds() {

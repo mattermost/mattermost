@@ -30,6 +30,7 @@ export default class PrivacySettings extends React.Component {
         var config = this.props.config;
         config.PrivacySettings.ShowEmailAddress = React.findDOMNode(this.refs.ShowEmailAddress).checked;
         config.PrivacySettings.ShowFullName = React.findDOMNode(this.refs.ShowFullName).checked;
+        config.PrivacySettings.EnableDiagnostic = React.findDOMNode(this.refs.EnableDiagnostic).checked;
 
         Client.saveConfig(
             config,
@@ -133,6 +134,39 @@ export default class PrivacySettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'When false, hides full name of users from other users including team owner and team administrators.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableDiagnostic'
+                        >
+                            {'Send Error and Diagnostic: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableDiagnostic'
+                                    value='true'
+                                    ref='EnableDiagnostic'
+                                    defaultChecked={this.props.config.PrivacySettings.EnableDiagnostic}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableDiagnostic'
+                                    value='false'
+                                    defaultChecked={!this.props.config.PrivacySettings.EnableDiagnostic}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, The server will periodically send error and diagnostic information to Mattermost.'}</p>
                         </div>
                     </div>
 
