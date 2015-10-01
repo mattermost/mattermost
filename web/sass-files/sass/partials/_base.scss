@@ -68,6 +68,19 @@ a:focus, a:hover {
  margin: 0;
 }
 
+.text-danger {
+  color: #E05F5D;
+}
+
+.btn {
+  &.btn-danger {
+    color: #fff;
+    &:hover, &:active {
+      color: #fff;
+    }
+  }
+}
+
 .form-control {
   @include border-radius(2px);
   &.no-resize {

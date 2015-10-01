@@ -24,7 +24,7 @@ export default class PremadeThemeChooser extends React.Component {
 
                 premadeThemes.push(
                     <div
-                        className='col-sm-3 premade-themes'
+                        className='col-xs-6 col-sm-3 premade-themes'
                         key={'premade-theme-key' + k}
                     >
                         <div
@@ -34,7 +34,7 @@ export default class PremadeThemeChooser extends React.Component {
                             <label>
                                 <img
                                     className='img-responsive'
-                                    src={'/static/images/themes/' + premadeTheme.type.toLowerCase() + '.png'}
+                                    src={'/static/images/themes/' + premadeTheme.type.toLowerCase() + '.jpg'}
                                 />
                                 <div className='theme-label'>{Utils.toTitleCase(premadeTheme.type)}</div>
                             </label>

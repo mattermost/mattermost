@@ -179,7 +179,7 @@ module.exports = {
             centerChannelColor: '#DDDDDD',
             newMessageSeparator: '#5de5da',
             linkColor: '#A4FFEB',
-            buttonBg: '#1dacfc',
+            buttonBg: '#4CBBA4',
             buttonColor: '#FFFFFF'
         },
         windows10: {
