@@ -259,10 +259,10 @@ func (s SqlWebhookStore) GetOutgoingByTriggerWord(teamId, channelId, triggerWord
 				    AND $2 LIKE '%' || TriggerWords || '%'`
 
 			if len(channelId) != 0 {
-				searchQuery += " AND (ChannelId = $3 OR ChannelId IS NULL)"
+				searchQuery += " AND (ChannelId = $3 OR ChannelId = '')"
 				_, err = s.GetReplica().Select(&webhooks, searchQuery, teamId, triggerWord, channelId)
 			} else {
-				searchQuery += " AND ChannelId IS NULL"
+				searchQuery += " AND ChannelId = ''"
 				_, err = s.GetReplica().Select(&webhooks, searchQuery, teamId, triggerWord)
 			}
 
