@@ -176,9 +176,9 @@ exec bin/platform
   * Save the Settings
 1. Update File Settings
   * Change *Local Directory Location* from `./data/` to `/mattermost/data`
-1. Update Log Settings
+1. Update Log Settings.
   * Set *Log to The Console* to false  
-1. Update Rate Limit Settings
+1. Update Rate Limit Settings.
   * Set *Vary By Remote Address* to false
   * Set *Vary By HTTP Header* to X-Real-IP
 1. Feel free to modify other settings.
