@@ -36,6 +36,7 @@ export default class ServiceSettings extends React.Component {
         config.ServiceSettings.SegmentDeveloperKey = ReactDOM.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
         config.ServiceSettings.GoogleDeveloperKey = ReactDOM.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
         config.ServiceSettings.EnableIncomingWebhooks = ReactDOM.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
+        config.ServiceSettings.EnableOutgoingWebhooks = React.findDOMNode(this.refs.EnableOutgoingWebhooks).checked;
         config.ServiceSettings.EnablePostUsernameOverride = ReactDOM.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
         config.ServiceSettings.EnablePostIconOverride = ReactDOM.findDOMNode(this.refs.EnablePostIconOverride).checked;
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
@@ -207,7 +208,40 @@ export default class ServiceSettings extends React.Component {
                         </div>
                     </div>
 
-                     <div className='form-group'>
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableOutgoingWebhooks'
+                        >
+                            {'Enable Outgoing Webhooks: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOutgoingWebhooks'
+                                    value='true'
+                                    ref='EnableOutgoingWebhooks'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableOutgoingWebhooks}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOutgoingWebhooks'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableOutgoingWebhooks}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, outgoing webhooks will be allowed.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
                             htmlFor='EnablePostUsernameOverride'

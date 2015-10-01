@@ -145,7 +145,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 
 			time.Sleep(time.Duration(delay) * time.Second)
 
-			if _, err := CreatePost(c, post, false); err != nil {
+			if _, err := CreatePost(c, post, true); err != nil {
 				l4g.Error("Unable to create /echo post, err=%v", err)
 			}
 		}()
