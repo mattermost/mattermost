@@ -10,7 +10,9 @@ import (
 
 const (
 	PREFERENCE_CATEGORY_DIRECT_CHANNELS = "direct_channels"
+	PREFERENCE_CATEGORY_TEST            = "test" // do not use, just for testing uniqueness while there's only one real category
 	PREFERENCE_NAME_SHOWHIDE            = "show_hide"
+	PREFERENCE_NAME_TEST                = "test" // do not use, just for testing uniqueness while there's only one real name
 )
 
 type Preference struct {
@@ -66,9 +68,9 @@ func (o *Preference) IsValid() *AppError {
 }
 
 func IsPreferenceCategoryValid(category string) bool {
-	return category == PREFERENCE_CATEGORY_DIRECT_CHANNELS
+	return category == PREFERENCE_CATEGORY_DIRECT_CHANNELS || category == PREFERENCE_CATEGORY_TEST
 }
 
 func IsPreferenceNameValid(name string) bool {
-	return name == PREFERENCE_NAME_SHOWHIDE
+	return name == PREFERENCE_NAME_SHOWHIDE || name == PREFERENCE_NAME_TEST
 }

@@ -30,17 +30,18 @@ import (
 )
 
 type SqlStore struct {
-	master   *gorp.DbMap
-	replicas []*gorp.DbMap
-	team     TeamStore
-	channel  ChannelStore
-	post     PostStore
-	user     UserStore
-	audit    AuditStore
-	session  SessionStore
-	oauth    OAuthStore
-	system   SystemStore
-	webhook  WebhookStore
+	master     *gorp.DbMap
+	replicas   []*gorp.DbMap
+	team       TeamStore
+	channel    ChannelStore
+	post       PostStore
+	user       UserStore
+	audit      AuditStore
+	session    SessionStore
+	oauth      OAuthStore
+	system     SystemStore
+	webhook    WebhookStore
+	preference PreferenceStore
 }
 
 func NewSqlStore() Store {
@@ -100,6 +101,7 @@ func NewSqlStore() Store {
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
 	sqlStore.system = NewSqlSystemStore(sqlStore)
 	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
+	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 
 	sqlStore.master.CreateTablesIfNotExists()
 
@@ -112,6 +114,7 @@ func NewSqlStore() Store {
 	sqlStore.oauth.(*SqlOAuthStore).UpgradeSchemaIfNeeded()
 	sqlStore.system.(*SqlSystemStore).UpgradeSchemaIfNeeded()
 	sqlStore.webhook.(*SqlWebhookStore).UpgradeSchemaIfNeeded()
+	sqlStore.preference.(*SqlPreferenceStore).UpgradeSchemaIfNeeded()
 
 	sqlStore.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	sqlStore.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -122,6 +125,7 @@ func NewSqlStore() Store {
 	sqlStore.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
 	sqlStore.system.(*SqlSystemStore).CreateIndexesIfNotExists()
 	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
+	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 
 	if model.IsPreviousVersion(schemaVersion) {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
@@ -477,6 +481,10 @@ func (ss SqlStore) System() SystemStore {
 
 func (ss SqlStore) Webhook() WebhookStore {
 	return ss.webhook
+}
+
+func (ss SqlStore) Preference() PreferenceStore {
+	return ss.preference
 }
 
 type mattermConverter struct{}
