@@ -25,7 +25,7 @@
 1. You can exit the postgres account by typing:
   * ``` exit```
 
-## Setup Mattermost Server
+## Set Up Mattermost Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
 1. Download the latest Mattermost Server by typing:
   * ``` wget https://github.com/mattermost/platform/releases/download/v1.0.0/mattermost.tar.gz```
