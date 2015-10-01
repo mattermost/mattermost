@@ -146,4 +146,11 @@ type WebhookStore interface {
 	GetIncoming(id string) StoreChannel
 	GetIncomingByUser(userId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
+	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
+	GetOutgoing(id string) StoreChannel
+	GetOutgoingByCreator(userId string) StoreChannel
+	GetOutgoingByChannel(channelId string) StoreChannel
+	GetOutgoingByTriggerWord(teamId, channelId, triggerWord string) StoreChannel
+	DeleteOutgoing(webhookId string, time int64) StoreChannel
+	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 }

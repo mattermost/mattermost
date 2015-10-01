@@ -32,6 +32,10 @@ type Post struct {
 	PendingPostId string      `json:"pending_post_id" db:"-"`
 }
 
+func Something() bool {
+	return true
+}
+
 func (o *Post) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {

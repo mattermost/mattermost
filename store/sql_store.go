@@ -29,6 +29,12 @@ import (
 	"time"
 )
 
+const (
+	INDEX_TYPE_FULL_TEXT = "full_text"
+	INDEX_TYPE_PATTERN   = "pattern"
+	INDEX_TYPE_DEFAULT   = "default"
+)
+
 type SqlStore struct {
 	master   *gorp.DbMap
 	replicas []*gorp.DbMap
@@ -354,14 +360,18 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 // }
 
 func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, false)
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT)
 }
 
 func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, true)
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT)
 }
 
-func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, fullText bool) {
+func (ss SqlStore) CreatePatternIndexIfNotExists(indexName string, tableName string, columnName string) {
+	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_PATTERN)
+}
+
+func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string) {
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
@@ -371,8 +381,10 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		}
 
 		query := ""
-		if fullText {
+		if indexType == INDEX_TYPE_FULL_TEXT {
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
+		} else if indexType == INDEX_TYPE_PATTERN {
+			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + " text_pattern_ops)"
 		} else {
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
@@ -397,7 +409,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		}
 
 		fullTextIndex := ""
-		if fullText {
+		if indexType == INDEX_TYPE_FULL_TEXT || indexType == INDEX_TYPE_PATTERN {
 			fullTextIndex = " FULLTEXT "
 		}
 

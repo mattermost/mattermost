@@ -184,6 +184,7 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
+	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
