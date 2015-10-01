@@ -1131,3 +1131,61 @@ export function listIncomingHooks(success, error) {
         }
     });
 }
+
+export function addOutgoingHook(hook, success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/outgoing/create',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(hook),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('addOutgoingHook', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function deleteOutgoingHook(data, success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/outgoing/delete',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('deleteOutgoingHook', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function listOutgoingHooks(success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/outgoing/list',
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('listOutgoingHooks', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function regenOutgoingHookToken(data, success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/outgoing/regen_token',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('regenOutgoingHookToken', xhr, status, err);
+            error(e);
+        }
+    });
+}
