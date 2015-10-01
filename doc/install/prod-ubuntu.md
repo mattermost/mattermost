@@ -6,7 +6,7 @@
   * ``` sudo apt-get update```
   * ``` sudo apt-get upgrade```
 
-## Setup Database Server
+## Set up Database Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.1
 1. Install PostgreSQL 9.3+ (or MySQL 5.2+)
   * ``` sudo apt-get install postgresql postgresql-contrib```
@@ -25,7 +25,7 @@
 1. You can exit the postgres account by typing:
   * ``` exit```
 
-## Setup Mattermost Server
+## Set up Mattermost Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
 1. Download the latest Mattermost Server by typing:
   * ``` wget https://github.com/mattermost/platform/releases/download/v1.0.0/mattermost.tar.gz```
@@ -70,7 +70,7 @@ exec bin/platform
   * You should see a page titles *Mattermost - Signup*
   * You can also stop the process by running the command ` sudo stop mattermost`, but we will skip this step for now.
 
-## Setup Nginx Server
+## Set up Nginx Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.3
 1. We use Nginx for proxying request to the Mattermost Server.  The main benefits are:
   * SSL termination
@@ -118,7 +118,7 @@ exec bin/platform
   * ``` curl http://localhost```
   * You should see a page titles *Mattermost - Signup*
   
-## Setup Nginx with SSL (Recommended)
+## Set up Nginx with SSL (Recommended)
 1. You will need a SSL cert from a certificate authority.
 1. For simplicity we will generate a test certificate.
   * ``` mkdir ~/cert```
