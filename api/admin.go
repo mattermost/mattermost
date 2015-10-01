@@ -23,8 +23,10 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/logs", ApiUserRequired(getLogs)).Methods("GET")
 	sr.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
 	sr.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
-	sr.Handle("/client_props", ApiAppHandler(getClientProperties)).Methods("GET")
 	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
+	sr.Handle("/client_props", ApiAppHandler(getClientProperties)).Methods("GET")
+	sr.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
+
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -57,6 +59,26 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getClientProperties(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(utils.ClientProperties)))
+}
+
+func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
+	m := model.MapFromJson(r.Body)
+
+	lvl := m["level"]
+	msg := m["message"]
+
+	if len(msg) > 400 {
+		msg = msg[0:399]
+	}
+
+	if lvl == "ERROR" {
+		err := model.NewAppError("client", msg, "")
+		c.LogError(err)
+	}
+
+	rm := make(map[string]string)
+	rm["SUCCESS"] = "true"
+	w.Write([]byte(model.MapToJson(rm)))
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
