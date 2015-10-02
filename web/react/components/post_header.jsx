@@ -12,9 +12,20 @@ export default class PostHeader extends React.Component {
     render() {
         var post = this.props.post;
 
+        let userProfile = <UserProfile userId={post.user_id} />;
+        if (post.props && post.props.override_username) {
+            userProfile = (
+                <UserProfile
+                    userId={post.user_id}
+                    overwriteName={post.props.override_username}
+                    disablePopover={true}
+                />
+            );
+        }
+
         return (
             <ul className='post-header post-header-post'>
-                <li className='post-header-col post-header__name'><strong><UserProfile userId={post.user_id} /></strong></li>
+                <li className='post-header-col post-header__name'><strong>{userProfile}</strong></li>
                 <li className='post-info--hidden'>
                     <PostInfo
                         post={post}

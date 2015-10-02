@@ -158,11 +158,16 @@ export default class Post extends React.Component {
 
         var profilePic = null;
         if (!this.props.hideProfilePic) {
+            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
+            if (post.props && post.props.override_icon_url) {
+                src = post.props.override_icon_url;
+            }
+
             profilePic = (
                 <div className='post-profile-img__container'>
                     <img
                         className='post-profile-img'
-                        src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp}
+                        src={src}
                         height='36'
                         width='36'
                     />

@@ -865,6 +865,9 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	channelName := props["channel"]
 
+	overrideUsername := props["username"]
+	overrideIconUrl := props["icon_url"]
+
 	var hook *model.IncomingWebhook
 	if result := <-hchan; result.Err != nil {
 		c.Err = model.NewAppError("incomingWebhook", "Invalid webhook", "err="+result.Err.Message)
@@ -910,6 +913,14 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	pchan := api.Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
 
 	post := &model.Post{UserId: hook.UserId, ChannelId: channel.Id, Message: text}
+
+	if len(overrideUsername) != 0 {
+		post.AddProp("override_username", overrideUsername)
+	}
+
+	if len(overrideIconUrl) != 0 {
+		post.AddProp("override_icon_url", overrideIconUrl)
+	}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
 		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")
