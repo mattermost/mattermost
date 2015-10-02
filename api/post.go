@@ -88,6 +88,8 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 		}
 	}
 
+	post.CreateAt = 0
+
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	post.UserId = c.Session.UserId
