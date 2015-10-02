@@ -163,6 +163,7 @@ var reservedName = []string{
 	"post",
 	"cluster",
 	"api",
+	"oauth",
 }
 
 var wwwStart = regexp.MustCompile(`^www`)

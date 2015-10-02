@@ -1,0 +1,31 @@
+.oauth-prompt {
+	background: #fff;
+	border: 1px solid #ddd;
+	padding: 1em 2em 0;
+	margin: 50px auto;
+	max-width: 90%;
+	width: 600px;
+	.prompt__heading {
+		font-size: em(20px);
+		line-height: normal;
+		margin: 1em 0;
+		display: table;
+		width: 100%;
+		> div {
+			display: table-cell;
+			vertical-align: top;
+		}
+		img {
+			margin-right: 15px;
+		}
+	}
+	.prompt__allow {
+		margin: 1em 0;
+		font-size: em(24px);
+	}
+	.prompt__buttons {
+		text-align: right;
+		border-top: 1px solid #ddd;
+		padding: 1.5em 0;
+	}
+}
