@@ -39,12 +39,12 @@ export default class ManageOutgoingHooks extends React.Component {
         Client.addOutgoingHook(
             hook,
             (data) => {
-                let hooks = this.state.hooks;
+                let hooks = Object.assign([], this.state.hooks);
                 if (!hooks) {
                     hooks = [];
                 }
                 hooks.push(data);
-                this.setState({hooks, serverError: null});
+                this.setState({hooks, serverError: null, channelId: '', triggerWords: '', callbackURLs: ''});
             },
             (err) => {
                 this.setState({serverError: err});
@@ -93,7 +93,7 @@ export default class ManageOutgoingHooks extends React.Component {
                     }
                 }
 
-                this.setState({hooks});
+                this.setState({hooks, serverError: null});
             },
             (err) => {
                 this.setState({serverError: err});
@@ -103,14 +103,9 @@ export default class ManageOutgoingHooks extends React.Component {
     getHooks() {
         Client.listOutgoingHooks(
             (data) => {
-                const state = this.state;
-
                 if (data) {
-                    state.hooks = data;
+                    this.setState({hooks: data, getHooksComplete: true, serverError: null});
                 }
-
-                state.getHooksComplete = true;
-                this.setState(state);
             },
             (err) => {
                 this.setState({serverError: err});

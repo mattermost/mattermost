@@ -256,7 +256,7 @@ func (s SqlWebhookStore) GetOutgoingByTriggerWord(teamId, channelId, triggerWord
 				WHERE
 				    DeleteAt = 0
 				    AND TeamId = $1
-				    AND $2 LIKE '%' || TriggerWords || '%'`
+				    AND TriggerWords LIKE '%' || $2 || '%'`
 
 			if len(channelId) != 0 {
 				searchQuery += " AND (ChannelId = $3 OR ChannelId = '')"
