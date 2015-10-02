@@ -637,3 +637,32 @@ export function getMyTeam() {
         }
     );
 }
+
+export function getDirectChannels() {
+    if (isCallInProgress('getDirectChannels')) {
+        return;
+    }
+
+    callTracker.getDirectChannels = utils.getTimestamp();
+    client.getPreferencesByName(
+        'direct_channels',
+        'show_hide',
+        (data, textStatus, xhr) => {
+            callTracker.getDirectChannels = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_PREFERENCES,
+                preferences: data
+            });
+        },
+        (err) => {
+            callTracker.getDirectChannels = 0;
+            dispatchError(err, 'getDirectChannels');
+        }
+    );
+}
+
