@@ -23,7 +23,7 @@ git checkout -b <branch name>
 
 ## Programming and Testing 
 
-1. Please review the [Mattermost Style Guide](style-guide.md) prior to making changes.
+1. Please review the [Mattermost Style Guide](Style-Guide.md) prior to making changes.
 
    To keep code clean and well structured, Mattermost uses ESLint to check that pull requests adhere to style guidelines for React. Code will need to follow Mattermost's React style guidelines in order to pass the automated build tests when a pull request is submitted.
    

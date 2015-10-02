@@ -106,7 +106,12 @@ travis:
 	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
 
+	mv doc/README.md doc/index.md
+	mkdocs build
+	cp -r documentation-html $(DIST_PATH)/documentation-html
+
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
+	rm -r $(DIST_PATH)
 
 build:
 	@$(GO) build $(GOFLAGS) ./...

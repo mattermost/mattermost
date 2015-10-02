@@ -1,31 +1,26 @@
 # Mattermost Documentation 
 
-## General Information 
+## Installation 
 
-- [Mattermost Release Numbering Scheme](install/release-numbering.md)
+- [AWS Elastic Beanstalk Setup](install/Amazon-Elastic-Beanstalk.md)
+- [Docker Single Container Preview Setup](install/Docker-Single-Container.md)
+- [Production Ubuntu Setup](install/Production-Ubuntu.md)
+- [Mattermost Release Numbering Scheme](install/Release-Numbering.md)
+- [Software and Hardware Requirements](install/Requirements.md)
+- [SMTP Email Setup](install/SMTP-Email-Setup.md)
 
-## Administrator Documentation 
+## Integrations
 
-### Installation 
-
-- [Software and Hardware Requirements](install/requirements.md)
-- [Production Installation](install/prod-ubuntu.md)
-- [Local Machine Setup ](install/single-container-install.md)
-- [AWS Elastic Beanstalk Setup](install/aws-ebs-setup.md)
-- [Developer Machine Setup](install/dev-setup.md)
-
-### Configuration 
-
-- [GitLab SSO Configuration](integrations/sso/gitlab-sso.md) 
-- [SMTP Email Setup](config/smtp-email-setup.md)
+- [GitLab SSO Configuration](integrations/Single-Sign-On/Gitlab.md) 
+- [Incoming Webhooks](integrations/webhooks/Incoming.md) 
 
 ## Developer Documentation 
 
-- [Code Contribution Guidelines](developer/code-contribution.md)
-- [Developer Machine Setup](install/dev-setup.md)
-- [Mattermost Style Guide](developer/style-guide.md)
+- [Code Contribution Guidelines](developer/Code-Contribution-Guidelines.md)
+- [Developer Machine Setup](developer/Setup.md)
+- [Mattermost Style Guide](developer/Style-Guide.md)
 
-## End User Help
+## Usage Help
 
-- [Mattermost Markdown Formatting](help/enduser/markdown.md)
-- [Slack Import](https://github.com/mattermost/platform/blob/master/doc/import/slack-import.md)
+- [Slack Import](usage/Slack-Import.md)
+- [Mattermost Markdown Formatting](usage/Markdown.md)
