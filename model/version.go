@@ -68,7 +68,7 @@ func GetPreviousVersion(currentVersion string) (int64, int64) {
 }
 
 func IsOfficalBuild() bool {
-	return model.BuildNumber != "_BUILD_NUMBER_"
+	return BuildNumber != "_BUILD_NUMBER_"
 }
 
 func IsCurrentVersion(versionToCheck string) bool {
