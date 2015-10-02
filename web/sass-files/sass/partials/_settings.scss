@@ -131,6 +131,7 @@
 
             .section-describe {
                 @include opacity(0.7);
+                white-space:pre;
             }
 
             .divider-dark {

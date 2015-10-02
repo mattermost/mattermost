@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../../stores/user_store.jsx');
+var ErrorStore = require('../../stores/error_store.jsx');
 var SettingItemMin = require('../setting_item_min.jsx');
 var SettingItemMax = require('../setting_item_max.jsx');
 var SettingPicture = require('../setting_picture.jsx');
@@ -108,13 +109,26 @@ export default class UserSettingsGeneralTab extends React.Component {
 
         user.email = email;
 
-        this.submitUser(user);
+        if (!this.state.emailEnabled || !this.state.emailVerificationEnabled) {
+            this.submitUser(user, {emailChangeInProgress: false});
+        } else {
+            this.submitUser(user, {emailChangeInProgress: true});
+        }
     }
-    submitUser(user) {
+    submitUser(user, newState) {
         client.updateUser(user,
             function updateSuccess() {
                 this.updateSection('');
                 AsyncClient.getMe();
+
+                if (newState) {
+                    if (newState.emailChangeInProgress) {
+                        ErrorStore.storeLastError({message: 'Check your email at ' + user.email + ' to verify the address.'});
+                        ErrorStore.emitChange();
+                    }
+
+                    this.setState(newState);
+                }
             }.bind(this),
             function updateFailure(err) {
                 var state = this.setupInitialState(this.props);
@@ -209,8 +223,11 @@ export default class UserSettingsGeneralTab extends React.Component {
     setupInitialState(props) {
         var user = props.user;
         var emailEnabled = global.window.config.SendEmailNotifications === 'true';
+        var emailVerificationEnabled = global.window.config.RequireEmailVerification === 'true';
+
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
+                        email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled,
+                        emailVerificationEnabled: emailVerificationEnabled, emailChangeInProgress: false};
     }
     render() {
         var user = this.props.user;
@@ -434,10 +451,17 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
         var emailSection;
         if (this.props.activeSection === 'email') {
-            let helpText = <div>Email is used for notifications, and requires verification if changed.</div>;
+            let helpText = 'Email is used for notifications, and requires verification if changed.';
 
             if (!this.state.emailEnabled) {
                 helpText = <div className='setting-list__hint text-danger'>{'Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'}</div>;
+            } else if (!this.state.emailVerificationEnabled) {
+                helpText = 'Email is used for notifications.';
+            } else if (this.state.emailChangeInProgress) {
+                const newEmail = UserStore.getCurrentUser().email;
+                if (newEmail) {
+                    helpText = 'A verification email was sent to ' + newEmail + '.';
+                }
             }
 
             inputs.push(
@@ -471,10 +495,22 @@ export default class UserSettingsGeneralTab extends React.Component {
                 />
             );
         } else {
+            let describe = '';
+            if (this.state.emailChangeInProgress) {
+                const newEmail = UserStore.getCurrentUser().email;
+                if (newEmail) {
+                    describe = 'New Address: ' + newEmail + '\nCheck your email to verify the above address.';
+                } else {
+                    describe = 'Check your email to verify your new address';
+                }
+            } else {
+                describe = UserStore.getCurrentUser().email;
+            }
+
             emailSection = (
                 <SettingItemMin
                     title='Email'
-                    describe={UserStore.getCurrentUser().email}
+                    describe={describe}
                     updateSection={function updateEmailSection() {
                         this.updateSection('email');
                     }.bind(this)}
