@@ -23,7 +23,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	sr.Handle("/update_desc", ApiUserRequired(updateChannelDesc)).Methods("POST")
-	sr.Handle("/update_notify_level", ApiUserRequired(updateNotifyLevel)).Methods("POST")
+	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(joinChannel)).Methods("POST")
@@ -76,7 +76,7 @@ func CreateChannel(c *Context, channel *model.Channel, addMember bool) (*model.C
 
 		if addMember {
 			cm := &model.ChannelMember{ChannelId: sc.Id, UserId: c.Session.UserId,
-				Roles: model.CHANNEL_ROLE_ADMIN, NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+				Roles: model.CHANNEL_ROLE_ADMIN, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				return nil, cmresult.Err
@@ -134,8 +134,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 	if sc, err := CreateChannel(c, channel, true); err != nil {
 		return nil, err
 	} else {
-		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId,
-			Roles: "", NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId, Roles: "", NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 		if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 			return nil, cmresult.Err
@@ -372,7 +371,8 @@ func JoinChannel(c *Context, channelId string, role string) {
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: role}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId,
+				Roles: role, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				c.Err = cmresult.Err
@@ -405,7 +405,9 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "town-square"); result.Err != nil {
 		err = result.Err
 	} else {
-		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
+			Roles: channelRole, NotifyProps: model.GetDefaultChannelNotifyProps()}
+
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
@@ -414,7 +416,9 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 	if result := <-Srv.Store.Channel().GetByName(user.TeamId, "off-topic"); result.Err != nil {
 		err = result.Err
 	} else {
-		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id, NotifyLevel: model.CHANNEL_NOTIFY_ALL, Roles: channelRole}
+		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
+			Roles: channelRole, NotifyProps: model.GetDefaultChannelNotifyProps()}
+
 		if cmResult := <-Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
@@ -694,7 +698,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId, NotifyLevel: model.CHANNEL_NOTIFY_ALL}
+			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
 			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 				l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", userId, id, cmresult.Err)
@@ -784,23 +788,18 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func updateNotifyLevel(c *Context, w http.ResponseWriter, r *http.Request) {
+func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := model.MapFromJson(r.Body)
+
 	userId := data["user_id"]
 	if len(userId) != 26 {
-		c.SetInvalidParam("updateNotifyLevel", "user_id")
+		c.SetInvalidParam("updateMarkUnreadLevel", "user_id")
 		return
 	}
 
 	channelId := data["channel_id"]
 	if len(channelId) != 26 {
-		c.SetInvalidParam("updateNotifyLevel", "channel_id")
-		return
-	}
-
-	notifyLevel := data["notify_level"]
-	if len(notifyLevel) == 0 || !model.IsChannelNotifyLevelValid(notifyLevel) {
-		c.SetInvalidParam("updateNotifyLevel", "notify_level")
+		c.SetInvalidParam("updateMarkUnreadLevel", "channel_id")
 		return
 	}
 
@@ -814,10 +813,29 @@ func updateNotifyLevel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Channel().UpdateNotifyLevel(channelId, userId, notifyLevel); result.Err != nil {
+	result := <-Srv.Store.Channel().GetMember(channelId, userId)
+	if result.Err != nil {
 		c.Err = result.Err
 		return
 	}
 
-	w.Write([]byte(model.MapToJson(data)))
+	member := result.Data.(model.ChannelMember)
+
+	// update whichever notify properties have been provided, but don't change the others
+	if markUnread, exists := data["mark_unread"]; exists {
+		member.NotifyProps["mark_unread"] = markUnread
+	}
+
+	if desktop, exists := data["desktop"]; exists {
+		member.NotifyProps["desktop"] = desktop
+	}
+
+	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		// return the updated notify properties including any unchanged ones
+		w.Write([]byte(model.MapToJson(member.NotifyProps)))
+	}
+
 }

@@ -6,7 +6,7 @@
   * ``` sudo apt-get update```
   * ``` sudo apt-get upgrade```
 
-## Setup Database Server
+## Set up Database Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.1
 1. Install PostgreSQL 9.3+ (or MySQL 5.2+)
   * ``` sudo apt-get install postgresql postgresql-contrib```
@@ -25,13 +25,13 @@
 1. You can exit the postgres account by typing:
   * ``` exit```
 
-## Setup Mattermost Server
+## Set up Mattermost Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
 1. Download the latest Mattermost Server by typing:
   * ``` wget https://github.com/mattermost/platform/releases/download/v1.0.0/mattermost.tar.gz```
 1. Unzip the Mattermost Server by typing:
   * ``` tar -xvzf mattermost.tar.gz```
-1. For the sake of making this guide simple we located the files at `/home/ubuntu/mattermost`, in the future we will give guidance for storing under `/opt`.
+1. For the sake of making this guide simple we located the files at `/home/ubuntu/mattermost`. In the future we will give guidance for storing under `/opt`.
 1. We have also elected to run the Mattermost Server as the `ubuntu` account for simplicity.  We recommend settings up and running the service under a `mattermost` user account with limited permissions.
 1. Create the storage directory for files.  We assume you will have attached a large drive for storage of images and files.  For this setup we will assume the directory is located at `/mattermost/data`.
   * Create the directory by typing:
@@ -70,7 +70,7 @@ exec bin/platform
   * You should see a page titles *Mattermost - Signup*
   * You can also stop the process by running the command ` sudo stop mattermost`, but we will skip this step for now.
 
-## Setup Nginx Server
+## Set up Nginx Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.3
 1. We use Nginx for proxying request to the Mattermost Server.  The main benefits are:
   * SSL termination
@@ -90,8 +90,7 @@ exec bin/platform
 1. Configure Nginx to proxy connections from the internet to the Mattermost Server
   * Create a configuration for Mattermost
   * ``` sudo touch /etc/nginx/sites-available/mattermost```
-  * Below is a sample configuration with the minimum settings required to configure Mattermost.
-  * 
+  * Below is a sample configuration with the minimum settings required to configure Mattermost
  ```
    server {
 	  server_name mattermost.example.com;
@@ -118,7 +117,7 @@ exec bin/platform
   * ``` curl http://localhost```
   * You should see a page titles *Mattermost - Signup*
   
-## Setup Nginx with SSL (Recommended)
+## Set up Nginx with SSL (Recommended)
 1. You will need a SSL cert from a certificate authority.
 1. For simplicity we will generate a test certificate.
   * ``` mkdir ~/cert```
@@ -177,9 +176,9 @@ exec bin/platform
   * Save the Settings
 1. Update File Settings
   * Change *Local Directory Location* from `./data/` to `/mattermost/data`
-1. Update Log Settings
+1. Update Log Settings.
   * Set *Log to The Console* to false  
-1. Update Rate Limit Settings
+1. Update Rate Limit Settings.
   * Set *Vary By Remote Address* to false
   * Set *Vary By HTTP Header* to X-Real-IP
 1. Feel free to modify other settings.

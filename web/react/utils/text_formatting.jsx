@@ -87,8 +87,10 @@ function autolinkUrls(text, tokens) {
         const linkText = match.getMatchedText();
         let url = linkText;
 
-        if (url.lastIndexOf('http', 0) !== 0) {
-            url = `http://${linkText}`;
+        if (match.getType() === 'email') {
+            url = `mailto:${url}`;
+        } else if (url.lastIndexOf('http', 0) !== 0) {
+            url = `http://${url}`;
         }
 
         const index = tokens.size;

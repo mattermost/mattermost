@@ -332,6 +332,20 @@ export function saveConfig(config, success, error) {
     });
 }
 
+export function logClientError(msg) {
+    var l = {};
+    l.level = 'ERROR';
+    l.message = msg;
+
+    $.ajax({
+        url: '/api/v1/admin/log_client',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(l)
+    });
+}
+
 export function testEmail(config, success, error) {
     $.ajax({
         url: '/api/v1/admin/test_email',
@@ -568,16 +582,16 @@ export function updateChannelDesc(data, success, error) {
     track('api', 'api_channels_desc');
 }
 
-export function updateNotifyLevel(data, success, error) {
+export function updateNotifyProps(data, success, error) {
     $.ajax({
-        url: '/api/v1/channels/update_notify_level',
+        url: '/api/v1/channels/update_notify_props',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
         success,
         error: function onError(xhr, status, err) {
-            var e = handleError('updateNotifyLevel', xhr, status, err);
+            var e = handleError('updateNotifyProps', xhr, status, err);
             error(e);
         }
     });

@@ -255,7 +255,7 @@ func BenchmarkRemoveChannelMember(b *testing.B) {
 	}
 }
 
-func BenchmarkUpdateNotifyLevel(b *testing.B) {
+func BenchmarkUpdateNotifyProps(b *testing.B) {
 	var (
 		NUM_CHANNELS_RANGE = utils.Range{NUM_CHANNELS, NUM_CHANNELS}
 	)
@@ -271,9 +271,10 @@ func BenchmarkUpdateNotifyLevel(b *testing.B) {
 
 	for i := range data {
 		newmap := map[string]string{
-			"channel_id":   channels[i].Id,
-			"user_id":      user.Id,
-			"notify_level": model.CHANNEL_NOTIFY_MENTION,
+			"channel_id":  channels[i].Id,
+			"user_id":     user.Id,
+			"desktop":     model.CHANNEL_NOTIFY_MENTION,
+			"mark_unread": model.CHANNEL_MARK_UNREAD_MENTION,
 		}
 		data[i] = newmap
 	}
@@ -282,7 +283,7 @@ func BenchmarkUpdateNotifyLevel(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for j := range channels {
-			Client.Must(Client.UpdateNotifyLevel(data[j]))
+			Client.Must(Client.UpdateNotifyProps(data[j]))
 		}
 	}
 }

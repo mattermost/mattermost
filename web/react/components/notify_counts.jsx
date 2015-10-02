@@ -15,7 +15,7 @@ function getCountsStateFromStores() {
             count += channel.total_msg_count - channelMember.msg_count;
         } else if (channelMember.mention_count > 0) {
             count += channelMember.mention_count;
-        } else if (channelMember.notify_level !== 'quiet' && channel.total_msg_count - channelMember.msg_count > 0) {
+        } else if (channelMember.notify_props.mark_unread !== 'mention' && channel.total_msg_count - channelMember.msg_count > 0) {
             count += 1;
         }
     });

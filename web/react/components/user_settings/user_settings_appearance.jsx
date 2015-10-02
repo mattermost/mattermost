@@ -214,15 +214,14 @@ export default class UserSettingsAppearance extends React.Component {
                     <div className='divider-dark first'/>
                     {themeUI}
                     <div className='divider-dark'/>
-                    <br/>
-                    <a
-                        href='#'
-                        className='theme'
-                        onClick={this.handleImportModal}
-                    >
-                        {'Import from Slack'}
-                    </a>
                 </div>
+                <br/>
+                <a
+                    className='theme'
+                    onClick={this.handleImportModal}
+                >
+                    {'Import theme colors from Slack'}
+                </a>
             </div>
         );
     }

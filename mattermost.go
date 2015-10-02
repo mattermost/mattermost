@@ -355,7 +355,7 @@ Usage:
     -reset_password                   Resets the password for a user.  It requires the
                                       -team_name, -email and -password flag.
         Example:
-            platform -reset_password -team_name="name" -email="user@example.com" -paossword="newpassword"
+            platform -reset_password -team_name="name" -email="user@example.com" -password="newpassword"
 
 
 `

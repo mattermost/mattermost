@@ -484,7 +484,7 @@ func TestPostStoreSearch(t *testing.T) {
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
 	m1.UserId = userId
-	m1.NotifyLevel = model.CHANNEL_NOTIFY_ALL
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	Must(store.Channel().SaveMember(&m1))
 
 	c2 := &model.Channel{}
