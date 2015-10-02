@@ -28,3 +28,4 @@
 ## End User Help
 
 - [Mattermost Markdown Formatting](help/enduser/markdown.md)
+- [Slack Import](https://github.com/mattermost/platform/blob/master/doc/import/slack-import.md)
