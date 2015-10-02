@@ -9,7 +9,7 @@ var TeamStore = require('../stores/team_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
 function getStateFromStores() {
-    return {teams: UserStore.getTeams(), currentTeam: TeamStore.getCurrent()};
+    return {teams: UserStore.getTeams()};
 }
 
 export default class NavbarDropdown extends React.Component {
