@@ -803,7 +803,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 }
 
-func TestUpdateNotifyLevel(t *testing.T) {
+func TestUpdateNotifyProps(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -821,55 +821,94 @@ func TestUpdateNotifyLevel(t *testing.T) {
 	data := make(map[string]string)
 	data["channel_id"] = channel1.Id
 	data["user_id"] = user.Id
-	data["notify_level"] = model.CHANNEL_NOTIFY_MENTION
+	data["desktop"] = model.CHANNEL_NOTIFY_MENTION
 
 	timeBeforeUpdate := model.GetMillis()
 	time.Sleep(100 * time.Millisecond)
 
-	if _, err := Client.UpdateNotifyLevel(data); err != nil {
+	// test updating desktop
+	if result, err := Client.UpdateNotifyProps(data); err != nil {
 		t.Fatal(err)
+	} else if notifyProps := result.Data.(map[string]string); notifyProps["desktop"] != model.CHANNEL_NOTIFY_MENTION {
+		t.Fatal("NotifyProps[\"desktop\"] did not update properly")
+	} else if notifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_ALL {
+		t.Fatalf("NotifyProps[\"mark_unread\"] changed to %v", notifyProps["mark_unread"])
 	}
 
 	rget := Client.Must(Client.GetChannels(""))
 	rdata := rget.Data.(*model.ChannelList)
-	if len(rdata.Members) == 0 || rdata.Members[channel1.Id].NotifyLevel != data["notify_level"] {
-		t.Fatal("NotifyLevel did not update properly")
-	}
-
-	if rdata.Members[channel1.Id].LastUpdateAt <= timeBeforeUpdate {
+	if len(rdata.Members) == 0 || rdata.Members[channel1.Id].NotifyProps["desktop"] != data["desktop"] {
+		t.Fatal("NotifyProps[\"desktop\"] did not update properly")
+	} else if rdata.Members[channel1.Id].LastUpdateAt <= timeBeforeUpdate {
 		t.Fatal("LastUpdateAt did not update")
 	}
 
+	// test an empty update
+	delete(data, "desktop")
+
+	if result, err := Client.UpdateNotifyProps(data); err != nil {
+		t.Fatal(err)
+	} else if notifyProps := result.Data.(map[string]string); notifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_ALL {
+		t.Fatalf("NotifyProps[\"mark_unread\"] changed to %v", notifyProps["mark_unread"])
+	} else if notifyProps["desktop"] != model.CHANNEL_NOTIFY_MENTION {
+		t.Fatalf("NotifyProps[\"desktop\"] changed to %v", notifyProps["desktop"])
+	}
+
+	// test updating mark unread
+	data["mark_unread"] = model.CHANNEL_MARK_UNREAD_MENTION
+
+	if result, err := Client.UpdateNotifyProps(data); err != nil {
+		t.Fatal(err)
+	} else if notifyProps := result.Data.(map[string]string); notifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+		t.Fatal("NotifyProps[\"mark_unread\"] did not update properly")
+	} else if notifyProps["desktop"] != model.CHANNEL_NOTIFY_MENTION {
+		t.Fatalf("NotifyProps[\"desktop\"] changed to %v", notifyProps["desktop"])
+	}
+
+	// test updating both
+	data["desktop"] = model.CHANNEL_NOTIFY_NONE
+	data["mark_unread"] = model.CHANNEL_MARK_UNREAD_MENTION
+
+	if result, err := Client.UpdateNotifyProps(data); err != nil {
+		t.Fatal(err)
+	} else if notifyProps := result.Data.(map[string]string); notifyProps["desktop"] != model.CHANNEL_NOTIFY_NONE {
+		t.Fatal("NotifyProps[\"desktop\"] did not update properly")
+	} else if notifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+		t.Fatal("NotifyProps[\"mark_unread\"] did not update properly")
+	}
+
+	// test error cases
 	data["user_id"] = "junk"
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
 		t.Fatal("Should have errored - bad user id")
 	}
 
 	data["user_id"] = "12345678901234567890123456"
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
 		t.Fatal("Should have errored - bad user id")
 	}
 
 	data["user_id"] = user.Id
 	data["channel_id"] = "junk"
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
 		t.Fatal("Should have errored - bad channel id")
 	}
 
 	data["channel_id"] = "12345678901234567890123456"
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
 		t.Fatal("Should have errored - bad channel id")
 	}
 
-	data["channel_id"] = channel1.Id
-	data["notify_level"] = ""
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
-		t.Fatal("Should have errored - empty notify level")
+	data["desktop"] = "junk"
+	data["mark_unread"] = model.CHANNEL_MARK_UNREAD_ALL
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
+		t.Fatal("Should have errored - bad desktop notify level")
 	}
 
-	data["notify_level"] = "junk"
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
-		t.Fatal("Should have errored - bad notify level")
+	data["desktop"] = model.CHANNEL_NOTIFY_ALL
+	data["mark_unread"] = "junk"
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
+		t.Fatal("Should have errored - bad mark unread level")
 	}
 
 	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
@@ -879,8 +918,9 @@ func TestUpdateNotifyLevel(t *testing.T) {
 
 	data["channel_id"] = channel1.Id
 	data["user_id"] = user2.Id
-	data["notify_level"] = model.CHANNEL_NOTIFY_MENTION
-	if _, err := Client.UpdateNotifyLevel(data); err == nil {
+	data["desktop"] = model.CHANNEL_NOTIFY_MENTION
+	data["mark_unread"] = model.CHANNEL_MARK_UNREAD_MENTION
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
 		t.Fatal("Should have errored - user not in channel")
 	}
 }

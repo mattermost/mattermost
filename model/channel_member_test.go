@@ -31,24 +31,34 @@ func TestChannelMemberIsValid(t *testing.T) {
 	}
 
 	o.Roles = "missing"
-	o.NotifyLevel = CHANNEL_NOTIFY_ALL
+	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Roles = CHANNEL_ROLE_ADMIN
-	o.NotifyLevel = "junk"
+	o.NotifyProps["desktop"] = "junk"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.NotifyLevel = "123456789012345678901"
+	o.NotifyProps["desktop"] = "123456789012345678901"
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.NotifyLevel = CHANNEL_NOTIFY_ALL
+	o.NotifyProps["desktop"] = CHANNEL_NOTIFY_ALL
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.NotifyProps["mark_unread"] = "123456789012345678901"
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.NotifyProps["mark_unread"] = CHANNEL_MARK_UNREAD_ALL
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

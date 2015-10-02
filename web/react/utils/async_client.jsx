@@ -152,21 +152,23 @@ export function getChannel(id) {
 }
 
 export function updateLastViewedAt() {
-    if (isCallInProgress('updateLastViewed')) {
+    const channelId = ChannelStore.getCurrentId();
+
+    if (channelId === null) {
         return;
     }
 
-    if (ChannelStore.getCurrentId() == null) {
+    if (isCallInProgress(`updateLastViewed${channelId}`)) {
         return;
     }
 
-    callTracker.updateLastViewed = utils.getTimestamp();
+    callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
     client.updateLastViewedAt(
-        ChannelStore.getCurrentId(),
-        function updateLastViewedAtSuccess() {
+        channelId,
+        () => {
             callTracker.updateLastViewed = 0;
         },
-        function updateLastViewdAtFailure(err) {
+        (err) => {
             callTracker.updateLastViewed = 0;
             dispatchError(err, 'updateLastViewedAt');
         }
