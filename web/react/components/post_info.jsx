@@ -150,7 +150,7 @@ export default class PostInfo extends React.Component {
 
         var dropdown = this.createDropdown();
 
-        let tooltip = <Tooltip id={post.id + 'tooltip'}>{utils.displayDate(post.create_at)} at ${utils.displayTime(post.create_at)}</Tooltip>;
+        let tooltip = <Tooltip id={post.id + 'tooltip'}>{`${utils.displayDate(post.create_at)} at ${utils.displayTime(post.create_at)}`}</Tooltip>;
 
         return (
             <ul className='post-header post-info'>
