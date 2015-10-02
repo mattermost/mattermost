@@ -1141,3 +1141,17 @@ export function listIncomingHooks(success, error) {
         }
     });
 }
+
+export function getPreferencesByName(category, name, success, error) {
+    $.ajax({
+        url: `/api/v1/preferences/${category}/${name}`,
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('getPreferencesByName', xhr, status, err);
+            error(e);
+        }
+    });
+}
+

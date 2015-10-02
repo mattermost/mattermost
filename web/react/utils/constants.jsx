@@ -28,6 +28,7 @@ module.exports = {
         RECIEVED_AUDITS: null,
         RECIEVED_TEAMS: null,
         RECIEVED_STATUSES: null,
+        RECIEVED_PREFERENCES: null,
 
         RECIEVED_MSG: null,
 
