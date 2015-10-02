@@ -20,6 +20,8 @@ export default class UserSettingsIntegrationsTab extends React.Component {
     }
     handleClose() {
         this.updateSection('');
+        $('.ps-container.modal-body').scrollTop(0);
+        $('.ps-container.modal-body').perfectScrollbar('update');
     }
     componentDidMount() {
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
