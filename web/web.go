@@ -341,7 +341,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if team.Name != teamName {
 		l4g.Error("It appears you are logged into " + team.Name + ", but are trying to access " + teamName)
-		http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusFound)
 		return
 	}
 
