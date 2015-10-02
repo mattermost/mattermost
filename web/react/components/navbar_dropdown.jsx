@@ -142,10 +142,10 @@ export default class NavbarDropdown extends React.Component {
             >
             </li>
         );
-        if (this.state.teams.length > 1 && this.state.currentTeam) {
-            var curTeamName = this.state.currentTeam.name;
+
+        if (this.state.teams.length > 1) {
             this.state.teams.forEach((teamName) => {
-                if (teamName !== curTeamName) {
+                if (teamName !== this.props.teamName) {
                     teams.push(<li key={teamName}><a href={Utils.getWindowLocationOrigin() + '/' + teamName}>{'Switch to ' + teamName}</a></li>);
                 }
             });
@@ -234,5 +234,7 @@ NavbarDropdown.defaultProps = {
     teamType: ''
 };
 NavbarDropdown.propTypes = {
-    teamType: React.PropTypes.string
+    teamType: React.PropTypes.string,
+    teamDisplayName: React.PropTypes.string,
+    teamName: React.PropTypes.string
 };

@@ -189,9 +189,40 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// We still might be able to switch to this team because we've logged in before
+	if multiCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
+		multiToken := multiCookie.Value
+
+		if len(multiToken) > 0 {
+			tokens := strings.Split(multiToken, " ")
+
+			for _, token := range tokens {
+				if sr := <-api.Srv.Store.Session().Get(token); sr.Err == nil {
+					s := sr.Data.(*model.Session)
+
+					if !s.IsExpired() && s.TeamId == team.Id {
+						w.Header().Set(model.HEADER_TOKEN, s.Token)
+						sessionCookie := &http.Cookie{
+							Name:     model.SESSION_TOKEN,
+							Value:    s.Token,
+							Path:     "/",
+							MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
+							HttpOnly: true,
+						}
+
+						http.SetCookie(w, sessionCookie)
+
+						http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
+						return
+					}
+				}
+			}
+		}
+	}
+
 	page := NewHtmlTemplatePage("login", "Login")
 	page.Props["TeamDisplayName"] = team.DisplayName
-	page.Props["TeamName"] = teamName
+	page.Props["TeamName"] = team.Name
 	page.Render(c, w)
 }
 
@@ -319,7 +350,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			// lets make sure the user is valid
 			if result := <-api.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 				c.Err = result.Err
-				c.RemoveSessionCookie(w)
+				c.RemoveSessionCookie(w, r)
 				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
 				return
 			}
@@ -344,6 +375,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("channel", "")
 	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientProps["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
+	page.Props["TeamName"] = team.Name
 	page.Props["TeamType"] = team.Type
 	page.Props["TeamId"] = team.Id
 	page.Props["ChannelName"] = name
@@ -451,6 +483,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("password_reset", "")
 	page.Props["Title"] = "Reset Password " + page.ClientProps["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
+	page.Props["TeamName"] = teamName
 	page.Props["Hash"] = hash
 	page.Props["Data"] = data
 	page.Props["TeamName"] = teamName
