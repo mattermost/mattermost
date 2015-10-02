@@ -319,6 +319,10 @@ func logout(c *api.Context, w http.ResponseWriter, r *http.Request) {
 func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	name := params["channelname"]
+	teamName := params["team"]
+
+	var team *model.Team
+	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
 
 	var channelId string
 	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
@@ -326,6 +330,19 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channelId = result.Data.(string)
+	}
+
+	if tResult := <-teamChan; tResult.Err != nil {
+		c.Err = tResult.Err
+		return
+	} else {
+		team = tResult.Data.(*model.Team)
+	}
+
+	if team.Name != teamName {
+		l4g.Error("It appears you are log into " + team.Name + ", but are trying to access " + teamName)
+		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusFound)
+		return
 	}
 
 	if len(channelId) == 0 {
@@ -361,15 +378,6 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
 			return
 		}
-	}
-
-	var team *model.Team
-
-	if tResult := <-api.Srv.Store.Team().Get(c.Session.TeamId); tResult.Err != nil {
-		c.Err = tResult.Err
-		return
-	} else {
-		team = tResult.Data.(*model.Team)
 	}
 
 	page := NewHtmlTemplatePage("channel", "")
