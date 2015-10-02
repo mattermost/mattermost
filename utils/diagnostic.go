@@ -22,7 +22,7 @@ const (
 )
 
 func SendDiagnostic(data model.StringMap) *model.AppError {
-	if Cfg.PrivacySettings.EnableDiagnostic && model.BuildNumber != "_BUILD_NUMBER_" {
+	if Cfg.PrivacySettings.EnableDiagnostic && !model.IsOfficalBuild() {
 
 		query := "?"
 		for name, value := range data {

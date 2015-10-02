@@ -78,7 +78,7 @@ func main() {
 func diagnosticsJob() {
 	go func() {
 		for {
-			if utils.Cfg.PrivacySettings.EnableDiagnostic && model.BuildNumber != "_BUILD_NUMBER_" {
+			if utils.Cfg.PrivacySettings.EnableDiagnostic && !model.IsOfficalBuild() {
 				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 					props := result.Data.(model.StringMap)
 					lastTime, _ := strconv.ParseInt(props["LastDiagnosticTime"], 10, 0)
