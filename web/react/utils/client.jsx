@@ -1155,3 +1155,16 @@ export function getPreferencesByName(category, name, success, error) {
     });
 }
 
+export function setPreferences(preferences, success, error) {
+    $.ajax({
+        url: '/api/v1/preferences/set',
+        dataType: 'json',
+        type: 'POST',
+        data: JSON.stringify(preferences),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('setPreferences', xhr, status, err);
+            error(e);
+        }
+    });
+}
