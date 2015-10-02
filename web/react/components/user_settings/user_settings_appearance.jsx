@@ -220,7 +220,7 @@ export default class UserSettingsAppearance extends React.Component {
                     className='theme'
                     onClick={this.handleImportModal}
                 >
-                    {'Import from Slack'}
+                    {'Import theme colors from Slack'}
                 </a>
             </div>
         );
