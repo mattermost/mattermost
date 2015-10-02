@@ -666,3 +666,27 @@ export function getDirectChannels() {
     );
 }
 
+export function setPreferences(preferences, success, error) {
+    client.setPreferences(
+        preferences,
+        (data, textStatus, xhr) => {
+            if (xhr.status !== 304) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_PREFERENCES,
+                    preferences
+                });
+            }
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            dispatchError(err, 'setPreferences');
+
+            if (error) {
+                error();
+            }
+        }
+    );
+}

@@ -75,13 +75,13 @@ class PreferenceStoreClass extends EventEmitter {
     }
 
     setPreference(category, name, value) {
-        this.setPreferenceWithAltId(category, name, '', value);
+        return this.setPreferenceWithAltId(category, name, '', value);
     }
 
     setPreferenceWithAltId(category, name, altId, value) {
         const preferences = this.getAllPreferences();
 
-        const key = this.getKey(category, name);
+        const key = this.getKey(category, name, altId);
         let preference = preferences.get(key);
 
         if (!preference) {
@@ -97,6 +97,8 @@ class PreferenceStoreClass extends EventEmitter {
         preferences.set(key, preference);
 
         this.setAllPreferences(preferences);
+
+        return preference;
     }
 
     emitChange(preferences) {
@@ -130,6 +132,3 @@ class PreferenceStoreClass extends EventEmitter {
 
 const PreferenceStore = new PreferenceStoreClass();
 export default PreferenceStore;
-
-// TODO remove me
-global.PreferenceStore = PreferenceStore;

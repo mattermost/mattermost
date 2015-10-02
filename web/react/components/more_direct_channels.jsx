@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ChannelStore = require('../stores/channel_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var PreferenceStore = require('../stores/preference_store.jsx');
 var utils = require('../utils/utils.jsx');
 
 export default class MoreDirectChannels extends React.Component {
@@ -22,16 +22,32 @@ export default class MoreDirectChannels extends React.Component {
         });
     }
 
+    handleJoinDirectChannel(channel) {
+        const preference = PreferenceStore.setPreferenceWithAltId('direct_channels', 'show_hide', channel.teammate_id, 'true');
+        AsyncClient.setPreferences([preference]);
+    }
+
     render() {
         var self = this;
 
-        var directMessageItems = this.state.channels.map(function mapActivityToChannel(channel, index) {
+        var directMessageItems = this.state.channels.map((channel, index) => {
             var badge = '';
             var titleClass = '';
-            var active = '';
             var handleClick = null;
 
-            if (channel.fake) {
+            if (!channel.fake) {
+                if (channel.unread) {
+                    badge = <span className='badge pull-right small'>{channel.unread}</span>;
+                    titleClass = 'unread-title';
+                }
+
+                handleClick = (e) => {
+                    e.preventDefault();
+                    this.handleJoinDirectChannel(channel);
+                    utils.switchChannel(channel);
+                    $(React.findDOMNode(self.refs.modal)).modal('hide');
+                };
+            } else {
                 // It's a direct message channel that doesn't exist yet so let's create it now
                 var otherUserId = utils.getUserIdFromChannelName(channel);
 
@@ -45,9 +61,10 @@ export default class MoreDirectChannels extends React.Component {
                 }
 
                 if (self.state.loadingDMChannel === -1) {
-                    handleClick = function clickHandler(e) {
+                    handleClick = (e) => {
                         e.preventDefault();
                         self.setState({loadingDMChannel: index});
+                        this.handleJoinDirectChannel(channel);
 
                         Client.createDirectChannel(channel, otherUserId,
                             function success(data) {
@@ -81,10 +98,7 @@ export default class MoreDirectChannels extends React.Component {
             }
 
             return (
-                <li
-                    key={channel.name}
-                    className={active}
-                >
+                <li key={channel.name}>
                     <a
                         className={'sidebar-channel ' + titleClass}
                         href='#'
