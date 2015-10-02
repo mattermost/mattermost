@@ -140,11 +140,11 @@ check: install
 
 test: install
 	@mkdir -p logs
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./api || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s ./model || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./store || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./utils || exit 1
+	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./web || exit 1
 
 benchmark: install
 	@mkdir -p logs
