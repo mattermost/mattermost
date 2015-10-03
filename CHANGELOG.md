@@ -1,24 +1,50 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT - Release v1.0.0-RC2
+## Release v1.0.0
 
-The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
-
-- **Final release anticipated:** October 2, 2015
+Released 2015-10-02
 
 ### Release Highlights
 
-- System Console - UI for configuring deployments, managing teams, resetting user passwords and other admin features
-- Markdown - Markdown support in messages, comments and channel descriptions - Including font formatting, emoticons, headings and tables
-- Themes - Preset themes and detailed theme color options, plus ability to import themes from Slack 
-- Performance - Numerous performance improvements and optimizations 
+#### Markdown 
+
+Markdown support is now available across messages, comments and channel descriptions for: 
+
+- **Headings** - in five different sizes to help organize your thoughts 
+- **Lists** - both numbered and bullets
+- **Font formatting** - including **bold**, _italics_, ~~strikethrough~~, `code`, links, and block quotes)
+- **In-line images** - useful for creating buttons and status messages
+- **Tables** - for keeping things organized 
+- **Emoticons** - translation of emoji codes to images like :sheep: :boom: :rage1: :+1: 
+
+See [documentation](doc/help/enduser/markdown.md) for full details.
+
+#### Themes
+
+Themes as been significantly upgraded in this release with: 
+
+- 4 pre-set themes, two light and two dark, to customize your experience
+- 18 detailed color setting options to precisely match the colors of your other tools or preferences 
+- Ability to import themes from Slack
+
+#### System console and command line tools 
+
+Added new web-based System Console for managing instance level configuration. This lets IT admins conveniently: 
+
+- _access core settings_, like server, database, email, rate limiting, file store, SSO, and log settings, 
+- _monitor operations_, by quickly accessing log files and user roles, and
+- _manage teams_, with essential functions such as team role assignment and password reset
+
+In addition new command line tools are available for managing Mattermost system roles, creating users, resetting passwords, getting version info and other basic tasks.
+
 
 ### New Features 
 
 Messaging, Comments and Notifications
 
-- Support for emoji codes rendering to image files
 - Full markdown support in messages, comments, and channel description 
+- Support for emoji codes rendering to image files
+
 
 Files and Images 
 
@@ -56,12 +82,13 @@ Documentation
 Performance 
 
 - Enabled Javascript optimizations 
+- Numerous improvements in center channel and mobile web 
 
 Code Quality 
 
 - Reformatted Javascript per Mattermost Style Guide
 
-UI
+User Interface
 
 - Added version, build number, build date and build hash under Account Settings -> Security
 
@@ -71,7 +98,6 @@ Licensing
 
 ### Bug Fixes
 
-- Numerous performance improvements
 - Fixed issue so that SSO option automatically set EmailVerified=true (it was false previously)
 
 ### Contributors
