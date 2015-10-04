@@ -5,7 +5,7 @@ The following install instructions are for single-container installs of Mattermo
 ### Mac OSX ###
 
 1. Install Docker Toolbox using instructions at: http://docs.docker.com/installation/mac/  
-    1. Start Docker Toolbox from the command line and run: `docker-machine create -d virtualbox dev”`  
+    1. Start Docker Toolbox from the command line and run: `docker-machine create -d virtualbox dev`  
 2. Get your Docker IP address with: `docker-machine ip dev`
 3. Use `sudo nano /etc/hosts` to add `<Docker IP> dockerhost` to your /etc/hosts file 
 4. Run: `docker-machine env dev` and copy the export statements to your ~/.bash\_profile by running `sudo nano ~/.bash_profile`. Then run: `source ~/.bash_profile`
