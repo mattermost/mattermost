@@ -888,6 +888,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			} else {
 				team := tresult.Data.(*model.Team)
 				fireAndForgetEmailChangeEmail(rusers[1].Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL())
+
+				if utils.Cfg.EmailSettings.RequireEmailVerification {
+					fireAndForgetEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+				}
 			}
 		}
 
@@ -1337,6 +1341,25 @@ func fireAndForgetEmailChangeEmail(email, teamDisplayName, teamURL, siteURL stri
 			l4g.Error("Failed to send update password email successfully err=%v", err)
 		}
 
+	}()
+}
+
+func fireAndForgetEmailChangeVerifyEmail(userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+	go func() {
+
+		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
+
+		subjectPage := NewServerTemplatePage("email_change_verify_subject")
+		subjectPage.Props["SiteURL"] = siteURL
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage := NewServerTemplatePage("email_change_verify_body")
+		bodyPage.Props["SiteURL"] = siteURL
+		bodyPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage.Props["VerifyUrl"] = link
+
+		if err := utils.SendMail(newUserEmail, subjectPage.Render(), bodyPage.Render()); err != nil {
+			l4g.Error("Failed to send verification email successfully err=%v", err)
+		}
 	}()
 }
 

@@ -28,6 +28,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.updateLastName = this.updateLastName.bind(this);
         this.updateNickname = this.updateNickname.bind(this);
         this.updateEmail = this.updateEmail.bind(this);
+        this.updateConfirmEmail = this.updateConfirmEmail.bind(this);
         this.updatePicture = this.updatePicture.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
@@ -97,6 +98,7 @@ export default class UserSettingsGeneralTab extends React.Component {
 
         var user = UserStore.getCurrentUser();
         var email = this.state.email.trim().toLowerCase();
+        var confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
         if (user.email === email) {
             return;
@@ -107,12 +109,17 @@ export default class UserSettingsGeneralTab extends React.Component {
             return;
         }
 
+        if (email !== confirmEmail) {
+            this.setState({emailError: 'The new emails you entered do not match'});
+            return;
+        }
+
         user.email = email;
 
-        if (!this.state.emailEnabled || !this.state.emailVerificationEnabled) {
-            this.submitUser(user, {emailChangeInProgress: false});
-        } else {
+        if (this.state.emailEnabled && this.state.emailVerificationEnabled) {
             this.submitUser(user, {emailChangeInProgress: true});
+        } else {
+            this.submitUser(user, {emailChangeInProgress: false});
         }
     }
     submitUser(user, newState) {
@@ -191,6 +198,9 @@ export default class UserSettingsGeneralTab extends React.Component {
     updateEmail(e) {
         this.setState({email: e.target.value});
     }
+    updateConfirmEmail(e) {
+        this.setState({confirmEmail: e.target.value});
+    }
     updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({picture: e.target.files[0]});
@@ -202,7 +212,8 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
     }
     updateSection(section) {
-        this.setState(assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: ''}));
+        const emailChangeInProgress = this.state.emailChangeInProgress;
+        this.setState(assign({}, this.setupInitialState(this.props), {emailChangeInProgress: emailChangeInProgress, clientError: '', serverError: '', emailError: ''}));
         this.submitActive = false;
         this.props.updateSection(section);
     }
@@ -226,7 +237,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         var emailVerificationEnabled = global.window.config.RequireEmailVerification === 'true';
 
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled,
+                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailEnabled: emailEnabled,
                         emailVerificationEnabled: emailVerificationEnabled, emailChangeInProgress: false};
     }
     render() {
@@ -474,6 +485,22 @@ export default class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateEmail}
                                 value={this.state.email}
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+
+            inputs.push(
+                <div key='confirmEmailSetting'>
+                    <div className='form-group'>
+                        <label className='col-sm-5 control-label'>{'Confirm Email'}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateConfirmEmail}
+                                value={this.state.confirmEmail}
                             />
                         </div>
                     </div>
