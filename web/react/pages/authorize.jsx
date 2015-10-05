@@ -3,16 +3,16 @@
 
 var Authorize = require('../components/authorize.jsx');
 
-function setupAuthorizePage(teamName, appName, responseType, clientId, redirectUri, scope, state) {
+function setupAuthorizePage(props) {
     React.render(
         <Authorize
-            teamName={teamName}
-            appName={appName}
-            responseType={responseType}
-            clientId={clientId}
-            redirectUri={redirectUri}
-            scope={scope}
-            state={state}
+            teamName={props.TeamName}
+            appName={props.AppName}
+            responseType={props.ResponseType}
+            clientId={props.ClientId}
+            redirectUri={props.RedirectUri}
+            scope={props.Scope}
+            state={props.State}
         />,
         document.getElementById('authorize')
     );
