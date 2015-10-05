@@ -155,7 +155,11 @@ func fireAndForgetWebhookEvent(c *Context, post *model.Post) {
 		chchan := Srv.Store.Webhook().GetOutgoingByChannel(post.ChannelId)
 
 		firstWord := strings.Split(post.Message, " ")[0]
-		thchan := Srv.Store.Webhook().GetOutgoingByTriggerWord(c.Session.TeamId, post.ChannelId, firstWord)
+
+		var thchan store.StoreChannel
+		if len(firstWord) != 0 {
+			thchan = Srv.Store.Webhook().GetOutgoingByTriggerWord(c.Session.TeamId, post.ChannelId, firstWord)
+		}
 
 		hooks := []*model.OutgoingWebhook{}
 
@@ -166,38 +170,24 @@ func fireAndForgetWebhookEvent(c *Context, post *model.Post) {
 			hooks = append(hooks, result.Data.([]*model.OutgoingWebhook)...)
 		}
 
-		if result := <-thchan; result.Err != nil {
-			l4g.Error("Encountered error getting webhook by trigger word, err=%v", result.Err)
-			return
-		} else {
-			hooks = append(hooks, result.Data.([]*model.OutgoingWebhook)...)
+		if thchan != nil {
+			if result := <-thchan; result.Err != nil {
+				l4g.Error("Encountered error getting webhook by trigger word, err=%v", result.Err)
+				return
+			} else {
+				hooks = append(hooks, result.Data.([]*model.OutgoingWebhook)...)
+			}
 		}
 
 		cchan := Srv.Store.Channel().Get(post.ChannelId)
 		uchan := Srv.Store.User().Get(post.UserId)
+		tchan := Srv.Store.Team().Get(c.Session.TeamId)
 
-		tchan := make(chan *model.Team)
-		isTeamBeingFetched := make(map[string]bool)
-		for _, hook := range hooks {
-			if !isTeamBeingFetched[hook.TeamId] {
-				isTeamBeingFetched[hook.TeamId] = true
-				go func() {
-					if result := <-Srv.Store.Team().Get(hook.TeamId); result.Err != nil {
-						l4g.Error("Encountered error getting team, team_id=%s, err=%v", hook.TeamId, result.Err)
-						tchan <- nil
-					} else {
-						tchan <- result.Data.(*model.Team)
-					}
-				}()
-			}
-		}
-
-		teams := make(map[string]*model.Team)
-		for range isTeamBeingFetched {
-			team := <-tchan
-			if team != nil {
-				teams[team.Id] = team
-			}
+		var team *model.Team
+		if result := <-tchan; result.Err != nil {
+			l4g.Error("Encountered error getting team, team_id=%s, err=%v", c.Session.TeamId, result.Err)
+		} else {
+			team = result.Data.(*model.Team)
 		}
 
 		var channel *model.Channel
@@ -220,7 +210,7 @@ func fireAndForgetWebhookEvent(c *Context, post *model.Post) {
 				p.Set("token", hook.Token)
 				p.Set("team_id", hook.TeamId)
 
-				if team, ok := teams[hook.TeamId]; ok {
+				if team != nil {
 					p.Set("team_domain", team.Name)
 				}
 
