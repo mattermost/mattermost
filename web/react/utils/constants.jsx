@@ -279,5 +279,9 @@ module.exports = {
             id: 'buttonColor',
             uiName: 'Button Text'
         }
-    ]
+    ],
+    Preferences: {
+        CATEGORY_DIRECT_CHANNELS: 'direct_channels',
+        NAME_SHOW: 'show'
+    }
 };

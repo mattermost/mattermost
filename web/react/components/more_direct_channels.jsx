@@ -3,6 +3,7 @@
 
 var TeamStore = require('../stores/team_store.jsx');
 var Client = require('../utils/client.jsx');
+var Constants = require('../utils/constants.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var PreferenceStore = require('../stores/preference_store.jsx');
 var utils = require('../utils/utils.jsx');
@@ -23,7 +24,8 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleJoinDirectChannel(channel) {
-        const preference = PreferenceStore.setPreferenceWithAltId('direct_channels', 'show_hide', channel.teammate_id, 'true');
+        const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
+            Constants.Preferences.NAME_SHOW, channel.teammate_id, 'true');
         AsyncClient.setPreferences([preference]);
     }
 

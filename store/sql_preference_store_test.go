@@ -14,7 +14,7 @@ func TestPreferenceStoreSave(t *testing.T) {
 	p1 := model.Preference{
 		UserId:   model.NewId(),
 		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 		AltId:    model.NewId(),
 	}
 
@@ -29,7 +29,7 @@ func TestPreferenceStoreSave(t *testing.T) {
 	p2 := model.Preference{
 		UserId:   model.NewId(),
 		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 		AltId:    p1.AltId,
 	}
 
@@ -40,7 +40,7 @@ func TestPreferenceStoreSave(t *testing.T) {
 	p3 := model.Preference{
 		UserId:   p1.UserId,
 		Category: model.PREFERENCE_CATEGORY_TEST,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 		AltId:    p1.AltId,
 	}
 
@@ -62,7 +62,7 @@ func TestPreferenceStoreSave(t *testing.T) {
 	p5 := model.Preference{
 		UserId:   p1.UserId,
 		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 		AltId:    model.NewId(),
 	}
 
@@ -79,7 +79,7 @@ func TestPreferenceStoreUpdate(t *testing.T) {
 	p1 := model.Preference{
 		UserId:   id,
 		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 	}
 	Must(store.Preference().Save(&p1))
 
@@ -105,7 +105,7 @@ func TestPreferenceStoreUpdate(t *testing.T) {
 		t.Fatal("update should have failed because of changed name")
 	}
 
-	p1.Name = model.PREFERENCE_NAME_SHOWHIDE
+	p1.Name = model.PREFERENCE_NAME_SHOW
 	p1.AltId = model.NewId()
 	if err := (<-store.Preference().Update(&p1)).Err; err == nil {
 		t.Fatal("update should have failed because of changed alternate id")
@@ -118,7 +118,7 @@ func TestPreferenceGetByName(t *testing.T) {
 	p1 := model.Preference{
 		UserId:   model.NewId(),
 		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 		AltId:    model.NewId(),
 	}
 

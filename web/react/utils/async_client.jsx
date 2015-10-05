@@ -645,8 +645,8 @@ export function getDirectChannels() {
 
     callTracker.getDirectChannels = utils.getTimestamp();
     client.getPreferencesByName(
-        'direct_channels',
-        'show_hide',
+        Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
+        Constants.Preferences.NAME_SHOW,
         (data, textStatus, xhr) => {
             callTracker.getDirectChannels = 0;
 

@@ -27,7 +27,7 @@ func TestSetPreferences(t *testing.T) {
 		preference := model.Preference{
 			UserId:   user1.Id,
 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOWHIDE,
+			Name:     model.PREFERENCE_NAME_SHOW,
 			AltId:    model.NewId(),
 		}
 		preferences = append(preferences, &preference)
@@ -74,13 +74,13 @@ func TestGetPreferencesByName(t *testing.T) {
 		&model.Preference{
 			UserId:   user1.Id,
 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOWHIDE,
+			Name:     model.PREFERENCE_NAME_SHOW,
 			AltId:    model.NewId(),
 		},
 		&model.Preference{
 			UserId:   user1.Id,
 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOWHIDE,
+			Name:     model.PREFERENCE_NAME_SHOW,
 			AltId:    model.NewId(),
 		},
 		&model.Preference{
@@ -92,7 +92,7 @@ func TestGetPreferencesByName(t *testing.T) {
 		&model.Preference{
 			UserId:   user1.Id,
 			Category: model.PREFERENCE_CATEGORY_TEST,
-			Name:     model.PREFERENCE_NAME_SHOWHIDE,
+			Name:     model.PREFERENCE_NAME_SHOW,
 			AltId:    model.NewId(),
 		},
 	}
@@ -101,7 +101,7 @@ func TestGetPreferencesByName(t *testing.T) {
 		&model.Preference{
 			UserId:   user2.Id,
 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOWHIDE,
+			Name:     model.PREFERENCE_NAME_SHOW,
 			AltId:    model.NewId(),
 		},
 	}
@@ -114,7 +114,7 @@ func TestGetPreferencesByName(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
-	if result, err := Client.GetPreferencesByName(model.PREFERENCE_CATEGORY_DIRECT_CHANNELS, model.PREFERENCE_NAME_SHOWHIDE); err != nil {
+	if result, err := Client.GetPreferencesByName(model.PREFERENCE_CATEGORY_DIRECT_CHANNELS, model.PREFERENCE_NAME_SHOW); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.([]*model.Preference); len(data) != 2 {
 		t.Fatal("received the wrong number of preferences")
@@ -124,7 +124,7 @@ func TestGetPreferencesByName(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
-	if result, err := Client.GetPreferencesByName(model.PREFERENCE_CATEGORY_DIRECT_CHANNELS, model.PREFERENCE_NAME_SHOWHIDE); err != nil {
+	if result, err := Client.GetPreferencesByName(model.PREFERENCE_CATEGORY_DIRECT_CHANNELS, model.PREFERENCE_NAME_SHOW); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.([]*model.Preference); len(data) != 1 {
 		t.Fatal("received the wrong number of preferences")
@@ -148,7 +148,7 @@ func TestSetAndGetProperties(t *testing.T) {
 	p := model.Preference{
 		UserId:   user.Id,
 		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-		Name:     model.PREFERENCE_NAME_SHOWHIDE,
+		Name:     model.PREFERENCE_NAME_SHOW,
 		AltId:    model.NewId(),
 		Value:    model.NewId(),
 	}
