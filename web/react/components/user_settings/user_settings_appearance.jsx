@@ -171,8 +171,10 @@ export default class UserSettingsAppearance extends React.Component {
                         <br/>
                     </div>
                     {custom}
-                    <hr />
-                                {serverError}
+                    <div className='setting-list-item'>
+                        <hr />
+                    </div>
+                    {serverError}
                     <a
                         className='btn btn-sm btn-primary'
                         href='#'
