@@ -222,42 +222,49 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 func fireAndForgetAddDirectChannels(user *model.User, team *model.Team) {
 	go func() {
-		var profiles map[string]*model.User
-		if result := <-Srv.Store.User().GetProfiles(team.Id); result.Err != nil {
-			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, team_id=%s, err=%v", user.Id, team.Id, result.Err.Error())
-			return
-		} else {
-			profiles = result.Data.(map[string]*model.User)
-		}
-
-		count := 10
-
-		for id := range profiles {
-			if id == user.Id {
-				continue
-			}
-
-			profile := profiles[id]
-
-			preference := &model.Preference{
-				UserId:   user.Id,
-				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-				Name:     model.PREFERENCE_NAME_SHOW,
-				AltId:    profile.Id,
-				Value:    "true",
-			}
-
-			if result := <-Srv.Store.Preference().Save(preference); result.Err != nil {
-				l4g.Error("Failed to add direct channel preferences for new user user_id=%s, alt_id=%s, team_id=%s, err=%v", user.Id, profile.Id, team.Id, result.Err.Error())
-			}
-
-			count -= 1
-
-			if count == 0 {
-				break
-			}
-		}
+		AddDirectChannels(user.Id, team.Id)
 	}()
+}
+
+func AddDirectChannels(userId, teamId string) []*model.Preference {
+	var profiles map[string]*model.User
+	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+		l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", userId, teamId, result.Err.Error())
+		return []*model.Preference{}
+	} else {
+		profiles = result.Data.(map[string]*model.User)
+	}
+
+	var preferences []*model.Preference
+
+	for id := range profiles {
+		if id == userId {
+			continue
+		}
+
+		profile := profiles[id]
+
+		preference := &model.Preference{
+			UserId:   userId,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
+			Name:     model.PREFERENCE_NAME_SHOW,
+			AltId:    profile.Id,
+			Value:    "true",
+		}
+
+		if result := <-Srv.Store.Preference().Save(preference); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for user user_id=%s, alt_id=%s, team_id=%s, err=%v", userId, profile.Id, teamId, result.Err.Error())
+			continue
+		}
+
+		preferences = append(preferences, preference)
+
+		if len(preferences) >= 10 {
+			break
+		}
+	}
+
+	return preferences
 }
 
 func fireAndForgetWelcomeEmail(email, teamDisplayName, siteURL, teamURL string) {

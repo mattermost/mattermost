@@ -58,6 +58,15 @@ func getPreferencesByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		w.Write([]byte(model.PreferenceListToJson(result.Data.([]*model.Preference))))
+		data := result.Data.([]*model.Preference)
+
+		if len(data) == 0 {
+			if category == model.PREFERENCE_CATEGORY_DIRECT_CHANNELS && name == model.PREFERENCE_NAME_SHOW {
+				// add direct channels for a user that existed before preferences were added
+				data = AddDirectChannels(c.Session.UserId, c.Session.TeamId)
+			}
+		}
+
+		w.Write([]byte(model.PreferenceListToJson(data)))
 	}
 }
