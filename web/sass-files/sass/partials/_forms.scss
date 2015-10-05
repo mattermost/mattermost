@@ -16,11 +16,12 @@
 		}
 	}
 	.input__help {
-		color: #777;
+		color: inherit;
 		margin: 10px 0 0 10px;
 	    word-break: break-word;
+	    @include opacity(0.8);
 		&.dark {
-			color: #222;
+			@include opacity(1);
 		}
 		&.error {
 			color: #a94442;

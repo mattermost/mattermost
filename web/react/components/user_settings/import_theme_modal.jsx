@@ -150,7 +150,9 @@ export default class ImportThemeModal extends React.Component {
                                         className='form-control'
                                         onChange={this.handleChange}
                                     />
-                                    {this.state.inputError}
+                                    <div className='input__help'>
+                                        {this.state.inputError}
+                                    </div>
                                 </div>
                             </div>
                         </Modal.Body>
