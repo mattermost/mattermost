@@ -890,7 +890,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				fireAndForgetEmailChangeEmail(rusers[1].Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL())
 
 				if utils.Cfg.EmailSettings.RequireEmailVerification {
-					fireAndForgetEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+					FireAndForgetEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 				}
 			}
 		}
@@ -1344,7 +1344,7 @@ func fireAndForgetEmailChangeEmail(email, teamDisplayName, teamURL, siteURL stri
 	}()
 }
 
-func fireAndForgetEmailChangeVerifyEmail(userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+func FireAndForgetEmailChangeVerifyEmail(userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
