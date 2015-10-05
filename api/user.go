@@ -242,7 +242,7 @@ func fireAndForgetAddDirectChannels(user *model.User, team *model.Team) {
 			preference := &model.Preference{
 				UserId:   user.Id,
 				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-				Name:     model.PREFERENCE_NAME_SHOWHIDE,
+				Name:     model.PREFERENCE_NAME_SHOW,
 				AltId:    profile.Id,
 				Value:    "true",
 			}

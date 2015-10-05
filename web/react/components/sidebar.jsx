@@ -52,7 +52,7 @@ export default class Sidebar extends React.Component {
             teammates.push(teamMemberMap[id]);
         }
 
-        const preferences = PreferenceStore.getPreferences('direct_channels', 'show_hide');
+        const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNELS, Constants.Preferences.NAME_SHOW);
 
         // Create lists of all read and unread direct channels
         var visibleDirectChannels = [];
@@ -96,7 +96,8 @@ export default class Sidebar extends React.Component {
                 visibleDirectChannels.push(channel);
             } else if (forceShow) {
                 // make sure that unread direct channels are visible
-                const preference = PreferenceStore.setPreferenceWithAltId('direct_channels', 'show_hide', teammate.id, 'true');
+                const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
+                    Constants.Preferences.NAME_SHOW, teammate.id, 'true');
                 AsyncClient.setPreferences([preference]);
 
                 visibleDirectChannels.push(channel);
@@ -306,7 +307,8 @@ export default class Sidebar extends React.Component {
         if (!channel.leaving) {
             channel.leaving = true;
 
-            const preference = PreferenceStore.setPreferenceWithAltId('direct_channels', 'show_hide', channel.teammate_id, 'false');
+            const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
+                Constants.Preferences.NAME_SHOW, channel.teammate_id, 'false');
             AsyncClient.setPreferences(
                 [preference],
                 () => {

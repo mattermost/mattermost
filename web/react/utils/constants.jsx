@@ -286,5 +286,9 @@ module.exports = {
             id: 'mentionHighlightLink',
             uiName: 'Mention Highlight Link'
         }
-    ]
+    ],
+    Preferences: {
+        CATEGORY_DIRECT_CHANNELS: 'direct_channels',
+        NAME_SHOW: 'show'
+    }
 };

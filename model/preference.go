@@ -11,7 +11,7 @@ import (
 const (
 	PREFERENCE_CATEGORY_DIRECT_CHANNELS = "direct_channels"
 	PREFERENCE_CATEGORY_TEST            = "test" // do not use, just for testing uniqueness while there's only one real category
-	PREFERENCE_NAME_SHOWHIDE            = "show_hide"
+	PREFERENCE_NAME_SHOW                = "show"
 	PREFERENCE_NAME_TEST                = "test" // do not use, just for testing uniqueness while there's only one real name
 )
 
@@ -92,5 +92,5 @@ func IsPreferenceCategoryValid(category string) bool {
 }
 
 func IsPreferenceNameValid(name string) bool {
-	return name == PREFERENCE_NAME_SHOWHIDE || name == PREFERENCE_NAME_TEST
+	return name == PREFERENCE_NAME_SHOW || name == PREFERENCE_NAME_TEST
 }

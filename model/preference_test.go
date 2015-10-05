@@ -35,7 +35,7 @@ func TestPreferenceIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
-	preference.Name = PREFERENCE_NAME_SHOWHIDE
+	preference.Name = PREFERENCE_NAME_SHOW
 	if err := preference.IsValid(); err != nil {
 		t.Fatal()
 	}
