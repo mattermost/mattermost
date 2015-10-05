@@ -71,6 +71,7 @@ export default class Sidebar extends React.Component {
                 channelName = teammate.id + '__' + UserStore.getCurrentId();
             }
 
+            let forceShow = false;
             let channel = ChannelStore.getByName(channelName);
 
             if (!channel) {
@@ -80,6 +81,11 @@ export default class Sidebar extends React.Component {
                 channel.last_post_at = 0;
                 channel.total_msg_count = 0;
                 channel.type = 'D';
+            } else {
+                const member = members[channel.id];
+                const msgCount = channel.total_msg_count - member.msg_count;
+
+                forceShow = currentId === channel.id || msgCount > 0;
             }
 
             channel.display_name = teammate.username;
@@ -87,6 +93,12 @@ export default class Sidebar extends React.Component {
             channel.status = UserStore.getStatus(teammate.id);
 
             if (preferences.some((preference) => (preference.alt_id === teammate.id && preference.value !== 'false'))) {
+                visibleDirectChannels.push(channel);
+            } else if (forceShow) {
+                // make sure that unread direct channels are visible
+                const preference = PreferenceStore.setPreferenceWithAltId('direct_channels', 'show_hide', teammate.id, 'true');
+                AsyncClient.setPreferences([preference]);
+
                 visibleDirectChannels.push(channel);
             } else {
                 hiddenDirectChannels.push(channel);
