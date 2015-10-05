@@ -35,7 +35,9 @@ Added new web-based System Console for managing instance level configuration. Th
 - _monitor operations_, by quickly accessing log files and user roles, and
 - _manage teams_, with essential functions such as team role assignment and password reset
 
-In addition new command line tools are available for managing Mattermost system roles, creating users, resetting passwords, getting version info and other basic tasks.
+In addition new command line tools are available for managing Mattermost system roles, creating users, resetting passwords, getting version info and other basic tasks. 
+
+Run `./platform -h` for documentation using the new command line tool.
 
 
 ### New Features 
