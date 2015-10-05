@@ -14,9 +14,12 @@ export default class PostDeletedModal extends React.Component {
 
         this.state = {};
     }
-    handleClose(e) {
-        e.preventDefault();
-
+    componentDidMount() {
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
+            this.handleClose();
+        });
+    }
+    handleClose() {
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECIEVED_SEARCH,
             results: null
@@ -56,26 +59,25 @@ export default class PostDeletedModal extends React.Component {
                                     data-dismiss='modal'
                                     aria-label='Close'
                                 >
-                                    <span aria-hidden='true'>&times;</span>
+                                    <span aria-hidden='true'>{'×'}</span>
                                 </button>
                                 <h4
                                     className='modal-title'
                                     id='myModalLabel'
                                 >
-                                    Post deleted
+                                    {'Comment could not be posted'}
                                 </h4>
                             </div>
                             <div className='modal-body'>
-                                <p>The post you were viewing was deleted by the owner.</p>
+                                <p>{'Someone deleted the message on which you tried to post a comment.'}</p>
                             </div>
                             <div className='modal-footer'>
                                 <button
                                     type='button'
                                     className='btn btn-primary'
                                     data-dismiss='modal'
-                                    onClick={this.handleClose}
                                 >
-                                    Okay
+                                    {'Okay'}
                                 </button>
                             </div>
                         </div>
