@@ -198,6 +198,8 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
+		fireAndForgetAddDirectChannels(ruser, team)
+
 		fireAndForgetWelcomeEmail(ruser.Email, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
@@ -216,6 +218,46 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 		return ruser
 	}
+}
+
+func fireAndForgetAddDirectChannels(user *model.User, team *model.Team) {
+	go func() {
+		var profiles map[string]*model.User
+		if result := <-Srv.Store.User().GetProfiles(team.Id); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, team_id=%s, err=%v", user.Id, team.Id, result.Err.Error())
+			return
+		} else {
+			profiles = result.Data.(map[string]*model.User)
+		}
+
+		count := 10
+
+		for id := range profiles {
+			if id == user.Id {
+				continue
+			}
+
+			profile := profiles[id]
+
+			preference := &model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
+				Name:     model.PREFERENCE_NAME_SHOWHIDE,
+				AltId:    profile.Id,
+				Value:    "true",
+			}
+
+			if result := <-Srv.Store.Preference().Save(preference); result.Err != nil {
+				l4g.Error("Failed to add direct channel preferences for new user user_id=%s, alt_id=%s, team_id=%s, err=%v", user.Id, profile.Id, team.Id, result.Err.Error())
+			}
+
+			count -= 1
+
+			if count == 0 {
+				break
+			}
+		}
+	}()
 }
 
 func fireAndForgetWelcomeEmail(email, teamDisplayName, siteURL, teamURL string) {
