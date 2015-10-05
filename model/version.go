@@ -67,6 +67,10 @@ func GetPreviousVersion(currentVersion string) (int64, int64) {
 	return 0, 0
 }
 
+func IsOfficalBuild() bool {
+	return BuildNumber != "_BUILD_NUMBER_"
+}
+
 func IsCurrentVersion(versionToCheck string) bool {
 	currentMajor, currentMinor, _ := SplitVersion(CurrentVersion)
 	toCheckMajor, toCheckMinor, _ := SplitVersion(versionToCheck)

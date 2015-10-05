@@ -75,7 +75,8 @@
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
-        "ShowFullName": true
+        "ShowFullName": true,
+        "EnableDiagnostic": false
     },
     "GitLabSettings": {
         "Enable": false,
