@@ -42,19 +42,19 @@ There are multiple ways to install Mattermost depending on your needs.
 
 #### Quick Start Install for Product Evaluation 
 
-- [Local Machine Install with Docker](doc/install/single-container-install.md) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
+- [Local Machine Install with Docker](http://docs.mattermost.org/install/Docker-Single-Container/index.html) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
 
-- [AWS EBS Install with Docker](doc/install/aws-ebs-setup.md) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
+- [AWS EBS Install with Docker](http://docs.mattermost.org/install/Amazon-Elastic-Beanstalk/index.html) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
 
 #### Development Install 
 
-- [Developer Machine Setup](doc/install/dev-setup.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. Pull the latest stable release or pull the latest code from our development build. 
+- [Developer Machine Setup](http://docs.mattermost.org/developer/Setup/index.html) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. Pull the latest stable release or pull the latest code from our development build. 
 
 [![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
 
 #### Production Deployment
 
-Prior to production installation, please review [Mattermost system requirements](doc/install/requirements.md). 
+Prior to production installation, please review [Mattermost system requirements](http://docs.mattermost.org/install/Requirements/index.html). 
 
 - [Production Install on Ubuntu 14.04](https://github.com/mattermost/platform/blob/release-1.0.0/doc/install/prod-ubuntu.md) - Install Mattermost for production environments. 
 
@@ -90,7 +90,7 @@ Joining the Mattermost community is a great way to build relationships with othe
 #### Contribute
 
 - Share [feature ideas](http://www.mattermost.org/feature-requests/) with the Mattermost community
-- Review the [Mattermost Code Contribution Guidelines](doc/developer/code-contribution.md) to submit patches for the core product
+- Review the [Mattermost Code Contribution Guidelines](http://docs.mattermost.org/developer/Code-Contribution-Guidelines/index.html) to submit patches for the core product
 - Consider building tools that help developers and IT professionals manage Mattermost more effectively (API documentation coming in Beta2)
 
 #### Have other ideas or suggestions?
