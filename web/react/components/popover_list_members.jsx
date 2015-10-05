@@ -67,9 +67,6 @@ export default class PopoverListMembers extends React.Component {
             >
                 <div
                     id='member_tooltip'
-                    data-placement='left'
-                    data-toggle='tooltip'
-                    title='View Channel Members'
                 >
                     {countText}
                     <span

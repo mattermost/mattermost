@@ -36,14 +36,13 @@ body {
 
 .popover {
   color: #333;
-  a {
-    color: $primary-color;
-    &:hover, &:focus {
-      color: $primary-color;
+  &.bottom {
+    >.arrow:after {
+      border-bottom-color: rgba(white, 0.5);
     }
   }
   .popover-title {
-    background: rgba(black, 0.1);
+    background: rgba(black, 0.05);
   }
 }
 
@@ -60,7 +59,7 @@ body {
 }
 
 .word-break--all {
-    word-break: break-all;
+  word-break: break-all;
 }
 
 a {
@@ -165,9 +164,9 @@ a:focus, a:hover {
 }
 
 .emoji {
-    width: 1.5em;
-    height: 1.5em;
-    display: inline-block;
-    margin-bottom: 0.25em;
-    background-size: contain;
+  width: 1.5em;
+  height: 1.5em;
+  display: inline-block;
+  margin-bottom: 0.25em;
+  background-size: contain;
 }
