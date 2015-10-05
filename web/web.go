@@ -843,6 +843,12 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+		c.Err = model.NewAppError("incomingWebhook", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -913,12 +919,13 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	pchan := api.Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
 
 	post := &model.Post{UserId: hook.UserId, ChannelId: channel.Id, Message: text}
+	post.AddProp("from_webhook", "true")
 
-	if len(overrideUsername) != 0 {
+	if len(overrideUsername) != 0 && utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
 		post.AddProp("override_username", overrideUsername)
 	}
 
-	if len(overrideIconUrl) != 0 {
+	if len(overrideIconUrl) != 0 && utils.Cfg.ServiceSettings.EnablePostIconOverride {
 		post.AddProp("override_icon_url", overrideIconUrl)
 	}
 

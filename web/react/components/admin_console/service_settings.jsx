@@ -37,6 +37,8 @@ export default class ServiceSettings extends React.Component {
         config.ServiceSettings.GoogleDeveloperKey = React.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
         //config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
         config.ServiceSettings.EnableIncomingWebhooks = React.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
+        config.ServiceSettings.EnablePostUsernameOverride = React.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
+        config.ServiceSettings.EnablePostIconOverride = React.findDOMNode(this.refs.EnablePostIconOverride).checked;
         config.ServiceSettings.EnableTesting = React.findDOMNode(this.refs.EnableTesting).checked;
 
         var MaximumLoginAttempts = 10;
@@ -200,6 +202,72 @@ export default class ServiceSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'When true, incoming webhooks will be allowed.'}</p>
+                        </div>
+                    </div>
+
+                     <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnablePostUsernameOverride'
+                        >
+                            {'Enable Overriding Usernames from Webhooks: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnablePostUsernameOverride'
+                                    value='true'
+                                    ref='EnablePostUsernameOverride'
+                                    defaultChecked={this.props.config.ServiceSettings.EnablePostUsernameOverride}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnablePostUsernameOverride'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnablePostUsernameOverride}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, webhooks will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'}</p>
+                        </div>
+                    </div>
+
+                     <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnablePostIconOverride'
+                        >
+                            {'Enable Overriding Icon from Webhooks: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnablePostIconOverride'
+                                    value='true'
+                                    ref='EnablePostIconOverride'
+                                    defaultChecked={this.props.config.ServiceSettings.EnablePostIconOverride}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnablePostIconOverride'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnablePostIconOverride}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, webhooks will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'}</p>
                         </div>
                     </div>
 

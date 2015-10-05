@@ -520,13 +520,13 @@ export default class PostList extends React.Component {
                 //     the previous post was made by the same user as the current post,
                 //     the previous post is not a comment,
                 //     the current post is not a comment,
-                //     the current profile pic is not overridden
-                //     and the previous profile pic is not overridden
+                //     the current post is not from a webhook
+                //     and the previous post is not from a webhook
                 if ((prevPost.user_id === post.user_id) &&
                         !utils.isComment(prevPost) &&
                         !utils.isComment(post) &&
-                        (!post.props || !post.props.override_icon_url) &&
-                        (!prevPost.props || !prevPost.props.override_icon_url)) {
+                        (!post.props || !post.props.from_webhook) &&
+                        (!prevPost.props || !prevPost.props.from_webhook)) {
                     hideProfilePic = true;
                 }
             }

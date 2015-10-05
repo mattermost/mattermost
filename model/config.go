@@ -29,6 +29,8 @@ type ServiceSettings struct {
 	GoogleDeveloperKey         string
 	EnableOAuthServiceProvider bool
 	EnableIncomingWebhooks     bool
+	EnablePostUsernameOverride bool
+	EnablePostIconOverride     bool
 	EnableTesting              bool
 }
 
