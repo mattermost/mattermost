@@ -37,6 +37,7 @@ export default class ServiceSettings extends React.Component {
         config.ServiceSettings.GoogleDeveloperKey = React.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
         //config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
         config.ServiceSettings.EnableIncomingWebhooks = React.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
+        config.ServiceSettings.EnableOutgoingWebhooks = React.findDOMNode(this.refs.EnableOutgoingWebhooks).checked;
         config.ServiceSettings.EnableTesting = React.findDOMNode(this.refs.EnableTesting).checked;
 
         var MaximumLoginAttempts = 10;
@@ -200,6 +201,39 @@ export default class ServiceSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'When true, incoming webhooks will be allowed.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableOutgoingWebhooks'
+                        >
+                            {'Enable Outgoing Webhooks: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOutgoingWebhooks'
+                                    value='true'
+                                    ref='EnableOutgoingWebhooks'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableOutgoingWebhooks}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableOutgoingWebhooks'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableOutgoingWebhooks}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, outgoing webhooks will be allowed.'}</p>
                         </div>
                     </div>
 

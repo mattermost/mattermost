@@ -6,6 +6,7 @@
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true,
         "EnableTesting": false
     },
     "TeamSettings": {

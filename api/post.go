@@ -55,11 +55,15 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		return
 	} else {
+		if result := <-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId); result.Err != nil {
+			l4g.Error("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, c.Session.UserId, result.Err)
+		}
+
 		w.Write([]byte(rp.ToJson()))
 	}
 }
 
-func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.Post, *model.AppError) {
+func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
@@ -130,16 +134,140 @@ func CreatePost(c *Context, post *model.Post, doUpdateLastViewed bool) (*model.P
 	var rpost *model.Post
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
-	} else if doUpdateLastViewed && (<-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId)).Err != nil {
-		return nil, result.Err
 	} else {
 		rpost = result.Data.(*model.Post)
 
 		fireAndForgetNotifications(rpost, c.Session.TeamId, c.GetSiteURL())
 
+		if triggerWebhooks {
+			fireAndForgetWebhookEvent(c, rpost)
+		}
+
 	}
 
 	return rpost, nil
+}
+
+func fireAndForgetWebhookEvent(c *Context, post *model.Post) {
+
+	go func() {
+
+		chchan := Srv.Store.Webhook().GetOutgoingByChannel(post.ChannelId)
+
+		firstWord := strings.Split(post.Message, " ")[0]
+		thchan := Srv.Store.Webhook().GetOutgoingByTriggerWord(c.Session.TeamId, post.ChannelId, firstWord)
+
+		hooks := []*model.OutgoingWebhook{}
+
+		if result := <-chchan; result.Err != nil {
+			l4g.Error("Encountered error getting webhook by channel, err=%v", result.Err)
+			return
+		} else {
+			hooks = append(hooks, result.Data.([]*model.OutgoingWebhook)...)
+		}
+
+		if result := <-thchan; result.Err != nil {
+			l4g.Error("Encountered error getting webhook by trigger word, err=%v", result.Err)
+			return
+		} else {
+			hooks = append(hooks, result.Data.([]*model.OutgoingWebhook)...)
+		}
+
+		cchan := Srv.Store.Channel().Get(post.ChannelId)
+		uchan := Srv.Store.User().Get(post.UserId)
+
+		tchan := make(chan *model.Team)
+		isTeamBeingFetched := make(map[string]bool)
+		for _, hook := range hooks {
+			if !isTeamBeingFetched[hook.TeamId] {
+				isTeamBeingFetched[hook.TeamId] = true
+				go func() {
+					if result := <-Srv.Store.Team().Get(hook.TeamId); result.Err != nil {
+						l4g.Error("Encountered error getting team, team_id=%s, err=%v", hook.TeamId, result.Err)
+						tchan <- nil
+					} else {
+						tchan <- result.Data.(*model.Team)
+					}
+				}()
+			}
+		}
+
+		teams := make(map[string]*model.Team)
+		for range isTeamBeingFetched {
+			team := <-tchan
+			if team != nil {
+				teams[team.Id] = team
+			}
+		}
+
+		var channel *model.Channel
+		if result := <-cchan; result.Err != nil {
+			l4g.Error("Encountered error getting channel, channel_id=%s, err=%v", post.ChannelId, result.Err)
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+
+		var user *model.User
+		if result := <-uchan; result.Err != nil {
+			l4g.Error("Encountered error getting user, user_id=%s, err=%v", post.UserId, result.Err)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		for _, hook := range hooks {
+			go func() {
+				p := url.Values{}
+				p.Set("token", hook.Token)
+				p.Set("team_id", hook.TeamId)
+
+				if team, ok := teams[hook.TeamId]; ok {
+					p.Set("team_domain", team.Name)
+				}
+
+				p.Set("channel_id", post.ChannelId)
+				if channel != nil {
+					p.Set("channel_name", channel.Name)
+				}
+
+				p.Set("timestamp", strconv.FormatInt(post.CreateAt/1000, 10))
+
+				p.Set("user_id", post.UserId)
+				if user != nil {
+					p.Set("user_name", user.Username)
+				}
+
+				p.Set("text", post.Message)
+				if len(hook.TriggerWords) > 0 {
+					p.Set("trigger_word", firstWord)
+				}
+
+				client := &http.Client{}
+
+				for _, url := range hook.CallbackURLs {
+					go func() {
+						req, _ := http.NewRequest("POST", url, strings.NewReader(p.Encode()))
+						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+						req.Header.Set("Accept", "application/json")
+						if resp, err := client.Do(req); err != nil {
+							l4g.Error("Event POST failed, err=%s", err.Error())
+						} else {
+							respProps := model.MapFromJson(resp.Body)
+
+							if text, ok := respProps["text"]; ok {
+								respPost := &model.Post{Message: text, ChannelId: post.ChannelId}
+								if _, err := CreatePost(c, respPost, false); err != nil {
+									l4g.Error("Failed to create response post, err=%v", err)
+								}
+							}
+						}
+					}()
+				}
+
+			}()
+		}
+
+	}()
+
 }
 
 func fireAndForgetNotifications(post *model.Post, teamId, siteURL string) {

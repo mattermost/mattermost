@@ -29,6 +29,7 @@ type ServiceSettings struct {
 	GoogleDeveloperKey         string
 	EnableOAuthServiceProvider bool
 	EnableIncomingWebhooks     bool
+	EnableOutgoingWebhooks     bool
 	EnableTesting              bool
 }
 
