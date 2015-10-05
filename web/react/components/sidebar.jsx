@@ -452,10 +452,10 @@ export default class Sidebar extends React.Component {
         }
 
         let closeButton = null;
-        if (handleClose) {
+        if (handleClose && !badge) {
             closeButton = (
                 <span
-                    className='sidebar-channel__close'
+                    className='sidebar-channel__close pull-right'
                     data-close='true'
                 >
                     {'×'}
