@@ -42,6 +42,21 @@ body {
       color: $primary-color;
     }
   }
+  .popover-title {
+    background: rgba(black, 0.1);
+  }
+}
+
+.dropdown-menu {
+  .divider {
+    @include opacity(0.15);
+  }
+  > li > a {
+    color: inherit;
+    &:focus, &:hover {
+      color: inherit;
+    }
+  }
 }
 
 .word-break--all {

@@ -16,12 +16,6 @@
         overflow-y: auto;
         max-width: 200px;
         width: 200px;
-        a {
-            color: #262626 !important;
-            &:hover, &:focus {
-                background: #f5f5f5 !important;
-            }
-        }
     }
     .search__form {
         margin: 0;
@@ -98,7 +92,6 @@
                 padding: 3px 10px 3px 25px;
                 line-height: 1.5;
                 border-radius: 0;
-                color: #999;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -109,11 +102,7 @@
                     text-decoration: underline;
                 }
                 &.unread-title {
-                    color: #333;
                     font-weight: 600;
-                }
-                &:hover, &:focus {
-                    background: #e6f2fa;
                 }
             }
             &.active {

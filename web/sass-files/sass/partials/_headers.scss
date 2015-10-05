@@ -114,23 +114,6 @@
 				}
 			}
 		}
-		&.theme--black {
-			&:hover {
-				&:before {
-					background: rgba(white, 0.2);
-				}
-			}
-		}
-		&.theme--gray {
-			&:hover {
-				&:before {
-					background: rgba(white, 0.1);
-				}
-			}
-		}
-		a {
-			color: #fff;
-		}
 		.navbar-right {
 			font-size: 0.85em;
 			position: absolute;
@@ -145,7 +128,6 @@
 			.dropdown-menu {
 				li a {
 					padding: 3px 20px;
-					color: #555;
 					text-overflow: ellipsis;
 					overflow: hidden;
 				}
