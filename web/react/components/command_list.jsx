@@ -51,7 +51,7 @@ export default class CommandList extends React.Component {
                 this.setState({suggestions: data.suggestions, cmd: cmd});
             }.bind(this),
             function fail() {
-        }
+            }
         );
     }
 

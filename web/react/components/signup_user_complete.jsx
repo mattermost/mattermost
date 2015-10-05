@@ -41,15 +41,13 @@ export default class SignupUserComplete extends React.Component {
             return;
         }
 
-        this.state.user.email = providedEmail;
-
-        this.state.user.username = React.findDOMNode(this.refs.name).value.trim().toLowerCase();
-        if (!this.state.user.username) {
+        const providedUsername = React.findDOMNode(this.refs.name).value.trim().toLowerCase();
+        if (!providedUsername) {
             this.setState({nameError: 'This field is required', emailError: '', passwordError: '', serverError: ''});
             return;
         }
 
-        var usernameError = Utils.isValidUsername(this.state.user.username);
+        const usernameError = Utils.isValidUsername(this.state.user.username);
         if (usernameError === 'Cannot use a reserved word as a username.') {
             this.setState({nameError: 'This username is reserved, please choose a new one.', emailError: '', passwordError: '', serverError: ''});
             return;
@@ -63,15 +61,24 @@ export default class SignupUserComplete extends React.Component {
             return;
         }
 
-        this.state.user.password = React.findDOMNode(this.refs.password).value.trim();
-        if (!this.state.user.password || this.state.user.password .length < 5) {
+        const providedPassword = React.findDOMNode(this.refs.password).value.trim();
+        if (!providedPassword || providedPassword.length < 5) {
             this.setState({nameError: '', emailError: '', passwordError: 'Please enter at least 5 characters', serverError: ''});
             return;
         }
 
-        this.setState({nameError: '', emailError: '', passwordError: '', serverError: ''});
-
-        this.state.user.allow_marketing = true;
+        this.setState({
+            user: {
+                email: providedEmail,
+                username: providedUsername,
+                password: providedPassword,
+                allow_marketing: true
+            },
+            nameError: '',
+            emailError: '',
+            passwordError: '',
+            serverError: ''
+        });
 
         client.createUser(this.state.user, this.state.data, this.state.hash,
             function createUserSuccess() {

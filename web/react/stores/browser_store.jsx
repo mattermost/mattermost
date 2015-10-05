@@ -4,7 +4,7 @@
 var UserStore;
 function getPrefix() {
     if (!UserStore) {
-        UserStore = require('./user_store.jsx');
+        UserStore = require('./user_store.jsx'); //eslint-disable-line global-require
     }
     return UserStore.getCurrentId() + '_';
 }

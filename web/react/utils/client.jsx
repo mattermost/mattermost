@@ -15,7 +15,7 @@ function handleError(methodName, xhr, status, err) {
     var e = null;
     try {
         e = JSON.parse(xhr.responseText);
-    } catch(parseError) {
+    } catch (parseError) {
         e = null;
     }
 

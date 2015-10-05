@@ -132,7 +132,26 @@ export default class ChannelHeader extends React.Component {
         }
 
         let dropdownContents = [];
-        if (!isDirect) {
+        if (isDirect) {
+            dropdownContents.push(
+                <li
+                    key='edit_description_direct'
+                    role='presentation'
+                >
+                    <a
+                        role='menuitem'
+                        href='#'
+                        data-toggle='modal'
+                        data-target='#edit_channel'
+                        data-desc={channel.description}
+                        data-title={channel.display_name}
+                        data-channelid={channel.id}
+                    >
+                        Set Channel Description...
+                    </a>
+                </li>
+            );
+        } else {
             dropdownContents.push(
                 <li
                     key='view_info'
@@ -276,25 +295,6 @@ export default class ChannelHeader extends React.Component {
                     </li>
                 );
             }
-        } else {
-            dropdownContents.push(
-                <li
-                    key='edit_description_direct'
-                    role='presentation'
-                >
-                    <a
-                        role='menuitem'
-                        href='#'
-                        data-toggle='modal'
-                        data-target='#edit_channel'
-                        data-desc={channel.description}
-                        data-title={channel.display_name}
-                        data-channelid={channel.id}
-                    >
-                        Set Channel Description...
-                    </a>
-                </li>
-            );
         }
 
         return (

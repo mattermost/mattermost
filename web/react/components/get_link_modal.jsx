@@ -8,18 +8,22 @@ export default class GetLinkModal extends React.Component {
         super(props);
 
         this.handleClick = this.handleClick.bind(this);
+        this.onShow = this.onShow.bind(this);
+        this.onHide = this.onHide.bind(this);
 
         this.state = {copiedLink: false};
     }
+    onShow(e) {
+        var button = e.relatedTarget;
+        this.setState({title: $(button).attr('data-title'), value: $(button).attr('data-value')});
+    }
+    onHide() {
+        this.setState({copiedLink: false});
+    }
     componentDidMount() {
         if (this.refs.modal) {
-            $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function show(e) {
-                var button = e.relatedTarget;
-                this.setState({title: $(button).attr('data-title'), value: $(button).attr('data-value')});
-            }.bind(this));
-            $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', function hide() {
-                this.setState({copiedLink: false});
-            }.bind(this));
+            $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+            $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', this.onShow);
         }
     }
     handleClick() {

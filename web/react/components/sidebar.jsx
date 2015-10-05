@@ -29,9 +29,11 @@ export default class Sidebar extends React.Component {
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.createChannelElement = this.createChannelElement.bind(this);
 
-        this.state = this.getStateFromStores();
-        this.state.modal = '';
-        this.state.loadingDMChannel = -1;
+        const state = this.getStateFromStores();
+        state.modal = '';
+        state.loadingDMChannel = -1;
+
+        this.state = state;
     }
     getStateFromStores() {
         var members = ChannelStore.getAllMembers();
@@ -65,7 +67,18 @@ export default class Sidebar extends React.Component {
 
             var channel = ChannelStore.getByName(channelName);
 
-            if (channel != null) {
+            if (channel == null) {
+                var tempChannel = {};
+                tempChannel.fake = true;
+                tempChannel.name = channelName;
+                tempChannel.display_name = teammate.username;
+                tempChannel.teammate_username = teammate.username;
+                tempChannel.status = UserStore.getStatus(teammate.id);
+                tempChannel.last_post_at = 0;
+                tempChannel.total_msg_count = 0;
+                tempChannel.type = 'D';
+                readDirectChannels.push(tempChannel);
+            } else {
                 channel.display_name = teammate.username;
                 channel.teammate_username = teammate.username;
 
@@ -80,17 +93,6 @@ export default class Sidebar extends React.Component {
                 } else {
                     readDirectChannels.push(channel);
                 }
-            } else {
-                var tempChannel = {};
-                tempChannel.fake = true;
-                tempChannel.name = channelName;
-                tempChannel.display_name = teammate.username;
-                tempChannel.teammate_username = teammate.username;
-                tempChannel.status = UserStore.getStatus(teammate.id);
-                tempChannel.last_post_at = 0;
-                tempChannel.total_msg_count = 0;
-                tempChannel.type = 'D';
-                readDirectChannels.push(tempChannel);
             }
         }
 

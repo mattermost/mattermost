@@ -23,6 +23,7 @@ export default class ChannelNotifications extends React.Component {
         this.handleSubmitMarkUnreadLevel = this.handleSubmitMarkUnreadLevel.bind(this);
         this.handleUpdateMarkUnreadLevel = this.handleUpdateMarkUnreadLevel.bind(this);
         this.createMarkUnreadLevelSection = this.createMarkUnreadLevelSection.bind(this);
+        this.onShow = this.onShow.bind(this);
 
         this.state = {
             notifyLevel: '',
@@ -32,30 +33,29 @@ export default class ChannelNotifications extends React.Component {
             activeSection: ''
         };
     }
+    onShow(e) {
+        var button = e.relatedTarget;
+        var channelId = button.getAttribute('data-channelid');
 
+        const member = ChannelStore.getMember(channelId);
+        var notifyLevel = member.notify_props.desktop;
+        var markUnreadLevel = member.notify_props.mark_unread;
+
+        this.setState({
+            notifyLevel,
+            markUnreadLevel,
+            title: button.getAttribute('data-title'),
+            channelId
+        });
+    }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function showModal(e) {
-            var button = e.relatedTarget;
-            var channelId = button.getAttribute('data-channelid');
-
-            const member = ChannelStore.getMember(channelId);
-            var notifyLevel = member.notify_props.desktop;
-            var markUnreadLevel = member.notify_props.mark_unread;
-
-            this.setState({
-                notifyLevel,
-                markUnreadLevel,
-                title: button.getAttribute('data-title'),
-                channelId: channelId
-            });
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
     }
-
     onListenerChange() {
         if (!this.state.channelId) {
             return;
@@ -76,7 +76,6 @@ export default class ChannelNotifications extends React.Component {
     updateSection(section) {
         this.setState({activeSection: section});
     }
-
     handleSubmitNotifyLevel() {
         var channelId = this.state.channelId;
         var notifyLevel = this.state.notifyLevel;
@@ -103,12 +102,10 @@ export default class ChannelNotifications extends React.Component {
             }
         );
     }
-
     handleUpdateNotifyLevel(notifyLevel) {
         this.setState({notifyLevel});
         React.findDOMNode(this.refs.modal).focus();
     }
-
     createNotifyLevelSection(serverError) {
         var handleUpdateSection;
 

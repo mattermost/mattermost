@@ -12,25 +12,31 @@ export default class AccessHistoryModal extends React.Component {
 
         this.onAuditChange = this.onAuditChange.bind(this);
         this.handleMoreInfo = this.handleMoreInfo.bind(this);
+        this.onHide = this.onHide.bind(this);
+        this.onShow = this.onShow.bind(this);
 
-        this.state = this.getStateFromStoresForAudits();
-        this.state.moreInfo = [];
+        let state = this.getStateFromStoresForAudits();
+        state.moreInfo = [];
+
+        this.state = state;
     }
     getStateFromStoresForAudits() {
         return {
             audits: UserStore.getAudits()
         };
     }
+    onShow() {
+        AsyncClient.getAudits();
+    }
+    onHide() {
+        $('#user_settings').modal('show');
+        this.setState({moreInfo: []});
+    }
     componentDidMount() {
         UserStore.addAuditsChangeListener(this.onAuditChange);
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', function show() {
-            AsyncClient.getAudits();
-        });
+        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
 
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function hide() {
-            $('#user_settings').modal('show');
-            this.setState({moreInfo: []});
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
     }
     componentWillUnmount() {
         UserStore.removeAuditsChangeListener(this.onAuditChange);

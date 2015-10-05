@@ -97,7 +97,7 @@ export default class FileUpload extends React.Component {
                 element[0].type = 'text';
                 element[0].type = 'file';
             }
-        } catch(e) {
+        } catch (e) {
             // Do nothing
         }
     }

@@ -11,6 +11,7 @@ export default class DeleteChannelModal extends React.Component {
         super(props);
 
         this.handleDelete = this.handleDelete.bind(this);
+        this.onShow = this.onShow.bind(this);
 
         this.state = {
             title: '',
@@ -32,14 +33,15 @@ export default class DeleteChannelModal extends React.Component {
             }
         );
     }
+    onShow(e) {
+        var button = $(e.relatedTarget);
+        this.setState({
+            title: button.attr('data-title'),
+            channelId: button.attr('data-channelid')
+        });
+    }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function handleShow(e) {
-            var button = $(e.relatedTarget);
-            this.setState({
-                title: button.attr('data-title'),
-                channelId: button.attr('data-channelid')
-            });
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     render() {
         const channel = ChannelStore.getCurrent();

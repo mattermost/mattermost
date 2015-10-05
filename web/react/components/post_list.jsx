@@ -37,9 +37,11 @@ export default class PostList extends React.Component {
         this.deactivate = this.deactivate.bind(this);
         this.resize = this.resize.bind(this);
 
-        this.state = this.getStateFromStores(props.channelId);
-        this.state.numToDisplay = Constants.POST_CHUNK_SIZE;
-        this.state.isFirstLoadComplete = false;
+        const state = this.getStateFromStores(props.channelId);
+        state.numToDisplay = Constants.POST_CHUNK_SIZE;
+        state.isFirstLoadComplete = false;
+
+        this.state = state;
     }
     getStateFromStores(id) {
         var postList = PostStore.getPosts(id);
@@ -449,10 +451,10 @@ export default class PostList extends React.Component {
         }
 
         var createMessage;
-        if (creatorName !== '') {
-            createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
-        } else {
+        if (creatorName === '') {
             createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + utils.displayDate(channel.create_at) + '.';
+        } else {
+            createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
         }
 
         return (

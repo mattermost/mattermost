@@ -30,11 +30,11 @@ export default class SidebarRight extends React.Component {
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
     }
     componentDidUpdate() {
-        if (!this.plScrolledToBottom) {
-            $('.top-visible-post')[0].scrollIntoView();
-        } else {
+        if (this.plScrolledToBottom) {
             var postHolder = $('.post-list-holder-by-time').not('.inactive');
             postHolder.scrollTop(postHolder[0].scrollHeight);
+        } else {
+            $('.top-visible-post')[0].scrollIntoView();
         }
     }
     onSelectedChange(fromSearch) {

@@ -14,9 +14,13 @@ export default class ActivityLogModal extends React.Component {
         this.submitRevoke = this.submitRevoke.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleMoreInfo = this.handleMoreInfo.bind(this);
+        this.onHide = this.onHide.bind(this);
+        this.onShow = this.onShow.bind(this);
 
-        this.state = this.getStateFromStores();
-        this.state.moreInfo = [];
+        let state = this.getStateFromStores();
+        state.moreInfo = [];
+
+        this.state = state;
     }
     getStateFromStores() {
         return {
@@ -38,16 +42,18 @@ export default class ActivityLogModal extends React.Component {
             }.bind(this)
         );
     }
+    onShow() {
+        AsyncClient.getSessions();
+    }
+    onHide() {
+        $('#user_settings').modal('show');
+        this.setState({moreInfo: []});
+    }
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', function handleShow() {
-            AsyncClient.getSessions();
-        });
+        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
 
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function handleHide() {
-            $('#user_settings').modal('show');
-            this.setState({moreInfo: []});
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
     }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);

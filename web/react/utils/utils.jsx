@@ -231,10 +231,10 @@ function testUrlMatch(text) {
         var matchText = match.getMatchedText();
 
         linkData.text = matchText;
-        if (matchText.trim().indexOf('http') !== 0) {
-            linkData.link = 'http://' + matchText;
-        } else {
+        if (matchText.trim().indexOf('http') === 0) {
             linkData.link = matchText;
+        } else {
+            linkData.link = 'http://' + matchText;
         }
 
         result.push(linkData);
@@ -640,7 +640,7 @@ export function isValidUsername(name) {
         error = 'Must be between 3 and 15 characters';
     } else if (!(/^[a-z0-9\.\-\_]+$/).test(name)) {
         error = "Must contain only letters, numbers, and the symbols '.', '-', and '_'.";
-    } else if (!(/[a-z]/).test(name.charAt(0))) {
+    } else if (!(/[a-z]/).test(name.charAt(0))) { //eslint-disable-line no-negated-condition
         error = 'First character must be a letter.';
     } else {
         for (var i = 0; i < Constants.RESERVED_USERNAMES.length; i++) {
