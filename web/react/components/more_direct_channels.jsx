@@ -31,22 +31,7 @@ export default class MoreDirectChannels extends React.Component {
             var active = '';
             var handleClick = null;
 
-            if (!channel.fake) {
-                if (channel.id === ChannelStore.getCurrentId()) {
-                    active = 'active';
-                }
-
-                if (channel.unread) {
-                    badge = <span className='badge pull-right small'>{channel.unread}</span>;
-                    titleClass = 'unread-title';
-                }
-
-                handleClick = function clickHandler(e) {
-                    e.preventDefault();
-                    utils.switchChannel(channel);
-                    $(React.findDOMNode(self.refs.modal)).modal('hide');
-                };
-            } else {
+            if (channel.fake) {
                 // It's a direct message channel that doesn't exist yet so let's create it now
                 var otherUserId = utils.getUserIdFromChannelName(channel);
 
@@ -78,6 +63,21 @@ export default class MoreDirectChannels extends React.Component {
                         );
                     };
                 }
+            } else {
+                if (channel.id === ChannelStore.getCurrentId()) {
+                    active = 'active';
+                }
+
+                if (channel.unread) {
+                    badge = <span className='badge pull-right small'>{channel.unread}</span>;
+                    titleClass = 'unread-title';
+                }
+
+                handleClick = function clickHandler(e) {
+                    e.preventDefault();
+                    utils.switchChannel(channel);
+                    $(React.findDOMNode(self.refs.modal)).modal('hide');
+                };
             }
 
             return (

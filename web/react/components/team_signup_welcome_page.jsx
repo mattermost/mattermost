@@ -59,8 +59,7 @@ export default class TeamSignupWelcomePage extends React.Component {
                 }
             }.bind(this),
             function error(err) {
-                this.state.serverError = err.message;
-                this.setState(this.state);
+                this.setState({serverError: err.message});
             }.bind(this)
         );
     }

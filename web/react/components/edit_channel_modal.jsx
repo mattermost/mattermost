@@ -11,6 +11,7 @@ export default class EditChannelModal extends React.Component {
         this.handleEdit = this.handleEdit.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleClose = this.handleClose.bind(this);
+        this.onShow = this.onShow.bind(this);
 
         this.state = {
             description: '',
@@ -50,11 +51,12 @@ export default class EditChannelModal extends React.Component {
     handleClose() {
         this.setState({description: '', serverError: ''});
     }
+    onShow(e) {
+        const button = e.relatedTarget;
+        this.setState({description: $(button).attr('data-desc'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
+    }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function handleShow(e) {
-            const button = e.relatedTarget;
-            this.setState({description: $(button).attr('data-desc'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
         $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {

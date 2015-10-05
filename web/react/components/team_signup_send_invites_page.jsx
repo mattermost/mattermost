@@ -36,10 +36,10 @@ export default class TeamSignupSendInvitesPage extends React.Component {
             var emails = [];
 
             for (var i = 0; i < this.props.state.invites.length; i++) {
-                if (!this.refs['email_' + i].validate(this.props.state.team.email)) {
-                    valid = false;
-                } else {
+                if (this.refs['email_' + i].validate(this.props.state.team.email)) {
                     emails.push(this.refs['email_' + i].getValue());
+                } else {
+                    valid = false;
                 }
             }
 

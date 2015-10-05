@@ -88,10 +88,10 @@ export default class Login extends React.Component {
 
         let focusEmail = false;
         let focusPassword = false;
-        if (priorEmail !== '') {
-            focusPassword = true;
-        } else {
+        if (priorEmail === '') {
             focusEmail = true;
+        } else {
+            focusPassword = true;
         }
 
         let loginMessage = [];

@@ -10,12 +10,12 @@ var BrowserStore = require('../stores/browser_store.jsx');
 
 var CHANGE_EVENT = 'change';
 
-var utils;
+var Utils;
 function getWindowLocationOrigin() {
-    if (!utils) {
-        utils = require('../utils/utils.jsx');
+    if (!Utils) {
+        Utils = require('../utils/utils.jsx'); //eslint-disable-line global-require
     }
-    return utils.getWindowLocationOrigin();
+    return Utils.getWindowLocationOrigin();
 }
 
 class TeamStoreClass extends EventEmitter {

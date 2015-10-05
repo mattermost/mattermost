@@ -18,7 +18,9 @@ export default class Mention extends React.Component {
         var timestamp = UserStore.getCurrentUser().update_at;
         if (this.props.id === 'allmention' || this.props.id === 'channelmention') {
             icon = <span><i className='mention-img fa fa-users fa-2x'></i></span>;
-        } else if (this.props.id != null) {
+        } else if (this.props.id == null) {
+            icon = <span><i className='mention-img fa fa-users fa-2x'></i></span>;
+        } else {
             icon = (
                 <span>
                     <img
@@ -27,8 +29,6 @@ export default class Mention extends React.Component {
                     />
                 </span>
             );
-        } else {
-            icon = <span><i className='mention-img fa fa-users fa-2x'></i></span>;
         }
         return (
             <div

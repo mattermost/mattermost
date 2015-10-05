@@ -15,6 +15,7 @@ export default class RenameChannelModal extends React.Component {
         this.onDisplayNameChange = this.onDisplayNameChange.bind(this);
         this.displayNameKeyUp = this.displayNameKeyUp.bind(this);
         this.handleClose = this.handleClose.bind(this);
+        this.handleShow = this.handleShow.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
@@ -59,11 +60,11 @@ export default class RenameChannelModal extends React.Component {
             state.invalid = true;
         } else {
             let cleanedName = Utils.cleanUpUrlable(channel.name);
-            if (cleanedName !== channel.name) {
+            if (cleanedName === channel.name) {
+                state.nameError = '';
+            } else {
                 state.nameError = 'Must be lowercase alphanumeric characters';
                 state.invalid = true;
-            } else {
-                state.nameError = '';
             }
         }
 
@@ -103,7 +104,7 @@ export default class RenameChannelModal extends React.Component {
         this.setState({channelName: channelName});
     }
     handleClose() {
-        this.state = {
+        this.setState({
             displayName: '',
             channelName: '',
             channelId: '',
@@ -111,13 +112,14 @@ export default class RenameChannelModal extends React.Component {
             nameError: '',
             displayNameError: '',
             invalid: false
-        };
+        });
+    }
+    handleShow(e) {
+        const button = $(e.relatedTarget);
+        this.setState({displayName: button.attr('data-display'), channelName: button.attr('data-name'), channelId: button.attr('data-channelid')});
     }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function handleShow(e) {
-            const button = $(e.relatedTarget);
-            this.setState({displayName: button.attr('data-display'), channelName: button.attr('data-name'), channelId: button.attr('data-channelid')});
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.handleShow);
         $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {

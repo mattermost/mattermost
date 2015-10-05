@@ -48,22 +48,20 @@ export default class TeamSignupUrlPage extends React.Component {
         }
 
         Client.findTeamByName(name,
-            function success(data) {
-                if (!data) {
-                    this.props.state.wizard = 'send_invites';
-                    this.props.state.team.type = 'O';
+              (data) => {
+                  if (data) {
+                      this.setState({nameError: 'This URL is unavailable. Please try another.'});
+                  } else {
+                      this.props.state.wizard = 'send_invites';
+                      this.props.state.team.type = 'O';
 
-                    this.props.state.team.name = name;
-                    this.props.updateParent(this.props.state);
-                } else {
-                    this.state.nameError = 'This URL is unavailable. Please try another.';
-                    this.setState(this.state);
-                }
-            }.bind(this),
-            function error(err) {
-                this.state.nameError = err.message;
-                this.setState(this.state);
-            }.bind(this)
+                      this.props.state.team.name = name;
+                      this.props.updateParent(this.props.state);
+                  }
+              },
+              (err) => {
+                  this.setState({nameError: err.message});
+              }
         );
     }
     handleFocus(e) {

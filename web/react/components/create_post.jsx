@@ -222,7 +222,9 @@ export default class CreatePost extends React.Component {
         this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
     }
     handleUploadError(err, clientId) {
-        if (clientId !== -1) {
+        if (clientId === -1) {
+            this.setState({serverError: err});
+        } else {
             const draft = PostStore.getDraft(this.state.channelId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
@@ -233,8 +235,6 @@ export default class CreatePost extends React.Component {
             PostStore.storeDraft(this.state.channelId, draft);
 
             this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: err});
-        } else {
-            this.setState({serverError: err});
         }
     }
     handleTextDrop(text) {
@@ -248,15 +248,15 @@ export default class CreatePost extends React.Component {
 
         // id can either be the path of an uploaded file or the client id of an in progress upload
         let index = previews.indexOf(id);
-        if (index !== -1) {
-            previews.splice(index, 1);
-        } else {
+        if (index === -1) {
             index = uploadsInProgress.indexOf(id);
 
             if (index !== -1) {
                 uploadsInProgress.splice(index, 1);
                 this.refs.fileUpload.cancelUpload(id);
             }
+        } else {
+            previews.splice(index, 1);
         }
 
         const draft = PostStore.getCurrentDraft();

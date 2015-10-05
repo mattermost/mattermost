@@ -26,53 +26,64 @@ export default class MentionList extends React.Component {
         this.addFirstMention = this.addFirstMention.bind(this);
         this.isEmpty = this.isEmpty.bind(this);
         this.scrollToMention = this.scrollToMention.bind(this);
+        this.onScroll = this.onScroll.bind(this);
+        this.onMentionListKey = this.onMentionListKey.bind(this);
+        this.onClick = this.onClick.bind(this);
 
         this.state = {excludeUsers: [], mentionText: '-1', selectedMention: 0, selectedUsername: ''};
+    }
+    onScroll() {
+        if ($('.mentions--top').length) {
+            $('#reply_mention_tab .mentions--top').css({bottom: $(window).height() - $('.post-right__scroll #reply_textbox').offset().top});
+        }
+    }
+    onMentionListKey(e) {
+        if (!this.isEmpty() && this.state.mentionText !== '-1' && (e.which === 13 || e.which === 9)) {
+            e.stopPropagation();
+            e.preventDefault();
+            this.addCurrentMention();
+        } else if (!this.isEmpty() && this.state.mentionText !== '-1' && (e.which === 38 || e.which === 40)) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            if (e.which === 38) {
+                if (this.getSelection(this.state.selectedMention - 1)) {
+                    this.setState({selectedMention: this.state.selectedMention - 1, selectedUsername: this.refs['mention' + (this.state.selectedMention - 1)].props.username});
+                }
+            } else if (e.which === 40) {
+                if (this.getSelection(this.state.selectedMention + 1)) {
+                    this.setState({selectedMention: this.state.selectedMention + 1, selectedUsername: this.refs['mention' + (this.state.selectedMention + 1)].props.username});
+                }
+            }
+
+            this.scrollToMention(e.which);
+        }
+    }
+    onClick(e) {
+        if (!($('#' + this.props.id).is(e.target) || $('#' + this.props.id).has(e.target).length ||
+              ('mentionlist' in this.refs && $(React.findDOMNode(this.refs.mentionlist)).has(e.target).length))) {
+            this.setState({mentionText: '-1'});
+        }
     }
     componentDidMount() {
         PostStore.addMentionDataChangeListener(this.onListenerChange);
 
-        $('.post-right__scroll').scroll(function onScroll() {
-            if ($('.mentions--top').length) {
-                $('#reply_mention_tab .mentions--top').css({bottom: $(window).height() - $('.post-right__scroll #reply_textbox').offset().top});
-            }
-        });
+        $('.post-right__scroll').scroll(this.onScroll);
 
-        $('body').on('keydown.mentionlist', '#' + this.props.id,
-            function onMentionListKey(e) {
-                if (!this.isEmpty() && this.state.mentionText !== '-1' && (e.which === 13 || e.which === 9)) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.addCurrentMention();
-                } else if (!this.isEmpty() && this.state.mentionText !== '-1' && (e.which === 38 || e.which === 40)) {
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    if (e.which === 38) {
-                        if (this.getSelection(this.state.selectedMention - 1)) {
-                            this.setState({selectedMention: this.state.selectedMention - 1, selectedUsername: this.refs['mention' + (this.state.selectedMention - 1)].props.username});
-                        }
-                    } else if (e.which === 40) {
-                        if (this.getSelection(this.state.selectedMention + 1)) {
-                            this.setState({selectedMention: this.state.selectedMention + 1, selectedUsername: this.refs['mention' + (this.state.selectedMention + 1)].props.username});
-                        }
-                    }
-
-                    this.scrollToMention(e.which);
-                }
-            }.bind(this)
-        );
-        $(document).click(function onClick(e) {
-            if (!($('#' + this.props.id).is(e.target) || $('#' + this.props.id).has(e.target).length ||
-                ('mentionlist' in this.refs && $(React.findDOMNode(this.refs.mentionlist)).has(e.target).length))) {
-                this.setState({mentionText: '-1'});
-            }
-        }.bind(this));
+        $('body').on('keydown.mentionlist', '#' + this.props.id, this.onMentionListKey);
+        $(document).click(this.onClick);
     }
     componentWillUnmount() {
         PostStore.removeMentionDataChangeListener(this.onListenerChange);
         $('body').off('keydown.mentionlist', '#' + this.props.id);
     }
+
+    /*
+     *  This component is poorly designed, nessesitating some state modification
+     *  in the componentDidUpdate function. This is generally discouraged as it
+     *  is a performance issue and breaks with good react design. This component
+     *  should be redesigned.
+     */
     componentDidUpdate() {
         if (this.state.mentionText !== '-1') {
             if (this.state.selectedUsername !== '' && (!this.getSelection(this.state.selectedMention) || this.state.selectedUsername !== this.refs['mention' + this.state.selectedMention].props.username)) {
@@ -80,17 +91,17 @@ export default class MentionList extends React.Component {
                 var foundMatch = false;
                 while (tempSelectedMention < this.state.selectedMention && this.getSelection(++tempSelectedMention)) {
                     if (this.state.selectedUsername === this.refs['mention' + tempSelectedMention].props.username) {
-                        this.setState({selectedMention: tempSelectedMention});
+                        this.setState({selectedMention: tempSelectedMention}); //eslint-disable-line react/no-did-update-set-state
                         foundMatch = true;
                         break;
                     }
                 }
                 if (this.getSelection(0) && !foundMatch) {
-                    this.setState({selectedMention: 0, selectedUsername: this.refs.mention0.props.username});
+                    this.setState({selectedMention: 0, selectedUsername: this.refs.mention0.props.username}); //eslint-disable-line react/no-did-update-set-state
                 }
             }
         } else if (this.state.selectedMention !== 0) {
-            this.setState({selectedMention: 0, selectedUsername: ''});
+            this.setState({selectedMention: 0, selectedUsername: ''}); //eslint-disable-line react/no-did-update-set-state
         }
     }
     onListenerChange(id, mentionText) {
@@ -124,10 +135,10 @@ export default class MentionList extends React.Component {
         return true;
     }
     addCurrentMention() {
-        if (!this.getSelection(this.state.selectedMention)) {
-            this.addFirstMention();
-        } else {
+        if (this.getSelection(this.state.selectedMention)) {
             this.refs['mention' + this.state.selectedMention].handleClick();
+        } else {
+            this.addFirstMention();
         }
     }
     addFirstMention() {

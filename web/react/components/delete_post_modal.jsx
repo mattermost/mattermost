@@ -16,6 +16,7 @@ export default class DeletePostModal extends React.Component {
 
         this.handleDelete = this.handleDelete.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
+        this.onShow = this.onShow.bind(this);
 
         this.state = {title: '', postId: '', channelId: '', selectedList: PostStore.getSelectedPost(), comments: 0};
     }
@@ -60,18 +61,19 @@ export default class DeletePostModal extends React.Component {
             }
         );
     }
+    onShow(e) {
+        var newState = {};
+        if (BrowserStore.getItem('edit_state_transfer')) {
+            newState = BrowserStore.getItem('edit_state_transfer');
+            BrowserStore.removeItem('edit_state_transfer');
+        } else {
+            var button = e.relatedTarget;
+            newState = {title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), postId: $(button).attr('data-postid'), comments: $(button).attr('data-comments')};
+        }
+        this.setState(newState);
+    }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function freshOpen(e) {
-            var newState = {};
-            if (BrowserStore.getItem('edit_state_transfer')) {
-                newState = BrowserStore.getItem('edit_state_transfer');
-                BrowserStore.removeItem('edit_state_transfer');
-            } else {
-                var button = e.relatedTarget;
-                newState = {title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), postId: $(button).attr('data-postid'), comments: $(button).attr('data-comments')};
-            }
-            this.setState(newState);
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
         PostStore.addSelectedPostChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {

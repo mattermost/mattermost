@@ -23,17 +23,14 @@ export default class TeamSignupEmailItem extends React.Component {
         }
 
         if (!Utils.isEmail(email)) {
-            this.state.emailError = 'Please enter a valid email address';
-            this.setState(this.state);
+            this.setState({emailError: 'Please enter a valid email address'});
             return false;
         } else if (email === teamEmail) {
-            this.state.emailError = 'Please use a different email than the one used at signup';
-            this.setState(this.state);
+            this.setState({emailError: 'Please use a different email than the one used at signup'});
             return false;
         }
 
-        this.state.emailError = '';
-        this.setState(this.state);
+        this.setState({emailError: ''});
         return true;
     }
     render() {

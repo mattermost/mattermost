@@ -15,6 +15,8 @@ export default class ChannelMembers extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
         this.onChange = this.onChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
+        this.onHide = this.onHide.bind(this);
+        this.onShow = this.onShow.bind(this);
 
         this.state = this.getStateFromStores();
     }
@@ -63,16 +65,18 @@ export default class ChannelMembers extends React.Component {
             channelName: channelName
         };
     }
+    onHide() {
+        this.setState({renderMembers: false});
+    }
+    onShow() {
+        this.setState({renderMembers: true});
+    }
     componentDidMount() {
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function handleHide() {
-            this.setState({renderMembers: false});
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function handleShow() {
-            this.setState({renderMembers: true});
-        }.bind(this));
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     componentWillUnmount() {
         ChannelStore.removeExtraInfoChangeListener(this.onChange);
