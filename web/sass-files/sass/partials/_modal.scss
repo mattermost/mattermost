@@ -9,12 +9,6 @@
 			@include opacity(0.7);
 		}
 	}
-	a, a:focus, a:hover {
-		color: #2389D7;
-		&.text-danger {
-			color: #a94442;
-		}
-	}
 	.custom-textarea {
 		color: inherit;
 		border-color: #ccc;
@@ -25,12 +19,9 @@
 	}
 	.btn {
 		font-size: 13px;
-		&.btn-primary {
-			background: #4285f4;
-			&:hover, &:focus, &:active {
-				background: $primary-color--hover;
-				color: #fff;
-			}
+		&.btn-default {
+			border: none;
+			background: transparent;
 		}
 	}
 	.info__label {
@@ -70,7 +61,7 @@
 		background: $primary-color;
 		color: #FFF;
 		padding: 15px 15px 11px;
-		border: none;
+		border: 1px solid #ddd;
 		min-height: 56px;
 		@include clearfix;
 		.modal-title {

@@ -24,7 +24,7 @@ export default class PremadeThemeChooser extends React.Component {
 
                 premadeThemes.push(
                     <div
-                        className='col-sm-3 premade-themes'
+                        className='col-xs-6 col-sm-3 premade-themes'
                         key={'premade-theme-key' + k}
                     >
                         <div

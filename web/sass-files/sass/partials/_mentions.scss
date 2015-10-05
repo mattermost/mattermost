@@ -33,13 +33,6 @@
 	line-height: 36px;
 	font-size: 13px;
 	cursor: pointer;
-	&:hover {
-		background-color: #E6F2FA;
-	}
-}
-
-.mentions-focus {
-	background-color: #E6F2FA;
 }
 
 .mentions-text {
@@ -54,7 +47,6 @@
 	display: block;
 	font-size: 20px;
 	text-align: center;
-	color: #555;
 	@include border-radius(32px);
 }
 
