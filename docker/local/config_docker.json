@@ -6,6 +6,8 @@
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
+        "EnablePostUsernameOverride": false,
+        "EnablePostIconOverride": false,
         "EnableTesting": false
     },
     "TeamSettings": {

@@ -31,8 +31,10 @@ export default class UserProfile extends React.Component {
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
-        $('#profile_' + this.uniqueId).popover({placement: 'right', container: 'body', trigger: 'hover', html: true, delay: {show: 200, hide: 100}});
-        $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
+        if (!this.props.disablePopover) {
+            $('#profile_' + this.uniqueId).popover({placement: 'right', container: 'body', trigger: 'hover', html: true, delay: {show: 200, hide: 100}});
+            $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
+        }
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
@@ -54,6 +56,10 @@ export default class UserProfile extends React.Component {
         var name = this.state.profile.username;
         if (this.props.overwriteName) {
             name = this.props.overwriteName;
+        }
+
+        if (this.props.disablePopover) {
+            return <div>{name}</div>;
         }
 
         var dataContent = '<img class="user-popover__image" src="/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at + '" height="128" width="128" />';
@@ -79,9 +85,11 @@ export default class UserProfile extends React.Component {
 
 UserProfile.defaultProps = {
     userId: '',
-    overwriteName: ''
+    overwriteName: '',
+    disablePopover: false
 };
 UserProfile.propTypes = {
     userId: React.PropTypes.string,
-    overwriteName: React.PropTypes.string
+    overwriteName: React.PropTypes.string,
+    disablePopover: React.PropTypes.bool
 };

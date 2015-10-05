@@ -516,8 +516,19 @@ export default class PostList extends React.Component {
 
                 sameRoot = utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
 
-                // we only hide the profile pic if the previous post is not a comment, the current post is not a comment, and the previous post was made by the same user as the current post
-                hideProfilePic = (prevPost.user_id === post.user_id) && !utils.isComment(prevPost) && !utils.isComment(post);
+                // hide the profile pic if:
+                //     the previous post was made by the same user as the current post,
+                //     the previous post is not a comment,
+                //     the current post is not a comment,
+                //     the current post is not from a webhook
+                //     and the previous post is not from a webhook
+                if ((prevPost.user_id === post.user_id) &&
+                        !utils.isComment(prevPost) &&
+                        !utils.isComment(post) &&
+                        (!post.props || !post.props.from_webhook) &&
+                        (!prevPost.props || !prevPost.props.from_webhook)) {
+                    hideProfilePic = true;
+                }
             }
 
             // check if it's the last comment in a consecutive string of comments on the same post
