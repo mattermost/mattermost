@@ -928,3 +928,20 @@ export function getShortenedTeamURL() {
     }
     return teamURL + '/';
 }
+
+// Returns true if the browser has Flash enabled
+export function doesBrowserSupportFlash() {
+    // check newer browsers
+    if (navigator.mimeTypes && navigator.mimeTypes['application/x-shockwave-flash']) {
+        return navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin;
+    } else {
+        try {
+            // check older versions of IE
+            let flashObject = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+
+            return !!flashObject;
+        } catch (e) {
+            return false;
+        }
+    }
+}
