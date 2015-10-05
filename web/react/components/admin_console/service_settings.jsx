@@ -201,7 +201,7 @@ export default class ServiceSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true, incoming webhooks will be allowed.'}</p>
+                            <p className='help-text'>{'When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag.'}</p>
                         </div>
                     </div>
 
