@@ -34,60 +34,64 @@ export default class UserSettingsIntegrationsTab extends React.Component {
         let outgoingHooksSection;
         var inputs = [];
 
-        if (this.props.activeSection === 'incoming-hooks') {
-            inputs.push(
-                <ManageIncomingHooks />
-            );
+        if (global.window.config.EnableIncomingWebhooks === 'true') {
+            if (this.props.activeSection === 'incoming-hooks') {
+                inputs.push(
+                    <ManageIncomingHooks />
+                );
 
-            incomingHooksSection = (
-                <SettingItemMax
-                    title='Incoming Webhooks'
-                    width = 'full'
-                    inputs={inputs}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            incomingHooksSection = (
-                <SettingItemMin
-                    title='Incoming Webhooks'
-                    width = 'full'
-                    describe='Manage your incoming webhooks (Developer feature)'
-                    updateSection={() => {
-                        this.updateSection('incoming-hooks');
-                    }}
-                />
-            );
+                incomingHooksSection = (
+                    <SettingItemMax
+                        title='Incoming Webhooks'
+                        width = 'full'
+                        inputs={inputs}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                incomingHooksSection = (
+                    <SettingItemMin
+                        title='Incoming Webhooks'
+                        width = 'full'
+                        describe='Manage your incoming webhooks (Developer feature)'
+                        updateSection={() => {
+                            this.updateSection('incoming-hooks');
+                        }}
+                    />
+                );
+            }
         }
 
-        if (this.props.activeSection === 'outgoing-hooks') {
-            inputs.push(
-                <ManageOutgoingHooks />
-            );
+        if (global.window.config.EnableOutgoingWebhooks === 'true') {
+            if (this.props.activeSection === 'outgoing-hooks') {
+                inputs.push(
+                    <ManageOutgoingHooks />
+                );
 
-            outgoingHooksSection = (
-                <SettingItemMax
-                    title='Outgoing Webhooks'
-                    inputs={inputs}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            outgoingHooksSection = (
-                <SettingItemMin
-                    title='Outgoing Webhooks'
-                    describe='Manage your outgoing webhooks'
-                    updateSection={() => {
-                        this.updateSection('outgoing-hooks');
-                    }}
-                />
-            );
+                outgoingHooksSection = (
+                    <SettingItemMax
+                        title='Outgoing Webhooks'
+                        inputs={inputs}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                outgoingHooksSection = (
+                    <SettingItemMin
+                        title='Outgoing Webhooks'
+                        describe='Manage your outgoing webhooks'
+                        updateSection={() => {
+                            this.updateSection('outgoing-hooks');
+                        }}
+                    />
+                );
+            }
         }
 
         return (
