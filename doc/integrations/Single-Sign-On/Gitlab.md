@@ -6,6 +6,8 @@ The following steps can be used to configure Mattermost to use GitLab as a singl
 2. Add a new application called "Mattermost" with the following as Redirect URIs:
   * `<your-mattermost-url>/login/gitlab/complete` (example: http://localhost:8065/login/gitlab/complete)
   * `<your-mattermost-url>/signup/gitlab/complete`
+  
+  (Note: If your GitLab instance is set up to use SSL, your URIs must begin with https://. Otherwise, use http://).
 
 3. Submit the application and copy the given _Id_ and _Secret_ into the appropriate _SSOSettings_ fields in config/config.json
 
