@@ -1,7 +1,7 @@
 # Production Installation on Ubuntu 14.04 LTS
 
-## Install Ubuntu Server 14.04 LTS
-1. Set up 3 machines with Ubuntu 14.04 with 2GB of RAM or more.  The servers will be used for the Load Balancer, Mattermost, and Database.
+## Install Ubuntu Server (x64) 14.04 LTS
+1. Set up 3 machines with Ubuntu 14.04 with 2GB of RAM or more.  The servers will be used for the Load Balancer, Mattermost (this must be x64 to use pre-built binaries), and Database.
 1. Make sure the system is up to date with the most recent security patches.
   * ``` sudo apt-get update```
   * ``` sudo apt-get upgrade```
