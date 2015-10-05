@@ -125,7 +125,7 @@ export default class PostBody extends React.Component {
                 url: 'https://www.googleapis.com/youtube/v3/videos',
                 type: 'GET',
                 data: {part: 'snippet', id: youtubeId, key: global.window.config.GoogleDeveloperKey},
-                success
+                success: success.bind(this)
             });
         }
 
