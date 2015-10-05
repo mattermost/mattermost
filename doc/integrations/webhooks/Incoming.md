@@ -25,7 +25,7 @@ In addition, if `Content-Type` is specified as `application/json` in the headers
 {"text": "Hello, this is some text."}
 ```
 
-It is also possible to post richly formatted messages using [Markdown](../../help/enduser/markdown.md).
+It is also possible to post richly formatted messages using [Markdown](../../usage/Markdown.md).
 ```
 payload={"text": "# A Header\nThe _text_ below **the** header."}
 ```

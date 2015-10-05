@@ -75,7 +75,7 @@ The following install instructions are for single-container installs of Mattermo
 
 ## Configuration Settings
 
-There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in [config/config.json](config/config.json) or [docker/0.6/config_docker.json](docker/0.6/config_docker.json) if you're running a Docker instance.
+There are a few configuration settings you might want to adjust when setting up your instance of Mattermost. You can edit them in `config.json` or `config_docker.json` if you're running a Docker instance.
 
 * *EmailSettings*:*ByPassEmail* - If this is set to true, then users on the system will not need to verify their email addresses when signing up. In addition, no emails will ever be sent.  
 * *ServiceSettings*:*UseLocalStorage* - If this is set to true, then your Mattermost server will store uploaded files in the storage directory specified by *StorageDirectory*. *StorageDirectory* must be set if *UseLocalStorage* is set to true.  
@@ -86,7 +86,7 @@ There are a few configuration settings you might want to adjust when setting up 
 
 The default single-container Docker instance for Mattermost is designed for product evaluation, and sets `ByPassEmail=true` so the product can run without enabling email, when doing so maybe difficult. 
 	
-To see the product's full functionality, [enabling SMTP email is recommended](/doc/config/smtp-email-setup.md).
+To see the product's full functionality, [enabling SMTP email is recommended](SMTP-Email-Setup.md).
 
 ## Upgrading Mattermost 
 
