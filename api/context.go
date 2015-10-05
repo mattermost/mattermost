@@ -137,7 +137,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if session == nil || session.IsExpired() {
-			c.RemoveSessionCookie(w)
+			c.RemoveSessionCookie(w, r)
 			c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else if !session.IsOAuth && isTokenFromQueryString {
@@ -303,7 +303,6 @@ func (c *Context) HasSystemAdminPermissions(where string) bool {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	// TODO XXX FIXME && IsPrivateIpAddress(c.IpAddress)
 	if model.IsInRole(c.Session.Roles, model.ROLE_SYSTEM_ADMIN) {
 		return true
 	}
@@ -317,7 +316,7 @@ func (c *Context) IsTeamAdmin() bool {
 	return false
 }
 
-func (c *Context) RemoveSessionCookie(w http.ResponseWriter) {
+func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 
 	sessionCache.Remove(c.Session.Token)
 
@@ -330,6 +329,21 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter) {
 	}
 
 	http.SetCookie(w, cookie)
+
+	multiToken := ""
+	if oldMultiCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
+		multiToken = oldMultiCookie.Value
+	}
+
+	multiCookie := &http.Cookie{
+		Name:     model.MULTI_SESSION_TOKEN,
+		Value:    strings.TrimSpace(strings.Replace(multiToken, c.Session.Token, "", -1)),
+		Path:     "/",
+		MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, multiCookie)
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {
@@ -346,7 +360,7 @@ func (c *Context) setTeamURL(url string, valid bool) {
 	c.teamURLValid = valid
 }
 
-func (c *Context) setTeamURLFromSession() {
+func (c *Context) SetTeamURLFromSession() {
 	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err == nil {
 		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
 	}
@@ -362,7 +376,7 @@ func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
 
 func (c *Context) GetTeamURL() string {
 	if !c.teamURLValid {
-		c.setTeamURLFromSession()
+		c.SetTeamURLFromSession()
 		if !c.teamURLValid {
 			l4g.Debug("TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent")
 		}

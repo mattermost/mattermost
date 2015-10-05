@@ -36,11 +36,14 @@ var RemovedFromChannelModal = require('../components/removed_from_channel_modal.
 var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
 var RegisterAppModal = require('../components/register_app_modal.jsx');
 var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 function setupChannelPage(props) {
+    TeamStore.setCurrentId(props.TeamId);
+
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: props.ChannelName,
@@ -71,6 +74,7 @@ function setupChannelPage(props) {
     React.render(
         <Sidebar
             teamDisplayName={props.TeamDisplayName}
+            teamName={props.TeamName}
             teamType={props.TeamType}
         />,
         document.getElementById('sidebar-left')

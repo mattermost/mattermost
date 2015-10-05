@@ -52,6 +52,8 @@ export default class SidebarHeader extends React.Component {
                 <NavbarDropdown
                     ref='dropdown'
                     teamType={this.props.teamType}
+                    teamDisplayName={this.props.teamDisplayName}
+                    teamName={this.props.teamName}
                 />
             </div>
         );
@@ -64,5 +66,6 @@ SidebarHeader.defaultProps = {
 };
 SidebarHeader.propTypes = {
     teamDisplayName: React.PropTypes.string,
+    teamName: React.PropTypes.string,
     teamType: React.PropTypes.string
 };

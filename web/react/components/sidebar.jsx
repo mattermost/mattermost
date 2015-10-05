@@ -512,6 +512,7 @@ export default class Sidebar extends React.Component {
                 />
                 <SidebarHeader
                     teamDisplayName={this.props.teamDisplayName}
+                    teamName={this.props.teamName}
                     teamType={this.props.teamType}
                 />
                 <SearchBox />
@@ -591,5 +592,6 @@ Sidebar.defaultProps = {
 };
 Sidebar.propTypes = {
     teamType: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string
+    teamDisplayName: React.PropTypes.string,
+    teamName: React.PropTypes.string
 };

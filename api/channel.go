@@ -281,7 +281,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			// lets make sure the user is valid
 			if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 				c.Err = result.Err
-				c.RemoveSessionCookie(w)
+				c.RemoveSessionCookie(w, r)
 				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
 				return
 			}

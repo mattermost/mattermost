@@ -394,6 +394,41 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	http.SetCookie(w, sessionCookie)
 
+	multiToken := ""
+	if originalMultiSessionCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
+		multiToken = originalMultiSessionCookie.Value
+	}
+
+	// Attempt to clean all the old tokens or duplicate tokens
+	if len(multiToken) > 0 {
+		tokens := strings.Split(multiToken, " ")
+
+		multiToken = ""
+		seen := make(map[string]string)
+		seen[session.TeamId] = session.TeamId
+		for _, token := range tokens {
+			if sr := <-Srv.Store.Session().Get(token); sr.Err == nil {
+				s := sr.Data.(*model.Session)
+				if !s.IsExpired() && seen[s.TeamId] == "" {
+					multiToken += " " + token
+					seen[s.TeamId] = s.TeamId
+				}
+			}
+		}
+	}
+
+	multiToken = strings.TrimSpace(session.Token + " " + multiToken)
+
+	multiSessionCookie := &http.Cookie{
+		Name:     model.MULTI_SESSION_TOKEN,
+		Value:    multiToken,
+		Path:     "/",
+		MaxAge:   maxAge,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, multiSessionCookie)
+
 	c.Session = *session
 	c.LogAuditWithUserId(user.Id, "success")
 }
@@ -514,7 +549,7 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
-	c.RemoveSessionCookie(w)
+	c.RemoveSessionCookie(w, r)
 	if result := <-Srv.Store.Session().Remove(c.Session.Id); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -529,7 +564,7 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
-		c.RemoveSessionCookie(w)
+		c.RemoveSessionCookie(w, r)
 		l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(), w, r) {
