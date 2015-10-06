@@ -23,7 +23,6 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -407,7 +406,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
-	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(filename)))
+	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
 	// attach extra headers to trigger a download on IE and Edge
 	ua := user_agent.New(r.UserAgent())
