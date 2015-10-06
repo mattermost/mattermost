@@ -1131,3 +1131,30 @@ export function listIncomingHooks(success, error) {
         }
     });
 }
+
+export function getPreferencesByName(category, name, success, error) {
+    $.ajax({
+        url: `/api/v1/preferences/${category}/${name}`,
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('getPreferencesByName', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function setPreferences(preferences, success, error) {
+    $.ajax({
+        url: '/api/v1/preferences/set',
+        dataType: 'json',
+        type: 'POST',
+        data: JSON.stringify(preferences),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('setPreferences', xhr, status, err);
+            error(e);
+        }
+    });
+}
