@@ -23,7 +23,7 @@ export default class GetLinkModal extends React.Component {
     componentDidMount() {
         if (this.refs.modal) {
             $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
-            $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', this.onShow);
+            $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', this.onHide);
         }
     }
     handleClick() {
@@ -43,8 +43,23 @@ export default class GetLinkModal extends React.Component {
     }
     render() {
         var currentUser = UserStore.getCurrentUser();
-        var copyLinkConfirm = null;
 
+        let copyLink = null;
+        if (document.queryCommandSupported('copy')) {
+            copyLink = (
+                <button
+                    data-copy-btn='true'
+                    type='button'
+                    className='btn btn-primary pull-left'
+                    onClick={this.handleClick}
+                    data-clipboard-text={this.state.value}
+                >
+                    Copy Link
+                </button>
+            );
+        }
+
+        var copyLinkConfirm = null;
         if (this.state.copiedLink) {
             copyLinkConfirm = <p className='alert alert-success copy-link-confirm'><i className='fa fa-check'></i> Link copied to clipboard.</p>;
         }
@@ -98,15 +113,7 @@ export default class GetLinkModal extends React.Component {
                                 >
                                     Close
                                 </button>
-                                <button
-                                    data-copy-btn='true'
-                                    type='button'
-                                    className='btn btn-primary pull-left'
-                                    onClick={this.handleClick}
-                                    data-clipboard-text={this.state.value}
-                                >
-                                    Copy Link
-                                </button>
+                                {copyLink}
                                 {copyLinkConfirm}
                             </div>
                         </div>
