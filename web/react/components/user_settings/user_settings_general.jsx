@@ -115,26 +115,19 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
-
-        if (this.state.emailEnabled && this.state.emailVerificationEnabled) {
-            this.submitUser(user, {emailChangeInProgress: true});
-        } else {
-            this.submitUser(user, {emailChangeInProgress: false});
-        }
+        this.submitUser(user);
     }
-    submitUser(user, newState) {
+    submitUser(user) {
         client.updateUser(user,
             function updateSuccess() {
                 this.updateSection('');
                 AsyncClient.getMe();
+                const verificationEnabled = global.window.config.SendEmailNotifications === 'true' && global.window.config.RequireEmailVerification === 'true';
 
-                if (newState) {
-                    if (newState.emailChangeInProgress) {
-                        ErrorStore.storeLastError({message: 'Check your email at ' + user.email + ' to verify the address.'});
-                        ErrorStore.emitChange();
-                    }
-
-                    this.setState(newState);
+                if (verificationEnabled) {
+                    ErrorStore.storeLastError({message: 'Check your email at ' + user.email + ' to verify the address.'});
+                    ErrorStore.emitChange();
+                    this.setState({emailChangeInProgress: true});
                 }
             }.bind(this),
             function updateFailure(err) {
@@ -233,12 +226,9 @@ export default class UserSettingsGeneralTab extends React.Component {
     }
     setupInitialState(props) {
         var user = props.user;
-        var emailEnabled = global.window.config.SendEmailNotifications === 'true';
-        var emailVerificationEnabled = global.window.config.RequireEmailVerification === 'true';
 
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailEnabled: emailEnabled,
-                        emailVerificationEnabled: emailVerificationEnabled, emailChangeInProgress: false};
+                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
     }
     render() {
         var user = this.props.user;
@@ -462,11 +452,13 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
         var emailSection;
         if (this.props.activeSection === 'email') {
+            const emailEnabled = global.window.config.SendEmailNotifications === 'true';
+            const emailVerificationEnabled = global.window.config.RequireEmailVerification === 'true';
             let helpText = 'Email is used for notifications, and requires verification if changed.';
 
-            if (!this.state.emailEnabled) {
+            if (!emailEnabled) {
                 helpText = <div className='setting-list__hint text-danger'>{'Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'}</div>;
-            } else if (!this.state.emailVerificationEnabled) {
+            } else if (!emailVerificationEnabled) {
                 helpText = 'Email is used for notifications.';
             } else if (this.state.emailChangeInProgress) {
                 const newEmail = UserStore.getCurrentUser().email;
