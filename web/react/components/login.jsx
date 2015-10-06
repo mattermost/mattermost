@@ -112,6 +112,17 @@ export default class Login extends React.Component {
             errorClass = ' has-error';
         }
 
+        const verifiedParam = Utils.getUrlParameter('verified');
+        let verifiedBox = '';
+        if (verifiedParam) {
+            verifiedBox = (
+                <div className='alert alert-success'>
+                    <i className='fa fa-check' />
+                    {' Email Verified'}
+                </div>
+            );
+        }
+
         let emailSignup;
         if (global.window.config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
@@ -175,6 +186,7 @@ export default class Login extends React.Component {
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
                 <h2 className='signup-team__subdomain'>on {global.window.config.SiteName}</h2>
                 <form onSubmit={this.handleSubmit}>
+                    {verifiedBox}
                     <div className={'form-group' + errorClass}>
                         {serverError}
                     </div>

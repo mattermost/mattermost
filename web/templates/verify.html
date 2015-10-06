@@ -1,16 +1,21 @@
 {{define "verify"}}
 <!DOCTYPE html>
 <html>
-{{template "head" . }}
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <div id="verify"></div>
+    {{template "head" . }}
+    <body class="white">
+        <div class="container-fluid">
+            <div class="inner__wrap">
+                <div class="row content">
+                    <div id="verify"></div>
+                </div>
+                <div class="row footer">
+                    {{template "footer" . }}
+                </div>
+            </div>
         </div>
-    </div>
-    <script>
-        window.setupVerifyPage({{ .Props }});
-    </script>
-</body>
+        <script>
+            window.setupVerifyPage({{ .Props }});
+        </script>
+    </body>
 </html>
 {{end}}
