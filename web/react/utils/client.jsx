@@ -2,6 +2,7 @@
 
 var BrowserStore = require('../stores/browser_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
+var ErrorStore = require('../stores/error_store.jsx');
 
 export function track(category, action, label, prop, val) {
     global.window.analytics.track(action, {category: category, label: label, property: prop, value: val});
@@ -27,7 +28,16 @@ function handleError(methodName, xhr, status, err) {
         msg = 'error in ' + methodName + ' status=' + status + ' statusCode=' + xhr.status + ' err=' + err;
 
         if (xhr.status === 0) {
-            e = {message: 'There appears to be a problem with your internet connection', connErrorCount: 1};
+            let errorCount = 1;
+            const oldError = ErrorStore.getLastError();
+            let connectError = 'There appears to be a problem with your internet connection';
+
+            if (oldError && oldError.connErrorCount) {
+                errorCount += oldError.connErrorCount;
+                connectError = 'We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.';
+            }
+
+            e = {message: connectError, connErrorCount: errorCount};
         } else {
             e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
         }

@@ -12,23 +12,61 @@ export default class ErrorBar extends React.Component {
         this.prevTimer = null;
 
         this.state = ErrorStore.getLastError();
-        if (this.state && this.state.message) {
+        if (this.isValidError(this.state)) {
             this.prevTimer = setTimeout(this.handleClose, 10000);
         }
     }
 
+    isValidError(s) {
+        if (!s) {
+            return false;
+        }
+
+        if (!s.message) {
+            return false;
+        }
+
+        if (s.connErrorCount && s.connErrorCount >= 1 && s.connErrorCount < 7) {
+            return false;
+        }
+
+        return true;
+    }
+
+    isConnectionError(s) {
+        if (!s.connErrorCount || s.connErrorCount === 0) {
+            return false;
+        }
+
+        if (s.connErrorCount > 7) {
+            return true;
+        }
+
+        return false;
+    }
+
     componentDidMount() {
         ErrorStore.addChangeListener(this.onErrorChange);
-        $('body').css('padding-top', $(React.findDOMNode(this)).outerHeight());
+
         $(window).resize(() => {
-            if (this.state && this.state.message) {
-                $('body').css('padding-top', $(React.findDOMNode(this)).outerHeight());
+            if (this.isValidError(this.state)) {
+                $('body').css('padding-top', '30px');
+            } else {
+                $('body').css('padding-top', '0');
             }
         });
     }
 
     componentWillUnmount() {
         ErrorStore.removeChangeListener(this.onErrorChange);
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        if (this.isValidError(nextState)) {
+            $('body').css('padding-top', '30px');
+        } else {
+            $('body').css('padding-top', '0');
+        }
     }
 
     onErrorChange() {
@@ -41,7 +79,9 @@ export default class ErrorBar extends React.Component {
 
         if (newState) {
             this.setState(newState);
-            this.prevTimer = setTimeout(this.handleClose, 10000);
+            if (!this.isConnectionError(newState)) {
+                this.prevTimer = setTimeout(this.handleClose, 10000);
+            }
         } else {
             this.setState({message: null});
         }
@@ -52,22 +92,11 @@ export default class ErrorBar extends React.Component {
             e.preventDefault();
         }
 
-        ErrorStore.storeLastError(null);
-        ErrorStore.emitChange();
-
-        $('body').css('padding-top', '0');
+        this.setState({message: null});
     }
 
     render() {
-        if (!this.state) {
-            return <div/>;
-        }
-
-        if (!this.state.message) {
-            return <div/>;
-        }
-
-        if (this.state.connErrorCount < 7) {
+        if (!this.isValidError(this.state)) {
             return <div/>;
         }
 
