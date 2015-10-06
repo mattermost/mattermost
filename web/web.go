@@ -422,24 +422,17 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var isVerified string
-	if len(userId) != 26 {
-		isVerified = "false"
-	} else if len(hashedId) == 0 {
-		isVerified = "false"
-	} else if model.ComparePassword(hashedId, userId) {
-		isVerified = "true"
+	if len(userId) == 26 && len(hashedId) != 0 && model.ComparePassword(hashedId, userId) {
 		if c.Err = (<-api.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
 			return
 		} else {
-			c.LogAudit("")
+			c.LogAudit("Email Verified")
+			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+name+"/login?verified=true&email="+email, http.StatusTemporaryRedirect)
+			return
 		}
-	} else {
-		isVerified = "false"
 	}
 
 	page := NewHtmlTemplatePage("verify", "Email Verified")
-	page.Props["IsVerified"] = isVerified
 	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
 	page.Props["UserEmail"] = email
 	page.Props["ResendSuccess"] = resendSuccess
