@@ -468,6 +468,7 @@ export function applyTheme(theme) {
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
         changeCss('.post-image__column .post-image__details', 'background:' + theme.centerChannelBg, 1);
         changeCss('.sidebar--right, .dropdown-menu, .popover', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.search-bar__container .search__form .search-bar, .form-control', 'background:' + theme.centerChannelBg, 1);
     }
 
     if (theme.centerChannelColor) {
@@ -491,10 +492,10 @@ export function applyTheme(theme) {
         changeCss('.post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.post-image__column .post-image__details', 'color:' + theme.centerChannelColor, 2);
         changeCss('.post-image__column a, .post-image__column a:hover, .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.search-bar__container .search__form .search-bar, .form-control', 'background: transparent; color:' + theme.centerChannelColor, 1);
+        changeCss('.search-bar__container .search__form .search-bar, .form-control', 'color:' + theme.centerChannelColor, 2);
         changeCss('@media(max-width: 768px){.search-bar__container .search__form .search-bar', 'background:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: inherit;', 1);
         changeCss('.search-bar__container .search__form, .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.4), 1);
+        changeCss('.form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
         changeCss('.date-separator .separator__hr, .modal-footer, .modal .custom-textarea, .post-right__container .post.post--root hr, .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
