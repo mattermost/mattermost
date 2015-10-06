@@ -138,7 +138,8 @@ module.exports = {
             newMessageSeparator: '#FF8800',
             linkColor: '#2389d7',
             buttonBg: '#2389d7',
-            buttonColor: '#FFFFFF'
+            buttonColor: '#FFFFFF',
+            mentionHighlightBg: '#fff2bb'
         },
         organization: {
             type: 'Organization',
@@ -159,7 +160,8 @@ module.exports = {
             newMessageSeparator: '#FF8800',
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
-            buttonColor: '#FFFFFF'
+            buttonColor: '#FFFFFF',
+            mentionHighlightBg: '#fff2bb'
         },
         mattermostDark: {
             type: 'Mattermost Dark',
@@ -180,7 +182,8 @@ module.exports = {
             newMessageSeparator: '#5de5da',
             linkColor: '#A4FFEB',
             buttonBg: '#4CBBA4',
-            buttonColor: '#FFFFFF'
+            buttonColor: '#FFFFFF',
+            mentionHighlightBg: '#338886'
         },
         windows10: {
             type: 'Windows Dark',
@@ -201,7 +204,8 @@ module.exports = {
             newMessageSeparator: '#CC992D',
             linkColor: '#0177e7',
             buttonBg: '#0177e7',
-            buttonColor: '#FFFFFF'
+            buttonColor: '#FFFFFF',
+            mentionHighlightBg: '#276198'
         }
     },
     THEME_ELEMENTS: [
@@ -263,7 +267,7 @@ module.exports = {
         },
         {
             id: 'newMessageSeparator',
-            uiName: 'New message separator'
+            uiName: 'New Message Separator'
         },
         {
             id: 'linkColor',
@@ -273,10 +277,13 @@ module.exports = {
             id: 'buttonBg',
             uiName: 'Button BG'
         },
-
         {
             id: 'buttonColor',
             uiName: 'Button Text'
+        },
+        {
+            id: 'mentionHighlightBg',
+            uiName: 'Mention Highlight BG'
         }
     ]
 };

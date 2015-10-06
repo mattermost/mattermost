@@ -530,6 +530,10 @@ export function applyTheme(theme) {
     if (theme.buttonColor) {
         changeCss('.btn.btn-primary', 'color:' + theme.buttonColor, 2);
     }
+
+    if (theme.mentionHighlightBg) {
+        changeCss('.mention-highlight, .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
+    }
 }
 export function changeCss(className, classValue, classRepeat) {
     // we need invisible container to store additional css definitions
