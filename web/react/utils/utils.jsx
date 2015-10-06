@@ -428,6 +428,7 @@ export function applyTheme(theme) {
 
     if (theme.sidebarTextActiveColor) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor, 2);
+        changeCss('.sidebar--left .nav-pills__container li.active a .status .online--icon', 'fill:' + theme.sidebarTextActiveColor, 2);
     }
 
     if (theme.sidebarHeaderBg) {
