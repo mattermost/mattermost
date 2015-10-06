@@ -24,32 +24,32 @@ export default class MemberListTeamItem extends React.Component {
         };
 
         Client.updateRoles(data,
-            function handleMakeMemberSuccess() {
+            () => {
                 AsyncClient.getProfiles();
             },
-            function handleMakeMemberError(err) {
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     handleMakeActive() {
         Client.updateActive(this.props.user.id, true,
-            function handleMakeActiveSuccess() {
+            () => {
                 AsyncClient.getProfiles();
             },
-            function handleMakeActiveError(err) {
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     handleMakeNotActive() {
         Client.updateActive(this.props.user.id, false,
-            function handleMakeNotActiveSuccess() {
+            () => {
                 AsyncClient.getProfiles();
             },
-            function handleMakeNotActiveError(err) {
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     handleMakeAdmin() {
@@ -59,12 +59,12 @@ export default class MemberListTeamItem extends React.Component {
         };
 
         Client.updateRoles(data,
-            function handleMakeAdminSuccess() {
+            () => {
                 AsyncClient.getProfiles();
             },
-            function handleMakeAdmitError(err) {
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     render() {
@@ -82,14 +82,18 @@ export default class MemberListTeamItem extends React.Component {
         const timestamp = UserStore.getCurrentUser().update_at;
 
         if (user.roles.length > 0) {
-            currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
+            if (user.roles.indexOf('system_admin') > -1) {
+                currentRoles = 'System Admin';
+            } else {
+                currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
+            }
         }
 
         const email = user.email;
-        let showMakeMember = user.roles === 'admin';
-        let showMakeAdmin = user.roles === '';
+        let showMakeMember = user.roles === 'admin' || user.roles === 'system_admin';
+        let showMakeAdmin = user.roles === '' || user.roles === 'system_admin';
         let showMakeActive = false;
-        let showMakeNotActive = true;
+        let showMakeNotActive = user.roles !== 'system_admin';
 
         if (user.delete_at > 0) {
             currentRoles = 'Inactive';
@@ -108,7 +112,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeAdmin}
                     >
-                        Make Admin
+                        {'Make Admin'}
                     </a>
                 </li>
             );
@@ -123,7 +127,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeMember}
                     >
-                        Make Member
+                        {'Make Member'}
                     </a>
                 </li>
             );
@@ -138,7 +142,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeActive}
                     >
-                        Make Active
+                        {'Make Active'}
                     </a>
                 </li>
             );
@@ -153,7 +157,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeNotActive}
                     >
-                        Make Inactive
+                        {'Make Inactive'}
                     </a>
                 </li>
             );
