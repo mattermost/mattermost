@@ -219,12 +219,14 @@
 			}
 			> a {
 				background: #FFF;
-				display: table-cell;
-				vertical-align: middle;
+				display: block;
+			}
+			video, audio, canvas {
+				background: black;
+				max-width: 100%;
 			}
 			img {
 				max-width: 100%;
-				max-height: 100%;
 			}
 		}
 		.modal-content{

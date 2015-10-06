@@ -195,6 +195,7 @@ export default class ViewImageModal extends React.Component {
                         target='_blank'
                     >
                         <img
+                            style={{maxHeight: this.state.imgHeight}}
                             ref='image'
                             src={this.getPreviewImagePath(filename)}
                         />
@@ -210,6 +211,7 @@ export default class ViewImageModal extends React.Component {
 
                 content = (
                     <video
+                        style={{maxHeight: this.state.imgHeight}}
                         ref='video'
                         data-setup='{}'
                         controls='controls'
@@ -235,6 +237,7 @@ export default class ViewImageModal extends React.Component {
                         >
                             <span className='file-details__preview-helper' />
                             <img
+                                style={{maxHeight: this.state.imgHeight}}
                                 ref='image'
                                 src={this.getPreviewImagePath(filename)}
                             />
@@ -334,7 +337,6 @@ export default class ViewImageModal extends React.Component {
                 >
                     <div
                         className={'image-wrapper ' + bgClass}
-                        style={{maxHeight: this.state.imgHeight}}
                         onMouseEnter={this.onMouseEnterImage}
                         onMouseLeave={this.onMouseLeaveImage}
                         onClick={(e) => e.stopPropagation()}
