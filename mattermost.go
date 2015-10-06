@@ -6,6 +6,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -63,7 +65,7 @@ func main() {
 			manualtesting.InitManualTesting()
 		}
 
-		diagnosticsJob()
+		securityAndDiagnosticsJob()
 
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
@@ -75,49 +77,94 @@ func main() {
 	}
 }
 
-func diagnosticsJob() {
+func securityAndDiagnosticsJob() {
 	go func() {
 		for {
-			if utils.Cfg.PrivacySettings.EnableDiagnostic && !model.IsOfficalBuild() {
+			if utils.Cfg.PrivacySettings.EnableSecurityFixAlert { //&& model.IsOfficalBuild() {
 				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 					props := result.Data.(model.StringMap)
-					lastTime, _ := strconv.ParseInt(props["LastDiagnosticTime"], 10, 0)
+					lastSecurityTime, _ := strconv.ParseInt(props["LastSecurityTime"], 10, 0)
 					currentTime := model.GetMillis()
 
-					if (currentTime - lastTime) > 1000*60*60*24*7 {
-						l4g.Info("Sending error and diagnostic information to mattermost")
+					id := props["DiagnosticId"]
+					if len(id) == 0 {
+						id = model.NewId()
+						systemId := &model.System{Name: "DiagnosticId", Value: id}
+						<-api.Srv.Store.System().Save(systemId)
+					}
 
-						id := props["DiagnosticId"]
-						if len(id) == 0 {
-							id = model.NewId()
-							systemId := &model.System{Name: "DiagnosticId", Value: id}
-							<-api.Srv.Store.System().Save(systemId)
-						}
+					m := make(map[string]string)
+					m[utils.PROP_DIAGNOSTIC_ID] = id
+					m[utils.PROP_DIAGNOSTIC_BUILD] = model.CurrentVersion + "." + model.BuildNumber
+					m[utils.PROP_DIAGNOSTIC_DATABASE] = utils.Cfg.SqlSettings.DriverName
+					m[utils.PROP_DIAGNOSTIC_OS] = runtime.GOOS
+					m[utils.PROP_DIAGNOSTIC_CATEGORY] = utils.VAL_DIAGNOSTIC_CATEGORY_DEFALUT
 
-						systemLastTime := &model.System{Name: "LastDiagnosticTime", Value: strconv.FormatInt(currentTime, 10)}
-						if lastTime == 0 {
-							<-api.Srv.Store.System().Save(systemLastTime)
+					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
+						l4g.Info("Checking for security update from Mattermost")
+
+						systemSecurityLastTime := &model.System{Name: "LastSecurityTime", Value: strconv.FormatInt(currentTime, 10)}
+						if lastSecurityTime == 0 {
+							<-api.Srv.Store.System().Save(systemSecurityLastTime)
 						} else {
-							<-api.Srv.Store.System().Update(systemLastTime)
+							<-api.Srv.Store.System().Update(systemSecurityLastTime)
 						}
 
-						m := make(map[string]string)
-						m[utils.PROP_DIAGNOSTIC_ID] = id
-						m[utils.PROP_DIAGNOSTIC_BUILD] = model.CurrentVersion + "." + model.BuildNumber
-						m[utils.PROP_DIAGNOSTIC_DATABASE] = utils.Cfg.SqlSettings.DriverName
-						m[utils.PROP_DIAGNOSTIC_OS] = runtime.GOOS
-						m[utils.PROP_DIAGNOSTIC_CATEGORY] = utils.VAL_DIAGNOSTIC_CATEGORY_DEFALUT
+						query := "?"
+						for name, value := range m {
+							if len(query) > 1 {
+								query += "&"
+							}
 
-						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-							m[utils.PROP_DIAGNOSTIC_USER_COUNT] = strconv.FormatInt(ucr.Data.(int64), 10)
+							query += name + "=" + utils.UrlEncode(value)
 						}
 
-						utils.SendDiagnostic(m)
+						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security" + query)
+						if err != nil {
+							l4g.Error("Failed to get security update information from Mattermost.")
+							return
+						}
+
+						bulletins := model.SecurityBulletinsFromJson(res.Body)
+
+						for _, bulletin := range bulletins {
+							if bulletin.AppliesToVersion == model.CurrentVersion {
+								if props["SecurityBulletin_"+bulletin.Id] == "" {
+									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
+										l4g.Error("Failed to get system admins for security update information from Mattermost.")
+										return
+									} else {
+										users := results.Data.(map[string]*model.User)
+
+										resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
+										if err != nil {
+											l4g.Error("Failed to get security bulletin details")
+											return
+										}
+
+										body, err := ioutil.ReadAll(resBody.Body)
+										res.Body.Close()
+										if err != nil || resBody.StatusCode != 200 {
+											l4g.Error("Failed to read security bulletin details")
+											return
+										}
+
+										for _, user := range users {
+											l4g.Info("Sending security bulletin for " + bulletin.Id + " to " + user.Email)
+											utils.SendMail(user.Email, "Mattermost Security Bulletin", string(body))
+										}
+									}
+
+									bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
+									<-api.Srv.Store.System().Save(bulletinSeen)
+								}
+							}
+						}
 					}
 				}
 			}
 
-			time.Sleep(time.Hour * 24)
+			time.Sleep(time.Hour * 4)
 		}
 	}()
 }

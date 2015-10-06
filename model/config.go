@@ -110,9 +110,9 @@ type RateLimitSettings struct {
 }
 
 type PrivacySettings struct {
-	ShowEmailAddress bool
-	ShowFullName     bool
-	EnableDiagnostic bool
+	ShowEmailAddress       bool
+	ShowFullName           bool
+	EnableSecurityFixAlert bool
 }
 
 type TeamSettings struct {
