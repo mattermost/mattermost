@@ -350,7 +350,7 @@ export default class ViewImageModal extends React.Component {
                             totalFiles={this.props.filenames.length}
                             filename={name}
                             fileURL={fileUrl}
-                            onGetPublicLinkPressed={this.getPublicLink}
+                            getPublicLink={this.getPublicLink}
                         />
                     </div>
                     {leftArrow}
