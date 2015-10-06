@@ -49,7 +49,6 @@ export default class ImportThemeModal extends React.Component {
         theme.sidebarText = colors[5];
         theme.sidebarUnreadText = colors[5];
         theme.sidebarTextHoverBg = colors[4];
-        theme.sidebarTextHoverColor = colors[5];
         theme.sidebarTextActiveBg = colors[2];
         theme.sidebarTextActiveColor = colors[3];
         theme.sidebarHeaderBg = colors[1];

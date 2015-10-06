@@ -417,11 +417,6 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg, 1);
     }
 
-    if (theme.sidebarTextHoverColor) {
-        changeCss('.sidebar--left .nav-pills__container li>a:hover, .sidebar--left .nav-pills__container li>a:focus, .settings-modal .nav-pills>li:hover a, .settings-modal .nav-pills>li:focus a', 'color:' + changeOpacity(theme.sidebarTextHoverColor, 0.6), 2);
-        changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li:hover a', 'color:' + theme.sidebarTextHoverColor, 2);
-    }
-
     if (theme.sidebarTextActiveBg) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'background:' + theme.sidebarTextActiveBg, 1);
     }
@@ -495,7 +490,7 @@ export function applyTheme(theme) {
         changeCss('.post-image__column a, .post-image__column a:hover, .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
         changeCss('.search-bar__container .search__form .search-bar, .form-control', 'color:' + theme.centerChannelColor, 2);
         changeCss('@media(max-width: 768px){.search-bar__container .search__form .search-bar', 'background:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: inherit;', 1);
-        changeCss('.search-bar__container .search__form, .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.input-group-addon, .search-bar__container .search__form, .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);

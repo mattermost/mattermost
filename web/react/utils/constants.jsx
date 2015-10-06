@@ -125,7 +125,6 @@ module.exports = {
             sidebarText: '#333333',
             sidebarUnreadText: '#333333',
             sidebarTextHoverBg: '#e6f2fa',
-            sidebarTextHoverColor: '#333333',
             sidebarTextActiveBg: '#e1e1e1',
             sidebarTextActiveColor: '#111111',
             sidebarHeaderBg: '#2389d7',
@@ -147,7 +146,6 @@ module.exports = {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#136197',
-            sidebarTextHoverColor: '#fff',
             sidebarTextActiveBg: '#136197',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#2f81b7',
@@ -169,7 +167,6 @@ module.exports = {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#4A5664',
-            sidebarTextHoverColor: '#fff',
             sidebarTextActiveBg: '#39769C',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1B2C3E',
@@ -191,7 +188,6 @@ module.exports = {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#302e30',
-            sidebarTextHoverColor: '#fff',
             sidebarTextActiveBg: '#484748',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1f1f1f',
@@ -232,10 +228,6 @@ module.exports = {
         {
             id: 'sidebarTextHoverBg',
             uiName: 'Sidebar Text Hover BG'
-        },
-        {
-            id: 'sidebarTextHoverColor',
-            uiName: 'Sidebar Text Hover Color'
         },
         {
             id: 'sidebarTextActiveBg',
