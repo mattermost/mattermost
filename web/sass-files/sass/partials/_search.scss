@@ -104,7 +104,13 @@
 	padding: 10px;
 }
 
-.search-highlight.theme, .search-highlight {
+.search-highlight {
 	background-color: #FFF2BB;
-	color: #333;
+	a {
+		color: inherit;
+		text-decoration: underline;
+		&:hover, &:active {
+			color: inherit;
+		}
+	}
 }
