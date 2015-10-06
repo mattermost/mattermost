@@ -29,6 +29,141 @@
     li {
         list-style: none;
     }
+    .setting-list {
+        padding: 0;
+        list-style-type:none;
+    }
+
+    .setting-list__hint {
+        margin-top: 20px;
+    }
+    .setting-list-item {
+        margin-top:7px;
+        .has-error {
+            color: #a94442;
+        }
+        .padding-top {
+            padding-top: 7px;
+            &.x2 {
+                padding-top: 14px;
+            }
+        }
+        .control-label {
+            font-weight: 600;
+            &.text-left {
+                text-align: left;
+            }
+        }
+    }
+    .section-min {
+        padding: 1em 0;
+        margin-bottom: 0;
+        cursor: pointer;
+        @include clearfix;
+        &:hover {
+            background: #f9f9f9;
+        }
+        &:hover .fa {
+            display: inline-block;
+        }
+        &:hover .section-edit {
+            text-decoration: underline;
+        }
+    }
+
+    .section-max {
+        background: rgba(black, 0.05);
+        padding: 1em 0 1.3em;
+        margin-bottom: 0;
+        @include clearfix;
+        .section-title {
+            margin-bottom: 10px;
+        }
+    }
+    .settings-content {
+        padding: 0px 20px 30px;
+        .modal-header {
+            display: none;
+        }
+        .appearance-section {
+            .premade-themes {
+                .theme-label {
+                    font-weight: 400;
+                    margin-top: 5px;
+                }
+                img {
+                    border: 3px solid transparent;
+                }
+                .active {
+                    img {
+                        border-color: $primary-color;
+                    }
+                }
+            }
+            .custom-label {
+                font-weight: normal;
+                font-size: 13px;
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: 0;
+            }
+            .radio {
+                margin: 0 0 10px;
+                label {
+                    font-weight: 600;
+                }
+            }
+        }
+
+        .section-title {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .section-edit {
+            text-align: right;
+            margin-bottom: 5px;
+            .fa {
+                margin-right: 7px;
+                font-size: 12px;
+                @include opacity(0.5);
+                display: none;
+            }
+        }
+
+        .font--small {
+            font-size: 13px;
+        }
+
+        .section-describe {
+            @include opacity(0.7);
+        }
+
+        .divider-dark {
+            border-bottom:1px solid #aaaaaa;
+        }
+
+        .divider-light {
+            border-bottom:1px solid lightgrey;
+        }
+
+        .mentions-input {
+            margin-top: 10px;
+        }
+
+        .file-status {
+            font-size: 13px;
+            margin-top: 8px;
+            color: #555;
+        }
+
+        .confirm-import {
+            padding: 4px 10px;
+            margin: 10px 0;
+        }
+
+    }
     .settings-table {
         display: table;
         table-layout: fixed;
@@ -47,144 +182,6 @@
             width: 180px;
             background: #FAFAFA;
             border-right: 1px solid #DDD;
-        }
-        .settings-content {
-            padding: 0px 20px 30px;
-            .modal-header {
-                display: none;
-            }
-            .section-min {
-                padding: 1em 0;
-                margin-bottom: 0;
-                cursor: pointer;
-                @include clearfix;
-                &:hover {
-                    background: #f9f9f9;
-                }
-                &:hover .fa {
-                    display: inline-block;
-                }
-                &:hover .section-edit {
-                    text-decoration: underline;
-                }
-            }
-
-            .section-max {
-                background: rgba(black, 0.05);
-                padding: 1em 0 1.3em;
-                margin-bottom: 0;
-                @include clearfix;
-                .section-title {
-                    margin-bottom: 10px;
-                }
-            }
-
-            .appearance-section {
-                .premade-themes {
-                    margin-bottom: 10px;
-                    .theme-label {
-                        font-weight: 400;
-                        margin-top: 5px;
-                    }
-                    img {
-                        border: 3px solid transparent;
-                    }
-                    .active {
-                        img {
-                            border-color: $primary-color;
-                        }
-                    }
-                }
-                .custom-label {
-                    font-weight: normal;
-                    font-size: 13px;
-                    width: 100%;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    margin-bottom: 0;
-                }
-                .radio {
-                    label {
-                        font-weight: 600;
-                    }
-                }
-            }
-
-            .section-title {
-                margin-bottom: 5px;
-                font-weight: 600;
-            }
-
-            .section-edit {
-                text-align: right;
-                margin-bottom: 5px;
-                .fa {
-                    margin-right: 7px;
-                    font-size: 12px;
-                    @include opacity(0.5);
-                    display: none;
-                }
-            }
-
-            .font--small {
-                font-size: 13px;
-            }
-
-            .section-describe {
-                @include opacity(0.7);
-            }
-
-            .divider-dark {
-                border-bottom:1px solid #aaaaaa;
-            }
-
-            .divider-light {
-                border-bottom:1px solid lightgrey;
-            }
-
-            .setting-list {
-                padding: 0;
-                list-style-type:none;
-            }
-
-            .setting-list__hint {
-                margin-top: 20px;
-            }
-
-            .mentions-input {
-                margin-top: 10px;
-            }
-
-            .setting-list-item {
-                margin-top:7px;
-                .has-error {
-                    color: #a94442;
-                }
-                .padding-top {
-                    padding-top: 7px;
-                    &.x2 {
-                        padding-top: 14px;
-                    }
-                }
-                .control-label {
-                    font-weight: 600;
-                    &.text-left {
-                        text-align: left;
-                    }
-                }
-            }
-
-            .file-status {
-                font-size: 13px;
-                margin-top: 8px;
-                color: #555;
-            }
-
-            .confirm-import {
-                padding: 4px 10px;
-                margin: 10px 0;
-            }
-
         }
     }
     .nav-pills {
@@ -221,7 +218,7 @@
 }
 
 .tab-header {
-    margin-bottom:1em;
+    margin: 1em 0;
 }
 
 .setting-name {

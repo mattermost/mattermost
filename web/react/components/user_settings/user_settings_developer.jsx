@@ -21,8 +21,9 @@ export default class DeveloperTab extends React.Component {
             var inputs = [];
 
             inputs.push(
-                <div className='form-group'>
+                <div className='form-group less'>
                     <div className='col-sm-7'>
+                        <hr className='hidden' />
                         <a
                             className='btn btn-sm btn-primary'
                             onClick={this.register}

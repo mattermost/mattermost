@@ -104,12 +104,6 @@ export default class ChannelLoader extends React.Component {
             }
         });
 
-        /* Setup modal events */
-        $('.modal').on('show.bs.modal', function onShow() {
-            $('.modal-body').css('overflow-y', 'auto');
-            $('.modal-body').css('max-height', $(window).height() * 0.7);
-        });
-
         /* Prevent backspace from navigating back a page */
         $(window).on('keydown.preventBackspace', (e) => {
             if (e.which === 8 && !$(e.target).is('input, textarea')) {
