@@ -8,7 +8,7 @@
 
 ## Set up Database Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.1
-1. Install PostgreSQL 9.3+ (or MySQL 5.2+)
+1. Install PostgreSQL 9.3+ (or MySQL 5.6+)
   * ``` sudo apt-get install postgresql postgresql-contrib```
 1. PostgreSQL created a user account called `postgres`.  You will need to log into that account with:
   * ``` sudo -i -u postgres```
