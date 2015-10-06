@@ -503,7 +503,7 @@ export function applyTheme(theme) {
         changeCss('.modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro, .settings-modal .settings-table .settings-content .divider-dark, hr, .settings-modal .settings-table .settings-links', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
-        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, .post.post--comment.other--root .post-comment, .post.same--root .post-body, .modal .more-channel-table tbody>tr td, .member-div:first-child, .member-div', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
+        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, .post.post--comment.other--root .post-comment, .post.same--root .post-body, .modal .more-channel-table tbody>tr td, .member-div:first-child, .member-div, .access-history__table .access__report, .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
         changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('@media(max-width: 1800px){.inner__wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);

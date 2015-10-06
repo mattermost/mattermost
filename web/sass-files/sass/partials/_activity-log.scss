@@ -1,3 +1,20 @@
+@keyframes highlight {
+  from { background: rgba(yellow, 0.5);}
+  to { background: none;}
+}
+
+.animation--highlight {
+    &:before {
+        content: '';
+        animation: highlight 1.5s ease;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
 .activity-log__table {
     display: table;
     width: 100%;
@@ -26,7 +43,7 @@
         }
     }
     .report__info {
-        color: #999;
+        @include opacity(0.8);
     }
 }
 .session-help-text {

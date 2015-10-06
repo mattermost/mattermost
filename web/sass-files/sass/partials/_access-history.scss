@@ -24,6 +24,6 @@
         font-size: 15px;
     }
     .report__info {
-        color: #999;
+        @include opacity(0.8);
     }
 }
