@@ -437,7 +437,7 @@ export default class EmailSettings extends React.Component {
                             </select>
                             <div className='help-text'>
                                 <table
-                                    className='table-bordered'
+                                    className='table table-bordered'
                                     cellPadding='5'
                                 >
                                     <tr><td className='help-text'>{'None'}</td><td className='help-text'>{'Mattermost will send email over an unsecure connection.'}</td></tr>
@@ -447,7 +447,7 @@ export default class EmailSettings extends React.Component {
                             </div>
                             <div className='help-text'>
                                 <button
-                                    className='help-link'
+                                    className='btn'
                                     onClick={this.handleTestConnection}
                                     disabled={!this.state.sendEmailNotifications}
                                     id='connection-button'
@@ -482,7 +482,7 @@ export default class EmailSettings extends React.Component {
                             <p className='help-text'>{'32-character salt added to signing of email invites. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
                             <div className='help-text'>
                                 <button
-                                    className='help-link'
+                                    className='btn'
                                     onClick={this.handleGenerateInvite}
                                     disabled={!this.state.sendEmailNotifications}
                                 >
@@ -513,7 +513,7 @@ export default class EmailSettings extends React.Component {
                             <p className='help-text'>{'32-character salt added to signing of password reset emails. Randomly generated on install. Click "Re-Generate" to create new salt.'}</p>
                             <div className='help-text'>
                                 <button
-                                    className='help-link'
+                                    className='btn'
                                     onClick={this.handleGenerateReset}
                                     disabled={!this.state.sendEmailNotifications}
                                 >

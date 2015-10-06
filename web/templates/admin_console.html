@@ -5,15 +5,15 @@
 {{template "head" . }}
 <body>
 
-<div id="error_bar"></div>
+<div id='error_bar'></div>
 
-<div id="admin_controller"></div>
+<div id='admin_controller' class='container-fluid'></div>
 
-<div id="select_team_modal"></div>
+<div id='select_team_modal'></div>
 
 <script>
     window.setup_admin_console_page();
-    
+
     $(document).ready(function(){
         $('[data-toggle="tooltip"]').tooltip();
         $('[data-toggle="popover"]').popover();

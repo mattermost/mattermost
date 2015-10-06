@@ -37,7 +37,6 @@
 		&.description {
 			overflow: hidden;
 			text-overflow: ellipsis;
-			@include opacity(0.6);
 			margin-top: 2px;
 			max-height: 45px;
 		}

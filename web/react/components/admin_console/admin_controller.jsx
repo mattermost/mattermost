@@ -147,7 +147,7 @@ export default class AdminController extends React.Component {
         }
 
         return (
-            <div className='container-fluid'>
+            <div>
                 <div
                     className='sidebar--menu'
                     id='sidebar-menu'
