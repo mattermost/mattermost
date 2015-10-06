@@ -144,11 +144,10 @@
 			font-size: 0.9em;
 			overflow: hidden;
 			text-overflow: ellipsis;
-			color: #999;
+			@include opacity(0.8);
 			margin: 5px 0;
 		}
 		.more-channel-name {
-			color: #444;
 			font-weight: 600;
 			font-size: 0.95em;
 		}

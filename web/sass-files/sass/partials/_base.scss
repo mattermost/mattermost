@@ -97,6 +97,9 @@ a:focus, a:hover {
 
 .form-control {
   @include border-radius(2px);
+  &:focus {
+    @include box-shadow(none);
+  }
   &.no-resize {
     resize: none;
   }
@@ -118,6 +121,10 @@ a:focus, a:hover {
   right: 10px;
   top: 40px;
   z-index: 100;
+}
+
+.nav>li>a:focus, .nav>li>a:hover {
+  background: transparent;
 }
 
 .btn {

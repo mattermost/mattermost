@@ -185,10 +185,10 @@ module.exports = {
         windows10: {
             type: 'Windows Dark',
             sidebarBg: '#171717',
-            sidebarText: '#eee',
+            sidebarText: '#999',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#302e30',
-            sidebarTextHoverColor: '#fff',
+            sidebarTextHoverColor: '#999',
             sidebarTextActiveBg: '#484748',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1f1f1f',
