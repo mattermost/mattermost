@@ -13,12 +13,6 @@ export default class PostInfo extends React.Component {
         super(props);
         this.state = {};
     }
-    shouldShowComment(state, type, isOwner) {
-        if (state === Constants.POST_FAILED || state === Constants.POST_LOADING) {
-            return false;
-        }
-        return isOwner || (this.props.allowReply === 'true' && type !== 'Comment');
-    }
     createDropdown() {
         var post = this.props.post;
         var isOwner = UserStore.getCurrentId() === post.user_id;
@@ -31,10 +25,6 @@ export default class PostInfo extends React.Component {
         var type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
             type = 'Comment';
-        }
-
-        if (!this.shouldShowComment(post.state, type, isOwner)) {
-            return '';
         }
 
         var dropdownContents = [];
@@ -104,6 +94,10 @@ export default class PostInfo extends React.Component {
                     </a>
                 </li>
             );
+        }
+
+        if (dropdownContents.length === 0) {
+            return '';
         }
 
         return (
