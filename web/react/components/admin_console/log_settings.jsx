@@ -253,7 +253,7 @@ export default class LogSettings extends React.Component {
                                 {'Format of log message output. If blank will be set to "[%D %T] [%L] %M", where:'}
                                 <div className='help-text'>
                                     <table
-                                        className='table-bordered'
+                                        className='table table-bordered'
                                         cellPadding='5'
                                     >
                                         <tr><td className='help-text'>{'%T'}</td><td className='help-text'>{'Time (15:04:05 MST)'}</td></tr>

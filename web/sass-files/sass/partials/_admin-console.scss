@@ -1,193 +1,202 @@
-
-.sidebar--left {    &.sidebar--collapsable {
-        background: #333;
-        .team__header {
-            background: transparent;
-            margin-bottom: 5px;
-        }
-        .nav {
-            li {
-                padding: 0;
-                .icon {
-                    width: 17px;
-                }
-                > a {
-                    color: #fff;
-                    padding: 9px 15px;
-                    display: block;
-                    &:hover, &.active, &:focus  {
-                        background-color: $primary-color;
-                    }
-                }
-                > h4 {
-                    background: #333;
-                    padding: 10px 10px;
-                    margin: 1px 0 0;
-                }
-            }
-            .menu-icon--right {
-                vertical-align: top;
-                padding: 5px 10px;
-                margin: -5px;
-                float: right;
-                .fa {
-                    font-size: 13px;
-                    right: -2px;
-                    position: relative;
-                    color: #fff;
-                }
-            }
-            &.nav__sub-menu {
-                background: #111;
-                -webkit-font-smoothing: auto;
-                &.padded {
-                    padding: 5px 0;
-                }
-                li {
-                    > a {
-                        font-size: 13px;
-                        padding: 5px 15px;
-                        background: transparent;
-                        color: #bbb;
-                        &:hover {
-                            color: lighten($primary-color, 10);
-                        }
-                        &.active {
-                            color: #fff;
-                            font-weight: 600;
-                        }
-                    }
-                    .nav-more {
-                        font-size: 13px;
-                        padding: 5px 15px;
-                        background: transparent;
-                        color: #bbb;
-                        display: block;
-                        cursor: pointer;
-                        &:hover {
-                            color: lighten($primary-color, 10);
-                        }
-                    }
-                }
-            }
-            &.nav__inner-menu {
-                li {
-                    > a {
-                        padding-left: 20px;
-                    }
-                }
-            }
-        }
+#admin_controller {
+    > div {
+        height: 100%;
     }
-}
-
-.log__panel {
-    overflow: scroll;
-    width: 100%;
-    height: 800px;
-    border: 1px solid #ddd;
-    margin-top: 10px;
-    padding: 5px;
-    background-color: white;
-}
-
-.app__content {
-    &.admin {
-        overflow: auto;
-        background-color: #f1f1f1;
-        padding: 0 20px 20px;
-        min-height: 600px;
-    }
-    .wrapper--fixed {
-        max-width: 800px;
-    }
-    .form-horizontal {
-        margin-top: 40px;
-        .control-label {
-            text-align: left;
-            padding-right: 0;
-            font-weight: 600;
-        }
-        .form-group {
-            margin-bottom: 25px;
-        }
-        .help-text {
-            margin: 10px 0 0 15px;
-            color: #777;
-            .help-link {
-                margin-right: 5px;
-            }
-            .btn {
-                font-size: 13px;
-            }
-        }
-        .alert {
-            display: inline-block;
-            padding: 5px 7px;
-            margin: 0;
-            top: 1px;
-            position: relative;
-        }
-    }
-    .banner {
+    .table {
         background: #fff;
-        border: 1px solid #ddd;
-        padding: 0.7em 1.5em;
-        font-size: 0.95em;
-        margin: 2em 0;
-        .banner__heading {
-            font-size: 1.5em;
-        }
-        .banner__content {
-            width: 80%;
+    }
+    .sidebar--left {
+        &.sidebar--collapsable {
+            background: #333;
+            .team__header {
+                background: transparent;
+                margin-bottom: 5px;
+            }
+            .nav {
+                li {
+                    padding: 0;
+                    .icon {
+                        width: 17px;
+                    }
+                    > a {
+                        padding: 9px 15px;
+                        display: block;
+                        &:hover, &.active, &:focus  {
+                            background-color: #EAEAEA;
+                        }
+                    }
+                    > h4 {
+                        background: #333;
+                        padding: 10px 10px;
+                        margin: 1px 0 0;
+                    }
+                }
+                .menu-icon--right {
+                    vertical-align: top;
+                    padding: 5px 10px;
+                    margin: -5px;
+                    float: right;
+                    .fa {
+                        font-size: 13px;
+                        right: -2px;
+                        position: relative;
+                        color: #fff;
+                    }
+                }
+                &.nav__sub-menu {
+                    background: #111;
+                    -webkit-font-smoothing: auto;
+                    &.padded {
+                        padding: 5px 0;
+                    }
+                    li {
+                        > a {
+                            font-size: 13px;
+                            padding: 5px 15px;
+                            background: transparent;
+                            color: #bbb;
+                            &:hover {
+                                color: lighten($primary-color, 10);
+                            }
+                            &.active {
+                                color: #fff;
+                                font-weight: 600;
+                            }
+                        }
+                        .nav-more {
+                            font-size: 13px;
+                            padding: 5px 15px;
+                            background: transparent;
+                            color: #bbb;
+                            display: block;
+                            cursor: pointer;
+                            &:hover {
+                                color: lighten($primary-color, 10);
+                            }
+                        }
+                    }
+                }
+                &.nav__inner-menu {
+                    li {
+                        > a {
+                            padding-left: 20px;
+                        }
+                    }
+                }
+            }
         }
     }
-    .popover {
-        border-radius: 3px;
+
+    .log__panel {
+        overflow: scroll;
         width: 100%;
-        font-size: 0.95em;
+        height: 800px;
+        border: 1px solid #ddd;
+        margin-top: 10px;
+        padding: 5px;
+        background-color: white;
     }
-    .panel {
-        border: none;
-        background-color: transparent;
-    }
-    .panel-default {
-        > .panel-heading {
-            padding: 10px 0;
+
+    .app__content {
+        &.admin {
+            overflow: auto;
+            background-color: #f1f1f1;
+            padding: 0 20px 20px;
+            min-height: 600px;
+        }
+        .wrapper--fixed {
+            max-width: 800px;
+        }
+        .form-horizontal {
+            margin-top: 40px;
+            .control-label {
+                text-align: left;
+                padding-right: 0;
+                font-weight: 600;
+            }
+            .form-group {
+                margin-bottom: 25px;
+            }
+            .help-text {
+                margin: 10px 0 0 15px;
+                color: #777;
+                .help-link {
+                    margin-right: 5px;
+                }
+                .btn {
+                    font-size: 13px;
+                }
+            }
+            .alert {
+                display: inline-block;
+                padding: 5px 7px;
+                margin: 1em 0 0;
+                top: 1px;
+                position: relative;
+                .fa {
+                    margin-right: 5px;
+                }
+            }
+        }
+        .banner {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 0.7em 1.5em;
+            font-size: 0.95em;
+            margin: 2em 0;
+            .banner__heading {
+                font-size: 1.5em;
+            }
+            .banner__content {
+                width: 80%;
+            }
+        }
+        .popover {
+            border-radius: 3px;
+            width: 100%;
+            font-size: 0.95em;
+        }
+        .panel {
+            border: none;
             background-color: transparent;
         }
-        .panel-body {
-            padding: 30px 0 10px;
+        .panel-default {
+            > .panel-heading {
+                padding: 10px 0;
+                background-color: transparent;
+            }
+            .panel-body {
+                padding: 30px 0 10px;
+            }
         }
-    }
-    .panel-group {
-        margin-bottom: 50px;
-    }
-    .panel-title {
-        font-size: 24px;
-        line-height: 1.5;
-        a {
-            text-decoration: none;
-            display: block;
-            @include clearfix;
-            &.collapsed {
-                .fa-minus {
-                    display: none;
+        .panel-group {
+            margin-bottom: 50px;
+        }
+        .panel-title {
+            font-size: 24px;
+            line-height: 1.5;
+            a {
+                text-decoration: none;
+                display: block;
+                @include clearfix;
+                &.collapsed {
+                    .fa-minus {
+                        display: none;
+                    }
+                    .fa-plus {
+                        display: inline-block;
+                    }
+                }
+                .fa {
+                    font-size: 18px;
+                    float: right;
+                    margin-top: 8px;
+                    color: #aaa;
                 }
                 .fa-plus {
-                    display: inline-block;
+                    display: none;
                 }
-            }
-            .fa {
-                font-size: 18px;
-                float: right;
-                margin-top: 8px;
-                color: #aaa;
-            }
-            .fa-plus {
-                display: none;
             }
         }
     }
-
 }

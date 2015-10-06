@@ -129,141 +129,143 @@ export default class AdminSidebar extends React.Component {
             <div className='sidebar--left sidebar--collapsable'>
                 <div>
                     <AdminSidebarHeader />
-                    <ul className='nav nav-pills nav-stacked'>
-                        <li>
-                            <ul className='nav nav__sub-menu'>
-                                <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>{'SETTINGS'}</span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('service_settings')}
-                                        onClick={this.handleClick.bind(this, 'service_settings', null)}
-                                    >
-                                        {'Service Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('team_settings')}
-                                        onClick={this.handleClick.bind(this, 'team_settings', null)}
-                                    >
-                                        {'Team Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('sql_settings')}
-                                        onClick={this.handleClick.bind(this, 'sql_settings', null)}
-                                    >
-                                        {'SQL Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('email_settings')}
-                                        onClick={this.handleClick.bind(this, 'email_settings', null)}
-                                    >
-                                        {'Email Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('image_settings')}
-                                        onClick={this.handleClick.bind(this, 'image_settings', null)}
-                                    >
-                                        {'File Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('log_settings')}
-                                        onClick={this.handleClick.bind(this, 'log_settings', null)}
-                                    >
-                                        {'Log Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('rate_settings')}
-                                        onClick={this.handleClick.bind(this, 'rate_settings', null)}
-                                    >
-                                        {'Rate Limit Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('privacy_settings')}
-                                        onClick={this.handleClick.bind(this, 'privacy_settings', null)}
-                                    >
-                                        {'Privacy Settings'}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('gitlab_settings')}
-                                        onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
-                                    >
-                                        {'GitLab Settings'}
-                                    </a>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu'>
-                                 <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>{'TEAMS (' + count + ')'}</span>
-                                        <span className='menu-icon--right'>
-                                            <a
-                                                href='#'
-                                                onClick={this.showTeamSelect}
-                                            >
-                                                <i className='fa fa-plus'></i>
-                                            </a>
-                                        </span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                <li>
-                                    {teams}
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu'>
-                                <li>
-                                    <h4>
-                                        <span className='icon fa fa-gear'></span>
-                                        <span>{'OTHER'}</span>
-                                    </h4>
-                                </li>
-                            </ul>
-                            <ul className='nav nav__sub-menu padded'>
-                                <li>
-                                    <a
-                                        href='#'
-                                        className={this.isSelected('logs')}
-                                        onClick={this.handleClick.bind(this, 'logs', null)}
-                                    >
-                                        {'Logs'}
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <div className='nav-pills__container'>
+                        <ul className='nav nav-pills nav-stacked'>
+                            <li>
+                                <ul className='nav nav__sub-menu'>
+                                    <li>
+                                        <h4>
+                                            <span className='icon fa fa-gear'></span>
+                                            <span>{'SETTINGS'}</span>
+                                        </h4>
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu padded'>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('service_settings')}
+                                            onClick={this.handleClick.bind(this, 'service_settings', null)}
+                                        >
+                                            {'Service Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('team_settings')}
+                                            onClick={this.handleClick.bind(this, 'team_settings', null)}
+                                        >
+                                            {'Team Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('sql_settings')}
+                                            onClick={this.handleClick.bind(this, 'sql_settings', null)}
+                                        >
+                                            {'SQL Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('email_settings')}
+                                            onClick={this.handleClick.bind(this, 'email_settings', null)}
+                                        >
+                                            {'Email Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('image_settings')}
+                                            onClick={this.handleClick.bind(this, 'image_settings', null)}
+                                        >
+                                            {'File Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('log_settings')}
+                                            onClick={this.handleClick.bind(this, 'log_settings', null)}
+                                        >
+                                            {'Log Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('rate_settings')}
+                                            onClick={this.handleClick.bind(this, 'rate_settings', null)}
+                                        >
+                                            {'Rate Limit Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('privacy_settings')}
+                                            onClick={this.handleClick.bind(this, 'privacy_settings', null)}
+                                        >
+                                            {'Privacy Settings'}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('gitlab_settings')}
+                                            onClick={this.handleClick.bind(this, 'gitlab_settings', null)}
+                                        >
+                                            {'GitLab Settings'}
+                                        </a>
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu'>
+                                     <li>
+                                        <h4>
+                                            <span className='icon fa fa-gear'></span>
+                                            <span>{'TEAMS (' + count + ')'}</span>
+                                            <span className='menu-icon--right'>
+                                                <a
+                                                    href='#'
+                                                    onClick={this.showTeamSelect}
+                                                >
+                                                    <i className='fa fa-plus'></i>
+                                                </a>
+                                            </span>
+                                        </h4>
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu padded'>
+                                    <li>
+                                        {teams}
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu'>
+                                    <li>
+                                        <h4>
+                                            <span className='icon fa fa-gear'></span>
+                                            <span>{'OTHER'}</span>
+                                        </h4>
+                                    </li>
+                                </ul>
+                                <ul className='nav nav__sub-menu padded'>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('logs')}
+                                            onClick={this.handleClick.bind(this, 'logs', null)}
+                                        >
+                                            {'Logs'}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <SelectTeamModal
