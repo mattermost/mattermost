@@ -127,7 +127,6 @@ export default class UserItem extends React.Component {
 
         if (user.delete_at > 0) {
             currentRoles = 'Inactive';
-            currentRoles = 'Inactive';
             showMakeMember = false;
             showMakeAdmin = false;
             showMakeSystemAdmin = false;
