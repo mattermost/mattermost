@@ -41,7 +41,13 @@ class BrowserStoreClass {
     }
 
     setGlobalItem(name, value) {
-        localStorage.setItem(name, JSON.stringify(value));
+        try {
+            localStorage.setItem(name, JSON.stringify(value));
+        } catch (err) {
+            console.log('An error occurred while setting local storage, clearing all props'); //eslint-disable-line no-console
+            localStorage.clear();
+            window.location.href = window.location.href;
+        }
     }
 
     getGlobalItem(name, defaultValue) {
