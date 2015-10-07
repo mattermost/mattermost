@@ -63,7 +63,7 @@ export default class ErrorBar extends React.Component {
         ErrorStore.removeChangeListener(this.onErrorChange);
     }
 
-    componentWillUpdate(nextProps, nextState) {
+    componentDidUpdate(nextProps, nextState) {
         if (this.isValidError(nextState)) {
             var height = $(React.findDOMNode(this)).outerHeight();
             height = height < 30 ? 30 : height;
