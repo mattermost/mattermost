@@ -991,7 +991,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.IsInRole(new_roles, model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("updateRoles", "The system_admin role can only be set by another system admin", "")
+		c.Err = model.NewAppError("updateRoles", "The system admin role can only be set by another system admin", "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1010,6 +1010,12 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.IsTeamAdmin() {
 		c.Err = model.NewAppError("updateRoles", "You do not have the appropriate permissions", "userId="+user_id)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("updateRoles", "The system admin role can only by modified by another system admin", "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}

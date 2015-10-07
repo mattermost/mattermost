@@ -70,19 +70,84 @@ export default class RhsComment extends React.Component {
     componentDidUpdate() {
         this.parseEmojis();
     }
+    createDropdown() {
+        var post = this.props.post;
+
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
+            return '';
+        }
+
+        var isOwner = UserStore.getCurrentId() === post.user_id;
+        var isAdmin = Utils.isAdmin(UserStore.getCurrentUser().roles);
+
+        var dropdownContents = [];
+
+        if (isOwner) {
+            dropdownContents.push(
+                <li role='presentation'>
+                    <a
+                        href='#'
+                        role='menuitem'
+                        data-toggle='modal'
+                        data-target='#edit_post'
+                        data-title='Comment'
+                        data-message={post.message}
+                        data-postid={post.id}
+                        data-channelid={post.channel_id}
+                    >
+                        Edit
+                    </a>
+                </li>
+            );
+        }
+
+        if (isOwner || isAdmin) {
+            dropdownContents.push(
+                <li role='presentation'>
+                    <a
+                        href='#'
+                        role='menuitem'
+                        data-toggle='modal'
+                        data-target='#delete_post'
+                        data-title='Comment'
+                        data-postid={post.id}
+                        data-channelid={post.channel_id}
+                        data-comments={0}
+                    >
+                        Delete
+                    </a>
+                </li>
+            );
+        }
+
+        if (dropdownContents.length === 0) {
+            return '';
+        }
+
+        return (
+            <div className='dropdown'>
+                <a
+                    href='#'
+                    className='dropdown-toggle theme'
+                    type='button'
+                    data-toggle='dropdown'
+                    aria-expanded='false'
+                />
+                <ul
+                    className='dropdown-menu'
+                    role='menu'
+                >
+                    {dropdownContents}
+                </ul>
+            </div>
+            );
+    }
     render() {
         var post = this.props.post;
 
         var currentUserCss = '';
         if (UserStore.getCurrentId() === post.user_id) {
             currentUserCss = 'current--user';
-        }
-
-        var isOwner = UserStore.getCurrentId() === post.user_id;
-
-        var type = 'Post';
-        if (post.root_id.length > 0) {
-            type = 'Comment';
         }
 
         var timestamp = UserStore.getCurrentUser().update_at;
@@ -110,53 +175,7 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        var ownerOptions;
-        if (isOwner && post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING) {
-            ownerOptions = (
-                <div className='dropdown'>
-                    <a
-                        href='#'
-                        className='dropdown-toggle theme'
-                        type='button'
-                        data-toggle='dropdown'
-                        aria-expanded='false'
-                    />
-                    <ul
-                        className='dropdown-menu'
-                        role='menu'
-                    >
-                        <li role='presentation'>
-                            <a
-                                href='#'
-                                role='menuitem'
-                                data-toggle='modal'
-                                data-target='#edit_post'
-                                data-title={type}
-                                data-message={post.message}
-                                data-postid={post.id}
-                                data-channelid={post.channel_id}
-                            >
-                                Edit
-                            </a>
-                        </li>
-                        <li role='presentation'>
-                            <a
-                                href='#'
-                                role='menuitem'
-                                data-toggle='modal'
-                                data-target='#delete_post'
-                                data-title={type}
-                                data-postid={post.id}
-                                data-channelid={post.channel_id}
-                                data-comments={0}
-                            >
-                                Delete
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            );
-        }
+        var dropdown = this.createDropdown();
 
         var fileAttachment;
         if (post.filenames && post.filenames.length > 0) {
@@ -190,7 +209,7 @@ export default class RhsComment extends React.Component {
                             </time>
                         </li>
                         <li className='post-header-col post-header__reply'>
-                            {ownerOptions}
+                            {dropdown}
                         </li>
                     </ul>
                     <div className='post-body'>

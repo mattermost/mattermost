@@ -396,6 +396,17 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 	return storeChannel
 }
 
+var specialSearchChar = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	"@",
+}
+
 func (s SqlPostStore) Search(teamId string, userId string, terms string, isHashtagSearch bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -411,10 +422,10 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 			}
 		}
 
-		// @ has a speical meaning in INNODB FULLTEXT indexes and
-		// is reserved for calc'ing distances so you
-		// cannot escape it so we replace it.
-		terms = strings.Replace(terms, "@", " ", -1)
+		// these chars have speical meaning and can be treated as spaces
+		for _, c := range specialSearchChar {
+			terms = strings.Replace(terms, c, " ", -1)
+		}
 
 		var posts []*model.Post
 

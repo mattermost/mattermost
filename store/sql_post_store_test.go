@@ -516,7 +516,7 @@ func TestPostStoreSearch(t *testing.T) {
 	o4.ChannelId = c1.Id
 	o4.UserId = model.NewId()
 	o4.Hashtags = "#hashtag"
-	o4.Message = "message"
+	o4.Message = "(message)blargh"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 
 	o5 := &model.Post{}
@@ -527,37 +527,37 @@ func TestPostStoreSearch(t *testing.T) {
 
 	r1 := (<-store.Post().Search(teamId, userId, "corey", false)).Data.(*model.PostList)
 	if len(r1.Order) != 1 && r1.Order[0] != o1.Id {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r3 := (<-store.Post().Search(teamId, userId, "new", false)).Data.(*model.PostList)
 	if len(r3.Order) != 2 && r3.Order[0] != o1.Id {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r4 := (<-store.Post().Search(teamId, userId, "john", false)).Data.(*model.PostList)
 	if len(r4.Order) != 1 && r4.Order[0] != o2.Id {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r5 := (<-store.Post().Search(teamId, userId, "matter*", false)).Data.(*model.PostList)
 	if len(r5.Order) != 1 && r5.Order[0] != o1.Id {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r6 := (<-store.Post().Search(teamId, userId, "#hashtag", true)).Data.(*model.PostList)
 	if len(r6.Order) != 1 && r6.Order[0] != o4.Id {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r7 := (<-store.Post().Search(teamId, userId, "#secret", true)).Data.(*model.PostList)
 	if len(r7.Order) != 1 && r7.Order[0] != o5.Id {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r8 := (<-store.Post().Search(teamId, userId, "@thisshouldmatchnothing", true)).Data.(*model.PostList)
 	if len(r8.Order) != 0 {
-		t.Fatal("returned wrong serach result")
+		t.Fatal("returned wrong search result")
 	}
 
 	r9 := (<-store.Post().Search(teamId, userId, "mattermost jersey", false)).Data.(*model.PostList)
@@ -567,6 +567,16 @@ func TestPostStoreSearch(t *testing.T) {
 
 	r10 := (<-store.Post().Search(teamId, userId, "matter* jer*", false)).Data.(*model.PostList)
 	if len(r10.Order) != 2 {
+		t.Fatal("returned wrong search result")
+	}
+
+	r11 := (<-store.Post().Search(teamId, userId, "message blargh", false)).Data.(*model.PostList)
+	if len(r11.Order) != 1 {
+		t.Fatal("returned wrong search result")
+	}
+
+	r12 := (<-store.Post().Search(teamId, userId, "blargh>", false)).Data.(*model.PostList)
+	if len(r12.Order) != 1 {
 		t.Fatal("returned wrong search result")
 	}
 }
