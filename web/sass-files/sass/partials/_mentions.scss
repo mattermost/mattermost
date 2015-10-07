@@ -57,11 +57,4 @@
 
 .mention-highlight {
 	background-color:#fff2bb;
-	a {
-		color: inherit;
-		text-decoration: underline;
-		&:hover, &:active {
-			color: inherit;
-		}
-	}
 }

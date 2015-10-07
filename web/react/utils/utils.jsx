@@ -531,6 +531,10 @@ export function applyTheme(theme) {
     if (theme.mentionHighlightBg) {
         changeCss('.mention-highlight, .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
     }
+
+    if (theme.mentionHighlightLink) {
+        changeCss('.mention-highlight .mention-link', 'color:' + theme.mentionHighlightLink, 1);
+    }
 }
 export function changeCss(className, classValue, classRepeat) {
     // we need invisible container to store additional css definitions
