@@ -50,8 +50,10 @@ class SocketStoreClass extends EventEmitter {
                 }
 
                 this.failCount = 0;
-                ErrorStore.storeLastError(null);
-                ErrorStore.emitChange();
+                if (ErrorStore.getLastError()) {
+                    ErrorStore.storeLastError(null);
+                    ErrorStore.emitChange();
+                }
             };
 
             conn.onclose = () => {
