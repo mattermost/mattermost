@@ -139,7 +139,8 @@ module.exports = {
             linkColor: '#2389d7',
             buttonBg: '#2389d7',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#fff2bb'
+            mentionHighlightBg: '#fff2bb',
+            mentionHighlightLink: '#2f81b7'
         },
         organization: {
             type: 'Organization',
@@ -161,7 +162,8 @@ module.exports = {
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#fff2bb'
+            mentionHighlightBg: '#fff2bb',
+            mentionHighlightLink: '#2f81b7'
         },
         mattermostDark: {
             type: 'Mattermost Dark',
@@ -183,7 +185,8 @@ module.exports = {
             linkColor: '#A4FFEB',
             buttonBg: '#4CBBA4',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#338886'
+            mentionHighlightBg: '#984063',
+            mentionHighlightLink: '#A4FFEB'
         },
         windows10: {
             type: 'Windows Dark',
@@ -205,7 +208,8 @@ module.exports = {
             linkColor: '#0177e7',
             buttonBg: '#0177e7',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#276198'
+            mentionHighlightBg: '#784098',
+            mentionHighlightLink: '#A4FFEB'
         }
     },
     THEME_ELEMENTS: [
@@ -284,6 +288,10 @@ module.exports = {
         {
             id: 'mentionHighlightBg',
             uiName: 'Mention Highlight BG'
+        },
+        {
+            id: 'mentionHighlightLink',
+            uiName: 'Mention Highlight Link'
         }
     ]
 };
