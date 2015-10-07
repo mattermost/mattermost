@@ -84,31 +84,70 @@ func TestPreferenceStoreUpdate(t *testing.T) {
 	Must(store.Preference().Save(&p1))
 
 	p1.Value = "1234garbage"
-	if err := (<-store.Preference().Update(&p1)).Err; err != nil {
-		t.Fatal(err)
+	if result := (<-store.Preference().Update(&p1)); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if result.Data.(int64) != 1 {
+		t.Fatal("update should have changed only 1 row")
 	}
 
 	p1.UserId = model.NewId()
-	if err := (<-store.Preference().Update(&p1)).Err; err == nil {
-		t.Fatal("update should have failed because of changed user id")
+	if result := (<-store.Preference().Update(&p1)); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if result.Data.(int64) != 0 {
+		t.Fatal("update shouldn't have made changes because of changed user id")
 	}
 
 	p1.UserId = id
 	p1.Category = model.PREFERENCE_CATEGORY_TEST
-	if err := (<-store.Preference().Update(&p1)).Err; err == nil {
-		t.Fatal("update should have failed because of changed category")
+	if result := (<-store.Preference().Update(&p1)); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if result.Data.(int64) != 0 {
+		t.Fatal("update shouldn't have made changes because of changed category")
 	}
 
 	p1.Category = model.PREFERENCE_CATEGORY_DIRECT_CHANNELS
 	p1.Name = model.PREFERENCE_NAME_TEST
-	if err := (<-store.Preference().Update(&p1)).Err; err == nil {
-		t.Fatal("update should have failed because of changed name")
+	if result := (<-store.Preference().Update(&p1)); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if result.Data.(int64) != 0 {
+		t.Fatal("update shouldn't have made changes because of changed name")
 	}
 
 	p1.Name = model.PREFERENCE_NAME_SHOW
 	p1.AltId = model.NewId()
-	if err := (<-store.Preference().Update(&p1)).Err; err == nil {
-		t.Fatal("update should have failed because of changed alternate id")
+	if result := (<-store.Preference().Update(&p1)); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if result.Data.(int64) != 0 {
+		t.Fatal("update shouldn't have made changes because of changed alt id")
+	}
+}
+
+func TestPreferenceSaveOrUpdate(t *testing.T) {
+	Setup()
+
+	id := model.NewId()
+
+	p1 := model.Preference{
+		UserId:   id,
+		Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
+		Name:     model.PREFERENCE_NAME_SHOW,
+		Value:    "value1",
+	}
+	Must(store.Preference().SaveOrUpdate(&p1))
+
+	if preferences := Must(store.Preference().GetByName(p1.UserId, p1.Category, p1.Name)).([]*model.Preference); len(preferences) != 1 {
+		t.Fatal("got incorrect number of preferences after SaveOrUpdate")
+	} else if preferences[0].Value != "value1" {
+		t.Fatal("should have received value1 after SaveOrUpdate")
+	}
+
+	p1.Value = "value2"
+	Must(store.Preference().SaveOrUpdate(&p1))
+
+	if preferences := Must(store.Preference().GetByName(p1.UserId, p1.Category, p1.Name)).([]*model.Preference); len(preferences) != 1 {
+		t.Fatal("got incorrect number of preferences after second SaveOrUpdate")
+	} else if preferences[0].Value != "value2" {
+		t.Fatal("should have received value2 after SaveOrUpdate")
 	}
 }
 

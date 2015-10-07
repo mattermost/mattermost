@@ -154,5 +154,6 @@ type WebhookStore interface {
 type PreferenceStore interface {
 	Save(preference *model.Preference) StoreChannel
 	Update(preference *model.Preference) StoreChannel
+	SaveOrUpdate(preferences ...*model.Preference) StoreChannel
 	GetByName(userId string, category string, name string) StoreChannel
 }

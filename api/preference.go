@@ -20,7 +20,7 @@ func InitPreference(r *mux.Router) {
 }
 
 func setPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
-	var preferences []model.Preference
+	var preferences []*model.Preference
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&preferences); err != nil {
@@ -29,21 +29,17 @@ func setPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// just attempt to save/update them one by one and abort if one fails
-	// in the future, this could probably be done in a transaction, but that's unnecessary now
 	for _, preference := range preferences {
 		if c.Session.UserId != preference.UserId {
 			c.Err = model.NewAppError("setPreferences", "Unable to set preferences for other user", "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
 			c.Err.StatusCode = http.StatusUnauthorized
 			return
 		}
+	}
 
-		if result := <-Srv.Store.Preference().Save(&preference); result.Err != nil {
-			if result = <-Srv.Store.Preference().Update(&preference); result.Err != nil {
-				c.Err = result.Err
-				return
-			}
-		}
+	if result := <-Srv.Store.Preference().SaveOrUpdate(preferences...); result.Err != nil {
+		c.Err = result.Err
+		return
 	}
 
 	w.Write([]byte("true"))
