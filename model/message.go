@@ -31,8 +31,8 @@ func (m *Message) Add(key string, value string) {
 	m.Props[key] = value
 }
 
-func NewMessage(teamId string, channekId string, userId string, action string) *Message {
-	return &Message{TeamId: teamId, ChannelId: channekId, UserId: userId, Action: action, Props: make(map[string]string)}
+func NewMessage(teamId string, channelId string, userId string, action string) *Message {
+	return &Message{TeamId: teamId, ChannelId: channelId, UserId: userId, Action: action, Props: make(map[string]string)}
 }
 
 func (o *Message) ToJson() string {
