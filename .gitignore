@@ -5,7 +5,8 @@ node_modules
 dist
 npm-debug.log
 
-bundle*.js
+web/static/js/bundle*.js
+web/static/js/libs*.js
 model/version.go
 model/version.go.bak
 

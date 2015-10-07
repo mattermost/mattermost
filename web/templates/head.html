@@ -1,6 +1,6 @@
 {{define "head"}}
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="robots" content="noindex, nofollow">
 
     <title>{{ .Props.Title }}</title>
@@ -22,24 +22,22 @@
         window.config = {{ .ClientProps }};
     </script>
 
-
+    <!-- CSS Should always go first -->
     <link rel="stylesheet" href="/static/css/bootstrap-3.3.5.min.css">
-    <link rel="stylesheet" href="/static/css/jasny-bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/jasny-bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/bootstrap-colorpicker.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/google-fonts.css">
+
+    <link id="favicon" rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
 
     <script src="/static/js/react-with-addons-0.13.3.js"></script>
     <script src="/static/js/jquery-1.11.1.js"></script>
     <script src="/static/js/bootstrap-3.3.5.js"></script>
     <script src="/static/js/bootstrap-colorpicker.min.js"></script>
     <script src="/static/js/react-bootstrap-0.25.1.js"></script>
-
-    <link id="favicon" rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
-    <link href='/static/css/google-fonts.css' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="/static/css/styles.css">
-
     <script src="/static/js/perfect-scrollbar-0.6.5.jquery.js"></script>
-
     <script src="/static/js/jquery-dragster/jquery.dragster.js"></script>
 
     <style id="antiClickjack">body{display:none !important;}</style>
@@ -60,6 +58,7 @@
         }
     </script>
 
+    <script src="/static/js/libs.min.js"></script>
     <script src="/static/js/bundle.js"></script>
 
     <script type="text/javascript">
