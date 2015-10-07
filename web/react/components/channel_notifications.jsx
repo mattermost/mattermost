@@ -195,9 +195,7 @@ export default class ChannelNotifications extends React.Component {
 
             const extraInfo = (
                 <span>
-                    {'Selecting an option other than "Default" will override the global notification settings.'}
-                    <br/>
-                    {'Desktop notifications are available on Firefox, Safari, and Chrome.'}
+                    {'Selecting an option other than "Default" will override the global notification settings. Desktop notifications are available on Firefox, Safari, and Chrome.'}
                 </span>
             );
 
