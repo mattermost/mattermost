@@ -179,6 +179,8 @@ func getClientProperties(c *model.Config) map[string]string {
 	props["BuildHash"] = model.BuildHash
 
 	props["SiteName"] = c.TeamSettings.SiteName
+	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
+
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 
 	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey

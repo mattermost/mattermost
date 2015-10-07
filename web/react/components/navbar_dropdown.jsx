@@ -135,30 +135,35 @@ export default class NavbarDropdown extends React.Component {
 
         var teams = [];
 
-        teams.push(
-            <li
-                className='divider'
-                key='div'
-            >
-            </li>
-        );
-
         if (this.state.teams.length > 1) {
+            teams.push(
+                <li
+                    className='divider'
+                    key='div'
+                >
+                </li>
+            );
+
             this.state.teams.forEach((teamName) => {
                 if (teamName !== this.props.teamName) {
                     teams.push(<li key={teamName}><a href={Utils.getWindowLocationOrigin() + '/' + teamName}>{'Switch to ' + teamName}</a></li>);
                 }
             });
         }
-        teams.push(<li key='newTeam_li'>
-                        <a
-                            key='newTeam_a'
-                            target='_blank'
-                            href={Utils.getWindowLocationOrigin() + '/signup_team'}
-                        >
-                            {'Create a New Team'}
-                        </a>
-                    </li>);
+
+        if (global.window.config.EnableTeamCreation === 'true') {
+            teams.push(
+                <li key='newTeam_li'>
+                    <a
+                        key='newTeam_a'
+                        target='_blank'
+                        href={Utils.getWindowLocationOrigin() + '/signup_team'}
+                    >
+                        {'Create a New Team'}
+                    </a>
+                </li>
+            );
+        }
 
         return (
             <ul className='nav navbar-nav navbar-right'>
