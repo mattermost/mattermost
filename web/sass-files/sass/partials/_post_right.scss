@@ -29,7 +29,7 @@
 			min-height: 100px;
 		}
 		.msg-typing {
-			color: #555;
+			@include opacity(0.7);
 			float: left;
 			padding-top: 17px;
 		}

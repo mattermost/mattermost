@@ -31,6 +31,11 @@ export default class ActivityLogModal extends React.Component {
     }
     submitRevoke(altId, e) {
         e.preventDefault();
+        var modalContent = $(e.target).closest('.modal-content');
+        modalContent.addClass('animation--highlight');
+        setTimeout(() => {
+            modalContent.removeClass('animation--highlight');
+        }, 1500);
         Client.revokeSession(altId,
             function handleRevokeSuccess() {
                 AsyncClient.getSessions();

@@ -122,10 +122,9 @@ module.exports = {
         default: {
             type: 'Mattermost',
             sidebarBg: '#fafafa',
-            sidebarText: '#999999',
+            sidebarText: '#333333',
             sidebarUnreadText: '#333333',
             sidebarTextHoverBg: '#e6f2fa',
-            sidebarTextHoverColor: '#999999',
             sidebarTextActiveBg: '#e1e1e1',
             sidebarTextActiveColor: '#111111',
             sidebarHeaderBg: '#2389d7',
@@ -144,10 +143,9 @@ module.exports = {
         organization: {
             type: 'Organization',
             sidebarBg: '#2071a7',
-            sidebarText: '#bfcde8',
+            sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#136197',
-            sidebarTextHoverColor: '#bfcde8',
             sidebarTextActiveBg: '#136197',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#2f81b7',
@@ -166,10 +164,9 @@ module.exports = {
         mattermostDark: {
             type: 'Mattermost Dark',
             sidebarBg: '#1B2C3E',
-            sidebarText: '#bbbbbb',
+            sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#4A5664',
-            sidebarTextHoverColor: '#bbbbbb',
             sidebarTextActiveBg: '#39769C',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1B2C3E',
@@ -188,10 +185,9 @@ module.exports = {
         windows10: {
             type: 'Windows Dark',
             sidebarBg: '#171717',
-            sidebarText: '#999',
+            sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#302e30',
-            sidebarTextHoverColor: '#999',
             sidebarTextActiveBg: '#484748',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1f1f1f',
@@ -232,10 +228,6 @@ module.exports = {
         {
             id: 'sidebarTextHoverBg',
             uiName: 'Sidebar Text Hover BG'
-        },
-        {
-            id: 'sidebarTextHoverColor',
-            uiName: 'Sidebar Text Hover Color'
         },
         {
             id: 'sidebarTextActiveBg',

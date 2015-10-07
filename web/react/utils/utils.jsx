@@ -399,9 +399,9 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarText) {
-        changeCss('.sidebar--left .nav-pills__container li>a, .sidebar--right, .settings-modal .nav-pills>li a, .sidebar--menu', 'color:' + theme.sidebarText, 1);
+        changeCss('.sidebar--left .nav-pills__container li>a, .sidebar--right, .settings-modal .nav-pills>li a, .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
-        changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.8), 1);
+        changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left, .sidebar--right .sidebar--right__header', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 1);
         changeCss('.sidebar--left .status path', 'fill:' + changeOpacity(theme.sidebarText, 0.5), 1);
@@ -415,11 +415,6 @@ export function applyTheme(theme) {
     if (theme.sidebarTextHoverBg) {
         changeCss('.sidebar--left .nav-pills__container li>a:hover, .sidebar--left .nav-pills__container li>a:focus, .settings-modal .nav-pills>li:hover a, .settings-modal .nav-pills>li:focus a', 'background:' + theme.sidebarTextHoverBg, 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg, 1);
-    }
-
-    if (theme.sidebarTextHoverColor) {
-        changeCss('.sidebar--left .nav-pills__container li>a:hover, .sidebar--left .nav-pills__container li>a:focus, .settings-modal .nav-pills>li:hover a, .settings-modal .nav-pills>li:focus a', 'color:' + theme.sidebarTextHoverColor, 2);
-        changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li:hover a', 'color:' + theme.sidebarTextHoverColor, 2);
     }
 
     if (theme.sidebarTextActiveBg) {
@@ -495,7 +490,7 @@ export function applyTheme(theme) {
         changeCss('.post-image__column a, .post-image__column a:hover, .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
         changeCss('.search-bar__container .search__form .search-bar, .form-control', 'color:' + theme.centerChannelColor, 2);
         changeCss('@media(max-width: 768px){.search-bar__container .search__form .search-bar', 'background:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: inherit;', 1);
-        changeCss('.search-bar__container .search__form, .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.input-group-addon, .search-bar__container .search__form, .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro .channel-intro__content', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
@@ -503,7 +498,7 @@ export function applyTheme(theme) {
         changeCss('.modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro, .settings-modal .settings-table .settings-content .divider-dark, hr, .settings-modal .settings-table .settings-links', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
-        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, .post.post--comment.other--root .post-comment, .post.same--root .post-body, .modal .more-channel-table tbody>tr td, .member-div:first-child, .member-div', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
+        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, .post.post--comment.other--root .post-comment, .post.same--root .post-body, .modal .more-channel-table tbody>tr td, .member-div:first-child, .member-div, .access-history__table .access__report, .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
         changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('@media(max-width: 1800px){.inner__wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
