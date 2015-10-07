@@ -1159,6 +1159,7 @@ export function setPreferences(preferences, success, error) {
     $.ajax({
         url: '/api/v1/preferences/set',
         dataType: 'json',
+        contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(preferences),
         success,

@@ -39,7 +39,6 @@ class PreferenceStoreClass extends EventEmitter {
     }
 
     getAllPreferences() {
-        console.log('getting preferences'); // eslint-disable-line no-console
         return new Map(BrowserStore.getItem('preferences', []));
     }
 

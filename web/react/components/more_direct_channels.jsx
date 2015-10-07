@@ -82,21 +82,6 @@ export default class MoreDirectChannels extends React.Component {
                         );
                     };
                 }
-            } else {
-                if (channel.id === ChannelStore.getCurrentId()) {
-                    active = 'active';
-                }
-
-                if (channel.unread) {
-                    badge = <span className='badge pull-right small'>{channel.unread}</span>;
-                    titleClass = 'unread-title';
-                }
-
-                handleClick = function clickHandler(e) {
-                    e.preventDefault();
-                    utils.switchChannel(channel);
-                    $(React.findDOMNode(self.refs.modal)).modal('hide');
-                };
             }
 
             return (
