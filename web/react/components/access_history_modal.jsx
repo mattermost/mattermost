@@ -15,7 +15,7 @@ export default class AccessHistoryModal extends React.Component {
         this.onHide = this.onHide.bind(this);
         this.onShow = this.onShow.bind(this);
 
-        let state = this.getStateFromStoresForAudits();
+        const state = this.getStateFromStoresForAudits();
         state.moreInfo = [];
 
         this.state = state;
@@ -54,20 +54,82 @@ export default class AccessHistoryModal extends React.Component {
     }
     render() {
         var accessList = [];
-        var currentHistoryDate = null;
 
         for (var i = 0; i < this.state.audits.length; i++) {
             var currentAudit = this.state.audits[i];
-            var newHistoryDate = new Date(currentAudit.create_at);
-            var newDate = null;
-
-            if (!currentHistoryDate || currentHistoryDate.toLocaleDateString() !== newHistoryDate.toLocaleDateString()) {
-                currentHistoryDate = newHistoryDate;
-                newDate = (<div> {currentHistoryDate.toDateString()} </div>);
-            }
+            var currentDate = new Date(currentAudit.create_at);
 
             if (!currentAudit.session_id && currentAudit.action.search('/users/login') !== -1) {
                 currentAudit.session_id = 'N/A (Login attempt)';
+            }
+
+            const currentActionURL = currentAudit.action.replace(/\/api\/v[1-9]/, '');
+
+            let currentAuditDesc = '';
+
+            /* Handle specific audit type formatting semi-individually and
+                fall back to a best guess case if none exists
+
+                Supported audits:
+                    /channels
+                    - Create Channel X
+                    - Update Channel X
+                    - Update Channel Description X
+                    - Delete Channel X
+                    - Add User to Channel X
+                    - Remove User from Channel X
+
+                    /oauth
+                    - Register X
+                    - Allow Attempt/Success/Failure X
+
+                    /team
+                    - Revoke All Sessions X (NO CORRESPONDING ADDRESS)
+
+                    - Update (users - ?) X
+                    - Update Notify (?) X
+                    - Login Attempt X
+                    - Login (success/failure) X
+                    - Logout (/logout) X
+            */
+            switch (currentActionURL) {
+            case '/channels/create':
+                break;
+            case '/channels/update':
+                break;
+            case '/channels/update_desc':
+                break;
+            case /\/channels\/[A-Za-z0-9]+\/delete/:
+                break;
+            case /\/channels\/[A-Za-z0-9]+\/add/:
+                break;
+            case /\/channels\/[A-Za-z0-9]+\/remove/:
+                break;
+            case '/oauth/register':
+                break;
+            case '/oauth/allow':
+                break;
+            case '/team/':
+                break;
+            default:
+                let currentActionDesc = '';
+
+                if (currentActionURL && currentActionURL.lastIndexOf('/') !== -1) {
+                    currentActionDesc = currentActionURL.substring(currentActionURL.lastIndexOf('/') + 1).replace('_', ' ');
+                    currentActionDesc = Utils.toTitleCase(currentActionDesc);
+                }
+
+                let currentExtraInfoDesc = '';
+                if (currentAudit.extra_info) {
+                    currentExtraInfoDesc = currentAudit.extra_info;
+
+                    if (currentExtraInfoDesc.indexOf('=') !== -1) {
+                        currentExtraInfoDesc = currentExtraInfoDesc.substring(currentExtraInfoDesc.indexOf('=') + 1);
+                    }
+                }
+
+                currentAuditDesc = currentActionDesc + ' ' + currentExtraInfoDesc;
+                break;
             }
 
             var moreInfo = (
@@ -76,7 +138,7 @@ export default class AccessHistoryModal extends React.Component {
                     className='theme'
                     onClick={this.handleMoreInfo.bind(this, i)}
                 >
-                    More info
+                    {'More info'}
                 </a>
             );
 
@@ -84,7 +146,6 @@ export default class AccessHistoryModal extends React.Component {
                 moreInfo = (
                     <div>
                         <div>{'Session ID: ' + currentAudit.session_id}</div>
-                        <div>{'URL: ' + currentAudit.action.replace(/\/api\/v[1-9]/, '')}</div>
                     </div>
                 );
             }
@@ -99,11 +160,9 @@ export default class AccessHistoryModal extends React.Component {
                     key={'accessHistoryEntryKey' + i}
                     className='access-history__table'
                 >
-                    <div className='access__date'>{newDate}</div>
                     <div className='access__report'>
-                        <div className='report__time'>{newHistoryDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})}</div>
+                        <div className='report__time'>{currentDate.toDateString() + ' - ' + currentDate.toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'}) + ' | ' + currentAuditDesc + ' from ' + currentAudit.ip_address}</div>
                         <div className='report__info'>
-                            <div>{'IP: ' + currentAudit.ip_address}</div>
                             {moreInfo}
                         </div>
                         {divider}
@@ -138,13 +197,13 @@ export default class AccessHistoryModal extends React.Component {
                                     data-dismiss='modal'
                                     aria-label='Close'
                                 >
-                                    <span aria-hidden='true'>&times;</span>
+                                    <span aria-hidden='true'>{'×'}</span>
                                 </button>
                                 <h4
                                     className='modal-title'
                                     id='myModalLabel'
                                 >
-                                    Access History
+                                    {'Access History'}
                                 </h4>
                             </div>
                             <div
