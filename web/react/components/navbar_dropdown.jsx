@@ -223,6 +223,15 @@ export default class NavbarDropdown extends React.Component {
                                 {'Report a Problem'}
                             </a>
                         </li>
+                        <li>
+                            <a
+                                href='#'
+                                data-toggle='modal'
+                                data-target='#about_build'
+                            >
+                                {'About Mattermost'}
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>

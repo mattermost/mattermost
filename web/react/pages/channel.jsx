@@ -30,6 +30,7 @@ var ErrorStore = require('../stores/error_store.jsx');
 var ChannelLoader = require('../components/channel_loader.jsx');
 var MentionList = require('../components/mention_list.jsx');
 var ChannelInfoModal = require('../components/channel_info_modal.jsx');
+var AboutBuildModal = require('../components/about_build_modal.jsx');
 var AccessHistoryModal = require('../components/access_history_modal.jsx');
 var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
@@ -148,6 +149,11 @@ function setupChannelPage(props) {
     React.render(
         <ChannelInfoModal />,
         document.getElementById('channel_info_modal')
+    );
+
+    React.render(
+        <AboutBuildModal />,
+        document.getElementById('about_build_modal')
     );
 
     React.render(
