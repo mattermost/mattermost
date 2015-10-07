@@ -111,7 +111,7 @@ func securityAndDiagnosticsJob() {
 							<-api.Srv.Store.System().Update(systemSecurityLastTime)
 						}
 
-						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + query + v.Encode())
+						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
 						if err != nil {
 							l4g.Error("Failed to get security update information from Mattermost.")
 							return
