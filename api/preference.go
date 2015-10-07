@@ -59,10 +59,51 @@ func getPreferencesByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		if len(data) == 0 {
 			if category == model.PREFERENCE_CATEGORY_DIRECT_CHANNELS && name == model.PREFERENCE_NAME_SHOW {
 				// add direct channels for a user that existed before preferences were added
-				data = AddDirectChannels(c.Session.UserId, c.Session.TeamId)
+				data = addDirectChannels(c.Session.UserId, c.Session.TeamId)
 			}
 		}
 
 		w.Write([]byte(model.PreferenceListToJson(data)))
 	}
+}
+
+func addDirectChannels(userId, teamId string) []*model.Preference {
+	var profiles map[string]*model.User
+	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
+		l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", userId, teamId, result.Err.Error())
+		return []*model.Preference{}
+	} else {
+		profiles = result.Data.(map[string]*model.User)
+	}
+
+	var preferences []*model.Preference
+
+	for id := range profiles {
+		if id == userId {
+			continue
+		}
+
+		profile := profiles[id]
+
+		preference := &model.Preference{
+			UserId:   userId,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
+			Name:     model.PREFERENCE_NAME_SHOW,
+			AltId:    profile.Id,
+			Value:    "true",
+		}
+
+		if result := <-Srv.Store.Preference().Save(preference); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for user user_id=%s, alt_id=%s, team_id=%s, err=%v", userId, profile.Id, teamId, result.Err.Error())
+			continue
+		}
+
+		preferences = append(preferences, preference)
+
+		if len(preferences) >= 10 {
+			break
+		}
+	}
+
+	return preferences
 }
