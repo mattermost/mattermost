@@ -9,6 +9,7 @@ export default class ErrorBar extends React.Component {
 
         this.onErrorChange = this.onErrorChange.bind(this);
         this.handleClose = this.handleClose.bind(this);
+        this.resize = this.resize.bind(this);
         this.prevTimer = null;
 
         this.state = ErrorStore.getLastError();
@@ -45,32 +46,32 @@ export default class ErrorBar extends React.Component {
         return false;
     }
 
-    componentDidMount() {
-        ErrorStore.addChangeListener(this.onErrorChange);
-
-        $(window).resize(() => {
-            if (this.isValidError(this.state)) {
-                var height = $(React.findDOMNode(this)).outerHeight();
-                height = height < 30 ? 30 : height;
-                $('body').css('padding-top', height + 'px');
-            } else {
-                $('body').css('padding-top', '0');
-            }
-        });
-    }
-
-    componentWillUnmount() {
-        ErrorStore.removeChangeListener(this.onErrorChange);
-    }
-
-    componentDidUpdate(nextProps, nextState) {
-        if (this.isValidError(nextState)) {
+    resize() {
+        if (this.isValidError(this.state)) {
             var height = $(React.findDOMNode(this)).outerHeight();
             height = height < 30 ? 30 : height;
             $('body').css('padding-top', height + 'px');
         } else {
             $('body').css('padding-top', '0');
         }
+    }
+
+    componentDidMount() {
+        ErrorStore.addChangeListener(this.onErrorChange);
+
+        $(window).resize(() => {
+            this.resize();
+        });
+
+        this.resize();
+    }
+
+    componentWillUnmount() {
+        ErrorStore.removeChangeListener(this.onErrorChange);
+    }
+
+    componentDidUpdate() {
+        this.resize();
     }
 
     onErrorChange() {
