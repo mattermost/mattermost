@@ -205,7 +205,7 @@ export default class Sidebar extends React.Component {
                 const user = UserStore.getCurrentUser();
                 const member = ChannelStore.getMember(msg.channel_id);
 
-                var notifyLevel = member.notify_props.desktop;
+                var notifyLevel = member && member.notify_props ? member.notify_props.desktop : 'default';
                 if (notifyLevel === 'default') {
                     notifyLevel = user.notify_props.desktop;
                 }
