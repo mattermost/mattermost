@@ -19,7 +19,7 @@
 - [Code Contribution Guidelines](developer/Code-Contribution-Guidelines.md)
 - [Developer Machine Setup](developer/Setup.md)
 - [Mattermost Style Guide](developer/Style-Guide.md)
-- [API Overview] (api/Overview.md)
+- [API Overview](api/Overview.md)
 
 ## Usage Help
 
