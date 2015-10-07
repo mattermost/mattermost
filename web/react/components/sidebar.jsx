@@ -76,19 +76,19 @@ export default class Sidebar extends React.Component {
             let forceShow = false;
             let channel = ChannelStore.getByName(channelName);
 
-            if (!channel) {
+            if (channel) {
+                const member = members[channel.id];
+                const msgCount = channel.total_msg_count - member.msg_count;
+
+                // always show a channel if either it is the current one or if it is unread, but it is not currently being left
+                forceShow = (currentId === channel.id || msgCount > 0) && !this.isLeaving.get(channel.id);
+            } else {
                 channel = {};
                 channel.fake = true;
                 channel.name = channelName;
                 channel.last_post_at = 0;
                 channel.total_msg_count = 0;
                 channel.type = 'D';
-            } else {
-                const member = members[channel.id];
-                const msgCount = channel.total_msg_count - member.msg_count;
-
-                // always show a channel if either it is the current one or if it is unread, but it is not currently being left
-                forceShow = (currentId === channel.id || msgCount > 0) && !this.isLeaving.get(channel.id);
             }
 
             channel.display_name = teammate.username;
@@ -96,10 +96,8 @@ export default class Sidebar extends React.Component {
             channel.status = UserStore.getStatus(teammate.id);
 
             if (preferences.some((preference) => (preference.alt_id === teammate.id && preference.value !== 'false'))) {
-                console.log(teammate.id + " is visible");
                 visibleDirectChannels.push(channel);
             } else if (forceShow) {
-                console.log(teammate.id + " needs to be visible");
                 // make sure that unread direct channels are visible
                 const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
                     Constants.Preferences.NAME_SHOW, teammate.id, 'true');
@@ -117,9 +115,9 @@ export default class Sidebar extends React.Component {
         return {
             activeId: currentId,
             channels: ChannelStore.getAll(),
-            members: members,
-            visibleDirectChannels: visibleDirectChannels,
-            hiddenDirectChannels: hiddenDirectChannels
+            members,
+            visibleDirectChannels,
+            hiddenDirectChannels
         };
     }
 
@@ -419,10 +417,10 @@ export default class Sidebar extends React.Component {
 
         if (!channel.fake) {
             handleClick = function clickHandler(e) {
-                if (!e.target.attributes.getNamedItem('data-close')) {
-                    Utils.switchChannel(channel);
-                } else {
+                if (e.target.attributes.getNamedItem('data-close')) {
                     handleClose(channel);
+                } else {
+                    Utils.switchChannel(channel);
                 }
 
                 e.preventDefault();
@@ -435,22 +433,22 @@ export default class Sidebar extends React.Component {
                 handleClick = function clickHandler(e) {
                     e.preventDefault();
 
-                    if (!e.target.attributes.getNamedItem('data-close')) {
+                    if (e.target.attributes.getNamedItem('data-close')) {
+                        handleClose(channel);
+                    } else {
                         this.setState({loadingDMChannel: index});
 
                         Client.createDirectChannel(channel, otherUserId,
-                            function success(data) {
+                            (data) => {
                                 this.setState({loadingDMChannel: -1});
                                 AsyncClient.getChannel(data.id);
                                 Utils.switchChannel(data);
-                            }.bind(this),
-                            function error() {
+                            },
+                            () => {
                                 this.setState({loadingDMChannel: -1});
                                 window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
-                            }.bind(this)
+                            }
                         );
-                    } else {
-                        handleClose(channel);
                     }
                 }.bind(this);
             }
@@ -578,7 +576,7 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                Channels
+                                {'Channels'}
                                 <a
                                     className='add-channel-btn'
                                     href='#'
@@ -597,7 +595,7 @@ export default class Sidebar extends React.Component {
                                 data-target='#more_channels'
                                 data-channeltype='O'
                             >
-                                More...
+                                {'More...'}
                             </a>
                         </li>
                     </ul>
@@ -605,7 +603,7 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                Private Groups
+                                {'Private Groups'}
                                 <a
                                     className='add-channel-btn'
                                     href='#'
@@ -618,7 +616,7 @@ export default class Sidebar extends React.Component {
                         {privateChannelItems}
                     </ul>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>Direct Messages</h4></li>
+                        <li><h4>{'Direct Messages'}</h4></li>
                         {directMessageItems}
                         {directMessageMore}
                     </ul>

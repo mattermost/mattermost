@@ -16,10 +16,9 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     componentDidMount() {
-        var self = this;
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function showModal(e) {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
             var button = e.relatedTarget;
-            self.setState({channels: $(button).data('channels')});
+            this.setState({channels: $(button).data('channels')}); // eslint-disable-line react/no-did-mount-set-state
         });
     }
 
@@ -30,14 +29,45 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
-        var self = this;
-
         var directMessageItems = this.state.channels.map((channel, index) => {
             var badge = '';
             var titleClass = '';
             var handleClick = null;
 
-            if (!channel.fake) {
+            if (channel.fake) {
+                // It's a direct message channel that doesn't exist yet so let's create it now
+                var otherUserId = utils.getUserIdFromChannelName(channel);
+
+                if (this.state.loadingDMChannel === index) {
+                    badge = (
+                        <img
+                            className='channel-loading-gif pull-right'
+                            src='/static/images/load.gif'
+                        />
+                    );
+                }
+
+                if (this.state.loadingDMChannel === -1) {
+                    handleClick = (e) => {
+                        e.preventDefault();
+                        this.setState({loadingDMChannel: index});
+                        this.handleJoinDirectChannel(channel);
+
+                        Client.createDirectChannel(channel, otherUserId,
+                            (data) => {
+                                $(React.findDOMNode(this.refs.modal)).modal('hide');
+                                this.setState({loadingDMChannel: -1});
+                                AsyncClient.getChannel(data.id);
+                                utils.switchChannel(data);
+                            },
+                            () => {
+                                this.setState({loadingDMChannel: -1});
+                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+                            }
+                        );
+                    };
+                }
+            } else {
                 if (channel.unread) {
                     badge = <span className='badge pull-right small'>{channel.unread}</span>;
                     titleClass = 'unread-title';
@@ -47,41 +77,8 @@ export default class MoreDirectChannels extends React.Component {
                     e.preventDefault();
                     this.handleJoinDirectChannel(channel);
                     utils.switchChannel(channel);
-                    $(React.findDOMNode(self.refs.modal)).modal('hide');
+                    $(React.findDOMNode(this.refs.modal)).modal('hide');
                 };
-            } else {
-                // It's a direct message channel that doesn't exist yet so let's create it now
-                var otherUserId = utils.getUserIdFromChannelName(channel);
-
-                if (self.state.loadingDMChannel === index) {
-                    badge = (
-                        <img
-                            className='channel-loading-gif pull-right'
-                            src='/static/images/load.gif'
-                        />
-                    );
-                }
-
-                if (self.state.loadingDMChannel === -1) {
-                    handleClick = (e) => {
-                        e.preventDefault();
-                        self.setState({loadingDMChannel: index});
-                        this.handleJoinDirectChannel(channel);
-
-                        Client.createDirectChannel(channel, otherUserId,
-                            function success(data) {
-                                $(React.findDOMNode(self.refs.modal)).modal('hide');
-                                self.setState({loadingDMChannel: -1});
-                                AsyncClient.getChannel(data.id);
-                                utils.switchChannel(data);
-                            },
-                            function error() {
-                                self.setState({loadingDMChannel: -1});
-                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
-                            }
-                        );
-                    };
-                }
             }
 
             return (
@@ -112,10 +109,10 @@ export default class MoreDirectChannels extends React.Component {
                                 className='close'
                                 data-dismiss='modal'
                             >
-                                <span aria-hidden='true'>&times;</span>
-                                <span className='sr-only'>Close</span>
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>{'Close'}</span>
                             </button>
-                            <h4 className='modal-title'>More Direct Messages</h4>
+                            <h4 className='modal-title'>{'More Direct Messages'}</h4>
                         </div>
                         <div className='modal-body'>
                             <ul className='nav nav-pills nav-stacked'>
@@ -127,7 +124,7 @@ export default class MoreDirectChannels extends React.Component {
                                 type='button'
                                 className='btn btn-default'
                                 data-dismiss='modal'
-                            >Close</button>
+                            >{'Close'}</button>
                         </div>
                     </div>
                 </div>
