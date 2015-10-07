@@ -5,6 +5,7 @@ package utils
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/mattermost/platform/model"
 )
@@ -21,19 +22,10 @@ const (
 	PROP_DIAGNOSTIC_USER_COUNT      = "uc"
 )
 
-func SendDiagnostic(data model.StringMap) {
+func SendDiagnostic(values url.Values) {
 	if Cfg.PrivacySettings.EnableSecurityFixAlert && model.IsOfficalBuild() {
 
-		query := "?"
-		for name, value := range data {
-			if len(query) > 1 {
-				query += "&"
-			}
-
-			query += name + "=" + UrlEncode(value)
-		}
-
-		res, err := http.Get(DIAGNOSTIC_URL + "/i" + query)
+		res, err := http.Get(DIAGNOSTIC_URL + "/i?" + values.Encode())
 		if err != nil {
 			return
 		}
