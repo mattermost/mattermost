@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"runtime"
@@ -93,12 +94,12 @@ func securityAndDiagnosticsJob() {
 						<-api.Srv.Store.System().Save(systemId)
 					}
 
-					m := make(map[string]string)
-					m[utils.PROP_DIAGNOSTIC_ID] = id
-					m[utils.PROP_DIAGNOSTIC_BUILD] = model.CurrentVersion + "." + model.BuildNumber
-					m[utils.PROP_DIAGNOSTIC_DATABASE] = utils.Cfg.SqlSettings.DriverName
-					m[utils.PROP_DIAGNOSTIC_OS] = runtime.GOOS
-					m[utils.PROP_DIAGNOSTIC_CATEGORY] = utils.VAL_DIAGNOSTIC_CATEGORY_DEFALUT
+					v := url.Values{}
+					v.Set(utils.PROP_DIAGNOSTIC_ID, id)
+					v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+					v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
+					v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
+					v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
 
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
 						l4g.Info("Checking for security update from Mattermost")
@@ -110,16 +111,7 @@ func securityAndDiagnosticsJob() {
 							<-api.Srv.Store.System().Update(systemSecurityLastTime)
 						}
 
-						query := "?"
-						for name, value := range m {
-							if len(query) > 1 {
-								query += "&"
-							}
-
-							query += name + "=" + utils.UrlEncode(value)
-						}
-
-						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security" + query)
+						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + query + v.Encode())
 						if err != nil {
 							l4g.Error("Failed to get security update information from Mattermost.")
 							return
