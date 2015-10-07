@@ -50,7 +50,9 @@ export default class ErrorBar extends React.Component {
 
         $(window).resize(() => {
             if (this.isValidError(this.state)) {
-                $('body').css('padding-top', '30px');
+                var height = $(React.findDOMNode(this)).outerHeight();
+                height = height < 30 ? 30 : height;
+                $('body').css('padding-top', height + 'px');
             } else {
                 $('body').css('padding-top', '0');
             }
@@ -63,7 +65,9 @@ export default class ErrorBar extends React.Component {
 
     componentWillUpdate(nextProps, nextState) {
         if (this.isValidError(nextState)) {
-            $('body').css('padding-top', '30px');
+            var height = $(React.findDOMNode(this)).outerHeight();
+            height = height < 30 ? 30 : height;
+            $('body').css('padding-top', height + 'px');
         } else {
             $('body').css('padding-top', '0');
         }
