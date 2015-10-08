@@ -41,7 +41,7 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
             output += ' title="' + title + '"';
         }
 
-        if (outHref.indexOf(Utils.getTeamURLFromAddressBar()) === 0) {
+        if (outHref.lastIndexOf(Utils.getTeamURLFromAddressBar()) === 0) {
             output += '>';
         } else {
             output += ' target="_blank">';

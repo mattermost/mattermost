@@ -96,8 +96,13 @@ function autolinkUrls(text, tokens) {
         const index = tokens.size;
         const alias = `MM_LINK${index}`;
 
+        var target = 'target="_blank"';
+        if (url.lastIndexOf(Utils.getTeamURLFromAddressBar()) === 0) {
+            target = '';
+        }
+
         tokens.set(alias, {
-            value: `<a class='theme' target='_blank' href='${url}'>${linkText}</a>`,
+            value: '<a class="theme"' + target + ' href="${url}">${linkText}</a>',
             originalText: linkText
         });
 
