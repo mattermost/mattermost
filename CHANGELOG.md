@@ -62,6 +62,7 @@ Many thanks to our external contributors. In no particular order:
 - [chengkun](https://github.com/chengkun)
 - [sexybern](https://github.com/sexybern)
 - [tomitm](https://github.com/tomitm)
+- [stephenfin](https://github.com/stephenfin)
 
 ## Release v1.0.0
 
