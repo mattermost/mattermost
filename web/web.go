@@ -372,11 +372,22 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			//api.Handle404(w, r)
-			//Bad channel urls just redirect to the town-square for now
+			// We will attempt to auto-join open channels
+			if cr := <-api.Srv.Store.Channel().GetByName(c.Session.TeamId, name); cr.Err != nil {
+				http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+			} else {
+				channel := cr.Data.(*model.Channel)
+				if channel.Type == model.CHANNEL_OPEN {
+					api.JoinChannel(c, channel.Id, "")
+					if c.Err != nil {
+						return
+					}
 
-			http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
-			return
+					channelId = channel.Id
+				} else {
+					http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+				}
+			}
 		}
 	}
 
