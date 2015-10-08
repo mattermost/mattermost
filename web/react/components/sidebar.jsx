@@ -262,7 +262,7 @@ export default class Sidebar extends React.Component {
             if (msg.user_id === UserStore.getCurrentId()) {
                 AsyncClient.getChannels(true);
 
-                if (msg.props.channel_id === ChannelStore.getCurrentId() && $('#removed_from_channel').length > 0) {
+                if (msg.props.remover !== msg.user_id && msg.props.channel_id === ChannelStore.getCurrentId() && $('#removed_from_channel').length > 0) {
                     var sentState = {};
                     sentState.channelName = ChannelStore.getCurrent().display_name;
                     sentState.remover = UserStore.getProfile(msg.props.remover).username;
