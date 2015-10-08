@@ -3,7 +3,7 @@ site_url: http://docs.mattermost.org
 repo_url: https://github.com/mattermost/platform
 repo_name: GitHub
 site_favicon: favicon.ico
-copyright: "Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved."
+copyright: "Copyright (c) 2015 Mattermost, Inc. All Rights Reserved."
 strict: true
 docs_dir: doc
 site_dir: documentation-html

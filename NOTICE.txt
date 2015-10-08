@@ -1,5 +1,5 @@
 Mattermost Platform 
-© 2015 Spinpunch, Inc.  All Rights Reserved.  See LICENSE.txt for license information.
+© 2015 Mattermost, Inc.  All Rights Reserved.  See LICENSE.txt for license information.
 
 NOTICES: 
 --------
