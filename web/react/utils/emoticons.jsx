@@ -8,7 +8,7 @@ const emoticonPatterns = {
     smirk: /:-?]/g, // :]
     grinning: /:-?d/gi, // :D
     stuck_out_tongue_closed_eyes: /x-d/gi, // x-d
-    stuck_out_tongue_winking_eye: /:-?p/gi, // :p
+    stuck_out_tongue: /:-?p/gi, // :p
     rage: /:-?[\[@]/g, // :@
     frowning: /:-?\(/g, // :(
     sob: /:['’]-?\(|:&#x27;\(/g, // :`(
