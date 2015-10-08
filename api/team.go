@@ -248,7 +248,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 func CreateTeam(c *Context, team *model.Team) *model.Team {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
 		c.Err = model.NewAppError("createTeam", "Team sign-up with email is disabled.", "")
-		c.Err.StatusCode = http.StatusNotImplemented
+		c.Err.StatusCode = http.StatusForbidden
 		return nil
 	}
 

@@ -370,6 +370,37 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users WHERE Roles = :Roles", map[string]interface{}{"Roles": "system_admin"}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "We encounted an error while finding user profiles", err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 
 	storeChannel := make(StoreChannel)

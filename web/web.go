@@ -414,7 +414,12 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			user := result.Data.(*model.User)
-			api.FireAndForgetVerifyEmail(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+
+			if user.LastActivityAt > 0 {
+				api.FireAndForgetEmailChangeVerifyEmail(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+			} else {
+				api.FireAndForgetVerifyEmail(user.Id, user.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+			}
 
 			newAddress := strings.Replace(r.URL.String(), "&resend=true", "&resend_success=true", -1)
 			http.Redirect(w, r, newAddress, http.StatusFound)

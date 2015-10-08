@@ -40,17 +40,17 @@ export default class SSOSignUpPage extends React.Component {
 
         client.createTeamWithSSO(team,
             this.props.service,
-            function success(data) {
+            (data) => {
                 if (data.follow_link) {
                     window.location.href = data.follow_link;
                 } else {
                     window.location.href = '/' + team.name + '/channels/town-square';
                 }
             },
-            function fail(err) {
+            (err) => {
                 state.serverError = err.message;
                 this.setState(state);
-            }.bind(this)
+            }
         );
     }
     nameChange() {
@@ -85,7 +85,7 @@ export default class SSOSignUpPage extends React.Component {
                     disabled={disabled}
                 >
                     <span className='icon'/>
-                    <span>Create team with GitLab Account</span>
+                    <span>{'Create team with GitLab Account'}</span>
                 </a>
             );
         }

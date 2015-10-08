@@ -5,41 +5,31 @@ package utils
 
 import (
 	"net/http"
-
-	l4g "code.google.com/p/log4go"
+	"net/url"
 
 	"github.com/mattermost/platform/model"
 )
 
 const (
+	DIAGNOSTIC_URL = "https://d7zmvsa9e04kk.cloudfront.net"
+
 	PROP_DIAGNOSTIC_ID              = "id"
 	PROP_DIAGNOSTIC_CATEGORY        = "c"
-	VAL_DIAGNOSTIC_CATEGORY_DEFALUT = "d"
+	VAL_DIAGNOSTIC_CATEGORY_DEFAULT = "d"
 	PROP_DIAGNOSTIC_BUILD           = "b"
 	PROP_DIAGNOSTIC_DATABASE        = "db"
 	PROP_DIAGNOSTIC_OS              = "os"
 	PROP_DIAGNOSTIC_USER_COUNT      = "uc"
 )
 
-func SendDiagnostic(data model.StringMap) *model.AppError {
-	if Cfg.PrivacySettings.EnableDiagnostic && !model.IsOfficalBuild() {
+func SendDiagnostic(values url.Values) {
+	if Cfg.PrivacySettings.EnableSecurityFixAlert && model.IsOfficalBuild() {
 
-		query := "?"
-		for name, value := range data {
-			if len(query) > 1 {
-				query += "&"
-			}
-
-			query += name + "=" + UrlEncode(value)
-		}
-
-		res, err := http.Get("http://d7zmvsa9e04kk.cloudfront.net/i" + query)
+		res, err := http.Get(DIAGNOSTIC_URL + "/i?" + values.Encode())
 		if err != nil {
-			l4g.Error("Failed to send diagnostics %v", err.Error())
+			return
 		}
 
 		res.Body.Close()
 	}
-
-	return nil
 }
