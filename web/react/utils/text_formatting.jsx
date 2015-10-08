@@ -97,7 +97,7 @@ function autolinkUrls(text, tokens) {
         const alias = `MM_LINK${index}`;
 
         var target = 'target="_blank"';
-        if (url.lastIndexOf(Utils.getTeamURLFromAddressBar()) === 0) {
+        if (url.lastIndexOf(Utils.getTeamURLFromAddressBar(), 0) === 0) {
             target = '';
         }
 
