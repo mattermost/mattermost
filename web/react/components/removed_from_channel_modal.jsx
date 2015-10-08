@@ -26,13 +26,13 @@ export default class RemovedFromChannelModal extends React.Component {
             BrowserStore.removeItem('channel-removed-state');
         }
 
+        var townSquare = ChannelStore.getByName('town-square');
+        setTimeout(() => utils.switchChannel(townSquare), 1);
+
         this.setState(newState);
     }
 
     handleClose() {
-        var townSquare = ChannelStore.getByName('town-square');
-        utils.switchChannel(townSquare);
-
         this.setState({channelName: '', remover: ''});
     }
 
