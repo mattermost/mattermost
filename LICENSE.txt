@@ -5,7 +5,7 @@ SOFTWARE LICENSING
 Mattermost server is made available under two separate licensing options:
 
 - Free Software Foundation’s GNU AGPL v.3.0, subject to the exceptions outlined in this policy; or 
-- Commercial licenses available from SpinPunch, Inc. by contacting commercial@mattermost.com 
+- Commercial licenses available from Mattermost, Inc. by contacting commercial@mattermost.com 
 
 Admin Tools and Configuration Files (api/templates/, config/, model/, web/react/utils/, web/static/, web/templates/ and all 
 subdirectories thereof) are made available under: 
@@ -33,7 +33,7 @@ commercial licenses are available from commercial@mattermost.com.
 
 MATTERMOST TRADEMARK GUIDELINES
 
-Your use of the mark Mattermost is subject to SpinPunch’s prior written approval and our organization’s Trademark 
+Your use of the mark Mattermost is subject to Mattermost, Inc's prior written approval and our organization’s Trademark 
 Standards of Use at http://www.mattermost.org/trademark-standards-of-use/. For trademark approval or any questions 
 you have about using these trademarks, please email trademark@mattermost.com 
 
