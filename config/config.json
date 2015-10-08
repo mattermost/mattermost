@@ -78,7 +78,7 @@
     "PrivacySettings": {
         "ShowEmailAddress": true,
         "ShowFullName": true,
-        "EnableDiagnostic": false
+        "EnableSecurityFixAlert": true
     },
     "GitLabSettings": {
         "Enable": false,

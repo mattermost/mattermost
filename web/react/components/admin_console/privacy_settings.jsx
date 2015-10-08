@@ -30,7 +30,7 @@ export default class PrivacySettings extends React.Component {
         var config = this.props.config;
         config.PrivacySettings.ShowEmailAddress = React.findDOMNode(this.refs.ShowEmailAddress).checked;
         config.PrivacySettings.ShowFullName = React.findDOMNode(this.refs.ShowFullName).checked;
-        config.PrivacySettings.EnableDiagnostic = React.findDOMNode(this.refs.EnableDiagnostic).checked;
+        config.PrivacySettings.EnableSecurityFixAlert = React.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
 
         Client.saveConfig(
             config,
@@ -140,7 +140,7 @@ export default class PrivacySettings extends React.Component {
                     <div className='form-group'>
                         <label
                             className='control-label col-sm-4'
-                            htmlFor='EnableDiagnostic'
+                            htmlFor='EnableSecurityFixAlert'
                         >
                             {'Send Error and Diagnostic: '}
                         </label>
@@ -148,10 +148,10 @@ export default class PrivacySettings extends React.Component {
                             <label className='radio-inline'>
                                 <input
                                     type='radio'
-                                    name='EnableDiagnostic'
+                                    name='EnableSecurityFixAlert'
                                     value='true'
-                                    ref='EnableDiagnostic'
-                                    defaultChecked={this.props.config.PrivacySettings.EnableDiagnostic}
+                                    ref='EnableSecurityFixAlert'
+                                    defaultChecked={this.props.config.PrivacySettings.EnableSecurityFixAlert}
                                     onChange={this.handleChange}
                                 />
                                     {'true'}
@@ -159,14 +159,14 @@ export default class PrivacySettings extends React.Component {
                             <label className='radio-inline'>
                                 <input
                                     type='radio'
-                                    name='EnableDiagnostic'
+                                    name='EnableSecurityFixAlert'
                                     value='false'
-                                    defaultChecked={!this.props.config.PrivacySettings.EnableDiagnostic}
+                                    defaultChecked={!this.props.config.PrivacySettings.EnableSecurityFixAlert}
                                     onChange={this.handleChange}
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true, The server will periodically send error and diagnostic information to Mattermost.'}</p>
+                            <p className='help-text'>{'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}</p>
                         </div>
                     </div>
 

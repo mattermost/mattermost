@@ -104,6 +104,7 @@ type UserStore interface {
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetForExport(teamId string) StoreChannel
 	GetTotalUsersCount() StoreChannel
+	GetSystemAdminProfiles() StoreChannel
 }
 
 type SessionStore interface {
