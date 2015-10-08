@@ -1,5 +1,69 @@
 # Mattermost Changelog
 
+## UNDER DEVELOPMENT - Release v1.1.0
+
+-The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
+-
+-- **Final release anticipated:** 2015-10-16
+
+### Release Highlights
+
+#### Incoming Webhooks
+
+Mattermost now supports incoming webhooks for channels and private groups. This developer feature is available from the Account Settings -> Integrations menu. Documentation on how developers can use the webhook functionality to build custom integrations, along with samples, is available at http://mattermost.org/webhooks. 
+
+### Improvements
+
+Integrations
+
+- Improved support for incoming webhooks, including the ability to override a username and post as a bot instead
+
+Documentation
+
+- Contents of `/docs` now hosted at docs.mattermost.org
+- Added documentation on config.json and System Console settings 
+- Docker Toolbox replaces deprecated Boot2Docker instructions in container install documentation 
+
+Theme Colors
+
+- Improved appearance of dark themes
+
+System Console 
+
+- Client side errors now written to server logs 
+- Added "EnableSecurityFixAlert" option to receive alerts on relevant security fix alerts
+- Various improvements to System Console UI and help text
+
+Messaging and Notifications
+
+- Replaced "Quiet Mode" in the Channel Notification Settings with an option to only show unread indicator when mentioned
+
+### Bug Fixes
+
+- Fixed regression causing "Get Public Link" on images not to work
+- Fixed bug where certain characters caused search errors
+- Fixed bug where System Administrator did not have Team Administrator permissions
+- Fixed bug causing scrolling to jump when the right hand sidebar opened and closed
+
+### Contributors
+
+Many thanks to our external contributors. In no particular order: 
+
+- [chengweiv5](https://github.com/chengweiv5)
+- [pstonier](https://github.com/pstonier)
+- [teviot](https://github.com/teviot)
+- [tmuwandi](https://github.com/tmuwandi)
+- [driou](https://github.com/driou)
+- [justyns](https://github.com/justyns)
+- [drbaker](https://github.com/drbaker)
+- [thomas9987](https://github.com/thomas9987)
+- [chuck5](https://github.com/chuck5)
+- [sjmog](https://github.com/sjmog)
+- [chengkun](https://github.com/chengkun)
+- [sexybern](https://github.com/sexybern)
+- [tomitm](https://github.com/tomitm)
+- [stephenfin](https://github.com/stephenfin)
+
 ## Release v1.0.0
 
 Released 2015-10-02
