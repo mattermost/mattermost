@@ -10,7 +10,7 @@ export default class SettingsSidebar extends React.Component {
     handleClick(tab, e) {
         e.preventDefault();
         this.props.updateTab(tab.name);
-        $('.settings-modal').addClass('display--content');
+        $(e.target).closest('.settings-modal').addClass('display--content');
     }
     render() {
         let tabList = this.props.tabs.map(function makeTab(tab) {

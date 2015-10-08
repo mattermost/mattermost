@@ -47,6 +47,10 @@ body.ios {
 .textarea-wrapper {
 	position:relative;
 	min-height:37px;
+	@include border-radius(2px);
+	overflow: auto;
+    border: 1px solid;
+    max-height: 167px;
 }
 
 .date-separator, .new-separator {
@@ -214,7 +218,7 @@ body.ios {
 		.custom-textarea {
 			padding-top: 8px;
 			padding-right: 28px;
-			max-height: 160px;
+			border: none;
 			overflow: auto;
 			line-height: 1.5;
 		}
