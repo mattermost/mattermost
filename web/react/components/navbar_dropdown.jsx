@@ -6,6 +6,8 @@ var client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
+var AboutBuildModal = require('./about_build_modal.jsx');
+
 var Constants = require('../utils/constants.jsx');
 
 function getStateFromStores() {
@@ -18,13 +20,21 @@ export default class NavbarDropdown extends React.Component {
         this.blockToggle = false;
 
         this.handleLogoutClick = this.handleLogoutClick.bind(this);
+        this.handleAboutModal = this.handleAboutModal.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
+        this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
         this.state = getStateFromStores();
     }
     handleLogoutClick(e) {
         e.preventDefault();
         client.logout();
+    }
+    handleAboutModal() {
+        this.setState({showAboutModal: true});
+    }
+    aboutModalDismissed() {
+        this.setState({showAboutModal: false});
     }
     componentDidMount() {
         UserStore.addTeamsChangeListener(this.onListenerChange);
@@ -228,6 +238,18 @@ export default class NavbarDropdown extends React.Component {
                                 {'Report a Problem'}
                             </a>
                         </li>
+                        <li>
+                            <a
+                                href='#'
+                                onClick={this.handleAboutModal}
+                            >
+                                {'About Mattermost'}
+                            </a>
+                        </li>
+                        <AboutBuildModal
+                            show={this.state.showAboutModal}
+                            onModalDismissed={this.aboutModalDismissed}
+                        />
                     </ul>
                 </li>
             </ul>

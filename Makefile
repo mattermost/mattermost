@@ -43,6 +43,7 @@ travis:
 	@$(GO) clean $(GOFLAGS) -i ./...
 
 	@cd web/react/ && npm install
+	cd web/react/ && npm run build-libs
 
 	@echo Checking for style guide compliance
 	cd web/react && $(ESLINT) --quiet components/* dispatcher/* pages/* stores/* utils/*
@@ -83,10 +84,11 @@ travis:
 	mkdir -p web/static/js
 	cd web/react && npm run build
 
-	cd web/sass-files && compass compile
+	cd web/sass-files && compass compile -e production --force
 
-	mkdir -p $(DIST_PATH)/web
-	cp -RL web/static $(DIST_PATH)/web
+	mkdir -p $(DIST_PATH)/web/static/js
+	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
+	cp -RL web/static/js/jquery-dragster $(DIST_PATH)/web/static/js/
 	cp -RL web/templates $(DIST_PATH)/web
 
 	mkdir -p $(DIST_PATH)/api
@@ -97,6 +99,7 @@ travis:
 	cp README.md $(DIST_PATH)
 
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
+	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
 
 	@sed -i'.bak' 's|react-with-addons-0.13.3.js|react-with-addons-0.13.3.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|jquery-1.11.1.js|jquery-1.11.1.min.js|g' $(DIST_PATH)/web/templates/head.html
@@ -104,6 +107,7 @@ travis:
 	@sed -i'.bak' 's|react-bootstrap-0.25.1.js|react-bootstrap-0.25.1.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|perfect-scrollbar.js|perfect-scrollbar.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
 
 	mv doc/README.md doc/index.md
@@ -129,6 +133,7 @@ install:
 	fi
 
 	@cd web/react/ && npm install
+	@cd web/react/ && npm run build-libs
 
 check: install
 	@echo Running ESLint...
@@ -185,6 +190,7 @@ clean:
 
 	rm -rf web/react/node_modules
 	rm -f web/static/js/bundle*.js
+	rm -f web/static/js/libs*.js
 	rm -f web/static/css/styles.css
 
 	rm -rf data/*
@@ -257,7 +263,7 @@ dist: install
 	mkdir -p web/static/js
 	cd web/react && npm run build
 
-	cd web/sass-files && compass compile
+	cd web/sass-files && compass compile -e production --force
 
 	mkdir -p $(DIST_PATH)/web
 	cp -RL web/static $(DIST_PATH)/web
@@ -271,6 +277,7 @@ dist: install
 	cp README.md $(DIST_PATH)
 
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
+	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
 
 	@sed -i'.bak' 's|react-with-addons-0.13.3.js|react-with-addons-0.13.3.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|jquery-1.11.1.js|jquery-1.11.1.min.js|g' $(DIST_PATH)/web/templates/head.html
@@ -278,6 +285,7 @@ dist: install
 	@sed -i'.bak' 's|react-bootstrap-0.25.1.js|react-bootstrap-0.25.1.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|perfect-scrollbar.js|perfect-scrollbar.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost

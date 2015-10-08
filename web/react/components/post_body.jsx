@@ -215,7 +215,7 @@ export default class PostBody extends React.Component {
             comment = (
                 <p className='post-link'>
                     <span>
-                        {'Commented on '}{name}{apostrophe}{' message:'}
+                        {'Commented on '}{name}{apostrophe}{' message: '}
                         <a
                             className='theme'
                             onClick={this.props.handleCommentClick}

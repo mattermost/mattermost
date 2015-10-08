@@ -56,7 +56,7 @@ payload={"channel": "off-topic", "text": "Hello, this is some text."}
 Combining everything above, here is an example message made using a curl command:
 
 ```
-curl -i -X POST 'payload={"channel": "off-topic", "text": "Hello, this is some text."}' http://yourmattermost.com/hooks/xxxxxxxxxxxxxxxxxxxxxxxxxx
+curl -i -X POST -d 'payload={"channel": "off-topic", "text": "Hello, this is some text."}' http://yourmattermost.com/hooks/xxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 A post with that text will be made to the Off-Topic channel.

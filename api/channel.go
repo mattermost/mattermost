@@ -472,6 +472,8 @@ func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		UpdateChannelAccessCacheAndForget(c.Session.TeamId, c.Session.UserId, channel.Id)
+
 		post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
 			`%v has left the channel.`,
 			user.Username), Type: model.POST_JOIN_LEAVE}
@@ -706,20 +708,21 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			post := &model.Post{ChannelId: id, Message: fmt.Sprintf(
-				`%v added to the channel by %v`,
-				nUser.Username, oUser.Username), Type: model.POST_JOIN_LEAVE}
-			if _, err := CreatePost(c, post, false); err != nil {
-				l4g.Error("Failed to post add message %v", err)
-				c.Err = model.NewAppError("addChannelMember", "Failed to add member to channel", "")
-				return
-			}
-
 			c.LogAudit("name=" + channel.Name + " user_id=" + userId)
 
-			message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_ADDED)
+			go func() {
+				post := &model.Post{ChannelId: id, Message: fmt.Sprintf(
+					`%v added to the channel by %v`,
+					nUser.Username, oUser.Username), Type: model.POST_JOIN_LEAVE}
+				if _, err := CreatePost(c, post, false); err != nil {
+					l4g.Error("Failed to post add member to channel message, err=%v", err)
+				}
 
-			PublishAndForget(message)
+				UpdateChannelAccessCache(c.Session.TeamId, userId, channel.Id)
+				message := model.NewMessage(c.Session.TeamId, channel.Id, userId, model.ACTION_USER_ADDED)
+
+				PublishAndForget(message)
+			}()
 
 			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
@@ -773,12 +776,16 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_REMOVED)
-		message.Add("channel_id", id)
-		message.Add("remover", c.Session.UserId)
-		PublishAndForget(message)
-
 		c.LogAudit("name=" + channel.Name + " user_id=" + userId)
+
+		go func() {
+			UpdateChannelAccessCache(c.Session.TeamId, userId, id)
+
+			message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_REMOVED)
+			message.Add("channel_id", id)
+			message.Add("remover", c.Session.UserId)
+			PublishAndForget(message)
+		}()
 
 		result := make(map[string]string)
 		result["channel_id"] = channel.Id

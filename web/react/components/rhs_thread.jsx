@@ -23,7 +23,7 @@ export default class RhsThread extends React.Component {
     }
     getStateFromStores() {
         var postList = PostStore.getSelectedPost();
-        if (!postList || postList.order.length < 1) {
+        if (!postList || postList.order.length < 1 || !postList.posts[postList.order[0]]) {
             return {postList: {}};
         }
 
@@ -49,7 +49,10 @@ export default class RhsThread extends React.Component {
         }.bind(this));
     }
     componentDidUpdate() {
-        $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+        if ($('.post-right__scroll')[0]) {
+            $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
+        }
+
         $('.post-right__scroll').perfectScrollbar('update');
         this.resize();
     }
@@ -67,7 +70,7 @@ export default class RhsThread extends React.Component {
         // if something was changed in the channel like adding a
         // comment or post then lets refresh the sidebar list
         var currentSelected = PostStore.getSelectedPost();
-        if (!currentSelected || currentSelected.order.length === 0) {
+        if (!currentSelected || currentSelected.order.length === 0 || !currentSelected.posts[currentSelected.order[0]]) {
             return;
         }
 
@@ -103,7 +106,7 @@ export default class RhsThread extends React.Component {
     render() {
         var postList = this.state.postList;
 
-        if (postList == null) {
+        if (postList == null || !postList.order) {
             return (
                 <div></div>
             );
