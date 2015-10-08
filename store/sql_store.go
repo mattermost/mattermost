@@ -615,6 +615,8 @@ func decrypt(key []byte, cryptoText string) (string, error) {
 
 // Interface for both gorp.DbMap and gorp.Transaction to allow code for one to be reused with the other
 type Queryable interface {
+	Exec(query string, args ...interface{}) (dbsql.Result, error)
 	Insert(list ...interface{}) error
+	SelectInt(query string, args ...interface{}) (int64, error)
 	Update(list ...interface{}) (int64, error)
 }

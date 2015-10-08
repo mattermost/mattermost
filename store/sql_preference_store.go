@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlPreferenceStore struct {
@@ -111,8 +112,8 @@ func (s SqlPreferenceStore) SaveOrUpdate(preferences ...*model.Preference) Store
 				result.Err = model.NewAppError("SqlPreferenceStore.SaveOrUpdateMultiple", "Unable to open transaction to update preferences", err.Error())
 			} else {
 				for _, preference := range preferences {
-					if err := s.saveOrUpdate(transaction, preference); err != nil {
-						result.Err = err
+					if upsertResult := s.saveOrUpdate(transaction, preference); upsertResult.Err != nil {
+						result = upsertResult
 						break
 					}
 				}
@@ -121,6 +122,8 @@ func (s SqlPreferenceStore) SaveOrUpdate(preferences ...*model.Preference) Store
 					if err := transaction.Commit(); err != nil {
 						// don't need to rollback here since the transaction is already closed
 						result.Err = model.NewAppError("SqlPreferenceStore.SaveOrUpdateMultiple", "Unable to commit transaction to update preferences", err.Error())
+					} else {
+						result.Data = len(preferences)
 					}
 				} else {
 					if err := transaction.Rollback(); err != nil {
@@ -129,7 +132,7 @@ func (s SqlPreferenceStore) SaveOrUpdate(preferences ...*model.Preference) Store
 				}
 			}
 		} else {
-			result.Err = s.saveOrUpdate(db, preferences[0])
+			result = s.saveOrUpdate(db, preferences[0])
 		}
 
 		storeChannel <- result
@@ -139,14 +142,58 @@ func (s SqlPreferenceStore) SaveOrUpdate(preferences ...*model.Preference) Store
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) saveOrUpdate(queryable Queryable, preference *model.Preference) *model.AppError {
-	if result := s.save(queryable, preference); result.Err != nil {
-		if result := s.update(queryable, preference); result.Err != nil {
-			return result.Err
-		}
+func (s SqlPreferenceStore) saveOrUpdate(queryable Queryable, preference *model.Preference) StoreResult {
+	result := StoreResult{}
+
+	params := map[string]interface{}{
+		"UserId":   preference.UserId,
+		"Category": preference.Category,
+		"Name":     preference.Name,
+		"AltId":    preference.AltId,
+		"Value":    preference.Value,
 	}
 
-	return nil
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		if sqlResult, err := queryable.Exec(
+			`INSERT INTO
+				Preferences
+				(UserId, Category, Name, AltId, Value)
+			VALUES
+				(:UserId, :Category, :Name, :AltId, :Value)
+			ON DUPLICATE KEY UPDATE
+				Value = :Value`, params); err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.saveOrUpdate", "We encountered an error while updating preferences", err.Error())
+		} else {
+			result.Data, _ = sqlResult.RowsAffected()
+		}
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes Transactions to abort
+		count, err := queryable.SelectInt(
+			`SELECT
+				count(0)
+			FROM
+				Preferences
+			WHERE
+				UserId = :UserId
+				AND Category = :Category
+				AND Name = :Name
+				AND AltId = :AltId`, params)
+		if err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.saveOrUpdate", "We encountered an error while updating preferences", err.Error())
+			return result
+		}
+
+		if count == 1 {
+			s.update(queryable, preference)
+		} else {
+			s.save(queryable, preference)
+		}
+	} else {
+		result.Err = model.NewAppError("SqlPreferenceStore.saveOrUpdate", "We encountered an error while updating preferences",
+			"Failed to update preference because of missing driver")
+	}
+
+	return result
 }
 
 func (s SqlPreferenceStore) GetByName(userId string, category string, name string) StoreChannel {
