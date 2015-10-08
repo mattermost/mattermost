@@ -11,7 +11,7 @@ const emoticonPatterns = {
     stuck_out_tongue: /(^|\s)(:-?p)($|\s)/gi, // :p
     rage: /(^|\s)(:-?[\[@])($|\s)/g, // :@
     frowning: /(^|\s)(:-?\()($|\s)/g, // :(
-    sob: /(^|\s)(:['’]-?\(|:&#x27;\()($|\s)/g, // :`(
+    sob: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()($|\s)/g, // :`(
     kissing_heart: /(^|\s)(:-?\*)($|\s)/g, // :*
     pensive: /(^|\s)(:-?\/)($|\s)/g, // :/
     confounded: /(^|\s)(:-?s)($|\s)/gi, // :s
