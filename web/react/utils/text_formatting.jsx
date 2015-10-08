@@ -102,7 +102,7 @@ function autolinkUrls(text, tokens) {
         }
 
         tokens.set(alias, {
-            value: '<a class="theme"' + target + ' href="${url}">${linkText}</a>',
+            value: `<a class="theme" ${target} href="${url}">${linkText}</a>`,
             originalText: linkText
         });
 
