@@ -84,13 +84,6 @@ func NewSqlStore() Store {
 		}
 	}
 
-	// Temporary upgrade code, remove after 0.8.0 release
-	if sqlStore.DoesTableExist("Sessions") {
-		if sqlStore.DoesColumnExist("Sessions", "AltId") {
-			sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
-		}
-	}
-
 	sqlStore.team = NewSqlTeamStore(sqlStore)
 	sqlStore.channel = NewSqlChannelStore(sqlStore)
 	sqlStore.post = NewSqlPostStore(sqlStore)

@@ -41,7 +41,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
-	us.CreateColumnIfNotExists("Users", "ThemeProps", "varchar(2000)", "character varying(2000)", "{}")
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
