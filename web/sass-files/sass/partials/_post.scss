@@ -45,12 +45,8 @@ body.ios {
 }
 
 .textarea-wrapper {
-	position:relative;
-	min-height:37px;
-	@include border-radius(2px);
-	overflow: auto;
-    border: 1px solid;
-    max-height: 167px;
+	position: relative;
+	min-height: 37px;
 }
 
 .date-separator, .new-separator {
@@ -151,12 +147,12 @@ body.ios {
 		&::-webkit-scrollbar {
 			width: 0px !important;
 		}
-        &.inactive {
-            display: none;
-        }
-        &.active {
-            display: inline;
-        }
+		&.inactive {
+			display: none;
+		}
+		&.active {
+			display: inline;
+		}
 	}
 	.post-list__table {
 		display: table;
@@ -218,7 +214,6 @@ body.ios {
 		.custom-textarea {
 			padding-top: 8px;
 			padding-right: 28px;
-			border: none;
 			overflow: auto;
 			line-height: 1.5;
 		}
@@ -515,9 +510,9 @@ body.ios {
 }
 
 .bot-indicator {
-    background-color: lightgrey;
-    border-radius:2px;
-    padding-left:2px;
-    padding-right:2px;
-    font-family:"Courier New"
+	background-color: lightgrey;
+	border-radius:2px;
+	padding-left:2px;
+	padding-right:2px;
+	font-family:"Courier New"
 }
