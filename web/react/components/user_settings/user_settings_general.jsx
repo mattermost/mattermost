@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../../stores/user_store.jsx');
+var ErrorStore = require('../../stores/error_store.jsx');
 var SettingItemMin = require('../setting_item_min.jsx');
 var SettingItemMax = require('../setting_item_max.jsx');
 var SettingPicture = require('../setting_picture.jsx');
@@ -27,6 +28,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.updateLastName = this.updateLastName.bind(this);
         this.updateNickname = this.updateNickname.bind(this);
         this.updateEmail = this.updateEmail.bind(this);
+        this.updateConfirmEmail = this.updateConfirmEmail.bind(this);
         this.updatePicture = this.updatePicture.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
@@ -96,6 +98,7 @@ export default class UserSettingsGeneralTab extends React.Component {
 
         var user = UserStore.getCurrentUser();
         var email = this.state.email.trim().toLowerCase();
+        var confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
         if (user.email === email) {
             return;
@@ -106,8 +109,12 @@ export default class UserSettingsGeneralTab extends React.Component {
             return;
         }
 
-        user.email = email;
+        if (email !== confirmEmail) {
+            this.setState({emailError: 'The new emails you entered do not match'});
+            return;
+        }
 
+        user.email = email;
         this.submitUser(user);
     }
     submitUser(user) {
@@ -115,6 +122,13 @@ export default class UserSettingsGeneralTab extends React.Component {
             function updateSuccess() {
                 this.updateSection('');
                 AsyncClient.getMe();
+                const verificationEnabled = global.window.config.SendEmailNotifications === 'true' && global.window.config.RequireEmailVerification === 'true';
+
+                if (verificationEnabled) {
+                    ErrorStore.storeLastError({message: 'Check your email at ' + user.email + ' to verify the address.'});
+                    ErrorStore.emitChange();
+                    this.setState({emailChangeInProgress: true});
+                }
             }.bind(this),
             function updateFailure(err) {
                 var state = this.setupInitialState(this.props);
@@ -177,6 +191,9 @@ export default class UserSettingsGeneralTab extends React.Component {
     updateEmail(e) {
         this.setState({email: e.target.value});
     }
+    updateConfirmEmail(e) {
+        this.setState({confirmEmail: e.target.value});
+    }
     updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
             this.setState({picture: e.target.files[0]});
@@ -188,7 +205,8 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
     }
     updateSection(section) {
-        this.setState(assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: ''}));
+        const emailChangeInProgress = this.state.emailChangeInProgress;
+        this.setState(assign({}, this.setupInitialState(this.props), {emailChangeInProgress: emailChangeInProgress, clientError: '', serverError: '', emailError: ''}));
         this.submitActive = false;
         this.props.updateSection(section);
     }
@@ -208,9 +226,9 @@ export default class UserSettingsGeneralTab extends React.Component {
     }
     setupInitialState(props) {
         var user = props.user;
-        var emailEnabled = global.window.config.SendEmailNotifications === 'true';
+
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, picture: null, loadingPicture: false, emailEnabled: emailEnabled};
+                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
     }
     render() {
         var user = this.props.user;
@@ -434,10 +452,19 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
         var emailSection;
         if (this.props.activeSection === 'email') {
-            let helpText = <div>Email is used for notifications, and requires verification if changed.</div>;
+            const emailEnabled = global.window.config.SendEmailNotifications === 'true';
+            const emailVerificationEnabled = global.window.config.RequireEmailVerification === 'true';
+            let helpText = 'Email is used for notifications, and requires verification if changed.';
 
-            if (!this.state.emailEnabled) {
+            if (!emailEnabled) {
                 helpText = <div className='setting-list__hint text-danger'>{'Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'}</div>;
+            } else if (!emailVerificationEnabled) {
+                helpText = 'Email is used for notifications.';
+            } else if (this.state.emailChangeInProgress) {
+                const newEmail = UserStore.getCurrentUser().email;
+                if (newEmail) {
+                    helpText = 'A verification email was sent to ' + newEmail + '.';
+                }
             }
 
             inputs.push(
@@ -450,6 +477,22 @@ export default class UserSettingsGeneralTab extends React.Component {
                                 type='text'
                                 onChange={this.updateEmail}
                                 value={this.state.email}
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+
+            inputs.push(
+                <div key='confirmEmailSetting'>
+                    <div className='form-group'>
+                        <label className='col-sm-5 control-label'>{'Confirm Email'}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateConfirmEmail}
+                                value={this.state.confirmEmail}
                             />
                         </div>
                     </div>
@@ -471,10 +514,22 @@ export default class UserSettingsGeneralTab extends React.Component {
                 />
             );
         } else {
+            let describe = '';
+            if (this.state.emailChangeInProgress) {
+                const newEmail = UserStore.getCurrentUser().email;
+                if (newEmail) {
+                    describe = 'New Address: ' + newEmail + '\nCheck your email to verify the above address.';
+                } else {
+                    describe = 'Check your email to verify your new address';
+                }
+            } else {
+                describe = UserStore.getCurrentUser().email;
+            }
+
             emailSection = (
                 <SettingItemMin
                     title='Email'
-                    describe={UserStore.getCurrentUser().email}
+                    describe={describe}
                     updateSection={function updateEmailSection() {
                         this.updateSection('email');
                     }.bind(this)}
