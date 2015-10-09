@@ -4,6 +4,7 @@
 package store
 
 import (
+	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -36,103 +37,36 @@ func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name")
 }
 
-func (s SqlPreferenceStore) Save(preference *model.Preference) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		storeChannel <- s.save(s.GetMaster(), preference)
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (s SqlPreferenceStore) save(queryable Queryable, preference *model.Preference) StoreResult {
-	result := StoreResult{}
-
-	if result.Err = preference.IsValid(); result.Err != nil {
-		return result
-	}
-
-	if err := queryable.Insert(preference); err != nil {
-		if IsUniqueConstraintError(err.Error(), "UserId", "preferences_pkey") {
-			result.Err = model.NewAppError("SqlPreferenceStore.Save", "A preference with that user id, category, name, and alt id already exists",
-				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
-		} else {
-			result.Err = model.NewAppError("SqlPreferenceStore.Save", "We couldn't save the preference",
-				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
-		}
-	} else {
-		result.Data = preference
-	}
-
-	return result
-}
-
-func (s SqlPreferenceStore) Update(preference *model.Preference) StoreChannel {
-	storeChannel := make(StoreChannel)
-
-	go func() {
-		storeChannel <- s.update(s.GetMaster(), preference)
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
-func (s SqlPreferenceStore) update(queryable Queryable, preference *model.Preference) StoreResult {
-	result := StoreResult{}
-
-	if result.Err = preference.IsValid(); result.Err != nil {
-		return result
-	}
-
-	if count, err := queryable.Update(preference); err != nil {
-		result.Err = model.NewAppError("SqlPreferenceStore.Update", "We couldn't update the preference",
-			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
-	} else {
-		result.Data = count
-	}
-
-	return result
-}
-
-func (s SqlPreferenceStore) SaveOrUpdate(preferences ...*model.Preference) StoreChannel {
+func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		db := s.GetReplica()
-
-		if len(preferences) > 1 {
-			// wrap in a transaction so that if one fails, everything fails
-			transaction, err := db.Begin()
-			if err != nil {
-				result.Err = model.NewAppError("SqlPreferenceStore.SaveOrUpdateMultiple", "Unable to open transaction to update preferences", err.Error())
-			} else {
-				for _, preference := range preferences {
-					if upsertResult := s.saveOrUpdate(transaction, preference); upsertResult.Err != nil {
-						result = upsertResult
-						break
-					}
-				}
-
-				if result.Err == nil {
-					if err := transaction.Commit(); err != nil {
-						// don't need to rollback here since the transaction is already closed
-						result.Err = model.NewAppError("SqlPreferenceStore.SaveOrUpdateMultiple", "Unable to commit transaction to update preferences", err.Error())
-					} else {
-						result.Data = len(preferences)
-					}
-				} else {
-					if err := transaction.Rollback(); err != nil {
-						result.Err = model.NewAppError("SqlPreferenceStore.SaveOrUpdateMultiple", "Unable to rollback transaction to update preferences", err.Error())
-					}
+		// wrap in a transaction so that if one fails, everything fails
+		transaction, err := s.GetReplica().Begin()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to open transaction to save preferences", err.Error())
+		} else {
+			for _, preference := range *preferences {
+				if upsertResult := s.save(transaction, preference); upsertResult.Err != nil {
+					result = upsertResult
+					break
 				}
 			}
-		} else {
-			result = s.saveOrUpdate(db, preferences[0])
+
+			if result.Err == nil {
+				if err := transaction.Commit(); err != nil {
+					// don't need to rollback here since the transaction is already closed
+					result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to commit transaction to save preferences", err.Error())
+				} else {
+					result.Data = len(*preferences)
+				}
+			} else {
+				if err := transaction.Rollback(); err != nil {
+					result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to rollback transaction to save preferences", err.Error())
+				}
+			}
 		}
 
 		storeChannel <- result
@@ -142,8 +76,12 @@ func (s SqlPreferenceStore) SaveOrUpdate(preferences ...*model.Preference) Store
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) saveOrUpdate(queryable Queryable, preference *model.Preference) StoreResult {
+func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
 	result := StoreResult{}
+
+	if result.Err = preference.IsValid(); result.Err != nil {
+		return result
+	}
 
 	params := map[string]interface{}{
 		"UserId":   preference.UserId,
@@ -154,7 +92,7 @@ func (s SqlPreferenceStore) saveOrUpdate(queryable Queryable, preference *model.
 	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		if sqlResult, err := queryable.Exec(
+		if _, err := transaction.Exec(
 			`INSERT INTO
 				Preferences
 				(UserId, Category, Name, AltId, Value)
@@ -162,13 +100,11 @@ func (s SqlPreferenceStore) saveOrUpdate(queryable Queryable, preference *model.
 				(:UserId, :Category, :Name, :AltId, :Value)
 			ON DUPLICATE KEY UPDATE
 				Value = :Value`, params); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.saveOrUpdate", "We encountered an error while updating preferences", err.Error())
-		} else {
-			result.Data, _ = sqlResult.RowsAffected()
+			result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences", err.Error())
 		}
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes Transactions to abort
-		count, err := queryable.SelectInt(
+		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
+		count, err := transaction.SelectInt(
 			`SELECT
 				count(0)
 			FROM
@@ -179,18 +115,45 @@ func (s SqlPreferenceStore) saveOrUpdate(queryable Queryable, preference *model.
 				AND Name = :Name
 				AND AltId = :AltId`, params)
 		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.saveOrUpdate", "We encountered an error while updating preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences", err.Error())
 			return result
 		}
 
 		if count == 1 {
-			s.update(queryable, preference)
+			s.update(transaction, preference)
 		} else {
-			s.save(queryable, preference)
+			s.insert(transaction, preference)
 		}
 	} else {
-		result.Err = model.NewAppError("SqlPreferenceStore.saveOrUpdate", "We encountered an error while updating preferences",
+		result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences",
 			"Failed to update preference because of missing driver")
+	}
+
+	return result
+}
+
+func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+	result := StoreResult{}
+
+	if err := transaction.Insert(preference); err != nil {
+		if IsUniqueConstraintError(err.Error(), "UserId", "preferences_pkey") {
+			result.Err = model.NewAppError("SqlPreferenceStore.insert", "A preference with that user id, category, name, and alt id already exists",
+				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
+		} else {
+			result.Err = model.NewAppError("SqlPreferenceStore.insert", "We couldn't save the preference",
+				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
+		}
+	}
+
+	return result
+}
+
+func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) StoreResult {
+	result := StoreResult{}
+
+	if _, err := transaction.Update(preference); err != nil {
+		result.Err = model.NewAppError("SqlPreferenceStore.update", "We couldn't update the preference",
+			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
 	}
 
 	return result
@@ -202,7 +165,7 @@ func (s SqlPreferenceStore) GetByName(userId string, category string, name strin
 	go func() {
 		result := StoreResult{}
 
-		var preferences []*model.Preference
+		var preferences model.Preferences
 
 		if _, err := s.GetReplica().Select(&preferences,
 			`SELECT

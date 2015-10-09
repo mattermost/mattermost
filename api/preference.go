@@ -5,7 +5,6 @@ package api
 
 import (
 	l4g "code.google.com/p/log4go"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"net/http"
@@ -15,29 +14,27 @@ func InitPreference(r *mux.Router) {
 	l4g.Debug("Initializing preference api routes")
 
 	sr := r.PathPrefix("/preferences").Subrouter()
-	sr.Handle("/set", ApiAppHandler(setPreferences)).Methods("POST")
+	sr.Handle("/save", ApiAppHandler(savePreferences)).Methods("POST")
 	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getPreferencesByName)).Methods("GET")
 }
 
-func setPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
-	var preferences []*model.Preference
-
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&preferences); err != nil {
-		c.Err = model.NewAppError("setPreferences", "Unable to decode preferences from request", err.Error())
+func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	preferences, err := model.PreferencesFromJson(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("savePreferences", "Unable to decode preferences from request", err.Error())
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	for _, preference := range preferences {
 		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewAppError("setPreferences", "Unable to set preferences for other user", "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
+			c.Err = model.NewAppError("savePreferences", "Unable to set preferences for other user", "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
 			c.Err.StatusCode = http.StatusUnauthorized
 			return
 		}
 	}
 
-	if result := <-Srv.Store.Preference().SaveOrUpdate(preferences...); result.Err != nil {
+	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -54,7 +51,7 @@ func getPreferencesByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		data := result.Data.([]*model.Preference)
+		data := result.Data.(model.Preferences)
 
 		if len(data) == 0 {
 			if category == model.PREFERENCE_CATEGORY_DIRECT_CHANNELS && name == model.PREFERENCE_NAME_SHOW {
@@ -63,11 +60,11 @@ func getPreferencesByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		w.Write([]byte(model.PreferenceListToJson(data)))
+		w.Write([]byte(data.ToJson()))
 	}
 }
 
-func addDirectChannels(userId, teamId string) []*model.Preference {
+func addDirectChannels(userId, teamId string) model.Preferences {
 	var profiles map[string]*model.User
 	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
 		l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", userId, teamId, result.Err.Error())
@@ -76,7 +73,7 @@ func addDirectChannels(userId, teamId string) []*model.Preference {
 		profiles = result.Data.(map[string]*model.User)
 	}
 
-	var preferences []*model.Preference
+	var preferences model.Preferences
 
 	for id := range profiles {
 		if id == userId {
@@ -93,11 +90,6 @@ func addDirectChannels(userId, teamId string) []*model.Preference {
 			Value:    "true",
 		}
 
-		if result := <-Srv.Store.Preference().Save(preference); result.Err != nil {
-			l4g.Error("Failed to add direct channel preferences for user user_id=%s, alt_id=%s, team_id=%s, err=%v", userId, profile.Id, teamId, result.Err.Error())
-			continue
-		}
-
 		preferences = append(preferences, preference)
 
 		if len(preferences) >= 10 {
@@ -105,5 +97,10 @@ func addDirectChannels(userId, teamId string) []*model.Preference {
 		}
 	}
 
-	return preferences
+	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+		l4g.Error("Failed to add direct channel preferences for user user_id=%s, eam_id=%s, err=%v", userId, teamId, result.Err.Error())
+		return model.Preferences{}
+	} else {
+		return preferences
+	}
 }
