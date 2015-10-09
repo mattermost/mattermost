@@ -104,6 +104,8 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cfg.SetDefaults()
+
 	if err := cfg.IsValid(); err != nil {
 		c.Err = err
 		return
