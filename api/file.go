@@ -408,11 +408,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", strconv.Itoa(len(f)))
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 
-	// attach extra headers to trigger a download on IE and Edge
+	// attach extra headers to trigger a download on IE, Edge, and Safari
 	ua := user_agent.New(r.UserAgent())
 	bname, _ := ua.Browser()
 
-	if bname == "Edge" || bname == "Internet Explorer" {
+	if bname == "Edge" || bname == "Internet Explorer" || bname == "Safari" {
 		// trim off anything before the final / so we just get the file's name
 		parts := strings.Split(filename, "/")
 
