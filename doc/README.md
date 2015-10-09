@@ -30,6 +30,8 @@ Set up Mattermost in your data center
 
 ## Help
 
+_Note: End user help documentation is a new feature being completed for the v1.2 release. The materials below are work in progress._
+
 - User Interface
  - [Manage Team](help/Manage-Team.md)
  - Team Settings 
