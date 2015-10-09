@@ -1,6 +1,6 @@
 # Incoming Webhooks
 
-Incoming webhooks allow external applications to post messages into Mattermost channels and private groups by sending a specifically formatted JSON payload via HTTP POST request to a secret Mattermost URL generated specifically for each application. 
+Incoming webhooks allow external applications, written in the programming language of your choice--to post messages into Mattermost channels and private groups by sending a specifically formatted JSON payload via HTTP POST request to a secret Mattermost URL generated specifically for each application. 
 
 A couple key points: 
 
@@ -41,18 +41,22 @@ You can create a webhook integration to post into Mattermost channels and privat
 
  1. Optionally configure the **Enable Overriding of Usernames from Webhooks** option to allow external applications to post messages under any name. If not enabled, the username of the creator of the webhook URL is used to post messages.
  2. Optionally configure the **Enable Overriding of Icon from Webhooks** option to allow external applciations to change the icon of the account posting messages. If not enabled, the icon of the creator of the webhook URL is used to post messages. 
+ 
 2. Create a Mattermost Incoming Webhook URL
  1. Login to your Mattermost team site and go to **Account Settings -> Integrations**
  2. Next to **Incoming Webhooks** click **Edit**
  3. Select the channel or private group to receive webhook payloads, then click **Add** to create the webhook
 
 3. Write a function to call the URL with a properly formatted JSON payload
- 1. To make sure everything works, try a curl command to send a JSON string as the `payload` parameter in a HTTP POST request.
-     1. Example: 
+ 1. To make sure everything works, try a curl command from your terminal or command line to send a JSON string as the `payload` parameter in a HTTP POST request.
+     - _Example:_
      ```
 curl -i -X POST -d 'payload={"text": "Hello, this is some text."}' http://yourmattermost.com/hooks/xxx-generatedkey-xxx
-```
- 2. Incorporate the working webhook into your application to send real time updates to Mattermost channels and private groups.
+```  
+     2. In addition, with **Enable Overriding of Usernames from Webhooks** turned on,  you can also override the username the message posts as by providing a `username` parameter in your JSON payload. For example, you might want your message looking like it came from a robot so you can use ```payload={"username": "robot", "text": "Hello, this is some text."}``` to change the username of the post to robot. Note, to combat any malicious users from trying to use this to perform [phishing attacks](https://en.wikipedia.org/wiki/Phishing) a `BOT` indicator appears next to posts coming from incoming webhooks.
+     3. With **Enable Overriding of Icon from Webhooks** turned on, you can similarly change the icon the message posts with by providing a link to an image in the `icon_url` parameter of your payload. For example, ```payload={"icon_url": "http://somewebsite.com/somecoolimage.jpg", "text": "Hello, this is some text."}``` will post using whatever image is located at `http://somewebsite.com/somecoolimage.jpg` as the icon for the post.
+
+ 2. Set up your integration running on your own machine or a hosting service like AWS or Heroku, to start sending real time updates to Mattermost channels and private groups.
 
 Additional Notes:
 
@@ -66,9 +70,11 @@ Additional Notes:
 
 ### Slack Compatibility 
 
-As mentioned above, Mattermost makes it easy to take integrations written for Slack's propreitary JSON payload format and repurpose them to become Mattermost integrations. The following automatic translations are supported: 
+As mentioned above, Mattermost makes it easy to take integrations written for Slack's proprietary JSON payload format and repurpose them to become Mattermost integrations. The following automatic translations are supported: 
 
 1. Payloads designed for Slack using `<>` to note the need to hyperlink a URL, such as ```payload={"text": "<http://www.mattermost.com/>"}```, are translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack. 
 2. Similiarly, payloads designed for Slack using `|` within a `<>` to define linked text, such as ```payload={"text": "Click <http://www.mattermost.com/|here> for a link."}```, are also translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack. 
+3. Like Slack, by overriding the channel name with an @username, such as payload={"text": "Hi", channel: "@jim"}, you can send the message to a user through your direct message chat.
+4. Channel names can be prepended with a #, like they are in Slack incoming webhooks, and the message will still be sent to the correct channel.
 
 To learn more about Incoming Webhooks and to see samples and community contributions, please visit <http://mattermost.org/webhooks>
