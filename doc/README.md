@@ -26,7 +26,7 @@ Set up Mattermost in your data center
 - [Developer Machine Setup](developer/Setup.md)
 - [Mattermost Style Guide](developer/Style-Guide.md)
 - [API Overview](api/Overview.md)
- - [Incoming Webhooks](integrations/webhooks/Incoming.md) 
+ - [Incoming Webhooks](integrations/webhooks/Incoming-Webhooks.md) 
 
 ## Help
 
