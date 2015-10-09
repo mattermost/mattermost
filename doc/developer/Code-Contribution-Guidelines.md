@@ -29,6 +29,9 @@ git checkout -b <branch name>
    
 2. Please make sure to thoroughly test your change before submitting a pull request. 
 
+   Please review the ["Fast, Obvious, Forgiving" experience design principles](http://www.mattermost.org/design-principles/) for Mattermost and check that your feature meets the criteria. Also, for any changes to user interface or help text, please read the changes out loud, as a quick and easy way to catch any inconsitencies.
+
+
 ## Submitting a Pull Request 
 
 1. Please add yourself to the Mattermost [approved contributor list](https://docs.google.com/spreadsheets/d/1NTCeG-iL_VS9bFqtmHSfwETo5f-8MQ7oMDE5IUYJi_Y/pubhtml?gid=0&single=true) prior to submitting by completing the [contributor license agreement](http://www.mattermost.org/mattermost-contributor-agreement/). 
