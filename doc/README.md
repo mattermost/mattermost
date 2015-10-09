@@ -33,7 +33,7 @@ Set up Mattermost in your data center
 - User Interface
  - [Manage Team](help/Manage-Team.md)
  - Team Settings 
-   - [Slack Import](usage/Slack-Import.md)
+   - [Slack Import](help/Slack-Import.md)
 
 - Messaging
  - [Mattermost Markdown Formatting](usage/Markdown.md)
