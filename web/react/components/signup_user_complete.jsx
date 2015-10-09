@@ -206,7 +206,7 @@ export default class SignupUserComplete extends React.Component {
                                     maxLength='128'
                                 />
                                 {nameError}
-                                <p className='form__hint'>Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'</p>
+                                <span className='help-block'>Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'</span>
                             </div>
                         </div>
                         <div className='margin--extra'>
