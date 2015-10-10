@@ -14,4 +14,4 @@ Major Build Number:
 
 Minor Build Number:
 
-- Indicates bugfix/security releases (e.g. 1.2.5, 1.2.6)
+- Indicates a bug fix or security release (e.g. 1.2.5, 1.2.6)
