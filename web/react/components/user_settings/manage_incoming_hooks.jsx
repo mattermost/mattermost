@@ -148,7 +148,7 @@ export default class ManageIncomingHooks extends React.Component {
 
         return (
             <div key='addIncomingHook'>
-                {'For developers building integrations this page lets you create webhook URLs for channels and private groups. Please see http://mattermost.org/webhooks to learn about creating webhooks, view samples, and to let the community know about integrations you have ve built. The URLs created below can be used by outside applications to create posts in any channels or private groups you have access to. The specified channel will be used as the default.'}
+                {'For developers building integrations this page lets you create webhook URLs for channels and private groups. Please see http://mattermost.org/webhooks to learn about creating webhooks, view samples, and to let the community know about integrations you have built. The URLs created below can be used by outside applications to create posts in any channels or private groups you have access to. The specified channel will be used as the default.'}
                 <br/>
                 <label className='control-label'>{'Add a new incoming webhook'}</label>
                 <div className='padding-top'>
