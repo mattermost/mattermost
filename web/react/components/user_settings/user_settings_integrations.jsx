@@ -49,7 +49,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
             incomingHooksSection = (
                 <SettingItemMin
                     title='Incoming Webhooks'
-                    describe='Manage your incoming webhooks'
+                    describe='Manage your incoming webhooks (Developer feature)'
                     updateSection={function updateNameSection() {
                         this.updateSection('incoming-hooks');
                     }.bind(this)}
