@@ -136,6 +136,7 @@ export default class Login extends React.Component {
                             defaultValue={priorEmail}
                             ref='email'
                             placeholder='Email'
+                            spellCheck='false'
                         />
                     </div>
                     <div className={'form-group' + errorClass}>
@@ -146,6 +147,7 @@ export default class Login extends React.Component {
                             name='password'
                             ref='password'
                             placeholder='Password'
+                            spellCheck='false'
                         />
                     </div>
                     <div className='form-group'>

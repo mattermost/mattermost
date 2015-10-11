@@ -104,6 +104,7 @@ export default class SSOSignUpPage extends React.Component {
                         placeholder='Enter name of new team'
                         maxLength='128'
                         onChange={this.nameChange}
+                        spellCheck='false'
                     />
                     {nameError}
                 </div>

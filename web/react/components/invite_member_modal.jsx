@@ -211,6 +211,7 @@ export default class InviteMemberModal extends React.Component {
                                             placeholder='First name'
                                             maxLength='64'
                                             disabled={!this.state.emailEnabled}
+                                            spellCheck='false'
                                         />
                                         {firstNameError}
                                     </div>
@@ -224,6 +225,7 @@ export default class InviteMemberModal extends React.Component {
                                             placeholder='Last name'
                                             maxLength='64'
                                             disabled={!this.state.emailEnabled}
+                                            spellCheck='false'
                                         />
                                         {lastNameError}
                                     </div>
@@ -242,6 +244,7 @@ export default class InviteMemberModal extends React.Component {
                             placeholder='email@domain.com'
                             maxLength='64'
                             disabled={!this.state.emailEnabled}
+                            spellCheck='false'
                         />
                         {emailError}
                     </div>

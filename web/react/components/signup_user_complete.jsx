@@ -169,6 +169,7 @@ export default class SignupUserComplete extends React.Component {
                         placeholder=''
                         maxLength='128'
                         autoFocus={true}
+                        spellCheck='false'
                     />
                     {emailError}
                 </div>
@@ -204,6 +205,7 @@ export default class SignupUserComplete extends React.Component {
                                     className='form-control'
                                     placeholder=''
                                     maxLength='128'
+                                    spellCheck='false'
                                 />
                                 {nameError}
                                 <p className='form__hint'>Username must begin with a letter, and contain between 3 to 15 lowercase characters made up of numbers, letters, and the symbols '.', '-' and '_'</p>
@@ -218,6 +220,7 @@ export default class SignupUserComplete extends React.Component {
                                 className='form-control'
                                 placeholder=''
                                 maxLength='128'
+                                spellCheck='false'
                             />
                             {passwordError}
                         </div>
