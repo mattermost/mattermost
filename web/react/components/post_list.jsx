@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 var PostStore = require('../stores/post_store.jsx');
@@ -379,13 +379,9 @@ export default class PostList extends React.Component {
                 <p className='channel-intro__content'>
                     Welcome to {channel.display_name}!
                     <br/><br/>
-                    This is the first channel teammates see when they
-                    <br/>
-                    sign up - use it for posting updates everyone needs to know.
+                    This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.
                     <br/><br/>
-                    To create a new channel or join an existing one, go to
-                    <br/>
-                    the Left Hand Sidebar under “Channels” and click “More…”.
+                    To create a new channel or join an existing one, go to the Left Sidebar under “Channels” and click “More…”.
                     <br/>
                 </p>
             </div>

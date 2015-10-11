@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 const Autolinker = require('autolinker');
@@ -96,8 +96,13 @@ function autolinkUrls(text, tokens) {
         const index = tokens.size;
         const alias = `MM_LINK${index}`;
 
+        var target = 'target="_blank"';
+        if (url.lastIndexOf(Utils.getTeamURLFromAddressBar(), 0) === 0) {
+            target = '';
+        }
+
         tokens.set(alias, {
-            value: `<a class='theme' target='_blank' href='${url}'>${linkText}</a>`,
+            value: `<a class="theme" ${target} href="${url}">${linkText}</a>`,
             originalText: linkText
         });
 

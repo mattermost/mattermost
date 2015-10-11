@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -28,7 +28,6 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 }
 
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
-	s.RemoveColumnIfExists("Teams", "AllowValet")
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {

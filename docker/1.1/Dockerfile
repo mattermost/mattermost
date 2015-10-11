@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+# Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 # See License.txt for license information.
 FROM ubuntu:14.04
 
@@ -34,7 +34,7 @@ VOLUME /var/lib/mysql
 WORKDIR /mattermost
 
 # Copy over files
-ADD https://github.com/mattermost/platform/releases/download/v0.7.1/mattermost.tar.gz /
+ADD https://github.com/mattermost/platform/releases/download/v1.1.0-rc1/mattermost.tar.gz /
 RUN tar -zxvf /mattermost.tar.gz --strip-components=1 && rm /mattermost.tar.gz
 ADD config_docker.json /
 ADD docker-entry.sh /

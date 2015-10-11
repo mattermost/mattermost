@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -38,6 +38,8 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
+
+	// BEGIN REMOVE AFTER 1.1.0
 	if s.CreateColumnIfNotExists("ChannelMembers", "NotifyProps", "varchar(2000)", "varchar(2000)", "{}") {
 		// populate NotifyProps from existing NotifyLevel field
 
@@ -80,6 +82,7 @@ func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
 
 		s.RemoveColumnIfExists("ChannelMembers", "NotifyLevel")
 	}
+	// END REMOVE AFTER 1.1.0
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {

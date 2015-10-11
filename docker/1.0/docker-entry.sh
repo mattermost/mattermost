@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+# Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 # See License.txt for license information.
 
 mkdir -p web/static/js

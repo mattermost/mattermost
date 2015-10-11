@@ -2,17 +2,23 @@
 
 ## Installation 
 
+#### Preview Installation
+Get up and running quickly with Docker-based install
+
 - [AWS Elastic Beanstalk Setup](install/Amazon-Elastic-Beanstalk.md)
 - [Docker Single Container Preview Setup](install/Docker-Single-Container.md)
-- [Production Ubuntu Setup](install/Production-Ubuntu.md)
-- [Mattermost Release Numbering Scheme](install/Release-Numbering.md)
-- [Software and Hardware Requirements](install/Requirements.md)
 - [SMTP Email Setup](install/SMTP-Email-Setup.md)
 
-## Integrations
+#### Production Installation
+Set up Mattermost in your data center 
+- [Software and Hardware Requirements](install/Requirements.md)
+- [Production Ubuntu Setup](install/Production-Ubuntu.md)
+- [SMTP Email Setup](install/SMTP-Email-Setup.md)
 
-- [GitLab SSO Configuration](integrations/Single-Sign-On/Gitlab.md) 
-- [Incoming Webhooks](integrations/webhooks/Incoming.md) 
+#### Configuration and Management 
+- Configuration Settings Overview 
+  - [GitLab SSO Configuration](integrations/Single-Sign-On/Gitlab.md) 
+- [Mattermost Release Numbering Scheme](install/Release-Numbering.md)
 
 ## Developer Documentation 
 
@@ -20,8 +26,17 @@
 - [Developer Machine Setup](developer/Setup.md)
 - [Mattermost Style Guide](developer/Style-Guide.md)
 - [API Overview](api/Overview.md)
+ - [Incoming Webhooks](integrations/webhooks/Incoming-Webhooks.md) 
 
-## Usage Help
+## Help
 
-- [Slack Import](usage/Slack-Import.md)
-- [Mattermost Markdown Formatting](usage/Markdown.md)
+_Note: End user help documentation is a new feature being completed for the v1.2 release. The materials below are work in progress._
+
+- User Interface
+ - [Manage Team](help/Manage-Team.md)
+ - Team Settings 
+   - [Slack Import](help/Slack-Import.md)
+
+- Messaging
+ - [Mattermost Markdown Formatting](usage/Markdown.md)
+

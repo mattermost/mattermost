@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 const ChannelStore = require('../stores/channel_store.jsx');
@@ -58,7 +58,9 @@ export default class ChannelHeader extends React.Component {
         $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
     }
     onSocketChange(msg) {
-        if (msg.action === 'new_user') {
+        if (msg.action === 'new_user' ||
+            msg.action === 'user_added' ||
+            (msg.action === 'user_removed' && msg.user_id !== UserStore.getCurrentId())) {
             AsyncClient.getChannelExtraInfo(true);
         }
     }

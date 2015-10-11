@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -55,8 +55,13 @@ func TestSocket(t *testing.T) {
 	time.Sleep(300 * time.Millisecond)
 	Client.Must(Client.JoinChannel(channel1.Id))
 
-	// Read the join channel message that gets generated
+	// Read the user_added message that gets generated
 	var rmsg model.Message
+	if err := c2.ReadJSON(&rmsg); err != nil {
+		t.Fatal(err)
+	}
+
+	// Read the second user_added message that gets generated
 	if err := c2.ReadJSON(&rmsg); err != nil {
 		t.Fatal(err)
 	}

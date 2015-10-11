@@ -1,7 +1,8 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 const TextFormatting = require('./text_formatting.jsx');
+const Utils = require('./utils.jsx');
 
 const marked = require('marked');
 
@@ -39,7 +40,14 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         if (title) {
             output += ' title="' + title + '"';
         }
-        output += ' target="_blank">' + text + '</a>';
+
+        if (outHref.lastIndexOf(Utils.getTeamURLFromAddressBar(), 0) === 0) {
+            output += '>';
+        } else {
+            output += ' target="_blank">';
+        }
+
+        output += text + '</a>';
 
         return output;
     }

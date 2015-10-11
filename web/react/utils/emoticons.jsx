@@ -1,27 +1,27 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 const emoticonPatterns = {
-    smile: /:-?\)/g, // :)
-    open_mouth: /:o/gi, // :o
-    scream: /:-o/gi, // :-o
-    smirk: /:-?]/g, // :]
-    grinning: /:-?d/gi, // :D
-    stuck_out_tongue_closed_eyes: /x-d/gi, // x-d
-    stuck_out_tongue_winking_eye: /:-?p/gi, // :p
-    rage: /:-?[\[@]/g, // :@
-    frowning: /:-?\(/g, // :(
-    sob: /:['’]-?\(|:&#x27;\(/g, // :`(
-    kissing_heart: /:-?\*/g, // :*
-    pensive: /:-?\//g, // :/
-    confounded: /:-?s/gi, // :s
-    flushed: /:-?\|/g, // :|
-    relaxed: /:-?\$/g, // :$
-    mask: /:-x/gi, // :-x
-    heart: /<3|&lt;3/g, // <3
-    broken_heart: /<\/3|&lt;&#x2F;3/g, // </3
-    thumbsup: /:\+1:/g, // :+1:
-    thumbsdown: /:\-1:/g // :-1:
+    smile: /(^|\s)(:-?\))($|\s)/g, // :)
+    open_mouth: /(^|\s)(:o)($|\s)/gi, // :o
+    scream: /(^|\s)(:-o)($|\s)/gi, // :-o
+    smirk: /(^|\s)(:-?])($|\s)/g, // :]
+    grinning: /(^|\s)(:-?d)($|\s)/gi, // :D
+    stuck_out_tongue_closed_eyes: /(^|\s)(x-d)($|\s)/gi, // x-d
+    stuck_out_tongue: /(^|\s)(:-?p)($|\s)/gi, // :p
+    rage: /(^|\s)(:-?[\[@])($|\s)/g, // :@
+    frowning: /(^|\s)(:-?\()($|\s)/g, // :(
+    sob: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()($|\s)/g, // :`(
+    kissing_heart: /(^|\s)(:-?\*)($|\s)/g, // :*
+    pensive: /(^|\s)(:-?\/)($|\s)/g, // :/
+    confounded: /(^|\s)(:-?s)($|\s)/gi, // :s
+    flushed: /(^|\s)(:-?\|)($|\s)/g, // :|
+    relaxed: /(^|\s)(:-?\$)($|\s)/g, // :$
+    mask: /(^|\s)(:-x)($|\s)/gi, // :-x
+    heart: /(^|\s)(<3|&lt;3)($|\s)/g, // <3
+    broken_heart: /(^|\s)(<\/3|&lt;&#x2F;3)($|\s)/g, // </3
+    thumbsup: /(^|\s)(:\+1:)($|\s)/g, // :+1:
+    thumbsdown: /(^|\s)(:\-1:)($|\s)/g // :-1:
 };
 
 function initializeEmoticonMap() {
@@ -126,7 +126,7 @@ const emoticonMap = initializeEmoticonMap();
 export function handleEmoticons(text, tokens) {
     let output = text;
 
-    function replaceEmoticonWithToken(match, name) {
+    function replaceEmoticonWithToken(match, prefix, name, suffix) {
         if (emoticonMap[name]) {
             const index = tokens.size;
             const alias = `MM_EMOTICON${index}`;
@@ -136,18 +136,18 @@ export function handleEmoticons(text, tokens) {
                 originalText: match
             });
 
-            return alias;
+            return prefix + alias + suffix;
         }
 
         return match;
     }
 
-    output = output.replace(/:([a-zA-Z0-9_-]+):/g, replaceEmoticonWithToken);
+    output = output.replace(/(^|\s):([a-zA-Z0-9_-]+):($|\s)/g, replaceEmoticonWithToken);
 
     $.each(emoticonPatterns, (name, pattern) => {
         // this might look a bit funny, but since the name isn't contained in the actual match
         // like with the named emoticons, we need to add it in manually
-        output = output.replace(pattern, (match) => replaceEmoticonWithToken(match, name));
+        output = output.replace(pattern, (match, prefix, emoticon, suffix) => replaceEmoticonWithToken(match, prefix, name, suffix));
     });
 
     return output;

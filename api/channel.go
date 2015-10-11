@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -26,11 +26,11 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
-	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(joinChannel)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leaveChannel)).Methods("POST")
+	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(join)).Methods("POST")
+	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leave)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/delete", ApiUserRequired(deleteChannel)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/add", ApiUserRequired(addChannelMember)).Methods("POST")
-	sr.Handle("/{id:[A-Za-z0-9]+}/remove", ApiUserRequired(removeChannelMember)).Methods("POST")
+	sr.Handle("/{id:[A-Za-z0-9]+}/add", ApiUserRequired(addMember)).Methods("POST")
+	sr.Handle("/{id:[A-Za-z0-9]+}/remove", ApiUserRequired(removeMember)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/update_last_viewed_at", ApiUserRequired(updateLastViewedAt)).Methods("POST")
 
 }
@@ -329,7 +329,7 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func joinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+func join(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	channelId := params["id"]
@@ -360,41 +360,60 @@ func JoinChannel(c *Context, channelId string, role string) {
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "joinChannel") {
-			return
-		}
-
-		if channel.DeleteAt > 0 {
-			c.Err = model.NewAppError("joinChannel", "The channel has been archived or deleted", "")
-			c.Err.StatusCode = http.StatusBadRequest
+		if !c.HasPermissionsToTeam(channel.TeamId, "join") {
 			return
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: c.Session.UserId,
-				Roles: role, NotifyProps: model.GetDefaultChannelNotifyProps()}
-
-			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
-				c.Err = cmresult.Err
+			if _, err := AddUserToChannel(user, channel); err != nil {
+				c.Err = err
 				return
 			}
-
-			post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
-				`User %v has joined this channel.`,
-				user.Username), Type: model.POST_JOIN_LEAVE}
-			if _, err := CreatePost(c, post, false); err != nil {
-				l4g.Error("Failed to post join message %v", err)
-				c.Err = model.NewAppError("joinChannel", "Failed to send join request", "")
-				return
-			}
-
-			UpdateChannelAccessCacheAndForget(c.Session.TeamId, c.Session.UserId, channel.Id)
+			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`User %v has joined this channel.`, user.Username))
 		} else {
-			c.Err = model.NewAppError("joinChannel", "You do not have the appropriate permissions", "")
+			c.Err = model.NewAppError("join", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 	}
+}
+
+func PostUserAddRemoveMessageAndForget(c *Context, channelId string, message string) {
+	go func() {
+		post := &model.Post{
+			ChannelId: channelId,
+			Message:   message,
+			Type:      model.POST_JOIN_LEAVE,
+		}
+		if _, err := CreatePost(c, post, false); err != nil {
+			l4g.Error("Failed to post join/leave message %v", err)
+		}
+	}()
+}
+
+func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	if channel.DeleteAt > 0 {
+		return nil, model.NewAppError("AddUserToChannel", "The channel has been archived or deleted", "")
+	}
+
+	if channel.Type != model.CHANNEL_OPEN && channel.Type != model.CHANNEL_PRIVATE {
+		return nil, model.NewAppError("AddUserToChannel", "Can not add user to this channel type", "")
+	}
+
+	newMember := &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	if cmresult := <-Srv.Store.Channel().SaveMember(newMember); cmresult.Err != nil {
+		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, cmresult.Err)
+		return nil, model.NewAppError("AddUserToChannel", "Failed to add user to channel", "")
+	}
+
+	go func() {
+		UpdateChannelAccessCache(channel.TeamId, user.Id, channel.Id)
+
+		message := model.NewMessage(channel.TeamId, channel.Id, user.Id, model.ACTION_USER_ADDED)
+		PublishAndForget(message)
+	}()
+
+	return newMember, nil
 }
 
 func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
@@ -427,7 +446,7 @@ func JoinDefaultChannels(user *model.User, channelRole string) *model.AppError {
 	return err
 }
 
-func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	id := params["id"]
@@ -445,24 +464,18 @@ func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "leaveChannel") {
-			return
-		}
-
-		if channel.DeleteAt > 0 {
-			c.Err = model.NewAppError("leaveChannel", "The channel has been archived or deleted", "")
-			c.Err.StatusCode = http.StatusBadRequest
+		if !c.HasPermissionsToTeam(channel.TeamId, "leave") {
 			return
 		}
 
 		if channel.Type == model.CHANNEL_DIRECT {
-			c.Err = model.NewAppError("leaveChannel", "Cannot leave a direct message channel", "")
+			c.Err = model.NewAppError("leave", "Cannot leave a direct message channel", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 
 		if channel.Name == model.DEFAULT_CHANNEL {
-			c.Err = model.NewAppError("leaveChannel", "Cannot leave the default channel "+model.DEFAULT_CHANNEL, "")
+			c.Err = model.NewAppError("leave", "Cannot leave the default channel "+model.DEFAULT_CHANNEL, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
@@ -472,16 +485,9 @@ func leaveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		UpdateChannelAccessCacheAndForget(c.Session.TeamId, c.Session.UserId, channel.Id)
+		RemoveUserFromChannel(c.Session.UserId, c.Session.UserId, channel)
 
-		post := &model.Post{ChannelId: channel.Id, Message: fmt.Sprintf(
-			`%v has left the channel.`,
-			user.Username), Type: model.POST_JOIN_LEAVE}
-		if _, err := CreatePost(c, post, false); err != nil {
-			l4g.Error("Failed to post leave message %v", err)
-			c.Err = model.NewAppError("leaveChannel", "Failed to send leave message", "")
-			return
-		}
+		PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v has left the channel.`, user.Username))
 
 		result := make(map[string]string)
 		result["id"] = channel.Id
@@ -656,7 +662,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -664,7 +670,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := data["user_id"]
 
 	if len(userId) != 26 {
-		c.SetInvalidParam("addChannelMember", "user_id")
+		c.SetInvalidParam("addMember", "user_id")
 		return
 	}
 
@@ -674,55 +680,35 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	nuc := Srv.Store.User().Get(userId)
 
 	// Only need to be a member of the channel to add a new member
-	if !c.HasPermissionsToChannel(cchan, "addChannelMember") {
+	if !c.HasPermissionsToChannel(cchan, "addMember") {
 		return
 	}
 
 	if nresult := <-nuc; nresult.Err != nil {
-		c.Err = model.NewAppError("addChannelMember", "Failed to find user to be added", "")
+		c.Err = model.NewAppError("addMember", "Failed to find user to be added", "")
 		return
 	} else if cresult := <-sc; cresult.Err != nil {
-		c.Err = model.NewAppError("addChannelMember", "Failed to find channel", "")
+		c.Err = model.NewAppError("addMember", "Failed to find channel", "")
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
 		nUser := nresult.Data.(*model.User)
 
-		if channel.DeleteAt > 0 {
-			c.Err = model.NewAppError("updateChannel", "The channel has been archived or deleted", "")
-			c.Err.StatusCode = http.StatusBadRequest
-			return
-		}
-
 		if oresult := <-ouc; oresult.Err != nil {
-			c.Err = model.NewAppError("addChannelMember", "Failed to find user doing the adding", "")
+			c.Err = model.NewAppError("addMember", "Failed to find user doing the adding", "")
 			return
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm := &model.ChannelMember{ChannelId: channel.Id, UserId: userId, NotifyProps: model.GetDefaultChannelNotifyProps()}
-
-			if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
-				l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", userId, id, cmresult.Err)
-				c.Err = model.NewAppError("addChannelMember", "Failed to add user to channel", "")
+			cm, err := AddUserToChannel(nUser, channel)
+			if err != nil {
+				c.Err = err
 				return
 			}
 
 			c.LogAudit("name=" + channel.Name + " user_id=" + userId)
 
-			go func() {
-				post := &model.Post{ChannelId: id, Message: fmt.Sprintf(
-					`%v added to the channel by %v`,
-					nUser.Username, oUser.Username), Type: model.POST_JOIN_LEAVE}
-				if _, err := CreatePost(c, post, false); err != nil {
-					l4g.Error("Failed to post add member to channel message, err=%v", err)
-				}
-
-				UpdateChannelAccessCache(c.Session.TeamId, userId, channel.Id)
-				message := model.NewMessage(c.Session.TeamId, channel.Id, userId, model.ACTION_USER_ADDED)
-
-				PublishAndForget(message)
-			}()
+			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v added to the channel by %v`, nUser.Username, oUser.Username))
 
 			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id)
 			w.Write([]byte(cm.ToJson()))
@@ -730,20 +716,20 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id := params["id"]
+	channelId := params["id"]
 
 	data := model.MapFromJson(r.Body)
-	userId := data["user_id"]
+	userIdToRemove := data["user_id"]
 
-	if len(userId) != 26 {
-		c.SetInvalidParam("addChannelMember", "user_id")
+	if len(userIdToRemove) != 26 {
+		c.SetInvalidParam("removeMember", "user_id")
 		return
 	}
 
-	sc := Srv.Store.Channel().Get(id)
-	cmc := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	sc := Srv.Store.Channel().Get(channelId)
+	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -753,46 +739,50 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
-		channelMember := cmcresult.Data.(model.ChannelMember)
+		removerChannelMember := cmcresult.Data.(model.ChannelMember)
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "removeChannelMember") {
+		if !c.HasPermissionsToTeam(channel.TeamId, "removeMember") {
 			return
 		}
 
-		if !strings.Contains(channelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !strings.Contains(c.Session.Roles, model.ROLE_TEAM_ADMIN) {
+		if !strings.Contains(removerChannelMember.Roles, model.CHANNEL_ROLE_ADMIN) && !c.IsTeamAdmin() {
 			c.Err = model.NewAppError("updateChannel", "You do not have the appropriate permissions ", "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
 		}
 
-		if channel.DeleteAt > 0 {
-			c.Err = model.NewAppError("updateChannel", "The channel has been archived or deleted", "")
-			c.Err.StatusCode = http.StatusBadRequest
+		if err := RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
+			c.Err = model.NewAppError("updateChannel", "Unable to remove user.", err.Message)
 			return
 		}
 
-		if cmresult := <-Srv.Store.Channel().RemoveMember(id, userId); cmresult.Err != nil {
-			c.Err = cmresult.Err
-			return
-		}
-
-		c.LogAudit("name=" + channel.Name + " user_id=" + userId)
-
-		go func() {
-			UpdateChannelAccessCache(c.Session.TeamId, userId, id)
-
-			message := model.NewMessage(c.Session.TeamId, "", userId, model.ACTION_USER_REMOVED)
-			message.Add("channel_id", id)
-			message.Add("remover", c.Session.UserId)
-			PublishAndForget(message)
-		}()
+		c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove)
 
 		result := make(map[string]string)
 		result["channel_id"] = channel.Id
-		result["removed_user_id"] = userId
+		result["removed_user_id"] = userIdToRemove
 		w.Write([]byte(model.MapToJson(result)))
 	}
 
+}
+
+func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	if channel.DeleteAt > 0 {
+		return model.NewAppError("updateChannel", "The channel has been archived or deleted", "")
+	}
+
+	if cmresult := <-Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
+		return cmresult.Err
+	}
+
+	UpdateChannelAccessCacheAndForget(channel.TeamId, userIdToRemove, channel.Id)
+
+	message := model.NewMessage(channel.TeamId, "", userIdToRemove, model.ACTION_USER_REMOVED)
+	message.Add("channel_id", channel.Id)
+	message.Add("remover", removerUserId)
+	PublishAndForget(message)
+
+	return nil
 }
 
 func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {

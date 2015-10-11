@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -81,13 +81,6 @@ func NewSqlStore() Store {
 				time.Sleep(time.Second)
 				panic("The database schema version of " + schemaVersion + " cannot be upgraded.  You must not skip a version.")
 			}
-		}
-	}
-
-	// Temporary upgrade code, remove after 0.8.0 release
-	if sqlStore.DoesTableExist("Sessions") {
-		if sqlStore.DoesColumnExist("Sessions", "AltId") {
-			sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
 		}
 	}
 
