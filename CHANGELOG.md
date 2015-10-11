@@ -2,9 +2,9 @@
 
 ## UNDER DEVELOPMENT - Release v1.1.0
 
--The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
+The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
--- **Final release anticipated:** 2015-10-16
+- **Final release anticipated:** 2015-10-16
 
 ### Release Highlights
 
@@ -20,7 +20,6 @@ Integrations
 
 Documentation
 
-- Contents of `/docs` now hosted at docs.mattermost.org
 - Added documentation on config.json and System Console settings 
 - Docker Toolbox replaces deprecated Boot2Docker instructions in container install documentation 
 
