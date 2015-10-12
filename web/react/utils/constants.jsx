@@ -201,7 +201,7 @@ module.exports = {
             centerChannelBg: '#1F1F1F',
             centerChannelColor: '#DDDDDD',
             newMessageSeparator: '#CC992D',
-            linkColor: '#0177e7',
+            linkColor: '#0D93FF',
             buttonBg: '#0177e7',
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#784098',
