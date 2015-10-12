@@ -26,6 +26,7 @@
         .post-header {
             .post-header-col {
                 &.post-header__reply {
+                    min-width: 30px;
                     text-align: right;
                     float: right;
                 }

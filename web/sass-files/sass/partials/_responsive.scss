@@ -421,6 +421,9 @@
             .post-body__cell {
                 display: table-cell;
                 padding-left: 45px;
+                .sidebar--right & {
+                    padding-left: 0;
+                }
             }
             .app__content & {
                 .btn-file {
