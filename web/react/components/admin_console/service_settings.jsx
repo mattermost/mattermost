@@ -35,11 +35,13 @@ export default class ServiceSettings extends React.Component {
 
         config.ServiceSettings.SegmentDeveloperKey = React.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
         config.ServiceSettings.GoogleDeveloperKey = React.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
-        //config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
         config.ServiceSettings.EnableIncomingWebhooks = React.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
         config.ServiceSettings.EnablePostUsernameOverride = React.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
         config.ServiceSettings.EnablePostIconOverride = React.findDOMNode(this.refs.EnablePostIconOverride).checked;
         config.ServiceSettings.EnableTesting = React.findDOMNode(this.refs.EnableTesting).checked;
+        config.ServiceSettings.EnableSecurityFixAlert = React.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
+
+        //config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
 
         var MaximumLoginAttempts = 10;
         if (!isNaN(parseInt(React.findDOMNode(this.refs.MaximumLoginAttempts).value, 10))) {
@@ -301,6 +303,39 @@ export default class ServiceSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableSecurityFixAlert'
+                        >
+                            {'Enable Security Alerts: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableSecurityFixAlert'
+                                    value='true'
+                                    ref='EnableSecurityFixAlert'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableSecurityFixAlert}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableSecurityFixAlert'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableSecurityFixAlert}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}</p>
                         </div>
                     </div>
 

@@ -30,7 +30,6 @@ export default class PrivacySettings extends React.Component {
         var config = this.props.config;
         config.PrivacySettings.ShowEmailAddress = React.findDOMNode(this.refs.ShowEmailAddress).checked;
         config.PrivacySettings.ShowFullName = React.findDOMNode(this.refs.ShowFullName).checked;
-        config.PrivacySettings.EnableSecurityFixAlert = React.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
 
         Client.saveConfig(
             config,
@@ -134,39 +133,6 @@ export default class PrivacySettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'When false, hides full name of users from other users including team owner and team administrators.'}</p>
-                        </div>
-                    </div>
-
-                    <div className='form-group'>
-                        <label
-                            className='control-label col-sm-4'
-                            htmlFor='EnableSecurityFixAlert'
-                        >
-                            {'Send Error and Diagnostic: '}
-                        </label>
-                        <div className='col-sm-8'>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableSecurityFixAlert'
-                                    value='true'
-                                    ref='EnableSecurityFixAlert'
-                                    defaultChecked={this.props.config.PrivacySettings.EnableSecurityFixAlert}
-                                    onChange={this.handleChange}
-                                />
-                                    {'true'}
-                            </label>
-                            <label className='radio-inline'>
-                                <input
-                                    type='radio'
-                                    name='EnableSecurityFixAlert'
-                                    value='false'
-                                    defaultChecked={!this.props.config.PrivacySettings.EnableSecurityFixAlert}
-                                    onChange={this.handleChange}
-                                />
-                                    {'false'}
-                            </label>
-                            <p className='help-text'>{'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}</p>
                         </div>
                     </div>
 

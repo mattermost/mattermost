@@ -8,7 +8,8 @@
         "EnableIncomingWebhooks": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
-        "EnableTesting": false
+        "EnableTesting": false,
+        "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -77,8 +78,7 @@
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
-        "ShowFullName": true,
-        "EnableSecurityFixAlert": true
+        "ShowFullName": true
     },
     "GitLabSettings": {
         "Enable": false,

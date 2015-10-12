@@ -206,7 +206,7 @@ func TestUserStoreGet(t *testing.T) {
 	}
 }
 
-func TestUserCountt(t *testing.T) {
+func TestUserCount(t *testing.T) {
 	Setup()
 
 	u1 := model.User{}
@@ -215,6 +215,24 @@ func TestUserCountt(t *testing.T) {
 	Must(store.User().Save(&u1))
 
 	if result := <-store.User().GetTotalUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		count := result.Data.(int64)
+		if count <= 0 {
+			t.Fatal()
+		}
+	}
+}
+
+func TestActiveUserCount(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	if result := <-store.User().GetTotalActiveUsersCount(); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		count := result.Data.(int64)
