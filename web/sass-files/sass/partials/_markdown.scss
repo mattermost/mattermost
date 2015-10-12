@@ -53,15 +53,10 @@ blockquote {
 }
 pre {
 	border: none;
-	background-color: #f7f7f7;
 	margin: 5px 0;
-	.current--user & {
-		background: #fff;
-	}
-	code {
-		color: #c7254e;
-	}
+	color: inherit;
 }
 code {
 	background: #fff;
+	color: inherit;
 }
