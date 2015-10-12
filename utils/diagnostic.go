@@ -6,8 +6,6 @@ package utils
 import (
 	"net/http"
 	"net/url"
-
-	"github.com/mattermost/platform/model"
 )
 
 const (
