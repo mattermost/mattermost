@@ -39,3 +39,17 @@ To enable email, turn this option off by setting `ByPassEmail=false` and configu
 	2. Kill the process `kill pid`
 	3. The service should restart automatically. Verify the Mattermost service is running with `ps -A`
 	4. Current logged in users will not be affected, but upon logging out or session expiration users will be required to verify their email address.
+
+### Troubleshooting SMTP
+
+If you receive an error message during SMTP setup, do a web search for the error code number to narrow down the issue. Sometimes ISPs require nuanced setups for SMTP and error codes can hint at how to make the proper adjustments. 
+
+For example, if you have an error code reading: 
+
+```
+Connection unsuccessful: Failed to add to email address - 554 5.7.1 <unknown[IP-ADDRESS]>: Client host rejected: Access denied
+```
+
+Search for `554 5.7.1 error` and `Client host rejected: Access denied`.
+
+
