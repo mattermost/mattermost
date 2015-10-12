@@ -113,6 +113,8 @@ export default class UserItem extends React.Component {
         if (user.roles.length > 0) {
             if (user.roles.indexOf('system_admin') > -1) {
                 currentRoles = 'System Admin';
+            } else if (user.roles === 'admin') {
+                currentRoles = 'Team Admin';
             } else {
                 currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
             }
@@ -158,7 +160,7 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeAdmin}
                     >
-                        {'Make Admin'}
+                        {'Make Team Admin'}
                     </a>
                 </li>
             );
