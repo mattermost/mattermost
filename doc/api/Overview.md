@@ -77,7 +77,7 @@ X-Ratelimit-Reset: 1441983590
 These headers are telling you your current rate limit status.
 
 Header                | Description
---------------------- | -----------
+:--------------------- |:-----------
 X-Ratelimit-Limit     | The maximum number of requests you can make per second.
 X-Ratelimit-Remaining | The number of requests remaining in the current window.
 X-Ratelimit-Reset     | The remaining UTC epoch seconds before the rate limit resets.

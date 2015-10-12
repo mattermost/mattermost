@@ -26,14 +26,16 @@ Set up Mattermost in your data center
 - [Developer Machine Setup](developer/Setup.md)
 - [Mattermost Style Guide](developer/Style-Guide.md)
 - [API Overview](api/Overview.md)
- - [Incoming Webhooks](integrations/webhooks/Incoming.md) 
+ - [Incoming Webhooks](integrations/webhooks/Incoming-Webhooks.md) 
 
 ## Help
+
+_Note: End user help documentation is a new feature being completed for the v1.2 release. The materials below are work in progress._
 
 - User Interface
  - [Manage Team](help/Manage-Team.md)
  - Team Settings 
-   - [Slack Import](usage/Slack-Import.md)
+   - [Slack Import](help/Slack-Import.md)
 
 - Messaging
  - [Mattermost Markdown Formatting](usage/Markdown.md)

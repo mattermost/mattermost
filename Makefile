@@ -88,6 +88,11 @@ travis:
 
 	mkdir -p $(DIST_PATH)/web/static/js
 	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
+	cp -RL web/static/config $(DIST_PATH)/web/static
+	cp -RL web/static/css $(DIST_PATH)/web/static
+	cp -RL web/static/fonts $(DIST_PATH)/web/static
+	cp -RL web/static/help $(DIST_PATH)/web/static
+	cp -RL web/static/images $(DIST_PATH)/web/static
 	cp -RL web/static/js/jquery-dragster $(DIST_PATH)/web/static/js/
 	cp -RL web/templates $(DIST_PATH)/web
 
@@ -265,8 +270,14 @@ dist: install
 
 	cd web/sass-files && compass compile -e production --force
 
-	mkdir -p $(DIST_PATH)/web
-	cp -RL web/static $(DIST_PATH)/web
+	mkdir -p $(DIST_PATH)/web/static/js
+	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
+	cp -RL web/static/config $(DIST_PATH)/web/static
+	cp -RL web/static/css $(DIST_PATH)/web/static
+	cp -RL web/static/fonts $(DIST_PATH)/web/static
+	cp -RL web/static/help $(DIST_PATH)/web/static
+	cp -RL web/static/images $(DIST_PATH)/web/static
+	cp -RL web/static/js/jquery-dragster $(DIST_PATH)/web/static/js/
 	cp -RL web/templates $(DIST_PATH)/web
 
 	mkdir -p $(DIST_PATH)/api
