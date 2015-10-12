@@ -195,6 +195,14 @@ body.ios {
 		.post-body__cell {
 			vertical-align: top;
 			position: relative;
+			&.scroll {
+				.btn-file {
+					right: 15px;
+				}
+				.custom-textarea {
+					padding-right: 43px;
+				}
+			}
 		}
 		.send-button {
 			display: none;

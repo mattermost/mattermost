@@ -262,25 +262,27 @@ export default class CreateComment extends React.Component {
                         id={this.props.rootId}
                         className='post-create-body comment-create-body'
                     >
-                        <Textbox
-                            onUserInput={this.handleUserInput}
-                            onKeyPress={this.commentMsgKeyPress}
-                            messageText={this.state.messageText}
-                            createMessage='Add a comment...'
-                            initialText=''
-                            id='reply_textbox'
-                            ref='textbox'
-                        />
-                        <FileUpload
-                            ref='fileUpload'
-                            getFileCount={this.getFileCount}
-                            onUploadStart={this.handleUploadStart}
-                            onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError}
-                            onTextDrop={this.handleTextDrop}
-                            postType='comment'
-                            channelId={this.props.channelId}
-                        />
+                        <div className='post-body__cell'>
+                            <Textbox
+                                onUserInput={this.handleUserInput}
+                                onKeyPress={this.commentMsgKeyPress}
+                                messageText={this.state.messageText}
+                                createMessage='Add a comment...'
+                                initialText=''
+                                id='reply_textbox'
+                                ref='textbox'
+                            />
+                            <FileUpload
+                                ref='fileUpload'
+                                getFileCount={this.getFileCount}
+                                onUploadStart={this.handleUploadStart}
+                                onFileUpload={this.handleFileUploadComplete}
+                                onUploadError={this.handleUploadError}
+                                onTextDrop={this.handleTextDrop}
+                                postType='comment'
+                                channelId={this.props.channelId}
+                            />
+                        </div>
                     </div>
                     <MsgTyping
                         channelId={this.props.channelId}

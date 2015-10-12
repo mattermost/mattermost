@@ -149,7 +149,7 @@ export default class SignupUserComplete extends React.Component {
         // set up the email entry and hide it if an email was provided
         var yourEmailIs = '';
         if (this.state.user.email) {
-            yourEmailIs = <span>Your email address is {this.state.user.email}. You'll use this address to sign in to {global.window.config.SiteName}.</span>;
+            yourEmailIs = <span>Your email address is <strong>{this.state.user.email}</strong>. You'll use this address to sign in to {global.window.config.SiteName}.</span>;
         }
 
         var emailContainerStyle = 'margin--extra';

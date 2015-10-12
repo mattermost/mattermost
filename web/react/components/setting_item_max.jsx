@@ -32,11 +32,17 @@ export default class SettingItemMax extends React.Component {
         }
 
         var inputs = this.props.inputs;
+        var widthClass;
+        if (this.props.width === 'full') {
+            widthClass = 'col-sm-12';
+        } else {
+            widthClass = 'col-sm-9 col-sm-offset-3';
+        }
 
         return (
             <ul className='section-max form-horizontal'>
                 <li className='col-sm-12 section-title'>{this.props.title}</li>
-                <li className='col-sm-9 col-sm-offset-3'>
+                <li className={widthClass}>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             {inputs}
@@ -69,5 +75,6 @@ SettingItemMax.propTypes = {
     extraInfo: React.PropTypes.element,
     updateSection: React.PropTypes.func,
     submit: React.PropTypes.func,
-    title: React.PropTypes.string
+    title: React.PropTypes.string,
+    width: React.PropTypes.string
 };
