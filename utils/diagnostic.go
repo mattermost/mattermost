@@ -24,7 +24,7 @@ const (
 )
 
 func SendDiagnostic(values url.Values) {
-	if *Cfg.ServiceSettings.EnableSecurityFixAlert && model.IsOfficalBuild() {
+	if *Cfg.ServiceSettings.EnableSecurityFixAlert {
 
 		res, err := http.Get(DIAGNOSTIC_URL + "/i?" + values.Encode())
 		if err != nil {

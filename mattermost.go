@@ -81,7 +81,7 @@ func main() {
 func securityAndDiagnosticsJob() {
 	go func() {
 		for {
-			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert { // && model.IsOfficalBuild() {
+			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
 				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 					props := result.Data.(model.StringMap)
 					lastSecurityTime, _ := strconv.ParseInt(props["LastSecurityTime"], 10, 0)
