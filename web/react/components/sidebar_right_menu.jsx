@@ -75,7 +75,7 @@ export default class SidebarRightMenu extends React.Component {
                         data-toggle='modal'
                         data-target='#team_members'
                     >
-                    <i className='glyphicon glyphicon-wrench'></i>Manage Team</a>
+                    <i className='glyphicon glyphicon-wrench'></i>Manage Members</a>
                 </li>
             );
         }

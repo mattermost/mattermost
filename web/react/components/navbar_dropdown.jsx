@@ -111,7 +111,7 @@ export default class NavbarDropdown extends React.Component {
                         data-toggle='modal'
                         data-target='#team_members'
                     >
-                        {'Manage Team'}
+                        {'Manage Members'}
                     </a>
                 </li>
             );
