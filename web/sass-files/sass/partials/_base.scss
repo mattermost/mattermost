@@ -34,6 +34,11 @@ body {
   }
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 .input-group-addon {
   background: transparent;
 }

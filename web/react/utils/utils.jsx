@@ -423,7 +423,10 @@ export function applyTheme(theme) {
 
     if (theme.sidebarTextActiveColor) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor, 2);
-        changeCss('.sidebar--left .nav-pills__container li.active a .status .online--icon', 'fill:' + theme.sidebarTextActiveColor, 2);
+    }
+
+    if (theme.sidebarTextActiveBg === theme.onlineIndicator) {
+        changeCss('.sidebar--left .nav-pills__container li.active a .status .online--icon', 'fill:' + theme.sidebarTextActiveColor, 1);
     }
 
     if (theme.sidebarHeaderBg) {
@@ -497,7 +500,7 @@ export function applyTheme(theme) {
         changeCss('.date-separator .separator__hr, .modal-footer, .modal .custom-textarea, .post-right__container .post.post--root hr, .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro, .settings-modal .settings-table .settings-content .divider-dark, hr, .settings-modal .settings-table .settings-links', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.post.current--user .post-body, .post.post--comment.other--root.current--user .post-comment, .post.post--comment.other--root .post-comment, .post.same--root .post-body, .modal .more-channel-table tbody>tr td, .member-div:first-child, .member-div, .access-history__table .access__report, .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
         changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('@media(max-width: 1440px){.post.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
