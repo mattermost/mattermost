@@ -24,6 +24,9 @@ Set this key to enable embedding of YouTube video previews based on hyperlinks a
 ```"EnableTesting": false```
 "true": /loadtest slash command is enabled to load test accounts and test data.
 
+```"EnableSecurityFixAlert": false```
+”true”: System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.
+
 ### Webhooks
 
 ```"EnableIncomingWebhooks": true```
@@ -36,7 +39,6 @@ Security note: By enabling this feature, users may be able to perform [phishing 
 
 ```"EnablePostIconOverride": false```
 "true": Webhooks will be allowed to change the icon they post with; “false”: Webhooks can only post with the profile picture of the account they were set up with. See http://mattermost.org/webhooks for more details.
-
 
 ### Team Settings
 ___
@@ -250,9 +252,6 @@ Settings to configure the name and email privacy of users on your system.
 
 ```"ShowFullName": true```
 ”true”: Show full name of all users; “false”: hide full name of users from other users including team owner and team administrators.
-
-```"EnableSecurityFixAlert": false```
-”true”: Server will periodically send error and diagnostic information to Mattermost.
 
 ### GitLab Settings
 ___
