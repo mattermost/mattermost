@@ -116,7 +116,7 @@ travis:
 	rm $(DIST_PATH)/web/templates/*.bak
 
 	mv doc/README.md doc/index.md
-	mkdocs build
+	mkdocs build --strict
 	cp -r documentation-html $(DIST_PATH)/documentation-html
 
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost

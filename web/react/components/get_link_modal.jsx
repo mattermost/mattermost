@@ -96,7 +96,6 @@ export default class GetLinkModal extends React.Component {
                                 <p>
                                 Send teammates the link below for them to sign-up to this team site.
                                 <br /><br />
-                                Be careful not to share this link publicly, since anyone with the link can join your team.
                                 </p>
                                 <textarea
                                     className='form-control no-resize'

@@ -11,7 +11,7 @@ Developer Machine Setup
 		`docker-machine ip dev`
 	3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost`
 	4. Run `docker-machine env dev` and copy the export statements to your ~/.bash_profile
-2. Download Go (version 1.4.2) from http://golang.org/dl/
+2. Download Go (version 1.4.2 or 1.5.1. Final release bits are built with 1.4.2) from http://golang.org/dl/
 3. Set up your Go workspace
 	1. `mkdir ~/go`
 	2. Add the following to your ~/.bash_profile  
@@ -51,7 +51,7 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 		`127.0.0.1 dockerhost`
 3. Install build essentials
 	1. `apt-get install build-essential`
-4. Download Go (version 1.4.2) from http://golang.org/dl/
+4. Download Go (version 1.4.2 or 1.5.1. Final release bits are built with 1.4.2) from http://golang.org/dl/
 5. Set up your Go workspace and add Go to the PATH
 	1. `mkdir ~/go`
 	2. Add the following to your ~/.bashrc  
