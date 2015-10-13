@@ -246,9 +246,11 @@ export default class Textbox extends React.Component {
         if (e.scrollHeight - mod < 167) {
             $(e).css({height: 'auto', 'overflow-y': 'hidden'}).height(e.scrollHeight - mod);
             $(w).css({height: 'auto'}).height(e.scrollHeight + 2);
+            $(w).closest('.post-body__cell').removeClass('scroll');
         } else {
             $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167);
             $(w).css({height: 'auto'}).height(167);
+            $(w).closest('.post-body__cell').addClass('scroll');
         }
 
         if (prevHeight !== $(e).height() && this.props.onHeightChange) {

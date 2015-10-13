@@ -150,6 +150,8 @@ func LoadConfig(fileName string) {
 		CfgFileName = fileName
 	}
 
+	config.SetDefaults()
+
 	if err := config.IsValid(); err != nil {
 		panic("Error validating config file=" + fileName + ", err=" + err.Message)
 	}

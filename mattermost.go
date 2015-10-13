@@ -81,34 +81,42 @@ func main() {
 func securityAndDiagnosticsJob() {
 	go func() {
 		for {
-			if utils.Cfg.PrivacySettings.EnableSecurityFixAlert && model.IsOfficalBuild() {
+			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
 				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 					props := result.Data.(model.StringMap)
 					lastSecurityTime, _ := strconv.ParseInt(props["LastSecurityTime"], 10, 0)
 					currentTime := model.GetMillis()
 
-					id := props["DiagnosticId"]
-					if len(id) == 0 {
-						id = model.NewId()
-						systemId := &model.System{Name: "DiagnosticId", Value: id}
-						<-api.Srv.Store.System().Save(systemId)
-					}
-
-					v := url.Values{}
-					v.Set(utils.PROP_DIAGNOSTIC_ID, id)
-					v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-					v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
-					v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
-					v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
-
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-						l4g.Info("Checking for security update from Mattermost")
+						l4g.Debug("Checking for security update from Mattermost")
+
+						id := props["DiagnosticId"]
+						if len(id) == 0 {
+							id = model.NewId()
+							systemId := &model.System{Name: "DiagnosticId", Value: id}
+							<-api.Srv.Store.System().Save(systemId)
+						}
+
+						v := url.Values{}
+						v.Set(utils.PROP_DIAGNOSTIC_ID, id)
+						v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+						v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
+						v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
+						v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
 
 						systemSecurityLastTime := &model.System{Name: "LastSecurityTime", Value: strconv.FormatInt(currentTime, 10)}
 						if lastSecurityTime == 0 {
 							<-api.Srv.Store.System().Save(systemSecurityLastTime)
 						} else {
 							<-api.Srv.Store.System().Update(systemSecurityLastTime)
+						}
+
+						if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+							v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+						}
+
+						if ucr := <-api.Srv.Store.User().GetTotalActiveUsersCount(); ucr.Err == nil {
+							v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 						}
 
 						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())

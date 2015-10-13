@@ -147,7 +147,8 @@
 		}
 		.header__info {
 			color: #fff;
-			padding-left: 4px;
+			@include clearfix;
+			padding-left: 2px;
 			z-index: 1;
 			position: relative;
 		}
@@ -155,7 +156,7 @@
 			display: block;
 			font-weight: 600;
 			font-size: 16px;
-			max-width: 80%;
+			max-width: 85%;
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
