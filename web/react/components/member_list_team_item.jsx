@@ -82,9 +82,9 @@ export default class MemberListTeamItem extends React.Component {
         const timestamp = UserStore.getCurrentUser().update_at;
 
         if (user.roles.length > 0) {
-            if (user.roles.indexOf('system_admin') > -1) {
+            if (Utils.isSystemAdmin(user.roles)) {
                 currentRoles = 'System Admin';
-            } else if (user.roles === 'admin') {
+            } else if (Utils.isAdmin(user.roles)) {
                 currentRoles = 'Team Admin';
             } else {
                 currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);

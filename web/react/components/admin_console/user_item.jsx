@@ -111,9 +111,9 @@ export default class UserItem extends React.Component {
         const user = this.props.user;
         let currentRoles = 'Member';
         if (user.roles.length > 0) {
-            if (user.roles.indexOf('system_admin') > -1) {
+            if (Utils.isSystemAdmin(user.roles)) {
                 currentRoles = 'System Admin';
-            } else if (user.roles === 'admin') {
+            } else if (Utils.isAdmin(user.roles)) {
                 currentRoles = 'Team Admin';
             } else {
                 currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
