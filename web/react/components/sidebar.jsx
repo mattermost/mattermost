@@ -345,15 +345,16 @@ export default class Sidebar extends React.Component {
             linkClass = 'active';
         }
 
+        let rowClass = 'sidebar-channel';
+
         var unread = false;
         if (channelMember) {
             msgCount = channel.total_msg_count - channelMember.msg_count;
             unread = (msgCount > 0 && channelMember.notify_props.mark_unread !== 'mention') || channelMember.mention_count > 0;
         }
 
-        var titleClass = '';
         if (unread) {
-            titleClass = 'unread-title';
+            rowClass += ' unread-title';
 
             if (channel.id !== activeId) {
                 if (!this.firstUnreadChannel) {
@@ -386,9 +387,8 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        var badgeClass;
         if (msgCount > 0) {
-            badgeClass = 'has-badge';
+            rowClass += ' has-badge';
         }
 
         // set up status icon for direct message channels
@@ -458,12 +458,14 @@ export default class Sidebar extends React.Component {
         if (handleClose && !badge) {
             closeButton = (
                 <span
-                    className='sidebar-channel__close pull-right'
+                    className='close-btn pull-right small'
                     data-close='true'
                 >
                     {'×'}
                 </span>
             );
+
+            rowClass = ' has-close';
         }
 
         return (
@@ -473,7 +475,7 @@ export default class Sidebar extends React.Component {
                 className={linkClass}
             >
                 <a
-                    className={'sidebar-channel ' + titleClass + ' ' + badgeClass}
+                    className={rowClass}
                     href={href}
                     onClick={handleClick}
                 >
