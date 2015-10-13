@@ -14,9 +14,9 @@ func InitPreference(r *mux.Router) {
 	l4g.Debug("Initializing preference api routes")
 
 	sr := r.PathPrefix("/preferences").Subrouter()
-	sr.Handle("/save", ApiAppHandler(savePreferences)).Methods("POST")
-	sr.Handle("/{category:[A-Za-z0-9_]+}", ApiAppHandler(getPreferenceCategory)).Methods("GET")
-	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getPreference)).Methods("GET")
+	sr.Handle("/save", ApiUserRequired(savePreferences)).Methods("POST")
+	sr.Handle("/{category:[A-Za-z0-9_]+}", ApiUserRequired(getPreferenceCategory)).Methods("GET")
+	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getPreference)).Methods("GET")
 }
 
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -52,15 +52,19 @@ func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		data := result.Data.(model.Preferences)
 
-		if len(data) == 0 {
-			if category == model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW {
-				// add direct channels for a user that existed before preferences were added
-				data = addDirectChannels(c.Session.UserId, c.Session.TeamId)
-			}
-		}
+		data = transformPreferences(c, data, category)
 
 		w.Write([]byte(data.ToJson()))
 	}
+}
+
+func transformPreferences(c *Context, preferences model.Preferences, category string) model.Preferences {
+	if len(preferences) == 0 && category == model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW {
+		// add direct channels for a user that existed before preferences were added
+		preferences = addDirectChannels(c.Session.UserId, c.Session.TeamId)
+	}
+
+	return preferences
 }
 
 func addDirectChannels(userId, teamId string) model.Preferences {

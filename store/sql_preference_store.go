@@ -162,9 +162,9 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) Sto
 	go func() {
 		result := StoreResult{}
 
-		var preferences model.Preferences
+		var preference model.Preference
 
-		if _, err := s.GetReplica().Select(&preferences,
+		if err := s.GetReplica().SelectOne(&preference,
 			`SELECT
 				*
 			FROM
@@ -173,9 +173,9 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) Sto
 				UserId = :UserId
 				AND Category = :Category
 				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetByName", "We encounted an error while finding preferences", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.Get", "We encounted an error while finding preferences", err.Error())
 		} else {
-			result.Data = preferences[0]
+			result.Data = preference
 		}
 
 		storeChannel <- result

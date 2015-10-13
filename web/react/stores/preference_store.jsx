@@ -9,6 +9,14 @@ const UserStore = require('../stores/user_store.jsx');
 
 const CHANGE_EVENT = 'change';
 
+function getPreferenceKey(category, name) {
+    return `${category}-${name}`;
+}
+
+function getPreferenceKeyForModel(preference) {
+    return `${preference.category}-${preference.name}`;
+}
+
 class PreferenceStoreClass extends EventEmitter {
     constructor() {
         super();
@@ -28,20 +36,12 @@ class PreferenceStoreClass extends EventEmitter {
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
     }
 
-    getKey(category, name) {
-        return `${category}-${name}`;
-    }
-
-    getKeyForModel(preference) {
-        return `${preference.category}-${preference.name}`;
-    }
-
     getAllPreferences() {
         return new Map(BrowserStore.getItem('preferences', []));
     }
 
     getPreference(category, name, defaultValue = '') {
-        return this.getAllPreferences().get(this.getKey(category, name)) || defaultValue;
+        return this.getAllPreferences().get(getPreferenceKey(category, name)) || defaultValue;
     }
 
     getPreferences(category) {
@@ -70,7 +70,7 @@ class PreferenceStoreClass extends EventEmitter {
     setPreference(category, name, value) {
         const preferences = this.getAllPreferences();
 
-        const key = this.getKey(category, name);
+        const key = getPreferenceKey(category, name);
         let preference = preferences.get(key);
 
         if (!preference) {
@@ -109,7 +109,7 @@ class PreferenceStoreClass extends EventEmitter {
             const preferences = this.getAllPreferences();
 
             for (const preference of action.preferences) {
-                preferences.set(this.getKeyForModel(preference), preference);
+                preferences.set(getPreferenceKeyForModel(preference), preference);
             }
 
             this.setAllPreferences(preferences);

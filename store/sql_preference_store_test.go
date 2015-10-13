@@ -55,7 +55,7 @@ func TestPreferenceGet(t *testing.T) {
 
 	userId := model.NewId()
 	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
-	name := model.PREFERENCE_NAME_TEST
+	name := model.NewId()
 
 	preferences := model.Preferences{
 		{
@@ -70,7 +70,7 @@ func TestPreferenceGet(t *testing.T) {
 		},
 		{
 			UserId:   userId,
-			Category: model.PREFERENCE_CATEGORY_TEST,
+			Category: model.NewId(),
 			Name:     name,
 		},
 		{
@@ -86,6 +86,11 @@ func TestPreferenceGet(t *testing.T) {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(model.Preference); data != preferences[0] {
 		t.Fatal("got incorrect preference")
+	}
+
+	// make sure getting a missing preference fails
+	if result := <-store.Preference().Get(model.NewId(), model.NewId(), model.NewId()); result.Err == nil {
+		t.Fatal("no error on getting a missing preference")
 	}
 }
 
@@ -111,7 +116,7 @@ func TestPreferenceGetCategory(t *testing.T) {
 		// same user/name, different category
 		{
 			UserId:   userId,
-			Category: model.PREFERENCE_CATEGORY_TEST,
+			Category: model.NewId(),
 			Name:     name,
 		},
 		// same name/category, different user
@@ -130,5 +135,12 @@ func TestPreferenceGetCategory(t *testing.T) {
 		t.Fatal("got the wrong number of preferences")
 	} else if !((data[0] == preferences[0] && data[1] == preferences[1]) || (data[0] == preferences[1] && data[1] == preferences[0])) {
 		t.Fatal("got incorrect preferences")
+	}
+
+	// make sure getting a missing preference category doesn't fail
+	if result := <-store.Preference().GetCategory(model.NewId(), model.NewId()); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(model.Preferences); len(data) != 0 {
+		t.Fatal("shouldn't have got any preferences")
 	}
 }

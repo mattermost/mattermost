@@ -71,13 +71,13 @@ func TestGetPreferenceCategory(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
-	category := model.PREFERENCE_CATEGORY_TEST
+	category := model.NewId()
 
 	preferences1 := model.Preferences{
 		{
 			UserId:   user1.Id,
 			Category: category,
-			Name:     model.PREFERENCE_NAME_TEST,
+			Name:     model.NewId(),
 		},
 		{
 			UserId:   user1.Id,
@@ -86,8 +86,8 @@ func TestGetPreferenceCategory(t *testing.T) {
 		},
 		{
 			UserId:   user1.Id,
-			Category: model.PREFERENCE_CATEGORY_TEST,
-			Name:     model.PREFERENCE_NAME_TEST,
+			Category: model.NewId(),
+			Name:     model.NewId(),
 		},
 	}
 
@@ -113,7 +113,7 @@ func TestGetPreferenceCategory(t *testing.T) {
 	}
 }
 
-func TestGetDefaultDirectChannels(t *testing.T) {
+func TestTransformPreferences(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}

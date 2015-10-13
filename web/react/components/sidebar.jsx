@@ -310,7 +310,9 @@ export default class Sidebar extends React.Component {
             this.isLeaving.set(channel.id, true);
 
             const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, channel.teammate_id, 'false');
-            AsyncClient.savePreferences(
+
+            // bypass AsyncClient since we've already saved the updated preferences
+            Client.savePreferences(
                 [preference],
                 () => {
                     this.isLeaving.set(channel.id, false);

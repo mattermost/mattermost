@@ -12,7 +12,7 @@ func TestPreferenceIsValid(t *testing.T) {
 	preference := Preference{
 		UserId:   "1234garbage",
 		Category: PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-		Name:     PREFERENCE_NAME_TEST,
+		Name:     NewId(),
 	}
 
 	if err := preference.IsValid(); err == nil {
@@ -24,7 +24,7 @@ func TestPreferenceIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	preference.Category = "1234garbage"
+	preference.Category = strings.Repeat("01234567890", 20)
 	if err := preference.IsValid(); err == nil {
 		t.Fatal()
 	}
@@ -34,17 +34,12 @@ func TestPreferenceIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
-	preference.Name = "1234garbage"
+	preference.Name = strings.Repeat("01234567890", 20)
 	if err := preference.IsValid(); err == nil {
 		t.Fatal()
 	}
 
 	preference.Name = NewId()
-	if err := preference.IsValid(); err != nil {
-		t.Fatal()
-	}
-
-	preference.Name = PREFERENCE_NAME_TEST
 	if err := preference.IsValid(); err != nil {
 		t.Fatal()
 	}
