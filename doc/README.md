@@ -33,7 +33,7 @@ Set up Mattermost in your data center
 _Note: End user help documentation is a new feature being completed for the v1.2 release. The materials below are work in progress._
 
 - User Interface
- - [Manage Team](help/Manage-Team.md)
+ - [Manage Members](help/Manage-Members.md)
  - Team Settings 
    - [Slack Import](help/Slack-Import.md)
 

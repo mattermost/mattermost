@@ -1,10 +1,10 @@
-# Manage Team 
+# Manage Members 
 
-The Manage Team menu is used to change the user roles assigned to members belonging to a team. 
+The Manage Members menu is used to change the user roles assigned to members belonging to a team. 
 
 ## User Roles 
 
-The following user roles are assigned from the **Manage Team** menu option in the team site main menu. 
+The following user roles are assigned from the **Manage Members** menu option in the team site main menu. 
 
 ### System Admin
 
@@ -23,7 +23,7 @@ The Team Administrator is typically a non-technical end user and has the followi
 
 - Access to the "Team Settings" menu from the team site main menu
 - Ability to change the team name and import data from Slack export files
-- Access to the "Manage Team" menu and change user roles to the levels of Team Administrator, Member and Inactive
+- Access to the "Manage Members" menu and change user roles to the levels of Team Administrator, Member and Inactive
 
 ### Member 
 

@@ -8,5 +8,5 @@ _Note: Help documentation is a work-in-progress. Community contributions highly 
 
 You can access the **Team Site Main Menu** by clicking on the three vertical dots at the top of the left sidebar in a team site. Here we describe the various options available from the menu: 
 
-- [Manage Teams](Manage-Team.md)
+- [Manage Members](Manage-Members.md)
 
