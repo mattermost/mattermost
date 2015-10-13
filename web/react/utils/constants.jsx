@@ -28,6 +28,7 @@ module.exports = {
         RECIEVED_AUDITS: null,
         RECIEVED_TEAMS: null,
         RECIEVED_STATUSES: null,
+        RECIEVED_PREFERENCES: null,
 
         RECIEVED_MSG: null,
 
@@ -285,5 +286,8 @@ module.exports = {
             id: 'mentionHighlightLink',
             uiName: 'Mention Highlight Link'
         }
-    ]
+    ],
+    Preferences: {
+        CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show'
+    }
 };

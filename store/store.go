@@ -37,6 +37,7 @@ type Store interface {
 	OAuth() OAuthStore
 	System() SystemStore
 	Webhook() WebhookStore
+	Preference() PreferenceStore
 	Close()
 }
 
@@ -148,4 +149,10 @@ type WebhookStore interface {
 	GetIncoming(id string) StoreChannel
 	GetIncomingByUser(userId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
+}
+
+type PreferenceStore interface {
+	Save(preferences *model.Preferences) StoreChannel
+	Get(userId string, category string, name string) StoreChannel
+	GetCategory(userId string, category string) StoreChannel
 }

@@ -1,19 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ChannelStore = require('../stores/channel_store.jsx');
-var Client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var SocketStore = require('../stores/socket_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
-var Utils = require('../utils/utils.jsx');
-var SidebarHeader = require('./sidebar_header.jsx');
-var SearchBox = require('./search_bar.jsx');
-var Constants = require('../utils/constants.jsx');
-var NewChannelFlow = require('./new_channel_flow.jsx');
-var UnreadChannelIndicator = require('./unread_channel_indicator.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const BrowserStore = require('../stores/browser_store.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
+const Client = require('../utils/client.jsx');
+const Constants = require('../utils/constants.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
+const NewChannelFlow = require('./new_channel_flow.jsx');
+const SearchBox = require('./search_bar.jsx');
+const SidebarHeader = require('./sidebar_header.jsx');
+const SocketStore = require('../stores/socket_store.jsx');
+const TeamStore = require('../stores/team_store.jsx');
+const UnreadChannelIndicator = require('./unread_channel_indicator.jsx');
+const UserStore = require('../stores/user_store.jsx');
+const Utils = require('../utils/utils.jsx');
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -23,11 +24,16 @@ export default class Sidebar extends React.Component {
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
 
+        this.getStateFromStores = this.getStateFromStores.bind(this);
+
         this.onChange = this.onChange.bind(this);
         this.onScroll = this.onScroll.bind(this);
         this.onResize = this.onResize.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
+        this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
         this.createChannelElement = this.createChannelElement.bind(this);
+
+        this.isLeaving = new Map();
 
         const state = this.getStateFromStores();
         state.modal = '';
@@ -36,7 +42,7 @@ export default class Sidebar extends React.Component {
         this.state = state;
     }
     getStateFromStores() {
-        var members = ChannelStore.getAllMembers();
+        const members = ChannelStore.getAllMembers();
         var teamMemberMap = UserStore.getActiveOnlyProfiles();
         var currentId = ChannelStore.getCurrentId();
 
@@ -48,11 +54,13 @@ export default class Sidebar extends React.Component {
             teammates.push(teamMemberMap[id]);
         }
 
+        const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+
         // Create lists of all read and unread direct channels
-        var showDirectChannels = [];
-        var readDirectChannels = [];
+        var visibleDirectChannels = [];
+        var hiddenDirectChannels = [];
         for (var i = 0; i < teammates.length; i++) {
-            var teammate = teammates[i];
+            const teammate = teammates[i];
 
             if (teammate.id === UserStore.getCurrentId()) {
                 continue;
@@ -65,90 +73,63 @@ export default class Sidebar extends React.Component {
                 channelName = teammate.id + '__' + UserStore.getCurrentId();
             }
 
-            var channel = ChannelStore.getByName(channelName);
+            let forceShow = false;
+            let channel = ChannelStore.getByName(channelName);
 
-            if (channel == null) {
-                var tempChannel = {};
-                tempChannel.fake = true;
-                tempChannel.name = channelName;
-                tempChannel.display_name = teammate.username;
-                tempChannel.teammate_username = teammate.username;
-                tempChannel.status = UserStore.getStatus(teammate.id);
-                tempChannel.last_post_at = 0;
-                tempChannel.total_msg_count = 0;
-                tempChannel.type = 'D';
-                readDirectChannels.push(tempChannel);
+            if (channel) {
+                const member = members[channel.id];
+                const msgCount = channel.total_msg_count - member.msg_count;
+
+                // always show a channel if either it is the current one or if it is unread, but it is not currently being left
+                forceShow = (currentId === channel.id || msgCount > 0) && !this.isLeaving.get(channel.id);
             } else {
-                channel.display_name = teammate.username;
-                channel.teammate_username = teammate.username;
+                channel = {};
+                channel.fake = true;
+                channel.name = channelName;
+                channel.last_post_at = 0;
+                channel.total_msg_count = 0;
+                channel.type = 'D';
+            }
 
-                channel.status = UserStore.getStatus(teammate.id);
+            channel.display_name = teammate.username;
+            channel.teammate_id = teammate.id;
+            channel.status = UserStore.getStatus(teammate.id);
 
-                var channelMember = members[channel.id];
-                var msgCount = channel.total_msg_count - channelMember.msg_count;
-                if (msgCount > 0) {
-                    showDirectChannels.push(channel);
-                } else if (currentId === channel.id) {
-                    showDirectChannels.push(channel);
-                } else {
-                    readDirectChannels.push(channel);
-                }
+            if (preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'))) {
+                visibleDirectChannels.push(channel);
+            } else if (forceShow) {
+                // make sure that unread direct channels are visible
+                const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
+                AsyncClient.savePreferences([preference]);
+
+                visibleDirectChannels.push(channel);
+            } else {
+                hiddenDirectChannels.push(channel);
             }
         }
 
-        // If we don't have MAX_DMS unread channels, sort the read list by last_post_at
-        if (showDirectChannels.length < Constants.MAX_DMS) {
-            readDirectChannels.sort(function sortByLastPost(a, b) {
-                // sort by last_post_at first
-                if (a.last_post_at > b.last_post_at) {
-                    return -1;
-                }
-                if (a.last_post_at < b.last_post_at) {
-                    return 1;
-                }
-
-                // if last_post_at is equal, sort by name
-                if (a.display_name < b.display_name) {
-                    return -1;
-                }
-                if (a.display_name > b.display_name) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            var index = 0;
-            while (showDirectChannels.length < Constants.MAX_DMS && index < readDirectChannels.length) {
-                showDirectChannels.push(readDirectChannels[index]);
-                index++;
-            }
-            readDirectChannels = readDirectChannels.slice(index);
-
-            showDirectChannels.sort(function directSort(a, b) {
-                if (a.display_name < b.display_name) {
-                    return -1;
-                }
-                if (a.display_name > b.display_name) {
-                    return 1;
-                }
-                return 0;
-            });
-        }
+        visibleDirectChannels.sort(this.sortChannelsByDisplayName);
+        hiddenDirectChannels.sort(this.sortChannelsByDisplayName);
 
         return {
             activeId: currentId,
             channels: ChannelStore.getAll(),
-            members: members,
-            showDirectChannels: showDirectChannels,
-            hideDirectChannels: readDirectChannels
+            members,
+            visibleDirectChannels,
+            hiddenDirectChannels
         };
     }
+
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
         SocketStore.addChangeListener(this.onSocketChange);
+        PreferenceStore.addChangeListener(this.onChange);
+
+        AsyncClient.getDirectChannelPreferences();
+
         $('.nav-pills__container').perfectScrollbar();
 
         this.updateTitle();
@@ -178,6 +159,7 @@ export default class Sidebar extends React.Component {
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         SocketStore.removeChangeListener(this.onSocketChange);
+        PreferenceStore.removeChangeListener(this.onChange);
     }
     onChange() {
         var newState = this.getStateFromStores();
@@ -322,7 +304,37 @@ export default class Sidebar extends React.Component {
             showBottomUnread
         });
     }
-    createChannelElement(channel, index) {
+
+    handleLeaveDirectChannel(channel) {
+        if (!this.isLeaving.get(channel.id)) {
+            this.isLeaving.set(channel.id, true);
+
+            const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, channel.teammate_id, 'false');
+
+            // bypass AsyncClient since we've already saved the updated preferences
+            Client.savePreferences(
+                [preference],
+                () => {
+                    this.isLeaving.set(channel.id, false);
+                },
+                () => {
+                    this.isLeaving.set(channel.id, false);
+                }
+            );
+
+            this.setState(this.getStateFromStores());
+        }
+
+        if (channel.id === this.state.activeId) {
+            Utils.switchChannel(ChannelStore.getByName(Constants.DEFAULT_CHANNEL));
+        }
+    }
+
+    sortChannelsByDisplayName(a, b) {
+        return a.display_name.localeCompare(b.display_name);
+    }
+
+    createChannelElement(channel, index, arr, handleClose) {
         var members = this.state.members;
         var activeId = this.state.activeId;
         var channelMember = members[channel.id];
@@ -405,8 +417,13 @@ export default class Sidebar extends React.Component {
 
         if (!channel.fake) {
             handleClick = function clickHandler(e) {
+                if (e.target.attributes.getNamedItem('data-close')) {
+                    handleClose(channel);
+                } else {
+                    Utils.switchChannel(channel);
+                }
+
                 e.preventDefault();
-                Utils.switchChannel(channel);
             };
         } else if (channel.fake && teamURL) {
             // It's a direct message channel that doesn't exist yet so let's create it now
@@ -415,21 +432,38 @@ export default class Sidebar extends React.Component {
             if (this.state.loadingDMChannel === -1) {
                 handleClick = function clickHandler(e) {
                     e.preventDefault();
-                    this.setState({loadingDMChannel: index});
 
-                    Client.createDirectChannel(channel, otherUserId,
-                        function success(data) {
-                            this.setState({loadingDMChannel: -1});
-                            AsyncClient.getChannel(data.id);
-                            Utils.switchChannel(data);
-                        }.bind(this),
-                        function error() {
-                            this.setState({loadingDMChannel: -1});
-                            window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
-                        }.bind(this)
-                    );
+                    if (e.target.attributes.getNamedItem('data-close')) {
+                        handleClose(channel);
+                    } else {
+                        this.setState({loadingDMChannel: index});
+
+                        Client.createDirectChannel(channel, otherUserId,
+                            (data) => {
+                                this.setState({loadingDMChannel: -1});
+                                AsyncClient.getChannel(data.id);
+                                Utils.switchChannel(data);
+                            },
+                            () => {
+                                this.setState({loadingDMChannel: -1});
+                                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
+                            }
+                        );
+                    }
                 }.bind(this);
             }
+        }
+
+        let closeButton = null;
+        if (handleClose && !badge) {
+            closeButton = (
+                <span
+                    className='sidebar-channel__close pull-right'
+                    data-close='true'
+                >
+                    {'×'}
+                </span>
+            );
         }
 
         return (
@@ -446,6 +480,7 @@ export default class Sidebar extends React.Component {
                     {status}
                     {channel.display_name}
                     {badge}
+                    {closeButton}
                 </a>
             </li>
         );
@@ -464,7 +499,9 @@ export default class Sidebar extends React.Component {
         const privateChannels = this.state.channels.filter((channel) => channel.type === 'P');
         const privateChannelItems = privateChannels.map(this.createChannelElement);
 
-        const directMessageItems = this.state.showDirectChannels.map(this.createChannelElement);
+        const directMessageItems = this.state.visibleDirectChannels.map((channel, index, arr) => {
+            return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
+        });
 
         // update the favicon to show if there are any notifications
         var link = document.createElement('link');
@@ -484,17 +521,18 @@ export default class Sidebar extends React.Component {
         head.appendChild(link);
 
         var directMessageMore = null;
-        if (this.state.hideDirectChannels.length > 0) {
+        if (this.state.hiddenDirectChannels.length > 0) {
             directMessageMore = (
-                <li>
+                <li key='more'>
                     <a
+                        key={`more${this.state.hiddenDirectChannels.length}`}
                         href='#'
                         data-toggle='modal'
                         className='nav-more'
                         data-target='#more_direct_channels'
-                        data-channels={JSON.stringify(this.state.hideDirectChannels)}
+                        data-channels={JSON.stringify(this.state.hiddenDirectChannels)}
                     >
-                        {'More (' + this.state.hideDirectChannels.length + ')'}
+                        {'More (' + this.state.hiddenDirectChannels.length + ')'}
                     </a>
                 </li>
             );
@@ -538,7 +576,7 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                Channels
+                                {'Channels'}
                                 <a
                                     className='add-channel-btn'
                                     href='#'
@@ -557,7 +595,7 @@ export default class Sidebar extends React.Component {
                                 data-target='#more_channels'
                                 data-channeltype='O'
                             >
-                                More...
+                                {'More...'}
                             </a>
                         </li>
                     </ul>
@@ -565,7 +603,7 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                Private Groups
+                                {'Private Groups'}
                                 <a
                                     className='add-channel-btn'
                                     href='#'
@@ -578,7 +616,7 @@ export default class Sidebar extends React.Component {
                         {privateChannelItems}
                     </ul>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>Direct Messages</h4></li>
+                        <li><h4>{'Direct Messages'}</h4></li>
                         {directMessageItems}
                         {directMessageMore}
                     </ul>

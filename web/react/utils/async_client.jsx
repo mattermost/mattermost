@@ -637,3 +637,55 @@ export function getMyTeam() {
         }
     );
 }
+
+export function getDirectChannelPreferences() {
+    if (isCallInProgress('getDirectChannelPreferences')) {
+        return;
+    }
+
+    callTracker.getDirectChannelPreferences = utils.getTimestamp();
+    client.getPreferenceCategory(
+        Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+        (data, textStatus, xhr) => {
+            callTracker.getDirectChannelPreferences = 0;
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_PREFERENCES,
+                preferences: data
+            });
+        },
+        (err) => {
+            callTracker.getDirectChannelPreferences = 0;
+            dispatchError(err, 'getDirectChannelPreferences');
+        }
+    );
+}
+
+export function savePreferences(preferences, success, error) {
+    client.savePreferences(
+        preferences,
+        (data, textStatus, xhr) => {
+            if (xhr.status !== 304) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_PREFERENCES,
+                    preferences
+                });
+            }
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            dispatchError(err, 'savePreferences');
+
+            if (error) {
+                error();
+            }
+        }
+    );
+}

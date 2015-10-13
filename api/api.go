@@ -45,6 +45,7 @@ func InitApi() {
 	InitAdmin(r)
 	InitOAuth(r)
 	InitWebhook(r)
+	InitPreference(r)
 
 	templatesDir := utils.FindDir("api/templates")
 	l4g.Debug("Parsing server templates at %v", templatesDir)

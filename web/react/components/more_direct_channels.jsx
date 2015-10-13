@@ -1,10 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ChannelStore = require('../stores/channel_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var Client = require('../utils/client.jsx');
+var Constants = require('../utils/constants.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var PreferenceStore = require('../stores/preference_store.jsx');
 var utils = require('../utils/utils.jsx');
 
 export default class MoreDirectChannels extends React.Component {
@@ -15,27 +16,28 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     componentDidMount() {
-        var self = this;
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function showModal(e) {
+        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
             var button = e.relatedTarget;
-            self.setState({channels: $(button).data('channels')});
+            this.setState({channels: $(button).data('channels')}); // eslint-disable-line react/no-did-mount-set-state
         });
     }
 
-    render() {
-        var self = this;
+    handleJoinDirectChannel(channel) {
+        const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, channel.teammate_id, 'true');
+        AsyncClient.savePreferences([preference]);
+    }
 
-        var directMessageItems = this.state.channels.map(function mapActivityToChannel(channel, index) {
+    render() {
+        var directMessageItems = this.state.channels.map((channel, index) => {
             var badge = '';
             var titleClass = '';
-            var active = '';
             var handleClick = null;
 
             if (channel.fake) {
                 // It's a direct message channel that doesn't exist yet so let's create it now
                 var otherUserId = utils.getUserIdFromChannelName(channel);
 
-                if (self.state.loadingDMChannel === index) {
+                if (this.state.loadingDMChannel === index) {
                     badge = (
                         <img
                             className='channel-loading-gif pull-right'
@@ -44,47 +46,42 @@ export default class MoreDirectChannels extends React.Component {
                     );
                 }
 
-                if (self.state.loadingDMChannel === -1) {
-                    handleClick = function clickHandler(e) {
+                if (this.state.loadingDMChannel === -1) {
+                    handleClick = (e) => {
                         e.preventDefault();
-                        self.setState({loadingDMChannel: index});
+                        this.setState({loadingDMChannel: index});
+                        this.handleJoinDirectChannel(channel);
 
                         Client.createDirectChannel(channel, otherUserId,
-                            function success(data) {
-                                $(React.findDOMNode(self.refs.modal)).modal('hide');
-                                self.setState({loadingDMChannel: -1});
+                            (data) => {
+                                $(React.findDOMNode(this.refs.modal)).modal('hide');
+                                this.setState({loadingDMChannel: -1});
                                 AsyncClient.getChannel(data.id);
                                 utils.switchChannel(data);
                             },
-                            function error() {
-                                self.setState({loadingDMChannel: -1});
+                            () => {
+                                this.setState({loadingDMChannel: -1});
                                 window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
                             }
                         );
                     };
                 }
             } else {
-                if (channel.id === ChannelStore.getCurrentId()) {
-                    active = 'active';
-                }
-
                 if (channel.unread) {
                     badge = <span className='badge pull-right small'>{channel.unread}</span>;
                     titleClass = 'unread-title';
                 }
 
-                handleClick = function clickHandler(e) {
+                handleClick = (e) => {
                     e.preventDefault();
+                    this.handleJoinDirectChannel(channel);
                     utils.switchChannel(channel);
-                    $(React.findDOMNode(self.refs.modal)).modal('hide');
+                    $(React.findDOMNode(this.refs.modal)).modal('hide');
                 };
             }
 
             return (
-                <li
-                    key={channel.name}
-                    className={active}
-                >
+                <li key={channel.name}>
                     <a
                         className={'sidebar-channel ' + titleClass}
                         href='#'
@@ -111,10 +108,10 @@ export default class MoreDirectChannels extends React.Component {
                                 className='close'
                                 data-dismiss='modal'
                             >
-                                <span aria-hidden='true'>&times;</span>
-                                <span className='sr-only'>Close</span>
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>{'Close'}</span>
                             </button>
-                            <h4 className='modal-title'>More Direct Messages</h4>
+                            <h4 className='modal-title'>{'More Direct Messages'}</h4>
                         </div>
                         <div className='modal-body'>
                             <ul className='nav nav-pills nav-stacked'>
@@ -126,7 +123,7 @@ export default class MoreDirectChannels extends React.Component {
                                 type='button'
                                 className='btn btn-default'
                                 data-dismiss='modal'
-                            >Close</button>
+                            >{'Close'}</button>
                         </div>
                     </div>
                 </div>
