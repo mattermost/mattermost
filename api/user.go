@@ -198,13 +198,12 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		fireAndForgetWelcomeEmail(ruser.Email, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+		fireAndForgetWelcomeEmail(result.Data.(*model.User).Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), user.EmailVerified)
+
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 				l4g.Error("Failed to set email verified err=%v", cresult.Err)
 			}
-		} else {
-			FireAndForgetVerifyEmail(result.Data.(*model.User).Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -218,7 +217,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func fireAndForgetWelcomeEmail(email, teamDisplayName, siteURL, teamURL string) {
+func fireAndForgetWelcomeEmail(userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject")
@@ -227,10 +226,14 @@ func fireAndForgetWelcomeEmail(email, teamDisplayName, siteURL, teamURL string) 
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["TeamURL"] = teamURL
 
+		if !verified {
+			link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, email)
+			bodyPage.Props["VerifyUrl"] = link
+		}
+
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error("Failed to send welcome email successfully err=%v", err)
 		}
-
 	}()
 }
 
