@@ -26,11 +26,10 @@ func TestSetPreferences(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		preference := model.Preference{
 			UserId:   user1.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOW,
-			AltId:    model.NewId(),
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     model.NewId(),
 		}
-		preferences = append(preferences, &preference)
+		preferences = append(preferences, preference)
 	}
 
 	if _, err := Client.SetPreferences(&preferences); err != nil {
@@ -58,7 +57,7 @@ func TestSetPreferences(t *testing.T) {
 	}
 }
 
-func TestGetPreferencesByName(t *testing.T) {
+func TestGetPreferenceCategory(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -72,30 +71,23 @@ func TestGetPreferencesByName(t *testing.T) {
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
 
+	category := model.PREFERENCE_CATEGORY_TEST
+
 	preferences1 := model.Preferences{
 		{
 			UserId:   user1.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOW,
-			AltId:    model.NewId(),
-		},
-		{
-			UserId:   user1.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOW,
-			AltId:    model.NewId(),
-		},
-		{
-			UserId:   user1.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
+			Category: category,
 			Name:     model.PREFERENCE_NAME_TEST,
-			AltId:    model.NewId(),
+		},
+		{
+			UserId:   user1.Id,
+			Category: category,
+			Name:     model.NewId(),
 		},
 		{
 			UserId:   user1.Id,
 			Category: model.PREFERENCE_CATEGORY_TEST,
-			Name:     model.PREFERENCE_NAME_SHOW,
-			AltId:    model.NewId(),
+			Name:     model.PREFERENCE_NAME_TEST,
 		},
 	}
 
@@ -104,25 +96,72 @@ func TestGetPreferencesByName(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user1.Email, "pwd")
 
-	if result, err := Client.GetPreferencesByName(model.PREFERENCE_CATEGORY_DIRECT_CHANNELS, model.PREFERENCE_NAME_SHOW); err != nil {
+	if result, err := Client.GetPreferenceCategory(category); err != nil {
 		t.Fatal(err)
 	} else if data := result.Data.(model.Preferences); len(data) != 2 {
 		t.Fatal("received the wrong number of preferences")
-	} else if !((*data[0] == *preferences1[0] && *data[1] == *preferences1[1]) || (*data[0] == *preferences1[1] && *data[1] == *preferences1[0])) {
+	} else if !((data[0] == preferences1[0] && data[1] == preferences1[1]) || (data[0] == preferences1[1] && data[1] == preferences1[0])) {
 		t.Fatal("received incorrect preferences")
 	}
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
-	// note that user2 will start with a preference to show user1 in the sidebar by default
-	if result, err := Client.GetPreferencesByName(model.PREFERENCE_CATEGORY_DIRECT_CHANNELS, model.PREFERENCE_NAME_SHOW); err != nil {
+	if result, err := Client.GetPreferenceCategory(category); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 1 {
+	} else if data := result.Data.(model.Preferences); len(data) != 0 {
 		t.Fatal("received the wrong number of preferences")
 	}
 }
 
-func TestSetAndGetProperties(t *testing.T) {
+func TestGetDefaultDirectChannels(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+
+	for i := 0; i < 5; i++ {
+		user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+		Client.Must(Client.CreateUser(user, ""))
+	}
+
+	Client.Must(Client.LoginByEmail(team.Name, user1.Email, "pwd"))
+
+	if result, err := Client.GetPreferenceCategory(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW); err != nil {
+		t.Fatal(err)
+	} else if data := result.Data.(model.Preferences); len(data) != 5 {
+		t.Fatal("received the wrong number of direct channels")
+	}
+
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	for i := 0; i < 10; i++ {
+		user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+		Client.Must(Client.CreateUser(user, ""))
+	}
+
+	// make sure user1's preferences don't change
+	if result, err := Client.GetPreferenceCategory(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW); err != nil {
+		t.Fatal(err)
+	} else if data := result.Data.(model.Preferences); len(data) != 5 {
+		t.Fatal("received the wrong number of direct channels")
+	}
+
+	Client.Must(Client.LoginByEmail(team.Name, user2.Email, "pwd"))
+
+	if result, err := Client.GetPreferenceCategory(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW); err != nil {
+		t.Fatal(err)
+	} else if data := result.Data.(model.Preferences); len(data) != 10 {
+		t.Fatal("received the wrong number of direct channels")
+	}
+}
+
+func TestGetPreference(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -137,31 +176,26 @@ func TestSetAndGetProperties(t *testing.T) {
 	preferences := model.Preferences{
 		{
 			UserId:   user.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOW,
-			AltId:    model.NewId(),
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     model.NewId(),
 			Value:    model.NewId(),
 		},
 	}
 
 	Client.Must(Client.SetPreferences(&preferences))
 
-	if result, err := Client.GetPreferencesByName(preferences[0].Category, preferences[0].Name); err != nil {
+	if result, err := Client.GetPreference(preferences[0].Category, preferences[0].Name); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 1 {
-		t.Fatal("received too many preferences")
-	} else if *data[0] != *preferences[0] {
+	} else if data := result.Data.(*model.Preference); *data != preferences[0] {
 		t.Fatal("preference saved incorrectly")
 	}
 
 	preferences[0].Value = model.NewId()
 	Client.Must(Client.SetPreferences(&preferences))
 
-	if result, err := Client.GetPreferencesByName(preferences[0].Category, preferences[0].Name); err != nil {
+	if result, err := Client.GetPreference(preferences[0].Category, preferences[0].Name); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 1 {
-		t.Fatal("received too many preferences")
-	} else if *data[0] != *preferences[0] {
+	} else if data := result.Data.(*model.Preference); *data != preferences[0] {
 		t.Fatal("preference updated incorrectly")
 	}
 }

@@ -23,9 +23,8 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleJoinDirectChannel(channel) {
-        const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
-            Constants.Preferences.NAME_SHOW, channel.teammate_id, 'true');
-        AsyncClient.setPreferences([preference]);
+        const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, channel.teammate_id, 'true');
+        AsyncClient.savePreferences([preference]);
     }
 
     render() {

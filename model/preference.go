@@ -9,17 +9,15 @@ import (
 )
 
 const (
-	PREFERENCE_CATEGORY_DIRECT_CHANNELS = "direct_channels"
-	PREFERENCE_CATEGORY_TEST            = "test" // do not use, just for testing uniqueness while there's only one real category
-	PREFERENCE_NAME_SHOW                = "show"
-	PREFERENCE_NAME_TEST                = "test" // do not use, just for testing uniqueness while there's only one real name
+	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
+	PREFERENCE_CATEGORY_TEST                = "test" // do not use, just for testing uniqueness while there's only one real category
+	PREFERENCE_NAME_TEST                    = "test" // do not use, just for testing while there's no constant name
 )
 
 type Preference struct {
 	UserId   string `json:"user_id"`
 	Category string `json:"category"`
 	Name     string `json:"name"`
-	AltId    string `json:"alt_id"`
 	Value    string `json:"value"`
 }
 
@@ -52,12 +50,9 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "Invalid category", "category="+o.Category)
 	}
 
-	if len(o.Name) == 0 || len(o.Name) > 32 || !IsPreferenceNameValid(o.Name) {
+	// name can either be a valid constant or an id
+	if len(o.Name) == 0 || len(o.Name) > 32 || !(len(o.Name) == 26 || IsPreferenceNameValid(o.Name)) {
 		return NewAppError("Preference.IsValid", "Invalid name", "name="+o.Name)
-	}
-
-	if o.AltId != "" && len(o.AltId) != 26 {
-		return NewAppError("Preference.IsValid", "Invalid alternate id", "altId="+o.AltId)
 	}
 
 	if len(o.Value) > 128 {
@@ -68,9 +63,9 @@ func (o *Preference) IsValid() *AppError {
 }
 
 func IsPreferenceCategoryValid(category string) bool {
-	return category == PREFERENCE_CATEGORY_DIRECT_CHANNELS || category == PREFERENCE_CATEGORY_TEST
+	return category == PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW || category == PREFERENCE_CATEGORY_TEST
 }
 
 func IsPreferenceNameValid(name string) bool {
-	return name == PREFERENCE_NAME_SHOW || name == PREFERENCE_NAME_TEST
+	return name == PREFERENCE_NAME_TEST
 }

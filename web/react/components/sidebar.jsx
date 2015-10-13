@@ -54,7 +54,7 @@ export default class Sidebar extends React.Component {
             teammates.push(teamMemberMap[id]);
         }
 
-        const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNELS, Constants.Preferences.NAME_SHOW);
+        const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         // Create lists of all read and unread direct channels
         var visibleDirectChannels = [];
@@ -95,13 +95,12 @@ export default class Sidebar extends React.Component {
             channel.teammate_id = teammate.id;
             channel.status = UserStore.getStatus(teammate.id);
 
-            if (preferences.some((preference) => (preference.alt_id === teammate.id && preference.value !== 'false'))) {
+            if (preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'))) {
                 visibleDirectChannels.push(channel);
             } else if (forceShow) {
                 // make sure that unread direct channels are visible
-                const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
-                    Constants.Preferences.NAME_SHOW, teammate.id, 'true');
-                AsyncClient.setPreferences([preference]);
+                const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
+                AsyncClient.savePreferences([preference]);
 
                 visibleDirectChannels.push(channel);
             } else {
@@ -129,7 +128,7 @@ export default class Sidebar extends React.Component {
         SocketStore.addChangeListener(this.onSocketChange);
         PreferenceStore.addChangeListener(this.onChange);
 
-        AsyncClient.getDirectChannels();
+        AsyncClient.getDirectChannelPreferences();
 
         $('.nav-pills__container').perfectScrollbar();
 
@@ -310,9 +309,8 @@ export default class Sidebar extends React.Component {
         if (!this.isLeaving.get(channel.id)) {
             this.isLeaving.set(channel.id, true);
 
-            const preference = PreferenceStore.setPreferenceWithAltId(Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
-                Constants.Preferences.NAME_SHOW, channel.teammate_id, 'false');
-            AsyncClient.setPreferences(
+            const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, channel.teammate_id, 'false');
+            AsyncClient.savePreferences(
                 [preference],
                 () => {
                     this.isLeaving.set(channel.id, false);

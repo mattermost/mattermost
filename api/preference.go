@@ -15,7 +15,8 @@ func InitPreference(r *mux.Router) {
 
 	sr := r.PathPrefix("/preferences").Subrouter()
 	sr.Handle("/save", ApiAppHandler(savePreferences)).Methods("POST")
-	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getPreferencesByName)).Methods("GET")
+	sr.Handle("/{category:[A-Za-z0-9_]+}", ApiAppHandler(getPreferenceCategory)).Methods("GET")
+	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getPreference)).Methods("GET")
 }
 
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -42,19 +43,17 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("true"))
 }
 
-func getPreferencesByName(c *Context, w http.ResponseWriter, r *http.Request) {
+func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	category := params["category"]
-	name := params["name"]
 
-	if result := <-Srv.Store.Preference().GetByName(c.Session.UserId, category, name); result.Err != nil {
+	if result := <-Srv.Store.Preference().GetCategory(c.Session.UserId, category); result.Err != nil {
 		c.Err = result.Err
-		return
 	} else {
 		data := result.Data.(model.Preferences)
 
 		if len(data) == 0 {
-			if category == model.PREFERENCE_CATEGORY_DIRECT_CHANNELS && name == model.PREFERENCE_NAME_SHOW {
+			if category == model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW {
 				// add direct channels for a user that existed before preferences were added
 				data = addDirectChannels(c.Session.UserId, c.Session.TeamId)
 			}
@@ -68,7 +67,7 @@ func addDirectChannels(userId, teamId string) model.Preferences {
 	var profiles map[string]*model.User
 	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
 		l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", userId, teamId, result.Err.Error())
-		return []*model.Preference{}
+		return model.Preferences{}
 	} else {
 		profiles = result.Data.(map[string]*model.User)
 	}
@@ -82,11 +81,10 @@ func addDirectChannels(userId, teamId string) model.Preferences {
 
 		profile := profiles[id]
 
-		preference := &model.Preference{
+		preference := model.Preference{
 			UserId:   userId,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOW,
-			AltId:    profile.Id,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     profile.Id,
 			Value:    "true",
 		}
 
@@ -102,5 +100,18 @@ func addDirectChannels(userId, teamId string) model.Preferences {
 		return model.Preferences{}
 	} else {
 		return preferences
+	}
+}
+
+func getPreference(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	category := params["category"]
+	name := params["name"]
+
+	if result := <-Srv.Store.Preference().Get(c.Session.UserId, category, name); result.Err != nil {
+		c.Err = result.Err
+	} else {
+		data := result.Data.(model.Preference)
+		w.Write([]byte(data.ToJson()))
 	}
 }

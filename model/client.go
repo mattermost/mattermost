@@ -853,8 +853,16 @@ func (c *Client) SetPreferences(preferences *Preferences) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetPreferencesByName(category string, name string) (*Result, *AppError) {
+func (c *Client) GetPreference(category string, name string) (*Result, *AppError) {
 	if r, err := c.DoApiGet("/preferences/"+category+"/"+name, "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID), r.Header.Get(HEADER_ETAG_SERVER), PreferenceFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetPreferenceCategory(category string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/preferences/"+category, "", ""); err != nil {
 		return nil, err
 	} else {
 		preferences, _ := PreferencesFromJson(r.Body)

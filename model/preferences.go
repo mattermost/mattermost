@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-type Preferences []*Preference
+type Preferences []Preference
 
 func (o *Preferences) ToJson() string {
 	b, err := json.Marshal(o)

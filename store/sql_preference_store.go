@@ -17,11 +17,10 @@ func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
 	s := &SqlPreferenceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Preference{}, "Preferences").SetKeys(false, "UserId", "Category", "Name", "AltId")
+		table := db.AddTableWithName(model.Preference{}, "Preferences").SetKeys(false, "UserId", "Category", "Name")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Category").SetMaxSize(32)
 		table.ColMap("Name").SetMaxSize(32)
-		table.ColMap("AltId").SetMaxSize(26)
 		table.ColMap("Value").SetMaxSize(128)
 	}
 
@@ -49,7 +48,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to open transaction to save preferences", err.Error())
 		} else {
 			for _, preference := range *preferences {
-				if upsertResult := s.save(transaction, preference); upsertResult.Err != nil {
+				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
 					result = upsertResult
 					break
 				}
@@ -87,7 +86,6 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		"UserId":   preference.UserId,
 		"Category": preference.Category,
 		"Name":     preference.Name,
-		"AltId":    preference.AltId,
 		"Value":    preference.Value,
 	}
 
@@ -95,9 +93,9 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Preferences
-				(UserId, Category, Name, AltId, Value)
+				(UserId, Category, Name, Value)
 			VALUES
-				(:UserId, :Category, :Name, :AltId, :Value)
+				(:UserId, :Category, :Name, :Value)
 			ON DUPLICATE KEY UPDATE
 				Value = :Value`, params); err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences", err.Error())
@@ -112,8 +110,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 			WHERE
 				UserId = :UserId
 				AND Category = :Category
-				AND Name = :Name
-				AND AltId = :AltId`, params)
+				AND Name = :Name`, params)
 		if err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.save", "We encountered an error while updating preferences", err.Error())
 			return result
@@ -137,11 +134,11 @@ func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *mo
 
 	if err := transaction.Insert(preference); err != nil {
 		if IsUniqueConstraintError(err.Error(), "UserId", "preferences_pkey") {
-			result.Err = model.NewAppError("SqlPreferenceStore.insert", "A preference with that user id, category, name, and alt id already exists",
-				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.insert", "A preference with that user id, category, and name already exists",
+				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 		} else {
 			result.Err = model.NewAppError("SqlPreferenceStore.insert", "We couldn't save the preference",
-				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
+				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 		}
 	}
 
@@ -153,13 +150,13 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 
 	if _, err := transaction.Update(preference); err != nil {
 		result.Err = model.NewAppError("SqlPreferenceStore.update", "We couldn't update the preference",
-			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", alt_id="+preference.AltId+", "+err.Error())
+			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 	}
 
 	return result
 }
 
-func (s SqlPreferenceStore) GetByName(userId string, category string, name string) StoreChannel {
+func (s SqlPreferenceStore) Get(userId string, category string, name string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -177,6 +174,34 @@ func (s SqlPreferenceStore) GetByName(userId string, category string, name strin
 				AND Category = :Category
 				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.GetByName", "We encounted an error while finding preferences", err.Error())
+		} else {
+			result.Data = preferences[0]
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var preferences model.Preferences
+
+		if _, err := s.GetReplica().Select(&preferences,
+			`SELECT
+				*
+			FROM
+				Preferences
+			WHERE
+				UserId = :UserId
+				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.GetCategory", "We encounted an error while finding preferences", err.Error())
 		} else {
 			result.Data = preferences
 		}

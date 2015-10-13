@@ -16,14 +16,14 @@ func TestPreferenceSave(t *testing.T) {
 	preferences := model.Preferences{
 		{
 			UserId:   id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_SHOW,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     model.NewId(),
 			Value:    "value1a",
 		},
 		{
 			UserId:   id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNELS,
-			Name:     model.PREFERENCE_NAME_TEST,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     model.NewId(),
 			Value:    "value1b",
 		},
 	}
@@ -32,9 +32,7 @@ func TestPreferenceSave(t *testing.T) {
 	}
 
 	for _, preference := range preferences {
-		if data := Must(store.Preference().GetByName(preference.UserId, preference.Category, preference.Name)).(model.Preferences); len(data) != 1 {
-			t.Fatal("got incorrect number of preferences after first Save")
-		} else if *preference != *data[0] {
+		if data := Must(store.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
 			t.Fatal("got incorrect preference after first Save")
 		}
 	}
@@ -46,66 +44,91 @@ func TestPreferenceSave(t *testing.T) {
 	}
 
 	for _, preference := range preferences {
-		if data := Must(store.Preference().GetByName(preference.UserId, preference.Category, preference.Name)).(model.Preferences); len(data) != 1 {
-			t.Fatal("got incorrect number of preferences after second Save")
-		} else if *preference != *data[0] {
+		if data := Must(store.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
 			t.Fatal("got incorrect preference after second Save")
 		}
 	}
 }
 
-func TestPreferenceGetByName(t *testing.T) {
+func TestPreferenceGet(t *testing.T) {
 	Setup()
 
 	userId := model.NewId()
-	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNELS
-	name := model.PREFERENCE_NAME_SHOW
-	altId := model.NewId()
+	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	name := model.PREFERENCE_NAME_TEST
 
 	preferences := model.Preferences{
 		{
 			UserId:   userId,
 			Category: category,
 			Name:     name,
-			AltId:    altId,
 		},
-		// same user/category/name, different alt id
 		{
 			UserId:   userId,
 			Category: category,
-			Name:     name,
-			AltId:    model.NewId(),
+			Name:     model.NewId(),
 		},
-		// same user/category/alt id, different name
-		{
-			UserId:   userId,
-			Category: category,
-			Name:     model.PREFERENCE_NAME_TEST,
-			AltId:    altId,
-		},
-		// same user/name/alt id, different category
 		{
 			UserId:   userId,
 			Category: model.PREFERENCE_CATEGORY_TEST,
 			Name:     name,
-			AltId:    altId,
 		},
-		// same name/category/alt id, different user
 		{
 			UserId:   model.NewId(),
 			Category: category,
 			Name:     name,
-			AltId:    altId,
 		},
 	}
 
 	Must(store.Preference().Save(&preferences))
 
-	if result := <-store.Preference().GetByName(userId, category, name); result.Err != nil {
+	if result := <-store.Preference().Get(userId, category, name); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(model.Preference); data != preferences[0] {
+		t.Fatal("got incorrect preference")
+	}
+}
+
+func TestPreferenceGetCategory(t *testing.T) {
+	Setup()
+
+	userId := model.NewId()
+	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	name := model.NewId()
+
+	preferences := model.Preferences{
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     name,
+		},
+		// same user/category, different name
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     model.NewId(),
+		},
+		// same user/name, different category
+		{
+			UserId:   userId,
+			Category: model.PREFERENCE_CATEGORY_TEST,
+			Name:     name,
+		},
+		// same name/category, different user
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     name,
+		},
+	}
+
+	Must(store.Preference().Save(&preferences))
+
+	if result := <-store.Preference().GetCategory(userId, category); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if data := result.Data.(model.Preferences); len(data) != 2 {
 		t.Fatal("got the wrong number of preferences")
-	} else if !((*data[0] == *preferences[0] && *data[1] == *preferences[1]) || (*data[0] == *preferences[1] && *data[1] == *preferences[0])) {
+	} else if !((data[0] == preferences[0] && data[1] == preferences[1]) || (data[0] == preferences[1] && data[1] == preferences[0])) {
 		t.Fatal("got incorrect preferences")
 	}
 }

@@ -638,17 +638,16 @@ export function getMyTeam() {
     );
 }
 
-export function getDirectChannels() {
-    if (isCallInProgress('getDirectChannels')) {
+export function getDirectChannelPreferences() {
+    if (isCallInProgress('getDirectChannelPreferences')) {
         return;
     }
 
-    callTracker.getDirectChannels = utils.getTimestamp();
-    client.getPreferencesByName(
-        Constants.Preferences.CATEGORY_DIRECT_CHANNELS,
-        Constants.Preferences.NAME_SHOW,
+    callTracker.getDirectChannelPreferences = utils.getTimestamp();
+    client.getPreferenceCategory(
+        Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
         (data, textStatus, xhr) => {
-            callTracker.getDirectChannels = 0;
+            callTracker.getDirectChannelPreferences = 0;
 
             if (xhr.status === 304 || !data) {
                 return;
@@ -660,14 +659,14 @@ export function getDirectChannels() {
             });
         },
         (err) => {
-            callTracker.getDirectChannels = 0;
-            dispatchError(err, 'getDirectChannels');
+            callTracker.getDirectChannelPreferences = 0;
+            dispatchError(err, 'getDirectChannelPreferences');
         }
     );
 }
 
-export function setPreferences(preferences, success, error) {
-    client.setPreferences(
+export function savePreferences(preferences, success, error) {
+    client.savePreferences(
         preferences,
         (data, textStatus, xhr) => {
             if (xhr.status !== 304) {
@@ -682,7 +681,7 @@ export function setPreferences(preferences, success, error) {
             }
         },
         (err) => {
-            dispatchError(err, 'setPreferences');
+            dispatchError(err, 'savePreferences');
 
             if (error) {
                 error();

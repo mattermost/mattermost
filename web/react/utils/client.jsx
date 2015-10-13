@@ -1142,29 +1142,29 @@ export function listIncomingHooks(success, error) {
     });
 }
 
-export function getPreferencesByName(category, name, success, error) {
+export function getPreferenceCategory(category, success, error) {
     $.ajax({
-        url: `/api/v1/preferences/${category}/${name}`,
+        url: `/api/v1/preferences/${category}`,
         dataType: 'json',
         type: 'GET',
         success,
         error: (xhr, status, err) => {
-            var e = handleError('getPreferencesByName', xhr, status, err);
+            var e = handleError('getPreferenceCategory', xhr, status, err);
             error(e);
         }
     });
 }
 
-export function setPreferences(preferences, success, error) {
+export function savePreferences(preferences, success, error) {
     $.ajax({
-        url: '/api/v1/preferences/set',
+        url: '/api/v1/preferences/save',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(preferences),
         success,
         error: (xhr, status, err) => {
-            var e = handleError('setPreferences', xhr, status, err);
+            var e = handleError('savePreferences', xhr, status, err);
             error(e);
         }
     });

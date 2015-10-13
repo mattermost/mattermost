@@ -15,12 +15,10 @@ class PreferenceStoreClass extends EventEmitter {
 
         this.getAllPreferences = this.getAllPreferences.bind(this);
         this.getPreference = this.getPreference.bind(this);
-        this.getPreferenceWithAltId = this.getPreferenceWithAltId.bind(this);
         this.getPreferences = this.getPreferences.bind(this);
         this.getPreferencesWhere = this.getPreferencesWhere.bind(this);
         this.setAllPreferences = this.setAllPreferences.bind(this);
         this.setPreference = this.setPreference.bind(this);
-        this.setPreferenceWithAltId = this.setPreferenceWithAltId.bind(this);
 
         this.emitChange = this.emitChange.bind(this);
         this.addChangeListener = this.addChangeListener.bind(this);
@@ -30,12 +28,12 @@ class PreferenceStoreClass extends EventEmitter {
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
     }
 
-    getKey(category, name, altId = '') {
-        return `${category}-${name}-${altId}`;
+    getKey(category, name) {
+        return `${category}-${name}`;
     }
 
     getKeyForModel(preference) {
-        return `${preference.category}-${preference.name}-${preference.alt_id}`;
+        return `${preference.category}-${preference.name}`;
     }
 
     getAllPreferences() {
@@ -46,12 +44,8 @@ class PreferenceStoreClass extends EventEmitter {
         return this.getAllPreferences().get(this.getKey(category, name)) || defaultValue;
     }
 
-    getPreferenceWithAltId(category, name, altId, defaultValue = '') {
-        return this.getAllPreferences().get(this.getKey(category, name, altId)) || defaultValue;
-    }
-
-    getPreferences(category, name) {
-        return this.getPreferencesWhere((preference) => (preference.category === category && preference.name === name));
+    getPreferences(category) {
+        return this.getPreferencesWhere((preference) => (preference.category === category));
     }
 
     getPreferencesWhere(pred) {
@@ -74,21 +68,16 @@ class PreferenceStoreClass extends EventEmitter {
     }
 
     setPreference(category, name, value) {
-        return this.setPreferenceWithAltId(category, name, '', value);
-    }
-
-    setPreferenceWithAltId(category, name, altId, value) {
         const preferences = this.getAllPreferences();
 
-        const key = this.getKey(category, name, altId);
+        const key = this.getKey(category, name);
         let preference = preferences.get(key);
 
         if (!preference) {
             preference = {
                 user_id: UserStore.getCurrentId(),
                 category,
-                name,
-                alt_id: altId
+                name
             };
         }
         preference.value = value;
