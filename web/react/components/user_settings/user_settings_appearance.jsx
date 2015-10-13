@@ -178,7 +178,7 @@ export default class UserSettingsAppearance extends React.Component {
                         href='#'
                         onClick={this.submitTheme}
                     >
-                        {'Submit'}
+                        {'Save'}
                     </a>
                     <a
                         className='btn btn-sm theme'

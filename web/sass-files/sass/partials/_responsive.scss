@@ -73,6 +73,10 @@
                         display: inline;
                         .post-info {
                             display: inline;
+                            .tooltip {
+                                margin-top: -25px;
+                                margin-left: 40px;
+                            }
                             .post-profile-time {
                                 margin: 0;
                             }
@@ -153,6 +157,10 @@
                 display: inline;
                 .post-info {
                     display: inline;
+                    .tooltip {
+                        margin-top: -25px;
+                        margin-left: 40px;
+                    }
                     .post-profile-time {
                         width: auto;
                         margin: 0;
@@ -327,6 +335,7 @@
             }
             .modal-title {
                 float: none;
+                max-width: 90%;
             }
             .btn {
                 &.btn-primary {

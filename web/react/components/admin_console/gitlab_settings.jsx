@@ -113,7 +113,15 @@ export default class GitLabSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When true, Mattermost allows team creation and account signup using GitLab OAuth. To configure, log in to your GitLab account and go to Applications -> Profile Settings. Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". Then use "Secret" and "Id" fields to complete the options below.'}</p>
+                            <p className='help-text'>
+                                {'When true, Mattermost allows team creation and account signup using GitLab OAuth.'} <br/>
+                            </p>
+                            <ol className='help-text'>
+                                <li>{'Log in to your GitLab account and go to Applications -> Profile Settings.'}</li>
+                                <li>{'Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". '}</li>
+                                <li>{'Then use "Secret" and "Id" fields from GitLab to complete the options below.'}</li>
+                                <li>{'Complete the Endpoint URLs below. '}</li>
+                            </ol>
                         </div>
                     </div>
 
