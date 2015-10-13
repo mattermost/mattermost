@@ -109,6 +109,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                                         className='form-control'
                                         placeholder=''
                                         maxLength='128'
+                                        spellCheck='false'
                                     />
                                     <div className='color--light form__hint'>Passwords must contain 5 to 50 characters. Your password will be strongest if it contains a mix of symbols, numbers, and upper and lowercase characters.</div>
                                 </div>

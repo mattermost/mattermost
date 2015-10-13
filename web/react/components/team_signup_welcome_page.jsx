@@ -145,6 +145,7 @@ export default class TeamSignupWelcomePage extends React.Component {
                                     className='form-control'
                                     placeholder='Email Address'
                                     maxLength='128'
+                                    spellCheck='false'
                                 />
                             </div>
                         </div>

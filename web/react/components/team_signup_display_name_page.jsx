@@ -66,6 +66,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                                     defaultValue={this.props.state.team.display_name}
                                     autoFocus={true}
                                     onFocus={this.handleFocus}
+                                    spellCheck='false'
                                 />
                             </div>
                         </div>

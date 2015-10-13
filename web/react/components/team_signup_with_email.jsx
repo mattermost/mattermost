@@ -63,6 +63,7 @@ export default class EmailSignUpPage extends React.Component {
                         className='form-control'
                         placeholder='Email Address'
                         maxLength='128'
+                        spellCheck='false'
                     />
                 </div>
                 <div className='form-group'>

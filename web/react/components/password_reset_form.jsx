@@ -69,6 +69,7 @@ export default class PasswordResetForm extends React.Component {
                                 name='password'
                                 ref='password'
                                 placeholder='Password'
+                                spellCheck='false'
                             />
                         </div>
                         {error}

@@ -70,6 +70,7 @@ export default class FindTeam extends React.Component {
                                 className='form-control'
                                 placeholder='you@domain.com'
                                 maxLength='128'
+                                spellCheck='false'
                             />
                             {emailError}
                         </div>
