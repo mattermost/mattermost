@@ -368,8 +368,7 @@ export default class UserSettingsGeneralTab extends React.Component {
 
             const extraInfo = (
                 <span>
-                    {'Use Nickname for a name you might be called that is different from your first name and user name.'}
-                    {'This is most often used when two or more people have similar sounding names and usernames.'}
+                    {'Use Nickname for a name you might be called that is different from your first name and username. This is most often used when two or more people have similar sounding names and usernames.'}
                 </span>
             );
 
