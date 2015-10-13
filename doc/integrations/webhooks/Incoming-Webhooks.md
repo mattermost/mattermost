@@ -88,5 +88,5 @@ As mentioned above, Mattermost makes it easy to take integrations written for Sl
 3. Like Slack, by overriding the channel name with an @username, such as payload={"text": "Hi", channel: "@jim"}, you can send the message to a user through your direct message chat.
 4. Channel names can be prepended with a #, like they are in Slack incoming webhooks, and the message will still be sent to the correct channel.
 
-To learn more about Incoming Webhooks and to see samples and community contributions, please visit <http://mattermost.org/webhooks>
+To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
 
