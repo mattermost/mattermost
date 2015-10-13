@@ -1,7 +1,6 @@
 ## System Console Settings
 
-System Console config settings allow system administrators to customize their teams’ Mattermost experience. These settings can be modified from the System Console user interface or config.json. The System Console can be accessed by system administrators from the main menu. Warning: system administrators should be cautious to only grant admin privileges to team members who understand the critical nature of the settings they are adjusting.
-
+The System Console user interface lets system administrators manage a Mattermost server and multiple teams from a web-based user interface. The first user added to a new Mattermost install is assigned the system administrator role and can access the System Console from the main menu of any team. Setting changes in the System Console are stored in `config.json`. 
 
 ### Service Settings
 
@@ -10,7 +9,7 @@ General settings to configure the listening address, login security, testing, we
 #### System
 
 ```"ListenAddress": ":8065"```
-The IP address to listen and the port which to bind. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065". Changing this will require a server restart before taking effect.
+The IP address on which to listen and the port on which to bind. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065". Changing this will require a server restart before taking effect.
 
 ```"MaximumLoginAttempts": 10```
 Failed login attempts allowed before a user is locked out and required to reset their password via email.
@@ -22,9 +21,9 @@ For users running SaaS services, signup for a key at Segment.com to track metric
 Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at https://www.youtube.com/watch?v=Im69kzhpR3I. Leaving the field blank disables the automatic generation of YouTube video previews from links.
 
 ```"EnableTesting": false```
-"true": /loadtest slash command is enabled to load test accounts and test data.
+"true": `/loadtest` slash command is enabled to load test accounts and test data.
 
-```"EnableSecurityFixAlert": false```
+```"EnableSecurityFixAlert": true```
 ”true”: System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.
 
 #### Webhooks
