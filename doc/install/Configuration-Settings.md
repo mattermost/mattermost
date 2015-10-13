@@ -1,13 +1,13 @@
 ## System Console Settings
-___
+
 System Console config settings allow system administrators to customize their teams’ Mattermost experience. These settings can be modified from the System Console user interface or config.json. The System Console can be accessed by system administrators from the main menu. Warning: system administrators should be cautious to only grant admin privileges to team members who understand the critical nature of the settings they are adjusting.
 
 
 ### Service Settings
-___
+
 General settings to configure the listening address, login security, testing, webhooks and service integration of Mattermost. 
 
-### System
+#### System
 
 ```"ListenAddress": ":8065"```
 The IP address to listen and the port which to bind. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065". Changing this will require a server restart before taking effect.
@@ -27,7 +27,7 @@ Set this key to enable embedding of YouTube video previews based on hyperlinks a
 ```"EnableSecurityFixAlert": false```
 ”true”: System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.
 
-### Webhooks
+#### Webhooks
 
 ```"EnableIncomingWebhooks": true```
 Developers building integrations can create webhook URLs for channels and private groups. Please see http://mattermost.org/webhooks to learn about creating webhooks, view samples, and to let the community know about integrations you have built. "true": Incoming webhooks will be allowed. To manage incoming webhooks, go to Account Settings -> Integrations. The webhook URLs created in Account Settings can be used by external applications to create posts in any channels or private groups that you have access to; “false”: The Integrations tab of Account Settings is hidden and incoming webhooks are disabled.
@@ -41,7 +41,7 @@ Security note: By enabling this feature, users may be able to perform [phishing 
 "true": Webhooks will be allowed to change the icon they post with; “false”: Webhooks can only post with the profile picture of the account they were set up with. See http://mattermost.org/webhooks for more details.
 
 ### Team Settings
-___
+
 Settings to configure the appearance, size, and access options for teams.
 
 ```"SiteName": "Mattermost"```
@@ -61,7 +61,7 @@ Teams can only be created by a verified email from this list of comma-separated 
 
 
 ### SQL Settings
-___
+
 Settings to configure the data sources, connections, and encryption of SQL databases. Changing properties in this section will require a server restart before taking effect. 
 
 ```"DriverName": "mysql"```
@@ -87,15 +87,15 @@ Maximum number of open connections held open to the database.
 
 
 ### Email Settings
-___
+
 Settings to configure email signup, notifications, security, and SMTP options. 
 
-### Signup
+#### Signup
 
 ```"EnableSignUpWithEmail": true```
 "true": Allow team creation and account signup using email and password; “false”: Email signup is disabled and users are not able to invite new members. This limits signup to single-sign-on services like OAuth or LDAP.
 
-### Notifications
+#### Notifications
 
 ```"SendEmailNotifications": false```
 "true": Enables sending of email notifications. “false”: Disables email notifications for developers who may want to skip email setup for faster development.
@@ -103,14 +103,13 @@ Settings to configure email signup, notifications, security, and SMTP options.
 ```"RequireEmailVerification": false```
 "true": Require email verification after account creation prior to allowing login; “false”: Users do not need to verify their email address prior to login. Developers may set this field to false so skip sending verification emails for faster development.
 
-
 ```"FeedbackName": ""```
 Name displayed on email account used when sending notification emails from Mattermost system.
 
 ```"FeedbackEmail": ""```
 Address displayed on email account used when sending notification emails from Mattermost system.
 
-### SMTP
+#### SMTP
 
 ```"SMTPUsername": ""```
 Obtain this credential from the administrator setting up your email server.
@@ -124,7 +123,7 @@ Location of SMTP email server.
 ```"SMTPPort": ""```
 Port of SMTP email server.
 
-### Security
+#### Security
 
 ```"ConnectionSecurity": ""```
 "none": Send email over an unsecure connection; "TLS": Communication between Mattermost and your email server is encrypted; “STARTTLS”: Attempts to upgrade an existing insecure connection to a secure connection using TLS.
@@ -138,10 +137,10 @@ Port of SMTP email server.
 
 
 ### File Settings
-___
+
 Settings to configure storage, appearance, and security of files and images.
 
-### File Storage
+#### File Storage
 
 ```"DriverName": "local"```
 System used for file storage. “local”: Files and images are stored on the local file system. “amazons3”: Files and images are stored on Amazon S3 based on the provided access key, bucket and region fields.
@@ -161,7 +160,7 @@ Name you selected for your S3 bucket in AWS.
 ```"AmazonS3Region": ""```
 AWS region you selected for creating your S3 bucket. Refer to [AWS Reference Documentation](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region) and choose this variable from the Region column.
 
-### Image Settings
+#### Image Settings
 
 ```"ThumbnailWidth": 120```
 Width of thumbnails generated from uploaded images. Updating this value changes how thumbnail images render in future, but does not change images created in the past.
@@ -189,10 +188,10 @@ The height to which profile pictures are resized after being uploaded via Accoun
 
 
 ### Log Settings
-___
+
 Settings to configure the console and log file output, detail level, format and location of error messages.
 
-### Console Settings
+#### Console Settings
 
 ```"EnableConsole": true```
 “true”: Output log messages to the console based on **ConsoleLevel** option. The server writes messages to the standard output stream (stdout).
@@ -200,7 +199,7 @@ Settings to configure the console and log file output, detail level, format and 
 ```"ConsoleLevel": "DEBUG"```
 Level of detail at which log events are written to the console when **EnableConsole**=true. ”ERROR”: Outputs only error messages; “INFO”: Outputs error messages and information around startup and initialization; “DEBUG”: Prints high detail for developers debugging issues.
 
-### Log File Settings
+#### Log File Settings
 
 ```"EnableFile": true```
 ”true”:  Log files are written to files specified in **FileLocation**.
@@ -222,9 +221,8 @@ Format of log message output. If blank, **FileFormat** = "[%D %T] [%L] (%S) %M",
 ```"FileLocation": ""```
 Directory to which log files are written. If blank, log files write to ./logs/mattermost/mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.
 
-
 ### Rate Limit Settings
-___
+
 Settings to enable API rate limiting and configure requests per second, user sessions and variables for rate limiting. Changing properties in this section will require a server restart before taking effect.
 
 ```"EnableRateLimiter": true```
@@ -242,9 +240,8 @@ Maximum number of user sessions connected to the system as determined by **VaryB
 ```"VaryByHeader": ""```
 Vary rate limiting by HTTP header field specified (e.g. when configuring Ngnix set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").
 
-
 ### Privacy Settings
-___
+
 Settings to configure the name and email privacy of users on your system.  
 
 ```"ShowEmailAddress": true```
@@ -254,7 +251,7 @@ Settings to configure the name and email privacy of users on your system.
 ”true”: Show full name of all users; “false”: hide full name of users from other users including team owner and team administrators.
 
 ### GitLab Settings
-___
+
 Settings to configure account and team creation using GitLab OAuth.
 
 ```"Enable": false```
@@ -262,7 +259,6 @@ Settings to configure account and team creation using GitLab OAuth.
 
 ```"Secret": ""```
 Obtain this value by logging into your GitLab account. Go to Profile Settings -> Applications -> New Application, enter a Name, then enter Redirect URLs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete".
-
 
 ```"Id": ""```
 Obtain this value by logging into your GitLab account. Go to Applications -> Profile Settings. Enter Redirect URLs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete".
@@ -276,22 +272,16 @@ Enter <your-gitlab-url>/oauth/token (example: http://localhost:3000/oauth/token)
 ```"UserApiEndpoint": ""```
 Enter <your-gitlab-url>/api/v3/user (example: http://localhost:3000/api/v3/user). Use HTTP or HTTPS in your URLs as appropriate.
 
+## Config.json Settings Not in System Console
 
-
-## Config.json Settings
-___
-Config.json settings do not appear in the System Console user interface but can be modified in the config.json file. Warning: Config.json settings are critical to the operation of Mattermost, adjust with care.
-
+System Console allows an IT Admin to update settings defined in `config.json`. However there are a number of settings in `config.json` unavailable in the System Console and require update from the file itself. We describe them here: 
 
 ### Service Settings
-___
 
 ```"EnableOAuthServiceProvider": false```
 ”true”: Allow Mattermost to function as an OAuth provider, allowing 3rd party apps access to your user store for authentication.
 
-
 ### Push Notification Settings
-___
 
 ```"ApplePushServer": ""```
 Setting for features in development.
@@ -302,16 +292,12 @@ Setting for features in development.
 ```"ApplePushCertPrivate": ""```
 Setting for features in development.
 
-
 ### File Settings
-___
 
 ```"InitialFont": "luximbi.ttf"```
 Font used in auto-generated profile pics with colored backgrounds.
 
-
 ### GitLab Settings
-___
 
 ```"Scope": ""```
 Standard setting for OAuth to determine the scope of information shared with OAuth client. Not currently supported by GitLab OAuth.
