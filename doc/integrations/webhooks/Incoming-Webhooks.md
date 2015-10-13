@@ -48,7 +48,7 @@ If you've already found or built an integration and are just looking to hook it 
 ### Creating Integrations using Incoming Webhooks
 You can create a webhook integration to post into Mattermost channels and private groups using these steps:
 
-Note: Only your system administrator can enable incoming webhooks if they are currently disabled. If that's already done, skip to step 2.
+**Note: Incoming webhooks must be enabled. Only your Mattermost system administrator can enable incoming webhooks if they are currently disabled.**
 
 2. Create a Mattermost Incoming Webhook URL
  1. Login to your Mattermost team site and go to **Account Settings -> Integrations**
