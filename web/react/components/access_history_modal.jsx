@@ -16,6 +16,7 @@ export default class AccessHistoryModal extends React.Component {
         this.onHide = this.onHide.bind(this);
         this.onShow = this.onShow.bind(this);
         this.formatAuditInfo = this.formatAuditInfo.bind(this);
+        this.handleRevokedSession = this.handleRevokedSession.bind(this);
 
         const state = this.getStateFromStoresForAudits();
         state.moreInfo = [];
@@ -53,6 +54,9 @@ export default class AccessHistoryModal extends React.Component {
         var newMoreInfo = this.state.moreInfo;
         newMoreInfo[index] = true;
         this.setState({moreInfo: newMoreInfo});
+    }
+    handleRevokedSession(sessionId) {
+        return 'The session with id ' + sessionId + ' was revoked';
     }
     formatAuditInfo(currentAudit) {
         const currentActionURL = currentAudit.action.replace(/\/api\/v[1-9]/, '');
@@ -142,6 +146,7 @@ export default class AccessHistoryModal extends React.Component {
                 break;
             }
         } else if (currentActionURL.indexOf('/oauth') === 0) {
+            /* NEEDS TO BE DONE */
             switch (currentActionURL) {
             case '/oauth/register':
                 break;
@@ -166,9 +171,7 @@ export default class AccessHistoryModal extends React.Component {
 
                 break;
             case '/users/revoke_session':
-                const revokedSessionId = userInfo[0].split('=')[1];
-
-                currentAuditDesc = 'Revoked the session with id ' + revokedSessionId;
+                currentAuditDesc = this.handleRevokedSession(userInfo[0].split('=')[1]);
                 break;
             case '/users/newimage':
                 currentAuditDesc = 'Updated your profile picture';
@@ -196,30 +199,73 @@ export default class AccessHistoryModal extends React.Component {
 
                 break;
             case '/users/update_active':
+                const updateType = userInfo[0].split('=')[0];
+                const updateField = userInfo[0].split('=')[1];
+
+                /* Either describes account activation/deactivation or a revoked session as part of an account deactivation */
+                if (updateType === 'active') {
+                    if (updateField === 'true') {
+                        currentAuditDesc = 'Account made active';
+                    } else if (updateField === 'false') {
+                        currentAuditDesc = 'Account made inactive';
+                    }
+
+                    const actingUserInfo = userInfo[1].split('=');
+                    if (actingUserInfo[0] === 'session_user') {
+                        const actingUser = UserStore.getProfile(actingUserInfo[1]);
+                        const currentUser = UserStore.getCurrentUser();
+                        if (currentUser && actingUser && (Utils.isAdmin(currentUser.roles) || Utils.isSystemAdmin(currentUser.roles))) {
+                            currentAuditDesc += ' by ' + actingUser.username;
+                        } else if (currentUser && actingUser) {
+                            currentAuditDesc += ' by an admin';
+                        }
+                    }
+                } else if (updateType === 'session_id') {
+                    currentAuditDesc = this.handleRevokedSession(updateField);
+                }
+
                 break;
             case '/users/send_password_reset':
+                currentAuditDesc = 'Sent an email to ' + userInfo[0].split('=')[1] + ' to reset your password';
                 break;
             case '/users/reset_password':
+
+                /* NEEDS TO BE TESTED! */
+                if (userInfo[0] === 'attempted') {
+                    currentAuditDesc = 'Password reset attempted';
+                } else if (userInfo[0] === 'completed') {
+                    currentAuditDesc = 'Password reset success';
+                }
+
                 break;
             case '/users/update_notify':
+                currentAuditDesc = 'Updated your global notification settings';
                 break;
             default:
                 break;
             }
         } else if (currentActionURL.indexOf('/hooks') === 0) {
+            /* NEEDS TO BE TESTED */
             switch (currentActionURL) {
             case '/hooks/incoming/create':
+                currentAuditDesc = 'Attempted to create a webhook';
+                currentAuditDesc = 'Successfully created a webhook';
                 break;
             case '/hooks/incoming/delete':
+                currentAuditDesc = 'Attempted to delete a webhook';
+                currentAuditDesc = 'Successfully deleted a webhook';
                 break;
             default:
                 break;
             }
         } else {
+            /* NEEDS TO BE TESTED */
             switch (currentActionURL) {
             case '/logout':
+                currentAuditDesc = 'Logged out of your account';
                 break;
             case '/verify_email':
+                currentAuditDesc = 'Sucessfully verified your email address';
                 break;
             default:
                 break;
@@ -228,9 +274,9 @@ export default class AccessHistoryModal extends React.Component {
 
         /* If all else fails... */
         if (!currentAuditDesc) {
+            /* Currently not called anywhere */
             if (currentAudit.extra_info.indexOf('revoked_all=') >= 0) {
-
-                // do stuff
+                currentAuditDesc = 'Revoked all current sessions for the team';
             } else {
                 let currentActionDesc = ' ';
                 if (currentActionURL && currentActionURL.lastIndexOf('/') !== -1) {
