@@ -8,6 +8,8 @@ const Markdown = require('./markdown.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
 
+const marked = require('marked');
+
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
 // as part of the second parameter:
@@ -20,8 +22,11 @@ export function formatText(text, options = {}) {
     let output;
 
     if (!('markdown' in options) || options.markdown) {
-        // the markdown renderer will call doFormatText as necessary
-        output = Markdown.format(text, options);
+        // the markdown renderer will call doFormatText as necessary so just call marked
+        output = marked(text, {
+            renderer: new Markdown.MattermostMarkdownRenderer(null, options),
+            sanitize: true
+        });
     } else {
         output = sanitizeHtml(text);
         output = doFormatText(output, options);

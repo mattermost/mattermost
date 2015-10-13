@@ -6,31 +6,7 @@ const Utils = require('./utils.jsx');
 
 const marked = require('marked');
 
-class MattermostInlineLexer extends marked.InlineLexer {
-    constructor(links, options) {
-        super(links, options);
-
-        // modified version of the regex that doesn't break up words in snake_case
-        // the original is /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
-        this.rules.text = /^[\s\S]+?(?=__|\b_|[\\<!\[*`]| {2,}\n|$)/;
-    }
-}
-
-class MattermostParser extends marked.Parser {
-    parse(src) {
-        this.inline = new MattermostInlineLexer(src.links, this.options, this.renderer);
-        this.tokens = src.reverse();
-
-        var out = '';
-        while (this.next()) {
-            out += this.tok();
-        }
-
-        return out;
-    }
-}
-
-class MattermostMarkdownRenderer extends marked.Renderer {
+export class MattermostMarkdownRenderer extends marked.Renderer {
     constructor(options, formattingOptions = {}) {
         super(options);
 
@@ -92,15 +68,3 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         return TextFormatting.doFormatText(text, this.formattingOptions);
     }
 }
-
-export function format(text, options) {
-    const markdownOptions = {
-        renderer: new MattermostMarkdownRenderer(null, options),
-        sanitize: true
-    };
-
-    const tokens = marked.lexer(text, markdownOptions);
-
-    return new MattermostParser(markdownOptions).parse(tokens);
-}
-
