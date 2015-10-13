@@ -35,11 +35,11 @@ git checkout -b <branch name>
 
 1. Please add yourself to the Mattermost [approved contributor list](https://docs.google.com/spreadsheets/d/1NTCeG-iL_VS9bFqtmHSfwETo5f-8MQ7oMDE5IUYJi_Y/pubhtml?gid=0&single=true) prior to submitting by completing the [contributor license agreement](http://www.mattermost.org/mattermost-contributor-agreement/). 
 
-2. When you submit your pull request please include the Ticket ID at the beginning of your pull request comment, followed by a colon. 
+2. When you submit your pull request please make it against `master` and include the Ticket ID at the beginning of your pull request comment, followed by a colon. 
 
   For example, for a ticket ID `PLT-394` start your comment with:  `PLT-394:`. See [previously closed pull requests](https://github.com/mattermost/platform/pulls?q=is%3Apr+is%3Aclosed) for examples. 
 
-3. Once submitted, your pull request will be checked via an automated build process and will be reviewed by the Mattermost core team, who may either accept the PR or follow-up with feedback.
+3. Once submitted, your pull request will be checked via an automated build process and will be reviewed by at least two members of the Mattermost core team, who may either accept the PR or follow-up with feedback. It would then get merged into `master` for the next release. 
 
 4. If you've included your mailing address in Step 1, you'll be receiving a [Limited Edition Mattermost Mug](http://forum.mattermost.org/t/limited-edition-mattermost-mugs/143) as a thank you gift after your first pull request has been accepted. 
 
