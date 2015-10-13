@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
+var ChannelStore = require('../stores/channel_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var LoadingScreen = require('./loading_screen.jsx');
 var Utils = require('../utils/utils.jsx');
@@ -56,16 +57,17 @@ export default class AccessHistoryModal extends React.Component {
     formatAuditInfo(currentAudit) {
         const currentActionURL = currentAudit.action.replace(/\/api\/v[1-9]/, '');
 
-        let currentAuditDesc = ' ';
+        let currentAuditDesc = '';
 
         /* Handle audit formatting semi-individually for each type and
             fall back to a best guess case if none exists
 
             Supported audits:
                 /channels
-                - Create Channel X
-                - Update Channel X
-                - Update Channel Description X
+                - Create Channel
+                - Create Direct Channel
+                - Update Channel
+                - Update Channel Description
                 - Delete Channel X
                 - Add User to Channel X
                 - Remove User from Channel X
@@ -85,84 +87,147 @@ export default class AccessHistoryModal extends React.Component {
                 - Logout (/logout) X
                 - Verify Email (/verify_email) X
         */
-        switch (currentActionURL) {
+        if (currentActionURL.indexOf('/channels') === 0) {
+            const channelInfo = currentAudit.extra_info.split(' ');
+            const channelNameField = channelInfo[0].split('=');
 
-        /* BREAK UP CHANNEL INTO OWN SWITCH STATEMENT TO REUSE VARIABLES AND BE CLEAN */
-        case '/channels/create':
-            const createChannelInfo = currentAudit.extra_info.split('=');
+            let channelURL = '';
+            let channelObj;
             let channelName = '';
-
-            if (createChannelInfo[0] === 'name') {
-                channelName = createChannelInfo[1];
+            if (channelNameField.indexOf('name') >= 0) {
+                channelURL = channelNameField[channelNameField.indexOf('name') + 1];
+                channelObj = ChannelStore.getByName(channelURL);
+                if (channelObj) {
+                    channelName = channelObj.display_name;
+                } else {
+                    channelName = channelURL;
+                }
             }
 
-            currentAuditDesc = 'Created a new channel/group named ' + channelName;
+            switch (currentActionURL) {
+            case '/channels/create':
+                currentAuditDesc = 'Created the ' + channelName + ' channel/group';
+                break;
+            case '/channels/create_direct':
+                currentAuditDesc = 'Established a direct message channel with ' + Utils.getDirectTeammate(channelObj.id).username;
+                break;
+            case '/channels/update':
+                currentAuditDesc = 'Updated the ' + channelName + ' channel/group name';
+                break;
+            case '/channels/update_desc':
+                currentAuditDesc = 'Updated the ' + channelName + ' channel/group description';
+                break;
+            default:
+                let userIdField = [];
+                let userId = '';
+                let username = '';
 
-            break;
-        case '/channels/update':
-            const updateChannelInfo = currentAudit.extra_info.split('=');
-            let originalChannelName = '';
+                if (channelInfo[1]) {
+                    userIdField = channelInfo[1].split('=');
 
-            if (updateChannelInfo[0] === 'name') {
-                originalChannelName = updateChannelInfo[1];
+                    if (userIdField.indexOf('user_id') >= 0) {
+                        userId = userIdField[userIdField.indexOf('user_id') + 1];
+                        username = UserStore.getProfile(userId).username;
+                    }
+                }
+
+                if (/\/channels\/[A-Za-z0-9]+\/delete/.test(currentActionURL)) {
+                    currentAuditDesc = 'Deleted the channel/group with the URL ' + channelURL;
+                } else if (/\/channels\/[A-Za-z0-9]+\/add/.test(currentActionURL)) {
+                    currentAuditDesc = 'Added ' + username + ' to the ' + channelName + ' channel/group';
+                } else if (/\/channels\/[A-Za-z0-9]+\/remove/.test(currentActionURL)) {
+                    currentAuditDesc = 'Removed ' + username + ' from the ' + channelName + ' channel/group';
+                }
+
+                break;
             }
-
-            currentAuditDesc = 'Updated the channel/group name for ' + originalChannelName;
-            break;
-
-        /* case '/channels/update_desc':
-            const updateChannelInfo = currentAudit.extra_info.split('=');
-            let originalChannelName = '';
-
-            if (updateChannelInfo[0] === 'name') {
-                originalChannelName = updateChannelInfo[1];
+        } else if (currentActionURL.indexOf('/oauth') === 0) {
+            switch (currentActionURL) {
+            case '/oauth/register':
+                break;
+            case '/oauth/allow':
+                break;
+            case '/oauth/access_token':
+                break;
+            default:
+                break;
             }
+        } else if (currentActionURL.indexOf('/users') === 0) {
+            const userInfo = currentAudit.extra_info.split(' ');
+            switch (currentActionURL) {
+            case '/users/login':
+                if (userInfo[0] === 'attempt') {
+                    currentAuditDesc = 'Login attempted';
+                } else if (userInfo[0] === 'success') {
+                    currentAuditDesc = 'Successful login attempt';
+                } else if (userInfo[0]) {
+                    currentAuditDesc = 'FAILED login attempt';
+                }
 
-            currentAuditDesc = 'Updated the channel/group name for ' + originalChannelName;
-            break;*/
-        case /\/channels\/[A-Za-z0-9]+\/delete/:
-            break;
-        case /\/channels\/[A-Za-z0-9]+\/add/:
-            break;
-        case /\/channels\/[A-Za-z0-9]+\/remove/:
-            break;
-        case '/oauth/register':
-            break;
-        case '/oauth/allow':
-            break;
-        case '/users/login':
-            break;
-        case '/users/revoke_session':
-            break;
-        case '/users/newimage':
-            break;
-        case '/users/update':
-            break;
-        case '/users/newpassword':
-            break;
-        case '/users/update_roles':
-            break;
-        case '/users/update_active':
-            break;
-        case '/users/send_password_reset':
-            break;
-        case '/users/reset_password':
-            break;
-        case '/users/update_notify':
-            break;
-        case '/logout':
-            break;
-        case '/hooks/incoming/create':
-            break;
-        case '/hooks/incoming/delete':
-            break;
-        case '/verify_email':
-            break;
-        case '/oauth/access_token':
-            break;
-        case '':
-            break;
-        default:
+                break;
+            case '/users/revoke_session':
+                const revokedSessionId = userInfo[0].split('=')[1];
+
+                currentAuditDesc = 'Revoked the session with id ' + revokedSessionId;
+                break;
+            case '/users/newimage':
+                currentAuditDesc = 'Updated your profile picture';
+                break;
+            case '/users/update':
+                currentAuditDesc = 'Updated the general settings of your account';
+                break;
+            case '/users/newpassword':
+                if (userInfo[0] === 'attempted') {
+                    currentAuditDesc = 'Password change attempted';
+                } else if (userInfo[0] === 'completed') {
+                    currentAuditDesc = 'Password change success';
+                }
+
+                break;
+            case '/users/update_roles':
+                const userRoles = userInfo[0].split('=')[1];
+
+                currentAuditDesc = 'Updated user role(s) to ';
+                if (userRoles.trim()) {
+                    currentAuditDesc += userRoles;
+                } else {
+                    currentAuditDesc += 'member';
+                }
+
+                break;
+            case '/users/update_active':
+                break;
+            case '/users/send_password_reset':
+                break;
+            case '/users/reset_password':
+                break;
+            case '/users/update_notify':
+                break;
+            default:
+                break;
+            }
+        } else if (currentActionURL.indexOf('/hooks') === 0) {
+            switch (currentActionURL) {
+            case '/hooks/incoming/create':
+                break;
+            case '/hooks/incoming/delete':
+                break;
+            default:
+                break;
+            }
+        } else {
+            switch (currentActionURL) {
+            case '/logout':
+                break;
+            case '/verify_email':
+                break;
+            default:
+                break;
+            }
+        }
+
+        /* If all else fails... */
+        if (!currentAuditDesc) {
             if (currentAudit.extra_info.indexOf('revoked_all=') >= 0) {
 
                 // do stuff
@@ -183,8 +248,6 @@ export default class AccessHistoryModal extends React.Component {
                 }
                 currentAuditDesc = currentActionDesc + ' ' + currentExtraInfoDesc;
             }
-
-            break;
         }
 
         const currentDate = new Date(currentAudit.create_at);
@@ -210,7 +273,11 @@ export default class AccessHistoryModal extends React.Component {
 
             if (this.state.moreInfo[i]) {
                 if (!currentAudit.session_id && currentAudit.action.search('/users/login') !== -1) {
-                    currentAudit.session_id = 'N/A (Login attempt)';
+                    if (currentAudit.extra_info === 'attempt') {
+                        currentAudit.session_id = 'N/A (Login attempt)';
+                    } else {
+                        currentAudit.session_id = 'N/A (Login failure)';
+                    }
                 }
 
                 moreInfo = (
