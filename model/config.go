@@ -32,6 +32,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride bool
 	EnablePostIconOverride     bool
 	EnableTesting              bool
+	EnableSecurityFixAlert     *bool
 }
 
 type SSOSettings struct {
@@ -110,9 +111,8 @@ type RateLimitSettings struct {
 }
 
 type PrivacySettings struct {
-	ShowEmailAddress       bool
-	ShowFullName           bool
-	EnableSecurityFixAlert bool
+	ShowEmailAddress bool
+	ShowFullName     bool
 }
 
 type TeamSettings struct {
@@ -160,6 +160,13 @@ func ConfigFromJson(data io.Reader) *Config {
 		return &o
 	} else {
 		return nil
+	}
+}
+
+func (o *Config) SetDefaults() {
+	if o.ServiceSettings.EnableSecurityFixAlert == nil {
+		o.ServiceSettings.EnableSecurityFixAlert = new(bool)
+		*o.ServiceSettings.EnableSecurityFixAlert = true
 	}
 }
 

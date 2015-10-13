@@ -421,6 +421,9 @@
             .post-body__cell {
                 display: table-cell;
                 padding-left: 45px;
+                .sidebar--right & {
+                    padding-left: 0;
+                }
             }
             .app__content & {
                 .btn-file {
@@ -667,7 +670,7 @@
         .modal-image {
             .image-wrapper {
                 font-size: 12px;
-                max-width: 280px;
+                min-width: 280px;
                 .modal-close {
                     @include opacity(1);
                 }
