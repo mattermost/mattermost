@@ -179,7 +179,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).  Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
+                            <p className='help-text'>{'Enter https://<your-gitlab-url>/oauth/authorize (example https://example.com:3000/oauth/authorize).   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'}</p>
                         </div>
                     </div>
 
@@ -201,7 +201,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
+                            <p className='help-text'>{'Enter https://<your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'}</p>
                         </div>
                     </div>
 
@@ -223,7 +223,7 @@ export default class GitLabSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Enter <your-gitlab-url>/api/v3/user.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'}</p>
+                            <p className='help-text'>{'Enter https://<your-gitlab-url>/api/v3/user.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'}</p>
                         </div>
                     </div>
 
