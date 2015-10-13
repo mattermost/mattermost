@@ -22,7 +22,7 @@ export default class EmailVerify extends React.Component {
             title = global.window.config.SiteName + ' Email Verified';
             body = <p>Your email has been verified! Click <a href={this.props.teamURL + '?email=' + this.props.userEmail}>here</a> to log in.</p>;
         } else {
-            title = global.window.config.SiteName + ' Email Not Verified';
+            title = global.window.config.SiteName + ': You are almost done';
             body = <p>Please verify your email address. Check your inbox for an email.</p>;
             resend = (
                 <button
