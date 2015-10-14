@@ -6,12 +6,17 @@
 
 The Slack Import feature in Mattermost is in "Beta" and focus is on supporting migration of teams of less than 100 registered users. To use: 
 
-1. Generate a Slack "Export" file from **Slack > Team Settings > Import/Export Data > Export > Start Export**
-2. In Mattermost go to **Team Settings > Import > Import from Slack**. Note: Team Owner or Team Administrator role required for this. 
-3. Click **Select file** to upload Slack export file and click **Import**. 
-4. Emails and usernames from Slack are used to create new Mattermost accounts
-5. Slack users can activate their new Mattermost accounts by using Mattermost's Password Reset screen with their email addresses from Slack to set new passwords for their Mattermost accounts
-6. Once logged in, the Mattermost users will have access to previous Slack messages in the public channels imported from Slack. 
+1. Generate a Slack "Export" file from **Slack > Team Settings > Import/Export Data > Export > Start Export**  
+
+2. In Mattermost go to **Team Settings > Import > Import from Slack**. Note: Team Owner or Team Administrator role required for this.  
+
+3. Click **Select file** to upload Slack export file and click **Import**.   
+
+4. Emails and usernames from Slack are used to create new Mattermost accounts  
+
+5. Slack users can activate their new Mattermost accounts by using Mattermost's Password Reset screen with their email addresses from Slack to set new passwords for their Mattermost accounts  
+
+6. Once logged in, the Mattermost users will have access to previous Slack messages in the public channels imported from Slack.
 
 - **It is highly recommended that you test Slack import before applying it to an instance intended for production.** If you use Docker, you can spin up a test instance in one line (`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`). If you don't use Docker, there are [step-by-step instructions](../install/Docker-Single-Container.md) to install Mattermost in preview mode in less than 5 minutes.
 
