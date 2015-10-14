@@ -24,7 +24,6 @@ var TeamSettingsModal = require('../components/team_settings_modal.jsx');
 var ChannelMembersModal = require('../components/channel_members.jsx');
 var ChannelInviteModal = require('../components/channel_invite_modal.jsx');
 var TeamMembersModal = require('../components/team_members.jsx');
-var DirectChannelModal = require('../components/more_direct_channels.jsx');
 var ErrorBar = require('../components/error_bar.jsx');
 var ErrorStore = require('../stores/error_store.jsx');
 var ChannelLoader = require('../components/channel_loader.jsx');
@@ -153,11 +152,6 @@ function setupChannelPage(props) {
     React.render(
         <MoreChannelsModal />,
         document.getElementById('more_channels_modal')
-    );
-
-    React.render(
-        <DirectChannelModal />,
-        document.getElementById('direct_channel_modal')
     );
 
     React.render(

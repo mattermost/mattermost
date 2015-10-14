@@ -8,6 +8,7 @@ const Client = require('../utils/client.jsx');
 const Constants = require('../utils/constants.jsx');
 const PreferenceStore = require('../stores/preference_store.jsx');
 const NewChannelFlow = require('./new_channel_flow.jsx');
+const MoreDirectChannels = require('./more_direct_channels.jsx');
 const SearchBox = require('./search_bar.jsx');
 const SidebarHeader = require('./sidebar_header.jsx');
 const SocketStore = require('../stores/socket_store.jsx');
@@ -33,12 +34,19 @@ export default class Sidebar extends React.Component {
         this.onResize = this.onResize.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
+
+        this.showNewChannelModal = this.showNewChannelModal.bind(this);
+        this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
+        this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
+        this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
+
         this.createChannelElement = this.createChannelElement.bind(this);
 
         this.isLeaving = new Map();
 
         const state = this.getStateFromStores();
-        state.modal = '';
+        state.newChannelModalType = '';
+        state.showMoreDirectChannelsModal = false;
         state.loadingDMChannel = -1;
 
         this.state = state;
@@ -47,10 +55,11 @@ export default class Sidebar extends React.Component {
         const members = ChannelStore.getAllMembers();
         var teamMemberMap = UserStore.getActiveOnlyProfiles();
         var currentId = ChannelStore.getCurrentId();
+        const currentUserId = UserStore.getCurrentId();
 
         var teammates = [];
         for (var id in teamMemberMap) {
-            if (id === UserStore.getCurrentId()) {
+            if (id === currentUserId) {
                 continue;
             }
             teammates.push(teamMemberMap[id]);
@@ -58,22 +67,16 @@ export default class Sidebar extends React.Component {
 
         const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
-        // Create lists of all read and unread direct channels
         var visibleDirectChannels = [];
-        var hiddenDirectChannels = [];
+        var hiddenDirectChannelCount = 0;
         for (var i = 0; i < teammates.length; i++) {
             const teammate = teammates[i];
 
-            if (teammate.id === UserStore.getCurrentId()) {
+            if (teammate.id === currentUserId) {
                 continue;
             }
 
-            var channelName = '';
-            if (teammate.id > UserStore.getCurrentId()) {
-                channelName = UserStore.getCurrentId() + '__' + teammate.id;
-            } else {
-                channelName = teammate.id + '__' + UserStore.getCurrentId();
-            }
+            const channelName = Utils.getDirectChannelName(currentUserId, teammate.id);
 
             let forceShow = false;
             let channel = ChannelStore.getByName(channelName);
@@ -106,19 +109,18 @@ export default class Sidebar extends React.Component {
 
                 visibleDirectChannels.push(channel);
             } else {
-                hiddenDirectChannels.push(channel);
+                hiddenDirectChannelCount += 1;
             }
         }
 
         visibleDirectChannels.sort(this.sortChannelsByDisplayName);
-        hiddenDirectChannels.sort(this.sortChannelsByDisplayName);
 
         return {
             activeId: currentId,
             channels: ChannelStore.getAll(),
             members,
             visibleDirectChannels,
-            hiddenDirectChannels
+            hiddenDirectChannelCount
         };
     }
 
@@ -336,6 +338,20 @@ export default class Sidebar extends React.Component {
         return a.display_name.localeCompare(b.display_name);
     }
 
+    showNewChannelModal(type) {
+        this.setState({newChannelModalType: type});
+    }
+    hideNewChannelModal() {
+        this.setState({newChannelModalType: ''});
+    }
+
+    showMoreDirectChannelsModal() {
+        this.setState({showDirectChannelsModal: true});
+    }
+    hideMoreDirectChannelsModal() {
+        this.setState({showDirectChannelsModal: false});
+    }
+
     createChannelElement(channel, index, arr, handleClose) {
         var members = this.state.members;
         var activeId = this.state.activeId;
@@ -532,25 +548,21 @@ export default class Sidebar extends React.Component {
         head.appendChild(link);
 
         var directMessageMore = null;
-        if (this.state.hiddenDirectChannels.length > 0) {
+        if (this.state.hiddenDirectChannelCount > 0) {
             directMessageMore = (
                 <li key='more'>
                     <a
-                        key={`more${this.state.hiddenDirectChannels.length}`}
                         href='#'
-                        data-toggle='modal'
-                        className='nav-more'
-                        data-target='#more_direct_channels'
-                        data-channels={JSON.stringify(this.state.hiddenDirectChannels)}
+                        onClick={this.showMoreDirectChannelsModal}
                     >
-                        {'More (' + this.state.hiddenDirectChannels.length + ')'}
+                        {'More (' + this.state.hiddenDirectChannelCount + ')'}
                     </a>
                 </li>
             );
         }
 
         let showChannelModal = false;
-        if (this.state.modal !== '') {
+        if (this.state.newChannelModalType !== '') {
             showChannelModal = true;
         }
 
@@ -561,9 +573,14 @@ export default class Sidebar extends React.Component {
             <div>
                 <NewChannelFlow
                     show={showChannelModal}
-                    channelType={this.state.modal}
-                    onModalDismissed={() => this.setState({modal: ''})}
+                    channelType={this.state.newChannelModalType}
+                    onModalDismissed={this.hideNewChannelModal}
                 />
+                <MoreDirectChannels
+                    show={this.state.showDirectChannelsModal}
+                    onModalDismissed={this.hideMoreDirectChannelsModal}
+                />
+
                 <SidebarHeader
                     teamDisplayName={this.props.teamDisplayName}
                     teamName={this.props.teamName}
@@ -599,7 +616,7 @@ export default class Sidebar extends React.Component {
                                 <a
                                     className='add-channel-btn'
                                     href='#'
-                                    onClick={() => this.setState({modal: 'O'})}
+                                    onClick={this.showNewChannelModal.bind(this, 'O')}
                                 >
                                     {'+'}
                                 </a>
@@ -632,7 +649,7 @@ export default class Sidebar extends React.Component {
                                 <a
                                     className='add-channel-btn'
                                     href='#'
-                                    onClick={() => this.setState({modal: 'P'})}
+                                    onClick={this.showNewChannelModal.bind(this, 'P')}
                                 >
                                     {'+'}
                                 </a>

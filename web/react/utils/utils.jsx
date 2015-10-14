@@ -911,6 +911,18 @@ export function isBrowserEdge() {
     return window.naviagtor && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('edge') > -1;
 }
 
+export function getDirectChannelName(id, otherId) {
+    let handle;
+
+    if (otherId > id) {
+        handle = id + '__' + otherId;
+    } else {
+        handle = otherId + '__' + id;
+    }
+
+    return handle;
+}
+
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
     var ids = channel.name.split('__');
