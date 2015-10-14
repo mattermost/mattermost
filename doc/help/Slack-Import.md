@@ -18,7 +18,7 @@ The Slack Import feature in Mattermost is in "Beta" and focus is on supporting m
 
 6. Once logged in, the Mattermost users will have access to previous Slack messages in the public channels imported from Slack.
 
-- **It is highly recommended that you test Slack import before applying it to an instance intended for production.** If you use Docker, you can spin up a test instance in one line (`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`). If you don't use Docker, there are [step-by-step instructions](../install/Docker-Single-Container.md) to install Mattermost in preview mode in less than 5 minutes.
+**It is highly recommended that you test Slack import before applying it to an instance intended for production.** If you use Docker, you can spin up a test instance in one line (`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`). If you don't use Docker, there are [step-by-step instructions](../install/Docker-Single-Container.md) to install Mattermost in preview mode in less than 5 minutes.
 
 #### Notes: 
 
