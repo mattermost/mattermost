@@ -474,7 +474,7 @@ export default class Sidebar extends React.Component {
                 </OverlayTrigger>
             );
 
-            rowClass = ' has-close';
+            rowClass += ' has-close';
         }
 
         return (
