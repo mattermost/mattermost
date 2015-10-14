@@ -1,6 +1,6 @@
 ### Slack Import
 
-*Note: As a proprietary SaaS service, Slack is able to change its export format quickly and without notice. If you encounter issues not mentioned in the documentation below, please let us know by [filing an issue](https://github.com/mattermost/platform/issues).*
+*Note: As a proprietary SaaS service, Slack is able to change its export format quickly and without notice. If you encounter issues not mentioned in the documentation below, please alert the product team by [filing an issue](https://github.com/mattermost/platform/issues).*
 
 #### Usage
 
