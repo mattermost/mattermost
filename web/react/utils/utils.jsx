@@ -473,6 +473,8 @@ export function applyTheme(theme) {
     if (theme.centerChannelColor) {
         changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .command-name, .modal .modal-content, .dropdown-menu, .popover, .mentions-name', 'color:' + theme.centerChannelColor, 1);
         changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.channel-header__links a', 'fill:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
+        changeCss('.channel-header__links a:hover, .channel-header__links a:active', 'fill:' + theme.centerChannelColor, 2);
         changeCss('.mentions--top, .command-box', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 3);
         changeCss('.mentions--top, .command-box', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 2);
         changeCss('.mentions--top, .command-box', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 1);
@@ -485,6 +487,10 @@ export function applyTheme(theme) {
         changeCss('.channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.custom-textarea, .custom-textarea:focus, .preview-container .preview-div, .post-image__column .post-image__details, .sidebar--right .sidebar-right__body, .markdown__table th, .markdown__table td, .command-box, .modal .modal-content, .settings-modal .settings-table .settings-content .divider-light, .dropdown-menu, .modal .modal-header, .popover, .mentions--top .mentions-box', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
+        changeCss('.popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
+        changeCss('.popover.left>.arrow', 'border-left-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
+        changeCss('.popover.top>.arrow', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.command-name, .popover .popover-title', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.dropdown-menu .divider', 'background:' + theme.centerChannelColor, 1);
         changeCss('.custom-textarea', 'color:' + theme.centerChannelColor, 1);

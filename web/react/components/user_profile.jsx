@@ -32,7 +32,7 @@ export default class UserProfile extends React.Component {
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
         if (!this.props.disablePopover) {
-            $('#profile_' + this.uniqueId).popover({placement: 'right', container: 'body', trigger: 'hover', html: true, delay: {show: 200, hide: 100}});
+            $('#profile_' + this.uniqueId).popover({placement: 'right', container: 'body', trigger: 'click hover', html: true, delay: {show: 200, hide: 100}});
             $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
         }
     }

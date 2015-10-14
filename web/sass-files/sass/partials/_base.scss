@@ -45,9 +45,9 @@ img {
 
 .popover {
   color: #333;
-  &.bottom {
+  &.bottom, &.right, &.top, &.left {
     >.arrow:after {
-      border-bottom-color: rgba(white, 0.5);
+      border-color: transparent;
     }
   }
   .popover-title {
@@ -83,6 +83,9 @@ a:focus, a:hover {
 .tooltip {
   .tooltip-inner {
     word-break: break-word;
+    font-size: 13px;
+    padding: 3px 10px 4px;
+    font-weight: 500;
   }
 }
 

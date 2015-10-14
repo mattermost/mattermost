@@ -100,6 +100,24 @@
                 }
                 &.has-close {
                     padding-right: 30px;
+                    &:hover {
+                        .btn-close {
+                            display: block;
+                            @include opacity(0.8);
+                        }
+                    }
+                    .btn-close {
+                        position: absolute;
+                        right: 15px;
+                        top: -1px;
+                        font-size: 20px;
+                        font-weight: 600;
+                        @include opacity(0);
+                        display: none;
+                        &:hover {
+                            @include opacity(1);
+                        }
+                    }
                 }
                 &.nav-more {
                     text-decoration: underline;

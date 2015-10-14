@@ -408,7 +408,7 @@ body.ios {
 	}
 	.post-body {
 		position: relative;
-		z-index: 5;
+		z-index: 1;
 		max-width: 100%;
 		width: 600px;
 		float: left;
@@ -439,7 +439,7 @@ body.ios {
 		padding-left: 0px;
 		&.post-header-post {
 			position: relative;
-			z-index: 5;
+			z-index: 1;
 			width: 200px;
 			text-align: right;
 			float: left;

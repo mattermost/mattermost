@@ -15,6 +15,8 @@ const TeamStore = require('../stores/team_store.jsx');
 const UnreadChannelIndicator = require('./unread_channel_indicator.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
+const Tooltip = ReactBootstrap.Tooltip;
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -455,14 +457,21 @@ export default class Sidebar extends React.Component {
         }
 
         let closeButton = null;
+        const removeTooltip = <Tooltip>{'Remove from list'}</Tooltip>;
         if (handleClose && !badge) {
             closeButton = (
+                <OverlayTrigger
+                    delayShow='1000'
+                    placement='top'
+                    overlay={removeTooltip}
+                >
                 <span
-                    className='close-btn pull-right small'
+                    className='btn-close'
                     data-close='true'
                 >
                     {'×'}
                 </span>
+                </OverlayTrigger>
             );
 
             rowClass = ' has-close';
@@ -545,6 +554,9 @@ export default class Sidebar extends React.Component {
             showChannelModal = true;
         }
 
+        const createChannelTootlip = <Tooltip>{'Create new channel'}</Tooltip>;
+        const createGroupTootlip = <Tooltip>{'Create new group'}</Tooltip>;
+
         return (
             <div>
                 <NewChannelFlow
@@ -579,6 +591,11 @@ export default class Sidebar extends React.Component {
                         <li>
                             <h4>
                                 {'Channels'}
+                                <OverlayTrigger
+                                    delayShow='500'
+                                    placement='top'
+                                    overlay={createChannelTootlip}
+                                >
                                 <a
                                     className='add-channel-btn'
                                     href='#'
@@ -586,6 +603,7 @@ export default class Sidebar extends React.Component {
                                 >
                                     {'+'}
                                 </a>
+                                </OverlayTrigger>
                             </h4>
                         </li>
                         {publicChannelItems}
@@ -606,6 +624,11 @@ export default class Sidebar extends React.Component {
                         <li>
                             <h4>
                                 {'Private Groups'}
+                                <OverlayTrigger
+                                    delayShow='500'
+                                    placement='top'
+                                    overlay={createGroupTootlip}
+                                >
                                 <a
                                     className='add-channel-btn'
                                     href='#'
@@ -613,6 +636,7 @@ export default class Sidebar extends React.Component {
                                 >
                                     {'+'}
                                 </a>
+                                </OverlayTrigger>
                             </h4>
                         </li>
                         {privateChannelItems}
