@@ -255,6 +255,17 @@ export default class CreateComment extends React.Component {
             postFooterClassName += ' has-error';
         }
 
+        let uploadsInProgressText = null;
+        if (this.state.uploadsInProgress.length > 0) {
+            uploadsInProgressText = (
+                <span
+                    className='pull-right post-right-comments-upload-in-progress'
+                >
+                    {this.state.uploadsInProgress.length === 1 ? 'File uploading' : 'Files uploading'}
+                </span>
+            );
+        }
+
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
@@ -295,6 +306,7 @@ export default class CreateComment extends React.Component {
                             value='Add Comment'
                             onClick={this.handleSubmit}
                         />
+                        {uploadsInProgressText}
                         {postError}
                         {serverError}
                     </div>
