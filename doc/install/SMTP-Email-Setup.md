@@ -42,9 +42,9 @@ To enable email, turn this option off by setting `ByPassEmail=false` and configu
 
 ### Troubleshooting SMTP
 
-If you receive an error message during SMTP setup, do a web search for the error code number to narrow down the issue. Sometimes ISPs require nuanced setups for SMTP and error codes can hint at how to make the proper adjustments. 
+If you have issues with your SMTP install, from your Mattermost team site go to the main menu and open `System Console > Logs` to look for error messages related to your setup. You can do a search for the error code to narrow down the issue. Sometimes ISPs require nuanced setups for SMTP and error codes can hint at how to make the proper adjustments. 
 
-For example, if you have an error code reading: 
+For example, if `System Console > Logs` has an error code reading: 
 
 ```
 Connection unsuccessful: Failed to add to email address - 554 5.7.1 <unknown[IP-ADDRESS]>: Client host rejected: Access denied
