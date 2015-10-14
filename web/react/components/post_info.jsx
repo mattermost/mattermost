@@ -150,6 +150,7 @@ export default class PostInfo extends React.Component {
             <ul className='post-header post-info'>
                 <li className='post-header-col'>
                     <OverlayTrigger
+                        container={this}
                         placement='top'
                         overlay={tooltip}
                     >

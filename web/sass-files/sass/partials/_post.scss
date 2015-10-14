@@ -147,12 +147,12 @@ body.ios {
 		&::-webkit-scrollbar {
 			width: 0px !important;
 		}
-        &.inactive {
-            display: none;
-        }
-        &.active {
-            display: inline;
-        }
+		&.inactive {
+			display: none;
+		}
+		&.active {
+			display: inline;
+		}
 	}
 	.post-list__table {
 		display: table;
@@ -407,6 +407,8 @@ body.ios {
 		display: none;
 	}
 	.post-body {
+		position: relative;
+		z-index: 5;
 		max-width: 100%;
 		width: 600px;
 		float: left;
@@ -431,10 +433,13 @@ body.ios {
 		}
 	}
 	.post-header {
+		position: relative;
 		list-style-type: none;
 		margin: 0 0 1px;
 		padding-left: 0px;
 		&.post-header-post {
+			position: relative;
+			z-index: 5;
 			width: 200px;
 			text-align: right;
 			float: left;
@@ -519,9 +524,9 @@ body.ios {
 }
 
 .bot-indicator {
-    background-color: lightgrey;
-    border-radius:2px;
-    padding-left:2px;
-    padding-right:2px;
-    font-family:"Courier New"
+	background-color: lightgrey;
+	border-radius:2px;
+	padding-left:2px;
+	padding-right:2px;
+	font-family:"Courier New"
 }
