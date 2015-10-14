@@ -117,20 +117,51 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
+        let userProfile = <UserProfile userId={post.user_id} />;
+        let botIndicator;
+
+        if (post.props && post.props.from_webhook) {
+            if (post.props.override_username && global.window.config.EnablePostUsernameOverride === 'true') {
+                userProfile = (
+                    <UserProfile
+                        userId={post.user_id}
+                        overwriteName={post.props.override_username}
+                        disablePopover={true}
+                    />
+                );
+            }
+
+            botIndicator = <li className='post-header-col post-header__name bot-indicator'>{'BOT'}</li>;
+        }
+
+        let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
+        if (post.props && post.props.from_webhook && global.window.config.EnablePostIconOverride === 'true') {
+            if (post.props.override_icon_url) {
+                src = post.props.override_icon_url;
+            }
+        }
+
+        const profilePic = (
+            <div className='post-profile-img__container'>
+                <img
+                    className='post-profile-img'
+                    src={src}
+                    height='36'
+                    width='36'
+                />
+            </div>
+        );
+
         return (
             <div className={'post post--root ' + currentUserCss}>
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post-profile-img__container'>
-                    <img
-                        className='post-profile-img'
-                        src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp}
-                        height='36'
-                        width='36'
-                    />
+                    {profilePic}
                 </div>
                 <div className='post__content'>
                     <ul className='post-header'>
-                        <li className='post-header-col'><strong><UserProfile userId={post.user_id} /></strong></li>
+                        <li className='post-header-col'><strong>{userProfile}</strong></li>
+                        {botIndicator}
                         <li className='post-header-col'>
                             <time className='post-profile-time'>
                                 {utils.displayCommentDateTime(post.create_at)}
