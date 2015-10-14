@@ -219,3 +219,9 @@ func CleanTeamName(s string) string {
 
 func (o *Team) PreExport() {
 }
+
+func (o *Team) Sanitize() {
+	o.Email = ""
+	o.Type = ""
+	o.AllowedDomains = ""
+}

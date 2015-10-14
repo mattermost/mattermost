@@ -411,6 +411,7 @@ func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		teams := result.Data.([]*model.Team)
 		m := make(map[string]*model.Team)
 		for _, v := range teams {
+			v.Sanitize()
 			m[v.Id] = v
 		}
 
