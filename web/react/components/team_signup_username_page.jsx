@@ -70,7 +70,7 @@ export default class TeamSignupUsernamePage extends React.Component {
                                         maxLength='128'
                                         spellCheck='false'
                                     />
-                                    <div className='color--light form__hint'>Usernames must begin with a letter and contain 3 to 15 characters made up of lowercase letters, numbers, and the symbols '.', '-' and '_'</div>
+                                    <span className='color--light help-block'>Usernames must begin with a letter and contain 3 to 15 characters made up of lowercase letters, numbers, and the symbols '.', '-' and '_'</span>
                                 </div>
                             </div>
                             {nameError}
