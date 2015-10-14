@@ -192,9 +192,12 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
     resizePostHolder() {
-        const height = $(window).height() - $(React.findDOMNode(this.refs.topDiv)).height() - $('#error_bar').outerHeight() - 50;
+        const height = $(window).height() - $(React.findDOMNode(this.refs.topDiv)).height() - 50;
         $('.post-list-holder-by-time').css('height', `${height}px`);
         $(window).trigger('resize');
+        if ($(window).width() > 960) {
+            $('#post_textbox').focus();
+        }
     }
     handleUploadStart(clientIds, channelId) {
         const draft = PostStore.getDraft(channelId);

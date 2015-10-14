@@ -48,6 +48,7 @@
                 }
                 .post-header {
                     &.post-header-post {
+                        z-index: inherit;
                         width: auto;
                         float: none;
                         text-align: left;
@@ -138,6 +139,7 @@
         }
         .post-header {
             &.post-header-post {
+                z-index: inherit;
                 width: auto;
                 float: none;
                 text-align: left;
@@ -623,6 +625,12 @@
                     line-height: 2.5;
                     &:hover, &:focus {
                         background: transparent;
+                    }
+                    &.has-close {
+                        .btn-close {
+                            display: block;
+                            @include opacity(0.5);
+                        }
                     }
                 }
             }
