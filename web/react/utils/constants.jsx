@@ -288,6 +288,7 @@ module.exports = {
         }
     ],
     Preferences: {
-        CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show'
+        CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
+        CATEGORY_DISPLAY_SETTINGS: 'display_settings'
     }
 };

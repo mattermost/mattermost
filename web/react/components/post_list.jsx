@@ -4,6 +4,7 @@
 var PostStore = require('../stores/post_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var PreferenceStore = require('../stores/preference_store.jsx');
 var UserProfile = require('./user_profile.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var Post = require('./post.jsx');
@@ -105,6 +106,7 @@ export default class PostList extends React.Component {
         PostStore.clearUnseenDeletedPosts(this.props.channelId);
         PostStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onTimeChange);
+        PreferenceStore.addChangeListener(this.onTimeChange);
         SocketStore.addChangeListener(this.onSocketChange);
 
         const postHolder = $(React.findDOMNode(this.refs.postlist));
@@ -156,6 +158,7 @@ export default class PostList extends React.Component {
         PostStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onTimeChange);
         SocketStore.removeChangeListener(this.onSocketChange);
+        PreferenceStore.removeChangeListener(this.onTimeChange);
         $('body').off('click.userpopover');
         $(window).off('resize');
         var postHolder = $(React.findDOMNode(this.refs.postlist));
