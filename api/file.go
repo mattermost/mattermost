@@ -146,12 +146,12 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		resStruct.ClientIds = append(resStruct.ClientIds, clientId)
 	}
 
-	fireAndForgetHandleImages(imageNameList, imageDataList, c.Session.TeamId, channelId, c.Session.UserId)
+	handleImagesAndForget(imageNameList, imageDataList, c.Session.TeamId, channelId, c.Session.UserId)
 
 	w.Write([]byte(resStruct.ToJson()))
 }
 
-func fireAndForgetHandleImages(filenames []string, fileData [][]byte, teamId, channelId, userId string) {
+func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channelId, userId string) {
 
 	go func() {
 		dest := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/"
@@ -311,7 +311,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		fileData := make(chan []byte)
-		asyncGetFile(path, fileData)
+		getFileAndForget(path, fileData)
 
 		f := <-fileData
 
@@ -378,7 +378,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := make(chan []byte)
-	asyncGetFile(path, fileData)
+	getFileAndForget(path, fileData)
 
 	if len(hash) > 0 && len(data) > 0 && len(teamId) == 26 {
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt)) {
@@ -423,7 +423,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(f)
 }
 
-func asyncGetFile(path string, fileData chan []byte) {
+func getFileAndForget(path string, fileData chan []byte) {
 	go func() {
 		data, getErr := readFile(path)
 		if getErr != nil {

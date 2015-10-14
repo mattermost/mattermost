@@ -201,7 +201,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 			channel = result.Data.(*model.Channel)
 		}
 
-		fireAndForgetNotifications(c, post, team, channel)
+		sendNotificationsAndForget(c, post, team, channel)
 
 		var user *model.User
 		if result := <-uchan; result.Err != nil {
@@ -299,7 +299,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 }
 
-func fireAndForgetNotifications(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
+func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
 
 	go func() {
 		// Get a list of user names (to be used as keywords) and ids for the given team
@@ -434,7 +434,7 @@ func fireAndForgetNotifications(c *Context, post *model.Post, team *model.Team, 
 				}
 
 				for id := range toEmailMap {
-					fireAndForgetMentionUpdate(post.ChannelId, id)
+					updateMentionCountAndForget(post.ChannelId, id)
 				}
 			}
 
@@ -530,7 +530,7 @@ func fireAndForgetNotifications(c *Context, post *model.Post, team *model.Team, 
 
 									alreadySeen[session.DeviceId] = session.DeviceId
 
-									utils.FireAndForgetSendAppleNotify(session.DeviceId, subjectPage.Render(), 1)
+									utils.SendAppleNotifyAndForget(session.DeviceId, subjectPage.Render(), 1)
 								}
 							}
 						}
@@ -562,7 +562,7 @@ func fireAndForgetNotifications(c *Context, post *model.Post, team *model.Team, 
 	}()
 }
 
-func fireAndForgetMentionUpdate(channelId, userId string) {
+func updateMentionCountAndForget(channelId, userId string) {
 	go func() {
 		if result := <-Srv.Store.Channel().IncrementMentionCount(channelId, userId); result.Err != nil {
 			l4g.Error("Failed to update mention count for user_id=%v on channel_id=%v err=%v", userId, channelId, result.Err)

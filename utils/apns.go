@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-func FireAndForgetSendAppleNotify(deviceId string, message string, badge int) {
+func SendAppleNotifyAndForget(deviceId string, message string, badge int) {
 	go func() {
 		if err := SendAppleNotify(deviceId, message, badge); err != nil {
 			l4g.Error(fmt.Sprintf("%v %v", err.Message, err.DetailedError))
