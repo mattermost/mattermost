@@ -409,14 +409,12 @@ func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		teams := result.Data.([]*model.Team)
-
-		s := make([]string, 0, len(teams))
-
+		m := make(map[string]*model.Team)
 		for _, v := range teams {
-			s = append(s, v.Name)
+			m[v.Id] = v
 		}
 
-		w.Write([]byte(model.ArrayToJson(s)))
+		w.Write([]byte(model.TeamMapToJson(m)))
 	}
 }
 
