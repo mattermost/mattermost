@@ -175,7 +175,7 @@ export function displayTime(ticks) {
     }
 
     const useMilitaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'}).value;
-    if(useMilitaryTime === 'false') {
+    if (useMilitaryTime === 'false') {
         ampm = ' AM';
         if (hours >= 12) {
             ampm = ' PM';
