@@ -330,11 +330,15 @@ export default class AccessHistoryModal extends React.Component {
             );
 
             if (this.state.moreInfo[i]) {
-                if (!currentAudit.session_id && currentAudit.action.search('/users/login') !== -1) {
-                    if (currentAudit.extra_info === 'attempt') {
-                        currentAudit.session_id = 'N/A (Login attempt)';
-                    } else {
-                        currentAudit.session_id = 'N/A (Login failure)';
+                if (!currentAudit.session_id) {
+                    currentAudit.session_id = 'N/A';
+
+                    if (currentAudit.action.search('/users/login') >= 0) {
+                        if (currentAudit.extra_info === 'attempt') {
+                            currentAudit.session_id += ' (Login attempt)';
+                        } else {
+                            currentAudit.session_id += ' (Login failure)';
+                        }
                     }
                 }
 
