@@ -18,5 +18,5 @@ Mattermost currently supports the processing of an "Export" file from Slack cont
 - Newly added markdown suppport in Slack's Posts 2.0 feature announced on September 28, 2015 is not yet supported. 
 - Slack does not export files or images your team has stored in Slack's database. Mattermost will provide links to the location of your assets in Slack's web UI.
 - Slack does not export any content from private groups or direct messages that your team has stored in Slack's database. 
-- The Beta release of Slack Import does not offer pre-checks or roll-back and will not import Slack accounts with username or email address collisions with existing Mattermost accounts. Also, Slack channel names with underscores will not import. Also, mentions do not yet resolve as Mattermost usernames (still shows Slack ID).
+- In Beta, Slack accounts with username or email address collisions with existing Mattermost accounts will not import and mentions do not resolve as Mattermost usernames (still shows Slack ID). No pre-check or roll-back is currently offered. 
 
