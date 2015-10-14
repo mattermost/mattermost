@@ -63,34 +63,6 @@ export default class AccessHistoryModal extends React.Component {
 
         let currentAuditDesc = '';
 
-        /* Handle audit formatting semi-individually for each type and
-            fall back to a best guess case if none exists
-
-            Supported audits:
-                /channels
-                - Create Channel
-                - Create Direct Channel
-                - Update Channel
-                - Update Channel Description
-                - Delete Channel X
-                - Add User to Channel X
-                - Remove User from Channel X
-
-                /oauth
-                - Register X
-                - Allow Attempt/Success/Failure X
-
-                /team
-                - Revoke All Sessions X (NO CORRESPONDING ADDRESS/FUNCTION)
-
-                - Revoke Session X
-                - Update (users - ?) X
-                - Update Notify (?) X
-                - Login Attempt X
-                - Login (success/failure) X
-                - Logout (/logout) X
-                - Verify Email (/verify_email) X
-        */
         if (currentActionURL.indexOf('/channels') === 0) {
             const channelInfo = currentAudit.extra_info.split(' ');
             const channelNameField = channelInfo[0].split('=');
@@ -146,25 +118,53 @@ export default class AccessHistoryModal extends React.Component {
                 break;
             }
         } else if (currentActionURL.indexOf('/oauth') === 0) {
-            /* NEEDS TO BE DONE */
+            const oauthInfo = currentAudit.extra_info.split(' ');
+
             switch (currentActionURL) {
             case '/oauth/register':
+                const clientIdField = oauthInfo[0].split('=');
+
+                if (clientIdField[0] === 'client_id') {
+                    currentAuditDesc = 'Attempted to register a new OAuth Application with ID ' + clientIdField[1];
+                }
+
                 break;
             case '/oauth/allow':
+                if (oauthInfo[0] === 'attempt') {
+                    currentAuditDesc = 'Attempted to allow a new OAuth service access';
+                } else if (oauthInfo[0] === 'success') {
+                    currentAuditDesc = 'Successfully gave a new OAuth service access';
+                } else if (oauthInfo[0] === 'fail - redirect_uri did not match registered callback') {
+                    currentAuditDesc = 'Failed to allow a new OAuth service access - the redirect URI did not match the previously registered callback';
+                }
+
                 break;
             case '/oauth/access_token':
+                if (oauthInfo[0] === 'attempt') {
+                    currentAuditDesc = 'Attempted to get an OAuth access token';
+                } else if (oauthInfo[0] === 'success') {
+                    currentAuditDesc = 'Successfully added a new OAuth service';
+                } else {
+                    const oauthTokenFailure = oauthInfo[0].split('-');
+
+                    if (oauthTokenFailure[0].trim() === 'fail' && oauthTokenFailure[1]) {
+                        currentAuditDesc = 'Failed to get an OAuth access token - ' + oauthTokenFailure[1].trim();
+                    }
+                }
+
                 break;
             default:
                 break;
             }
         } else if (currentActionURL.indexOf('/users') === 0) {
             const userInfo = currentAudit.extra_info.split(' ');
+
             switch (currentActionURL) {
             case '/users/login':
                 if (userInfo[0] === 'attempt') {
-                    currentAuditDesc = 'Login attempted';
+                    currentAuditDesc = 'Attempted to login';
                 } else if (userInfo[0] === 'success') {
-                    currentAuditDesc = 'Successful login attempt';
+                    currentAuditDesc = 'Successfully logged in';
                 } else if (userInfo[0]) {
                     currentAuditDesc = 'FAILED login attempt';
                 }
@@ -181,9 +181,11 @@ export default class AccessHistoryModal extends React.Component {
                 break;
             case '/users/newpassword':
                 if (userInfo[0] === 'attempted') {
-                    currentAuditDesc = 'Password change attempted';
+                    currentAuditDesc = 'Attempted to change password';
                 } else if (userInfo[0] === 'completed') {
-                    currentAuditDesc = 'Password change success';
+                    currentAuditDesc = 'Successfully changed password';
+                } else if (userInfo[0] === 'failed - tried to update user password who was logged in through oauth') {
+                    currentAuditDesc = 'Failed to change password - tried to update user password who was logged in through oauth';
                 }
 
                 break;
@@ -229,12 +231,10 @@ export default class AccessHistoryModal extends React.Component {
                 currentAuditDesc = 'Sent an email to ' + userInfo[0].split('=')[1] + ' to reset your password';
                 break;
             case '/users/reset_password':
-
-                /* NEEDS TO BE TESTED! */
-                if (userInfo[0] === 'attempted') {
-                    currentAuditDesc = 'Password reset attempted';
-                } else if (userInfo[0] === 'completed') {
-                    currentAuditDesc = 'Password reset success';
+                if (userInfo[0] === 'attempt') {
+                    currentAuditDesc = 'Attempted to reset password';
+                } else if (userInfo[0] === 'success') {
+                    currentAuditDesc = 'Successfully reset password';
                 }
 
                 break;
@@ -245,21 +245,33 @@ export default class AccessHistoryModal extends React.Component {
                 break;
             }
         } else if (currentActionURL.indexOf('/hooks') === 0) {
-            /* NEEDS TO BE TESTED */
+            const webhookInfo = currentAudit.extra_info.split(' ');
+
             switch (currentActionURL) {
             case '/hooks/incoming/create':
-                currentAuditDesc = 'Attempted to create a webhook';
-                currentAuditDesc = 'Successfully created a webhook';
+                if (webhookInfo[0] === 'attempt') {
+                    currentAuditDesc = 'Attempted to create a webhook';
+                } else if (webhookInfo[0] === 'success') {
+                    currentAuditDesc = 'Successfully created a webhook';
+                } else if (webhookInfo[0] === 'fail - bad channel permissions') {
+                    currentAuditDesc = 'Failed to create a webhook - bad channel permissions';
+                }
+
                 break;
             case '/hooks/incoming/delete':
-                currentAuditDesc = 'Attempted to delete a webhook';
-                currentAuditDesc = 'Successfully deleted a webhook';
+                if (webhookInfo[0] === 'attempt') {
+                    currentAuditDesc = 'Attempted to delete a webhook';
+                } else if (webhookInfo[0] === 'success') {
+                    currentAuditDesc = 'Successfully deleted a webhook';
+                } else if (webhookInfo[0] === 'fail - inappropriate conditions') {
+                    currentAuditDesc = 'Failed to delete a webhook - inappropriate conditions';
+                }
+
                 break;
             default:
                 break;
             }
         } else {
-            /* NEEDS TO BE TESTED */
             switch (currentActionURL) {
             case '/logout':
                 currentAuditDesc = 'Logged out of your account';
@@ -278,13 +290,13 @@ export default class AccessHistoryModal extends React.Component {
             if (currentAudit.extra_info.indexOf('revoked_all=') >= 0) {
                 currentAuditDesc = 'Revoked all current sessions for the team';
             } else {
-                let currentActionDesc = ' ';
+                let currentActionDesc = '';
                 if (currentActionURL && currentActionURL.lastIndexOf('/') !== -1) {
                     currentActionDesc = currentActionURL.substring(currentActionURL.lastIndexOf('/') + 1).replace('_', ' ');
                     currentActionDesc = Utils.toTitleCase(currentActionDesc);
                 }
 
-                let currentExtraInfoDesc = ' ';
+                let currentExtraInfoDesc = '';
                 if (currentAudit.extra_info) {
                     currentExtraInfoDesc = currentAudit.extra_info;
 
