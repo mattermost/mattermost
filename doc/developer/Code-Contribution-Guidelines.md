@@ -44,5 +44,5 @@ git checkout -b <branch name>
 4. If you've included your mailing address in Step 1, you'll be receiving a [Limited Edition Mattermost Mug](http://forum.mattermost.org/t/limited-edition-mattermost-mugs/143) as a thank you gift after your first pull request has been accepted. 
 
 
-
+Hello From Maxim Tishchenko qwertmax https://github.com/qwertmax
 
