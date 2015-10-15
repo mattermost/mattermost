@@ -11,7 +11,25 @@ var AboutBuildModal = require('./about_build_modal.jsx');
 var Constants = require('../utils/constants.jsx');
 
 function getStateFromStores() {
-    return {teams: UserStore.getTeams()};
+    let teams = [];
+    let teamsObject = UserStore.getTeams();
+    for (let teamId in teamsObject) {
+        if (teamsObject.hasOwnProperty(teamId)) {
+            teams.push(teamsObject[teamId])
+        }
+    }
+    teams.sort(function (teamA, teamB) {
+        let teamADisplayName = teamA.display_name.toLowerCase();
+        let teamBDisplayName = teamB.display_name.toLowerCase();
+        if (teamADisplayName < teamBDisplayName) {
+            return -1
+        } else if (teamADisplayName > teamBDisplayName) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    return {teams};
 }
 
 export default class NavbarDropdown extends React.Component {
