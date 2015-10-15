@@ -13,8 +13,6 @@ const Utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Popover = ReactBootstrap.Popover;
-var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class Navbar extends React.Component {
     constructor(props) {
@@ -38,6 +36,12 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner__wrap').click(this.hideSidebars);
+
+        $('body').on('click.infopopover', function handlePopoverClick(e) {
+            if ($(e.target).attr('data-toggle') !== 'popover' && $(e.target).parents('.popover.in').length === 0) {
+                $('.info-popover').popover('hide');
+            }
+        });
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
@@ -220,14 +224,11 @@ export default class Navbar extends React.Component {
             return (
                 <div className='navbar-brand'>
                     <div className='dropdown'>
-                        <OverlayTrigger
-                            trigger='click'
-                            placement='bottom'
-                            rootClose='true'
-                            overlay={<Popover>{popoverContent}</Popover>}
-                        >
-                        <div className='description info-popover'/>
-                        </OverlayTrigger>
+                        <div
+                            data-toggle='popover'
+                            data-content={popoverContent}
+                            className='description info-popover'
+                        />
                         <a
                             href='#'
                             className='dropdown-toggle theme'
@@ -329,7 +330,7 @@ export default class Navbar extends React.Component {
         var isDirect = false;
 
         if (channel) {
-            popoverContent = (
+            popoverContent = React.renderToString(
                 <MessageWrapper
                     message={channel.description}
                     options={{singleline: true, mentionHighlight: false}}
@@ -353,9 +354,9 @@ export default class Navbar extends React.Component {
             }
 
             if (channel.description.length === 0) {
-                popoverContent = (
+                popoverContent = React.renderToString(
                     <div>
-                        {'No channel description yet.'} <br/>
+                        No channel description yet. <br/>
                         <a
                             href='#'
                             data-toggle='modal'
@@ -364,8 +365,8 @@ export default class Navbar extends React.Component {
                             data-channelid={channel.id}
                             data-target='#edit_channel'
                         >
-                            {'Click here'}
-                        </a> {'to add one.'}</div>
+                            Click here
+                        </a> to add one.</div>
                 );
             }
         }
