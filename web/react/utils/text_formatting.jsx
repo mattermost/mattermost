@@ -89,7 +89,7 @@ function autolinkUrls(text, tokens) {
 
         if (match.getType() === 'email') {
             url = `mailto:${url}`;
-        } else if (url.lastIndexOf('http', 0) !== 0) {
+        } else if (!(/^(mailto|https?|ftp)/.test(url))) {
             url = `http://${url}`;
         }
 

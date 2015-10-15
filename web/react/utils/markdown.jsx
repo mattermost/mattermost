@@ -32,7 +32,7 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
     link(href, title, text) {
         let outHref = href;
 
-        if (outHref.lastIndexOf('http', 0) !== 0) {
+        if (!(/^(mailto|https?|ftp)/.test(outHref))) {
             outHref = `http://${outHref}`;
         }
 
