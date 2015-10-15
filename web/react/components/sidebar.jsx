@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 const AsyncClient = require('../utils/async_client.jsx');
-const BrowserStore = require('../stores/browser_store.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
 const Client = require('../utils/client.jsx');
 const Constants = require('../utils/constants.jsx');
@@ -11,7 +10,6 @@ const NewChannelFlow = require('./new_channel_flow.jsx');
 const MoreDirectChannels = require('./more_direct_channels.jsx');
 const SearchBox = require('./search_bar.jsx');
 const SidebarHeader = require('./sidebar_header.jsx');
-const SocketStore = require('../stores/socket_store.jsx');
 const TeamStore = require('../stores/team_store.jsx');
 const UnreadChannelIndicator = require('./unread_channel_indicator.jsx');
 const UserStore = require('../stores/user_store.jsx');
@@ -129,7 +127,6 @@ export default class Sidebar extends React.Component {
         UserStore.addChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
-        SocketStore.addChangeListener(this.onSocketChange);
         PreferenceStore.addChangeListener(this.onChange);
 
         $('.nav-pills__container').perfectScrollbar();
@@ -160,101 +157,12 @@ export default class Sidebar extends React.Component {
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
-        SocketStore.removeChangeListener(this.onSocketChange);
         PreferenceStore.removeChangeListener(this.onChange);
     }
     onChange() {
         var newState = this.getStateFromStores();
         if (!Utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
-        }
-    }
-    onSocketChange(msg) {
-        if (msg.action === 'posted') {
-            if (ChannelStore.getCurrentId() === msg.channel_id) {
-                if (window.isActive) {
-                    AsyncClient.updateLastViewedAt();
-                }
-            } else {
-                AsyncClient.getChannels();
-            }
-
-            if (UserStore.getCurrentId() !== msg.user_id) {
-                var mentions = [];
-                if (msg.props.mentions) {
-                    mentions = JSON.parse(msg.props.mentions);
-                }
-                var channel = ChannelStore.get(msg.channel_id);
-
-                const user = UserStore.getCurrentUser();
-                const member = ChannelStore.getMember(msg.channel_id);
-
-                var notifyLevel = member && member.notify_props ? member.notify_props.desktop : 'default';
-                if (notifyLevel === 'default') {
-                    notifyLevel = user.notify_props.desktop;
-                }
-
-                if (notifyLevel === 'none') {
-                    return;
-                } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && channel.type !== 'D') {
-                    return;
-                }
-
-                var username = 'Someone';
-                if (UserStore.hasProfile(msg.user_id)) {
-                    username = UserStore.getProfile(msg.user_id).username;
-                }
-
-                var title = 'Posted';
-                if (channel) {
-                    title = channel.display_name;
-                }
-
-                var repRegex = new RegExp('<br>', 'g');
-                var post = JSON.parse(msg.props.post);
-                var msgProps = msg.props;
-                var notifyText = post.message.replace(repRegex, '\n').replace(/\n+/g, ' ').replace('<mention>', '').replace('</mention>', '');
-
-                if (notifyText.length > 50) {
-                    notifyText = notifyText.substring(0, 49) + '...';
-                }
-
-                if (notifyText.length === 0) {
-                    if (msgProps.image) {
-                        Utils.notifyMe(title, username + ' uploaded an image', channel);
-                    } else if (msgProps.otherFile) {
-                        Utils.notifyMe(title, username + ' uploaded a file', channel);
-                    } else {
-                        Utils.notifyMe(title, username + ' did something new', channel);
-                    }
-                } else {
-                    Utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
-                }
-                if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
-                    Utils.ding();
-                }
-            }
-        } else if (msg.action === 'viewed') {
-            if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
-                AsyncClient.getChannel(msg.channel_id);
-            }
-        } else if (msg.action === 'user_added') {
-            if (UserStore.getCurrentId() === msg.user_id) {
-                AsyncClient.getChannel(msg.channel_id);
-            }
-        } else if (msg.action === 'user_removed') {
-            if (msg.user_id === UserStore.getCurrentId()) {
-                AsyncClient.getChannels(true);
-
-                if (msg.props.remover !== msg.user_id && msg.props.channel_id === ChannelStore.getCurrentId() && $('#removed_from_channel').length > 0) {
-                    var sentState = {};
-                    sentState.channelName = ChannelStore.getCurrent().display_name;
-                    sentState.remover = UserStore.getProfile(msg.props.remover).username;
-
-                    BrowserStore.setItem('channel-removed-state', sentState);
-                    $('#removed_from_channel').modal('show');
-                }
-            }
         }
     }
     updateTitle() {

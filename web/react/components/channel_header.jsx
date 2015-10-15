@@ -4,7 +4,6 @@
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const PostStore = require('../stores/post_store.jsx');
-const SocketStore = require('../stores/socket_store.jsx');
 const NavbarSearchBox = require('./search_bar.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
 const Client = require('../utils/client.jsx');
@@ -25,7 +24,6 @@ export default class ChannelHeader extends React.Component {
         super(props);
 
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.onSocketChange = this.onSocketChange.bind(this);
         this.handleLeave = this.handleLeave.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
 
@@ -45,7 +43,6 @@ export default class ChannelHeader extends React.Component {
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
         PostStore.addSearchChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
-        SocketStore.addChangeListener(this.onSocketChange);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
@@ -60,16 +57,9 @@ export default class ChannelHeader extends React.Component {
         }
         $('.channel-header__info .description').popover({placement: 'bottom', trigger: 'hover', html: true, delay: {show: 500, hide: 500}});
     }
-    onSocketChange(msg) {
-        if (msg.action === 'new_user' ||
-            msg.action === 'user_added' ||
-            (msg.action === 'user_removed' && msg.user_id !== UserStore.getCurrentId())) {
-            AsyncClient.getChannelExtraInfo(true);
-        }
-    }
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
-            function handleLeaveSuccess() {
+            () => {
                 AppDispatcher.handleViewAction({
                     type: ActionTypes.LEAVE_CHANNEL,
                     id: this.state.channel.id
@@ -77,8 +67,8 @@ export default class ChannelHeader extends React.Component {
 
                 const townsquare = ChannelStore.getByName('town-square');
                 Utils.switchChannel(townsquare);
-            }.bind(this),
-            function handleLeaveError(err) {
+            },
+            (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
             }
         );
