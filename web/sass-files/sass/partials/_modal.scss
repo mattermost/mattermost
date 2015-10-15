@@ -329,3 +329,49 @@
 		}
 	}
 }
+
+.modal-direct-channels {
+    .user-list {
+        list-style-type: none;
+        margin: 15px 0px 0px;
+        max-height: 600px;
+        padding: 0px;
+        overflow: auto;
+
+        li {
+            border-bottom: 1px solid #ddd;
+            height: 60px;
+            padding: 10px 0px;
+
+            .image-div {
+                padding: 0px;
+
+                .profile-image {
+                    width: 40px;
+                    height: 40px;
+                    @include border-radius(20px);
+                }
+            }
+
+            .username {
+                font-weight: bold;
+            }
+
+            .nickname {
+                color: #888;
+            }
+
+            .btn-div {
+                padding: 0px;
+                .btn-message {
+                    position: relative;
+                    top: 5px;
+                }
+            }
+
+            &:last-child {
+                border-bottom: 0px;
+            }
+        }
+    }
+}
