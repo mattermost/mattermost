@@ -10,7 +10,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 
 #### Sharing Messaging and Files
 
-- Send messages, comments, files and images across public, private and 1-1 channels
+- Send messages, comments, files and images across public, private and one-to-one channels
 - Personalize notifications for unreads and mentions by channel and keyword
 - Use #hashtags to tag and find messages, discussions and files
 
