@@ -1,151 +1,255 @@
-# Production Installation on Ubuntu 14.04 LTS
+The following guide will walk you through installing Mattermost on a number of Ubuntu servers.
 
-## Install Ubuntu Server (x64) 14.04 LTS
-1. Set up 3 machines with Ubuntu 14.04 with 2GB of RAM or more.  The servers will be used for the Load Balancer, Mattermost (this must be x64 to use pre-built binaries), and Database.
-1. Make sure the system is up to date with the most recent security patches.
-  * ``` sudo apt-get update```
-  * ``` sudo apt-get upgrade```
+# Requirements
 
-## Set up Database Server
-1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.1
-1. Install PostgreSQL 9.3+ (or MySQL 5.6+)
-  * ``` sudo apt-get install postgresql postgresql-contrib```
-1. PostgreSQL created a user account called `postgres`.  You will need to log into that account with:
-  * ``` sudo -i -u postgres```
-1. You can get a PostgreSQL prompt by typing:
-  * ``` psql```
-1. Create the Mattermost database by typing:
-  * ```postgres=# CREATE DATABASE mattermost;```
-1. Create the Mattermost user by typing:
-  * ```postgres=# CREATE USER mmuser WITH PASSWORD 'mmuser_password';```
-1. Grant the user access to the Mattermost database by typing:
-  * ```postgres=# GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;```
-1. You can exit out of PostgreSQL by typing:
-  * ```postgre=# \q```
-1. You can exit the postgres account by typing:
-  * ``` exit```
+We will require three servers: a proxy server (for load balancing), an application server (for running mattermost) and a database server. Each of these servers should have at minimum:
 
-## Set up Mattermost Server
-1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
-1. Download the latest Mattermost Server by typing:
-  * ``` wget https://github.com/mattermost/platform/releases/download/v1.0.0/mattermost.tar.gz```
-1. Unzip the Mattermost Server by typing:
-  * ``` tar -xvzf mattermost.tar.gz```
-1. For the sake of making this guide simple we located the files at `/home/ubuntu/mattermost`. In the future we will give guidance for storing under `/opt`.
-1. We have also elected to run the Mattermost Server as the `ubuntu` account for simplicity.  We recommend settings up and running the service under a `mattermost` user account with limited permissions.
-1. Create the storage directory for files.  We assume you will have attached a large drive for storage of images and files.  For this setup we will assume the directory is located at `/mattermost/data`.
-  * Create the directory by typing:
-  * ``` sudo mkdir -p /mattermost/data```
-  * Set the ubuntu account as the directory owner by typing:
-  * ``` sudo chown -R ubuntu /mattermost```
-1. Configure Mattermost Server by editing the config.json file at /home/ubuntu/mattermost/config`
-  * ``` cd ~/mattermost/config```
-  * Edit the file by typing:
-  * ``` vi config.json```
-  * replace `DriverName": "mysql"` with `DriverName": "postgres"`
-  * replace `"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"` with `"DataSource": "postgres://mmuser:mmuser_password@10.10.10.1:5432/mattermost?sslmode=disable&connect_timeout=10"`
-  * Optionally you may continue to edit configuration settings in `config.json` or use the System Console described in a later section to finish the configuration.
-1. Test the Mattermost Server
-  * ``` cd ~/mattermost/bin```
-  * Run the Mattermost Server by typing:
-  * ``` ./platform```
-  * You should see a console log like `Server is listening on :8065` letting you know the service is running.
-  * Stop the server for now by typing `ctrl-c`
-1. Setup Mattermost to use the Ubuntu Upstart daemon which handles supervision of the Mattermost process.
-  * ``` sudo touch /etc/init/mattermost.conf```
-  * ``` sudo vi /etc/init/mattermost.conf```
-  * Copy the following lines into `/etc/init/mattermost.conf`
-```
-start on runlevel [2345]
-stop on runlevel [016]
-respawn
-chdir /home/ubuntu/mattermost
-setuid ubuntu
-exec bin/platform
-```   
-  * You can manage the process by typing:
-  * ``` sudo start mattermost```
-  * Verify the service is running by typing:
-  * ``` curl http://10.10.10.2:8065```
-  * You should see a page titles *Mattermost - Signup*
-  * You can also stop the process by running the command ` sudo stop mattermost`, but we will skip this step for now.
+* Ubuntu Server (x64) 14.04
+  Different distros may work but have not been tested. 64 bit support is required on the application server to use the pre-built binaries.
+* 2GB of RAM or more
+* The latest security updates. These can be installed like so:
 
-## Set up Nginx Server
-1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.3
-1. We use Nginx for proxying request to the Mattermost Server.  The main benefits are:
-  * SSL termination
-  * http to https redirect
-  * Port mapping :80 to :8065
-  * Standard request logs
-1. Install Nginx on Ubuntu with
-  * ``` sudo apt-get install nginx```
-1. Verify Nginx is running
-  * ``` curl http://10.10.10.3```
-  * You should see a *Welcome to nginx!* page
-1. You can manage Nginx with the following commands
-  * ``` sudo service nginx stop```
-  * ``` sudo service nginx start```
-  * ``` sudo service nginx restart```
-1. Map a FQDN (fully qualified domain name) like **mattermost.example.com** to point to the Nginx server.
-1. Configure Nginx to proxy connections from the internet to the Mattermost Server
-  * Create a configuration for Mattermost
-  * ``` sudo touch /etc/nginx/sites-available/mattermost```
-  * Below is a sample configuration with the minimum settings required to configure Mattermost
- ```
-   server {
-	  server_name mattermost.example.com;
-      location / {
-		  client_max_body_size 50M;
-		  proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection "upgrade";
-		  proxy_set_header Host $http_host;
-		  proxy_set_header X-Real-IP $remote_addr;
-		  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		  proxy_set_header X-Forwarded-Proto $scheme;
-		  proxy_set_header   X-Frame-Options   SAMEORIGIN;
-          proxy_pass http://localhost:8065;
+   ```
+   sudo apt-get update
+   sudo apt-get upgrade
+   ```
+
+* PostgreSQL 9.3+ or MySQL 5.6+
+  Other versions may work but have not been tested.
+
+To ease deployment, please export the following variables in all environment, adjusting as you see fit:
+
+    # server IP addresses
+
+    export MM_IP_DB=10.10.10.1
+    export MM_IP_APP=10.10.10.2
+    export MM_IP_PRX=10.10.10.3
+
+    # database username/password
+
+    export MM_DB_USER=mmuser
+    export MM_DB_PASS=mmuser_password
+    export MM_DB_NAME=mattermost
+
+    # application install configuration
+
+    export MM_APP_VER=1.0.0
+
+# Database Server
+
+**NOTE:** Please ensure you have the minimum required versions of PostgreSQL or MySQL instaled. These are given [above](#Requirements).
+**NOTE:** You can skip this step if you have an existing database server: just use that.
+
+## PostgreSQL
+
+Install PostgreSQL:
+
+    sudo apt-get install -y postgresql postgresql-contrib
+
+PostgreSQL created a user account called `postgres`.  You will need to run commands as this user. log into that account with:
+
+    sudo -u postgres psql <<< EOF
+    CREATE DATABASE $MM_DB_NAME;
+    CREATE USER "$MM_DB_USER" WITH PASSWORD "'"$MM_DB_PASS"'";
+    GRANT ALL PRIVILEGES ON DATABASE mattermost to mmuser;
+    EOF
+
+# Application Server
+
+## Configure users and directories
+
+Create a service user and required directories:
+
+    sudo useradd --home-dir "/var/lib/mattermost" \
+      --create-home \
+      --system \
+      --shell /bin/false \
+      mattermost
+
+    sudo cat > /etc/sudoers.d/mattermost_sudoers << EOF
+    Defaults:mattermost !requiretty
+
+    mattermost ALL=(root) NOPASSWD: /srv/www/mattermost/bin/platform
+    EOF
+    sudo chmod 440 /etc/sudoers.d/mattermost_sudoers
+
+    sudo mkdir -p /var/lib/mattermost
+    sudo mkdir -p /etc/mattermost
+    sudo mkdir -p /srv/www/mattermost
+
+    sudo chown -R mattermost:mattermost /var/lib/mattermost
+    sudo chown -R mattermost:mattermost /etc/mattermost
+    sudo chown -R mattermost:mattermost /srv/www/mattermost
+
+    sudo chmod 700 /var/lib/mattermost
+    sudo chmod 700 /etc/mattermost
+
+Download and extract the latest Mattermost release:
+
+    wget https://github.com/mattermost/platform/releases/download/$MM_APP_VER/mattermost.tar.gz -o /tmp/mattermost.tar.gz &&\
+      cd /srv/www/mattermost &&\
+      sudo tar -xvzf /tmp/mattermost.tar.gz --strip-components 1 &&\
+      rm /tmp/mattermost.tar.gz
+
+    sudo cp -R /srv/www/mattermost/config/* /etc/mattermost
+    sudo ln -s /srv/www/mattermost/bin/platform /usr/bin/mattermost
+
+## Configure settings
+
+Configure Mattermost Server by editing the `config.json` file now found in `/etc/mattermost/config.json`. You will need to make at least the following changes:
+
+* Database driver type (`SqlSettings.DriveName`)
+* Database URL (`SqlSettings.DataSource`)
+* File storage location (`FileSettings.Directory`)
+
+You can do this use the `jq` tool:
+
+    sudo apt-get install jq
+    CONF_FILE=/etc/mattermost/config.json
+    jq '.SqlSettings.DriverName |= "postgres"' $CONF_FILE > $CONF_FILE
+    jq '.SqlSettings.DataSource |= "'${MM_DB_USER}':'${MM_DB_PASS}'@tcp('${MM_IP_DB}':3306)/'${MM_DB_NAME}'?charset?utfmb4,utf8' $CONF_FILE > $CONF_FILE
+    jq '.FileSettings.Directory |= "/var/lib/mattermost"' $CONF_FILE > $CONF_FILE
+
+You may continue to edit configuration settings in `config.json` to finish configuration. Alternatively, you may choose to use the System Console described in a later section.
+
+## Validate configuration
+
+You can now test the Mattermost Server
+
+    cd /srv/www/mattermost/bin
+    ./platform -config=/etc/mattermost/config.json
+
+You should see a console log like `Server is listening on :8065` letting you know the service is running. Once you see this you can stop the server for now by typing `ctrl-c`.
+
+## Add Upstart script
+
+We can use the Ubuntu Upstart daemon to handles supervision of the Mattermost process. This will provide functionality like restarting the service when it crashes and starting it on boot. To do this, run the following:
+
+    sudo cat > /etc/init/mattermost.conf << EOF
+    # vim:set ft=upstart ts=2 et:
+
+    author "Awesome Sysadmin <sys.admin@example.com"
+    description "Mattermost is an open source, on-prem Slack-alternative"
+    version "0.1.0"
+
+    start on runlevel [2345]
+    stop on runlevel [!2345]
+
+    respawn
+
+    script
+    exec start-stop-daemon \\
+      --start \\
+      --chuid mattermost \\
+      --exec mattermost \\
+      -- -config=/etc/mattermost/config.json
+
+## Start as background process
+
+You can now run the process:
+
+    sudo start mattermost
+
+Verify the service is running by typing:
+
+    curl http://localhost:8065
+
+You should see a page titles *Mattermost - Signup*. We can stop the proces using the `stop` command like below, but we will skip this for now:
+
+    sudo stop mattermost
+
+# Proxy Server
+
+We use Nginx for proxying request to the Mattermost Server.  The main benefits are:
+
+ * SSL termination
+ * http to https redirect
+ * Port mapping :80 to :8065
+ * Standard request logs
+
+# Nginx
+
+To begin, install Nginx like so:
+
+    sudo apt-get install nginx
+
+Verify Nginx is running:
+
+    curl http://localhost:80
+
+You should see a *Welcome to nginx!* page.  You can manage Nginx with the following commands:
+
+  * `sudo service nginx stop`
+  * `sudo service nginx start`
+  * `sudo service nginx restart`
+
+You will need to map a FQDN (fully qualified domain name) like **mattermost.example.com** to point to the Nginx server. Once done, you can configure Nginx to proxy connections from the internet to the Mattermost Server. To do this create a configuration for Mattermost:
+
+    sudo cat > /etc/nginx/sites-available/mattermost << EOF
+    server {
+        server_name mattermost.example.com;
+        location / {
+            client_max_body_size 50M;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header   X-Frame-Options   SAMEORIGIN;
+            proxy_pass http://localhost:8065;
       }
     }
-```
-  * Remove the existing file with
-  * ``` sudo rm /etc/nginx/sites-enabled/default```
-  * Link the mattermost config by typing:
-  * ```sudo ln -s /etc/nginx/sites-available/mattermost /etc/nginx/sites-enabled/mattermost```
-  * Restart Nginx by typing:
-  * ``` sudo service nginx restart```
-  * Verify you can see Mattermost thru the proxy by typing:
-  * ``` curl http://localhost```
-  * You should see a page titles *Mattermost - Signup*
-  
-## Set up Nginx with SSL (Recommended)
-1. You will need a SSL cert from a certificate authority.
-1. For simplicity we will generate a test certificate.
-  * ``` mkdir ~/cert```
-  * ``` cd ~/cert```
-  * ``` sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mattermost.key -out mattermost.crt```
-  * Input the following info 
-```
-    Country Name (2 letter code) [AU]:US
-    State or Province Name (full name) [Some-State]:California
-    Locality Name (eg, city) []:Palo Alto
-    Organization Name (eg, company) [Internet Widgits Pty Ltd]:Example LLC
-    Organizational Unit Name (eg, section) []:
-    Common Name (e.g. server FQDN or YOUR name) []:mattermost.example.com
-    Email Address []:admin@mattermost.example.com
-```
-1. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines
-  * 
-```
-  server {
-       listen         80;
-       server_name    mattermost.example.com;
-       return         301 https://$server_name$request_uri;
-  }
-  
-  server {
+    EOF
+
+Remove the existing, default "site" with:
+
+    sudo rm /etc/nginx/sites-enabled/default
+
+Enable the site by linking it to `sites-enable`:
+
+    sudo ln -s /etc/nginx/sites-available/mattermost /etc/nginx/sites-enabled/mattermost
+
+Restart Nginx by typing:
+
+    sudo service nginx restart
+
+Verify you can see Mattermost thru the proxy by typing:
+
+    curl http://localhost
+
+ You should see a page titles *Mattermost - Signup*
+
+## Nginx with SSL (recommended)
+
+You will need a SSL cert from a certificate authority. For simplicity we will generate a test certificate:
+
+    mkdir ~/cert
+    cd ~/cert
+    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mattermost.key -out mattermost.crt
+
+Input the following information:
+
+ * Country Name (2 letter code) [AU]:US
+ * State or Province Name (full name) [Some-State]:California
+ * Locality Name (eg, city) []:Palo Alto
+ * Organization Name (eg, company) [Internet Widgits Pty Ltd]:Example LLC
+ * Organizational Unit Name (eg, section) []:
+ * Common Name (e.g. server FQDN or YOUR name) []:mattermost.example.com
+ * Email Address []:admin@mattermost.example.com
+
+Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines:
+
+    server {
+        listen         80;
+        server_name    mattermost.example.com;
+        return         301 https://$server_name$request_uri;
+    }
+
+    server {
         listen 443 ssl;
         server_name mattermost.example.com;
-		
+
         ssl on;
         ssl_certificate /home/ubuntu/cert/mattermost.crt;
         ssl_certificate_key /home/ubuntu/cert/mattermost.key;
@@ -153,34 +257,41 @@ exec bin/platform
         ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
         ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
         ssl_prefer_server_ciphers on;
-		
-		# add to location / above
-		location / {
-			gzip off;
-			proxy_set_header X-Forwarded-Ssl on;
-```
-## Finish Mattermost Server setup
-1. Navigate to https://mattermost.example.com and create a team and user.
-1. The first user in the system is automatically granted the `system_admin` role, which gives you access to the System Console.
-1. From the `town-square` channel click the dropdown and choose the `System Console` option
-1. Update Email Settings.  We recommend using an email sending service.  The example below assumes AmazonSES.
-  * Set *Send Email Notifications* to true
-  * Set *Require Email Verification* to true
-  * Set *Feedback Name* to `No-Reply`
-  * Set *Feedback Email* to `mattermost@example.com`
-  * Set *SMTP Username* to `AFIADTOVDKDLGERR`
-  * Set *SMTP Password* to `DFKJoiweklsjdflkjOIGHLSDFJewiskdjf`
-  * Set *SMTP Server* to `email-smtp.us-east-1.amazonaws.com`
-  * Set *SMTP Port* to `465`
-  * Set *Connection Security* to `TLS`
-  * Save the Settings
-1. Update File Settings
-  * Change *Local Directory Location* from `./data/` to `/mattermost/data`
-1. Update Log Settings.
-  * Set *Log to The Console* to false  
-1. Update Rate Limit Settings.
-  * Set *Vary By Remote Address* to false
-  * Set *Vary By HTTP Header* to X-Real-IP
-1. Feel free to modify other settings.
-1. Restart the Mattermost Service by typing:
-  * ``` sudo restart mattermost```
+
+        # add to location / above
+        location / {
+            gzip off;
+            proxy_set_header X-Forwarded-Ssl on;
+
+# Finish Mattermost configuration
+
+Navigate to **https://mattermost.example.com** and create a team and user. The first user in the system is automatically granted the `system_admin` role, which gives you access to the System Console. From the `town-square` channel click the dropdown and choose the `System Console` option. Modify each setting below, saving on each page.
+
+## Update Email settings
+
+We recommend using an email sending service.  The example below assumes AmazonSES:
+
+ * Set *Send Email Notifications* to true
+ * Set *Require Email Verification* to true
+ * Set *Feedback Name* to `No-Reply`
+ * Set *Feedback Email* to `mattermost@example.com`
+ * Set *SMTP Username* to `AFIADTOVDKDLGERR`
+ * Set *SMTP Password* to `DFKJoiweklsjdflkjOIGHLSDFJewiskdjf`
+ * Set *SMTP Server* to `email-smtp.us-east-1.amazonaws.com`
+ * Set *SMTP Port* to `465`
+ * Set *Connection Security* to `TLS`
+
+## Update Log settings
+
+ * Set *Log to The Console* to false
+
+## Update Rate Limit settings
+
+ * Set *Vary By Remote Address* to false
+ * Set *Vary By HTTP Header* to X-Real-IP
+
+## Other settings
+
+Feel free to modify other settings. Once done, restart the Mattermost Service by typing:
+
+    sudo restart mattermost
