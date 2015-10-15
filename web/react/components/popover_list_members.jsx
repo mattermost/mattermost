@@ -2,6 +2,8 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
+var Popover = ReactBootstrap.Popover;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class PopoverListMembers extends React.Component {
     componentDidMount() {
@@ -24,16 +26,9 @@ export default class PopoverListMembers extends React.Component {
                 });
             }
         };
-
-        $('#member_popover').popover({placement: 'bottom', trigger: 'click', html: true});
-        $('body').on('click', function onClick(e) {
-            if (e.target.parentNode && $(e.target.parentNode.parentNode)[0] !== $('#member_popover')[0] && $(e.target).parents('.popover.in').length === 0) {
-                $('#member_popover').popover('hide');
-            }
-        });
     }
     render() {
-        let popoverHtml = '';
+        let popoverHtml = [];
         let count = 0;
         let countText = '-';
         const members = this.props.members;
@@ -46,7 +41,7 @@ export default class PopoverListMembers extends React.Component {
 
             members.forEach(function addMemberElement(m) {
                 if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
-                    popoverHtml += `<div class='text--nowrap'>${m.username}</div>`;
+                    popoverHtml.push(<div className='text--nowrap'>{m.username}</div>);
                     count++;
                 }
             });
@@ -59,15 +54,14 @@ export default class PopoverListMembers extends React.Component {
         }
 
         return (
-            <div
-                id='member_popover'
-                data-toggle='popover'
-                data-content={popoverHtml}
-                data-original-title='Members'
+            <OverlayTrigger
+                trigger='click'
+                placement='bottom'
+                rootClose='true'
+                overlay={<Popover title='Members'>{popoverHtml}</Popover>}
             >
-                <div
-                    id='member_tooltip'
-                >
+            <div id='member_popover'>
+                <div>
                     {countText}
                     <span
                         className='fa fa-user'
@@ -75,6 +69,7 @@ export default class PopoverListMembers extends React.Component {
                     />
                 </div>
             </div>
+            </OverlayTrigger>
         );
     }
 }

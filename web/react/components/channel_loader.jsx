@@ -75,15 +75,6 @@ export default class ChannelLoader extends React.Component {
             Utils.applyTheme(Constants.THEMES.default);
         }
 
-        /* Setup global mouse events */
-        $('body').on('click', function hidePopover(e) {
-            $('[data-toggle="popover"]').each(function eachPopover() {
-                if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
-                    $(this).popover('hide');
-                }
-            });
-        });
-
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
             if (ev.type === 'mouseenter') {
                 $(this).parent('div').prev('.date-separator, .new-separator').addClass('hovered--after');

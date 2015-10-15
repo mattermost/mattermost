@@ -467,6 +467,10 @@ export function applyTheme(theme) {
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
         changeCss('.post-image__column .post-image__details', 'background:' + theme.centerChannelBg, 1);
         changeCss('.sidebar--right, .dropdown-menu, .popover', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.popover.bottom>.arrow:after', 'border-bottom-color:' + theme.centerChannelBg, 1);
+        changeCss('.popover.right>.arrow:after', 'border-right-color:' + theme.centerChannelBg, 1);
+        changeCss('.popover.left>.arrow:after', 'border-left-color:' + theme.centerChannelBg, 1);
+        changeCss('.popover.top>.arrow:after', 'border-top-color:' + theme.centerChannelBg, 1);
         changeCss('.search-bar__container .search__form .search-bar, .form-control', 'background:' + theme.centerChannelBg, 1);
     }
 

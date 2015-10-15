@@ -52,8 +52,6 @@ export default class RhsThread extends React.Component {
         if ($('.post-right__scroll')[0]) {
             $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
         }
-
-        $('.post-right__scroll').perfectScrollbar('update');
         this.resize();
     }
     componentWillUnmount() {
@@ -100,8 +98,10 @@ export default class RhsThread extends React.Component {
         var height = $(window).height() - $('#error_bar').outerHeight() - 100;
         $('.post-right__scroll').css('height', height + 'px');
         $('.post-right__scroll').scrollTop(100000);
-        $('.post-right__scroll').perfectScrollbar();
-        $('.post-right__scroll').perfectScrollbar('update');
+        if ($(window).width() > 768) {
+            $('.post-right__scroll').perfectScrollbar();
+            $('.post-right__scroll').perfectScrollbar('update');
+        }
     }
     render() {
         var postList = this.state.postList;

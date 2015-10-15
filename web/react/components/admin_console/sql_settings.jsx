@@ -220,7 +220,7 @@ export default class SqlSettings extends React.Component {
                             <p className='help-text'>{'32-character salt available to encrypt and decrypt sensitive fields in database.'}</p>
                             <div className='help-text'>
                                 <button
-                                    className='help-link'
+                                    className='btn btn-default'
                                     onClick={this.handleGenerate}
                                 >
                                     {'Re-Generate'}

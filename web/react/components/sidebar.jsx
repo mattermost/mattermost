@@ -134,7 +134,9 @@ export default class Sidebar extends React.Component {
 
         AsyncClient.getDirectChannelPreferences();
 
-        $('.nav-pills__container').perfectScrollbar();
+        if ($(window).width() > 768) {
+            $('.nav-pills__container').perfectScrollbar();
+        }
 
         this.updateTitle();
         this.updateUnreadIndicators();
