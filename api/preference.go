@@ -14,9 +14,20 @@ func InitPreference(r *mux.Router) {
 	l4g.Debug("Initializing preference api routes")
 
 	sr := r.PathPrefix("/preferences").Subrouter()
+	sr.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
 	sr.Handle("/save", ApiUserRequired(savePreferences)).Methods("POST")
 	sr.Handle("/{category:[A-Za-z0-9_]+}", ApiUserRequired(getPreferenceCategory)).Methods("GET")
 	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getPreference)).Methods("GET")
+}
+
+func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	if result := <-Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+	} else {
+		data := result.Data.(model.Preferences)
+
+		w.Write([]byte(data.ToJson()))
+	}
 }
 
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {

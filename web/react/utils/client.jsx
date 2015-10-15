@@ -1142,6 +1142,19 @@ export function listIncomingHooks(success, error) {
     });
 }
 
+export function getAllPreferences(success, error) {
+    $.ajax({
+        url: `/api/v1/preferences/`,
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('getAllPreferences', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function getPreferenceCategory(category, success, error) {
     $.ajax({
         url: `/api/v1/preferences/${category}`,
