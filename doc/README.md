@@ -8,15 +8,17 @@ Get up and running quickly with Docker-based install
 - [AWS Elastic Beanstalk Setup](install/Amazon-Elastic-Beanstalk.md)
 - [Docker Single Container Preview Setup](install/Docker-Single-Container.md)
 - [SMTP Email Setup](install/SMTP-Email-Setup.md)
+- [System Console Settings](install/Configuration-Settings.md)
 
 #### Production Installation
 Set up Mattermost in your data center 
 - [Software and Hardware Requirements](install/Requirements.md)
 - [Production Ubuntu Setup](install/Production-Ubuntu.md)
 - [SMTP Email Setup](install/SMTP-Email-Setup.md)
+- [System Console Settings](install/Configuration-Settings.md)
 
 #### Configuration and Management 
-- Configuration Settings Overview 
+- [System Console Settings](install/Configuration-Settings.md)
   - [GitLab SSO Configuration](integrations/Single-Sign-On/Gitlab.md) 
 - [Mattermost Release Numbering Scheme](install/Release-Numbering.md)
 
