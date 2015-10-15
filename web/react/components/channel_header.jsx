@@ -17,6 +17,9 @@ const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
 
+const Popover = ReactBootstrap.Popover;
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+
 export default class ChannelHeader extends React.Component {
     constructor(props) {
         super(props);
@@ -110,7 +113,21 @@ export default class ChannelHeader extends React.Component {
         }
 
         const channel = this.state.channel;
-        const popoverContent = React.renderToString(<MessageWrapper message={channel.description}/>);
+        const popoverContent = (
+            <Popover
+                id='hader-popover'
+                bStyle='info'
+                bSize='large'
+                placement='bottom'
+                className='description'
+                onMouseOver={() => this.refs.descriptionOverlay.show()}
+                onMouseOut={() => this.refs.descriptionOverlay.hide()}
+            >
+                <MessageWrapper
+                    message={channel.description}
+                />
+            </Popover>
+        );
         let channelTitle = channel.display_name;
         const currentId = UserStore.getCurrentId();
         const isAdmin = Utils.isAdmin(this.state.memberChannel.roles) || Utils.isAdmin(this.state.memberTeam.roles);
@@ -301,75 +318,82 @@ export default class ChannelHeader extends React.Component {
 
         return (
             <table className='channel-header alt'>
-                <tr>
-                    <th>
-                        <div className='channel-header__info'>
-                            <div className='dropdown'>
+                <tbody>
+                    <tr>
+                        <th>
+                            <div className='channel-header__info'>
+                                <div className='dropdown'>
+                                    <a
+                                        href='#'
+                                        className='dropdown-toggle theme'
+                                        type='button'
+                                        id='channel_header_dropdown'
+                                        data-toggle='dropdown'
+                                        aria-expanded='true'
+                                    >
+                                        <strong className='heading'>{channelTitle} </strong>
+                                        <span className='glyphicon glyphicon-chevron-down header-dropdown__icon' />
+                                    </a>
+                                    <ul
+                                        className='dropdown-menu'
+                                        role='menu'
+                                        aria-labelledby='channel_header_dropdown'
+                                    >
+                                        {dropdownContents}
+                                    </ul>
+                                </div>
+                                <OverlayTrigger
+                                    trigger={['hover', 'focus']}
+                                    placement='bottom'
+                                    overlay={popoverContent}
+                                    ref='descriptionOverlay'
+                                >
+                                <div
+                                    onClick={TextFormatting.handleClick}
+                                    className='description'
+                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.description, {singleline: true, mentionHighlight: false})}}
+                                />
+                                </OverlayTrigger>
+                            </div>
+                        </th>
+                        <th>
+                            <PopoverListMembers
+                                members={this.state.users}
+                                channelId={channel.id}
+                            />
+                        </th>
+                        <th className='search-bar__container'><NavbarSearchBox /></th>
+                        <th>
+                            <div className='dropdown channel-header__links'>
                                 <a
                                     href='#'
                                     className='dropdown-toggle theme'
                                     type='button'
-                                    id='channel_header_dropdown'
+                                    id='channel_header_right_dropdown'
                                     data-toggle='dropdown'
                                     aria-expanded='true'
                                 >
-                                    <strong className='heading'>{channelTitle} </strong>
-                                    <span className='glyphicon glyphicon-chevron-down header-dropdown__icon' />
+                                    <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
                                 </a>
                                 <ul
-                                    className='dropdown-menu'
+                                    className='dropdown-menu dropdown-menu-right'
                                     role='menu'
-                                    aria-labelledby='channel_header_dropdown'
+                                    aria-labelledby='channel_header_right_dropdown'
                                 >
-                                    {dropdownContents}
+                                    <li role='presentation'>
+                                        <a
+                                            role='menuitem'
+                                            href='#'
+                                            onClick={this.searchMentions}
+                                        >
+                                            Recent Mentions
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
-                            <div
-                                data-toggle='popover'
-                                data-content={popoverContent}
-                                className='description'
-                                onClick={TextFormatting.handleClick}
-                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.description, {singleline: true, mentionHighlight: false})}}
-                            />
-                        </div>
-                    </th>
-                    <th>
-                        <PopoverListMembers
-                            members={this.state.users}
-                            channelId={channel.id}
-                        />
-                    </th>
-                    <th className='search-bar__container'><NavbarSearchBox /></th>
-                    <th>
-                        <div className='dropdown channel-header__links'>
-                            <a
-                                href='#'
-                                className='dropdown-toggle theme'
-                                type='button'
-                                id='channel_header_right_dropdown'
-                                data-toggle='dropdown'
-                                aria-expanded='true'
-                            >
-                                <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
-                            </a>
-                            <ul
-                                className='dropdown-menu dropdown-menu-right'
-                                role='menu'
-                                aria-labelledby='channel_header_right_dropdown'
-                            >
-                                <li role='presentation'>
-                                    <a
-                                        role='menuitem'
-                                        href='#'
-                                        onClick={this.searchMentions}
-                                    >
-                                        Recent Mentions
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </th>
-                </tr>
+                        </th>
+                    </tr>
+                </tbody>
             </table>
         );
     }

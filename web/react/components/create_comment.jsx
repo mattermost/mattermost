@@ -128,7 +128,7 @@ export default class CreateComment extends React.Component {
     commentMsgKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            React.findDOMNode(this.refs.textbox).blur();
+            ReactDOM.findDOMNode(this.refs.textbox).blur();
             this.handleSubmit(e);
         }
 
@@ -191,7 +191,7 @@ export default class CreateComment extends React.Component {
     handleTextDrop(text) {
         const newText = this.state.messageText + text;
         this.handleUserInput(newText);
-        Utils.setCaretPosition(React.findDOMNode(this.refs.textbox.refs.message), newText.length);
+        Utils.setCaretPosition(ReactDOM.findDOMNode(this.refs.textbox.refs.message), newText.length);
     }
     removePreview(id) {
         let previews = this.state.previews;

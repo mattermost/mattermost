@@ -51,7 +51,7 @@ export default class ChannelNotifications extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
@@ -104,7 +104,7 @@ export default class ChannelNotifications extends React.Component {
     }
     handleUpdateNotifyLevel(notifyLevel) {
         this.setState({notifyLevel});
-        React.findDOMNode(this.refs.modal).focus();
+        ReactDOM.findDOMNode(this.refs.modal).focus();
     }
     createNotifyLevelSection(serverError) {
         var handleUpdateSection;
@@ -266,7 +266,7 @@ export default class ChannelNotifications extends React.Component {
 
     handleUpdateMarkUnreadLevel(markUnreadLevel) {
         this.setState({markUnreadLevel});
-        React.findDOMNode(this.refs.modal).focus();
+        ReactDOM.findDOMNode(this.refs.modal).focus();
     }
 
     createMarkUnreadLevelSection(serverError) {

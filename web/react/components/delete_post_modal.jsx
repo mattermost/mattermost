@@ -73,7 +73,7 @@ export default class DeletePostModal extends React.Component {
         this.setState(newState);
     }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
         PostStore.addSelectedPostChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {

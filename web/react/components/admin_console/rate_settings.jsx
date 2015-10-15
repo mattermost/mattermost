@@ -46,23 +46,23 @@ export default class RateSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.RateLimitSettings.EnableRateLimiter = React.findDOMNode(this.refs.EnableRateLimiter).checked;
-        config.RateLimitSettings.VaryByRemoteAddr = React.findDOMNode(this.refs.VaryByRemoteAddr).checked;
-        config.RateLimitSettings.VaryByHeader = React.findDOMNode(this.refs.VaryByHeader).value.trim();
+        config.RateLimitSettings.EnableRateLimiter = ReactDOM.findDOMNode(this.refs.EnableRateLimiter).checked;
+        config.RateLimitSettings.VaryByRemoteAddr = ReactDOM.findDOMNode(this.refs.VaryByRemoteAddr).checked;
+        config.RateLimitSettings.VaryByHeader = ReactDOM.findDOMNode(this.refs.VaryByHeader).value.trim();
 
         var PerSec = 10;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.PerSec).value, 10))) {
-            PerSec = parseInt(React.findDOMNode(this.refs.PerSec).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.PerSec).value, 10))) {
+            PerSec = parseInt(ReactDOM.findDOMNode(this.refs.PerSec).value, 10);
         }
         config.RateLimitSettings.PerSec = PerSec;
-        React.findDOMNode(this.refs.PerSec).value = PerSec;
+        ReactDOM.findDOMNode(this.refs.PerSec).value = PerSec;
 
         var MemoryStoreSize = 10000;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.MemoryStoreSize).value, 10))) {
-            MemoryStoreSize = parseInt(React.findDOMNode(this.refs.MemoryStoreSize).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MemoryStoreSize).value, 10))) {
+            MemoryStoreSize = parseInt(ReactDOM.findDOMNode(this.refs.MemoryStoreSize).value, 10);
         }
         config.RateLimitSettings.MemoryStoreSize = MemoryStoreSize;
-        React.findDOMNode(this.refs.MemoryStoreSize).value = MemoryStoreSize;
+        ReactDOM.findDOMNode(this.refs.MemoryStoreSize).value = MemoryStoreSize;
 
         Client.saveConfig(
             config,

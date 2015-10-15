@@ -28,7 +28,7 @@ export default class SignupUserComplete extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        const providedEmail = React.findDOMNode(this.refs.email).value.trim();
+        const providedEmail = ReactDOM.findDOMNode(this.refs.email).value.trim();
         if (!providedEmail) {
             this.setState({nameError: '', emailError: 'This field is required', passwordError: ''});
             return;
@@ -39,7 +39,7 @@ export default class SignupUserComplete extends React.Component {
             return;
         }
 
-        const providedUsername = React.findDOMNode(this.refs.name).value.trim().toLowerCase();
+        const providedUsername = ReactDOM.findDOMNode(this.refs.name).value.trim().toLowerCase();
         if (!providedUsername) {
             this.setState({nameError: 'This field is required', emailError: '', passwordError: '', serverError: ''});
             return;
@@ -59,7 +59,7 @@ export default class SignupUserComplete extends React.Component {
             return;
         }
 
-        const providedPassword = React.findDOMNode(this.refs.password).value.trim();
+        const providedPassword = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!providedPassword || providedPassword.length < 5) {
             this.setState({nameError: '', emailError: '', passwordError: 'Please enter at least 5 characters', serverError: ''});
             return;

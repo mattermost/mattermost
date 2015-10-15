@@ -17,7 +17,7 @@ export default class EmailSignUpPage extends React.Component {
         var team = {};
         var state = {serverError: ''};
 
-        team.email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
+        team.email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!team.email || !Utils.isEmail(team.email)) {
             state.emailError = 'Please enter a valid email address';
             state.inValid = true;

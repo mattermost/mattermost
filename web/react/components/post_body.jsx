@@ -37,7 +37,7 @@ export default class PostBody extends React.Component {
     }
 
     parseEmojis() {
-        twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
     }
 
     componentDidMount() {

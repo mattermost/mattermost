@@ -77,7 +77,7 @@ export default class ViewImageModal extends React.Component {
     }
     onModalHidden() {
         if (this.refs.video) {
-            var video = React.findDOMNode(this.refs.video);
+            var video = ReactDOM.findDOMNode(this.refs.video);
             video.pause();
             video.currentTime = 0;
         }

@@ -1,4 +1,4 @@
-/* perfect-scrollbar v0.6.5-1 */
+/* perfect-scrollbar v0.6.7 */
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
@@ -88,7 +88,7 @@ exports.remove = function (element, className) {
 
 exports.list = function (element) {
   if (element.classList) {
-    return element.classList;
+    return Array.prototype.slice.apply(element.classList);
   } else {
     return element.className.split(' ');
   }
@@ -379,25 +379,26 @@ module.exports = {
   destroy: destroy
 };
 
-},{"./plugin/destroy":9,"./plugin/initialize":17,"./plugin/update":20}],8:[function(require,module,exports){
+},{"./plugin/destroy":9,"./plugin/initialize":17,"./plugin/update":21}],8:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
 'use strict';
 
 module.exports = {
-  wheelSpeed: 1,
-  wheelPropagation: false,
-  swipePropagation: true,
-  minScrollbarLength: null,
   maxScrollbarLength: null,
-  useBothWheelAxes: false,
-  useKeyboard: true,
-  suppressScrollX: false,
-  suppressScrollY: false,
+  minScrollbarLength: null,
   scrollXMarginOffset: 0,
   scrollYMarginOffset: 0,
-  stopPropagationOnClick: true
+  stopPropagationOnClick: true,
+  suppressScrollX: false,
+  suppressScrollY: false,
+  swipePropagation: true,
+  useBothWheelAxes: false,
+  useKeyboard: true,
+  useSelectionScroll: false,
+  wheelPropagation: false,
+  wheelSpeed: 1
 };
 
 },{}],9:[function(require,module,exports){
@@ -435,17 +436,17 @@ module.exports = function (element) {
 
 var h = require('../../lib/helper')
   , instances = require('../instances')
-  , updateGeometry = require('../update-geometry');
+  , updateGeometry = require('../update-geometry')
+  , updateScroll = require('../update-scroll');
 
 function bindClickRailHandler(element, i) {
   function pageOffset(el) {
     return el.getBoundingClientRect();
   }
+  var stopPropagation = window.Event.prototype.stopPropagation.bind;
 
   if (i.settings.stopPropagationOnClick) {
-    i.event.bind(i.scrollbarY, 'click', function (e) {
-      e.stopPropagation();
-    });
+    i.event.bind(i.scrollbarY, 'click', stopPropagation);
   }
   i.event.bind(i.scrollbarYRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarYHeight / 2);
@@ -459,16 +460,14 @@ function bindClickRailHandler(element, i) {
       positionRatio = 1;
     }
 
-    element.scrollTop = (i.contentHeight - i.containerHeight) * positionRatio;
+    updateScroll(element, 'top', (i.contentHeight - i.containerHeight) * positionRatio);
     updateGeometry(element);
 
     e.stopPropagation();
   });
 
   if (i.settings.stopPropagationOnClick) {
-    i.event.bind(i.scrollbarY, 'click', function (e) {
-      e.stopPropagation();
-    });
+    i.event.bind(i.scrollbarX, 'click', stopPropagation);
   }
   i.event.bind(i.scrollbarXRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarXWidth / 2);
@@ -482,7 +481,7 @@ function bindClickRailHandler(element, i) {
       positionRatio = 1;
     }
 
-    element.scrollLeft = ((i.contentWidth - i.containerWidth) * positionRatio) - i.negativeScrollAdjustment;
+    updateScroll(element, 'left', ((i.contentWidth - i.containerWidth) * positionRatio) - i.negativeScrollAdjustment);
     updateGeometry(element);
 
     e.stopPropagation();
@@ -494,7 +493,7 @@ module.exports = function (element) {
   bindClickRailHandler(element, i);
 };
 
-},{"../../lib/helper":6,"../instances":18,"../update-geometry":19}],11:[function(require,module,exports){
+},{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],11:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
@@ -503,7 +502,8 @@ module.exports = function (element) {
 var d = require('../../lib/dom')
   , h = require('../../lib/helper')
   , instances = require('../instances')
-  , updateGeometry = require('../update-geometry');
+  , updateGeometry = require('../update-geometry')
+  , updateScroll = require('../update-scroll');
 
 function bindMouseScrollXHandler(element, i) {
   var currentLeft = null;
@@ -522,7 +522,7 @@ function bindMouseScrollXHandler(element, i) {
     }
 
     var scrollLeft = h.toInt(i.scrollbarXLeft * (i.contentWidth - i.containerWidth) / (i.containerWidth - (i.railXRatio * i.scrollbarXWidth))) - i.negativeScrollAdjustment;
-    element.scrollLeft = scrollLeft;
+    updateScroll(element, 'left', scrollLeft);
   }
 
   var mouseMoveHandler = function (e) {
@@ -567,7 +567,7 @@ function bindMouseScrollYHandler(element, i) {
     }
 
     var scrollTop = h.toInt(i.scrollbarYTop * (i.contentHeight - i.containerHeight) / (i.containerHeight - (i.railYRatio * i.scrollbarYHeight)));
-    element.scrollTop = scrollTop;
+    updateScroll(element, 'top', scrollTop);
   }
 
   var mouseMoveHandler = function (e) {
@@ -601,7 +601,7 @@ module.exports = function (element) {
   bindMouseScrollYHandler(element, i);
 };
 
-},{"../../lib/dom":3,"../../lib/helper":6,"../instances":18,"../update-geometry":19}],12:[function(require,module,exports){
+},{"../../lib/dom":3,"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],12:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
@@ -609,7 +609,8 @@ module.exports = function (element) {
 
 var h = require('../../lib/helper')
   , instances = require('../instances')
-  , updateGeometry = require('../update-geometry');
+  , updateGeometry = require('../update-geometry')
+  , updateScroll = require('../update-scroll');
 
 function bindKeyboardHandler(element, i) {
   var hovered = false;
@@ -711,8 +712,8 @@ function bindKeyboardHandler(element, i) {
       return;
     }
 
-    element.scrollTop = element.scrollTop - deltaY;
-    element.scrollLeft = element.scrollLeft + deltaX;
+    updateScroll(element, 'top', element.scrollTop - deltaY);
+    updateScroll(element, 'left', element.scrollLeft + deltaX);
     updateGeometry(element);
 
     shouldPrevent = shouldPreventDefault(deltaX, deltaY);
@@ -727,7 +728,7 @@ module.exports = function (element) {
   bindKeyboardHandler(element, i);
 };
 
-},{"../../lib/helper":6,"../instances":18,"../update-geometry":19}],13:[function(require,module,exports){
+},{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],13:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
@@ -735,7 +736,8 @@ module.exports = function (element) {
 
 var h = require('../../lib/helper')
   , instances = require('../instances')
-  , updateGeometry = require('../update-geometry');
+  , updateGeometry = require('../update-geometry')
+  , updateScroll = require('../update-scroll');
 
 function bindMouseWheelHandler(element, i) {
   var shouldPrevent = false;
@@ -830,24 +832,24 @@ function bindMouseWheelHandler(element, i) {
     if (!i.settings.useBothWheelAxes) {
       // deltaX will only be used for horizontal scrolling and deltaY will
       // only be used for vertical scrolling - this is the default
-      element.scrollTop = element.scrollTop - (deltaY * i.settings.wheelSpeed);
-      element.scrollLeft = element.scrollLeft + (deltaX * i.settings.wheelSpeed);
+      updateScroll(element, 'top', element.scrollTop - (deltaY * i.settings.wheelSpeed));
+      updateScroll(element, 'left', element.scrollLeft + (deltaX * i.settings.wheelSpeed));
     } else if (i.scrollbarYActive && !i.scrollbarXActive) {
       // only vertical scrollbar is active and useBothWheelAxes option is
       // active, so let's scroll vertical bar using both mouse wheel axes
       if (deltaY) {
-        element.scrollTop = element.scrollTop - (deltaY * i.settings.wheelSpeed);
+        updateScroll(element, 'top', element.scrollTop - (deltaY * i.settings.wheelSpeed));
       } else {
-        element.scrollTop = element.scrollTop + (deltaX * i.settings.wheelSpeed);
+        updateScroll(element, 'top', element.scrollTop + (deltaX * i.settings.wheelSpeed));
       }
       shouldPrevent = true;
     } else if (i.scrollbarXActive && !i.scrollbarYActive) {
       // useBothWheelAxes and only horizontal bar is active, so use both
       // wheel axes for horizontal bar
       if (deltaX) {
-        element.scrollLeft = element.scrollLeft + (deltaX * i.settings.wheelSpeed);
+        updateScroll(element, 'left', element.scrollLeft + (deltaX * i.settings.wheelSpeed));
       } else {
-        element.scrollLeft = element.scrollLeft - (deltaY * i.settings.wheelSpeed);
+        updateScroll(element, 'left', element.scrollLeft - (deltaY * i.settings.wheelSpeed));
       }
       shouldPrevent = true;
     }
@@ -873,7 +875,7 @@ module.exports = function (element) {
   bindMouseWheelHandler(element, i);
 };
 
-},{"../../lib/helper":6,"../instances":18,"../update-geometry":19}],14:[function(require,module,exports){
+},{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],14:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
@@ -901,7 +903,8 @@ module.exports = function (element) {
 
 var h = require('../../lib/helper')
   , instances = require('../instances')
-  , updateGeometry = require('../update-geometry');
+  , updateGeometry = require('../update-geometry')
+  , updateScroll = require('../update-scroll');
 
 function bindSelectionHandler(element, i) {
   function getRangeNode() {
@@ -924,8 +927,8 @@ function bindSelectionHandler(element, i) {
           return;
         }
 
-        element.scrollTop = element.scrollTop + scrollDiff.top;
-        element.scrollLeft = element.scrollLeft + scrollDiff.left;
+        updateScroll(element, 'top', element.scrollTop + scrollDiff.top);
+        updateScroll(element, 'left', element.scrollLeft + scrollDiff.left);
         updateGeometry(element);
       }, 50); // every .1 sec
     }
@@ -1006,14 +1009,15 @@ module.exports = function (element) {
   bindSelectionHandler(element, i);
 };
 
-},{"../../lib/helper":6,"../instances":18,"../update-geometry":19}],16:[function(require,module,exports){
+},{"../../lib/helper":6,"../instances":18,"../update-geometry":19,"../update-scroll":20}],16:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
 'use strict';
 
 var instances = require('../instances')
-  , updateGeometry = require('../update-geometry');
+  , updateGeometry = require('../update-geometry')
+  , updateScroll = require('../update-scroll');
 
 function bindTouchHandler(element, i, supportsTouch, supportsIePointer) {
   function shouldPreventDefault(deltaX, deltaY) {
@@ -1042,8 +1046,8 @@ function bindTouchHandler(element, i, supportsTouch, supportsIePointer) {
   }
 
   function applyTouchMove(differenceX, differenceY) {
-    element.scrollTop = element.scrollTop - differenceY;
-    element.scrollLeft = element.scrollLeft - differenceX;
+    updateScroll(element, 'top', element.scrollTop - differenceY);
+    updateScroll(element, 'left', element.scrollLeft - differenceX);
 
     updateGeometry(element);
   }
@@ -1178,7 +1182,7 @@ module.exports = function (element, supportsTouch, supportsIePointer) {
   bindTouchHandler(element, i, supportsTouch, supportsIePointer);
 };
 
-},{"../instances":18,"../update-geometry":19}],17:[function(require,module,exports){
+},{"../instances":18,"../update-geometry":19,"../update-scroll":20}],17:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */
@@ -1212,7 +1216,10 @@ module.exports = function (element, userSettings) {
   dragScrollbarHandler(element);
   mouseWheelHandler(element);
   nativeScrollHandler(element);
-  selectionHandler(element);
+
+  if (i.settings.useSelectionScroll) {
+    selectionHandler(element);
+  }
 
   if (h.env.supportsTouch || h.env.supportsIePointer) {
     touchHandler(element, h.env.supportsTouch, h.env.supportsIePointer);
@@ -1342,7 +1349,8 @@ exports.get = function (element) {
 var cls = require('../lib/class')
   , d = require('../lib/dom')
   , h = require('../lib/helper')
-  , instances = require('./instances');
+  , instances = require('./instances')
+  , updateScroll = require('./update-scroll');
 
 function getThumbSize(i, thumbSize) {
   if (i.settings.minScrollbarLength) {
@@ -1439,7 +1447,7 @@ module.exports = function (element) {
     i.scrollbarYActive = false;
     i.scrollbarYHeight = 0;
     i.scrollbarYTop = 0;
-    element.scrollTop = 0;
+    updateScroll(element, 'top', 0);
   }
 
   if (i.scrollbarXLeft >= i.railXWidth - i.scrollbarXWidth) {
@@ -1455,7 +1463,114 @@ module.exports = function (element) {
   cls[i.scrollbarYActive ? 'add' : 'remove'](element, 'ps-active-y');
 };
 
-},{"../lib/class":2,"../lib/dom":3,"../lib/helper":6,"./instances":18}],20:[function(require,module,exports){
+},{"../lib/class":2,"../lib/dom":3,"../lib/helper":6,"./instances":18,"./update-scroll":20}],20:[function(require,module,exports){
+/* Copyright (c) 2015 Hyunje Alex Jun and other contributors
+ * Licensed under the MIT License
+ */
+'use strict';
+
+var instances = require('./instances');
+
+var upEvent = document.createEvent('Event')
+  , downEvent = document.createEvent('Event')
+  , leftEvent = document.createEvent('Event')
+  , rightEvent = document.createEvent('Event')
+  , yEvent = document.createEvent('Event')
+  , xEvent = document.createEvent('Event')
+  , xStartEvent = document.createEvent('Event')
+  , xEndEvent = document.createEvent('Event')
+  , yStartEvent = document.createEvent('Event')
+  , yEndEvent = document.createEvent('Event')
+  , lastTop
+  , lastLeft;
+
+upEvent.initEvent('ps-scroll-up', true, true);
+downEvent.initEvent('ps-scroll-down', true, true);
+leftEvent.initEvent('ps-scroll-left', true, true);
+rightEvent.initEvent('ps-scroll-right', true, true);
+yEvent.initEvent('ps-scroll-y', true, true);
+xEvent.initEvent('ps-scroll-x', true, true);
+xStartEvent.initEvent('ps-x-reach-start', true, true);
+xEndEvent.initEvent('ps-x-reach-end', true, true);
+yStartEvent.initEvent('ps-y-reach-start', true, true);
+yEndEvent.initEvent('ps-y-reach-end', true, true);
+
+module.exports = function (element, axis, value) {
+  if (typeof element === 'undefined') {
+    throw 'You must provide an element to the update-scroll function';
+  }
+
+  if (typeof axis === 'undefined') {
+    throw 'You must provide an axis to the update-scroll function';
+  }
+
+  if (typeof value === 'undefined') {
+    throw 'You must provide a value to the update-scroll function';
+  }
+
+  if (axis === 'top' && value <= 0) {
+    element.scrollTop = 0;
+    element.dispatchEvent(yStartEvent);
+    return; // don't allow negative scroll
+  }
+
+  if (axis === 'left' && value <= 0) {
+    element.scrollLeft = 0;
+    element.dispatchEvent(xStartEvent);
+    return; // don't allow negative scroll
+  }
+
+  var i = instances.get(element);
+
+  if (axis === 'top' && value > i.contentHeight - i.containerHeight) {
+    element.scrollTop = i.contentHeight - i.containerHeight;
+    element.dispatchEvent(yEndEvent);
+    return; // don't allow scroll past container
+  }
+
+  if (axis === 'left' && value > i.contentWidth - i.containerWidth) {
+    element.scrollLeft = i.contentWidth - i.containerWidth;
+    element.dispatchEvent(xEndEvent);
+    return; // don't allow scroll past container
+  }
+
+  if (!lastTop) {
+    lastTop = element.scrollTop;
+  }
+
+  if (!lastLeft) {
+    lastLeft = element.scrollLeft;
+  }
+
+  if (axis === 'top' && value < lastTop) {
+    element.dispatchEvent(upEvent);
+  }
+
+  if (axis === 'top' && value > lastTop) {
+    element.dispatchEvent(downEvent);
+  }
+
+  if (axis === 'left' && value < lastLeft) {
+    element.dispatchEvent(leftEvent);
+  }
+
+  if (axis === 'left' && value > lastLeft) {
+    element.dispatchEvent(rightEvent);
+  }
+
+  if (axis === 'top') {
+    element.scrollTop = lastTop = value;
+    element.dispatchEvent(yEvent);
+  }
+
+  if (axis === 'left') {
+    element.scrollLeft = lastLeft = value;
+    element.dispatchEvent(xEvent);
+  }
+
+};
+
+},{"./instances":18}],21:[function(require,module,exports){
 /* Copyright (c) 2015 Hyunje Alex Jun and other contributors
  * Licensed under the MIT License
  */

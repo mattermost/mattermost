@@ -17,7 +17,7 @@ export default class FindTeam extends React.Component {
 
         var state = { };
 
-        var email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
+        var email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!email || !utils.isEmail(email)) {
             state.email_error = 'Please enter a valid email address';
             this.setState(state);

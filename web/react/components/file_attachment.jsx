@@ -43,7 +43,7 @@ export default class FileAttachment extends React.Component {
                     return function loader() {
                         $(this).remove();
                         if (name in self.refs) {
-                            var imgDiv = React.findDOMNode(self.refs[name]);
+                            var imgDiv = ReactDOM.findDOMNode(self.refs[name]);
 
                             $(imgDiv).removeClass('post__load');
                             $(imgDiv).addClass('post__image');
@@ -82,7 +82,7 @@ export default class FileAttachment extends React.Component {
         if (nextState.fileSize !== this.state.fileSize) {
             if (this.refs.fileSize) {
                 // update the UI element to display the file size without re-rendering the whole component
-                React.findDOMNode(this.refs.fileSize).innerHTML = utils.fileSizeToString(nextState.fileSize);
+                ReactDOM.findDOMNode(this.refs.fileSize).innerHTML = utils.fileSizeToString(nextState.fileSize);
 
                 return false;
             }

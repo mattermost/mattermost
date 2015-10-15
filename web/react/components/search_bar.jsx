@@ -90,7 +90,7 @@ export default class SearchBar extends React.Component {
                 function success(data) {
                     this.setState({isSearching: false});
                     if (utils.isMobile()) {
-                        React.findDOMNode(this.refs.search).value = '';
+                        ReactDOM.findDOMNode(this.refs.search).value = '';
                     }
 
                     AppDispatcher.handleServerAction({

@@ -19,7 +19,7 @@ export default class RhsRootPost extends React.Component {
         this.state = {};
     }
     parseEmojis() {
-        twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
     }
     componentDidMount() {
         this.parseEmojis();

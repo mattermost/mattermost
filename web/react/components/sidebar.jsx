@@ -284,13 +284,13 @@ export default class Sidebar extends React.Component {
         this.updateUnreadIndicators();
     }
     updateUnreadIndicators() {
-        const container = $(React.findDOMNode(this.refs.container));
+        const container = $(ReactDOM.findDOMNode(this.refs.container));
 
         var showTopUnread = false;
         var showBottomUnread = false;
 
         if (this.firstUnreadChannel) {
-            var firstUnreadElement = $(React.findDOMNode(this.refs[this.firstUnreadChannel]));
+            var firstUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.firstUnreadChannel]));
 
             if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
                 showTopUnread = true;
@@ -298,7 +298,7 @@ export default class Sidebar extends React.Component {
         }
 
         if (this.lastUnreadChannel) {
-            var lastUnreadElement = $(React.findDOMNode(this.refs[this.lastUnreadChannel]));
+            var lastUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.lastUnreadChannel]));
 
             if (lastUnreadElement.position().top > container.height()) {
                 showBottomUnread = true;

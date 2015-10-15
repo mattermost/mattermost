@@ -41,28 +41,28 @@ export default class EmailSettings extends React.Component {
 
     buildConfig() {
         var config = this.props.config;
-        config.EmailSettings.EnableSignUpWithEmail = React.findDOMNode(this.refs.allowSignUpWithEmail).checked;
-        config.EmailSettings.SendEmailNotifications = React.findDOMNode(this.refs.sendEmailNotifications).checked;
-        config.EmailSettings.RequireEmailVerification = React.findDOMNode(this.refs.requireEmailVerification).checked;
-        config.EmailSettings.SendEmailNotifications = React.findDOMNode(this.refs.sendEmailNotifications).checked;
-        config.EmailSettings.FeedbackName = React.findDOMNode(this.refs.feedbackName).value.trim();
-        config.EmailSettings.FeedbackEmail = React.findDOMNode(this.refs.feedbackEmail).value.trim();
-        config.EmailSettings.SMTPServer = React.findDOMNode(this.refs.SMTPServer).value.trim();
-        config.EmailSettings.SMTPPort = React.findDOMNode(this.refs.SMTPPort).value.trim();
-        config.EmailSettings.SMTPUsername = React.findDOMNode(this.refs.SMTPUsername).value.trim();
-        config.EmailSettings.SMTPPassword = React.findDOMNode(this.refs.SMTPPassword).value.trim();
-        config.EmailSettings.ConnectionSecurity = React.findDOMNode(this.refs.ConnectionSecurity).value.trim();
+        config.EmailSettings.EnableSignUpWithEmail = ReactDOM.findDOMNode(this.refs.allowSignUpWithEmail).checked;
+        config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
+        config.EmailSettings.RequireEmailVerification = ReactDOM.findDOMNode(this.refs.requireEmailVerification).checked;
+        config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
+        config.EmailSettings.FeedbackName = ReactDOM.findDOMNode(this.refs.feedbackName).value.trim();
+        config.EmailSettings.FeedbackEmail = ReactDOM.findDOMNode(this.refs.feedbackEmail).value.trim();
+        config.EmailSettings.SMTPServer = ReactDOM.findDOMNode(this.refs.SMTPServer).value.trim();
+        config.EmailSettings.SMTPPort = ReactDOM.findDOMNode(this.refs.SMTPPort).value.trim();
+        config.EmailSettings.SMTPUsername = ReactDOM.findDOMNode(this.refs.SMTPUsername).value.trim();
+        config.EmailSettings.SMTPPassword = ReactDOM.findDOMNode(this.refs.SMTPPassword).value.trim();
+        config.EmailSettings.ConnectionSecurity = ReactDOM.findDOMNode(this.refs.ConnectionSecurity).value.trim();
 
-        config.EmailSettings.InviteSalt = React.findDOMNode(this.refs.InviteSalt).value.trim();
+        config.EmailSettings.InviteSalt = ReactDOM.findDOMNode(this.refs.InviteSalt).value.trim();
         if (config.EmailSettings.InviteSalt === '') {
             config.EmailSettings.InviteSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
-            React.findDOMNode(this.refs.InviteSalt).value = config.EmailSettings.InviteSalt;
+            ReactDOM.findDOMNode(this.refs.InviteSalt).value = config.EmailSettings.InviteSalt;
         }
 
-        config.EmailSettings.PasswordResetSalt = React.findDOMNode(this.refs.PasswordResetSalt).value.trim();
+        config.EmailSettings.PasswordResetSalt = ReactDOM.findDOMNode(this.refs.PasswordResetSalt).value.trim();
         if (config.EmailSettings.PasswordResetSalt === '') {
             config.EmailSettings.PasswordResetSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
-            React.findDOMNode(this.refs.PasswordResetSalt).value = config.EmailSettings.PasswordResetSalt;
+            ReactDOM.findDOMNode(this.refs.PasswordResetSalt).value = config.EmailSettings.PasswordResetSalt;
         }
 
         return config;
@@ -70,14 +70,14 @@ export default class EmailSettings extends React.Component {
 
     handleGenerateInvite(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.InviteSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
+        ReactDOM.findDOMNode(this.refs.InviteSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }
 
     handleGenerateReset(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.PasswordResetSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
+        ReactDOM.findDOMNode(this.refs.PasswordResetSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }

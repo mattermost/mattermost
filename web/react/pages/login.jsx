@@ -4,7 +4,7 @@
 var Login = require('../components/login.jsx');
 
 function setupLoginPage(props) {
-    React.render(
+    ReactDOM.render(
         <Login
             teamDisplayName={props.TeamDisplayName}
             teamName={props.TeamName}

@@ -34,7 +34,7 @@ export default class EditChannelModal extends React.Component {
             function handleUpdateSuccess() {
                 this.setState({serverError: ''});
                 AsyncClient.getChannel(this.state.channelId);
-                $(React.findDOMNode(this.refs.modal)).modal('hide');
+                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
             }.bind(this),
             function handleUpdateError(err) {
                 if (err.message === 'Invalid channel_description parameter') {
@@ -56,11 +56,11 @@ export default class EditChannelModal extends React.Component {
         this.setState({description: $(button).attr('data-desc'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
     }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {
-        $(React.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
     }
     render() {
         var serverError = null;

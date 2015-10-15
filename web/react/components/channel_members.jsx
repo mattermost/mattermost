@@ -74,9 +74,9 @@ export default class ChannelMembers extends React.Component {
     componentDidMount() {
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     componentWillUnmount() {
         ChannelStore.removeExtraInfoChangeListener(this.onChange);

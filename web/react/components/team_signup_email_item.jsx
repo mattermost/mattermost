@@ -13,10 +13,10 @@ export default class TeamSignupEmailItem extends React.Component {
         this.state = {};
     }
     getValue() {
-        return React.findDOMNode(this.refs.email).value.trim();
+        return ReactDOM.findDOMNode(this.refs.email).value.trim();
     }
     validate(teamEmail) {
-        const email = React.findDOMNode(this.refs.email).value.trim().toLowerCase();
+        const email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
 
         if (!email) {
             return true;

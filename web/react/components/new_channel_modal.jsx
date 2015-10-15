@@ -25,7 +25,7 @@ export default class NewChannelModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        const displayName = React.findDOMNode(this.refs.display_name).value.trim();
+        const displayName = ReactDOM.findDOMNode(this.refs.display_name).value.trim();
         if (displayName.length < 1) {
             this.setState({displayNameError: 'This field is required'});
             return;
@@ -35,8 +35,8 @@ export default class NewChannelModal extends React.Component {
     }
     handleChange() {
         const newData = {
-            displayName: React.findDOMNode(this.refs.display_name).value,
-            description: React.findDOMNode(this.refs.channel_desc).value
+            displayName: ReactDOM.findDOMNode(this.refs.display_name).value,
+            description: ReactDOM.findDOMNode(this.refs.channel_desc).value
         };
         this.props.onDataChanged(newData);
     }

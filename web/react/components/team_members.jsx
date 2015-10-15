@@ -44,11 +44,11 @@ export default class TeamMembers extends React.Component {
         UserStore.addChangeListener(this.onChange);
 
         var self = this;
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function show() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function show() {
             self.setState({render_members: false});
         });
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function hide() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', function hide() {
             self.setState({render_members: true});
         });
     }

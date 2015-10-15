@@ -54,7 +54,7 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleFilterChange() {
-        const filter = React.findDOMNode(this.refs.filter).value;
+        const filter = ReactDOM.findDOMNode(this.refs.filter).value;
 
         if (filter !== this.state.filter) {
             this.setState({filter});

@@ -52,7 +52,7 @@ export default class EditPostModal extends React.Component {
     handleEditKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            React.findDOMNode(this.refs.editbox).blur();
+            ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit(e);
         }
     }
@@ -62,16 +62,16 @@ export default class EditPostModal extends React.Component {
     componentDidMount() {
         var self = this;
 
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function onHidden() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function onHidden() {
             self.setState({editText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
         });
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function onShow(e) {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', function onShow(e) {
             var button = e.relatedTarget;
             self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refoucsid')});
         });
 
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
             self.refs.editbox.resize();
         });
     }

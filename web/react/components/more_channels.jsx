@@ -31,12 +31,12 @@ export default class MoreChannels extends React.Component {
     }
     componentDidMount() {
         ChannelStore.addMoreChangeListener(this.onListenerChange);
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', function shown() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function shown() {
             asyncClient.getMoreChannels(true);
         });
 
         var self = this;
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function show(e) {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', function show(e) {
             var button = e.relatedTarget;
             self.setState({channelType: $(button).attr('data-channeltype')});
         });
@@ -54,7 +54,7 @@ export default class MoreChannels extends React.Component {
         this.setState({joiningChannel: channelIndex});
         client.joinChannel(channel.id,
             function joinSuccess() {
-                $(React.findDOMNode(this.refs.modal)).modal('hide');
+                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
                 asyncClient.getChannel(channel.id);
                 utils.switchChannel(channel);
                 this.setState({joiningChannel: -1});
@@ -65,7 +65,7 @@ export default class MoreChannels extends React.Component {
         );
     }
     handleNewChannel() {
-        $(React.findDOMNode(this.refs.modal)).modal('hide');
+        $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
         this.setState({showNewChannelModal: true});
     }
     render() {

@@ -37,9 +37,9 @@ export default class AccessHistoryModal extends React.Component {
     }
     componentDidMount() {
         UserStore.addAuditsChangeListener(this.onAuditChange);
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
 
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
     }
     componentWillUnmount() {
         UserStore.removeAuditsChangeListener(this.onAuditChange);
