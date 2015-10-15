@@ -50,6 +50,7 @@ Messaging and Notifications
 
 ### Known Issues
 
+- Slack import is unstable due to change in Slack export format
 - Uploading a .flac file breaks the file previewer on iOS
 
 ### Contributors
