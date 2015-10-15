@@ -15,12 +15,11 @@
             .nav {
                 li {
                     padding: 0;
+                    @include opacity(1);
                     .icon {
                         width: 17px;
                     }
                     > a {
-                        padding: 9px 15px;
-                        display: block;
                         &:hover, &.active, &:focus  {
                             background-color: #EAEAEA;
                         }
@@ -117,8 +116,10 @@
             .form-group {
                 margin-bottom: 25px;
             }
-            ul, ol {
-                padding-left: 23px;
+            .help-text {
+                ul, ol {
+                    padding-left: 23px;
+                }
             }
             .help-text {
                 margin: 10px 0 0 15px;
