@@ -19,6 +19,8 @@ func Setup() {
 		StartServer()
 		InitApi()
 		Client = model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+
+		Srv.Store.MarkSystemRanUnitTests()
 	}
 }
 
