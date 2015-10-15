@@ -15,19 +15,18 @@ function getStateFromStores() {
     let teamsObject = UserStore.getTeams();
     for (let teamId in teamsObject) {
         if (teamsObject.hasOwnProperty(teamId)) {
-            teams.push(teamsObject[teamId])
+            teams.push(teamsObject[teamId]);
         }
     }
-    teams.sort(function (teamA, teamB) {
+    teams.sort(function sortByDisplayName(teamA, teamB) {
         let teamADisplayName = teamA.display_name.toLowerCase();
         let teamBDisplayName = teamB.display_name.toLowerCase();
         if (teamADisplayName < teamBDisplayName) {
-            return -1
+            return -1;
         } else if (teamADisplayName > teamBDisplayName) {
             return 1;
-        } else {
-            return 0;
         }
+        return 0;
     });
     return {teams};
 }
