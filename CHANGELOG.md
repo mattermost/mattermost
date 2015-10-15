@@ -360,7 +360,7 @@ Released 2015-06-24
 
 ### Release Highlights
 
-- First release of Mattermost as a team communication service for sharing messagse and files across PCs and phones, with archiving and instant search.
+- First release of Mattermost as a team communication service for sharing messages and files across PCs and phones, with archiving and instant search.
  
 ### New Features
 
