@@ -24,7 +24,7 @@ export default class FileSettings extends React.Component {
         var s = {saveNeeded: true, serverError: this.state.serverError};
 
         if (action === 'DriverName') {
-            s.DriverName = React.findDOMNode(this.refs.DriverName).value;
+            s.DriverName = ReactDOM.findDOMNode(this.refs.DriverName).value;
         }
 
         this.setState(s);
@@ -32,7 +32,7 @@ export default class FileSettings extends React.Component {
 
     handleGenerate(e) {
         e.preventDefault();
-        React.findDOMNode(this.refs.PublicLinkSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
+        ReactDOM.findDOMNode(this.refs.PublicLinkSalt).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }
@@ -42,62 +42,62 @@ export default class FileSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.FileSettings.DriverName = React.findDOMNode(this.refs.DriverName).value;
-        config.FileSettings.Directory = React.findDOMNode(this.refs.Directory).value;
-        config.FileSettings.AmazonS3AccessKeyId = React.findDOMNode(this.refs.AmazonS3AccessKeyId).value;
-        config.FileSettings.AmazonS3SecretAccessKey = React.findDOMNode(this.refs.AmazonS3SecretAccessKey).value;
-        config.FileSettings.AmazonS3Bucket = React.findDOMNode(this.refs.AmazonS3Bucket).value;
-        config.FileSettings.AmazonS3Region = React.findDOMNode(this.refs.AmazonS3Region).value;
-        config.FileSettings.EnablePublicLink = React.findDOMNode(this.refs.EnablePublicLink).checked;
+        config.FileSettings.DriverName = ReactDOM.findDOMNode(this.refs.DriverName).value;
+        config.FileSettings.Directory = ReactDOM.findDOMNode(this.refs.Directory).value;
+        config.FileSettings.AmazonS3AccessKeyId = ReactDOM.findDOMNode(this.refs.AmazonS3AccessKeyId).value;
+        config.FileSettings.AmazonS3SecretAccessKey = ReactDOM.findDOMNode(this.refs.AmazonS3SecretAccessKey).value;
+        config.FileSettings.AmazonS3Bucket = ReactDOM.findDOMNode(this.refs.AmazonS3Bucket).value;
+        config.FileSettings.AmazonS3Region = ReactDOM.findDOMNode(this.refs.AmazonS3Region).value;
+        config.FileSettings.EnablePublicLink = ReactDOM.findDOMNode(this.refs.EnablePublicLink).checked;
 
-        config.FileSettings.PublicLinkSalt = React.findDOMNode(this.refs.PublicLinkSalt).value.trim();
+        config.FileSettings.PublicLinkSalt = ReactDOM.findDOMNode(this.refs.PublicLinkSalt).value.trim();
 
         if (config.FileSettings.PublicLinkSalt === '') {
             config.FileSettings.PublicLinkSalt = crypto.randomBytes(256).toString('base64').substring(0, 32);
-            React.findDOMNode(this.refs.PublicLinkSalt).value = config.FileSettings.PublicLinkSalt;
+            ReactDOM.findDOMNode(this.refs.PublicLinkSalt).value = config.FileSettings.PublicLinkSalt;
         }
 
         var thumbnailWidth = 120;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.ThumbnailWidth).value, 10))) {
-            thumbnailWidth = parseInt(React.findDOMNode(this.refs.ThumbnailWidth).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailWidth).value, 10))) {
+            thumbnailWidth = parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailWidth).value, 10);
         }
         config.FileSettings.ThumbnailWidth = thumbnailWidth;
-        React.findDOMNode(this.refs.ThumbnailWidth).value = thumbnailWidth;
+        ReactDOM.findDOMNode(this.refs.ThumbnailWidth).value = thumbnailWidth;
 
         var thumbnailHeight = 100;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.ThumbnailHeight).value, 10))) {
-            thumbnailHeight = parseInt(React.findDOMNode(this.refs.ThumbnailHeight).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailHeight).value, 10))) {
+            thumbnailHeight = parseInt(ReactDOM.findDOMNode(this.refs.ThumbnailHeight).value, 10);
         }
         config.FileSettings.ThumbnailHeight = thumbnailHeight;
-        React.findDOMNode(this.refs.ThumbnailHeight).value = thumbnailHeight;
+        ReactDOM.findDOMNode(this.refs.ThumbnailHeight).value = thumbnailHeight;
 
         var previewWidth = 1024;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.PreviewWidth).value, 10))) {
-            previewWidth = parseInt(React.findDOMNode(this.refs.PreviewWidth).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.PreviewWidth).value, 10))) {
+            previewWidth = parseInt(ReactDOM.findDOMNode(this.refs.PreviewWidth).value, 10);
         }
         config.FileSettings.PreviewWidth = previewWidth;
-        React.findDOMNode(this.refs.PreviewWidth).value = previewWidth;
+        ReactDOM.findDOMNode(this.refs.PreviewWidth).value = previewWidth;
 
         var previewHeight = 0;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.PreviewHeight).value, 10))) {
-            previewHeight = parseInt(React.findDOMNode(this.refs.PreviewHeight).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.PreviewHeight).value, 10))) {
+            previewHeight = parseInt(ReactDOM.findDOMNode(this.refs.PreviewHeight).value, 10);
         }
         config.FileSettings.PreviewHeight = previewHeight;
-        React.findDOMNode(this.refs.PreviewHeight).value = previewHeight;
+        ReactDOM.findDOMNode(this.refs.PreviewHeight).value = previewHeight;
 
         var profileWidth = 128;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.ProfileWidth).value, 10))) {
-            profileWidth = parseInt(React.findDOMNode(this.refs.ProfileWidth).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ProfileWidth).value, 10))) {
+            profileWidth = parseInt(ReactDOM.findDOMNode(this.refs.ProfileWidth).value, 10);
         }
         config.FileSettings.ProfileWidth = profileWidth;
-        React.findDOMNode(this.refs.ProfileWidth).value = profileWidth;
+        ReactDOM.findDOMNode(this.refs.ProfileWidth).value = profileWidth;
 
         var profileHeight = 128;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.ProfileHeight).value, 10))) {
-            profileHeight = parseInt(React.findDOMNode(this.refs.ProfileHeight).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.ProfileHeight).value, 10))) {
+            profileHeight = parseInt(ReactDOM.findDOMNode(this.refs.ProfileHeight).value, 10);
         }
         config.FileSettings.ProfileHeight = profileHeight;
-        React.findDOMNode(this.refs.ProfileHeight).value = profileHeight;
+        ReactDOM.findDOMNode(this.refs.ProfileHeight).value = profileHeight;
 
         Client.saveConfig(
             config,

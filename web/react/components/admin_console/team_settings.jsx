@@ -27,17 +27,17 @@ export default class TeamSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.TeamSettings.SiteName = React.findDOMNode(this.refs.SiteName).value.trim();
-        config.TeamSettings.RestrictCreationToDomains = React.findDOMNode(this.refs.RestrictCreationToDomains).value.trim();
-        config.TeamSettings.EnableTeamCreation = React.findDOMNode(this.refs.EnableTeamCreation).checked;
-        config.TeamSettings.EnableUserCreation = React.findDOMNode(this.refs.EnableUserCreation).checked;
+        config.TeamSettings.SiteName = ReactDOM.findDOMNode(this.refs.SiteName).value.trim();
+        config.TeamSettings.RestrictCreationToDomains = ReactDOM.findDOMNode(this.refs.RestrictCreationToDomains).value.trim();
+        config.TeamSettings.EnableTeamCreation = ReactDOM.findDOMNode(this.refs.EnableTeamCreation).checked;
+        config.TeamSettings.EnableUserCreation = ReactDOM.findDOMNode(this.refs.EnableUserCreation).checked;
 
         var MaxUsersPerTeam = 50;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.MaxUsersPerTeam).value, 10))) {
-            MaxUsersPerTeam = parseInt(React.findDOMNode(this.refs.MaxUsersPerTeam).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MaxUsersPerTeam).value, 10))) {
+            MaxUsersPerTeam = parseInt(ReactDOM.findDOMNode(this.refs.MaxUsersPerTeam).value, 10);
         }
         config.TeamSettings.MaxUsersPerTeam = MaxUsersPerTeam;
-        React.findDOMNode(this.refs.MaxUsersPerTeam).value = MaxUsersPerTeam;
+        ReactDOM.findDOMNode(this.refs.MaxUsersPerTeam).value = MaxUsersPerTeam;
 
         Client.saveConfig(
             config,

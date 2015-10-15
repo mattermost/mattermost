@@ -107,7 +107,7 @@ export default class PostList extends React.Component {
         UserStore.addStatusesChangeListener(this.onTimeChange);
         SocketStore.addChangeListener(this.onSocketChange);
 
-        const postHolder = $(React.findDOMNode(this.refs.postlist));
+        const postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
 
         $(window).resize(() => {
             this.resize();
@@ -133,7 +133,7 @@ export default class PostList extends React.Component {
 
             $('.top-visible-post').removeClass('top-visible-post');
 
-            $(React.findDOMNode(this.refs.postlistcontent)).children().each(function select() {
+            $(ReactDOM.findDOMNode(this.refs.postlistcontent)).children().each(function select() {
                 if ($(this).position().top + $(this).height() / 2 > 0) {
                     $(this).addClass('top-visible-post');
                     return false;
@@ -158,7 +158,7 @@ export default class PostList extends React.Component {
         SocketStore.removeChangeListener(this.onSocketChange);
         $('body').off('click.userpopover');
         $(window).off('resize');
-        var postHolder = $(React.findDOMNode(this.refs.postlist));
+        var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         postHolder.off('scroll');
     }
     componentDidUpdate(prevProps, prevState) {
@@ -214,7 +214,7 @@ export default class PostList extends React.Component {
         }
     }
     componentWillUpdate() {
-        var postHolder = $(React.findDOMNode(this.refs.postlist));
+        var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         this.prevScrollTop = postHolder.scrollTop();
     }
     componentWillReceiveProps(nextProps) {
@@ -225,7 +225,7 @@ export default class PostList extends React.Component {
         }
     }
     resize() {
-        const postHolder = $(React.findDOMNode(this.refs.postlist));
+        const postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         if ($('#create_post').length > 0) {
             const height = $(window).height() - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
             postHolder.css('height', height + 'px');
@@ -233,12 +233,12 @@ export default class PostList extends React.Component {
     }
     scrollTo(val) {
         this.isUserScroll = false;
-        var postHolder = $(React.findDOMNode(this.refs.postlist));
+        var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         postHolder[0].scrollTop = val;
     }
     scrollToBottom(force) {
         this.isUserScroll = false;
-        var postHolder = $(React.findDOMNode(this.refs.postlist));
+        var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         if ($('#new_message_' + this.props.channelId)[0] && !this.userHasSeenNew && !force) {
             $('#new_message_' + this.props.channelId)[0].scrollIntoView();
         } else {
@@ -596,14 +596,14 @@ export default class PostList extends React.Component {
         var order = this.state.postList.order;
         var channelId = this.props.channelId;
 
-        $(React.findDOMNode(this.refs.loadmore)).text('Retrieving more messages...');
+        $(ReactDOM.findDOMNode(this.refs.loadmore)).text('Retrieving more messages...');
 
         Client.getPostsPage(
             channelId,
             order.length,
             Constants.POST_CHUNK_SIZE,
             function success(data) {
-                $(React.findDOMNode(this.refs.loadmore)).text('Load more messages');
+                $(ReactDOM.findDOMNode(this.refs.loadmore)).text('Load more messages');
                 this.gotMorePosts = true;
                 this.setState({numToDisplay: this.state.numToDisplay + Constants.POST_CHUNK_SIZE});
 
@@ -628,7 +628,7 @@ export default class PostList extends React.Component {
                 Client.getProfiles();
             }.bind(this),
             function fail(err) {
-                $(React.findDOMNode(this.refs.loadmore)).text('Load more messages');
+                $(ReactDOM.findDOMNode(this.refs.loadmore)).text('Load more messages');
                 AsyncClient.dispatchError(err, 'getPosts');
             }.bind(this)
         );

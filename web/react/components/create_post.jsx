@@ -174,7 +174,7 @@ export default class CreatePost extends React.Component {
     postMsgKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            React.findDOMNode(this.refs.textbox).blur();
+            ReactDOM.findDOMNode(this.refs.textbox).blur();
             this.handleSubmit(e);
         }
 
@@ -192,7 +192,7 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
     resizePostHolder() {
-        const height = $(window).height() - $(React.findDOMNode(this.refs.topDiv)).height() - 50;
+        const height = $(window).height() - $(ReactDOM.findDOMNode(this.refs.topDiv)).height() - 50;
         $('.post-list-holder-by-time').css('height', `${height}px`);
         $(window).trigger('resize');
         if ($(window).width() > 960) {
@@ -243,7 +243,7 @@ export default class CreatePost extends React.Component {
     handleTextDrop(text) {
         const newText = this.state.messageText + text;
         this.handleUserInput(newText);
-        Utils.setCaretPosition(React.findDOMNode(this.refs.textbox.refs.message), newText.length);
+        Utils.setCaretPosition(ReactDOM.findDOMNode(this.refs.textbox.refs.message), newText.length);
     }
     removePreview(id) {
         const previews = Object.assign([], this.state.previews);

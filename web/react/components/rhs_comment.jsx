@@ -55,7 +55,7 @@ export default class RhsComment extends React.Component {
         this.forceUpdate();
     }
     parseEmojis() {
-        twemoji.parse(React.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
     }
     componentDidMount() {
         this.parseEmojis();

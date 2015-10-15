@@ -13,7 +13,7 @@ export default class SelectTeamModal extends React.Component {
 
     doSubmit(e) {
         e.preventDefault();
-        this.props.onModalSubmit(React.findDOMNode(this.refs.team).value);
+        this.props.onModalSubmit(ReactDOM.findDOMNode(this.refs.team).value);
     }
     doCancel() {
         this.props.onModalDismissed();

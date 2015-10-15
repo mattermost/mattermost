@@ -37,7 +37,7 @@ export default class SettingsUpload extends React.Component {
 
     doSubmit(e) {
         e.preventDefault();
-        var inputnode = React.findDOMNode(this.refs.uploadinput);
+        var inputnode = ReactDOM.findDOMNode(this.refs.uploadinput);
         if (inputnode.files && inputnode.files[0]) {
             this.props.submit(inputnode.files[0]);
         } else {

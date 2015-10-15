@@ -15,7 +15,7 @@ export default class PostDeletedModal extends React.Component {
         this.state = {};
     }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', () => {
             this.handleClose();
         });
     }

@@ -61,7 +61,7 @@ export default class MentionList extends React.Component {
     }
     onClick(e) {
         if (!($('#' + this.props.id).is(e.target) || $('#' + this.props.id).has(e.target).length ||
-              ('mentionlist' in this.refs && $(React.findDOMNode(this.refs.mentionlist)).has(e.target).length))) {
+              ('mentionlist' in this.refs && $(ReactDOM.findDOMNode(this.refs.mentionlist)).has(e.target).length))) {
             this.setState({mentionText: '-1'});
         }
     }

@@ -41,7 +41,7 @@ export default class DeleteChannelModal extends React.Component {
         });
     }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     render() {
         const channel = ChannelStore.getCurrent();

@@ -27,7 +27,7 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     componentDidMount() {
-        $(React.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
+        $(ReactDOM.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
             this.blockToggle = true;
             setTimeout(() => {
                 this.blockToggle = false;
@@ -36,7 +36,7 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     componentWillUnmount() {
-        $(React.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
+        $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
     }
 
     render() {

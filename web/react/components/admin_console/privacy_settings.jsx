@@ -28,8 +28,8 @@ export default class PrivacySettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.PrivacySettings.ShowEmailAddress = React.findDOMNode(this.refs.ShowEmailAddress).checked;
-        config.PrivacySettings.ShowFullName = React.findDOMNode(this.refs.ShowFullName).checked;
+        config.PrivacySettings.ShowEmailAddress = ReactDOM.findDOMNode(this.refs.ShowEmailAddress).checked;
+        config.PrivacySettings.ShowFullName = ReactDOM.findDOMNode(this.refs.ShowFullName).checked;
 
         Client.saveConfig(
             config,

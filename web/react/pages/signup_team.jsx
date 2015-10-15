@@ -4,7 +4,7 @@
 var SignupTeam = require('../components/signup_team.jsx');
 
 function setupSignupTeamPage() {
-    React.render(
+    ReactDOM.render(
         <SignupTeam />,
         document.getElementById('signup-team')
     );

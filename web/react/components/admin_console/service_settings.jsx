@@ -27,28 +27,28 @@ export default class ServiceSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.ServiceSettings.ListenAddress = React.findDOMNode(this.refs.ListenAddress).value.trim();
+        config.ServiceSettings.ListenAddress = ReactDOM.findDOMNode(this.refs.ListenAddress).value.trim();
         if (config.ServiceSettings.ListenAddress === '') {
             config.ServiceSettings.ListenAddress = ':8065';
-            React.findDOMNode(this.refs.ListenAddress).value = config.ServiceSettings.ListenAddress;
+            ReactDOM.findDOMNode(this.refs.ListenAddress).value = config.ServiceSettings.ListenAddress;
         }
 
-        config.ServiceSettings.SegmentDeveloperKey = React.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
-        config.ServiceSettings.GoogleDeveloperKey = React.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
-        config.ServiceSettings.EnableIncomingWebhooks = React.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
-        config.ServiceSettings.EnablePostUsernameOverride = React.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
-        config.ServiceSettings.EnablePostIconOverride = React.findDOMNode(this.refs.EnablePostIconOverride).checked;
-        config.ServiceSettings.EnableTesting = React.findDOMNode(this.refs.EnableTesting).checked;
-        config.ServiceSettings.EnableSecurityFixAlert = React.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
+        config.ServiceSettings.SegmentDeveloperKey = ReactDOM.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
+        config.ServiceSettings.GoogleDeveloperKey = ReactDOM.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
+        config.ServiceSettings.EnableIncomingWebhooks = ReactDOM.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
+        config.ServiceSettings.EnablePostUsernameOverride = ReactDOM.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
+        config.ServiceSettings.EnablePostIconOverride = ReactDOM.findDOMNode(this.refs.EnablePostIconOverride).checked;
+        config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
+        config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
 
-        //config.ServiceSettings.EnableOAuthServiceProvider = React.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
+        //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
 
         var MaximumLoginAttempts = 10;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.MaximumLoginAttempts).value, 10))) {
-            MaximumLoginAttempts = parseInt(React.findDOMNode(this.refs.MaximumLoginAttempts).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MaximumLoginAttempts).value, 10))) {
+            MaximumLoginAttempts = parseInt(ReactDOM.findDOMNode(this.refs.MaximumLoginAttempts).value, 10);
         }
         config.ServiceSettings.MaximumLoginAttempts = MaximumLoginAttempts;
-        React.findDOMNode(this.refs.MaximumLoginAttempts).value = MaximumLoginAttempts;
+        ReactDOM.findDOMNode(this.refs.MaximumLoginAttempts).value = MaximumLoginAttempts;
 
         Client.saveConfig(
             config,

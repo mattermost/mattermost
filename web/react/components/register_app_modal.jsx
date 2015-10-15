@@ -14,7 +14,7 @@ export default class RegisterAppModal extends React.Component {
         this.state = {clientId: '', clientSecret: '', saved: false};
     }
     componentDidMount() {
-        $(React.findDOMNode(this)).on('hide.bs.modal', this.onHide);
+        $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', this.onHide);
     }
     register() {
         var state = this.state;
@@ -22,7 +22,7 @@ export default class RegisterAppModal extends React.Component {
 
         var app = {};
 
-        var name = this.refs.name.getDOMNode().value;
+        var name = this.refs.name.value;
         if (!name || name.length === 0) {
             state.nameError = 'Application name must be filled in.';
             this.setState(state);
@@ -31,7 +31,7 @@ export default class RegisterAppModal extends React.Component {
         state.nameError = null;
         app.name = name;
 
-        var homepage = this.refs.homepage.getDOMNode().value;
+        var homepage = this.refs.homepage.value;
         if (!homepage || homepage.length === 0) {
             state.homepageError = 'Homepage must be filled in.';
             this.setState(state);
@@ -40,10 +40,10 @@ export default class RegisterAppModal extends React.Component {
         state.homepageError = null;
         app.homepage = homepage;
 
-        var desc = this.refs.desc.getDOMNode().value;
+        var desc = this.refs.desc.value;
         app.description = desc;
 
-        var rawCallbacks = this.refs.callback.getDOMNode().value.trim();
+        var rawCallbacks = this.refs.callback.value.trim();
         if (!rawCallbacks || rawCallbacks.length === 0) {
             state.callbackError = 'At least one callback URL must be filled in.';
             this.setState(state);
@@ -73,7 +73,7 @@ export default class RegisterAppModal extends React.Component {
         this.setState({clientId: '', clientSecret: '', saved: false});
     }
     save() {
-        this.setState({saved: this.refs.save.getDOMNode().checked});
+        this.setState({saved: this.refs.save.checked});
     }
     render() {
         var nameError;

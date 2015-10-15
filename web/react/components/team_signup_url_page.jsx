@@ -23,7 +23,7 @@ export default class TeamSignupUrlPage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        const name = React.findDOMNode(this.refs.name).value.trim();
+        const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!name) {
             this.setState({nameError: 'This field is required'});
             return;

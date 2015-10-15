@@ -82,7 +82,7 @@ export default class SecurityTab extends React.Component {
         $('#user_settings').modal('hide');
     }
     handleClose() {
-        $(React.findDOMNode(this)).find('.form-control').each(function resetValue() {
+        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function resetValue() {
             this.value = '';
         });
         this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});

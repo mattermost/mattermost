@@ -25,14 +25,14 @@ export default class Login extends React.Component {
             return;
         }
 
-        const email = React.findDOMNode(this.refs.email).value.trim();
+        const email = ReactDOM.findDOMNode(this.refs.email).value.trim();
         if (!email) {
             state.serverError = 'An email is required';
             this.setState(state);
             return;
         }
 
-        const password = React.findDOMNode(this.refs.password).value.trim();
+        const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password) {
             state.serverError = 'A password is required';
             this.setState(state);

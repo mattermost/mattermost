@@ -76,13 +76,13 @@ export default class RenameChannelModal extends React.Component {
 
         Client.updateChannel(channel,
             function handleUpdateSuccess() {
-                $(React.findDOMNode(this.refs.modal)).modal('hide');
+                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
 
                 AsyncClient.getChannel(channel.id);
                 Utils.updateAddressBar(channel.name);
 
-                React.findDOMNode(this.refs.displayName).value = '';
-                React.findDOMNode(this.refs.channelName).value = '';
+                ReactDOM.findDOMNode(this.refs.displayName).value = '';
+                ReactDOM.findDOMNode(this.refs.channelName).value = '';
             }.bind(this),
             function handleUpdateError(err) {
                 state.serverError = err.message;
@@ -92,15 +92,15 @@ export default class RenameChannelModal extends React.Component {
         );
     }
     onNameChange() {
-        this.setState({channelName: React.findDOMNode(this.refs.channelName).value});
+        this.setState({channelName: ReactDOM.findDOMNode(this.refs.channelName).value});
     }
     onDisplayNameChange() {
-        this.setState({displayName: React.findDOMNode(this.refs.displayName).value});
+        this.setState({displayName: ReactDOM.findDOMNode(this.refs.displayName).value});
     }
     displayNameKeyUp() {
-        const displayName = React.findDOMNode(this.refs.displayName).value.trim();
+        const displayName = ReactDOM.findDOMNode(this.refs.displayName).value.trim();
         const channelName = Utils.cleanUpUrlable(displayName);
-        React.findDOMNode(this.refs.channelName).value = channelName;
+        ReactDOM.findDOMNode(this.refs.channelName).value = channelName;
         this.setState({channelName: channelName});
     }
     handleClose() {
@@ -119,11 +119,11 @@ export default class RenameChannelModal extends React.Component {
         this.setState({displayName: button.attr('data-display'), channelName: button.attr('data-name'), channelId: button.attr('data-channelid')});
     }
     componentDidMount() {
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.handleShow);
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.handleShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {
-        $(React.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
     }
     render() {
         let displayNameError = null;

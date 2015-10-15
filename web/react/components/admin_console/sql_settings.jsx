@@ -29,27 +29,27 @@ export default class SqlSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.SqlSettings.Trace = React.findDOMNode(this.refs.Trace).checked;
-        config.SqlSettings.AtRestEncryptKey = React.findDOMNode(this.refs.AtRestEncryptKey).value.trim();
+        config.SqlSettings.Trace = ReactDOM.findDOMNode(this.refs.Trace).checked;
+        config.SqlSettings.AtRestEncryptKey = ReactDOM.findDOMNode(this.refs.AtRestEncryptKey).value.trim();
 
         if (config.SqlSettings.AtRestEncryptKey === '') {
             config.SqlSettings.AtRestEncryptKey = crypto.randomBytes(256).toString('base64').substring(0, 32);
-            React.findDOMNode(this.refs.AtRestEncryptKey).value = config.SqlSettings.AtRestEncryptKey;
+            ReactDOM.findDOMNode(this.refs.AtRestEncryptKey).value = config.SqlSettings.AtRestEncryptKey;
         }
 
         var MaxOpenConns = 10;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.MaxOpenConns).value, 10))) {
-            MaxOpenConns = parseInt(React.findDOMNode(this.refs.MaxOpenConns).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MaxOpenConns).value, 10))) {
+            MaxOpenConns = parseInt(ReactDOM.findDOMNode(this.refs.MaxOpenConns).value, 10);
         }
         config.SqlSettings.MaxOpenConns = MaxOpenConns;
-        React.findDOMNode(this.refs.MaxOpenConns).value = MaxOpenConns;
+        ReactDOM.findDOMNode(this.refs.MaxOpenConns).value = MaxOpenConns;
 
         var MaxIdleConns = 10;
-        if (!isNaN(parseInt(React.findDOMNode(this.refs.MaxIdleConns).value, 10))) {
-            MaxIdleConns = parseInt(React.findDOMNode(this.refs.MaxIdleConns).value, 10);
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MaxIdleConns).value, 10))) {
+            MaxIdleConns = parseInt(ReactDOM.findDOMNode(this.refs.MaxIdleConns).value, 10);
         }
         config.SqlSettings.MaxIdleConns = MaxIdleConns;
-        React.findDOMNode(this.refs.MaxIdleConns).value = MaxIdleConns;
+        ReactDOM.findDOMNode(this.refs.MaxIdleConns).value = MaxIdleConns;
 
         Client.saveConfig(
             config,
@@ -79,7 +79,7 @@ export default class SqlSettings extends React.Component {
             return;
         }
 
-        React.findDOMNode(this.refs.AtRestEncryptKey).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
+        ReactDOM.findDOMNode(this.refs.AtRestEncryptKey).value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         var s = {saveNeeded: true, serverError: this.state.serverError};
         this.setState(s);
     }

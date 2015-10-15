@@ -12,7 +12,7 @@ export default class SettingPicture extends React.Component {
         if (file) {
             var reader = new FileReader();
 
-            var img = React.findDOMNode(this.refs.image);
+            var img = ReactDOM.findDOMNode(this.refs.image);
             reader.onload = function load(e) {
                 $(img).attr('src', e.target.result);
             };

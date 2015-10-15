@@ -14,6 +14,9 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 
+var Popover = ReactBootstrap.Popover;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+
 export default class Navbar extends React.Component {
     constructor(props) {
         super(props);
@@ -224,11 +227,15 @@ export default class Navbar extends React.Component {
             return (
                 <div className='navbar-brand'>
                     <div className='dropdown'>
-                        <div
-                            data-toggle='popover'
-                            data-content={popoverContent}
-                            className='description info-popover'
-                        />
+                        <OverlayTrigger
+                            trigger='click'
+                            placement='bottom'
+                            overlay={popoverContent}
+                            className='description'
+                            rootClose={true}
+                        >
+                            <div className='description info-popover'/>
+                        </OverlayTrigger>
                         <a
                             href='#'
                             className='dropdown-toggle theme'
@@ -330,11 +337,17 @@ export default class Navbar extends React.Component {
         var isDirect = false;
 
         if (channel) {
-            popoverContent = React.renderToString(
-                <MessageWrapper
-                    message={channel.description}
-                    options={{singleline: true, mentionHighlight: false}}
-                />
+            popoverContent = (
+                <Popover
+                    bsStyle='info'
+                    placement='bottom'
+                    id='description-popover'
+                >
+                    <MessageWrapper
+                        message={channel.description}
+                        options={{singleline: true, mentionHighlight: false}}
+                    />
+                </Popover>
             );
             isAdmin = Utils.isAdmin(this.state.member.roles);
 
@@ -354,19 +367,28 @@ export default class Navbar extends React.Component {
             }
 
             if (channel.description.length === 0) {
-                popoverContent = React.renderToString(
-                    <div>
-                        No channel description yet. <br/>
-                        <a
-                            href='#'
-                            data-toggle='modal'
-                            data-desc={channel.description}
-                            data-title={channel.display_name}
-                            data-channelid={channel.id}
-                            data-target='#edit_channel'
-                        >
-                            Click here
-                        </a> to add one.</div>
+                popoverContent = (
+                    <Popover
+                        bsStyle='info'
+                        placement='bottom'
+                        id='description-popover'
+                    >
+                        <div>
+                            {'No channel description yet.'}
+                            <br/>
+                            <a
+                                href='#'
+                                data-toggle='modal'
+                                data-desc={channel.description}
+                                data-title={channel.display_name}
+                                data-channelid={channel.id}
+                                data-target='#edit_channel'
+                            >
+                                {'Click here'}
+                            </a>
+                            {' to add one.'}
+                        </div>
+                    </Popover>
                 );
             }
         }
