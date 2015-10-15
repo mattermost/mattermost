@@ -300,14 +300,17 @@ export default class CreatePost extends React.Component {
 
             const channelId = ChannelStore.getCurrentId();
             const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
+            if (!lastPost) {
+                return;
+            }
             var type = (lastPost.root_id && lastPost.root_id.length > 0) ? 'Comment' : 'Post';
 
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_EDIT_POST,
-                refoucsId: '#post_textbox',
+                refocusId: '#post_textbox',
                 title: type,
                 message: lastPost.message,
-                lastPostId: lastPost.id,
+                postId: lastPost.id,
                 channelId: lastPost.channel_id
             });
         }

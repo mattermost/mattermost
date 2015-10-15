@@ -37,16 +37,15 @@ export default class EditPostModal extends React.Component {
 
         Client.updatePost(updatedPost,
             function success() {
-                AsyncClient.getPosts(this.state.channel_id);
+                AsyncClient.getPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
-            }.bind(this),
+            },
             function error(err) {
                 AsyncClient.dispatchError(err, 'updatePost');
             }
         );
 
         $('#edit_post').modal('hide');
-        $(this.state.refocusId).focus();
     }
     handleEditInput(editMessage) {
         this.setState({editText: editMessage});
@@ -90,6 +89,15 @@ export default class EditPostModal extends React.Component {
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
             self.refs.editbox.resize();
+            $('#edit_textbox').get(0).focus();
+        });
+
+        $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', function onShown() {
+            if (self.state.refocusId !== '') {
+                setTimeout(() => {
+                    $(self.state.refocusId).get(0).focus();
+                });
+            }
         });
 
         PostStore.addEditPostListener(this.handleEditPostEvent);
