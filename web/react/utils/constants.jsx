@@ -56,7 +56,7 @@ module.exports = {
         NEW_USER: 'new_user',
         USER_ADDED: 'user_added',
         USER_REMOVED: 'user_removed',
-        TYPING: 'user_typing'
+        TYPING: 'typing'
     },
 
     SPECIAL_MENTIONS: ['all', 'channel'],

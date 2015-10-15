@@ -37,8 +37,8 @@ export default class MsgTyping extends React.Component {
 
     onChange(msg) {
         if (msg.action === SocketEvents.TYPING &&
-            this.props.channelId === msg.channel_id &&
-            this.props.parentId === msg.props.parent_id) {
+                this.props.channelId === msg.channel_id &&
+                this.props.parentId === msg.props.parent_id) {
             this.lastTime = new Date().getTime();
 
             var username = 'Someone';
