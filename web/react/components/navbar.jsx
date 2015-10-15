@@ -39,12 +39,6 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addExtraInfoChangeListener(this.onChange);
         $('.inner__wrap').click(this.hideSidebars);
-
-        $('body').on('click.infopopover', function handlePopoverClick(e) {
-            if ($(e.target).attr('data-toggle') !== 'popover' && $(e.target).parents('.popover.in').length === 0) {
-                $('.info-popover').popover('hide');
-            }
-        });
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);

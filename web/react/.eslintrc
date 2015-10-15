@@ -19,6 +19,7 @@
         },
         "globals": {
             "React": false,
+            "ReactDOM": false,
             "ReactBootstrap": false
         },
         "rules": {
