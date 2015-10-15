@@ -237,6 +237,45 @@ func fireAndForgetWelcomeEmail(userId, email, teamName, teamDisplayName, siteURL
 	}()
 }
 
+func addDirectChannelsAndForget(user *model.User) {
+	go func() {
+		var profiles map[string]*model.User
+		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+			return
+		} else {
+			profiles = result.Data.(map[string]*model.User)
+		}
+
+		var preferences model.Preferences
+
+		for id := range profiles {
+			if id == user.Id {
+				continue
+			}
+
+			profile := profiles[id]
+
+			preference := model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name:     profile.Id,
+				Value:    "true",
+			}
+
+			preferences = append(preferences, preference)
+
+			if len(preferences) >= 10 {
+				break
+			}
+		}
+
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+		}
+	}()
+}
+
 func FireAndForgetVerifyEmail(userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
