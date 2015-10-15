@@ -163,7 +163,7 @@ export default class NavbarDropdown extends React.Component {
 
         var teams = [];
 
-        if (Object.keys(this.state.teams).length > 1) {
+        if (this.state.teams.length > 1) {
             teams.push(
                 <li
                     className='divider'
@@ -172,14 +172,11 @@ export default class NavbarDropdown extends React.Component {
                 </li>
             );
 
-            for (let teamId in this.state.teams) {
-                if (this.state.teams.hasOwnProperty(teamId)) {
-                    let team = this.state.teams[teamId];
-                    if (team.name !== this.props.teamName) {
-                        teams.push(<li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>{'Switch to ' + team.display_name}</a></li>);
-                    }
+            this.state.teams.forEach((team) => {
+                if (team.name !== this.props.teamName) {
+                    teams.push(<li key={team.name}><a href={Utils.getWindowLocationOrigin() + '/' + team.name}>{'Switch to ' + team.display_name}</a></li>);
                 }
-            }
+            });
         }
 
         if (global.window.config.EnableTeamCreation === 'true') {
