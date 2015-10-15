@@ -8,6 +8,12 @@ import (
 	"io"
 )
 
+const (
+	SYSTEM_DIAGNOSTIC_ID      = "DiagnosticId"
+	SYSTEM_RAN_UNIT_TESTS     = "RanUnitTests"
+	SYSTEM_LAST_SECURITY_TIME = "LastSecurityTime"
+)
+
 type System struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`

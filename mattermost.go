@@ -84,16 +84,16 @@ func securityAndDiagnosticsJob() {
 			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
 				if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 					props := result.Data.(model.StringMap)
-					lastSecurityTime, _ := strconv.ParseInt(props["LastSecurityTime"], 10, 0)
+					lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
 					currentTime := model.GetMillis()
 
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
 						l4g.Debug("Checking for security update from Mattermost")
 
-						id := props["DiagnosticId"]
+						id := props[model.SYSTEM_DIAGNOSTIC_ID]
 						if len(id) == 0 {
 							id = model.NewId()
-							systemId := &model.System{Name: "DiagnosticId", Value: id}
+							systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
 							<-api.Srv.Store.System().Save(systemId)
 						}
 
@@ -104,7 +104,13 @@ func securityAndDiagnosticsJob() {
 						v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
 						v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
 
-						systemSecurityLastTime := &model.System{Name: "LastSecurityTime", Value: strconv.FormatInt(currentTime, 10)}
+						if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
+							v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
+						} else {
+							v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
+						}
+
+						systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
 						if lastSecurityTime == 0 {
 							<-api.Srv.Store.System().Save(systemSecurityLastTime)
 						} else {
