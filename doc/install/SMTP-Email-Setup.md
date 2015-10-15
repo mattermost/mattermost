@@ -31,7 +31,7 @@ To enable email, turn this option on by setting `SendEmailNotifications=true` an
         	"SMTPPassword": "DFKJoiweklsjdflkjOIGHLSDFJewiskdjf",
         	"SMTPServer": "email-smtp.us-east-1.amazonaws.com",
         	"SMTPPort": "465",
-        	"ConnectionSecurity": "tls",
+        	"ConnectionSecurity": "TLS",
         	"InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         	"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         	"ApplePushServer": "",
