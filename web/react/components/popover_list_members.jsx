@@ -35,13 +35,20 @@ export default class PopoverListMembers extends React.Component {
         const teamMembers = UserStore.getProfilesUsernameMap();
 
         if (members && teamMembers) {
-            members.sort(function compareByLocal(a, b) {
+            members.sort((a, b) => {
                 return a.username.localeCompare(b.username);
             });
 
-            members.forEach(function addMemberElement(m) {
+            members.forEach((m, i) => {
                 if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
-                    popoverHtml.push(<div className='text--nowrap'>{m.username}</div>);
+                    popoverHtml.push(
+                        <div
+                            className='text--nowrap'
+                            key={'popover-member-' + i}
+                        >
+                            {m.username}
+                        </div>
+                    );
                     count++;
                 }
             });
@@ -58,7 +65,14 @@ export default class PopoverListMembers extends React.Component {
                 trigger='click'
                 placement='bottom'
                 rootClose={true}
-                overlay={<Popover title='Members'>{popoverHtml}</Popover>}
+                overlay={
+                    <Popover
+                        title='Members'
+                        id='member-list-popover'
+                    >
+                        {popoverHtml}
+                    </Popover>
+                }
             >
             <div id='member_popover'>
                 <div>

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import { savePreferences } from '../../utils/client.jsx';
+import {savePreferences} from '../../utils/client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
@@ -38,7 +38,7 @@ export default class UserSettingsDisplay extends React.Component {
         );
     }
     handleClockRadio(militaryTime) {
-        this.setState({militaryTime: militaryTime});
+        this.setState({militaryTime});
     }
     updateSection(section) {
         this.setState(getDisplayStateFromStores());
@@ -57,7 +57,7 @@ export default class UserSettingsDisplay extends React.Component {
         const serverError = this.state.serverError || null;
         let clockSection;
         if (this.props.activeSection === 'clock') {
-            let clockFormat = [false, false];
+            const clockFormat = [false, false];
             if (this.state.militaryTime === 'true') {
                 clockFormat[1] = true;
             } else {
@@ -77,9 +77,8 @@ export default class UserSettingsDisplay extends React.Component {
                                 type='radio'
                                 checked={clockFormat[0]}
                                 onChange={this.handleClockRadio.bind(this, 'false')}
-                            >
-                                12-hour clock (example: 4:00 PM)
-                            </input>
+                            />
+                            {'12-hour clock (example: 4:00 PM)'}
                         </label>
                         <br/>
                     </div>
@@ -89,16 +88,14 @@ export default class UserSettingsDisplay extends React.Component {
                                 type='radio'
                                 checked={clockFormat[1]}
                                 onChange={this.handleClockRadio.bind(this, 'true')}
-                            >
-                                24-hour clock (example: 16:00)
-                            </input>
+                            />
+                            {'24-hour clock (example: 16:00)'}
                         </label>
                         <br/>
                     </div>
                     <div><br/>{'Select how you prefer time displayed.'}</div>
                 </div>
             ];
-
 
             clockSection = (
                 <SettingItemMax
@@ -138,13 +135,13 @@ export default class UserSettingsDisplay extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
-                        >
+                    >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
-                        >
+                    >
                         <i className='modal-back'></i>
                         {'Display Settings'}
                     </h4>

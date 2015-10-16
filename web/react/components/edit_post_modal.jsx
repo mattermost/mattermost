@@ -70,7 +70,7 @@ export default class EditPostModal extends React.Component {
             refocusId: options.refocusId || ''
         });
 
-        $(React.findDOMNode(this.refs.modal)).modal('show');
+        $(ReactDOM.findDOMNode(this.refs.modal)).modal('show');
     }
     componentDidMount() {
         var self = this;
@@ -92,7 +92,7 @@ export default class EditPostModal extends React.Component {
             $('#edit_textbox').get(0).focus();
         });
 
-        $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', function onShown() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hide.bs.modal', function onShown() {
             if (self.state.refocusId !== '') {
                 setTimeout(() => {
                     $(self.state.refocusId).get(0).focus();

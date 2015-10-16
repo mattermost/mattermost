@@ -60,9 +60,10 @@ func TestGetAllPreferences(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
+	// note that user2 will automatically have a preference set for them to show user1 for direct messages
 	if result, err := Client.GetAllPreferences(); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 0 {
+	} else if data := result.Data.(model.Preferences); len(data) != 1 {
 		t.Fatal("received the wrong number of preferences")
 	}
 }

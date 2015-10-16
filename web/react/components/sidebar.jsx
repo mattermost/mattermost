@@ -46,7 +46,7 @@ export default class Sidebar extends React.Component {
 
         const state = this.getStateFromStores();
         state.newChannelModalType = '';
-        state.showMoreDirectChannelsModal = false;
+        state.showDirectChannelsModal = false;
         state.loadingDMChannel = -1;
 
         this.state = state;
@@ -471,7 +471,9 @@ export default class Sidebar extends React.Component {
         }
 
         let closeButton = null;
-        const removeTooltip = <Tooltip>{'Remove from list'}</Tooltip>;
+        const removeTooltip = (
+            <Tooltip id='remove-dm-tooltip'>{'Remove from list'}</Tooltip>
+        );
         if (handleClose && !badge) {
             closeButton = (
                 <OverlayTrigger
@@ -564,8 +566,12 @@ export default class Sidebar extends React.Component {
             showChannelModal = true;
         }
 
-        const createChannelTootlip = <Tooltip>{'Create new channel'}</Tooltip>;
-        const createGroupTootlip = <Tooltip>{'Create new group'}</Tooltip>;
+        const createChannelTootlip = (
+            <Tooltip id='new-channel-tooltip' >{'Create new channel'}</Tooltip>
+        );
+        const createGroupTootlip = (
+            <Tooltip id='new-group-tooltip'>{'Create new group'}</Tooltip>
+        );
 
         return (
             <div>

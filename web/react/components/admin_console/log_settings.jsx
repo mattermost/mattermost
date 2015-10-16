@@ -249,22 +249,24 @@ export default class LogSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.fileEnable}
                             />
-                            <p className='help-text'>
+                            <div className='help-text'>
                                 {'Format of log message output. If blank will be set to "[%D %T] [%L] %M", where:'}
                                 <div className='help-text'>
                                     <table
                                         className='table table-bordered'
                                         cellPadding='5'
                                     >
-                                        <tr><td className='help-text'>{'%T'}</td><td className='help-text'>{'Time (15:04:05 MST)'}</td></tr>
-                                        <tr><td className='help-text'>{'%D'}</td><td className='help-text'>{'Date (2006/01/02)'}</td></tr>
-                                        <tr><td className='help-text'>{'%d'}</td><td className='help-text'>{'Date (01/02/06)'}</td></tr>
-                                        <tr><td className='help-text'>{'%L'}</td><td className='help-text'>{'Level (DEBG, INFO, EROR)'}</td></tr>
-                                        <tr><td className='help-text'>{'%S'}</td><td className='help-text'>{'Source'}</td></tr>
-                                        <tr><td className='help-text'>{'%M'}</td><td className='help-text'>{'Message'}</td></tr>
+                                        <tbody>
+                                            <tr><td className='help-text'>{'%T'}</td><td className='help-text'>{'Time (15:04:05 MST)'}</td></tr>
+                                            <tr><td className='help-text'>{'%D'}</td><td className='help-text'>{'Date (2006/01/02)'}</td></tr>
+                                            <tr><td className='help-text'>{'%d'}</td><td className='help-text'>{'Date (01/02/06)'}</td></tr>
+                                            <tr><td className='help-text'>{'%L'}</td><td className='help-text'>{'Level (DEBG, INFO, EROR)'}</td></tr>
+                                            <tr><td className='help-text'>{'%S'}</td><td className='help-text'>{'Source'}</td></tr>
+                                            <tr><td className='help-text'>{'%M'}</td><td className='help-text'>{'Message'}</td></tr>
+                                        </tbody>
                                     </table>
                                 </div>
-                            </p>
+                            </div>
                         </div>
                     </div>
 

@@ -228,9 +228,8 @@ export default class NotificationsTab extends React.Component {
                             <input type='radio'
                                 checked={notifyActive[0]}
                                 onChange={this.handleNotifyRadio.bind(this, 'all')}
-                            >
-                                For all activity
-                            </input>
+                            />
+                            {'For all activity'}
                         </label>
                         <br/>
                     </div>
@@ -240,9 +239,8 @@ export default class NotificationsTab extends React.Component {
                                 type='radio'
                                 checked={notifyActive[1]}
                                 onChange={this.handleNotifyRadio.bind(this, 'mention')}
-                            >
-                                Only for mentions and direct messages
-                            </input>
+                            />
+                            {'Only for mentions and direct messages'}
                         </label>
                         <br/>
                     </div>
@@ -252,9 +250,8 @@ export default class NotificationsTab extends React.Component {
                                 type='radio'
                                 checked={notifyActive[2]}
                                 onChange={this.handleNotifyRadio.bind(this, 'none')}
-                            >
-                                Never
-                            </input>
+                            />
+                            {'Never'}
                         </label>
                     </div>
                 </div>
@@ -320,9 +317,8 @@ export default class NotificationsTab extends React.Component {
                                 type='radio'
                                 checked={soundActive[0]}
                                 onChange={this.handleSoundRadio.bind(this, 'true')}
-                            >
-                                On
-                            </input>
+                            />
+                            {'On'}
                         </label>
                         <br/>
                     </div>
@@ -332,9 +328,8 @@ export default class NotificationsTab extends React.Component {
                                 type='radio'
                                 checked={soundActive[1]}
                                 onChange={this.handleSoundRadio.bind(this, 'false')}
-                            >
-                                Off
-                            </input>
+                            />
+                            {'Off'}
                         </label>
                         <br/>
                      </div>
@@ -402,9 +397,8 @@ export default class NotificationsTab extends React.Component {
                                 type='radio'
                                 checked={emailActive[0]}
                                 onChange={this.handleEmailRadio.bind(this, 'true')}
-                            >
-                                On
-                            </input>
+                            />
+                            {'On'}
                         </label>
                         <br/>
                     </div>
@@ -414,9 +408,8 @@ export default class NotificationsTab extends React.Component {
                                 type='radio'
                                 checked={emailActive[1]}
                                 onChange={this.handleEmailRadio.bind(this, 'false')}
-                            >
-                                Off
-                            </input>
+                            />
+                            {'Off'}
                         </label>
                         <br/>
                     </div>
@@ -482,9 +475,8 @@ export default class NotificationsTab extends React.Component {
                                     type='checkbox'
                                     checked={this.state.firstNameKey}
                                     onChange={handleUpdateFirstNameKey}
-                                >
-                                    {'Your case sensitive first name "' + user.first_name + '"'}
-                                </input>
+                                />
+                                {'Your case sensitive first name "' + user.first_name + '"'}
                             </label>
                         </div>
                     </div>
@@ -502,9 +494,8 @@ export default class NotificationsTab extends React.Component {
                                 type='checkbox'
                                 checked={this.state.usernameKey}
                                 onChange={handleUpdateUsernameKey}
-                            >
-                                {'Your non-case sensitive username "' + user.username + '"'}
-                            </input>
+                            />
+                            {'Your non-case sensitive username "' + user.username + '"'}
                         </label>
                     </div>
                 </div>
@@ -521,9 +512,8 @@ export default class NotificationsTab extends React.Component {
                                 type='checkbox'
                                 checked={this.state.mentionKey}
                                 onChange={handleUpdateMentionKey}
-                            >
-                                {'Your username mentioned "@' + user.username + '"'}
-                            </input>
+                            />
+                            {'Your username mentioned "@' + user.username + '"'}
                         </label>
                     </div>
                 </div>
@@ -540,9 +530,8 @@ export default class NotificationsTab extends React.Component {
                                 type='checkbox'
                                 checked={this.state.allKey}
                                 onChange={handleUpdateAllKey}
-                            >
-                                {'Team-wide mentions "@all"'}
-                            </input>
+                            />
+                            {'Team-wide mentions "@all"'}
                         </label>
                     </div>
                 </div>
@@ -559,9 +548,8 @@ export default class NotificationsTab extends React.Component {
                                 type='checkbox'
                                 checked={this.state.channelKey}
                                 onChange={handleUpdateChannelKey}
-                            >
-                                {'Channel-wide mentions "@channel"'}
-                            </input>
+                            />
+                            {'Channel-wide mentions "@channel"'}
                         </label>
                     </div>
                 </div>
@@ -576,9 +564,8 @@ export default class NotificationsTab extends React.Component {
                                 type='checkbox'
                                 checked={this.state.customKeysChecked}
                                 onChange={this.updateCustomMentionKeys}
-                            >
-                                {'Other non-case sensitive words, separated by commas:'}
-                            </input>
+                            />
+                            {'Other non-case sensitive words, separated by commas:'}
                         </label>
                     </div>
                     <input
