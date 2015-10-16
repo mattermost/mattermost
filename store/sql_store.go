@@ -32,7 +32,6 @@ import (
 
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
-	INDEX_TYPE_PATTERN   = "pattern"
 	INDEX_TYPE_DEFAULT   = "default"
 )
 
@@ -376,10 +375,6 @@ func (ss SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName st
 	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT)
 }
 
-func (ss SqlStore) CreatePatternIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_PATTERN)
-}
-
 func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string) {
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
@@ -392,8 +387,6 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		query := ""
 		if indexType == INDEX_TYPE_FULL_TEXT {
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + columnName + "))"
-		} else if indexType == INDEX_TYPE_PATTERN {
-			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + " text_pattern_ops)"
 		} else {
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
@@ -418,7 +411,7 @@ func (ss SqlStore) createIndexIfNotExists(indexName string, tableName string, co
 		}
 
 		fullTextIndex := ""
-		if indexType == INDEX_TYPE_FULL_TEXT || indexType == INDEX_TYPE_PATTERN {
+		if indexType == INDEX_TYPE_FULL_TEXT {
 			fullTextIndex = " FULLTEXT "
 		}
 

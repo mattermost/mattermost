@@ -119,3 +119,17 @@ func (o *OutgoingWebhook) PreSave() {
 func (o *OutgoingWebhook) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
+
+func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
+	if len(o.TriggerWords) == 0 || len(word) == 0 {
+		return false
+	}
+
+	for _, trigger := range o.TriggerWords {
+		if trigger == word {
+			return true
+		}
+	}
+
+	return false
+}

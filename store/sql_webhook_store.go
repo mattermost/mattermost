@@ -5,7 +5,6 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 )
 
 type SqlWebhookStore struct {
@@ -42,8 +41,6 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_incoming_webhook_user_id", "IncomingWebhooks", "UserId")
 	s.CreateIndexIfNotExists("idx_incoming_webhook_team_id", "IncomingWebhooks", "TeamId")
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_channel_id", "OutgoingWebhooks", "ChannelId")
-
-	s.CreatePatternIndexIfNotExists("idx_outgoing_webhook_trigger_txt", "OutgoingWebhooks", "TriggerWords")
 }
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChannel {
@@ -237,7 +234,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByTriggerWord(teamId, channelId, triggerWord string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -245,50 +242,8 @@ func (s SqlWebhookStore) GetOutgoingByTriggerWord(teamId, channelId, triggerWord
 
 		var webhooks []*model.OutgoingWebhook
 
-		var err error
-
-		if utils.Cfg.SqlSettings.DriverName == "postgres" {
-
-			searchQuery := `SELECT
-				    *
-				FROM
-				    OutgoingWebhooks
-				WHERE
-				    DeleteAt = 0
-				    AND TeamId = $1
-				    AND TriggerWords LIKE '%' || $2 || '%'`
-
-			if len(channelId) != 0 {
-				searchQuery += " AND (ChannelId = $3 OR ChannelId = '')"
-				_, err = s.GetReplica().Select(&webhooks, searchQuery, teamId, triggerWord, channelId)
-			} else {
-				searchQuery += " AND ChannelId = ''"
-				_, err = s.GetReplica().Select(&webhooks, searchQuery, teamId, triggerWord)
-			}
-
-		} else if utils.Cfg.SqlSettings.DriverName == "mysql" {
-			searchQuery := `SELECT
-				    *
-				FROM
-				    OutgoingWebhooks
-				WHERE
-				    DeleteAt = 0
-				    AND TeamId = ?
-				    AND MATCH (TriggerWords) AGAINST (? IN BOOLEAN MODE)`
-
-			triggerWord = "+" + triggerWord
-
-			if len(channelId) != 0 {
-				searchQuery += " AND (ChannelId = ? OR ChannelId = '')"
-				_, err = s.GetReplica().Select(&webhooks, searchQuery, teamId, triggerWord, channelId)
-			} else {
-				searchQuery += " AND ChannelId = ''"
-				_, err = s.GetReplica().Select(&webhooks, searchQuery, teamId, triggerWord)
-			}
-		}
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetOutgoingByTriggerWord", "We encounted an error while getting the outgoing webhooks by trigger word", "teamId="+teamId+", channelId="+channelId+", triggerWord="+triggerWord+", err="+err.Error())
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "We couldn't get the webhooks", "teamId="+teamId+", err="+err.Error())
 		}
 
 		result.Data = webhooks

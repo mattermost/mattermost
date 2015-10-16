@@ -201,27 +201,18 @@ func TestWebhookStoreGetOutgoingByCreator(t *testing.T) {
 	}
 }
 
-func TestWebhookStoreGetOutgoingByTriggerWord(t *testing.T) {
+func TestWebhookStoreGetOutgoingByTeam(t *testing.T) {
 	Setup()
 
 	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
 	o1.TeamId = model.NewId()
-	o1.TriggerWords = []string{"trigger"}
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
 	o1 = (<-store.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
 
-	o2 := &model.OutgoingWebhook{}
-	o2.CreatorId = model.NewId()
-	o2.TeamId = o1.TeamId
-	o2.ChannelId = model.NewId()
-	o2.TriggerWords = []string{"trigger"}
-	o2.CallbackURLs = []string{"http://nowhere.com/"}
-
-	o2 = (<-store.Webhook().SaveOutgoing(o2)).Data.(*model.OutgoingWebhook)
-
-	if r1 := <-store.Webhook().GetOutgoingByTriggerWord(o1.TeamId, "", "trigger"); r1.Err != nil {
+	if r1 := <-store.Webhook().GetOutgoingByTeam(o1.TeamId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.([]*model.OutgoingWebhook)[0].CreateAt != o1.CreateAt {
@@ -229,15 +220,7 @@ func TestWebhookStoreGetOutgoingByTriggerWord(t *testing.T) {
 		}
 	}
 
-	if r1 := <-store.Webhook().GetOutgoingByTriggerWord(o2.TeamId, o2.ChannelId, "trigger"); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if len(r1.Data.([]*model.OutgoingWebhook)) != 2 {
-			t.Fatal("wrong number of webhooks returned")
-		}
-	}
-
-	if result := <-store.Webhook().GetOutgoingByTriggerWord(o1.TeamId, "", "blargh"); result.Err != nil {
+	if result := <-store.Webhook().GetOutgoingByTeam("123"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if len(result.Data.([]*model.OutgoingWebhook)) != 0 {
