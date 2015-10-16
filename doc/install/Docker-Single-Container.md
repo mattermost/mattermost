@@ -2,6 +2,13 @@
 
 The following install instructions are for single-container installs of Mattermost using Docker for exploring product functionality and upgrading to newer versions.
 
+### One-line Docker Install ###
+
+If you have Docker set up, Mattermost installs in one-line:  
+`docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
+
+Otherwise, see step-by-step available: 
+
 ### Mac OSX ###
 
 1. Install Docker Toolbox using instructions at: http://docs.docker.com/installation/mac/  
