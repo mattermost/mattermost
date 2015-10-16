@@ -110,7 +110,7 @@ export default class TeamSignupWelcomePage extends React.Component {
                         src='/static/images/logo.png'
                     />
                     <h3 className='sub-heading'>Welcome to:</h3>
-                    <h1 className='margin--top-none'>{global.window.config.SiteName}</h1>
+                    <h1 className='margin--top-none'>{global.window.mm_config.SiteName}</h1>
                 </p>
                 <p className='margin--less'>Let's set up your new team</p>
                 <p>

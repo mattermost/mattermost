@@ -420,7 +420,7 @@ export default class NotificationsTab extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'Email notifications are sent for mentions and direct messages after you’ve been offline for more than 60 seconds or away from ' + global.window.config.SiteName + ' for more than 5 minutes.'}</div>
+                    <div><br/>{'Email notifications are sent for mentions and direct messages after you’ve been offline for more than 60 seconds or away from ' + global.window.mm_config.SiteName + ' for more than 5 minutes.'}</div>
                 </div>
             );
 

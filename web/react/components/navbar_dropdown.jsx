@@ -161,7 +161,7 @@ export default class NavbarDropdown extends React.Component {
             });
         }
 
-        if (global.window.config.EnableTeamCreation === 'true') {
+        if (global.window.mm_config.EnableTeamCreation === 'true') {
             teams.push(
                 <li key='newTeam_li'>
                     <a

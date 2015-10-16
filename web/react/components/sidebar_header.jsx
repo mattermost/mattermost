@@ -61,7 +61,7 @@ export default class SidebarHeader extends React.Component {
 }
 
 SidebarHeader.defaultProps = {
-    teamDisplayName: global.window.config.SiteName,
+    teamDisplayName: global.window.mm_config.SiteName,
     teamType: ''
 };
 SidebarHeader.propTypes = {

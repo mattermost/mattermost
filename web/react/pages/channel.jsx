@@ -35,23 +35,15 @@ var RemovedFromChannelModal = require('../components/removed_from_channel_modal.
 var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
 var RegisterAppModal = require('../components/register_app_modal.jsx');
 var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
-var TeamStore = require('../stores/team_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 function setupChannelPage(props) {
-    TeamStore.setCurrentId(props.TeamId);
-
     AppDispatcher.handleViewAction({
         type: ActionTypes.CLICK_CHANNEL,
         name: props.ChannelName,
         id: props.ChannelId
-    });
-
-    AppDispatcher.handleViewAction({
-        type: ActionTypes.CLICK_TEAM,
-        id: props.TeamId
     });
 
     // ChannelLoader must be rendered first
@@ -234,7 +226,7 @@ function setupChannelPage(props) {
         document.getElementById('register_app_modal')
     );
 
-    if (global.window.config.SendEmailNotifications === 'false') {
+    if (global.window.mm_config.SendEmailNotifications === 'false') {
         ErrorStore.storeLastError({message: 'Preview Mode: Email notifications have not been configured'});
         ErrorStore.emitChange();
     }

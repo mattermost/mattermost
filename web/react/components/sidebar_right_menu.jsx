@@ -92,8 +92,8 @@ export default class SidebarRightMenu extends React.Component {
         }
 
         var siteName = '';
-        if (global.window.config.SiteName != null) {
-            siteName = global.window.config.SiteName;
+        if (global.window.mm_config.SiteName != null) {
+            siteName = global.window.mm_config.SiteName;
         }
         var teamDisplayName = siteName;
         if (this.props.teamDisplayName) {

@@ -32,7 +32,10 @@ type Context struct {
 type Page struct {
 	TemplateName string
 	Props        map[string]string
-	ClientProps  map[string]string
+	ClientCfg    map[string]string
+	User         *model.User
+	Team         *model.Team
+	Session      *model.Session
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -479,7 +482,7 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(err.StatusCode)
-	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientProps: utils.ClientProperties})
+	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientCfg: utils.ClientCfg})
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {

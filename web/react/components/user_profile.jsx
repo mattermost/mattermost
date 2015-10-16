@@ -71,7 +71,7 @@ export default class UserProfile extends React.Component {
                 width='128'
             />
         );
-        if (!global.window.config.ShowEmailAddress === 'true') {
+        if (!global.window.mm_config.ShowEmailAddress === 'true') {
             dataContent.push(<div className='text-nowrap'>{'Email not shared'}</div>);
         } else {
             dataContent.push(

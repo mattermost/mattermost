@@ -14,19 +14,19 @@ export default class TeamSignUp extends React.Component {
 
         var count = 0;
 
-        if (global.window.config.EnableSignUpWithEmail === 'true') {
+        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             count = count + 1;
         }
 
-        if (global.window.config.EnableSignUpWithGitLab === 'true') {
+        if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             count = count + 1;
         }
 
         if (count > 1) {
             this.state = {page: 'choose'};
-        } else if (global.window.config.EnableSignUpWithEmail === 'true') {
+        } else if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             this.state = {page: 'email'};
-        } else if (global.window.config.EnableSignUpWithGitLab === 'true') {
+        } else if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             this.state = {page: 'gitlab'};
         }
     }

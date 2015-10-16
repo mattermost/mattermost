@@ -19,7 +19,10 @@
     <!-- Android add to homescreen -->
 
     <script>
-        window.config = {{ .ClientProps }};
+        window.mm_config = {{ .ClientCfg }};
+        window.mm_team = {{ .Team }};
+        window.mm_user = {{ .User }};
+        window.mm_session = {{ .Session }};
     </script>
 
     <!-- CSS Should always go first -->
@@ -70,9 +73,9 @@
     </script>
 
     <script type="text/javascript">
-        if (window.config.SegmentDeveloperKey != null && window.config.SegmentDeveloperKey !== "") {
+        if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== "") {
             !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
-            analytics.load(window.config.SegmentDeveloperKey);
+            analytics.load(window.mm_config.SegmentDeveloperKey);
             var user = window.UserStore.getCurrentUser(true);
             if (user) {
               analytics.identify(user.id, {

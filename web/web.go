@@ -32,10 +32,22 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
-	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientProps: utils.ClientProperties}
+	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
+	//if me.Team != nil {
+	//me.Team.Sanitize()
+	//}
+
+	if me.User != nil {
+		me.User.Sanitize(map[string]bool{})
+	}
+
+	if me.Session != nil {
+		me.Session.Sanitize()
+	}
+
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
 		c.SetUnknownError(me.TemplateName, err.Error())
 	}
@@ -139,6 +151,40 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 
 }
 
+// func getTeamAndUserStart(c *api.Context) (store.StoreChannel, store.StoreChannel) {
+// 	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+// 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+// 	return teamChan, userChan
+// }
+
+// func getTeamAndUserWait(c *api.Context, team store.StoreChannel, user store.StoreChannel) (*model.Team, *model.User) {
+// 	if tr := <-team; tr.Err != nil {
+// 		c.Err = tr.Err
+// 		return nil, nil
+// 	} else {
+// 		if ur := <-user; ur.Err != nil {
+// 			c.Err = ur.Err
+// 			return nil, nil
+// 		} else {
+// 			return tr.Data.(*model.Team), ur.Data.(*model.User)
+// 		}
+// 	}
+// }
+
+func getTeamAndUser(c *api.Context) (*model.Team, *model.User) {
+	if tr := <-api.Srv.Store.Team().Get(c.Session.TeamId); tr.Err != nil {
+		c.Err = tr.Err
+		return nil, nil
+	} else {
+		if ur := <-api.Srv.Store.User().Get(c.Session.UserId); ur.Err != nil {
+			c.Err = ur.Err
+			return nil, nil
+		} else {
+			return tr.Data.(*model.Team), ur.Data.(*model.User)
+		}
+	}
+}
+
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if !CheckBrowserCompatability(c, r) {
@@ -149,7 +195,15 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
 		page.Render(c, w)
 	} else {
+		team, user := getTeamAndUser(c)
+		if c.Err != nil {
+			return
+		}
+
 		page := NewHtmlTemplatePage("home", "Home")
+		page.Team = team
+		page.User = user
+		page.Session = &c.Session
 		page.Props["TeamURL"] = c.GetTeamURL()
 		page.Render(c, w)
 	}
@@ -321,8 +375,10 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	name := params["channelname"]
 	teamName := params["team"]
 
-	var team *model.Team
-	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+	team, user := getTeamAndUser(c)
+	if c.Err != nil {
+		return
+	}
 
 	var channelId string
 	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
@@ -330,13 +386,6 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		channelId = result.Data.(string)
-	}
-
-	if tResult := <-teamChan; tResult.Err != nil {
-		c.Err = tResult.Err
-		return
-	} else {
-		team = tResult.Data.(*model.Team)
 	}
 
 	if team.Name != teamName {
@@ -392,7 +441,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("channel", "")
-	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientProps["SiteName"]
+	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 	page.Props["TeamType"] = team.Type
@@ -400,6 +449,9 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["ChannelName"] = name
 	page.Props["ChannelId"] = channelId
 	page.Props["UserId"] = c.Session.UserId
+	page.Team = team
+	page.User = user
+	page.Session = &c.Session
 	page.Render(c, w)
 }
 
@@ -498,7 +550,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("password_reset", "")
-	page.Props["Title"] = "Reset Password " + page.ClientProps["SiteName"]
+	page.Props["Title"] = "Reset Password " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
 	page.Props["TeamName"] = teamName
 	page.Props["Hash"] = hash
@@ -699,7 +751,15 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	team, user := getTeamAndUser(c)
+	if c.Err != nil {
+		return
+	}
+
 	page := NewHtmlTemplatePage("admin_console", "Admin Console")
+	page.User = user
+	page.Team = team
+	page.Session = &c.Session
 	page.Render(c, w)
 }
 

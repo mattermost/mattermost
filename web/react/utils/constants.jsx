@@ -32,7 +32,6 @@ module.exports = {
 
         RECIEVED_MSG: null,
 
-        CLICK_TEAM: null,
         RECIEVED_TEAM: null,
 
         RECIEVED_CONFIG: null,

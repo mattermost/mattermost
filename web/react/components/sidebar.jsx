@@ -265,8 +265,8 @@ export default class Sidebar extends React.Component {
         const channel = ChannelStore.getCurrent();
         if (channel) {
             let currentSiteName = '';
-            if (global.window.config.SiteName != null) {
-                currentSiteName = global.window.config.SiteName;
+            if (global.window.mm_config.SiteName != null) {
+                currentSiteName = global.window.mm_config.SiteName;
             }
 
             let currentChannelName = channel.display_name;

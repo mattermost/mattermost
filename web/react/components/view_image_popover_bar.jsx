@@ -7,7 +7,7 @@ export default class ViewImagePopoverBar extends React.Component {
     }
     render() {
         var publicLink = '';
-        if (global.window.config.EnablePublicLink === 'true') {
+        if (global.window.mm_config.EnablePublicLink === 'true') {
             publicLink = (
                 <div>
                     <a

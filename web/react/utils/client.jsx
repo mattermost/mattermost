@@ -232,6 +232,7 @@ export function logout() {
     track('api', 'api_users_logout');
     var currentTeamUrl = TeamStore.getCurrentTeamUrl();
     BrowserStore.clear();
+    ErrorStore.storeLastError(null);
     window.location.href = currentTeamUrl + '/logout';
 }
 
@@ -385,10 +386,9 @@ export function getAllTeams(success, error) {
     });
 }
 
-export function getMeSynchronous(success, error) {
+export function getMe(success, error) {
     var currentUser = null;
     $.ajax({
-        async: false,
         cache: false,
         url: '/api/v1/users/me',
         dataType: 'json',
@@ -402,7 +402,7 @@ export function getMeSynchronous(success, error) {
         },
         error: function onError(xhr, status, err) {
             if (error) {
-                var e = handleError('getMeSynchronous', xhr, status, err);
+                var e = handleError('getMe', xhr, status, err);
                 error(e);
             }
         }

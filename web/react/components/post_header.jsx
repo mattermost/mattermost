@@ -16,7 +16,7 @@ export default class PostHeader extends React.Component {
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
-            if (post.props.override_username && global.window.config.EnablePostUsernameOverride === 'true') {
+            if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
                     <UserProfile
                         userId={post.user_id}
