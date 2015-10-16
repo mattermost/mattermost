@@ -5,6 +5,7 @@
     border: $border-gray;
     bottom: 38px;
     overflow: auto;
+    z-index: 100
     @extend %popover-box-shadow;
     .sidebar--right & {
         bottom: 100px;
