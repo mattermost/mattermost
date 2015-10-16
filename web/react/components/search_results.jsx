@@ -4,7 +4,7 @@
 var PostStore = require('../stores/post_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var SearchBox = require('./search_bar.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var SearchResultsHeader = require('./search_results_header.jsx');
 var SearchResultsItem = require('./search_results_item.jsx');
 
@@ -20,18 +20,19 @@ export default class SearchResults extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.resize = this.resize.bind(this);
+        this.handleResize = this.handleResize.bind(this);
 
-        this.state = getStateFromStores();
+        const state = getStateFromStores();
+        state.windowWidth = Utils.windowWidth();
+        state.windowHeight = Utils.windowHeight();
+        this.state = state;
     }
 
     componentDidMount() {
         this.mounted = true;
         PostStore.addSearchChangeListener(this.onChange);
         this.resize();
-        var self = this;
-        $(window).resize(function resize() {
-            self.resize();
-        });
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentDidUpdate() {
@@ -41,22 +42,30 @@ export default class SearchResults extends React.Component {
     componentWillUnmount() {
         PostStore.removeSearchChangeListener(this.onChange);
         this.mounted = false;
+        window.removeEventListener('resize', this.handleResize);
+    }
+
+    handleResize() {
+        this.setState({
+            windowWidth: Utils.windowWidth(),
+            windowHeight: Utils.windowHeight()
+        });
     }
 
     onChange() {
         if (this.mounted) {
             var newState = getStateFromStores();
-            if (!utils.areStatesEqual(newState, this.state)) {
+            if (!Utils.areStatesEqual(newState, this.state)) {
                 this.setState(newState);
             }
         }
     }
 
     resize() {
-        var height = $(window).height() - $('#error_bar').outerHeight() - 100;
+        var height = this.state.windowHeight - $('#error_bar').outerHeight() - 100;
         $('#search-items-container').css('height', height + 'px');
         $('#search-items-container').scrollTop(0);
-        if ($(window).width() > 768) {
+        if (this.state.windowWidth > 768) {
             $('#search-items-container').perfectScrollbar();
         }
     }

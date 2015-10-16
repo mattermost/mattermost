@@ -32,6 +32,7 @@ export default class CreateComment extends React.Component {
         this.removePreview = this.removePreview.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
+        this.handleResize = this.handleResize.bind(this);
 
         PostStore.clearCommentDraftUploads();
 
@@ -40,13 +41,23 @@ export default class CreateComment extends React.Component {
             messageText: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
-            submitting: false
+            submitting: false,
+            windowWidth: Utils.windowWidth()
         };
+    }
+    componentDidMount() {
+        window.addEventListener('resize', this.handleResize);
+    }
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.handleResize);
+    }
+    handleResize() {
+        this.setState({windowWidth: Utils.windowWidth()});
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.uploadsInProgress < this.state.uploadsInProgress) {
             $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
-            if ($(window).width() > 768) {
+            if (this.state.windowWidth > 768) {
                 $('.post-right__scroll').perfectScrollbar('update');
             }
         }
