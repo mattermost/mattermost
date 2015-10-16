@@ -41,6 +41,7 @@ export default class UserSettingsModal extends React.Component {
         if (global.window.config.EnableIncomingWebhooks === 'true') {
             tabs.push({name: 'integrations', uiName: 'Integrations', icon: 'glyphicon glyphicon-transfer'});
         }
+        tabs.push({name: 'display', uiName: 'Display', icon: 'glyphicon glyphicon-eye-open'});
 
         return (
             <div
