@@ -9,6 +9,7 @@ const ErrorStore = require('../stores/error_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
+const KeyCodes = Constants.KeyCodes;
 
 export default class Textbox extends React.Component {
     constructor(props) {
@@ -148,8 +149,10 @@ export default class Textbox extends React.Component {
             this.doProcessMentions = true;
         }
 
-        if (e.keyCode === 8) {
+        if (e.keyCode === KeyCodes.BACKSPACE) {
             this.handleBackspace(e);
+        } else if (this.props.onKeyDown) {
+            this.props.onKeyDown(e);
         }
     }
 
@@ -318,5 +321,6 @@ Textbox.propTypes = {
     onUserInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
     onHeightChange: React.PropTypes.func,
-    createMessage: React.PropTypes.string.isRequired
+    createMessage: React.PropTypes.string.isRequired,
+    onKeyDown: React.PropTypes.func
 };
