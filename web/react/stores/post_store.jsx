@@ -6,6 +6,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var ChannelStore = require('../stores/channel_store.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
+var UserStore = require('../stores/user_store.jsx');
 
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -16,6 +17,7 @@ var SEARCH_TERM_CHANGE_EVENT = 'search_term_change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
 var ADD_MENTION_EVENT = 'add_mention';
+var EDIT_POST_EVENT = 'edit_post';
 
 class PostStoreClass extends EventEmitter {
     constructor() {
@@ -75,6 +77,10 @@ class PostStoreClass extends EventEmitter {
         this.clearCommentDraftUploads = this.clearCommentDraftUploads.bind(this);
         this.storeLatestUpdate = this.storeLatestUpdate.bind(this);
         this.getLatestUpdate = this.getLatestUpdate.bind(this);
+        this.emitEditPost = this.emitEditPost.bind(this);
+        this.addEditPostListener = this.addEditPostListener.bind(this);
+        this.removeEditPostListener = this.removeEditPostListener.bind(this);
+        this.getCurrentUsersLatestPost = this.getCurrentUsersLatestPost.bind(this);
     }
     emitChange() {
         this.emit(CHANGE_EVENT);
@@ -148,6 +154,18 @@ class PostStoreClass extends EventEmitter {
         this.removeListener(ADD_MENTION_EVENT, callback);
     }
 
+    emitEditPost(post) {
+        this.emit(EDIT_POST_EVENT, post);
+    }
+
+    addEditPostListener(callback) {
+        this.on(EDIT_POST_EVENT, callback);
+    }
+
+    removeEditPostListener(callback) {
+        this.removeListener(EDIT_POST_EVENT, callback);
+    }
+
     getCurrentPosts() {
         var currentId = ChannelStore.getCurrentId();
 
@@ -211,6 +229,22 @@ class PostStoreClass extends EventEmitter {
     }
     getPosts(channelId) {
         return BrowserStore.getItem('posts_' + channelId);
+    }
+    getCurrentUsersLatestPost(channelId) {
+        const userId = UserStore.getCurrentId();
+        var postList = makePostListNonNull(this.getPosts(channelId));
+        var i = 0;
+        var len = postList.order.length;
+        var lastPost = null;
+
+        for (i; i < len; i++) {
+            if (postList.posts[postList.order[i]].user_id === userId) {
+                lastPost = postList.posts[postList.order[i]];
+                break;
+            }
+        }
+
+        return lastPost;
     }
     storePost(post) {
         this.pStorePost(post);
@@ -445,6 +479,9 @@ PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
         break;
     case ActionTypes.RECIEVED_ADD_MENTION:
         PostStore.emitAddMention(action.id, action.username);
+        break;
+    case ActionTypes.RECIEVED_EDIT_POST:
+        PostStore.emitEditPost(action);
         break;
     default:
     }

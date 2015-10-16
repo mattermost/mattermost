@@ -121,9 +121,12 @@ func TestFindTeamByEmail(t *testing.T) {
 	if r1, err := Client.FindTeams(user.Email); err != nil {
 		t.Fatal(err)
 	} else {
-		domains := r1.Data.([]string)
-		if domains[0] != team.Name {
-			t.Fatal(domains)
+		teams := r1.Data.(map[string]*model.Team)
+		if teams[team.Id].Name != team.Name {
+			t.Fatal()
+		}
+		if teams[team.Id].DisplayName != team.DisplayName {
+			t.Fatal()
 		}
 	}
 

@@ -16,6 +16,7 @@ const Utils = require('../utils/utils.jsx');
 
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
+const KeyCodes = Constants.KeyCodes;
 
 export default class CreatePost extends React.Component {
     constructor(props) {
@@ -35,6 +36,7 @@ export default class CreatePost extends React.Component {
         this.removePreview = this.removePreview.bind(this);
         this.onChange = this.onChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
+        this.handleArrowUp = this.handleArrowUp.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -172,7 +174,7 @@ export default class CreatePost extends React.Component {
         }
     }
     postMsgKeyPress(e) {
-        if (e.which === 13 && !e.shiftKey && !e.altKey) {
+        if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             ReactDOM.findDOMNode(this.refs.textbox).blur();
             this.handleSubmit(e);
@@ -292,6 +294,27 @@ export default class CreatePost extends React.Component {
         const draft = PostStore.getDraft(channelId);
         return draft.previews.length + draft.uploadsInProgress.length;
     }
+    handleArrowUp(e) {
+        if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+            e.preventDefault();
+
+            const channelId = ChannelStore.getCurrentId();
+            const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
+            if (!lastPost) {
+                return;
+            }
+            var type = (lastPost.root_id && lastPost.root_id.length > 0) ? 'Comment' : 'Post';
+
+            AppDispatcher.handleViewAction({
+                type: ActionTypes.RECIEVED_EDIT_POST,
+                refocusId: '#post_textbox',
+                title: type,
+                message: lastPost.message,
+                postId: lastPost.id,
+                channelId: lastPost.channel_id
+            });
+        }
+    }
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -336,6 +359,7 @@ export default class CreatePost extends React.Component {
                             <Textbox
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.postMsgKeyPress}
+                                onKeyDown={this.handleArrowUp}
                                 onHeightChange={this.resizePostHolder}
                                 messageText={this.state.messageText}
                                 createMessage='Write a message...'

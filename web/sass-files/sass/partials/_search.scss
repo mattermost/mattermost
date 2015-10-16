@@ -67,8 +67,9 @@
 }
 
 .search-items-container {
-	overflow: auto;
 	position: relative;
+	overflow: scroll;
+	-webkit-overflow-scrolling: touch;
 }
 
 .search-results-header {

@@ -14,9 +14,20 @@ func InitPreference(r *mux.Router) {
 	l4g.Debug("Initializing preference api routes")
 
 	sr := r.PathPrefix("/preferences").Subrouter()
+	sr.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
 	sr.Handle("/save", ApiUserRequired(savePreferences)).Methods("POST")
 	sr.Handle("/{category:[A-Za-z0-9_]+}", ApiUserRequired(getPreferenceCategory)).Methods("GET")
 	sr.Handle("/{category:[A-Za-z0-9_]+}/{name:[A-Za-z0-9_]+}", ApiUserRequired(getPreference)).Methods("GET")
+}
+
+func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	if result := <-Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+	} else {
+		data := result.Data.(model.Preferences)
+
+		w.Write([]byte(data.ToJson()))
+	}
 }
 
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -52,58 +63,7 @@ func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		data := result.Data.(model.Preferences)
 
-		data = transformPreferences(c, data, category)
-
 		w.Write([]byte(data.ToJson()))
-	}
-}
-
-func transformPreferences(c *Context, preferences model.Preferences, category string) model.Preferences {
-	if len(preferences) == 0 && category == model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW {
-		// add direct channels for a user that existed before preferences were added
-		preferences = addDirectChannels(c.Session.UserId, c.Session.TeamId)
-	}
-
-	return preferences
-}
-
-func addDirectChannels(userId, teamId string) model.Preferences {
-	var profiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(teamId); result.Err != nil {
-		l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", userId, teamId, result.Err.Error())
-		return model.Preferences{}
-	} else {
-		profiles = result.Data.(map[string]*model.User)
-	}
-
-	var preferences model.Preferences
-
-	for id := range profiles {
-		if id == userId {
-			continue
-		}
-
-		profile := profiles[id]
-
-		preference := model.Preference{
-			UserId:   userId,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-			Name:     profile.Id,
-			Value:    "true",
-		}
-
-		preferences = append(preferences, preference)
-
-		if len(preferences) >= 10 {
-			break
-		}
-	}
-
-	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		l4g.Error("Failed to add direct channel preferences for user user_id=%s, eam_id=%s, err=%v", userId, teamId, result.Err.Error())
-		return model.Preferences{}
-	} else {
-		return preferences
 	}
 }
 

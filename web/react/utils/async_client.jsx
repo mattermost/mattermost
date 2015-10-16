@@ -639,16 +639,15 @@ export function getMyTeam() {
     );
 }
 
-export function getDirectChannelPreferences() {
-    if (isCallInProgress('getDirectChannelPreferences')) {
+export function getAllPreferences() {
+    if (isCallInProgress('getAllPreferences')) {
         return;
     }
 
-    callTracker.getDirectChannelPreferences = utils.getTimestamp();
-    client.getPreferenceCategory(
-        Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+    callTracker.getAllPreferences = utils.getTimestamp();
+    client.getAllPreferences(
         (data, textStatus, xhr) => {
-            callTracker.getDirectChannelPreferences = 0;
+            callTracker.getAllPreferences = 0;
 
             if (xhr.status === 304 || !data) {
                 return;
@@ -660,8 +659,8 @@ export function getDirectChannelPreferences() {
             });
         },
         (err) => {
-            callTracker.getDirectChannelPreferences = 0;
-            dispatchError(err, 'getDirectChannelPreferences');
+            callTracker.getAllPreferences = 0;
+            dispatchError(err, 'getAllPreferences');
         }
     );
 }

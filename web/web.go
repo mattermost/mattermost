@@ -1031,12 +1031,20 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	post := &model.Post{UserId: hook.UserId, ChannelId: channel.Id, Message: text}
 	post.AddProp("from_webhook", "true")
 
-	if len(overrideUsername) != 0 && utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
-		post.AddProp("override_username", overrideUsername)
+	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
+		if len(overrideUsername) != 0 {
+			post.AddProp("override_username", overrideUsername)
+		} else {
+			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
+		}
 	}
 
-	if len(overrideIconUrl) != 0 && utils.Cfg.ServiceSettings.EnablePostIconOverride {
-		post.AddProp("override_icon_url", overrideIconUrl)
+	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
+		if len(overrideIconUrl) != 0 {
+			post.AddProp("override_icon_url", overrideIconUrl)
+		} else {
+			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
+		}
 	}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {

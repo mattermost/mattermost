@@ -43,7 +43,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 		result := StoreResult{}
 
 		// wrap in a transaction so that if one fails, everything fails
-		transaction, err := s.GetReplica().Begin()
+		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to open transaction to save preferences", err.Error())
 		} else {
@@ -202,6 +202,33 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreCha
 				UserId = :UserId
 				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.GetCategory", "We encounted an error while finding preferences", err.Error())
+		} else {
+			result.Data = preferences
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var preferences model.Preferences
+
+		if _, err := s.GetReplica().Select(&preferences,
+			`SELECT
+				*
+			FROM
+				Preferences
+			WHERE
+				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", "We encounted an error while finding preferences", err.Error())
 		} else {
 			result.Data = preferences
 		}

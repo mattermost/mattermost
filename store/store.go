@@ -156,4 +156,5 @@ type PreferenceStore interface {
 	Save(preferences *model.Preferences) StoreChannel
 	Get(userId string, category string, name string) StoreChannel
 	GetCategory(userId string, category string) StoreChannel
+	GetAll(userId string) StoreChannel
 }
