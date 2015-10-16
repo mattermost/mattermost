@@ -113,54 +113,6 @@ func TestGetPreferenceCategory(t *testing.T) {
 	}
 }
 
-func TestTransformPreferences(t *testing.T) {
-	Setup()
-
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
-
-	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
-
-	for i := 0; i < 5; i++ {
-		user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-		Client.Must(Client.CreateUser(user, ""))
-	}
-
-	Client.Must(Client.LoginByEmail(team.Name, user1.Email, "pwd"))
-
-	if result, err := Client.GetPreferenceCategory(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW); err != nil {
-		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 5 {
-		t.Fatal("received the wrong number of direct channels")
-	}
-
-	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
-
-	for i := 0; i < 10; i++ {
-		user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
-		Client.Must(Client.CreateUser(user, ""))
-	}
-
-	// make sure user1's preferences don't change
-	if result, err := Client.GetPreferenceCategory(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW); err != nil {
-		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 5 {
-		t.Fatal("received the wrong number of direct channels")
-	}
-
-	Client.Must(Client.LoginByEmail(team.Name, user2.Email, "pwd"))
-
-	if result, err := Client.GetPreferenceCategory(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW); err != nil {
-		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 10 {
-		t.Fatal("received the wrong number of direct channels")
-	}
-}
-
 func TestGetPreference(t *testing.T) {
 	Setup()
 
