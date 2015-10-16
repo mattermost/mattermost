@@ -153,6 +153,8 @@
 		.more-name {
 			font-weight: 600;
 			font-size: 0.95em;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 		tbody {
 			> tr {
@@ -340,6 +342,7 @@
 		overflow: auto;
 		-webkit-overflow-scrolling: touch;
 		max-height: 500px;
+		position: relative;
 	}
 
 	.table {

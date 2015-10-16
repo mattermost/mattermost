@@ -193,6 +193,15 @@ export default class MoreDirectChannels extends React.Component {
         );
     }
 
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 300);
+            if ($(window).width() > 768) {
+                $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
+            }
+        }
+    }
+
     render() {
         if (!this.props.show) {
             return null;
@@ -249,7 +258,10 @@ export default class MoreDirectChannels extends React.Component {
                             <span className='member-count'>{count}</span>
                         </div>
                     </div>
-                    <div className='user-list'>
+                    <div
+                        ref='userList'
+                        className='user-list'
+                    >
                         <table className='more-table table'>
                             <tbody>
                                 {userEntries}
