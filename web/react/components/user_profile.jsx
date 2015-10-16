@@ -65,19 +65,29 @@ export default class UserProfile extends React.Component {
 
         var dataContent = [];
         dataContent.push(
-            <img className='user-popover__image'
+            <img
+                className='user-popover__image'
                 src={'/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at}
                 height='128'
                 width='128'
+                key='user-popover-image'
             />
         );
         if (!global.window.config.ShowEmailAddress === 'true') {
-            dataContent.push(<div className='text-nowrap'>{'Email not shared'}</div>);
+            dataContent.push(
+                <div
+                    className='text-nowrap'
+                    key='user-popover-no-email'
+                >
+                    {'Email not shared'}
+                </div>
+            );
         } else {
             dataContent.push(
                 <div
                     data-toggle='tooltip'
                     title="' + this.state.profile.email + '"
+                    key='user-popover-email'
                 >
                     <a
                         href="mailto:' + this.state.profile.email + '"
@@ -93,15 +103,22 @@ export default class UserProfile extends React.Component {
             <OverlayTrigger
                 trigger='click'
                 placement='right'
-                rootClose='true'
-                overlay={<Popover title={this.state.profile.username}>{dataContent}</Popover>}
+                rootClose={true}
+                overlay={
+                    <Popover
+                        title={this.state.profile.username}
+                        id='user-profile-popover'
+                    >
+                        {dataContent}
+                    </Popover>
+                }
             >
-            <div
-                className='user-popover'
-                id={'profile_' + this.uniqueId}
-            >
-                {name}
-            </div>
+                <div
+                    className='user-popover'
+                    id={'profile_' + this.uniqueId}
+                >
+                    {name}
+                </div>
             </OverlayTrigger>
         );
     }
