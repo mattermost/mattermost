@@ -52,7 +52,7 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isTreamCreationAllowed(c, email) {
+	if !isTeamCreationAllowed(c, email) {
 		return
 	}
 
@@ -100,7 +100,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isTreamCreationAllowed(c, team.Email) {
+	if !isTeamCreationAllowed(c, team.Email) {
 		return
 	}
 
@@ -169,7 +169,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isTreamCreationAllowed(c, teamSignup.Team.Email) {
+	if !isTeamCreationAllowed(c, teamSignup.Team.Email) {
 		return
 	}
 
@@ -257,7 +257,7 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 		return nil
 	}
 
-	if !isTreamCreationAllowed(c, team.Email) {
+	if !isTeamCreationAllowed(c, team.Email) {
 		return nil
 	}
 
@@ -276,12 +276,12 @@ func CreateTeam(c *Context, team *model.Team) *model.Team {
 	}
 }
 
-func isTreamCreationAllowed(c *Context, email string) bool {
+func isTeamCreationAllowed(c *Context, email string) bool {
 
 	email = strings.ToLower(email)
 
 	if !utils.Cfg.TeamSettings.EnableTeamCreation {
-		c.Err = model.NewAppError("isTreamCreationAllowed", "Team creation has been disabled. Please ask your systems administrator for details.", "")
+		c.Err = model.NewAppError("isTeamCreationAllowed", "Team creation has been disabled. Please ask your systems administrator for details.", "")
 		return false
 	}
 
@@ -298,7 +298,7 @@ func isTreamCreationAllowed(c *Context, email string) bool {
 	}
 
 	if len(utils.Cfg.TeamSettings.RestrictCreationToDomains) > 0 && !matched {
-		c.Err = model.NewAppError("isTreamCreationAllowed", "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.", "")
+		c.Err = model.NewAppError("isTeamCreationAllowed", "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.", "")
 		return false
 	}
 
@@ -409,14 +409,13 @@ func findTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		teams := result.Data.([]*model.Team)
-
-		s := make([]string, 0, len(teams))
-
+		m := make(map[string]*model.Team)
 		for _, v := range teams {
-			s = append(s, v.Name)
+			v.Sanitize()
+			m[v.Id] = v
 		}
 
-		w.Write([]byte(model.ArrayToJson(s)))
+		w.Write([]byte(model.TeamMapToJson(m)))
 	}
 }
 

@@ -144,3 +144,51 @@ func TestPreferenceGetCategory(t *testing.T) {
 		t.Fatal("shouldn't have got any preferences")
 	}
 }
+
+func TestPreferenceGetAll(t *testing.T) {
+	Setup()
+
+	userId := model.NewId()
+	category := model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW
+	name := model.NewId()
+
+	preferences := model.Preferences{
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     name,
+		},
+		// same user/category, different name
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     model.NewId(),
+		},
+		// same user/name, different category
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     name,
+		},
+		// same name/category, different user
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     name,
+		},
+	}
+
+	Must(store.Preference().Save(&preferences))
+
+	if result := <-store.Preference().GetAll(userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(model.Preferences); len(data) != 3 {
+		t.Fatal("got the wrong number of preferences")
+	} else {
+		for i := 0; i < 3; i++ {
+			if data[0] != preferences[i] && data[1] != preferences[i] && data[2] != preferences[i] {
+				t.Fatal("got incorrect preferences")
+			}
+		}
+	}
+}

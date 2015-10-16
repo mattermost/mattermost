@@ -4,6 +4,7 @@
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var PreferenceStore = require('../stores/preference_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
@@ -164,23 +165,29 @@ export function displayDate(ticks) {
 }
 
 export function displayTime(ticks) {
-    var d = new Date(ticks);
-    var hours = d.getHours();
-    var minutes = d.getMinutes();
+    const d = new Date(ticks);
+    let hours = d.getHours();
+    let minutes = d.getMinutes();
+    let ampm = '';
 
-    var ampm = 'AM';
-    if (hours >= 12) {
-        ampm = 'PM';
-    }
-
-    hours = hours % 12;
-    if (!hours) {
-        hours = '12';
-    }
     if (minutes <= 9) {
         minutes = '0' + minutes;
     }
-    return hours + ':' + minutes + ' ' + ampm;
+
+    const useMilitaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'}).value;
+    if (useMilitaryTime === 'false') {
+        ampm = ' AM';
+        if (hours >= 12) {
+            ampm = ' PM';
+        }
+
+        hours = hours % 12;
+        if (!hours) {
+            hours = '12';
+        }
+    }
+
+    return hours + ':' + minutes + ampm;
 }
 
 export function displayDateTime(ticks) {

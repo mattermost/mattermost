@@ -37,6 +37,7 @@ var RegisterAppModal = require('../components/register_app_modal.jsx');
 var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
+var AsyncClient = require('../utils/async_client.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
@@ -53,6 +54,8 @@ function setupChannelPage(props) {
         type: ActionTypes.CLICK_TEAM,
         id: props.TeamId
     });
+
+    AsyncClient.getAllPreferences();
 
     // ChannelLoader must be rendered first
     ReactDOM.render(

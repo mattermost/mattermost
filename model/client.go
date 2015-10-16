@@ -185,7 +185,7 @@ func (c *Client) FindTeams(email string) (*Result, *AppError) {
 	} else {
 
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ArrayFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), TeamMapFromJson(r.Body)}, nil
 	}
 }
 
@@ -841,6 +841,15 @@ func (c *Client) ListIncomingWebhooks() (*Result, *AppError) {
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
 			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetAllPreferences() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/preferences/", "", ""); err != nil {
+		return nil, err
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID), r.Header.Get(HEADER_ETAG_SERVER), preferences}, nil
 	}
 }
 

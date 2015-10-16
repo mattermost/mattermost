@@ -3,6 +3,7 @@
 
 var PostStore = require('../stores/post_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var PreferenceStore = require('../stores/preference_store.jsx');
 var utils = require('../utils/utils.jsx');
 var SearchBox = require('./search_bar.jsx');
 var CreateComment = require('./create_comment.jsx');
@@ -18,6 +19,7 @@ export default class RhsThread extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onChangeAll = this.onChangeAll.bind(this);
+        this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
 
         this.state = this.getStateFromStores();
     }
@@ -43,6 +45,7 @@ export default class RhsThread extends React.Component {
     componentDidMount() {
         PostStore.addSelectedPostChangeListener(this.onChange);
         PostStore.addChangeListener(this.onChangeAll);
+        PreferenceStore.addChangeListener(this.forceUpdateInfo);
         this.resize();
         $(window).resize(function resize() {
             this.resize();
@@ -57,6 +60,16 @@ export default class RhsThread extends React.Component {
     componentWillUnmount() {
         PostStore.removeSelectedPostChangeListener(this.onChange);
         PostStore.removeChangeListener(this.onChangeAll);
+        PreferenceStore.removeChangeListener(this.forceUpdateInfo);
+    }
+    forceUpdateInfo() {
+        if (this.state.postList) {
+            for (var postId in this.state.postList.posts) {
+                if (this.refs[postId]) {
+                    this.refs[postId].forceUpdate();
+                }
+            }
+        }
     }
     onChange() {
         var newState = this.getStateFromStores();
@@ -174,6 +187,7 @@ export default class RhsThread extends React.Component {
                     />
                     <div className='post-right__scroll'>
                         <RootPost
+                            ref={rootPost.id}
                             post={rootPost}
                             commentCount={postsArray.length}
                         />

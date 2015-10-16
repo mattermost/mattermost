@@ -198,7 +198,9 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		fireAndForgetWelcomeEmail(result.Data.(*model.User).Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), user.EmailVerified)
+		fireAndForgetWelcomeEmail(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), user.EmailVerified)
+
+		addDirectChannelsAndForget(ruser)
 
 		if user.EmailVerified {
 			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
@@ -233,6 +235,45 @@ func fireAndForgetWelcomeEmail(userId, email, teamName, teamDisplayName, siteURL
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
 			l4g.Error("Failed to send welcome email successfully err=%v", err)
+		}
+	}()
+}
+
+func addDirectChannelsAndForget(user *model.User) {
+	go func() {
+		var profiles map[string]*model.User
+		if result := <-Srv.Store.User().GetProfiles(user.TeamId); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+			return
+		} else {
+			profiles = result.Data.(map[string]*model.User)
+		}
+
+		var preferences model.Preferences
+
+		for id := range profiles {
+			if id == user.Id {
+				continue
+			}
+
+			profile := profiles[id]
+
+			preference := model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name:     profile.Id,
+				Value:    "true",
+			}
+
+			preferences = append(preferences, preference)
+
+			if len(preferences) >= 10 {
+				break
+			}
+		}
+
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
 		}
 	}()
 }
