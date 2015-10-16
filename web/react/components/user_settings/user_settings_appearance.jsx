@@ -152,9 +152,8 @@ export default class UserSettingsAppearance extends React.Component {
                             <input type='radio'
                                 checked={!displayCustom}
                                 onChange={this.updateType.bind(this, 'premade')}
-                            >
-                                {'Theme Colors'}
-                            </input>
+                            />
+                            {'Theme Colors'}
                         </label>
                         <br/>
                     </div>
@@ -164,9 +163,8 @@ export default class UserSettingsAppearance extends React.Component {
                             <input type='radio'
                                 checked={displayCustom}
                                 onChange={this.updateType.bind(this, 'custom')}
-                            >
-                                {'Custom Theme'}
-                            </input>
+                            />
+                            {'Custom Theme'}
                         </label>
                         <br/>
                     </div>
