@@ -47,7 +47,8 @@
     .nav-pills__container {
         height: 100%;
         position: relative;
-        overflow: auto;
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
     }
 
     .nav-pills__unread-indicator {
