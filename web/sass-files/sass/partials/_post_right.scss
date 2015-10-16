@@ -93,7 +93,8 @@
 
 .post-right__scroll {
 	position: relative;
-	overflow: auto;
+	overflow: scroll;
+	-webkit-overflow-scrolling: touch;
 }
 
 .post-right-comment-time {
