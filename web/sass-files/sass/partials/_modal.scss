@@ -140,7 +140,7 @@
 			padding: 0;
 		}
 	}
-	.more-channel-table {
+	.more-table {
 		margin: 0;
 		table-layout: fixed;
 		p {
@@ -150,7 +150,7 @@
 			@include opacity(0.8);
 			margin: 5px 0;
 		}
-		.more-channel-name {
+		.more-name {
 			font-weight: 600;
 			font-size: 0.95em;
 		}
@@ -175,6 +175,9 @@
 						padding: 8px 15px 8px 8px;
 						width: 80px;
 						vertical-align: middle;
+						&.lg {
+							width: 110px;
+						}
 					}
 				}
 			}
@@ -331,47 +334,41 @@
 }
 
 .modal-direct-channels {
-    .user-list {
-        list-style-type: none;
-        margin: 15px 0px 0px;
-        max-height: 600px;
-        padding: 0px;
-        overflow: auto;
 
-        li {
-            border-bottom: 1px solid #ddd;
-            height: 60px;
-            padding: 10px 0px;
+	.user-list {
+		margin-top: 20px;
+		overflow: auto;
+		-webkit-overflow-scrolling: touch;
+		max-height: 500px;
+	}
 
-            .image-div {
-                padding: 0px;
+	.table {
+		margin-top: 10px;
+	}
 
-                .profile-image {
-                    width: 40px;
-                    height: 40px;
-                    @include border-radius(20px);
-                }
-            }
+	.modal-body {
+		padding: 20px 0 0;
+		@include clearfix;
+	}
 
-            .username {
-                font-weight: bold;
-            }
+	.filter-row {
+		padding: 0 15px;
+	}
 
-            .nickname {
-                color: #888;
-            }
+	.member-count {
+		margin-top: 5px;
+		float: right;
+		@include opacity(0.8);
+	}
 
-            .btn-div {
-                padding: 0px;
-                .btn-message {
-                    position: relative;
-                    top: 5px;
-                }
-            }
+	.more-description {
+		@include opacity(0.7);
+	}
 
-            &:last-child {
-                border-bottom: 0px;
-            }
-        }
-    }
+	.profile-img {
+		-moz-border-radius: 50px;
+		-webkit-border-radius: 50px;
+		border-radius: 50px;
+		margin-right: 8px;
+	}
 }

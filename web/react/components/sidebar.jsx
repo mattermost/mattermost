@@ -479,7 +479,7 @@ export default class Sidebar extends React.Component {
         if (handleClose && !badge) {
             closeButton = (
                 <OverlayTrigger
-                    delayShow='1000'
+                    delayShow={1000}
                     placement='top'
                     overlay={removeTooltip}
                 >
@@ -611,7 +611,7 @@ export default class Sidebar extends React.Component {
                             <h4>
                                 {'Channels'}
                                 <OverlayTrigger
-                                    delayShow='500'
+                                    delayShow={500}
                                     placement='top'
                                     overlay={createChannelTootlip}
                                 >
@@ -644,7 +644,7 @@ export default class Sidebar extends React.Component {
                             <h4>
                                 {'Private Groups'}
                                 <OverlayTrigger
-                                    delayShow='500'
+                                    delayShow={500}
                                     placement='top'
                                     overlay={createGroupTootlip}
                                 >

@@ -57,7 +57,7 @@ export default class PopoverListMembers extends React.Component {
             <OverlayTrigger
                 trigger='click'
                 placement='bottom'
-                rootClose='true'
+                rootClose={true}
                 overlay={<Popover title='Members'>{popoverHtml}</Popover>}
             >
             <div id='member_popover'>

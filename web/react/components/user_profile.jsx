@@ -93,7 +93,7 @@ export default class UserProfile extends React.Component {
             <OverlayTrigger
                 trigger='click'
                 placement='right'
-                rootClose='true'
+                rootClose={true}
                 overlay={<Popover title={this.state.profile.username}>{dataContent}</Popover>}
             >
             <div
