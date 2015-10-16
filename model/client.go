@@ -844,6 +844,15 @@ func (c *Client) ListIncomingWebhooks() (*Result, *AppError) {
 	}
 }
 
+func (c *Client) GetAllPreferences() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/preferences/", "", ""); err != nil {
+		return nil, err
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID), r.Header.Get(HEADER_ETAG_SERVER), preferences}, nil
+	}
+}
+
 func (c *Client) SetPreferences(preferences *Preferences) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/preferences/save", preferences.ToJson()); err != nil {
 		return nil, err

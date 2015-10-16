@@ -212,3 +212,30 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreCha
 
 	return storeChannel
 }
+
+func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var preferences model.Preferences
+
+		if _, err := s.GetReplica().Select(&preferences,
+			`SELECT
+				*
+			FROM
+				Preferences
+			WHERE
+				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", "We encounted an error while finding preferences", err.Error())
+		} else {
+			result.Data = preferences
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
