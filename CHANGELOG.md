@@ -1,10 +1,14 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT - Release v1.1.0
+## UNDER DEVELOPMENT Release v1.2.0
 
 The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
-- **Final release anticipated:** 2015-10-16
+- **Final release anticipated:** 2015-11-16
+
+## Release v1.1.0
+
+Released: 2015-10-16
 
 ### Release Highlights
 
@@ -43,6 +47,11 @@ Messaging and Notifications
 - Fixed bug where certain characters caused search errors
 - Fixed bug where System Administrator did not have Team Administrator permissions
 - Fixed bug causing scrolling to jump when the right hand sidebar opened and closed
+
+### Known Issues
+
+- Slack import is unstable due to change in Slack export format
+- Uploading a .flac file breaks the file previewer on iOS
 
 ### Contributors
 
