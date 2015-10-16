@@ -43,7 +43,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
 		result := StoreResult{}
 
 		// wrap in a transaction so that if one fails, everything fails
-		transaction, err := s.GetReplica().Begin()
+		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "Unable to open transaction to save preferences", err.Error())
 		} else {
