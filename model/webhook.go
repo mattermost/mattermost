@@ -8,6 +8,11 @@ import (
 	"io"
 )
 
+const (
+	DEFAULT_WEBHOOK_USERNAME = "webhook"
+	DEFAULT_WEBHOOK_ICON     = "/static/images/webhook_icon.jpg"
+)
+
 type IncomingWebhook struct {
 	Id        string `json:"id"`
 	CreateAt  int64  `json:"create_at"`
