@@ -38,7 +38,10 @@ export default class ViewImageModal extends React.Component {
             progress: progress,
             images: {},
             fileSizes: {},
-            showFooter: false
+            fileMimes: {},
+            showFooter: false,
+            isPlaying: {},
+            isLoading: {}
         };
     }
     handleNext(e) {
@@ -122,6 +125,28 @@ export default class ViewImageModal extends React.Component {
             this.setState({loaded});
         }
     }
+    playGif(e, filename, fileUrl) {
+        var isLoading = this.state.isLoading;
+        var isPlaying = this.state.isPlaying;
+
+        isLoading[filename] = fileUrl;
+        this.setState({isLoading});
+
+        var img = new Image();
+        img.load(fileUrl);
+        img.onload = () => {
+            delete isLoading[filename];
+            isPlaying[filename] = fileUrl;
+            this.setState({isPlaying, isLoading});
+        };
+        img.onError = () => {
+            delete isLoading[filename];
+            this.setState({isLoading});
+        };
+
+        e.stopPropagation();
+        e.preventDefault();
+    }
     componentDidMount() {
         $(window).on('keyup', this.handleKeyPress);
 
@@ -154,6 +179,10 @@ export default class ViewImageModal extends React.Component {
         var fileType = Utils.getFileType(fileInfo.ext);
 
         if (fileType === 'image') {
+            if (typeof this.state.isPlaying[filename] !== 'undefined') {
+                return this.state.isPlaying[filename];
+            }
+
             // This is a temporary patch to fix issue with old files using absolute paths
             if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
                 fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
@@ -189,12 +218,51 @@ export default class ViewImageModal extends React.Component {
             var fileType = Utils.getFileType(fileInfo.ext);
 
             if (fileType === 'image') {
+                if (!(filename in this.state.fileMimes)) {
+                    Client.getFileInfo(
+                        filename,
+                        (data) => {
+                            if (this.canSetState) {
+                                var fileMimes = this.state.fileMimes;
+                                fileMimes[filename] = data.mime;
+                                this.setState(fileMimes);
+                            }
+                        },
+                        () => {}
+                    );
+                }
+
+                var playButton = '';
+                if (this.state.fileMimes[filename] === 'image/gif' && !(filename in this.state.isLoading) && !(filename in this.state.isPlaying)) {
+                    playButton = (
+                        <div
+                            className='file-play-button'
+                            onClick={(e) => this.playGif(e, filename, fileUrl)}
+                        >
+                            {"►"}
+                        </div>
+                    );
+                }
+
+                var loadingIndicator = '';
+                if (this.state.isLoading[filename] === fileUrl) {
+                    loadingIndicator = (
+                        <img
+                            className='spinner file__loading'
+                            src='/static/images/load.gif'
+                        />
+                    );
+                    playButton = '';
+                }
+
                 // image files just show a preview of the file
                 content = (
                     <a
                         href={fileUrl}
                         target='_blank'
                     >
+                        {loadingIndicator}
+                        {playButton}
                         <img
                             style={{maxHeight: this.state.imgHeight}}
                             ref='image'

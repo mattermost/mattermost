@@ -133,11 +133,24 @@
     height: 100%;
     background-color: #FFF;
     background-repeat: no-repeat;
+    overflow: hidden;
+    position: relative;
     &.small {
       background-position: center;
     }
     &.normal {
       background-position: top left;
+    }
+    .spinner.file__loading {
+        position: absolute;
+        left: 50%;
+        margin-left: -16px;
+        top: 50%;
+        margin-top: -16px;
+    }
+    .file__loaded {
+        height: 100px;
+        max-width: initial;
     }
   }
   .post-image__thumbnail {
@@ -214,4 +227,13 @@
       vertical-align: middle;
     }
   }
+}
+
+.file-play-button {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 2;
 }
