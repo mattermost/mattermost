@@ -129,7 +129,7 @@ export default class NotificationsTab extends React.Component {
         );
     }
     handleClose() {
-        $(React.findDOMNode(this)).find('.form-control').each(function clearField() {
+        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function clearField() {
             this.value = '';
         });
 
@@ -158,15 +158,15 @@ export default class NotificationsTab extends React.Component {
     }
     handleNotifyRadio(notifyLevel) {
         this.setState({notifyLevel: notifyLevel});
-        React.findDOMNode(this.refs.wrapper).focus();
+        ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
     handleEmailRadio(enableEmail) {
         this.setState({enableEmail: enableEmail});
-        React.findDOMNode(this.refs.wrapper).focus();
+        ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
     handleSoundRadio(enableSound) {
         this.setState({enableSound: enableSound});
-        React.findDOMNode(this.refs.wrapper).focus();
+        ReactDOM.findDOMNode(this.refs.wrapper).focus();
     }
     updateUsernameKey(val) {
         this.setState({usernameKey: val});
@@ -184,10 +184,10 @@ export default class NotificationsTab extends React.Component {
         this.setState({channelKey: val});
     }
     updateCustomMentionKeys() {
-        var checked = React.findDOMNode(this.refs.customcheck).checked;
+        var checked = ReactDOM.findDOMNode(this.refs.customcheck).checked;
 
         if (checked) {
-            var text = React.findDOMNode(this.refs.custommentions).value;
+            var text = ReactDOM.findDOMNode(this.refs.custommentions).value;
 
             // remove all spaces and split string into individual keys
             this.setState({customKeys: text.replace(/ /g, ''), customKeysChecked: true});
@@ -196,7 +196,7 @@ export default class NotificationsTab extends React.Component {
         }
     }
     onCustomChange() {
-        React.findDOMNode(this.refs.customcheck).checked = true;
+        ReactDOM.findDOMNode(this.refs.customcheck).checked = true;
         this.updateCustomMentionKeys();
     }
     render() {

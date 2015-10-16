@@ -17,6 +17,7 @@ module.exports = {
 
         RECIEVED_POSTS: null,
         RECIEVED_POST: null,
+        RECIEVED_EDIT_POST: null,
         RECIEVED_SEARCH: null,
         RECIEVED_POST_SELECTED: null,
         RECIEVED_MENTION_DATA: null,
@@ -290,5 +291,14 @@ module.exports = {
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings'
+    },
+    KeyCodes: {
+        UP: 38,
+        DOWN: 40,
+        LEFT: 37,
+        RIGHT: 39,
+        BACKSPACE: 8,
+        ENTER: 13,
+        ESCAPE: 27
     }
 };

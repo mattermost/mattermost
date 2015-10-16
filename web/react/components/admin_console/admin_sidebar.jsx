@@ -100,6 +100,7 @@ export default class AdminSidebar extends React.Component {
                                             className='menu-icon--right menu__close'
                                             onClick={this.removeTeam.bind(this, team.id)}
                                             style={{cursor: 'pointer'}}
+                                            title='Remove team from sidebar menu'
                                         >
                                             {'x'}
                                         </span>
@@ -233,7 +234,10 @@ export default class AdminSidebar extends React.Component {
                                                     href='#'
                                                     onClick={this.showTeamSelect}
                                                 >
-                                                    <i className='fa fa-plus'></i>
+                                                    <i
+                                                        className='fa fa-plus'
+                                                        title='Add team to sidebar menu'
+                                                    ></i>
                                                 </a>
                                             </span>
                                         </h4>

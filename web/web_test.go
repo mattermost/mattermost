@@ -4,15 +4,16 @@
 package web
 
 import (
-	"github.com/mattermost/platform/api"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 var ApiClient *model.Client
@@ -27,6 +28,8 @@ func Setup() {
 		InitWeb()
 		URL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
+
+		api.Srv.Store.MarkSystemRanUnitTests()
 	}
 }
 

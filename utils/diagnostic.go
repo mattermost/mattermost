@@ -19,6 +19,7 @@ const (
 	PROP_DIAGNOSTIC_OS                = "os"
 	PROP_DIAGNOSTIC_USER_COUNT        = "uc"
 	PROP_DIAGNOSTIC_ACTIVE_USER_COUNT = "auc"
+	PROP_DIAGNOSTIC_UNIT_TESTS        = "ut"
 )
 
 func SendDiagnostic(values url.Values) {

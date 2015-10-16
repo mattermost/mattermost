@@ -6,17 +6,17 @@ var SelectTeamModal = require('../components/admin_console/select_team_modal.jsx
 var AdminController = require('../components/admin_console/admin_controller.jsx');
 
 export function setupAdminConsolePage() {
-    React.render(
+    ReactDOM.render(
         <AdminController />,
         document.getElementById('admin_controller')
     );
 
-    React.render(
+    ReactDOM.render(
         <SelectTeamModal />,
         document.getElementById('select_team_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ErrorBar/>,
         document.getElementById('error_bar')
     );

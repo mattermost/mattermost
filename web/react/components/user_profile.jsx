@@ -3,6 +3,8 @@
 
 var Utils = require('../utils/utils.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var Popover = ReactBootstrap.Popover;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 var id = 0;
 
@@ -32,7 +34,6 @@ export default class UserProfile extends React.Component {
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
         if (!this.props.disablePopover) {
-            $('#profile_' + this.uniqueId).popover({placement: 'right', container: 'body', trigger: 'click hover', html: true, delay: {show: 200, hide: 100}});
             $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
         }
     }
@@ -62,23 +63,46 @@ export default class UserProfile extends React.Component {
             return <div>{name}</div>;
         }
 
-        var dataContent = '<img class="user-popover__image" src="/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at + '" height="128" width="128" />';
+        var dataContent = [];
+        dataContent.push(
+            <img className='user-popover__image'
+                src={'/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at}
+                height='128'
+                width='128'
+            />
+        );
         if (!global.window.config.ShowEmailAddress === 'true') {
-            dataContent += '<div class="text-nowrap">Email not shared</div>';
+            dataContent.push(<div className='text-nowrap'>{'Email not shared'}</div>);
         } else {
-            dataContent += '<div data-toggle="tooltip" title="' + this.state.profile.email + '"><a href="mailto:' + this.state.profile.email + '" class="text-nowrap text-lowercase user-popover__email">' + this.state.profile.email + '</a></div>';
+            dataContent.push(
+                <div
+                    data-toggle='tooltip'
+                    title="' + this.state.profile.email + '"
+                >
+                    <a
+                        href="mailto:' + this.state.profile.email + '"
+                        className='text-nowrap text-lowercase user-popover__email'
+                    >
+                        {this.state.profile.email}
+                    </a>
+                </div>
+            );
         }
 
         return (
+            <OverlayTrigger
+                trigger='click'
+                placement='right'
+                rootClose='true'
+                overlay={<Popover title={this.state.profile.username}>{dataContent}</Popover>}
+            >
             <div
                 className='user-popover'
                 id={'profile_' + this.uniqueId}
-                data-toggle='popover'
-                data-content={dataContent}
-                data-original-title={this.state.profile.username}
             >
                 {name}
             </div>
+            </OverlayTrigger>
         );
     }
 }

@@ -4,7 +4,7 @@
 var SignupUserComplete = require('../components/signup_user_complete.jsx');
 
 function setupSignupUserCompletePage(props) {
-    React.render(
+    ReactDOM.render(
         <SignupUserComplete
             teamId={props.TeamId}
             teamName={props.TeamName}

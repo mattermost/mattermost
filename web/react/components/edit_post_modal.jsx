@@ -5,6 +5,7 @@ var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var Textbox = require('./textbox.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
+var PostStore = require('../stores/post_store.jsx');
 
 export default class EditPostModal extends React.Component {
     constructor() {
@@ -14,6 +15,7 @@ export default class EditPostModal extends React.Component {
         this.handleEditInput = this.handleEditInput.bind(this);
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
 
         this.state = {editText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
     }
@@ -35,16 +37,15 @@ export default class EditPostModal extends React.Component {
 
         Client.updatePost(updatedPost,
             function success() {
-                AsyncClient.getPosts(this.state.channel_id);
+                AsyncClient.getPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
-            }.bind(this),
+            },
             function error(err) {
                 AsyncClient.dispatchError(err, 'updatePost');
             }
         );
 
         $('#edit_post').modal('hide');
-        $(this.state.refocusId).focus();
     }
     handleEditInput(editMessage) {
         this.setState({editText: editMessage});
@@ -52,28 +53,57 @@ export default class EditPostModal extends React.Component {
     handleEditKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            React.findDOMNode(this.refs.editbox).blur();
+            ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit(e);
         }
     }
     handleUserInput(e) {
         this.setState({editText: e.target.value});
     }
+    handleEditPostEvent(options) {
+        this.setState({
+            editText: options.message || '',
+            title: options.title || '',
+            post_id: options.postId || '',
+            channel_id: options.channelId || '',
+            comments: options.comments || 0,
+            refocusId: options.refocusId || ''
+        });
+
+        $(React.findDOMNode(this.refs.modal)).modal('show');
+    }
     componentDidMount() {
         var self = this;
 
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function onHidden() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', function onHidden() {
             self.setState({editText: '', title: '', channel_id: '', post_id: '', comments: 0, refocusId: '', error: ''});
         });
 
-        $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', function onShow(e) {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', function onShow(e) {
             var button = e.relatedTarget;
+            if (!button) {
+                return;
+            }
             self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refoucsid')});
         });
 
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
             self.refs.editbox.resize();
+            $('#edit_textbox').get(0).focus();
         });
+
+        $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', function onShown() {
+            if (self.state.refocusId !== '') {
+                setTimeout(() => {
+                    $(self.state.refocusId).get(0).focus();
+                });
+            }
+        });
+
+        PostStore.addEditPostListener(this.handleEditPostEvent);
+    }
+    componentWillUnmount() {
+        PostStore.removeEditPostListener(this.handleEditPostEvent);
     }
     render() {
         var error = (<div className='form-group'><br /></div>);

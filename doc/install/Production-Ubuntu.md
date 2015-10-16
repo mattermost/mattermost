@@ -28,7 +28,7 @@
 ## Set up Mattermost Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
 1. Download the latest Mattermost Server by typing:
-  * ``` wget https://github.com/mattermost/platform/releases/download/v1.0.0/mattermost.tar.gz```
+  * ``` wget https://github.com/mattermost/platform/releases/download/v1.1.0/mattermost.tar.gz```
 1. Unzip the Mattermost Server by typing:
   * ``` tar -xvzf mattermost.tar.gz```
 1. For the sake of making this guide simple we located the files at `/home/ubuntu/mattermost`. In the future we will give guidance for storing under `/opt`.

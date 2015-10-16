@@ -9,6 +9,7 @@ const ErrorStore = require('../stores/error_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
+const KeyCodes = Constants.KeyCodes;
 
 export default class Textbox extends React.Component {
     constructor(props) {
@@ -83,7 +84,7 @@ export default class Textbox extends React.Component {
 
     componentDidUpdate() {
         if (this.caret >= 0) {
-            Utils.setCaretPosition(React.findDOMNode(this.refs.message), this.caret);
+            Utils.setCaretPosition(ReactDOM.findDOMNode(this.refs.message), this.caret);
             this.caret = -1;
         }
         if (this.doProcessMentions) {
@@ -97,7 +98,7 @@ export default class Textbox extends React.Component {
         if (!this.addedMention) {
             this.checkForNewMention(nextProps.messageText);
         }
-        const text = React.findDOMNode(this.refs.message).value;
+        const text = ReactDOM.findDOMNode(this.refs.message).value;
         if (nextProps.channelId !== this.props.channelId || nextProps.messageText !== text) {
             this.doProcessMentions = true;
         }
@@ -117,11 +118,11 @@ export default class Textbox extends React.Component {
     }
 
     handleChange() {
-        this.props.onUserInput(React.findDOMNode(this.refs.message).value);
+        this.props.onUserInput(ReactDOM.findDOMNode(this.refs.message).value);
     }
 
     handleKeyPress(e) {
-        const text = React.findDOMNode(this.refs.message).value;
+        const text = ReactDOM.findDOMNode(this.refs.message).value;
 
         if (!this.refs.commands.isEmpty() && text.indexOf('/') === 0 && e.which === 13) {
             this.refs.commands.addFirstCommand();
@@ -130,7 +131,7 @@ export default class Textbox extends React.Component {
         }
 
         if (!this.doProcessMentions) {
-            const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
+            const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
             const preText = text.substring(0, caret);
             const lastSpace = preText.lastIndexOf(' ');
             const lastAt = preText.lastIndexOf('@');
@@ -144,17 +145,19 @@ export default class Textbox extends React.Component {
     }
 
     handleKeyDown(e) {
-        if (Utils.getSelectedText(React.findDOMNode(this.refs.message)) !== '') {
+        if (Utils.getSelectedText(ReactDOM.findDOMNode(this.refs.message)) !== '') {
             this.doProcessMentions = true;
         }
 
-        if (e.keyCode === 8) {
+        if (e.keyCode === KeyCodes.BACKSPACE) {
             this.handleBackspace(e);
+        } else if (this.props.onKeyDown) {
+            this.props.onKeyDown(e);
         }
     }
 
     handleBackspace() {
-        const text = React.findDOMNode(this.refs.message).value;
+        const text = ReactDOM.findDOMNode(this.refs.message).value;
         if (text.indexOf('/') === 0) {
             this.refs.commands.getSuggestedCommands(text.substring(0, text.length - 1));
         }
@@ -163,7 +166,7 @@ export default class Textbox extends React.Component {
             return;
         }
 
-        const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
+        const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
         const preText = text.substring(0, caret);
         const lastSpace = preText.lastIndexOf(' ');
         const lastAt = preText.lastIndexOf('@');
@@ -174,7 +177,7 @@ export default class Textbox extends React.Component {
     }
 
     checkForNewMention(text) {
-        const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
+        const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
 
         const preText = text.substring(0, caret);
 
@@ -201,7 +204,7 @@ export default class Textbox extends React.Component {
     }
 
     addMention(name) {
-        const caret = Utils.getCaretPosition(React.findDOMNode(this.refs.message));
+        const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
 
         const text = this.props.messageText;
 
@@ -224,14 +227,14 @@ export default class Textbox extends React.Component {
     }
 
     addCommand(cmd) {
-        const elm = React.findDOMNode(this.refs.message);
+        const elm = ReactDOM.findDOMNode(this.refs.message);
         elm.value = cmd;
         this.handleChange();
     }
 
     resize() {
-        const e = React.findDOMNode(this.refs.message);
-        const w = React.findDOMNode(this.refs.wrapper);
+        const e = ReactDOM.findDOMNode(this.refs.message);
+        const w = ReactDOM.findDOMNode(this.refs.wrapper);
 
         const prevHeight = $(e).height();
 
@@ -259,14 +262,14 @@ export default class Textbox extends React.Component {
     }
 
     handleFocus() {
-        const elm = React.findDOMNode(this.refs.message);
+        const elm = ReactDOM.findDOMNode(this.refs.message);
         if (elm.title === elm.value) {
             elm.value = '';
         }
     }
 
     handleBlur() {
-        const elm = React.findDOMNode(this.refs.message);
+        const elm = ReactDOM.findDOMNode(this.refs.message);
         if (elm.value === '') {
             elm.value = elm.title;
         }
@@ -318,5 +321,6 @@ Textbox.propTypes = {
     onUserInput: React.PropTypes.func.isRequired,
     onKeyPress: React.PropTypes.func.isRequired,
     onHeightChange: React.PropTypes.func,
-    createMessage: React.PropTypes.string.isRequired
+    createMessage: React.PropTypes.string.isRequired,
+    onKeyDown: React.PropTypes.func
 };

@@ -21,7 +21,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
-        var displayName = React.findDOMNode(this.refs.name).value.trim();
+        var displayName = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!displayName) {
             this.setState({nameError: 'This field is required'});
             return;

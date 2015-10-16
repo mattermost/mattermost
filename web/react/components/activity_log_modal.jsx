@@ -56,9 +56,9 @@ export default class ActivityLogModal extends React.Component {
     }
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
-        $(React.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
 
-        $(React.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
     }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);

@@ -61,7 +61,7 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 	3. Reload your bashrc  
 		`source ~/.bashrc`
 6. Install Node.js
-	1. Download the newest version of the Node.js sources from https://nodejs.org/download/
+	1. Download the newest version of the Node.js sources from https://nodejs.org/en/download/
 	2. Extract the contents of the package and cd into the extracted files
 	3. Compile and install Node.js  
 		`./configure`  

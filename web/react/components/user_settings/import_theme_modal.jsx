@@ -35,7 +35,7 @@ export default class ImportThemeModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        const text = React.findDOMNode(this.refs.input).value;
+        const text = ReactDOM.findDOMNode(this.refs.input).value;
 
         if (!this.isInputValid(text)) {
             this.setState({inputError: 'Invalid format, please try copying and pasting in again.'});

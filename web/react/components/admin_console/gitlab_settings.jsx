@@ -37,12 +37,12 @@ export default class GitLabSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.GitLabSettings.Enable = React.findDOMNode(this.refs.Enable).checked;
-        config.GitLabSettings.Secret = React.findDOMNode(this.refs.Secret).value.trim();
-        config.GitLabSettings.Id = React.findDOMNode(this.refs.Id).value.trim();
-        config.GitLabSettings.AuthEndpoint = React.findDOMNode(this.refs.AuthEndpoint).value.trim();
-        config.GitLabSettings.TokenEndpoint = React.findDOMNode(this.refs.TokenEndpoint).value.trim();
-        config.GitLabSettings.UserApiEndpoint = React.findDOMNode(this.refs.UserApiEndpoint).value.trim();
+        config.GitLabSettings.Enable = ReactDOM.findDOMNode(this.refs.Enable).checked;
+        config.GitLabSettings.Secret = ReactDOM.findDOMNode(this.refs.Secret).value.trim();
+        config.GitLabSettings.Id = ReactDOM.findDOMNode(this.refs.Id).value.trim();
+        config.GitLabSettings.AuthEndpoint = ReactDOM.findDOMNode(this.refs.AuthEndpoint).value.trim();
+        config.GitLabSettings.TokenEndpoint = ReactDOM.findDOMNode(this.refs.TokenEndpoint).value.trim();
+        config.GitLabSettings.UserApiEndpoint = ReactDOM.findDOMNode(this.refs.UserApiEndpoint).value.trim();
 
         Client.saveConfig(
             config,
@@ -116,12 +116,14 @@ export default class GitLabSettings extends React.Component {
                             <p className='help-text'>
                                 {'When true, Mattermost allows team creation and account signup using GitLab OAuth.'} <br/>
                             </p>
-                            <ol className='help-text'>
-                                <li>{'Log in to your GitLab account and go to Applications -> Profile Settings.'}</li>
-                                <li>{'Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". '}</li>
-                                <li>{'Then use "Secret" and "Id" fields from GitLab to complete the options below.'}</li>
-                                <li>{'Complete the Endpoint URLs below. '}</li>
-                            </ol>
+                            <div className='help-text'>
+                                <ol>
+                                    <li>{'Log in to your GitLab account and go to Applications -> Profile Settings.'}</li>
+                                    <li>{'Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". '}</li>
+                                    <li>{'Then use "Secret" and "Id" fields from GitLab to complete the options below.'}</li>
+                                    <li>{'Complete the Endpoint URLs below. '}</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
 
@@ -258,7 +260,7 @@ export default class GitLabSettings extends React.Component {
 }
 
 
-//config.GitLabSettings.Scope = React.findDOMNode(this.refs.Scope).value.trim();
+//config.GitLabSettings.Scope = ReactDOM.findDOMNode(this.refs.Scope).value.trim();
 //  <div className='form-group'>
 //     <label
 //         className='control-label col-sm-4'

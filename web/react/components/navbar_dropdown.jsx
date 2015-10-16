@@ -40,7 +40,7 @@ export default class NavbarDropdown extends React.Component {
         UserStore.addTeamsChangeListener(this.onListenerChange);
         TeamStore.addChangeListener(this.onListenerChange);
 
-        $(React.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
+        $(ReactDOM.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
             this.blockToggle = true;
             setTimeout(() => {
                 this.blockToggle = false;
@@ -51,7 +51,7 @@ export default class NavbarDropdown extends React.Component {
         UserStore.removeTeamsChangeListener(this.onListenerChange);
         TeamStore.removeChangeListener(this.onListenerChange);
 
-        $(React.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
+        $(ReactDOM.findDOMNode(this.refs.dropdown)).off('hide.bs.dropdown');
     }
     onListenerChange() {
         var newState = getStateFromStores();

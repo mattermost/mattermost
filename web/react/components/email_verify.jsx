@@ -39,11 +39,9 @@ export default class EmailVerify extends React.Component {
 
         return (
             <div className='col-sm-12'>
-                <div className='panel panel-default verify_panel'>
-                    <div className='panel-heading'>
-                        <h3 className='panel-title'>{title}</h3>
-                    </div>
-                    <div className='panel-body'>
+                <div className='signup-team__container'>
+                    <h3>{title}</h3>
+                    <div>
                         {body}
                         {resend}
                         {resendConfirm}

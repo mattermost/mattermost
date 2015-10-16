@@ -86,7 +86,7 @@ export default class FileUpload extends React.Component {
     }
 
     handleChange() {
-        var element = $(React.findDOMNode(this.refs.fileInput));
+        var element = $(ReactDOM.findDOMNode(this.refs.fileInput));
 
         this.uploadFiles(element.prop('files'));
 
@@ -115,7 +115,7 @@ export default class FileUpload extends React.Component {
     }
 
     componentDidMount() {
-        var inputDiv = React.findDOMNode(this.refs.input);
+        var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         var self = this;
 
         if (this.props.postType === 'post') {

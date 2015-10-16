@@ -106,11 +106,12 @@ travis:
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
 	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
 
-	@sed -i'.bak' 's|react-with-addons-0.13.3.js|react-with-addons-0.13.3.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|jquery-1.11.1.js|jquery-1.11.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-0.14.0.js|react-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-dom-0.14.0.js|react-dom-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|react-bootstrap-0.25.1.js|react-bootstrap-0.25.1.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|perfect-scrollbar.js|perfect-scrollbar.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-bootstrap-0.27.1.js|react-bootstrap-0.27.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
@@ -290,11 +291,12 @@ dist: install
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
 	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
 
-	@sed -i'.bak' 's|react-with-addons-0.13.3.js|react-with-addons-0.13.3.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|jquery-1.11.1.js|jquery-1.11.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-0.14.0.js|react-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-dom-0.14.0.js|react-dom-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|react-bootstrap-0.25.1.js|react-bootstrap-0.25.1.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|perfect-scrollbar.js|perfect-scrollbar.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-bootstrap-0.27.1.js|react-bootstrap-0.27.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery.min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	@sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak

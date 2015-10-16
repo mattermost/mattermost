@@ -22,12 +22,12 @@ export default class GetLinkModal extends React.Component {
     }
     componentDidMount() {
         if (this.refs.modal) {
-            $(React.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
-            $(React.findDOMNode(this.refs.modal)).on('hide.bs.modal', this.onHide);
+            $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
+            $(ReactDOM.findDOMNode(this.refs.modal)).on('hide.bs.modal', this.onHide);
         }
     }
     handleClick() {
-        var copyTextarea = $(React.findDOMNode(this.refs.textarea));
+        var copyTextarea = $(ReactDOM.findDOMNode(this.refs.textarea));
         copyTextarea.select();
 
         try {

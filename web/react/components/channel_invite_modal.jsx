@@ -56,8 +56,8 @@ export default class ChannelInviteModal extends React.Component {
         };
     }
     componentDidMount() {
-        $(React.findDOMNode(this)).on('hidden.bs.modal', this.onHide);
-        $(React.findDOMNode(this)).on('show.bs.modal', this.onShow);
+        $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.onHide);
+        $(ReactDOM.findDOMNode(this)).on('show.bs.modal', this.onShow);
 
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
         ChannelStore.addChangeListener(this.onListenerChange);

@@ -29,7 +29,7 @@ export default class ChangeUrlModal extends React.Component {
     }
     componentDidUpdate(prevProps) {
         if (this.props.show === true && prevProps.show === false) {
-            React.findDOMNode(this.refs.urlinput).select();
+            ReactDOM.findDOMNode(this.refs.urlinput).select();
         }
     }
     onURLChanged(e) {
@@ -60,7 +60,7 @@ export default class ChangeUrlModal extends React.Component {
     doSubmit(e) {
         e.preventDefault();
 
-        const url = React.findDOMNode(this.refs.urlinput).value;
+        const url = ReactDOM.findDOMNode(this.refs.urlinput).value;
         const cleanedURL = Utils.cleanUpUrlable(url);
         if (cleanedURL !== url || url.length < 2 || url.indexOf('__') > -1) {
             this.setState({urlError: this.getURLError(url)});

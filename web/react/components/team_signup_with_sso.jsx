@@ -54,7 +54,7 @@ export default class SSOSignUpPage extends React.Component {
         );
     }
     nameChange() {
-        this.setState({name: React.findDOMNode(this.refs.teamname).value.trim()});
+        this.setState({name: ReactDOM.findDOMNode(this.refs.teamname).value.trim()});
     }
     render() {
         var nameError = null;

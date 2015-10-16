@@ -4,7 +4,7 @@
 var Authorize = require('../components/authorize.jsx');
 
 function setupAuthorizePage(props) {
-    React.render(
+    ReactDOM.render(
         <Authorize
             teamName={props.TeamName}
             appName={props.AppName}

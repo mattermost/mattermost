@@ -37,13 +37,13 @@ export default class RemovedFromChannelModal extends React.Component {
     }
 
     componentDidMount() {
-        $(React.findDOMNode(this)).on('show.bs.modal', this.handleShow);
-        $(React.findDOMNode(this)).on('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this)).on('show.bs.modal', this.handleShow);
+        $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.handleClose);
     }
 
     componentWillUnmount() {
-        $(React.findDOMNode(this)).off('show.bs.modal', this.handleShow);
-        $(React.findDOMNode(this)).off('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this)).off('show.bs.modal', this.handleShow);
+        $(ReactDOM.findDOMNode(this)).off('hidden.bs.modal', this.handleClose);
     }
 
     render() {

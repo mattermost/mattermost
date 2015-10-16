@@ -4,7 +4,7 @@
 var FindTeam = require('../components/find_team.jsx');
 
 function setupFindTeamPage() {
-    React.render(
+    ReactDOM.render(
         <FindTeam />,
         document.getElementById('find-team')
     );

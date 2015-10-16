@@ -586,11 +586,14 @@
         &.move--right {
             @include translate3d(0, 0, 0);
         }
+        .nav-pills__unread-indicator-bottom {
+            bottom: 10px;
+        }
         .badge {
             top: 13px;
         }
         > div {
-            padding-bottom: 105px;
+            padding-bottom: 65px;
         }
         .team__header {
             display: none;

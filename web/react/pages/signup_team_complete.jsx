@@ -4,7 +4,7 @@
 var SignupTeamComplete = require('../components/signup_team_complete.jsx');
 
 function setupSignupTeamCompletePage(props) {
-    React.render(
+    ReactDOM.render(
         <SignupTeamComplete
             email={props.Email}
             hash={props.Hash}

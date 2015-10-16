@@ -16,17 +16,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-gorp/gorp"
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	sqltrace "log"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/go-gorp/gorp"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlStore struct {
@@ -177,6 +178,17 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 func (ss SqlStore) GetCurrentSchemaVersion() string {
 	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
+}
+
+func (ss SqlStore) MarkSystemRanUnitTests() {
+	if result := <-ss.System().Get(); result.Err == nil {
+		props := result.Data.(model.StringMap)
+		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
+		if len(unitTests) == 0 {
+			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
+			<-ss.System().Save(systemTests)
+		}
+	}
 }
 
 func (ss SqlStore) DoesTableExist(tableName string) bool {

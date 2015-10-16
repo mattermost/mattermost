@@ -46,7 +46,9 @@ export default class CreateComment extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         if (prevState.uploadsInProgress < this.state.uploadsInProgress) {
             $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
-            $('.post-right__scroll').perfectScrollbar('update');
+            if ($(window).width() > 768) {
+                $('.post-right__scroll').perfectScrollbar('update');
+            }
         }
     }
     handleSubmit(e) {
@@ -126,7 +128,7 @@ export default class CreateComment extends React.Component {
     commentMsgKeyPress(e) {
         if (e.which === 13 && !e.shiftKey && !e.altKey) {
             e.preventDefault();
-            React.findDOMNode(this.refs.textbox).blur();
+            ReactDOM.findDOMNode(this.refs.textbox).blur();
             this.handleSubmit(e);
         }
 
@@ -189,7 +191,7 @@ export default class CreateComment extends React.Component {
     handleTextDrop(text) {
         const newText = this.state.messageText + text;
         this.handleUserInput(newText);
-        Utils.setCaretPosition(React.findDOMNode(this.refs.textbox.refs.message), newText.length);
+        Utils.setCaretPosition(ReactDOM.findDOMNode(this.refs.textbox.refs.message), newText.length);
     }
     removePreview(id) {
         let previews = this.state.previews;
@@ -255,6 +257,17 @@ export default class CreateComment extends React.Component {
             postFooterClassName += ' has-error';
         }
 
+        let uploadsInProgressText = null;
+        if (this.state.uploadsInProgress.length > 0) {
+            uploadsInProgressText = (
+                <span
+                    className='pull-right post-right-comments-upload-in-progress'
+                >
+                    {this.state.uploadsInProgress.length === 1 ? 'File uploading' : 'Files uploading'}
+                </span>
+            );
+        }
+
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
@@ -295,6 +308,7 @@ export default class CreateComment extends React.Component {
                             value='Add Comment'
                             onClick={this.handleSubmit}
                         />
+                        {uploadsInProgressText}
                         {postError}
                         {serverError}
                     </div>

@@ -38,6 +38,7 @@ type Store interface {
 	System() SystemStore
 	Webhook() WebhookStore
 	Preference() PreferenceStore
+	MarkSystemRanUnitTests()
 	Close()
 }
 

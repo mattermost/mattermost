@@ -24,7 +24,6 @@ var TeamSettingsModal = require('../components/team_settings_modal.jsx');
 var ChannelMembersModal = require('../components/channel_members.jsx');
 var ChannelInviteModal = require('../components/channel_invite_modal.jsx');
 var TeamMembersModal = require('../components/team_members.jsx');
-var DirectChannelModal = require('../components/more_direct_channels.jsx');
 var ErrorBar = require('../components/error_bar.jsx');
 var ErrorStore = require('../stores/error_store.jsx');
 var ChannelLoader = require('../components/channel_loader.jsx');
@@ -56,22 +55,22 @@ function setupChannelPage(props) {
     });
 
     // ChannelLoader must be rendered first
-    React.render(
+    ReactDOM.render(
         <ChannelLoader/>,
         document.getElementById('channel_loader')
     );
 
-    React.render(
+    ReactDOM.render(
         <ErrorBar/>,
         document.getElementById('error_bar')
     );
 
-    React.render(
+    ReactDOM.render(
         <Navbar teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('navbar')
     );
 
-    React.render(
+    ReactDOM.render(
         <Sidebar
             teamDisplayName={props.TeamDisplayName}
             teamName={props.TeamName}
@@ -80,117 +79,112 @@ function setupChannelPage(props) {
         document.getElementById('sidebar-left')
     );
 
-    React.render(
+    ReactDOM.render(
         <GetLinkModal />,
         document.getElementById('get_link_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <UserSettingsModal />,
         document.getElementById('user_settings_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ImportThemeModal />,
         document.getElementById('import_theme_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <TeamSettingsModal teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('team_settings_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <TeamMembersModal teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('team_members_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <MemberInviteModal teamType={props.TeamType} />,
         document.getElementById('invite_member_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ChannelHeader />,
         document.getElementById('channel-header')
     );
 
-    React.render(
+    ReactDOM.render(
         <EditChannelModal />,
         document.getElementById('edit_channel_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <DeleteChannelModal />,
         document.getElementById('delete_channel_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <RenameChannelModal />,
         document.getElementById('rename_channel_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ChannelNotificationsModal />,
         document.getElementById('channel_notifications_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ChannelMembersModal />,
         document.getElementById('channel_members_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ChannelInviteModal />,
         document.getElementById('channel_invite_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ChannelInfoModal />,
         document.getElementById('channel_info_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <MoreChannelsModal />,
         document.getElementById('more_channels_modal')
     );
 
-    React.render(
-        <DirectChannelModal />,
-        document.getElementById('direct_channel_modal')
-    );
-
-    React.render(
+    ReactDOM.render(
         <PostListContainer />,
         document.getElementById('post-list')
     );
 
-    React.render(
+    ReactDOM.render(
         <EditPostModal />,
         document.getElementById('edit_post_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <DeletePostModal />,
         document.getElementById('delete_post_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <PostDeletedModal />,
         document.getElementById('post_deleted_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <CreatePost />,
         document.getElementById('post-create')
     );
 
-    React.render(
+    ReactDOM.render(
         <SidebarRight />,
         document.getElementById('sidebar-right')
     );
 
-    React.render(
+    ReactDOM.render(
         <SidebarRightMenu
             teamDisplayName={props.TeamDisplayName}
             teamType={props.TeamType}
@@ -198,44 +192,44 @@ function setupChannelPage(props) {
         document.getElementById('sidebar-menu')
     );
 
-    React.render(
+    ReactDOM.render(
         <MentionList id='post_textbox' />,
         document.getElementById('post_mention_tab')
     );
 
-    React.render(
+    ReactDOM.render(
         <MentionList id='reply_textbox' />,
         document.getElementById('reply_mention_tab')
     );
 
-    React.render(
+    ReactDOM.render(
         <MentionList id='edit_textbox' />,
         document.getElementById('edit_mention_tab')
     );
 
-    React.render(
+    ReactDOM.render(
         <AccessHistoryModal />,
         document.getElementById('access_history_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <ActivityLogModal />,
         document.getElementById('activity_log_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <RemovedFromChannelModal />,
         document.getElementById('removed_from_channel_modal')
     );
 
-    React.render(
+    ReactDOM.render(
         <FileUploadOverlay
             overlayType='center'
         />,
         document.getElementById('file_upload_overlay')
     );
 
-    React.render(
+    ReactDOM.render(
         <RegisterAppModal />,
         document.getElementById('register_app_modal')
     );

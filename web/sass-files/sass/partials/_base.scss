@@ -39,10 +39,6 @@ img {
   height: auto;
 }
 
-.input-group-addon {
-  background: transparent;
-}
-
 .popover {
   color: #333;
   &.bottom, &.right, &.top, &.left {
@@ -52,6 +48,9 @@ img {
   }
   .popover-title {
     background: rgba(black, 0.05);
+  }
+  .popover-content {
+    white-space: pre-wrap;
   }
 }
 
@@ -180,6 +179,10 @@ a:focus, a:hover {
 
 .white-bg {
   background-color: white !important;
+}
+
+.alert {
+  padding: 8px 12px;
 }
 
 .emoji {

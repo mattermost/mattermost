@@ -4,7 +4,7 @@
 var PasswordReset = require('../components/password_reset.jsx');
 
 function setupPasswordResetPage(props) {
-    React.render(
+    ReactDOM.render(
         <PasswordReset
             isReset={props.IsReset}
             teamDisplayName={props.TeamDisplayName}

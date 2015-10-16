@@ -46,12 +46,12 @@ export default class LogSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.LogSettings.EnableConsole = React.findDOMNode(this.refs.consoleEnable).checked;
-        config.LogSettings.ConsoleLevel = React.findDOMNode(this.refs.consoleLevel).value;
-        config.LogSettings.EnableFile = React.findDOMNode(this.refs.fileEnable).checked;
-        config.LogSettings.FileLevel = React.findDOMNode(this.refs.fileLevel).value;
-        config.LogSettings.FileLocation = React.findDOMNode(this.refs.fileLocation).value.trim();
-        config.LogSettings.FileFormat = React.findDOMNode(this.refs.fileFormat).value.trim();
+        config.LogSettings.EnableConsole = ReactDOM.findDOMNode(this.refs.consoleEnable).checked;
+        config.LogSettings.ConsoleLevel = ReactDOM.findDOMNode(this.refs.consoleLevel).value;
+        config.LogSettings.EnableFile = ReactDOM.findDOMNode(this.refs.fileEnable).checked;
+        config.LogSettings.FileLevel = ReactDOM.findDOMNode(this.refs.fileLevel).value;
+        config.LogSettings.FileLocation = ReactDOM.findDOMNode(this.refs.fileLocation).value.trim();
+        config.LogSettings.FileFormat = ReactDOM.findDOMNode(this.refs.fileFormat).value.trim();
 
         Client.saveConfig(
             config,
