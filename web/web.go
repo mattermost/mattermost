@@ -15,6 +15,7 @@ import (
 	"gopkg.in/fsnotify.v1"
 	"html/template"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -36,9 +37,9 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
-	//if me.Team != nil {
-	//me.Team.Sanitize()
-	//}
+	if me.Team != nil {
+		me.Team.Sanitize()
+	}
 
 	if me.User != nil {
 		me.User.Sanitize(map[string]bool{})
@@ -151,18 +152,12 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 
 }
 
-// func getTeamAndUserStart(c *api.Context) (store.StoreChannel, store.StoreChannel) {
-// 	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
-// 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
-// 	return teamChan, userChan
-// }
-
-// func getTeamAndUserWait(c *api.Context, team store.StoreChannel, user store.StoreChannel) (*model.Team, *model.User) {
-// 	if tr := <-team; tr.Err != nil {
+// func getTeamAndUser(c *api.Context) (*model.Team, *model.User) {
+// 	if tr := <-api.Srv.Store.Team().Get(c.Session.TeamId); tr.Err != nil {
 // 		c.Err = tr.Err
 // 		return nil, nil
 // 	} else {
-// 		if ur := <-user; ur.Err != nil {
+// 		if ur := <-api.Srv.Store.User().Get(c.Session.UserId); ur.Err != nil {
 // 			c.Err = ur.Err
 // 			return nil, nil
 // 		} else {
@@ -170,20 +165,6 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 // 		}
 // 	}
 // }
-
-func getTeamAndUser(c *api.Context) (*model.Team, *model.User) {
-	if tr := <-api.Srv.Store.Team().Get(c.Session.TeamId); tr.Err != nil {
-		c.Err = tr.Err
-		return nil, nil
-	} else {
-		if ur := <-api.Srv.Store.User().Get(c.Session.UserId); ur.Err != nil {
-			c.Err = ur.Err
-			return nil, nil
-		} else {
-			return tr.Data.(*model.Team), ur.Data.(*model.User)
-		}
-	}
-}
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
@@ -195,16 +176,30 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
 		page.Render(c, w)
 	} else {
-		team, user := getTeamAndUser(c)
-		if c.Err != nil {
+		teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+		userChan := api.Srv.Store.User().Get(c.Session.UserId)
+
+		var team *model.Team
+		if tr := <-teamChan; tr.Err != nil {
+			c.Err = tr.Err
 			return
+		} else {
+			team = tr.Data.(*model.Team)
+
+		}
+
+		var user *model.User
+		if ur := <-userChan; ur.Err != nil {
+			c.Err = ur.Err
+			return
+		} else {
+			user = ur.Data.(*model.User)
 		}
 
 		page := NewHtmlTemplatePage("home", "Home")
 		page.Team = team
 		page.User = user
 		page.Session = &c.Session
-		page.Props["TeamURL"] = c.GetTeamURL()
 		page.Render(c, w)
 	}
 }
@@ -228,50 +223,35 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
-		l4g.Error("Couldn't find team name=%v, teamURL=%v, err=%v", teamName, c.GetTeamURL(), tResult.Err.Message)
+		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
 		team = tResult.Data.(*model.Team)
 	}
 
-	// If we are already logged into this team then go to home
+	// If we are already logged into this team then go to town-square
 	if len(c.Session.UserId) != 0 && c.Session.TeamId == team.Id {
-		page := NewHtmlTemplatePage("home", "Home")
-		page.Props["TeamURL"] = c.GetTeamURL()
-		page.Render(c, w)
+		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
 		return
 	}
 
 	// We still might be able to switch to this team because we've logged in before
-	if multiCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
-		multiToken := multiCookie.Value
-
-		if len(multiToken) > 0 {
-			tokens := strings.Split(multiToken, " ")
-
-			for _, token := range tokens {
-				if sr := <-api.Srv.Store.Session().Get(token); sr.Err == nil {
-					s := sr.Data.(*model.Session)
-
-					if !s.IsExpired() && s.TeamId == team.Id {
-						w.Header().Set(model.HEADER_TOKEN, s.Token)
-						sessionCookie := &http.Cookie{
-							Name:     model.SESSION_TOKEN,
-							Value:    s.Token,
-							Path:     "/",
-							MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
-							HttpOnly: true,
-						}
-
-						http.SetCookie(w, sessionCookie)
-
-						http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
-						return
-					}
-				}
-			}
+	session := api.FindMultiSessionForTeamId(r, team.Id)
+	if session != nil {
+		w.Header().Set(model.HEADER_TOKEN, session.Token)
+		sessionCookie := &http.Cookie{
+			Name:     model.SESSION_TOKEN,
+			Value:    session.Token,
+			Path:     "/",
+			MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
+			HttpOnly: true,
 		}
+
+		http.SetCookie(w, sessionCookie)
+
+		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
+		return
 	}
 
 	page := NewHtmlTemplatePage("login", "Login")
@@ -367,7 +347,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 func logout(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	api.Logout(c, w, r)
-	http.Redirect(w, r, c.GetTeamURL(), http.StatusFound)
+	http.Redirect(w, r, c.GetTeamURL(), http.StatusTemporaryRedirect)
 }
 
 func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -375,10 +355,27 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	name := params["channelname"]
 	teamName := params["team"]
 
-	team, user := getTeamAndUser(c)
-	if c.Err != nil {
+	var team *model.Team
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
 		return
+	} else {
+		team = result.Data.(*model.Team)
 	}
+
+	// We are logged into a different team.  Lets see if we have another
+	// session in the cookie that will give us access.
+	if c.Session.TeamId != team.Id {
+		session := api.FindMultiSessionForTeamId(r, team.Id)
+		if session == nil {
+			// redirect to login
+			http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
+		} else {
+			c.Session = *session
+		}
+	}
+
+	userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
 	var channelId string
 	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
@@ -388,10 +385,14 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		channelId = result.Data.(string)
 	}
 
-	if team.Name != teamName {
-		l4g.Error("It appears you are logged into " + team.Name + ", but are trying to access " + teamName)
-		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusFound)
+	var user *model.User
+	if ur := <-userChan; ur.Err != nil {
+		c.Err = ur.Err
+		c.RemoveSessionCookie(w, r)
+		l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
 		return
+	} else {
+		user = ur.Data.(*model.User)
 	}
 
 	if len(channelId) == 0 {
@@ -412,15 +413,6 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				channelId = sc.Id
 			}
 		} else {
-
-			// lets make sure the user is valid
-			if result := <-api.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-				c.Err = result.Err
-				c.RemoveSessionCookie(w, r)
-				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
-				return
-			}
-
 			// We will attempt to auto-join open channels
 			if cr := <-api.Srv.Store.Channel().GetByName(c.Session.TeamId, name); cr.Err != nil {
 				http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
@@ -677,7 +669,11 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		root(c, w, r)
+		page := NewHtmlTemplatePage("home", "Home")
+		page.Team = team
+		page.User = ruser
+		page.Session = &c.Session
+		page.Render(c, w)
 	}
 }
 
@@ -740,6 +736,12 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 				return
 			}
 
+			page := NewHtmlTemplatePage("home", "Home")
+			page.Team = team
+			page.User = user
+			page.Session = &c.Session
+			page.Render(c, w)
+
 			root(c, w, r)
 		}
 	}
@@ -751,9 +753,24 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team, user := getTeamAndUser(c)
-	if c.Err != nil {
+	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+
+	var team *model.Team
+	if tr := <-teamChan; tr.Err != nil {
+		c.Err = tr.Err
 		return
+	} else {
+		team = tr.Data.(*model.Team)
+
+	}
+
+	var user *model.User
+	if ur := <-userChan; ur.Err != nil {
+		c.Err = ur.Err
+		return
+	} else {
+		user = ur.Data.(*model.User)
 	}
 
 	page := NewHtmlTemplatePage("admin_console", "Admin Console")
