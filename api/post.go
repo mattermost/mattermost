@@ -680,16 +680,16 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashtagTerms, plainTerms := model.ParseHashtags(terms)
+	plainSearchParams, hashtagSearchParams := model.ParseSearchParams(terms)
 
 	var hchan store.StoreChannel
-	if len(hashtagTerms) != 0 {
-		hchan = Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, hashtagTerms, true)
+	if hashtagSearchParams != nil {
+		hchan = Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, hashtagSearchParams)
 	}
 
 	var pchan store.StoreChannel
-	if len(plainTerms) != 0 {
-		pchan = Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, terms, false)
+	if plainSearchParams != nil {
+		pchan = Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, plainSearchParams)
 	}
 
 	mainList := &model.PostList{}

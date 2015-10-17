@@ -407,15 +407,23 @@ var specialSearchChar = []string{
 	"@",
 }
 
-func (s SqlPostStore) Search(teamId string, userId string, terms string, isHashtagSearch bool) StoreChannel {
+func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
+
 		termMap := map[string]bool{}
+		terms := params.Terms
+
+		if terms == "" && params.InChannel == "" && params.FromUser == "" {
+			result.Data = []*model.Post{}
+			storeChannel <- result
+			return
+		}
 
 		searchType := "Message"
-		if isHashtagSearch {
+		if params.IsHashtag {
 			searchType = "Hashtags"
 			for _, term := range strings.Split(terms, " ") {
 				termMap[term] = true
@@ -430,63 +438,85 @@ func (s SqlPostStore) Search(teamId string, userId string, terms string, isHasht
 		var posts []*model.Post
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			// Parse text for wildcards
+			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
+				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+			}
+		}
 
+		searchQuery := `
+			SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				DeleteAt = 0
+				POST_FILTER
+				AND ChannelId IN (
+					SELECT
+						Id
+					FROM
+						Channels,
+						ChannelMembers
+					WHERE
+						Id = ChannelId
+							AND TeamId = :TeamId
+							AND UserId = :UserId
+							AND DeleteAt = 0
+							CHANNEL_FILTER)
+				SEARCH_CLAUSE
+				ORDER BY CreateAt DESC
+			LIMIT 100`
+
+		if params.InChannel != "" {
+			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
+		} else {
+			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
+		}
+
+		if params.FromUser != "" {
+			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+				AND UserId IN (
+					SELECT
+						Id
+					FROM
+						Users
+					WHERE
+						TeamId = :TeamId
+						AND Username = :FromUser)`, 1)
+		} else {
+			searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
+		}
+
+		if terms == "" {
+			// we've already confirmed that we have a channel or user to search for
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			}
 
-			searchQuery := fmt.Sprintf(`SELECT
-				    *
-				FROM
-				    Posts
-				WHERE
-				    DeleteAt = 0
-				    AND ChannelId IN (SELECT
-				            Id
-				        FROM
-				            Channels,
-				            ChannelMembers
-				        WHERE
-				            Id = ChannelId AND TeamId = $1
-				                AND UserId = $2
-				                AND DeleteAt = 0)
-				    AND %s @@  to_tsquery($3)
-				    ORDER BY CreateAt DESC
-				LIMIT 100`, searchType)
-
 			terms = strings.Join(strings.Fields(terms), " | ")
 
-			_, err := s.GetReplica().Select(&posts, searchQuery, teamId, userId, terms)
-			if err != nil {
-				result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
-
-			}
+			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-			searchQuery := fmt.Sprintf(`SELECT
-				    *
-				FROM
-				    Posts
-				WHERE
-				    DeleteAt = 0
-				    AND ChannelId IN (SELECT
-				            Id
-				        FROM
-				            Channels,
-				            ChannelMembers
-				        WHERE
-				            Id = ChannelId AND TeamId = ?
-				                AND UserId = ?
-				                AND DeleteAt = 0)
-				    AND MATCH (%s) AGAINST (? IN BOOLEAN MODE)
-				    ORDER BY CreateAt DESC
-				LIMIT 100`, searchType)
+			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		}
 
-			_, err := s.GetReplica().Select(&posts, searchQuery, teamId, userId, terms)
-			if err != nil {
-				result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
+		queryParams := map[string]interface{}{
+			"TeamId":    teamId,
+			"UserId":    userId,
+			"Terms":     terms,
+			"InChannel": params.InChannel,
+			"FromUser":  params.FromUser,
+		}
 
-			}
+		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
 		}
 
 		list := &model.PostList{Order: make([]string, 0, len(posts))}
