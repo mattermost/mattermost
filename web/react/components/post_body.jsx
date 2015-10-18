@@ -116,7 +116,7 @@ export default class PostBody extends React.Component {
             }
             var metadata = data.items[0].snippet;
             this.receivedYoutubeData = true;
-            this.setState({youtubeUploader: metadata.channelTitle, youtubeTitle: metadata.title});
+            this.setState({youtubeTitle: metadata.title});
         }
 
         if (global.window.config.GoogleDeveloperKey && !this.receivedYoutubeData) {
@@ -134,18 +134,12 @@ export default class PostBody extends React.Component {
             header = header + ' - ';
         }
 
-        let uploader = this.state.youtubeUploader;
-        if (!uploader) {
-            uploader = 'unknown';
-        }
-
         return (
             <div className='post-comment'>
                 <h4>
                     <span className='video-type'>{header}</span>
                     <span className='video-title'><a href={link}>{this.state.youtubeTitle}</a></span>
                 </h4>
-                <h4 className='video-uploader'>{uploader}</h4>
                 <div
                     className='video-div embed-responsive-item'
                     id={youtubeId}
