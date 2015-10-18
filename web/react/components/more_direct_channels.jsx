@@ -220,7 +220,7 @@ export default class MoreDirectChannels extends React.Component {
         const userEntries = users.map(this.createRowForUser);
 
         if (userEntries.length === 0) {
-            userEntries.push(<div key='no-users-found'>{'No users found :('}</div>);
+            userEntries.push(<tr key='no-users-found'><td>{'No users found :('}</td></tr>);
         }
 
         let memberString = 'Member';
