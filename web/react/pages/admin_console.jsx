@@ -5,9 +5,12 @@ var ErrorBar = require('../components/error_bar.jsx');
 var SelectTeamModal = require('../components/admin_console/select_team_modal.jsx');
 var AdminController = require('../components/admin_console/admin_controller.jsx');
 
-export function setupAdminConsolePage() {
+export function setupAdminConsolePage(props) {
     ReactDOM.render(
-        <AdminController />,
+        <AdminController
+            tab={props.ActiveTab}
+            teamId={props.TeamId}
+        />,
         document.getElementById('admin_controller')
     );
 

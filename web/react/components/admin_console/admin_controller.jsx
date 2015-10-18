@@ -40,9 +40,13 @@ export default class AdminController extends React.Component {
             config: AdminStore.getConfig(),
             teams: AdminStore.getAllTeams(),
             selectedTeams,
-            selected: 'service_settings',
-            selectedTeam: null
+            selected: props.tab || 'service_settings',
+            selectedTeam: props.teamId || null
         };
+
+        if (!props.tab) {
+            history.replaceState(null, null, `/admin_console/${this.state.selected}`);
+        }
     }
 
     componentDidMount() {
@@ -142,7 +146,9 @@ export default class AdminController extends React.Component {
             } else if (this.state.selected === 'service_settings') {
                 tab = <ServiceSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'team_users') {
-                tab = <TeamUsersTab team={this.state.teams[this.state.selectedTeam]} />;
+                if (this.state.teams) {
+                    tab = <TeamUsersTab team={this.state.teams[this.state.selectedTeam]} />;
+                }
             }
         }
 
