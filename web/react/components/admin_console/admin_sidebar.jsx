@@ -24,6 +24,7 @@ export default class AdminSidebar extends React.Component {
     handleClick(name, teamId, e) {
         e.preventDefault();
         this.props.selectTab(name, teamId);
+        history.pushState({name: name, teamId: teamId}, null, `/admin_console/${name}/${teamId || ''}`);
     }
 
     isSelected(name, teamId) {
@@ -53,6 +54,9 @@ export default class AdminSidebar extends React.Component {
     }
 
     componentDidMount() {
+        if ($(window).width() > 768) {
+            $('.nav-pills__container').perfectScrollbar();
+        }
     }
 
     showTeamSelect(e) {

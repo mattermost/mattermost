@@ -29,7 +29,7 @@ export default class RhsComment extends React.Component {
 
         var post = this.props.post;
         Client.createPost(post, post.channel_id,
-            function success(data) {
+            (data) => {
                 AsyncClient.getPosts(post.channel_id);
 
                 var channel = ChannelStore.get(post.channel_id);
@@ -43,11 +43,11 @@ export default class RhsComment extends React.Component {
                     post: data
                 });
             },
-            function fail() {
+            () => {
                 post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
                 this.forceUpdate();
-            }.bind(this)
+            }
         );
 
         post.state = Constants.POST_LOADING;
@@ -84,7 +84,10 @@ export default class RhsComment extends React.Component {
 
         if (isOwner) {
             dropdownContents.push(
-                <li role='presentation'>
+                <li
+                    role='presentation'
+                    key='edit-button'
+                >
                     <a
                         href='#'
                         role='menuitem'
@@ -95,7 +98,7 @@ export default class RhsComment extends React.Component {
                         data-postid={post.id}
                         data-channelid={post.channel_id}
                     >
-                        Edit
+                        {'Edit'}
                     </a>
                 </li>
             );
@@ -103,7 +106,10 @@ export default class RhsComment extends React.Component {
 
         if (isOwner || isAdmin) {
             dropdownContents.push(
-                <li role='presentation'>
+                <li
+                    role='presentation'
+                    key='delete-button'
+                >
                     <a
                         href='#'
                         role='menuitem'
@@ -114,7 +120,7 @@ export default class RhsComment extends React.Component {
                         data-channelid={post.channel_id}
                         data-comments={0}
                     >
-                        Delete
+                        {'Delete'}
                     </a>
                 </li>
             );
@@ -162,7 +168,7 @@ export default class RhsComment extends React.Component {
                     href='#'
                     onClick={this.retryComment}
                 >
-                    Retry
+                    {'Retry'}
                 </a>
             );
         } else if (post.state === Constants.POST_LOADING) {
@@ -213,14 +219,14 @@ export default class RhsComment extends React.Component {
                         </li>
                     </ul>
                     <div className='post-body'>
-                        <p className={postClass}>
+                        <div className={postClass}>
                             {loading}
                             <div
                                 ref='message_holder'
                                 onClick={TextFormatting.handleClick}
                                 dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
                             />
-                        </p>
+                        </div>
                         {fileAttachment}
                     </div>
                 </div>

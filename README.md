@@ -26,6 +26,12 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - Attach sound, video and image files from mobile devices 
 - Define team-specific branding and color themes across your devices
 
+#### Self-Host Ready
+
+- Host and manage dozens of teams from a single Mattermost server 
+- Easily manage your Mattermost server using a web-based System Console
+- Script setup and maintenance using Mattermost command line tools 
+
 ## Learn More
 
 - [Product Vision and Target Audiences](http://www.mattermost.org/vision/) - What we're solving and for whom are we building
@@ -38,7 +44,9 @@ Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq).
 
 ## Installing Mattermost
 
-There are multiple ways to install Mattermost depending on your needs. 
+Latest stable release of Mattermost is available from http://www.mattermost.org/download/, including binary distribution, and from install guides below. 
+
+If you use Docker, you can [install Mattermost in a single-container preview in one line](https://github.com/mattermost/platform/blob/master/doc/install/Docker-Single-Container.md#one-line-docker-install). 
 
 #### Quick Start Install for Product Evaluation 
 

@@ -1,8 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SocketStore = require('../stores/socket_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
+const SocketStore = require('../stores/socket_store.jsx');
+const UserStore = require('../stores/user_store.jsx');
+
+const Constants = require('../utils/constants.jsx');
+const SocketEvents = Constants.SocketEvents;
 
 export default class MsgTyping extends React.Component {
     constructor(props) {
@@ -33,9 +36,9 @@ export default class MsgTyping extends React.Component {
     }
 
     onChange(msg) {
-        if (msg.action === 'typing' &&
-            this.props.channelId === msg.channel_id &&
-            this.props.parentId === msg.props.parent_id) {
+        if (msg.action === SocketEvents.TYPING &&
+                this.props.channelId === msg.channel_id &&
+                this.props.parentId === msg.props.parent_id) {
             this.lastTime = new Date().getTime();
 
             var username = 'Someone';
@@ -52,7 +55,7 @@ export default class MsgTyping extends React.Component {
                     }
                 }.bind(this), 3000);
             }
-        } else if (msg.action === 'posted' && msg.channel_id === this.props.channelId) {
+        } else if (msg.action === SocketEvents.POSTED && msg.channel_id === this.props.channelId) {
             this.setState({text: ''});
         }
     }

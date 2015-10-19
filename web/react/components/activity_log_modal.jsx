@@ -81,6 +81,7 @@ export default class ActivityLogModal extends React.Component {
             const currentSession = this.state.sessions[i];
             const lastAccessTime = new Date(currentSession.last_activity_at);
             const firstAccessTime = new Date(currentSession.create_at);
+            let devicePlatform = currentSession.props.platform;
             let devicePicture = '';
 
             if (currentSession.props.platform === 'Windows') {
@@ -88,7 +89,12 @@ export default class ActivityLogModal extends React.Component {
             } else if (currentSession.props.platform === 'Macintosh' || currentSession.props.platform === 'iPhone') {
                 devicePicture = 'fa fa-apple';
             } else if (currentSession.props.platform === 'Linux') {
-                devicePicture = 'fa fa-linux';
+                if (currentSession.props.os.indexOf('Android') >= 0) {
+                    devicePlatform = 'Android';
+                    devicePicture = 'fa fa-android';
+                } else {
+                    devicePicture = 'fa fa-linux';
+                }
             }
 
             let moreInfo;
@@ -119,7 +125,7 @@ export default class ActivityLogModal extends React.Component {
                     className='activity-log__table'
                 >
                     <div className='activity-log__report'>
-                        <div className='report__platform'><i className={devicePicture} />{currentSession.props.platform}</div>
+                        <div className='report__platform'><i className={devicePicture} />{devicePlatform}</div>
                         <div className='report__info'>
                             <div>{`Last activity: ${lastAccessTime.toDateString()}, ${lastAccessTime.toLocaleTimeString()}`}</div>
                             {moreInfo}

@@ -1,20 +1,24 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PostStore = require('../stores/post_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var PreferenceStore = require('../stores/preference_store.jsx');
-var UserProfile = require('./user_profile.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var Post = require('./post.jsx');
-var LoadingScreen = require('./loading_screen.jsx');
-var SocketStore = require('../stores/socket_store.jsx');
-var utils = require('../utils/utils.jsx');
-var Client = require('../utils/client.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+const Post = require('./post.jsx');
+const UserProfile = require('./user_profile.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const LoadingScreen = require('./loading_screen.jsx');
+
+const PostStore = require('../stores/post_store.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
+const UserStore = require('../stores/user_store.jsx');
+const SocketStore = require('../stores/socket_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
+
+const utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
+const Constants = require('../utils/constants.jsx');
+const ActionTypes = Constants.ActionTypes;
+const SocketEvents = Constants.SocketEvents;
+
+const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 
 export default class PostList extends React.Component {
     constructor(props) {
@@ -58,7 +62,7 @@ export default class PostList extends React.Component {
                     }
                 }
 
-                postList.order.sort(function postSort(a, b) {
+                postList.order.sort((a, b) => {
                     if (postList.posts[a].create_at > postList.posts[b].create_at) {
                         return -1;
                     }
@@ -82,7 +86,7 @@ export default class PostList extends React.Component {
         }
 
         return {
-            postList: postList
+            postList
         };
     }
     componentDidMount() {
@@ -263,14 +267,14 @@ export default class PostList extends React.Component {
         Client.getPosts(
             id,
             PostStore.getLatestUpdate(id),
-            function success() {
+            () => {
                 this.loadInProgress = false;
                 this.setState({isFirstLoadComplete: true});
-            }.bind(this),
-            function fail() {
+            },
+            () => {
                 this.loadInProgress = false;
                 this.setState({isFirstLoadComplete: true});
-            }.bind(this)
+            }
         );
     }
     onChange() {
@@ -281,28 +285,16 @@ export default class PostList extends React.Component {
         }
     }
     onSocketChange(msg) {
-        var post;
-        if (msg.action === 'posted' || msg.action === 'post_edited') {
-            post = JSON.parse(msg.props.post);
-            PostStore.storePost(post);
-        } else if (msg.action === 'post_deleted') {
+        if (msg.action === SocketEvents.POST_DELETED) {
             var activeRoot = $(document.activeElement).closest('.comment-create-body')[0];
             var activeRootPostId = '';
             if (activeRoot && activeRoot.id.length > 0) {
                 activeRootPostId = activeRoot.id;
             }
 
-            post = JSON.parse(msg.props.post);
-
-            PostStore.storeUnseenDeletedPost(post);
-            PostStore.removePost(post, true);
-            PostStore.emitChange();
-
             if (activeRootPostId === msg.props.post_id && UserStore.getCurrentId() !== msg.user_id) {
                 $('#post_deleted').modal('show');
             }
-        } else if (msg.action === 'new_user') {
-            AsyncClient.getProfiles();
         }
     }
     onTimeChange() {
@@ -352,7 +344,7 @@ export default class PostList extends React.Component {
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        <i className='fa fa-pencil'></i>Set a description
+                        <i className='fa fa-pencil'></i>{'Set a description'}
                     </a>
                 </div>
             );

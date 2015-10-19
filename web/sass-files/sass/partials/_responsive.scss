@@ -270,6 +270,13 @@
             height: auto;
         }
     }
+    .modal-direct-channels {
+        .member-count {
+            float: none;
+            margin-top: 10px;
+            display: block;
+        }
+    }
     .center-file-overlay {
         font-size: 1.3em;
     }

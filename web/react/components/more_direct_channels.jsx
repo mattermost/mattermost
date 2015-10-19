@@ -140,12 +140,12 @@ export default class MoreDirectChannels extends React.Component {
         if (user.nickname) {
             const separator = fullName ? ' - ' : '';
             details.push(
-                <span
+                <p
                     key={`${user.nickname}__nickname`}
-                    className='nickname'
+                    className='more-description'
                 >
                     {separator + user.nickname}
-                </span>
+                </p>
             );
         }
 
@@ -170,29 +170,36 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         return (
-            <li
-                key={user.id}
-                className='direct-channel'
-            >
-                <div className='col-xs-1 image-div'>
+            <tr>
+                <td
+                    key={user.id}
+                    className='direct-channel'
+                >
                     <img
-                        className='profile-image'
+                        className='profile-img pull-left'
+                        width='38'
+                        height='38'
                         src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
                     />
-                </div>
-                <div className='col-xs-9'>
-                    <div className='username'>
+                    <div className='more-name'>
                         {user.username}
                     </div>
-                    <div>
-                        {details}
-                    </div>
-                </div>
-                <div className='col-xs-2 btn-div'>
+                    {details}
+                </td>
+                <td className='td--action lg'>
                     {joinButton}
-                </div>
-            </li>
+                </td>
+            </tr>
         );
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 300);
+            if ($(window).width() > 768) {
+                $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
+            }
+        }
     }
 
     render() {
@@ -213,7 +220,7 @@ export default class MoreDirectChannels extends React.Component {
         const userEntries = users.map(this.createRowForUser);
 
         if (userEntries.length === 0) {
-            userEntries.push(<li key='no-users-found'>{'No users found :('}</li>);
+            userEntries.push(<tr key='no-users-found'><td>{'No users found :('}</td></tr>);
         }
 
         let memberString = 'Member';
@@ -232,26 +239,35 @@ export default class MoreDirectChannels extends React.Component {
             <Modal
                 className='modal-direct-channels'
                 show={this.props.show}
-                bsSize='large'
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'More Direct Messages'}</Modal.Title>
+                    <Modal.Title>{'Team Directory'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div>
-                        <input
-                            ref='filter'
-                            className='form-control filter-textbox'
-                            placeholder='Search members'
-                            onInput={this.handleFilterChange}
-                            style={{width: '200px', display: 'inline'}}
-                        />
-                        <span className='member-count pull-right'>{count}</span>
+                    <div className='row filter-row'>
+                        <div className='col-sm-6'>
+                            <input
+                                ref='filter'
+                                className='form-control filter-textbox'
+                                placeholder='Search members'
+                                onInput={this.handleFilterChange}
+                            />
+                        </div>
+                        <div className='col-sm-6'>
+                            <span className='member-count'>{count}</span>
+                        </div>
                     </div>
-                    <ul className='user-list'>
-                        {userEntries}
-                    </ul>
+                    <div
+                        ref='userList'
+                        className='user-list'
+                    >
+                        <table className='more-table table'>
+                            <tbody>
+                                {userEntries}
+                            </tbody>
+                        </table>
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <button

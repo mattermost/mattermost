@@ -92,24 +92,9 @@ func (c *WebConn) writePump() {
 				return
 			}
 
-			if len(msg.ChannelId) > 0 {
-				allowed, ok := c.ChannelAccessCache[msg.ChannelId]
-				if !ok {
-					allowed = hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(c.TeamId, msg.ChannelId, c.UserId))
-					c.ChannelAccessCache[msg.ChannelId] = allowed
-				}
-
-				if allowed {
-					c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-					if err := c.WebSocket.WriteJSON(msg); err != nil {
-						return
-					}
-				}
-			} else {
-				c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-				if err := c.WebSocket.WriteJSON(msg); err != nil {
-					return
-				}
+			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+			if err := c.WebSocket.WriteJSON(msg); err != nil {
+				return
 			}
 
 		case <-ticker.C:
@@ -121,9 +106,11 @@ func (c *WebConn) writePump() {
 	}
 }
 
-func (c *WebConn) updateChannelAccessCache(channelId string) {
+func (c *WebConn) updateChannelAccessCache(channelId string) bool {
 	allowed := hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.UserId))
 	c.ChannelAccessCache[channelId] = allowed
+
+	return allowed
 }
 
 func hasPermissionsToChannel(sc store.StoreChannel) bool {

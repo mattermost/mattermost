@@ -9,14 +9,14 @@ import (
 )
 
 const (
-	ACTION_TYPING       = "typing"
-	ACTION_POSTED       = "posted"
-	ACTION_POST_EDITED  = "post_edited"
-	ACTION_POST_DELETED = "post_deleted"
-	ACTION_VIEWED       = "viewed"
-	ACTION_NEW_USER     = "new_user"
-	ACTION_USER_ADDED   = "user_added"
-	ACTION_USER_REMOVED = "user_removed"
+	ACTION_TYPING         = "typing"
+	ACTION_POSTED         = "posted"
+	ACTION_POST_EDITED    = "post_edited"
+	ACTION_POST_DELETED   = "post_deleted"
+	ACTION_CHANNEL_VIEWED = "channel_viewed"
+	ACTION_NEW_USER       = "new_user"
+	ACTION_USER_ADDED     = "user_added"
+	ACTION_USER_REMOVED   = "user_removed"
 )
 
 type Message struct {

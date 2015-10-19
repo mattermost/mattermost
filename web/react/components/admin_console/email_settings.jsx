@@ -440,9 +440,11 @@ export default class EmailSettings extends React.Component {
                                     className='table table-bordered'
                                     cellPadding='5'
                                 >
-                                    <tr><td className='help-text'>{'None'}</td><td className='help-text'>{'Mattermost will send email over an unsecure connection.'}</td></tr>
-                                    <tr><td className='help-text'>{'TLS'}</td><td className='help-text'>{'Encrypts the communication between Mattermost and your email server.'}</td></tr>
-                                    <tr><td className='help-text'>{'STARTTLS'}</td><td className='help-text'>{'Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'}</td></tr>
+                                    <tbody>
+                                        <tr><td className='help-text'>{'None'}</td><td className='help-text'>{'Mattermost will send email over an unsecure connection.'}</td></tr>
+                                        <tr><td className='help-text'>{'TLS'}</td><td className='help-text'>{'Encrypts the communication between Mattermost and your email server.'}</td></tr>
+                                        <tr><td className='help-text'>{'STARTTLS'}</td><td className='help-text'>{'Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.'}</td></tr>
+                                    </tbody>
                                 </table>
                             </div>
                             <div className='help-text'>

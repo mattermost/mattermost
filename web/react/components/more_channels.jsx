@@ -83,7 +83,7 @@ export default class MoreChannels extends React.Component {
                 moreChannels = <LoadingScreen />;
             } else if (channels.length) {
                 moreChannels = (
-                    <table className='more-channel-table table'>
+                    <table className='more-table table'>
                         <tbody>
                             {channels.map(function cMap(channel, index) {
                                 var joinButton;
@@ -108,8 +108,8 @@ export default class MoreChannels extends React.Component {
                                 return (
                                     <tr key={channel.id}>
                                         <td>
-                                            <p className='more-channel-name'>{channel.display_name}</p>
-                                            <p className='more-channel-description'>{channel.description}</p>
+                                            <p className='more-name'>{channel.display_name}</p>
+                                            <p className='more-description'>{channel.description}</p>
                                         </td>
                                         <td className='td--action'>
                                             {joinButton}

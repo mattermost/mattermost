@@ -77,6 +77,9 @@ func InitWeb() {
 	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(signupCompleteOAuth)).Methods("GET")
 
 	mainrouter.Handle("/admin_console", api.UserRequired(adminConsole)).Methods("GET")
+	mainrouter.Handle("/admin_console/", api.UserRequired(adminConsole)).Methods("GET")
+	mainrouter.Handle("/admin_console/{tab:[A-Za-z0-9-_]+}", api.UserRequired(adminConsole)).Methods("GET")
+	mainrouter.Handle("/admin_console/{tab:[A-Za-z0-9-_]+}/{team:[A-Za-z0-9-]*}", api.UserRequired(adminConsole)).Methods("GET")
 
 	mainrouter.Handle("/hooks/{id:[A-Za-z0-9]+}", api.ApiAppHandler(incomingWebhook)).Methods("POST")
 
@@ -753,6 +756,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+<<<<<<< HEAD
 	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
@@ -777,6 +781,16 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.User = user
 	page.Team = team
 	page.Session = &c.Session
+=======
+	params := mux.Vars(r)
+	activeTab := params["tab"]
+	teamId := params["team"]
+
+	page := NewHtmlTemplatePage("admin_console", "Admin Console")
+
+	page.Props["ActiveTab"] = activeTab
+	page.Props["TeamId"] = teamId
+>>>>>>> master
 	page.Render(c, w)
 }
 
