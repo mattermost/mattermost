@@ -13,8 +13,10 @@ const MsgTyping = require('./msg_typing.jsx');
 const FileUpload = require('./file_upload.jsx');
 const FilePreview = require('./file_preview.jsx');
 const Utils = require('../utils/utils.jsx');
+
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
+const KeyCodes = Constants.KeyCodes;
 
 export default class CreateComment extends React.Component {
     constructor(props) {
@@ -25,6 +27,7 @@ export default class CreateComment extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleArrowUp = this.handleArrowUp.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -146,6 +149,26 @@ export default class CreateComment extends React.Component {
         $('.post-right__scroll').scrollTop($('.post-right__scroll')[0].scrollHeight);
         $('.post-right__scroll').perfectScrollbar('update');
         this.setState({messageText: messageText});
+    }
+    handleArrowUp(e) {
+        if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
+            e.preventDefault();
+
+            const channelId = ChannelStore.getCurrentId();
+            const lastPost = PostStore.getCurrentUsersLatestPost(channelId, this.props.rootId);
+            if (!lastPost) {
+                return;
+            }
+
+            AppDispatcher.handleViewAction({
+                type: ActionTypes.RECIEVED_EDIT_POST,
+                refocusId: '#reply_textbox',
+                title: 'Comment',
+                message: lastPost.message,
+                postId: lastPost.id,
+                channelId: lastPost.channel_id
+            });
+        }
     }
     handleUploadStart(clientIds) {
         let draft = PostStore.getCommentDraft(this.props.rootId);
@@ -279,6 +302,7 @@ export default class CreateComment extends React.Component {
                             <Textbox
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.commentMsgKeyPress}
+                                onKeyDown={this.handleArrowUp}
                                 messageText={this.state.messageText}
                                 createMessage='Add a comment...'
                                 initialText=''
