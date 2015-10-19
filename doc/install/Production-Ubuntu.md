@@ -160,10 +160,11 @@ exec bin/platform
 			proxy_set_header X-Forwarded-Ssl on;
 ```
 ## Finish Mattermost Server setup
+
 1. Navigate to https://mattermost.example.com and create a team and user.
 1. The first user in the system is automatically granted the `system_admin` role, which gives you access to the System Console.
 1. From the `town-square` channel click the dropdown and choose the `System Console` option
-1. Update Email Settings.  We recommend using an email sending service.  The example below assumes AmazonSES.
+1. Update Email Settings.  We recommend using an email sending service.  The example shows how an Amazon SES setup might look (sample credentials shown below are not real).
   * Set *Send Email Notifications* to true
   * Set *Require Email Verification* to true
   * Set *Feedback Name* to `No-Reply`
