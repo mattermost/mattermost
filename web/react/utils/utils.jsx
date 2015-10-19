@@ -544,7 +544,7 @@ export function applyTheme(theme) {
     if (theme.buttonBg) {
         changeCss('.btn.btn-primary', 'background:' + theme.buttonBg, 1);
         changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.25), 1);
-        changeCss('.file-play-button', 'color:' + changeColor(theme.buttonBg, -0.25), 1);
+        changeCss('.file-playback-controls', 'color:' + changeColor(theme.buttonBg, -0.25), 1);
     }
 
     if (theme.buttonColor) {

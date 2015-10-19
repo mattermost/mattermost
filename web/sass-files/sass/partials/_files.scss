@@ -153,6 +153,9 @@
         height: 100px;
         max-width: initial;
     }
+    &:hover .file-playback-controls.stop {
+        @include opacity(1);
+    }
   }
   .post-image__thumbnail {
     float: left;
@@ -230,11 +233,19 @@
   }
 }
 
-.file-play-button {
+.file-playback-controls {
     position: absolute;
-    right: 0;
+    right: 5px;
     bottom: 0;
     font-size: 22px;
     cursor: pointer;
     z-index: 2;
+    -webkit-transition: opacity 0.6s;
+    -moz-transition: opacity 0.6s;
+    -o-transition: opacity 0.6s;
+    transition: opacity 0.6s;
+
+    &.stop {
+        @include opacity(0);
+    }
 }

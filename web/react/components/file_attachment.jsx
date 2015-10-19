@@ -11,6 +11,8 @@ export default class FileAttachment extends React.Component {
 
         this.loadFiles = this.loadFiles.bind(this);
         this.playGif = this.playGif.bind(this);
+        this.stopGif = this.stopGif.bind(this);
+        this.addBackgroundImage = this.addBackgroundImage.bind(this);
 
         this.canSetState = false;
         this.state = {fileSize: -1, mime: '', playing: false, loading: false};
@@ -29,14 +31,8 @@ export default class FileAttachment extends React.Component {
         var filename = this.props.filename;
 
         if (filename) {
-            var fileInfo = utils.splitFileLocation(filename);
+            var fileInfo = this.getFileInfoFromName(filename);
             var type = utils.getFileType(fileInfo.ext);
-
-            // This is a temporary patch to fix issue with old files using absolute paths
-            if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
-                fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
-            }
-            fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
 
             if (type === 'image') {
                 var self = this; // Need this reference since we use the given "this"
@@ -59,11 +55,7 @@ export default class FileAttachment extends React.Component {
                                 $(imgDiv).addClass('normal');
                             }
 
-                            var re1 = new RegExp(' ', 'g');
-                            var re2 = new RegExp('\\(', 'g');
-                            var re3 = new RegExp('\\)', 'g');
-                            var url = path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
-                            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg)');
+                            self.addBackgroundImage(name, path);
                         }
                     };
                 }(fileInfo.path, filename));
@@ -111,6 +103,39 @@ export default class FileAttachment extends React.Component {
 
         e.stopPropagation();
     }
+    stopGif(e, filename) {
+        this.setState({playing: false});
+        this.addBackgroundImage(filename);
+        e.stopPropagation();
+    }
+    getFileInfoFromName(name) {
+        var fileInfo = utils.splitFileLocation(name);
+
+        // This is a temporary patch to fix issue with old files using absolute paths
+        if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
+            fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
+        }
+        fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
+
+        return fileInfo;
+    }
+    addBackgroundImage(name, path) {
+        var fileUrl = path;
+
+        if (name in this.refs) {
+            if (!path) {
+                fileUrl = this.getFileInfoFromName(name).path;
+            }
+
+            var imgDiv = ReactDOM.findDOMNode(this.refs[name]);
+            var re1 = new RegExp(' ', 'g');
+            var re2 = new RegExp('\\(', 'g');
+            var re3 = new RegExp('\\)', 'g');
+            var url = fileUrl.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
+
+            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg)');
+        }
+    }
     removeBackgroundImage(name) {
         if (name in this.refs) {
             $(ReactDOM.findDOMNode(this.refs[name])).css('background-image', 'initial');
@@ -123,13 +148,13 @@ export default class FileAttachment extends React.Component {
         var fileUrl = utils.getFileUrl(filename);
         var type = utils.getFileType(fileInfo.ext);
 
-        var playButton = '';
+        var playbackControls = '';
         var loadedFile = '';
         var loadingIndicator = '';
         if (this.state.mime === 'image/gif') {
-            playButton = (
+            playbackControls = (
                 <div
-                    className='file-play-button'
+                    className='file-playback-controls play'
                     onClick={(e) => this.playGif(e, filename)}
                 >
                     {"►"}
@@ -143,7 +168,14 @@ export default class FileAttachment extends React.Component {
                     src={fileUrl}
                 />
             );
-            playButton = '';
+            playbackControls = (
+                <div
+                    className='file-playback-controls stop'
+                    onClick={(e) => this.stopGif(e, filename)}
+                >
+                    {"◼"}
+                </div>
+            );
         }
         if (this.state.loading) {
             loadingIndicator = (
@@ -152,22 +184,35 @@ export default class FileAttachment extends React.Component {
                     src='/static/images/load.gif'
                 />
             );
-            playButton = '';
+            playbackControls = '';
         }
 
         var thumbnail;
         if (type === 'image') {
-            thumbnail = (
-                <div
-                    ref={filename}
-                    className='post__load'
-                    style={{backgroundImage: 'url(/static/images/load.gif)'}}
-                >
-                    {loadingIndicator}
-                    {playButton}
-                    {loadedFile}
-                </div>
-            );
+            if (this.state.playing) {
+                thumbnail = (
+                    <div
+                        ref={filename}
+                        className='post__load'
+                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                    >
+                        {playbackControls}
+                        {loadedFile}
+                    </div>
+                );
+            } else {
+                thumbnail = (
+                    <div
+                        ref={filename}
+                        className='post__load'
+                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                    >
+                        {loadingIndicator}
+                        {playbackControls}
+                        {loadedFile}
+                    </div>
+                );
+            }
         } else {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }

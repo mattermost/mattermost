@@ -147,6 +147,14 @@ export default class ViewImageModal extends React.Component {
         e.stopPropagation();
         e.preventDefault();
     }
+    stopGif(e, filename) {
+        var isPlaying = this.state.isPlaying;
+        delete isPlaying[filename];
+        this.setState({isPlaying});
+
+        e.stopPropagation();
+        e.preventDefault();
+    }
     componentDidMount() {
         $(window).on('keyup', this.handleKeyPress);
 
@@ -179,7 +187,7 @@ export default class ViewImageModal extends React.Component {
         var fileType = Utils.getFileType(fileInfo.ext);
 
         if (fileType === 'image') {
-            if (typeof this.state.isPlaying[filename] !== 'undefined') {
+            if (filename in this.state.isPlaying) {
                 return this.state.isPlaying[filename];
             }
 
@@ -232,16 +240,27 @@ export default class ViewImageModal extends React.Component {
                     );
                 }
 
-                var playButton = '';
-                if (this.state.fileMimes[filename] === 'image/gif' && !(filename in this.state.isLoading) && !(filename in this.state.isPlaying)) {
-                    playButton = (
-                        <div
-                            className='file-play-button'
-                            onClick={(e) => this.playGif(e, filename, fileUrl)}
-                        >
-                            {"►"}
-                        </div>
-                    );
+                var playbackControls = '';
+                if (this.state.fileMimes[filename] === 'image/gif' && !(filename in this.state.isLoading)) {
+                    if (filename in this.state.isPlaying) {
+                        playbackControls = (
+                            <div
+                                className='file-playback-controls stop'
+                                onClick={(e) => this.stopGif(e, filename)}
+                            >
+                                {"◼"}
+                            </div>
+                        );
+                    } else {
+                        playbackControls = (
+                            <div
+                                className='file-playback-controls play'
+                                onClick={(e) => this.playGif(e, filename, fileUrl)}
+                            >
+                                {"►"}
+                            </div>
+                        );
+                    }
                 }
 
                 var loadingIndicator = '';
@@ -252,7 +271,7 @@ export default class ViewImageModal extends React.Component {
                             src='/static/images/load.gif'
                         />
                     );
-                    playButton = '';
+                    playbackControls = '';
                 }
 
                 // image files just show a preview of the file
@@ -262,7 +281,7 @@ export default class ViewImageModal extends React.Component {
                         target='_blank'
                     >
                         {loadingIndicator}
-                        {playButton}
+                        {playbackControls}
                         <img
                             style={{maxHeight: this.state.imgHeight}}
                             ref='image'

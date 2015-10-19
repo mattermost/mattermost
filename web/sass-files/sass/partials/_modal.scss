@@ -229,6 +229,10 @@
 				display: table-cell;
 				vertical-align: middle;
 				position: relative;
+
+				&:hover .file-playback-controls.stop {
+			        @include opacity(1);
+			    }
 			}
 			img {
 				max-width: 100%;
