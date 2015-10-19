@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -144,6 +145,40 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	return rpost, nil
 }
 
+func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIconUrl string) (*model.Post, *model.AppError) {
+	// parse links into Markdown format
+	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
+
+	linkRegex := regexp.MustCompile(`<\s*(\S*)\s*>`)
+	text = linkRegex.ReplaceAllString(text, "${1}")
+
+	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text}
+	post.AddProp("from_webhook", "true")
+
+	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
+		if len(overrideUsername) != 0 {
+			post.AddProp("override_username", overrideUsername)
+		} else {
+			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
+		}
+	}
+
+	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
+		if len(overrideIconUrl) != 0 {
+			post.AddProp("override_icon_url", overrideIconUrl)
+		} else {
+			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
+		}
+	}
+
+	if _, err := CreatePost(c, post, false); err != nil {
+		return nil, model.NewAppError("CreateWebhookPost", "Error creating post", "err="+err.Message)
+	}
+
+	return post, nil
+}
+
 func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks bool) {
 	go func() {
 		tchan := Srv.Store.Team().Get(c.Session.TeamId)
@@ -244,9 +279,12 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 						} else {
 							respProps := model.MapFromJson(resp.Body)
 
+							// copy the context and create a mock session for posting the message
+							mockSession := model.Session{UserId: hook.CreatorId, TeamId: hook.TeamId, IsOAuth: false}
+							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL}
+
 							if text, ok := respProps["text"]; ok {
-								respPost := &model.Post{Message: text, ChannelId: post.ChannelId}
-								if _, err := CreatePost(c, respPost, false); err != nil {
+								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"]); err != nil {
 									l4g.Error("Failed to create response post, err=%v", err)
 								}
 							}
