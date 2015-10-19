@@ -16,7 +16,9 @@ Developer Machine Setup
 	1. `mkdir ~/go`
 	2. Add the following to your ~/.bash_profile  
 		`export GOPATH=$HOME/go`  
-		`export PATH=$PATH:$GOPATH/bin`
+		`export PATH=$PATH:$GOPATH/bin`  
+		`ulimit -n 8096`  
+		If you don't increase the file handle limit you may see some weird build issues with browserify or npm.  
 	3. Reload your bash profile  
 		`source ~/.bash_profile`
 4. Install Node.js using Homebrew
@@ -57,7 +59,9 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 	2. Add the following to your ~/.bashrc  
 		`export GOPATH=$HOME/go`  
 		`export GOROOT=/usr/local/go`  
-		`export PATH=$PATH:$GOROOT/bin`
+		`export PATH=$PATH:$GOROOT/bin`  
+		`ulimit -n 8096`  
+		If you don't increase the file handle limit you may see some weird build issues with browserify or npm.  
 	3. Reload your bashrc  
 		`source ~/.bashrc`
 6. Install Node.js

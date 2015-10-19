@@ -6,6 +6,7 @@ const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const ViewImagePopoverBar = require('./view_image_popover_bar.jsx');
 const Modal = ReactBootstrap.Modal;
+const KeyCodes = Constants.KeyCodes;
 
 export default class ViewImageModal extends React.Component {
     constructor(props) {
@@ -63,11 +64,11 @@ export default class ViewImageModal extends React.Component {
         this.loadImage(id);
     }
     handleKeyPress(e) {
-        if (!e) {
+        if (!e || !this.props.show) {
             return;
-        } else if (e.keyCode === 39) {
+        } else if (e.keyCode === KeyCodes.RIGHT) {
             this.handleNext();
-        } else if (e.keyCode === 37) {
+        } else if (e.keyCode === KeyCodes.LEFT) {
             this.handlePrev();
         }
     }

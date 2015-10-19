@@ -568,7 +568,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
 
-	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_VIEWED)
+	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_CHANNEL_VIEWED)
 	message.Add("channel_id", id)
 
 	PublishAndForget(message)
@@ -777,9 +777,8 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 
 	UpdateChannelAccessCacheAndForget(channel.TeamId, userIdToRemove, channel.Id)
 
-	message := model.NewMessage(channel.TeamId, "", userIdToRemove, model.ACTION_USER_REMOVED)
-	message.Add("channel_id", channel.Id)
-	message.Add("remover", removerUserId)
+	message := model.NewMessage(channel.TeamId, channel.Id, userIdToRemove, model.ACTION_USER_REMOVED)
+	message.Add("remover_id", removerUserId)
 	PublishAndForget(message)
 
 	return nil

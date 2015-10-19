@@ -12,7 +12,7 @@
 <div id='select_team_modal'></div>
 
 <script>
-    window.setup_admin_console_page();
+    window.setup_admin_console_page({{ .Props }});
 
     $(document).ready(function(){
         $('[data-toggle="tooltip"]').tooltip();

@@ -53,7 +53,7 @@ func (h *TeamHub) Start() {
 				}
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					if !(webCon.UserId == msg.UserId && msg.Action == model.ACTION_TYPING) {
+					if ShouldSendEvent(webCon, msg) {
 						select {
 						case webCon.Send <- msg:
 						default:
@@ -85,4 +85,33 @@ func (h *TeamHub) UpdateChannelAccessCache(userId string, channelId string) {
 			break
 		}
 	}
+}
+
+func ShouldSendEvent(webCon *WebConn, msg *model.Message) bool {
+
+	if webCon.UserId == msg.UserId {
+		// Don't need to tell the user they are typing
+		if msg.Action == model.ACTION_TYPING {
+			return false
+		}
+	} else {
+		// Don't share a user's view events with other users
+		if msg.Action == model.ACTION_CHANNEL_VIEWED {
+			return false
+		}
+
+		// Only report events to a user who is the subject of the event, or is in the channel of the event
+		if len(msg.ChannelId) > 0 {
+			allowed, ok := webCon.ChannelAccessCache[msg.ChannelId]
+			if !ok {
+				allowed = webCon.updateChannelAccessCache(msg.ChannelId)
+			}
+
+			if !allowed {
+				return false
+			}
+		}
+	}
+
+	return true
 }

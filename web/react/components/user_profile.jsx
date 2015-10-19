@@ -86,11 +86,11 @@ export default class UserProfile extends React.Component {
             dataContent.push(
                 <div
                     data-toggle='tooltip'
-                    title="' + this.state.profile.email + '"
+                    title={this.state.profile.email}
                     key='user-popover-email'
                 >
                     <a
-                        href="mailto:' + this.state.profile.email + '"
+                        href={'mailto:' + this.state.profile.email}
                         className='text-nowrap text-lowercase user-popover__email'
                     >
                         {this.state.profile.email}
