@@ -94,15 +94,27 @@ export default class FileAttachment extends React.Component {
 
         return true;
     }
-    playGif(e, fileUrl) {
+    playGif(e, filename) {
         var img = new Image();
+        var fileUrl = utils.getFileUrl(filename);
 
         this.setState({loading: true});
         img.load(fileUrl);
-        img.onload = () => this.setState({playing: true, loading: false});
+        img.onload = () => {
+            this.setState({playing: true, loading: false});
+
+            // keep displaying background image for a short moment while browser is
+            // loading gif, to prevent white background flashing through
+            setTimeout(() => this.removeBackgroundImage.bind(this)(filename), 100);
+        };
         img.onError = () => this.setState({loading: false});
 
         e.stopPropagation();
+    }
+    removeBackgroundImage(name) {
+        if (name in this.refs) {
+            $(ReactDOM.findDOMNode(this.refs[name])).css('background-image', 'initial');
+        }
     }
     render() {
         var filename = this.props.filename;
@@ -118,7 +130,7 @@ export default class FileAttachment extends React.Component {
             playButton = (
                 <div
                     className='file-play-button'
-                    onClick={(e) => this.playGif(e, fileUrl)}
+                    onClick={(e) => this.playGif(e, filename)}
                 >
                     {"►"}
                 </div>
