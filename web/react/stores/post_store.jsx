@@ -240,7 +240,7 @@ class PostStoreClass extends EventEmitter {
         for (i; i < len; i++) {
             if (postList.posts[postList.order[i]].user_id === userId) {
                 if (rootId) {
-                    if (postList.posts[postList.order[i]].root_id === rootId) {
+                    if (postList.posts[postList.order[i]].root_id === rootId || postList.posts[postList.order[i]].id === rootId) {
                         lastPost = postList.posts[postList.order[i]];
                         break;
                     }
