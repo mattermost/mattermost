@@ -47,6 +47,18 @@ module.exports = {
         SERVER_ACTION: null,
         VIEW_ACTION: null
     }),
+
+    SocketEvents: {
+        POSTED: 'posted',
+        POST_EDITED: 'post_edited',
+        POST_DELETED: 'post_deleted',
+        CHANNEL_VIEWED: 'channel_viewed',
+        NEW_USER: 'new_user',
+        USER_ADDED: 'user_added',
+        USER_REMOVED: 'user_removed',
+        TYPING: 'typing'
+    },
+
     SPECIAL_MENTIONS: ['all', 'channel'],
     CHARACTER_LIMIT: 4000,
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg'],
