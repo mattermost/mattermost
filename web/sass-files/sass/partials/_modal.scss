@@ -194,7 +194,7 @@
 			position: relative;
 			max-width: 90%;
 			min-height: 100px;
-			min-width: 240px;
+			min-width: 320px;
 			@include border-radius(3px);
 			display: table;
 			margin: 0 auto;
@@ -338,7 +338,7 @@
 .modal-direct-channels {
 
 	.user-list {
-		margin-top: 20px;
+		margin-top: 10px;
 		overflow: auto;
 		-webkit-overflow-scrolling: touch;
 		max-height: 500px;
