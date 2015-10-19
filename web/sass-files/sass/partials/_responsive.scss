@@ -758,6 +758,10 @@
     .post-comments {
         padding: 9px 21px 10px 10px !important;
     }
+
+    .post-image__column .post__image .file-playback-controls.stop, .image-wrapper > a .file-playback-controls.stop {
+        @include opacity(1);
+    }
 }
 @media screen and (max-width: 640px) {
     .access-history__table {
