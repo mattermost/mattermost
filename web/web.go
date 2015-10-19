@@ -15,7 +15,6 @@ import (
 	"gopkg.in/fsnotify.v1"
 	"html/template"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -931,9 +930,6 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	channelName := props["channel"]
 
-	overrideUsername := props["username"]
-	overrideIconUrl := props["icon_url"]
-
 	var hook *model.IncomingWebhook
 	if result := <-hchan; result.Err != nil {
 		c.Err = model.NewAppError("incomingWebhook", "Invalid webhook", "err="+result.Err.Message)
@@ -962,12 +958,8 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		cchan = api.Srv.Store.Channel().Get(hook.ChannelId)
 	}
 
-	// parse links into Markdown format
-	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
-	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
-
-	linkRegex := regexp.MustCompile(`<\s*(\S*)\s*>`)
-	text = linkRegex.ReplaceAllString(text, "${1}")
+	overrideUsername := props["username"]
+	overrideIconUrl := props["icon_url"]
 
 	if result := <-cchan; result.Err != nil {
 		c.Err = model.NewAppError("incomingWebhook", "Couldn't find the channel", "err="+result.Err.Message)
@@ -978,35 +970,16 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	pchan := api.Srv.Store.Channel().CheckPermissionsTo(hook.TeamId, channel.Id, hook.UserId)
 
-	post := &model.Post{UserId: hook.UserId, ChannelId: channel.Id, Message: text}
-	post.AddProp("from_webhook", "true")
-
-	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
-		if len(overrideUsername) != 0 {
-			post.AddProp("override_username", overrideUsername)
-		} else {
-			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
-		}
-	}
-
-	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
-		if len(overrideIconUrl) != 0 {
-			post.AddProp("override_icon_url", overrideIconUrl)
-		} else {
-			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
-		}
-	}
+	// create a mock session
+	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
 		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")
 		return
 	}
 
-	// create a mock session
-	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
-
-	if _, err := api.CreatePost(c, post, false); err != nil {
-		c.Err = model.NewAppError("incomingWebhook", "Error creating post", "err="+err.Message)
+	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl); err != nil {
+		c.Err = err
 		return
 	}
 

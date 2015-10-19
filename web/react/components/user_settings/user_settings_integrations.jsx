@@ -4,6 +4,7 @@
 var SettingItemMin = require('../setting_item_min.jsx');
 var SettingItemMax = require('../setting_item_max.jsx');
 var ManageIncomingHooks = require('./manage_incoming_hooks.jsx');
+var ManageOutgoingHooks = require('./manage_outgoing_hooks.jsx');
 
 export default class UserSettingsIntegrationsTab extends React.Component {
     constructor(props) {
@@ -19,6 +20,8 @@ export default class UserSettingsIntegrationsTab extends React.Component {
     }
     handleClose() {
         this.updateSection('');
+        $('.ps-container.modal-body').scrollTop(0);
+        $('.ps-container.modal-body').perfectScrollbar('update');
     }
     componentDidMount() {
         $('#user_settings').on('hidden.bs.modal', this.handleClose);
@@ -28,35 +31,67 @@ export default class UserSettingsIntegrationsTab extends React.Component {
     }
     render() {
         let incomingHooksSection;
+        let outgoingHooksSection;
         var inputs = [];
 
-        if (this.props.activeSection === 'incoming-hooks') {
-            inputs.push(
-                <ManageIncomingHooks />
-            );
+        if (global.window.config.EnableIncomingWebhooks === 'true') {
+            if (this.props.activeSection === 'incoming-hooks') {
+                inputs.push(
+                    <ManageIncomingHooks />
+                );
 
-            incomingHooksSection = (
-                <SettingItemMax
-                    title='Incoming Webhooks'
-                    width = 'full'
-                    inputs={inputs}
-                    updateSection={function clearSection(e) {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }.bind(this)}
-                />
-            );
-        } else {
-            incomingHooksSection = (
-                <SettingItemMin
-                    title='Incoming Webhooks'
-                    width = 'full'
-                    describe='Manage your incoming webhooks (Developer feature)'
-                    updateSection={function updateNameSection() {
-                        this.updateSection('incoming-hooks');
-                    }.bind(this)}
-                />
-            );
+                incomingHooksSection = (
+                    <SettingItemMax
+                        title='Incoming Webhooks'
+                        width = 'full'
+                        inputs={inputs}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                incomingHooksSection = (
+                    <SettingItemMin
+                        title='Incoming Webhooks'
+                        width = 'full'
+                        describe='Manage your incoming webhooks (Developer feature)'
+                        updateSection={() => {
+                            this.updateSection('incoming-hooks');
+                        }}
+                    />
+                );
+            }
+        }
+
+        if (global.window.config.EnableOutgoingWebhooks === 'true') {
+            if (this.props.activeSection === 'outgoing-hooks') {
+                inputs.push(
+                    <ManageOutgoingHooks />
+                );
+
+                outgoingHooksSection = (
+                    <SettingItemMax
+                        title='Outgoing Webhooks'
+                        inputs={inputs}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                outgoingHooksSection = (
+                    <SettingItemMin
+                        title='Outgoing Webhooks'
+                        describe='Manage your outgoing webhooks'
+                        updateSection={() => {
+                            this.updateSection('outgoing-hooks');
+                        }}
+                    />
+                );
+            }
         }
 
         return (
@@ -82,6 +117,8 @@ export default class UserSettingsIntegrationsTab extends React.Component {
                     <h3 className='tab-header'>{'Integration Settings'}</h3>
                     <div className='divider-dark first'/>
                     {incomingHooksSection}
+                    <div className='divider-light'/>
+                    {outgoingHooksSection}
                     <div className='divider-dark'/>
                 </div>
             </div>

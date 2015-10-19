@@ -38,7 +38,7 @@ export default class UserSettingsModal extends React.Component {
         if (global.window.config.EnableOAuthServiceProvider === 'true') {
             tabs.push({name: 'developer', uiName: 'Developer', icon: 'glyphicon glyphicon-th'});
         }
-        if (global.window.config.EnableIncomingWebhooks === 'true') {
+        if (global.window.config.EnableIncomingWebhooks === 'true' || global.window.config.EnableOutgoingWebhooks === 'true') {
             tabs.push({name: 'integrations', uiName: 'Integrations', icon: 'glyphicon glyphicon-transfer'});
         }
         tabs.push({name: 'display', uiName: 'Display', icon: 'glyphicon glyphicon-eye-open'});
