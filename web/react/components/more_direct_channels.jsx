@@ -140,12 +140,11 @@ export default class MoreDirectChannels extends React.Component {
         if (user.nickname) {
             const separator = fullName ? ' - ' : '';
             details.push(
-                <p
+                <span
                     key={`${user.nickname}__nickname`}
-                    className='more-description'
                 >
                     {separator + user.nickname}
-                </p>
+                </span>
             );
         }
 
@@ -184,7 +183,9 @@ export default class MoreDirectChannels extends React.Component {
                     <div className='more-name'>
                         {user.username}
                     </div>
-                    {details}
+                    <div className='more-description'>
+                        {details}
+                    </div>
                 </td>
                 <td className='td--action lg'>
                     {joinButton}
@@ -242,7 +243,7 @@ export default class MoreDirectChannels extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Team Directory'}</Modal.Title>
+                    <Modal.Title>{'Direct Messages'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='row filter-row'>
