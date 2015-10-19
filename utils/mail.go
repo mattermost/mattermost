@@ -6,14 +6,21 @@ package utils
 import (
 	l4g "code.google.com/p/log4go"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"github.com/mattermost/platform/model"
-	"html"
 	"net"
 	"net/mail"
 	"net/smtp"
 	"time"
 )
+
+func encodeRFC2047Word(s string) string {
+	// TODO: use `mime.BEncoding.Encode` instead when `go` >= 1.5
+	// return mime.BEncoding.Encode("utf-8", s)
+	dst := base64.StdEncoding.EncodeToString([]byte(s))
+	return "=?utf-8?b?" + dst + "?="
+}
 
 func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	var conn net.Conn
@@ -102,9 +109,10 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 	headers := make(map[string]string)
 	headers["From"] = fromMail.String()
 	headers["To"] = toMail.String()
-	headers["Subject"] = html.UnescapeString(subject)
+	headers["Subject"] = encodeRFC2047Word(subject)
 	headers["MIME-version"] = "1.0"
-	headers["Content-Type"] = "text/html"
+	headers["Content-Type"] = "text/html; charset=\"utf-8\""
+	headers["Content-Transfer-Encoding"] = "8bit"
 	headers["Date"] = time.Now().Format(time.RFC1123Z)
 
 	message := ""
