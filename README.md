@@ -26,7 +26,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - Attach sound, video and image files from mobile devices 
 - Define team-specific branding and color themes across your devices
 
-#### Self-Hosting Support
+#### Self-Host Ready
 
 - Host and manage dozens of teams from a single Mattermost server 
 - Easily manage your Mattermost server using a web-based System Console
