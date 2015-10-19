@@ -243,7 +243,7 @@ export default class MoreDirectChannels extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Team Directory'}</Modal.Title>
+                    <Modal.Title>{'Direct Messages'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='row filter-row'>
