@@ -756,7 +756,6 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-<<<<<<< HEAD
 	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
 	userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
@@ -777,20 +776,16 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		user = ur.Data.(*model.User)
 	}
 
-	page := NewHtmlTemplatePage("admin_console", "Admin Console")
-	page.User = user
-	page.Team = team
-	page.Session = &c.Session
-=======
 	params := mux.Vars(r)
 	activeTab := params["tab"]
 	teamId := params["team"]
 
 	page := NewHtmlTemplatePage("admin_console", "Admin Console")
-
+	page.User = user
+	page.Team = team
+	page.Session = &c.Session
 	page.Props["ActiveTab"] = activeTab
 	page.Props["TeamId"] = teamId
->>>>>>> master
 	page.Render(c, w)
 }
 
