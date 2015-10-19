@@ -132,7 +132,9 @@ export default class Sidebar extends React.Component {
         SocketStore.addChangeListener(this.onSocketChange);
         PreferenceStore.addChangeListener(this.onChange);
 
-        $('.nav-pills__container').perfectScrollbar();
+        if ($(window).width() > 768) {
+            $('.nav-pills__container').perfectScrollbar();
+        }
 
         this.updateTitle();
         this.updateUnreadIndicators();
