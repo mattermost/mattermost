@@ -4,7 +4,13 @@
 
 The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
 
+- **Release candidate anticipated:** 2015-11-10
 - **Final release anticipated:** 2015-11-16
+
+### Changes
+
+- IE 10 no longer supported since global share of IE 10 fell below 5%
+
 
 ## Release v1.1.0
 
