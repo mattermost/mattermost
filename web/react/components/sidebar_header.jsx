@@ -32,7 +32,7 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at}
+                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at + '&' + Utils.getSessionIndex()}
                 />
             );
         }

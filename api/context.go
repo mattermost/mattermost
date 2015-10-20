@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	l4g "code.google.com/p/log4go"
@@ -19,23 +20,24 @@ import (
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
 
 type Context struct {
-	Session      model.Session
-	RequestId    string
-	IpAddress    string
-	Path         string
-	Err          *model.AppError
-	teamURLValid bool
-	teamURL      string
-	siteURL      string
+	Session           model.Session
+	RequestId         string
+	IpAddress         string
+	Path              string
+	Err               *model.AppError
+	teamURLValid      bool
+	teamURL           string
+	siteURL           string
+	SessionTokenIndex int64
 }
 
 type Page struct {
-	TemplateName     string
-	Props            map[string]string
-	ClientCfg        map[string]string
-	User             *model.User
-	Team             *model.Team
-	SessionTokenHash string
+	TemplateName      string
+	Props             map[string]string
+	ClientCfg         map[string]string
+	User              *model.User
+	Team              *model.Team
+	SessionTokenIndex int64
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -99,29 +101,37 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Attempt to parse the token from the cookie
 	if len(token) == 0 {
-		if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-			multiToken := cookie.Value
-
-			fmt.Println(">>>>>>>> multiToken: " + multiToken)
-
-			if len(multiToken) > 0 {
-				tokens := strings.Split(multiToken, " ")
-
-				// If there is only 1 token in the cookie then just use it like normal
-				if len(tokens) == 1 {
-					token = multiToken
+		tokens := GetMultiSessionCookie(r)
+		if len(tokens) > 0 {
+			// If there is only 1 token in the cookie then just use it like normal
+			if len(tokens) == 1 {
+				token = tokens[0]
+			} else {
+				// If it is a multi-session token then find the correct session
+				sessionTokenIndexStr := r.URL.Query().Get(model.SESSION_TOKEN_INDEX)
+				sessionTokenIndex := int64(-1)
+				if len(sessionTokenIndexStr) > 0 {
+					if index, err := strconv.ParseInt(sessionTokenIndexStr, 10, 64); err == nil {
+						sessionTokenIndex = index
+					}
 				} else {
-					// If it is a multi-session token then find the correct session
-					sessionTokenHash := r.Header.Get(model.HEADER_MM_SESSION_TOKEN_HASH)
-					fmt.Println(">>>>>>>> sessionHash: " + sessionTokenHash + " url=" + r.URL.Path)
-					for _, t := range tokens {
-						if sessionTokenHash == model.HashPassword(t) {
-							token = token
-							break
+					sessionTokenIndexStr := r.Header.Get(model.HEADER_MM_SESSION_TOKEN_INDEX)
+					if len(sessionTokenIndexStr) > 0 {
+						if index, err := strconv.ParseInt(sessionTokenIndexStr, 10, 64); err == nil {
+							sessionTokenIndex = index
 						}
 					}
 				}
+
+				if sessionTokenIndex >= 0 && sessionTokenIndex < int64(len(tokens)) {
+					token = tokens[sessionTokenIndex]
+					c.SessionTokenIndex = sessionTokenIndex
+				} else {
+					c.SessionTokenIndex = -1
+				}
 			}
+		} else {
+			c.SessionTokenIndex = -1
 		}
 	}
 
@@ -200,7 +210,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
-				fmt.Println("!!!!!!!!!!!!!!!! url=" + r.URL.Path)
 				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 			} else {
 				RenderWebError(c.Err, w, r)
@@ -332,20 +341,30 @@ func (c *Context) IsTeamAdmin() bool {
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 
-	multiToken := ""
-	if oldMultiCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-		multiToken = oldMultiCookie.Value
-	}
+	// multiToken := ""
+	// if oldMultiCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
+	// 	multiToken = oldMultiCookie.Value
+	// }
 
-	multiCookie := &http.Cookie{
+	// multiCookie := &http.Cookie{
+	// 	Name:     model.SESSION_COOKIE_TOKEN,
+	// 	Value:    strings.TrimSpace(strings.Replace(multiToken, c.Session.Token, "", -1)),
+	// 	Path:     "/",
+	// 	MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
+	// 	HttpOnly: true,
+	// }
+
+	//http.SetCookie(w, multiCookie)
+
+	cookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    strings.TrimSpace(strings.Replace(multiToken, c.Session.Token, "", -1)),
+		Value:    "",
 		Path:     "/",
-		MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
+		MaxAge:   -1,
 		HttpOnly: true,
 	}
 
-	http.SetCookie(w, multiCookie)
+	http.SetCookie(w, cookie)
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {
@@ -508,24 +527,27 @@ func GetSession(token string) *model.Session {
 	return session
 }
 
-func FindMultiSessionForTeamId(r *http.Request, teamId string) *model.Session {
-
+func GetMultiSessionCookie(r *http.Request) []string {
 	if multiCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 		multiToken := multiCookie.Value
 
 		if len(multiToken) > 0 {
-			tokens := strings.Split(multiToken, " ")
-
-			for _, token := range tokens {
-				s := GetSession(token)
-				if s != nil && !s.IsExpired() && s.TeamId == teamId {
-					return s
-				}
-			}
+			return strings.Split(multiToken, " ")
 		}
 	}
 
-	return nil
+	return []string{}
+}
+
+func FindMultiSessionForTeamId(r *http.Request, teamId string) (int64, *model.Session) {
+	for index, token := range GetMultiSessionCookie(r) {
+		s := GetSession(token)
+		if s != nil && !s.IsExpired() && s.TeamId == teamId {
+			return int64(index), s
+		}
+	}
+
+	return -1, nil
 }
 
 func AddSessionToCache(session *model.Session) {

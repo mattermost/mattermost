@@ -434,8 +434,6 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		multiToken = originalMultiSessionCookie.Value
 	}
 
-	fmt.Println("original: " + multiToken)
-
 	// Attempt to clean all the old tokens or duplicate tokens
 	if len(multiToken) > 0 {
 		tokens := strings.Split(multiToken, " ")
@@ -454,9 +452,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		}
 	}
 
-	multiToken = strings.TrimSpace(session.Token + " " + multiToken)
-
-	fmt.Println("new: " + multiToken)
+	multiToken = strings.TrimSpace(multiToken + " " + session.Token)
 
 	multiSessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,

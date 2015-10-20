@@ -542,7 +542,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 <SettingPicture
                     title='Profile Picture'
                     submit={this.submitPicture}
-                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update}
+                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update + '&' + utils.getSessionIndex()}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={function clearSection(e) {

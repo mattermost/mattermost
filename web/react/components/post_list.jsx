@@ -323,7 +323,7 @@ export default class PostList extends React.Component {
                     <div className='post-profile-img__container channel-intro-img'>
                         <img
                             className='post-profile-img'
-                            src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at}
+                            src={'/api/v1/users/' + teammate.id + '/image?time=' + teammate.update_at + '&' + utils.getSessionIndex()}
                             height='50'
                             width='50'
                         />

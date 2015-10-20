@@ -158,7 +158,7 @@ export default class Post extends React.Component {
 
         var profilePic = null;
         if (!this.props.hideProfilePic) {
-            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
+            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
             if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
                 if (post.props.override_icon_url) {
                     src = post.props.override_icon_url;

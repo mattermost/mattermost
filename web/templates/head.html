@@ -43,10 +43,13 @@
         window.mm_config = {{ .ClientCfg }};
         window.mm_team = {{ .Team }};
         window.mm_user = {{ .User }};
-        window.mm_session_token_hash = {{ .SessionTokenHash }};
-        $.ajaxSetup({
-            headers: { 'X-MM-TokenHash': mm_session_token_hash }
-        });
+
+        if ({{.SessionTokenIndex}} >= 0) {
+            window.mm_session_token_index = {{.SessionTokenIndex}};
+            $.ajaxSetup({
+                headers: { 'X-MM-TokenIndex': mm_session_token_index }
+            });
+        }
     </script>
 
     <script>

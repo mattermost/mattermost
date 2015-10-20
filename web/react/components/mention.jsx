@@ -25,7 +25,7 @@ export default class Mention extends React.Component {
                 <span>
                     <img
                         className='mention-img'
-                        src={'/api/v1/users/' + this.props.id + '/image?time=' + timestamp}
+                        src={'/api/v1/users/' + this.props.id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
                     />
                 </span>
             );

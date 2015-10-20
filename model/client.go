@@ -16,18 +16,19 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID            = "X-Request-ID"
-	HEADER_VERSION_ID            = "X-Version-ID"
-	HEADER_ETAG_SERVER           = "ETag"
-	HEADER_ETAG_CLIENT           = "If-None-Match"
-	HEADER_FORWARDED             = "X-Forwarded-For"
-	HEADER_REAL_IP               = "X-Real-IP"
-	HEADER_FORWARDED_PROTO       = "X-Forwarded-Proto"
-	HEADER_TOKEN                 = "token"
-	HEADER_BEARER                = "BEARER"
-	HEADER_AUTH                  = "Authorization"
-	HEADER_MM_SESSION_TOKEN_HASH = "X-MM-TokenHash"
-	API_URL_SUFFIX               = "/api/v1"
+	HEADER_REQUEST_ID             = "X-Request-ID"
+	HEADER_VERSION_ID             = "X-Version-ID"
+	HEADER_ETAG_SERVER            = "ETag"
+	HEADER_ETAG_CLIENT            = "If-None-Match"
+	HEADER_FORWARDED              = "X-Forwarded-For"
+	HEADER_REAL_IP                = "X-Real-IP"
+	HEADER_FORWARDED_PROTO        = "X-Forwarded-Proto"
+	HEADER_TOKEN                  = "token"
+	HEADER_BEARER                 = "BEARER"
+	HEADER_AUTH                   = "Authorization"
+	HEADER_MM_SESSION_TOKEN_INDEX = "X-MM-TokenIndex"
+	SESSION_TOKEN_INDEX           = "session_token_index"
+	API_URL_SUFFIX                = "/api/v1"
 )
 
 type Result struct {

@@ -44,9 +44,7 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
 		me.User.Sanitize(map[string]bool{})
 	}
 
-	if len(c.Session.Token) > 0 {
-		me.SessionTokenHash = model.HashPassword(c.Session.Token)
-	}
+	me.SessionTokenIndex = c.SessionTokenIndex
 
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
 		c.SetUnknownError(me.TemplateName, err.Error())
@@ -232,7 +230,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We still might be able to switch to this team because we've logged in before
-	session := api.FindMultiSessionForTeamId(r, team.Id)
+	_, session := api.FindMultiSessionForTeamId(r, team.Id)
 	if session != nil {
 		w.Header().Set(model.HEADER_TOKEN, session.Token)
 		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
@@ -351,13 +349,13 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	// We are logged into a different team.  Lets see if we have another
 	// session in the cookie that will give us access.
 	if c.Session.TeamId != team.Id {
-		session := api.FindMultiSessionForTeamId(r, team.Id)
+		index, session := api.FindMultiSessionForTeamId(r, team.Id)
 		if session == nil {
 			// redirect to login
-			fmt.Println(">>>>>>>>>>forwarding")
 			http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 		} else {
 			c.Session = *session
+			c.SessionTokenIndex = index
 		}
 	}
 
@@ -1028,6 +1026,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	// create a mock session
 	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
+	c.SessionTokenIndex = 0
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
 		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")

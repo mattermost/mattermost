@@ -34,7 +34,7 @@ export default class FilePreview extends React.Component {
             if (filename.indexOf('/api/v1/files/get') !== -1) {
                 filename = filename.split('/api/v1/files/get')[1];
             }
-            filename = Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename;
+            filename = Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + Utils.getSessionIndex();
 
             if (type === 'image') {
                 previews.push(
