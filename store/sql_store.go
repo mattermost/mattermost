@@ -79,7 +79,14 @@ func NewSqlStore() Store {
 		// Check to see if it's the most current database schema version
 		if !model.IsCurrentVersion(schemaVersion) {
 			// If we are upgrading from the previous version then print a warning and continue
-			if model.IsPreviousVersion(schemaVersion) {
+
+			// Special case
+			isSchemaVersion07 := false
+			if schemaVersion == "0.7.1" || schemaVersion == "0.7.0" {
+				isSchemaVersion07 = true
+			}
+
+			if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 {
 				l4g.Warn("The database schema version of " + schemaVersion + " appears to be out of date")
 				l4g.Warn("Attempting to upgrade the database schema version to " + model.CurrentVersion)
 			} else {
@@ -88,6 +95,13 @@ func NewSqlStore() Store {
 				time.Sleep(time.Second)
 				panic("The database schema version of " + schemaVersion + " cannot be upgraded.  You must not skip a version.")
 			}
+		}
+	}
+
+	// REMOVE in 1.2
+	if sqlStore.DoesTableExist("Sessions") {
+		if sqlStore.DoesColumnExist("Sessions", "AltId") {
+			sqlStore.GetMaster().Exec("DROP TABLE IF EXISTS Sessions")
 		}
 	}
 

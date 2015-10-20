@@ -59,6 +59,26 @@ Messaging and Notifications
 - Slack import is unstable due to change in Slack export format
 - Uploading a .flac file breaks the file previewer on iOS
 
+### Compatibility 
+
+#### Config.json Changes from v1.0 to v1.1 
+
+##### Service Settings 
+
+Multiple settings were added to [`config.json`](./config/config.json) and System Console UI. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file. This is a list of changes and their new default values in a fresh install: 
+- Under `ServiceSettings` in `config.json`:
+  - Added: `"EnablePostIconOverride": false` to control whether webhooks can override profile pictures
+  - Added: `"EnablePostUsernameOverride": false` to control whether webhooks can override profile pictures
+  - Added: `"EnableSecurityFixAlert": true` to control whether the system is alerted to security updates
+
+#### Database Changes from v1.0 to v1.1
+
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this. 
+
+##### ChannelMembers Table
+1. Removed `NotifyLevel` column
+2. Added `NotifyProps` column with type `varchar(2000)` and default value `{}`
+
 ### Contributors
 
 Many thanks to our external contributors. In no particular order: 
@@ -179,6 +199,148 @@ Licensing
 ### Bug Fixes
 
 - Fixed issue so that SSO option automatically set EmailVerified=true (it was false previously)
+
+### Compatibility 
+
+A large number of settings were changed in [`config.json`](./config/config.json) and a System Console UI was added. This is a very large change due to Mattermost releasing as v1.0 and it's unlikely a change of this size would happen again. 
+
+Prior to upgrading the Mattermost binaries from the previous versions, the below options would need to be manually updated in existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
+#### Config.json Changes from v0.7 to v1.0 
+
+##### Service Settings 
+
+- Under `ServiceSettings` in [`config.json`](./config/config.json):
+  - **Moved:** `"SiteName": "Mattermost"` which was added to `TeamSettings`
+  - **Removed:** `"Mode" : "dev"` which deprecates a high level dev mode, now replaced by granular controls
+  - **Renamed:** `"AllowTesting" : false` to `"EnableTesting": false` which allows the use of `/loadtest` slash commands during development
+  - **Removed:** `"UseSSL": false` boolean replaced by `"ConnectionSecurity": ""` under `Security` with new options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+  - **Renamed**: `"Port": "8065"` to `"ListenAddress": ":8065"` to define address on which to listen. Must be prepended with a colon.
+  - **Removed:** `"Version": "developer"` removed and version information now stored in `model/version.go`
+  - **Removed:** `"Shards": {}` which was not used
+  - **Moved:** `"InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"` to `EmailSettings`
+  - **Moved:** `"PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4"` to `FileSettings`
+  - **Renamed and Moved** `"ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t"` to `"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL"` and moved to `EmailSettings`
+  - **Removed:** `"AnalyticsUrl": ""` which was not used
+  - **Removed:** `"UseLocalStorage": true` which is replaced by `"DriverName": "local"` in `FileSettings`
+  - **Renamed and Moved:** `"StorageDirectory": "./data/"` to `Directory` and moved to `FileSettings`
+  - **Renamed:** `"AllowedLoginAttempts": 10` to `"MaximumLoginAttempts": 10`
+  - **Renamed, Reversed and Moved:** `"DisableEmailSignUp": false` renamed `"EnableSignUpWithEmail": true`, reversed meaning of `true`, and moved to `EmailSettings`
+  - **Added:** `"EnableOAuthServiceProvider": false` to enable OAuth2 service provider functionality
+  - **Added:** `"EnableIncomingWebhooks": false` to enable incoming webhooks feature
+
+##### Team Settings 
+
+- Under `TeamSettings` in [`config.json`](./config/config.json):
+  - **Renamed:** `"AllowPublicLink": true` renamed to `"EnablePublicLink": true` and moved to `FileSettings`
+  - **Removed:** `AllowValetDefault` which was a guest account feature that is deprecated 
+  - **Removed:** `"TermsLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"PrivacyLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"AboutLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"HelpLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"ReportProblemLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"TourLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"DefaultThemeColor": "#2389D7"` removed since theme colors changed from 1 to 18, default theme color option may be added back later after theme color design stablizes 
+  - **Renamed:** `"DisableTeamCreation": false` to `"EnableUserCreation": true` and reversed
+  - **Added:** ` "EnableUserCreation": true` added to disable ability to create new user accounts in the system
+
+##### SSO Settings
+
+- Under `SSOSettings` in [`config.json`](./config/config.json):
+  - **Renamed Category:** `SSOSettings` to `GitLabSettings`
+  - **Renamed:** `"Allow": false` to `"Enable": false` to enable GitLab SSO
+  
+##### AWS Settings
+
+- Under `AWSSettings` in [`config.json`](./config/config.json):
+  - This section was removed and settings moved to `FileSettings`
+  - **Renamed and Moved:** `"S3AccessKeyId": ""` renamed `"AmazonS3AccessKeyId": "",` and moved to `FileSettings`
+  - **Renamed and Moved:** `"S3SecretAccessKey": ""` renamed `"AmazonS3SecretAccessKey": "",` and moved to `FileSettings`
+  - **Renamed and Moved:** `"S3Bucket": ""` renamed `"AmazonS3Bucket": "",` and moved to `FileSettings`
+  - **Renamed and Moved:** `"S3Region": ""` renamed `"AmazonS3Region": "",` and moved to `FileSettings`
+
+##### Image Settings 
+
+- Under `ImageSettings` in [`config.json`](./config/config.json):
+  - **Renamed:** `"ImageSettings"` section to `"FileSettings"`
+  - **Added:** `"DriverName" : "local"` to specify the file storage method, `amazons3` can also be used to setup S3
+
+##### EmailSettings
+
+- Under `EmailSettings` in [`config.json`](./config/config.json):
+  - **Removed:** `"ByPassEmail": "true"` which is replaced with `SendEmailNotifications` and `RequireEmailVerification`
+  - **Added:** `"SendEmailNotifications" : "false"` to control whether email notifications are sent
+  - **Added:** `"RequireEmailVerification" : "false"` to control if users need to verify their emails
+  - **Replaced:** `"UseTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+  - **Replaced:** `"UseStartTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+
+##### Privacy Settings 
+
+- Under `PrivacySettings` in [`config.json`](./config/config.json):
+  - **Removed:** `"ShowPhoneNumber": "true"` which was not used
+  - **Removed:** `"ShowSkypeId" : "true"` which was not used
+  
+### Database Changes from v0.7 to v1.0
+
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this. 
+
+##### Users Table
+1. Added `ThemeProps` column with type `varchar(2000)` and default value `{}`
+
+##### Teams Table
+1. Removed `AllowValet` column
+
+##### Sessions Table
+1. Renamed `Id` column `Token`
+2. Renamed `AltId` column `Id`
+3. Added `IsOAuth` column with type `tinyint(1)` and default value `0`
+
+##### OAuthAccessData Table
+1. Added new table `OAuthAccessData`
+2. Added `AuthCode` column with type `varchar(128)`
+3. Added `Token` column with type `varchar(26)` as the primary key
+4. Added `RefreshToken` column with type `varchar(26)`
+5. Added `RedirectUri` column with type `varchar(256)`
+6. Added index on `AuthCode` column
+
+##### OAuthApps Table
+1. Added new table `OAuthApps`
+2. Added `Id` column with type `varchar(26)` as primary key
+2. Added `CreatorId` column with type `varchar(26)`
+2. Added `CreateAt` column with type `bigint(20)`
+2. Added `UpdateAt` column with type `bigint(20)`
+2. Added `ClientSecret` column with type `varchar(128)`
+2. Added `Name` column with type `varchar(64)`
+2. Added `Description` column with type `varchar(512)`
+2. Added `CallbackUrls` column with type `varchar(1024)`
+2. Added `Homepage` column with type `varchar(256)`
+3. Added index on `CreatorId` column
+
+##### OAuthAuthData Table
+1. Added new table `OAuthAuthData`
+2. Added `ClientId` column with type `varchar(26)`
+2. Added `UserId` column with type `varchar(26)`
+2. Added `Code` column with type `varchar(128)` as primary key
+2. Added `ExpiresIn` column with type `int(11)`
+2. Added `CreateAt` column with type `bigint(20)`
+2. Added `State` column with type `varchar(128)`
+2. Added `Scope` column with type `varchar(128)`
+
+##### IncomingWebhooks Table
+1. Added new table `IncomingWebhooks`
+2. Added `Id` column with type `varchar(26)` as primary key
+2. Added `CreateAt` column with type `bigint(20)`
+2. Added `UpdateAt` column with type `bigint(20)`
+2. Added `DeleteAt` column with type `bigint(20)`
+2. Added `UserId` column with type `varchar(26)`
+2. Added `ChannelId` column with type `varchar(26)`
+2. Added `TeamId` column with type `varchar(26)`
+3. Added index on `UserId` column
+3. Added index on `TeamId` column
+
+##### Systems Table
+1. Added new table `Systems`
+2. Added `Name` column with type `varchar(64)` as primary key
+3. Added `Value column with type `varchar(1024)`
 
 ### Contributors
 
