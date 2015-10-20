@@ -189,7 +189,9 @@ Licensing
 
 ### Compatibility 
 
-A large number of settings were changed in [`config.json`](./config/config.json) and a System Console UI was added. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
+A large number of settings were changed in [`config.json`](./config/config.json) and a System Console UI was added. This is a very large change due to Mattermost releasing as v1.0 and it's unlikely a change of this size would happen again. 
+
+Prior to upgrading the Mattermost binaries from the previous versions, the below options would need to be manually updated in existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
 - Under `ServiceSettings` in [`config.json`](./config/config.json):
   - **Moved:** `"SiteName": "Mattermost"` which was added to `TeamSettings`
   - **Removed:** `"Mode" : "dev"` which deprecates a high level dev mode, now replaced by granular controls
@@ -208,8 +210,25 @@ A large number of settings were changed in [`config.json`](./config/config.json)
   - **Renamed, Reversed and Moved:** `"DisableEmailSignUp": false` renamed `"EnableSignUpWithEmail": true`, reversed meaning of `true`, and moved to `EmailSettings`
   - **Added:** `"EnableOAuthServiceProvider": false` to enable OAuth2 service provider functionality
   - **Added:** `"EnableIncomingWebhooks": false` to enable incoming webhooks feature
+- Under `TeamSettings` in [`config.json`](./config/config.json):
+  - **Renamed:** `"AllowPublicLink": true` renamed to `"EnablePublicLink": true` and moved to `FileSettings`
+  - **Removed:** `AllowValetDefault` which was a guest account feature that is deprecated 
+  - **Removed:** `"TermsLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"PrivacyLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"AboutLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"HelpLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"ReportProblemLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"TourLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - **Removed:** `"DefaultThemeColor": "#2389D7"` removed since theme colors changed from 1 to 18, default theme color option may be added back later after theme color design stablizes 
+  - **Renamed:** `"DisableTeamCreation": false` to `"EnableUserCreation": true` and reversed
+  - **Added:** ` "EnableUserCreation": true` added to disable ability to create new user accounts in the system
 
 
+
+- Under `PrivacySettings` in [`config.json`](./config/config.json):
+  - **Removed:** `"ShowPhoneNumber": "true"` which was not used
+  - **Removed:** `"ShowSkypeId" : "true"` which was not used
+  - 
 ### Contributors
 
 Many thanks to our external contributors. In no particular order: 
