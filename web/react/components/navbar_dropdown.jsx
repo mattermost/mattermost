@@ -152,7 +152,7 @@ export default class NavbarDropdown extends React.Component {
             sysAdminLink = (
                 <li>
                     <a
-                        href='/admin_console'
+                        href={'/admin_console?' + Utils.getSessionIndex()}
                     >
                         {'System Console'}
                     </a>

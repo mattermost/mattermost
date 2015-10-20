@@ -84,7 +84,7 @@ export default class SidebarRightMenu extends React.Component {
             consoleLink = (
                 <li>
                     <a
-                        href='/admin_console'
+                        href={'/admin_console?' + utils.getSessionIndex()}
                     >
                     <i className='glyphicon glyphicon-wrench'></i>System Console</a>
                 </li>
