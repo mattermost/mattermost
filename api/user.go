@@ -198,7 +198,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
 
-		fireAndForgetWelcomeEmail(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), user.EmailVerified)
+		sendWelcomeEmailAndForget(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), user.EmailVerified)
 
 		addDirectChannelsAndForget(ruser)
 
@@ -219,7 +219,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func fireAndForgetWelcomeEmail(userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
+func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("welcome_subject")
@@ -278,7 +278,7 @@ func addDirectChannelsAndForget(user *model.User) {
 	}()
 }
 
-func FireAndForgetVerifyEmail(userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+func SendVerifyEmailAndForget(userId, userEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
@@ -922,10 +922,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				l4g.Error(tresult.Err.Message)
 			} else {
 				team := tresult.Data.(*model.Team)
-				fireAndForgetEmailChangeEmail(rusers[1].Email, rusers[0].Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL())
+				sendEmailChangeEmailAndForget(rusers[1].Email, rusers[0].Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL())
 
 				if utils.Cfg.EmailSettings.RequireEmailVerification {
-					FireAndForgetEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
+					SendEmailChangeVerifyEmailAndForget(rusers[0].Id, rusers[0].Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team))
 				}
 			}
 		}
@@ -1005,7 +1005,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			l4g.Error(tresult.Err.Message)
 		} else {
 			team := tresult.Data.(*model.Team)
-			fireAndForgetPasswordChangeEmail(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), "using the settings menu")
+			sendPasswordChangeEmailAndForget(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), "using the settings menu")
 		}
 
 		data := make(map[string]string)
@@ -1342,13 +1342,13 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(userId, "success")
 	}
 
-	fireAndForgetPasswordChangeEmail(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), "using a reset password link")
+	sendPasswordChangeEmailAndForget(user.Email, team.DisplayName, c.GetTeamURLFromTeam(team), c.GetSiteURL(), "using a reset password link")
 
 	props["new_password"] = ""
 	w.Write([]byte(model.MapToJson(props)))
 }
 
-func fireAndForgetPasswordChangeEmail(email, teamDisplayName, teamURL, siteURL, method string) {
+func sendPasswordChangeEmailAndForget(email, teamDisplayName, teamURL, siteURL, method string) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("password_change_subject")
@@ -1367,7 +1367,7 @@ func fireAndForgetPasswordChangeEmail(email, teamDisplayName, teamURL, siteURL, 
 	}()
 }
 
-func fireAndForgetEmailChangeEmail(oldEmail, newEmail, teamDisplayName, teamURL, siteURL string) {
+func sendEmailChangeEmailAndForget(oldEmail, newEmail, teamDisplayName, teamURL, siteURL string) {
 	go func() {
 
 		subjectPage := NewServerTemplatePage("email_change_subject")
@@ -1386,7 +1386,7 @@ func fireAndForgetEmailChangeEmail(oldEmail, newEmail, teamDisplayName, teamURL,
 	}()
 }
 
-func FireAndForgetEmailChangeVerifyEmail(userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
+func SendEmailChangeVerifyEmailAndForget(userId, newUserEmail, teamName, teamDisplayName, siteURL, teamURL string) {
 	go func() {
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)

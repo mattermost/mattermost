@@ -185,8 +185,8 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "Invalid maximum users per team for team settings.  Must be a positive number.", "")
 	}
 
-	if len(o.SqlSettings.AtRestEncryptKey) != 32 {
-		return NewAppError("Config.IsValid", "Invalid at rest encrypt key for SQL settings.  Must be 32 chars.", "")
+	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
+		return NewAppError("Config.IsValid", "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.", "")
 	}
 
 	if !(o.SqlSettings.DriverName == DATABASE_DRIVER_MYSQL || o.SqlSettings.DriverName == DATABASE_DRIVER_POSTGRES) {
@@ -233,20 +233,20 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "Invalid thumbnail width for file settings.  Must be a positive number.", "")
 	}
 
-	if len(o.FileSettings.PublicLinkSalt) != 32 {
-		return NewAppError("Config.IsValid", "Invalid public link salt for file settings.  Must be 32 chars.", "")
+	if len(o.FileSettings.PublicLinkSalt) < 32 {
+		return NewAppError("Config.IsValid", "Invalid public link salt for file settings.  Must be 32 chars or more.", "")
 	}
 
 	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
 		return NewAppError("Config.IsValid", "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'", "")
 	}
 
-	if len(o.EmailSettings.InviteSalt) != 32 {
-		return NewAppError("Config.IsValid", "Invalid invite salt for email settings.  Must be 32 chars.", "")
+	if len(o.EmailSettings.InviteSalt) < 32 {
+		return NewAppError("Config.IsValid", "Invalid invite salt for email settings.  Must be 32 chars or more.", "")
 	}
 
-	if len(o.EmailSettings.PasswordResetSalt) != 32 {
-		return NewAppError("Config.IsValid", "Invalid password reset salt for email settings.  Must be 32 chars.", "")
+	if len(o.EmailSettings.PasswordResetSalt) < 32 {
+		return NewAppError("Config.IsValid", "Invalid password reset salt for email settings.  Must be 32 chars or more.", "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {

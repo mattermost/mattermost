@@ -66,7 +66,7 @@ func main() {
 			manualtesting.InitManualTesting()
 		}
 
-		securityAndDiagnosticsJob()
+		runSecurityAndDiagnosticsJobAndForget()
 
 		// wait for kill signal before attempting to gracefully shutdown
 		// the running service
@@ -78,7 +78,7 @@ func main() {
 	}
 }
 
-func securityAndDiagnosticsJob() {
+func runSecurityAndDiagnosticsJobAndForget() {
 	go func() {
 		for {
 			if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {

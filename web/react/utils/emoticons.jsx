@@ -3,6 +3,7 @@
 
 const emoticonPatterns = {
     smile: /(^|\s)(:-?\))($|\s)/g, // :)
+    wink: /(^|\s)(;-?\))($|\s)/g, // ;)
     open_mouth: /(^|\s)(:o)($|\s)/gi, // :o
     scream: /(^|\s)(:-o)($|\s)/gi, // :-o
     smirk: /(^|\s)(:-?])($|\s)/g, // :]

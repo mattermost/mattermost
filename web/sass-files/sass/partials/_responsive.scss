@@ -267,6 +267,7 @@
             }
         }
         .file-details {
+            width: 100%;
             height: auto;
         }
     }
@@ -697,7 +698,7 @@
         .modal-image {
             .image-wrapper {
                 font-size: 12px;
-                min-width: 280px;
+                min-width: 250px;
                 .modal-close {
                     @include opacity(1);
                 }
