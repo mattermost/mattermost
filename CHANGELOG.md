@@ -259,13 +259,13 @@ Prior to upgrading the Mattermost binaries from the previous versions, the below
 
 ##### Image Settings 
 
-- Under `Image Settings` in [`config.json`](./config/config.json):
-  - **Renamed:** `"Image Settings"` section to `"FileSettings"`
+- Under `ImageSettings` in [`config.json`](./config/config.json):
+  - **Renamed:** `"ImageSettings"` section to `"FileSettings"`
   - **Added:** `"DriverName" : "local"` to specify the file storage method, `amazons3` can also be used to setup S3
 
-##### Email Settings
+##### EmailSettings
 
-- Under `Email Settings` in [`config.json`](./config/config.json):
+- Under `EmailSettings` in [`config.json`](./config/config.json):
   - **Removed:** `"ByPassEmail": "true"` which is replaced with `SendEmailNotifications` and `RequireEmailVerification`
   - **Added:** `"SendEmailNotifications" : "false"` to control whether email notifications are sent
   - **Added:** `"RequireEmailVerification" : "false"` to control if users need to verify their emails
