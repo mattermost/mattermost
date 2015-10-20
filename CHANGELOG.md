@@ -53,7 +53,16 @@ Messaging and Notifications
 - Fixed bug where System Administrator did not have Team Administrator permissions
 - Fixed bug causing scrolling to jump when the right hand sidebar opened and closed
 
+### Known Issues
+
+- Slack import is unstable due to change in Slack export format
+- Uploading a .flac file breaks the file previewer on iOS
+
 ### Compatibility 
+
+#### Config.json Changes from v1.0 to v1.1 
+
+##### Service Settings 
 
 Multiple settings were added to [`config.json`](./config/config.json) and System Console UI. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file. This is a list of changes and their new default values in a fresh install: 
 - Under `ServiceSettings` in `config.json`:
@@ -61,10 +70,13 @@ Multiple settings were added to [`config.json`](./config/config.json) and System
   - Added: `"EnablePostUsernameOverride": false` to control whether webhooks can override profile pictures
   - Added: `"EnableSecurityFixAlert": true` to control whether the system is alerted to security updates
 
-### Known Issues
+#### Database Changes from v1.0 to v1.1
 
-- Slack import is unstable due to change in Slack export format
-- Uploading a .flac file breaks the file previewer on iOS
+Mattermost automatically upgrades database tables from the previous version's schema using only additions. No action is needed by the admin, the following is for informational purposes only. 
+
+##### ChannelMembers Table
+1. Removed `NotifyLevel` column
+2. Added `NotifyProps` column with type `varchar(2000)` and default value `{}`
 
 ### Contributors
 
@@ -192,6 +204,10 @@ Licensing
 A large number of settings were changed in [`config.json`](./config/config.json) and a System Console UI was added. This is a very large change due to Mattermost releasing as v1.0 and it's unlikely a change of this size would happen again. 
 
 Prior to upgrading the Mattermost binaries from the previous versions, the below options would need to be manually updated in existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
+#### Config.json Changes from v0.7 to v1.0 
+
+##### Service Settings 
+
 - Under `ServiceSettings` in [`config.json`](./config/config.json):
   - **Moved:** `"SiteName": "Mattermost"` which was added to `TeamSettings`
   - **Removed:** `"Mode" : "dev"` which deprecates a high level dev mode, now replaced by granular controls
@@ -210,6 +226,9 @@ Prior to upgrading the Mattermost binaries from the previous versions, the below
   - **Renamed, Reversed and Moved:** `"DisableEmailSignUp": false` renamed `"EnableSignUpWithEmail": true`, reversed meaning of `true`, and moved to `EmailSettings`
   - **Added:** `"EnableOAuthServiceProvider": false` to enable OAuth2 service provider functionality
   - **Added:** `"EnableIncomingWebhooks": false` to enable incoming webhooks feature
+
+##### Team Settings 
+
 - Under `TeamSettings` in [`config.json`](./config/config.json):
   - **Renamed:** `"AllowPublicLink": true` renamed to `"EnablePublicLink": true` and moved to `FileSettings`
   - **Removed:** `AllowValetDefault` which was a guest account feature that is deprecated 
@@ -223,12 +242,106 @@ Prior to upgrading the Mattermost binaries from the previous versions, the below
   - **Renamed:** `"DisableTeamCreation": false` to `"EnableUserCreation": true` and reversed
   - **Added:** ` "EnableUserCreation": true` added to disable ability to create new user accounts in the system
 
+##### SSO Settings
 
+- Under `SSOSettings` in [`config.json`](./config/config.json):
+  - **Renamed Category:** `SSOSettings` to `GitLabSettings`
+  - **Renamed:** `"Allow": false` to `"Enable": false` to enable GitLab SSO
+  
+##### AWS Settings
+
+- Under `AWSSettings` in [`config.json`](./config/config.json):
+  - This section was removed and settings moved to `FileSettings`
+  - **Renamed and Moved:** `"S3AccessKeyId": ""` renamed `"AmazonS3AccessKeyId": "",` and moved to `FileSettings`
+  - **Renamed and Moved:** `"S3SecretAccessKey": ""` renamed `"AmazonS3SecretAccessKey": "",` and moved to `FileSettings`
+  - **Renamed and Moved:** `"S3Bucket": ""` renamed `"AmazonS3Bucket": "",` and moved to `FileSettings`
+  - **Renamed and Moved:** `"S3Region": ""` renamed `"AmazonS3Region": "",` and moved to `FileSettings`
+
+##### Image Settings 
+
+- Under `Image Settings` in [`config.json`](./config/config.json):
+  - **Renamed:** `"Image Settings"` section to `"FileSettings"`
+  - **Added:** `"DriverName" : "local"` to specify the file storage method, `amazons3` can also be used to setup S3
+
+##### Email Settings
+
+- Under `Email Settings` in [`config.json`](./config/config.json):
+  - **Removed:** `"ByPassEmail": "true"` which is replaced with `SendEmailNotifications` and `RequireEmailVerification`
+  - **Added:** `"SendEmailNotifications" : "false"` to control whether email notifications are sent
+  - **Added:** `"RequireEmailVerification" : "false"` to control if users need to verify their emails
+  - **Replaced:** `"UseTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+  - **Replaced:** `"UseStartTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+
+##### Privacy Settings 
 
 - Under `PrivacySettings` in [`config.json`](./config/config.json):
   - **Removed:** `"ShowPhoneNumber": "true"` which was not used
   - **Removed:** `"ShowSkypeId" : "true"` which was not used
-  - 
+  
+### Database Changes from v0.7 to v1.0
+
+Mattermost automatically upgrades database tables from the previous version's schema using only additions. No action is needed by the admin, the following is for informational purposes only. 
+
+##### Users Table
+1. Added `ThemeProps` column with type `varchar(2000)` and default value `{}`
+
+##### Teams Table
+1. Removed `AllowValet` column
+
+##### Sessions Table
+1. Session table is dropped and rebuilt
+2. Renamed `Id` column `Token`
+3. Renamed `AltId` column `Id`
+4. Added `IsOAuth` column with type `tinyint(1)` and default value `0`
+
+##### OAuthAccessData Table
+1. Added new table `OAuthAccessData`
+2. Added `AuthCode` column with type `varchar(128)`
+3. Added `Token` column with type `varchar(26)` as the primary key
+4. Added `RefreshToken` column with type `varchar(26)`
+5. Added `RedirectUri` column with type `varchar(256)`
+6. Added index on `AuthCode` column
+
+##### OAuthApps Table
+1. Added new table `OAuthApps`
+2. Added `Id` column with type `varchar(26)` as primary key
+2. Added `CreatorId` column with type `varchar(26)`
+2. Added `CreateAt` column with type `bigint(20)`
+2. Added `UpdateAt` column with type `bigint(20)`
+2. Added `ClientSecret` column with type `varchar(128)`
+2. Added `Name` column with type `varchar(64)`
+2. Added `Description` column with type `varchar(512)`
+2. Added `CallbackUrls` column with type `varchar(1024)`
+2. Added `Homepage` column with type `varchar(256)`
+3. Added index on `CreatorId` column
+
+##### OAuthAuthData Table
+1. Added new table `OAuthAuthData`
+2. Added `ClientId` column with type `varchar(26)`
+2. Added `UserId` column with type `varchar(26)`
+2. Added `Code` column with type `varchar(128)` as primary key
+2. Added `ExpiresIn` column with type `int(11)`
+2. Added `CreateAt` column with type `bigint(20)`
+2. Added `State` column with type `varchar(128)`
+2. Added `Scope` column with type `varchar(128)`
+
+##### IncomingWebhooks Table
+1. Added new table `IncomingWebhooks`
+2. Added `Id` column with type `varchar(26)` as primary key
+2. Added `CreateAt` column with type `bigint(20)`
+2. Added `UpdateAt` column with type `bigint(20)`
+2. Added `DeleteAt` column with type `bigint(20)`
+2. Added `UserId` column with type `varchar(26)`
+2. Added `ChannelId` column with type `varchar(26)`
+2. Added `TeamId` column with type `varchar(26)`
+3. Added index on `UserId` column
+3. Added index on `TeamId` column
+
+##### Systems Table
+1. Added new table `Systems`
+2. Added `Name` column with type `varchar(64)` as primary key
+3. Added `Value column with type `varchar(1024)`
+
 ### Contributors
 
 Many thanks to our external contributors. In no particular order: 
