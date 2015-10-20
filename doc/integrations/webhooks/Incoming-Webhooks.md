@@ -13,26 +13,26 @@ Suppose you wanted to create a notification of the status of a daily build, with
 
 ```
 payload={"text": "
-***
+---
 ##### Build Break - Project X - December 12, 2015 - 15:32 GMT +0
 | Component  | Tests Run   | Tests Failed                                   |
 |:-----------|:------------|:-----------------------------------------------|
 | Server     | 948         | :white_check_mark: 0                           |
 | Web Client | 123         | :warning: [2 (see details)](http://linktologs) |
 | iOS Client | 78          | :warning: [3 (see details)](http://linktologs) |
-***
+---
 "}
 ```
 Which would render in a Mattermost message as follows:
 
-***
+---
 ##### Build Break - Project X - December 12, 2015 - 15:32 GMT +0
-| Component  | Tests Run   | Tests Failed |
-|:------------ |:---------------|:-----|
-| Server | 948       |  :white_check_mark: 0 |
-| Web Client | 123              |   :warning: [2 (see details)](http://linktologs) |
-| iOS Client | 78        |    :warning: [3 (see details)](http://linktologs) |
-***
+| Component  | Tests Run   | Tests Failed                                   |
+|:-----------|:------------|:-----------------------------------------------|
+| Server     | 948         | :white_check_mark: 0                           |
+| Web Client | 123         | :warning: [2 (see details)](http://linktologs) |
+| iOS Client | 78          | :warning: [3 (see details)](http://linktologs) |
+---
 
 ### Enabling Incoming Webhooks
 Incoming webhooks should be enabled on your Mattermost instance by default, but if they are not you'll need to get your system administrator to enable them. If you are the system administrator you can enable them by doing the following:
