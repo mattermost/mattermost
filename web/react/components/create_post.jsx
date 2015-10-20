@@ -37,6 +37,7 @@ export default class CreatePost extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleArrowUp = this.handleArrowUp.bind(this);
+        this.handleResize = this.handleResize.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -48,8 +49,16 @@ export default class CreatePost extends React.Component {
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
-            initialText: draft.messageText
+            initialText: draft.messageText,
+            windowWidth: Utils.windowWidth(),
+            windowHeigth: Utils.windowHeight()
         };
+    }
+    handleResize() {
+        this.setState({
+            windowWidth: Utils.windowWidth(),
+            windowHeight: Utils.windowHeight()
+        });
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.previews.length !== this.state.previews.length) {
@@ -58,6 +67,11 @@ export default class CreatePost extends React.Component {
         }
 
         if (prevState.uploadsInProgress !== this.state.uploadsInProgress) {
+            this.resizePostHolder();
+            return;
+        }
+
+        if (prevState.windowWidth !== this.state.windowWidth || prevState.windowHeight !== this.state.windowHeigth) {
             this.resizePostHolder();
             return;
         }
@@ -194,10 +208,9 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
     resizePostHolder() {
-        const height = $(window).height() - $(ReactDOM.findDOMNode(this.refs.topDiv)).height() - 50;
+        const height = this.state.windowHeigth - $(ReactDOM.findDOMNode(this.refs.topDiv)).height() - 50;
         $('.post-list-holder-by-time').css('height', `${height}px`);
-        $(window).trigger('resize');
-        if ($(window).width() > 960) {
+        if (this.state.windowWidth > 960) {
             $('#post_textbox').focus();
         }
     }
@@ -274,9 +287,11 @@ export default class CreatePost extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         this.resizePostHolder();
+        window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
+        window.removeEventListener('resize', this.handleResize);
     }
     onChange() {
         const channelId = ChannelStore.getCurrentId();

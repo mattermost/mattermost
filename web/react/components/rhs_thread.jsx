@@ -4,7 +4,7 @@
 var PostStore = require('../stores/post_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var PreferenceStore = require('../stores/preference_store.jsx');
-var utils = require('../utils/utils.jsx');
+var Utils = require('../utils/utils.jsx');
 var SearchBox = require('./search_bar.jsx');
 var CreateComment = require('./create_comment.jsx');
 var RhsHeaderPost = require('./rhs_header_post.jsx');
@@ -20,8 +20,12 @@ export default class RhsThread extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onChangeAll = this.onChangeAll.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
+        this.handleResize = this.handleResize.bind(this);
 
-        this.state = this.getStateFromStores();
+        const state = this.getStateFromStores();
+        state.windowWidth = Utils.windowWidth();
+        state.windowHeight = Utils.windowHeight();
+        this.state = state;
     }
     getStateFromStores() {
         var postList = PostStore.getSelectedPost();
@@ -47,9 +51,7 @@ export default class RhsThread extends React.Component {
         PostStore.addChangeListener(this.onChangeAll);
         PreferenceStore.addChangeListener(this.forceUpdateInfo);
         this.resize();
-        $(window).resize(function resize() {
-            this.resize();
-        }.bind(this));
+        window.addEventListener('resize', this.handleResize);
     }
     componentDidUpdate() {
         if ($('.post-right__scroll')[0]) {
@@ -61,6 +63,7 @@ export default class RhsThread extends React.Component {
         PostStore.removeSelectedPostChangeListener(this.onChange);
         PostStore.removeChangeListener(this.onChangeAll);
         PreferenceStore.removeChangeListener(this.forceUpdateInfo);
+        window.removeEventListener('resize', this.handleResize);
     }
     forceUpdateInfo() {
         if (this.state.postList) {
@@ -71,9 +74,15 @@ export default class RhsThread extends React.Component {
             }
         }
     }
+    handleResize() {
+        this.setState({
+            windowWidth: Utils.windowWidth(),
+            windowHeight: Utils.windowHeight()
+        });
+    }
     onChange() {
         var newState = this.getStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
@@ -103,15 +112,15 @@ export default class RhsThread extends React.Component {
         }
 
         var newState = this.getStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areStatesEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
     resize() {
-        var height = $(window).height() - $('#error_bar').outerHeight() - 100;
+        var height = this.state.windowHeight - $('#error_bar').outerHeight() - 100;
         $('.post-right__scroll').css('height', height + 'px');
         $('.post-right__scroll').scrollTop(100000);
-        if ($(window).width() > 768) {
+        if (this.state.windowWidth > 768) {
             $('.post-right__scroll').perfectScrollbar();
             $('.post-right__scroll').perfectScrollbar('update');
         }

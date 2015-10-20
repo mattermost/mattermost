@@ -29,9 +29,10 @@ export default class Sidebar extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onScroll = this.onScroll.bind(this);
-        this.onResize = this.onResize.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
+        this.updateScrollbar = this.updateScrollbar.bind(this);
+        this.handleResize = this.handleResize.bind(this);
 
         this.showNewChannelModal = this.showNewChannelModal.bind(this);
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
@@ -46,6 +47,7 @@ export default class Sidebar extends React.Component {
         state.newChannelModalType = '';
         state.showDirectChannelsModal = false;
         state.loadingDMChannel = -1;
+        state.windowWidth = Utils.windowWidth();
 
         this.state = state;
     }
@@ -129,14 +131,11 @@ export default class Sidebar extends React.Component {
         TeamStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
 
-        if ($(window).width() > 768) {
-            $('.nav-pills__container').perfectScrollbar();
-        }
-
         this.updateTitle();
         this.updateUnreadIndicators();
+        this.updateScrollbar();
 
-        $(window).on('resize', this.onResize);
+        window.addEventListener('resize', this.handleResize);
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areStatesEqual(nextProps, this.props)) {
@@ -151,15 +150,28 @@ export default class Sidebar extends React.Component {
     componentDidUpdate() {
         this.updateTitle();
         this.updateUnreadIndicators();
+        this.updateScrollbar();
     }
     componentWillUnmount() {
-        $(window).off('resize', this.onResize);
+        window.removeEventListener('resize', this.handleResize);
 
         ChannelStore.removeChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
+    }
+    handleResize() {
+        this.setState({
+            windowWidth: Utils.windowWidth(),
+            windowHeight: Utils.windowHeight()
+        });
+    }
+    updateScrollbar() {
+        if (this.state.windowWidth > 768) {
+            $('.nav-pills__container').perfectScrollbar();
+            $('.nav-pills__container').perfectScrollbar('update');
+        }
     }
     onChange() {
         var newState = this.getStateFromStores();
@@ -184,9 +196,6 @@ export default class Sidebar extends React.Component {
         }
     }
     onScroll() {
-        this.updateUnreadIndicators();
-    }
-    onResize() {
         this.updateUnreadIndicators();
     }
     updateUnreadIndicators() {

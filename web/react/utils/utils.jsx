@@ -968,3 +968,11 @@ export function getShortenedTeamURL() {
     }
     return teamURL + '/';
 }
+
+export function windowWidth() {
+    return $(window).width();
+}
+
+export function windowHeight() {
+    return $(window).height();
+}
