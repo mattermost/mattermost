@@ -72,7 +72,7 @@ Multiple settings were added to [`config.json`](./config/config.json) and System
 
 #### Database Changes from v1.0 to v1.1
 
-Mattermost automatically upgrades database tables from the previous version's schema using only additions. No action is needed by the admin, the following is for informational purposes only. 
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this. 
 
 ##### ChannelMembers Table
 1. Removed `NotifyLevel` column
@@ -280,7 +280,7 @@ Prior to upgrading the Mattermost binaries from the previous versions, the below
   
 ### Database Changes from v0.7 to v1.0
 
-Mattermost automatically upgrades database tables from the previous version's schema using only additions. No action is needed by the admin, the following is for informational purposes only. 
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this. 
 
 ##### Users Table
 1. Added `ThemeProps` column with type `varchar(2000)` and default value `{}`
@@ -289,10 +289,9 @@ Mattermost automatically upgrades database tables from the previous version's sc
 1. Removed `AllowValet` column
 
 ##### Sessions Table
-1. Session table is dropped and rebuilt
-2. Renamed `Id` column `Token`
-3. Renamed `AltId` column `Id`
-4. Added `IsOAuth` column with type `tinyint(1)` and default value `0`
+1. Renamed `Id` column `Token`
+2. Renamed `AltId` column `Id`
+3. Added `IsOAuth` column with type `tinyint(1)` and default value `0`
 
 ##### OAuthAccessData Table
 1. Added new table `OAuthAccessData`
