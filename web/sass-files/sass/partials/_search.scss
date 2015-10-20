@@ -109,3 +109,33 @@
 .search-highlight {
 	background-color: #FFF2BB;
 }
+
+.search-autocomplete {
+    background-color: #fff;
+    border: $border-gray;
+    line-height: 36px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    position: absolute;
+    text-align: left;
+    width: 100%;
+    z-index: 100;
+    @extend %popover-box-shadow;
+}
+
+.search-autocomplete__channel {
+    height: 36px;
+    padding: 0px 6px;
+}
+
+.search-autocomplete__user {
+    height: 36px;
+    padding: 0px;
+
+    .profile-img {
+        height: 32px;
+        margin-right: 6px;
+        width: 32px;
+        @include border-radius(16px);
+    }
+}

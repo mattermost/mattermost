@@ -90,11 +90,14 @@ export default class SearchAutocomplete extends React.Component {
                 channels = channels.filter((channel) => channel.name.startsWith(this.state.filter));
             }
 
+            channels.sort((a, b) => a.name.localeCompare(b.name));
+
             suggestions = channels.map((channel) => {
                 return (
                     <div
                         key={channel.id}
                         onClick={this.handleClick.bind(this, channel.name)}
+                        className='search-autocomplete__channel'
                     >
                         {channel.name}
                     </div>
@@ -107,12 +110,19 @@ export default class SearchAutocomplete extends React.Component {
                 users = users.filter((user) => user.username.startsWith(this.state.filter));
             }
 
+            users.sort((a, b) => a.username.localeCompare(b.username));
+
             suggestions = users.map((user) => {
                 return (
                     <div
                         key={user.id}
                         onClick={this.handleClick.bind(this, user.username)}
+                        className='search-autocomplete__user'
                     >
+                        <img
+                            className='profile-img'
+                            src={'/api/v1/users/' + user.id + '/image?time=' + user.update_at}
+                        />
                         {user.username}
                     </div>
                 );
@@ -126,7 +136,7 @@ export default class SearchAutocomplete extends React.Component {
         return (
             <div
                 ref='container'
-                style={{overflow: 'visible', position: 'absolute', zIndex: '100', background: 'yellow'}}
+                className='search-autocomplete'
             >
                 {suggestions}
             </div>
