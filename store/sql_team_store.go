@@ -28,6 +28,8 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 }
 
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
+	// REMOVE in 1.2
+	s.RemoveColumnIfExists("Teams", "AllowValet")
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
