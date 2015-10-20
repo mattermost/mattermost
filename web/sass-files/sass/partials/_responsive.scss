@@ -645,6 +645,9 @@
                     }
                     &.has-close {
                         .btn-close {
+                            width: 40px;
+                            text-align: center;
+                            right: 0;
                             display: block;
                             @include opacity(0.5);
                         }
