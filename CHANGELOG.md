@@ -54,6 +54,15 @@ Messaging and Notifications
 - Fixed bug where System Administrator did not have Team Administrator permissions
 - Fixed bug causing scrolling to jump when the right hand sidebar opened and closed
 
+### Compatibility 
+
+Multiple settings were added to `config.json` and System Console UI. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file. This is a list of changes and their new default values in a fresh install: 
+- Under `ServiceSettings` in `config.json`:
+  - Added: `"EnablePostIconOverride": false` to control whether webhooks can override profile pictures
+  - Added: `"EnablePostUsernameOverride": false` to control whether webhooks can override profile pictures
+  - Added: `"EnableSecurityFixAlert": true` to control whether the system is alerted to security updates
+
+
 ### Known Issues
 
 - Slack import is unstable due to change in Slack export format
