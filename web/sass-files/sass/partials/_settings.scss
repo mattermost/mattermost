@@ -103,6 +103,9 @@
                     text-overflow: ellipsis;
                     margin-bottom: 0;
                 }
+                .input-group-addon:not(:first-child) {
+                    background: transparent;
+                }
                 .radio {
                     label {
                         font-weight: 600;
