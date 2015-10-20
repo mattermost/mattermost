@@ -48,6 +48,7 @@ class UserStoreClass extends EventEmitter {
         this.getProfilesUsernameMap = this.getProfilesUsernameMap.bind(this);
         this.getProfiles = this.getProfiles.bind(this);
         this.getActiveOnlyProfiles = this.getActiveOnlyProfiles.bind(this);
+        this.getActiveOnlyProfileList = this.getActiveOnlyProfileList.bind(this);
         this.saveProfile = this.saveProfile.bind(this);
         this.setSessions = this.setSessions.bind(this);
         this.getSessions = this.getSessions.bind(this);
@@ -213,6 +214,17 @@ class UserStoreClass extends EventEmitter {
         }
 
         return active;
+    }
+
+    getActiveOnlyProfileList() {
+        const profileMap = this.getActiveOnlyProfiles();
+        const profiles = [];
+
+        for (const id in profileMap) {
+            profiles.push(profileMap[id]);
+        }
+
+        return profiles;
     }
 
     saveProfile(profile) {
