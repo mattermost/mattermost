@@ -15,7 +15,7 @@ export default class FileAttachment extends React.Component {
         this.addBackgroundImage = this.addBackgroundImage.bind(this);
 
         this.canSetState = false;
-        this.state = {fileSize: -1, mime: '', playing: false, loading: false};
+        this.state = {fileSize: -1, mime: '', playing: false, loading: false, format: ''};
     }
     componentDidMount() {
         this.loadFiles();
@@ -93,7 +93,21 @@ export default class FileAttachment extends React.Component {
         this.setState({loading: true});
         img.load(fileUrl);
         img.onload = () => {
-            this.setState({playing: true, loading: false});
+            var state = {playing: true, loading: false};
+
+            switch (true) {
+            case img.width > img.height:
+                state.format = 'landscape';
+                break;
+            case img.height > img.width:
+                state.format = 'portrait';
+                break;
+            default:
+                state.format = 'quadrat';
+                break;
+            }
+
+            this.setState(state);
 
             // keep displaying background image for a short moment while browser is
             // loading gif, to prevent white background flashing through
@@ -164,7 +178,7 @@ export default class FileAttachment extends React.Component {
         if (this.state.playing) {
             loadedFile = (
                 <img
-                    className='file__loaded'
+                    className={'file__loaded ' + this.state.format}
                     src={fileUrl}
                 />
             );

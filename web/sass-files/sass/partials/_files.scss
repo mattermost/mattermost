@@ -150,8 +150,13 @@
         margin-top: -16px;
     }
     .file__loaded {
-        height: 100px;
         max-width: initial;
+        &.landscape, &.quadrat {
+            height: 100px;
+        }
+        &.portrait {
+            width: 120px;
+        }
     }
     &:hover .file-playback-controls.stop {
         @include opacity(1);
