@@ -16,7 +16,7 @@ const (
 
 type AccessData struct {
 	AuthCode     string `json:"auth_code"`
-	Token        string `json"token"`
+	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
 	RedirectUri  string `json:"redirect_uri"`
 }
