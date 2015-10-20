@@ -3,6 +3,7 @@
 
 var NavbarDropdown = require('./navbar_dropdown.jsx');
 var UserStore = require('../stores/user_store.jsx');
+const Utils = require('../utils/utils.jsx');
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {

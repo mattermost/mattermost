@@ -73,7 +73,7 @@ export default class UserProfile extends React.Component {
                 key='user-popover-image'
             />
         );
-        
+
         if (!global.window.mm_config.ShowEmailAddress === 'true') {
             dataContent.push(
                 <div
