@@ -145,7 +145,6 @@ Messaging, Comments and Notifications
 - Full markdown support in messages, comments, and channel description 
 - Support for emoji codes rendering to image files
 
-
 Files and Images 
 
 - Added ability to play video and audio files 
@@ -198,86 +197,86 @@ Licensing
 
 ### Bug Fixes
 
-- Fixed issue so that SSO option automatically set EmailVerified=true (it was false previously)
+- Fixed issue so that SSO option automatically set `EmailVerified=true` (it was false previously)
 
 ### Compatibility 
 
 A large number of settings were changed in [`config.json`](./config/config.json) and a System Console UI was added. This is a very large change due to Mattermost releasing as v1.0 and it's unlikely a change of this size would happen again. 
 
-Prior to upgrading the Mattermost binaries from the previous versions, the below options would need to be manually updated in existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
+Prior to upgrading the Mattermost binaries from the previous versions, the below options would need to be manually updated in your existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
 #### Config.json Changes from v0.7 to v1.0 
 
 ##### Service Settings 
 
 - Under `ServiceSettings` in [`config.json`](./config/config.json):
-  - **Moved:** `"SiteName": "Mattermost"` which was added to `TeamSettings`
-  - **Removed:** `"Mode" : "dev"` which deprecates a high level dev mode, now replaced by granular controls
-  - **Renamed:** `"AllowTesting" : false` to `"EnableTesting": false` which allows the use of `/loadtest` slash commands during development
-  - **Removed:** `"UseSSL": false` boolean replaced by `"ConnectionSecurity": ""` under `Security` with new options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
-  - **Renamed**: `"Port": "8065"` to `"ListenAddress": ":8065"` to define address on which to listen. Must be prepended with a colon.
-  - **Removed:** `"Version": "developer"` removed and version information now stored in `model/version.go`
-  - **Removed:** `"Shards": {}` which was not used
-  - **Moved:** `"InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"` to `EmailSettings`
-  - **Moved:** `"PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4"` to `FileSettings`
-  - **Renamed and Moved** `"ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t"` to `"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL"` and moved to `EmailSettings`
-  - **Removed:** `"AnalyticsUrl": ""` which was not used
-  - **Removed:** `"UseLocalStorage": true` which is replaced by `"DriverName": "local"` in `FileSettings`
-  - **Renamed and Moved:** `"StorageDirectory": "./data/"` to `Directory` and moved to `FileSettings`
-  - **Renamed:** `"AllowedLoginAttempts": 10` to `"MaximumLoginAttempts": 10`
-  - **Renamed, Reversed and Moved:** `"DisableEmailSignUp": false` renamed `"EnableSignUpWithEmail": true`, reversed meaning of `true`, and moved to `EmailSettings`
-  - **Added:** `"EnableOAuthServiceProvider": false` to enable OAuth2 service provider functionality
-  - **Added:** `"EnableIncomingWebhooks": false` to enable incoming webhooks feature
+  - Moved: `"SiteName": "Mattermost"` which was added to `TeamSettings`
+  - Removed: `"Mode" : "dev"` which deprecates a high level dev mode, now replaced by granular controls
+  - Renamed: `"AllowTesting" : false` to `"EnableTesting": false` which allows the use of `/loadtest` slash commands during development
+  - Removed: `"UseSSL": false` boolean replaced by `"ConnectionSecurity": ""` under `Security` with new options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+  - Renamed: `"Port": "8065"` to `"ListenAddress": ":8065"` to define address on which to listen. Must be prepended with a colon.
+  - Removed: `"Version": "developer"` removed and version information now stored in `model/version.go`
+  - Removed: `"Shards": {}` which was not used
+  - Moved: `"InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"` to `EmailSettings`
+  - Moved: `"PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4"` to `FileSettings`
+  - Renamed and Moved `"ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t"` to `"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL"` and moved to `EmailSettings`
+  - Removed: `"AnalyticsUrl": ""` which was not used
+  - Removed: `"UseLocalStorage": true` which is replaced by `"DriverName": "local"` in `FileSettings`
+  - Renamed and Moved: `"StorageDirectory": "./data/"` to `Directory` and moved to `FileSettings`
+  - Renamed: `"AllowedLoginAttempts": 10` to `"MaximumLoginAttempts": 10`
+  - Renamed, Reversed and Moved: `"DisableEmailSignUp": false` renamed `"EnableSignUpWithEmail": true`, reversed meaning of `true`, and moved to `EmailSettings`
+  - Added: `"EnableOAuthServiceProvider": false` to enable OAuth2 service provider functionality
+  - Added: `"EnableIncomingWebhooks": false` to enable incoming webhooks feature
 
 ##### Team Settings 
 
 - Under `TeamSettings` in [`config.json`](./config/config.json):
-  - **Renamed:** `"AllowPublicLink": true` renamed to `"EnablePublicLink": true` and moved to `FileSettings`
-  - **Removed:** `AllowValetDefault` which was a guest account feature that is deprecated 
-  - **Removed:** `"TermsLink": "/static/help/configure_links.html"` removed since option didn't need configuration
-  - **Removed:** `"PrivacyLink": "/static/help/configure_links.html"` removed since option didn't need configuration
-  - **Removed:** `"AboutLink": "/static/help/configure_links.html"` removed since option didn't need configuration
-  - **Removed:** `"HelpLink": "/static/help/configure_links.html"` removed since option didn't need configuration
-  - **Removed:** `"ReportProblemLink": "/static/help/configure_links.html"` removed since option didn't need configuration
-  - **Removed:** `"TourLink": "/static/help/configure_links.html"` removed since option didn't need configuration
-  - **Removed:** `"DefaultThemeColor": "#2389D7"` removed since theme colors changed from 1 to 18, default theme color option may be added back later after theme color design stablizes 
-  - **Renamed:** `"DisableTeamCreation": false` to `"EnableUserCreation": true` and reversed
-  - **Added:** ` "EnableUserCreation": true` added to disable ability to create new user accounts in the system
+  - Renamed: `"AllowPublicLink": true` renamed to `"EnablePublicLink": true` and moved to `FileSettings`
+  - Removed: `AllowValetDefault` which was a guest account feature that is deprecated 
+  - Removed: `"TermsLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - Removed: `"PrivacyLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - Removed: `"AboutLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - Removed: `"HelpLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - Removed: `"ReportProblemLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - Removed: `"TourLink": "/static/help/configure_links.html"` removed since option didn't need configuration
+  - Removed: `"DefaultThemeColor": "#2389D7"` removed since theme colors changed from 1 to 18, default theme color option may be added back later after theme color design stablizes 
+  - Renamed: `"DisableTeamCreation": false` to `"EnableUserCreation": true` and reversed
+  - Added: ` "EnableUserCreation": true` added to disable ability to create new user accounts in the system
 
 ##### SSO Settings
 
 - Under `SSOSettings` in [`config.json`](./config/config.json):
-  - **Renamed Category:** `SSOSettings` to `GitLabSettings`
-  - **Renamed:** `"Allow": false` to `"Enable": false` to enable GitLab SSO
+  - Renamed Category: `SSOSettings` to `GitLabSettings`
+  - Renamed: `"Allow": false` to `"Enable": false` to enable GitLab SSO
   
 ##### AWS Settings
 
 - Under `AWSSettings` in [`config.json`](./config/config.json):
   - This section was removed and settings moved to `FileSettings`
-  - **Renamed and Moved:** `"S3AccessKeyId": ""` renamed `"AmazonS3AccessKeyId": "",` and moved to `FileSettings`
-  - **Renamed and Moved:** `"S3SecretAccessKey": ""` renamed `"AmazonS3SecretAccessKey": "",` and moved to `FileSettings`
-  - **Renamed and Moved:** `"S3Bucket": ""` renamed `"AmazonS3Bucket": "",` and moved to `FileSettings`
-  - **Renamed and Moved:** `"S3Region": ""` renamed `"AmazonS3Region": "",` and moved to `FileSettings`
+  - Renamed and Moved: `"S3AccessKeyId": ""` renamed `"AmazonS3AccessKeyId": "",` and moved to `FileSettings`
+  - Renamed and Moved: `"S3SecretAccessKey": ""` renamed `"AmazonS3SecretAccessKey": "",` and moved to `FileSettings`
+  - Renamed and Moved: `"S3Bucket": ""` renamed `"AmazonS3Bucket": "",` and moved to `FileSettings`
+  - Renamed and Moved: `"S3Region": ""` renamed `"AmazonS3Region": "",` and moved to `FileSettings`
 
 ##### Image Settings 
 
 - Under `ImageSettings` in [`config.json`](./config/config.json):
-  - **Renamed:** `"ImageSettings"` section to `"FileSettings"`
-  - **Added:** `"DriverName" : "local"` to specify the file storage method, `amazons3` can also be used to setup S3
+  - Renamed: `"ImageSettings"` section to `"FileSettings"`
+  - Added: `"DriverName" : "local"` to specify the file storage method, `amazons3` can also be used to setup S3
 
 ##### EmailSettings
 
 - Under `EmailSettings` in [`config.json`](./config/config.json):
-  - **Removed:** `"ByPassEmail": "true"` which is replaced with `SendEmailNotifications` and `RequireEmailVerification`
-  - **Added:** `"SendEmailNotifications" : "false"` to control whether email notifications are sent
-  - **Added:** `"RequireEmailVerification" : "false"` to control if users need to verify their emails
-  - **Replaced:** `"UseTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
-  - **Replaced:** `"UseStartTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+  - Removed: `"ByPassEmail": "true"` which is replaced with `SendEmailNotifications` and `RequireEmailVerification`
+  - Added: `"SendEmailNotifications" : "false"` to control whether email notifications are sent
+  - Added: `"RequireEmailVerification" : "false"` to control if users need to verify their emails
+  - Replaced: `"UseTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ (`"StartTLS"`)
+  - Replaced: `"UseStartTLS": "false"` with `"ConnectionSecurity": ""` with options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ (`"StartTLS"`)
 
 ##### Privacy Settings 
 
 - Under `PrivacySettings` in [`config.json`](./config/config.json):
-  - **Removed:** `"ShowPhoneNumber": "true"` which was not used
-  - **Removed:** `"ShowSkypeId" : "true"` which was not used
+  - Removed: `"ShowPhoneNumber": "true"` which was not used
+  - Removed: `"ShowSkypeId" : "true"` which was not used
   
 ### Database Changes from v0.7 to v1.0
 
