@@ -11,7 +11,6 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 - IE 10 no longer supported since global share of IE 10 fell below 5%
 
-
 ## Release v1.1.0
 
 Released: 2015-10-16
@@ -56,12 +55,11 @@ Messaging and Notifications
 
 ### Compatibility 
 
-Multiple settings were added to `config.json` and System Console UI. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file. This is a list of changes and their new default values in a fresh install: 
+Multiple settings were added to [`config.json`](./config/config.json) and System Console UI. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file. This is a list of changes and their new default values in a fresh install: 
 - Under `ServiceSettings` in `config.json`:
   - Added: `"EnablePostIconOverride": false` to control whether webhooks can override profile pictures
   - Added: `"EnablePostUsernameOverride": false` to control whether webhooks can override profile pictures
   - Added: `"EnableSecurityFixAlert": true` to control whether the system is alerted to security updates
-
 
 ### Known Issues
 
@@ -188,6 +186,29 @@ Licensing
 ### Bug Fixes
 
 - Fixed issue so that SSO option automatically set EmailVerified=true (it was false previously)
+
+### Compatibility 
+
+A large number of settings were changed in [`config.json`](./config/config.json) and a System Console UI was added. Prior to upgrading the Mattermost binaries from the previous versions, these options would need to be manually updated in existing config.json file to migrate successfully. This is a list of changes and their new default values in a fresh install: 
+- Under `ServiceSettings` in [`config.json`](./config/config.json):
+  - **Moved:** `"SiteName": "Mattermost"` which was added to `TeamSettings`
+  - **Removed:** `"Mode" : "dev"` which deprecates a high level dev mode, now replaced by granular controls
+  - **Renamed:** `"AllowTesting" : false` to `"EnableTesting": false` which allow the use of `/loadtest` slash commands during development
+  - **Removed:** `"UseSSL": false` boolean replaced by `"ConnectionSecurity": ""` under `Security` with new options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
+  - **Renamed**: `"Port": "8065"` to `"ListenAddress": ":8065"` to define address on which to listen. Must be prepended with a colon.
+  - **Removed:** `"Version": "developer"` removed and version information now stored in `model/version.go`
+  - **Removed:** `"Shards": {},` which was not used
+  - **Moved:** `"InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"` to `EmailSettings`
+  - **Moved:** `"PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4"` to `FileSettings`
+  - **Renamed and Moved** `"ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t"` to `"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL"` and moved to `EmailSettings`
+  - **Removed:** `"AnalyticsUrl": ""` which was not used
+  - **Removed:** `"UseLocalStorage": true` which is replaced by `"DriverName": "local"` in `FileSettings`
+  - **Renamed and Moved:** `"StorageDirectory": "./data/"` to `Directory` and moved to `FileSettings`
+  - **Renamed:** `"AllowedLoginAttempts": 10` to `"MaximumLoginAttempts": 10`
+  - **Renamed, Reversed and Moved:** `"DisableEmailSignUp": false` renamed `"EnableSignUpWithEmail": true`, reversed meaning of `true`, and moved to `EmailSettings`
+  - **Added:** `"EnableOAuthServiceProvider": false` to enable OAuth2 service provider functionality
+  - **Added:** `"EnableIncomingWebhooks": false` to enable incoming webhooks feature
+
 
 ### Contributors
 
