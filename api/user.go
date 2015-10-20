@@ -428,20 +428,13 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
-	sessionCookie := &http.Cookie{
-		Name:     model.SESSION_TOKEN,
-		Value:    session.Token,
-		Path:     "/",
-		MaxAge:   maxAge,
-		HttpOnly: true,
-	}
-
-	http.SetCookie(w, sessionCookie)
 
 	multiToken := ""
-	if originalMultiSessionCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
+	if originalMultiSessionCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 		multiToken = originalMultiSessionCookie.Value
 	}
+
+	fmt.Println("original: " + multiToken)
 
 	// Attempt to clean all the old tokens or duplicate tokens
 	if len(multiToken) > 0 {
@@ -463,8 +456,10 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	multiToken = strings.TrimSpace(session.Token + " " + multiToken)
 
+	fmt.Println("new: " + multiToken)
+
 	multiSessionCookie := &http.Cookie{
-		Name:     model.MULTI_SESSION_TOKEN,
+		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    multiToken,
 		Path:     "/",
 		MaxAge:   maxAge,

@@ -18,13 +18,6 @@
     <link rel="manifest" href="/static/config/manifest.json">
     <!-- Android add to homescreen -->
 
-    <script>
-        window.mm_config = {{ .ClientCfg }};
-        window.mm_team = {{ .Team }};
-        window.mm_user = {{ .User }};
-        window.mm_session = {{ .Session }};
-    </script>
-
     <!-- CSS Should always go first -->
     <link rel="stylesheet" href="/static/css/bootstrap-3.3.5.min.css">
     <link rel="stylesheet" href="/static/css/jasny-bootstrap.min.css">
@@ -45,6 +38,16 @@
     <script src="/static/js/jquery-dragster/jquery.dragster.js"></script>
 
     <style id="antiClickjack">body{display:none !important;}</style>
+
+    <script>
+        window.mm_config = {{ .ClientCfg }};
+        window.mm_team = {{ .Team }};
+        window.mm_user = {{ .User }};
+        window.mm_session_token_hash = {{ .SessionTokenHash }};
+        $.ajaxSetup({
+            headers: { 'X-MM-TokenHash': mm_session_token_hash }
+        });
+    </script>
 
     <script>
         window.onerror = function(msg, url, line, column, stack) {

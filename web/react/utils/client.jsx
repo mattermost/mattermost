@@ -48,14 +48,14 @@ function handleError(methodName, xhr, status, err) {
 
     track('api', 'api_weberror', methodName, 'message', msg);
 
-    if (xhr.status === 401) {
-        if (window.location.href.indexOf('/channels') === 0) {
-            window.location.pathname = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-        } else {
-            var teamURL = window.location.href.split('/channels')[0];
-            window.location.href = teamURL + '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-        }
-    }
+    // if (xhr.status === 401) {
+    //     if (window.location.href.indexOf('/channels') === 0) {
+    //         window.location.pathname = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+    //     } else {
+    //         var teamURL = window.location.href.split('/channels')[0];
+    //         window.location.href = teamURL + '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+    //     }
+    // }
 
     return e;
 }

@@ -16,17 +16,18 @@ import (
 )
 
 const (
-	HEADER_REQUEST_ID      = "X-Request-ID"
-	HEADER_VERSION_ID      = "X-Version-ID"
-	HEADER_ETAG_SERVER     = "ETag"
-	HEADER_ETAG_CLIENT     = "If-None-Match"
-	HEADER_FORWARDED       = "X-Forwarded-For"
-	HEADER_REAL_IP         = "X-Real-IP"
-	HEADER_FORWARDED_PROTO = "X-Forwarded-Proto"
-	HEADER_TOKEN           = "token"
-	HEADER_BEARER          = "BEARER"
-	HEADER_AUTH            = "Authorization"
-	API_URL_SUFFIX         = "/api/v1"
+	HEADER_REQUEST_ID            = "X-Request-ID"
+	HEADER_VERSION_ID            = "X-Version-ID"
+	HEADER_ETAG_SERVER           = "ETag"
+	HEADER_ETAG_CLIENT           = "If-None-Match"
+	HEADER_FORWARDED             = "X-Forwarded-For"
+	HEADER_REAL_IP               = "X-Real-IP"
+	HEADER_FORWARDED_PROTO       = "X-Forwarded-Proto"
+	HEADER_TOKEN                 = "token"
+	HEADER_BEARER                = "BEARER"
+	HEADER_AUTH                  = "Authorization"
+	HEADER_MM_SESSION_TOKEN_HASH = "X-MM-TokenHash"
+	API_URL_SUFFIX               = "/api/v1"
 )
 
 type Result struct {
@@ -293,7 +294,7 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 	} else {
 		c.AuthToken = r.Header.Get(HEADER_TOKEN)
 		c.AuthType = HEADER_BEARER
-		sessionToken := getCookie(SESSION_TOKEN, r)
+		sessionToken := getCookie(SESSION_COOKIE_TOKEN, r)
 
 		if c.AuthToken != sessionToken.Value {
 			NewAppError("/users/login", "Authentication tokens didn't match", "")
