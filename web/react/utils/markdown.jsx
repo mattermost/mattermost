@@ -3,6 +3,7 @@
 
 const TextFormatting = require('./text_formatting.jsx');
 const Utils = require('./utils.jsx');
+const Emoticons = require('./emoticons.jsx');
 
 const marked = require('marked');
 
@@ -53,6 +54,8 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     paragraph(text) {
+        text = TextFormatting.doFormatText(text, this.options)
+
         if (this.formattingOptions.singleline) {
             return `<p class="markdown__paragraph-inline">${text}</p>`;
         }
