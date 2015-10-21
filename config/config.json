@@ -17,7 +17,8 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "RestrictCreationToDomains": ""
+        "RestrictCreationToDomains": "",
+        "RestrictTeamNames": true
     },
     "SqlSettings": {
         "DriverName": "mysql",

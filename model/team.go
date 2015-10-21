@@ -97,7 +97,7 @@ func (o *Team) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
-func (o *Team) IsValid() *AppError {
+func (o *Team) IsValid(restrictTeamNames bool) *AppError {
 
 	if len(o.Id) != 26 {
 		return NewAppError("Team.IsValid", "Invalid Id", "")
@@ -127,7 +127,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "Invalid URL Identifier", "id="+o.Id)
 	}
 
-	if IsReservedTeamName(o.Name) {
+	if restrictTeamNames && IsReservedTeamName(o.Name) {
 		return NewAppError("Team.IsValid", "This URL is unavailable. Please try another.", "id="+o.Id)
 	}
 
