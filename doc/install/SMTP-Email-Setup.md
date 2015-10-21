@@ -79,7 +79,7 @@ Search for `554 5.7.1 error` and `Client host rejected: Access denied`.
 #### Tip 3
 * Attempt to telnet to the email service to make sure the server is reachable.
 * You must run the following commands from the same machine or virtual instance where `mattermost/bin/platform` is located.  So if you're running Mattermost from docker you need to `docker exec -ti mattermost-dev /bin/bash`
-* Telnet into email server with `telnet mail.example.com 25`.  If the command works you should see something like
+* Telnet to the email server with `telnet mail.example.com 25`.  If the command works you should see something like
 ```
 Trying 24.121.12.143...
 Connected to mail.example.com.
