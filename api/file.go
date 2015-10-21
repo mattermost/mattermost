@@ -23,6 +23,7 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -331,9 +332,18 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 
+	var mimeType string
+	ext := filepath.Ext(filename)
+	if model.IsFileExtImage(ext) {
+		mimeType = model.GetImageMimeType(ext)
+	} else {
+		mimeType = mime.TypeByExtension(ext)
+	}
+
 	result := make(map[string]string)
 	result["filename"] = filename
 	result["size"] = size
+	result["mime"] = mimeType
 	w.Write([]byte(model.MapToJson(result)))
 }
 

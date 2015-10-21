@@ -133,11 +133,33 @@
     height: 100%;
     background-color: #FFF;
     background-repeat: no-repeat;
+    overflow: hidden;
+    position: relative;
+    text-align: center;
     &.small {
       background-position: center;
     }
     &.normal {
       background-position: top left;
+    }
+    .spinner.file__loading {
+        position: absolute;
+        left: 50%;
+        margin-left: -16px;
+        top: 50%;
+        margin-top: -16px;
+    }
+    .file__loaded {
+        max-width: initial;
+        &.landscape, &.quadrat {
+            height: 100px;
+        }
+        &.portrait {
+            width: 120px;
+        }
+    }
+    &:hover .file-playback-controls.stop {
+        @include opacity(1);
     }
   }
   .post-image__thumbnail {
@@ -214,4 +236,21 @@
       vertical-align: middle;
     }
   }
+}
+
+.file-playback-controls {
+    position: absolute;
+    right: 5px;
+    bottom: 0;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 2;
+    -webkit-transition: opacity 0.6s;
+    -moz-transition: opacity 0.6s;
+    -o-transition: opacity 0.6s;
+    transition: opacity 0.6s;
+
+    &.stop {
+        @include opacity(0);
+    }
 }
