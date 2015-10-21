@@ -2,7 +2,7 @@
 
 ### Upgrading Mattermost v0.7 to v1.1.1
 
-_Note: [Mattermost v1.1.1](https://github.com/mattermost/platform/releases/tag/v1.1.1) is a special release of Mattermost v1.1 that upgrades the database to Mattermost v1.1 from EITHER Mattermost v0.7 or Mattermost v1.0. THe following instructions are for upgrading from Mattermost v0.7 to v1.1.1 and skipping the upgrade to Mattermost v1.0._
+_Note: [Mattermost v1.1.1](https://github.com/mattermost/platform/releases/tag/v1.1.1) is a special release of Mattermost v1.1 that upgrades the database to Mattermost v1.1 from EITHER Mattermost v0.7 or Mattermost v1.0. The following instructions are for upgrading from Mattermost v0.7 to v1.1.1 and skipping the upgrade to Mattermost v1.0._
 
 If you've manually changed Mattermost v0.7 configuration by updating the `config.json` file, you'll need to port those changes to Mattermost v1.1.1: 
 
