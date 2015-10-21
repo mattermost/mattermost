@@ -151,7 +151,7 @@ export default class PostList extends React.Component {
             this.loadFirstPosts(this.props.channelId);
         }
 
-        this.handleResize();
+        this.resizePostList();
         this.onChange();
         this.scrollToBottom();
     }
@@ -170,6 +170,13 @@ export default class PostList extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         if (!this.props.isActive) {
             return;
+        }
+
+        if (prevState.windowHeight !== this.state.windowHeight) {
+            this.resizePostList();
+            if (!this.scrolled) {
+                this.scrollToBottom();
+            }
         }
 
         $('.post-list__content div .post').removeClass('post--last');
@@ -218,10 +225,6 @@ export default class PostList extends React.Component {
         } else {
             this.scrollTo(this.prevScrollTop);
         }
-
-        if (prevState.windowHeight !== this.state.windowHeight) {
-            this.handleResize();
-        }
     }
     componentWillUpdate() {
         var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
@@ -238,11 +241,6 @@ export default class PostList extends React.Component {
         this.setState({
             windowHeight: Utils.windowHeight()
         });
-
-        this.resizePostList();
-        if (!this.scrolled) {
-            this.scrollToBottom();
-        }
     }
     resizePostList() {
         const postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
