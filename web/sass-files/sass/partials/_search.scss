@@ -124,11 +124,17 @@
 }
 
 .search-autocomplete__channel {
+    cursor: pointer;
     height: 36px;
     padding: 0px 6px;
+
+    &.selected {
+        background-color:rgba(51, 51, 51, 0.15);
+    }
 }
 
 .search-autocomplete__user {
+    cursor: pointer;
     height: 36px;
     padding: 0px;
 
@@ -137,5 +143,9 @@
         margin-right: 6px;
         width: 32px;
         @include border-radius(16px);
+    }
+
+    &.selected {
+        background-color:rgba(51, 51, 51, 0.15);
     }
 }

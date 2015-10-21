@@ -17,6 +17,7 @@ export default class SearchBar extends React.Component {
         this.mounted = false;
 
         this.onListenerChange = this.onListenerChange.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
@@ -76,6 +77,11 @@ export default class SearchBar extends React.Component {
             results: null
         });
     }
+    handleKeyDown(e) {
+        if (this.refs.autocomplete) {
+            this.refs.autocomplete.handleKeyDown(e);
+        }
+    }
     handleUserInput(e) {
         var term = e.target.value;
         PostStore.storeSearchTerm(term);
@@ -101,7 +107,7 @@ export default class SearchBar extends React.Component {
             this.setState({isSearching: true});
             client.search(
                 terms,
-                function success(data) {
+                (data) => {
                     this.setState({isSearching: false});
                     if (utils.isMobile()) {
                         ReactDOM.findDOMNode(this.refs.search).value = '';
@@ -112,11 +118,11 @@ export default class SearchBar extends React.Component {
                         results: data,
                         is_mention_search: isMentionSearch
                     });
-                }.bind(this),
-                function error(err) {
+                },
+                (err) => {
                     this.setState({isSearching: false});
                     AsyncClient.dispatchError(err, 'search');
-                }.bind(this)
+                }
             );
         }
     }
@@ -165,13 +171,13 @@ export default class SearchBar extends React.Component {
                     className='search__clear'
                     onClick={this.clearFocus}
                 >
-                    Cancel
+                    {'Cancel'}
                 </span>
                 <form
                     role='form'
                     className='search__form relative-div'
                     onSubmit={this.handleSubmit}
-                    style={{"overflow": "visible"}}
+                    style={{overflow: 'visible'}}
                 >
                     <span className='glyphicon glyphicon-search sidebar__search-icon' />
                     <input
@@ -183,6 +189,7 @@ export default class SearchBar extends React.Component {
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onChange={this.handleUserInput}
+                        onKeyDown={this.handleKeyDown}
                         onMouseUp={this.handleMouseInput}
                     />
                     {isSearching}

@@ -2,13 +2,14 @@
 // See License.txt for license information.
 
 const ChannelStore = require('../stores/channel_store.jsx');
+const KeyCodes = require('../utils/constants.jsx').KeyCodes;
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 
-const patterns = {
-    channels: /\b(?:in|channel):\s*(\S*)$/i,
-    users: /\bfrom:\s*(\S*)$/i
-};
+const patterns = new Map([
+    ['channels', /\b(?:in|channel):\s*(\S*)$/i],
+    ['users', /\bfrom:\s*(\S*)$/i]
+]);
 
 export default class SearchAutocomplete extends React.Component {
     constructor(props) {
@@ -17,11 +18,17 @@ export default class SearchAutocomplete extends React.Component {
         this.handleClick = this.handleClick.bind(this);
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+
+        this.completeWord = this.completeWord.bind(this);
+        this.updateSuggestions = this.updateSuggestions.bind(this);
 
         this.state = {
             show: false,
             mode: '',
-            filter: ''
+            filter: '',
+            selection: 0,
+            suggestions: new Map()
         };
     }
 
@@ -34,13 +41,7 @@ export default class SearchAutocomplete extends React.Component {
     }
 
     handleClick(value) {
-        this.props.completeWord(this.state.filter, value);
-
-        this.setState({
-            show: false,
-            mode: '',
-            filter: ''
-        });
+        this.completeWord(value);
     }
 
     handleDocumentClick(e) {
@@ -59,14 +60,18 @@ export default class SearchAutocomplete extends React.Component {
 
         let mode = '';
         let filter = '';
-        for (const pattern in patterns) {
-            const result = patterns[pattern].exec(preText);
+        for (const [modeForPattern, pattern] of patterns) {
+            const result = pattern.exec(preText);
 
             if (result) {
-                mode = pattern;
+                mode = modeForPattern;
                 filter = result[1];
                 break;
             }
+        }
+
+        if (mode !== this.state.mode || filter !== this.state.filter) {
+            this.updateSuggestions(mode, filter);
         }
 
         this.setState({
@@ -76,48 +81,147 @@ export default class SearchAutocomplete extends React.Component {
         });
     }
 
+    handleKeyDown(e) {
+        if (!this.state.show || this.state.suggestions.length === 0) {
+            return;
+        }
+
+        if (e.which === KeyCodes.UP || e.which === KeyCodes.DOWN) {
+            e.preventDefault();
+
+            let selection = this.state.selection;
+
+            if (e.which === KeyCodes.UP) {
+                selection -= 1;
+            } else {
+                selection += 1;
+            }
+
+            if (selection >= 0 && selection < this.state.suggestions.length) {
+                this.setState({
+                    selection
+                });
+            }
+        } else if (e.which === KeyCodes.ENTER || e.which === KeyCodes.SPACE) {
+            e.preventDefault();
+
+            this.completeSelectedWord();
+        }
+    }
+
+    completeSelectedWord() {
+        if (this.state.mode === 'channels') {
+            this.completeWord(this.state.suggestions[this.state.selection].name);
+        } else if (this.state.mode === 'users') {
+            this.completeWord(this.state.suggestions[this.state.selection].username);
+        }
+    }
+
+    completeWord(value) {
+        // add a space so that anything else typed doesn't interfere with the search flag
+        this.props.completeWord(this.state.filter, value + ' ');
+
+        this.setState({
+            show: false,
+            mode: '',
+            filter: '',
+            selection: 0
+        });
+    }
+
+    updateSuggestions(mode, filter) {
+        let suggestions = [];
+
+        if (mode === 'channels') {
+            let channels = ChannelStore.getAll();
+
+            if (filter) {
+                channels = channels.filter((channel) => channel.name.startsWith(filter));
+            }
+
+            channels.sort((a, b) => a.name.localeCompare(b.name));
+
+            suggestions = channels;
+        } else if (mode === 'users') {
+            let users = UserStore.getActiveOnlyProfileList();
+
+            if (filter) {
+                users = users.filter((user) => user.username.startsWith(filter));
+            }
+
+            users.sort((a, b) => a.username.localeCompare(b.username));
+
+            suggestions = users;
+        }
+
+        let selection = this.state.selection;
+
+        // keep the same user/channel selected if it's still visible as a suggestion
+        if (selection > 0 && this.state.suggestions.length > 0) {
+            // we can't just use indexOf to find if the selection is still in the list since they are different javascript objects
+            const currentSelectionId = this.state.suggestions[selection].id;
+            let found = false;
+
+            for (let i = 0; i < suggestions.length; i++) {
+                if (suggestions[i].id === currentSelectionId) {
+                    selection = i;
+                    found = true;
+
+                    break;
+                }
+            }
+
+            if (!found) {
+                selection = 0;
+            }
+        } else {
+            selection = 0;
+        }
+
+        this.setState({
+            suggestions,
+            selection
+        });
+    }
+
     render() {
-        if (!this.state.show) {
+        if (!this.state.show || this.state.suggestions.length === 0) {
             return null;
         }
 
         let suggestions = [];
 
         if (this.state.mode === 'channels') {
-            let channels = ChannelStore.getAll();
+            suggestions = this.state.suggestions.map((channel, index) => {
+                let className = 'search-autocomplete__channel';
+                if (this.state.selection === index) {
+                    className += ' selected';
+                }
 
-            if (this.state.filter) {
-                channels = channels.filter((channel) => channel.name.startsWith(this.state.filter));
-            }
-
-            channels.sort((a, b) => a.name.localeCompare(b.name));
-
-            suggestions = channels.map((channel) => {
                 return (
                     <div
-                        key={channel.id}
+                        key={channel.name}
+                        ref={channel.name}
                         onClick={this.handleClick.bind(this, channel.name)}
-                        className='search-autocomplete__channel'
+                        className={className}
                     >
                         {channel.name}
                     </div>
                 );
             });
         } else if (this.state.mode === 'users') {
-            let users = UserStore.getActiveOnlyProfileList();
+            suggestions = this.state.suggestions.map((user, index) => {
+                let className = 'search-autocomplete__user';
+                if (this.state.selection === index) {
+                    className += ' selected';
+                }
 
-            if (this.state.filter) {
-                users = users.filter((user) => user.username.startsWith(this.state.filter));
-            }
-
-            users.sort((a, b) => a.username.localeCompare(b.username));
-
-            suggestions = users.map((user) => {
                 return (
                     <div
-                        key={user.id}
+                        key={user.username}
+                        ref={user.username}
                         onClick={this.handleClick.bind(this, user.username)}
-                        className='search-autocomplete__user'
+                        className={className}
                     >
                         <img
                             className='profile-img'
@@ -127,10 +231,6 @@ export default class SearchAutocomplete extends React.Component {
                     </div>
                 );
             });
-        }
-
-        if (suggestions.length === 0) {
-            return null;
         }
 
         return (

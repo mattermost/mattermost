@@ -221,7 +221,9 @@ class UserStoreClass extends EventEmitter {
         const profiles = [];
 
         for (const id in profileMap) {
-            profiles.push(profileMap[id]);
+            if (profileMap.hasOwnProperty(id)) {
+                profiles.push(profileMap[id]);
+            }
         }
 
         return profiles;

@@ -311,6 +311,7 @@ module.exports = {
         RIGHT: 39,
         BACKSPACE: 8,
         ENTER: 13,
-        ESCAPE: 27
+        ESCAPE: 27,
+        SPACE: 32
     }
 };
