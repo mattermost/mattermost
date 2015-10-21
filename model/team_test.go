@@ -21,12 +21,12 @@ func TestTeamJson(t *testing.T) {
 func TestTeamIsValid(t *testing.T) {
 	o := Team{}
 
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
@@ -53,13 +53,13 @@ func TestTeamIsValid(t *testing.T) {
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
-	if err := o.IsValid(); err != nil {
+	if err := o.IsValid(true); err != nil {
 		t.Fatal(err)
 	}
 }
