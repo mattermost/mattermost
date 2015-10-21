@@ -14,6 +14,7 @@ To enable email, configure an SMTP email service as follows:
 	         3. Copy the `Server Name`, `Port`, `SMTP Username`, and `SMTP Password` for Step 2 below. 
 	         4. From the `Domains` menu set up and verify a new domain, then enable `Generate DKIM Settings` for the domain.
 	         5. Choose an sender address like `mattermost@example.com` and click `Send a Test Email` to verify setup is working correctly. 
+
 2.  **Configure SMTP settings** 
 	1.  Open the **System Console** by logging into an existing team and accessing "System Console" from the main menu.
 	     1.  Alternatively, if a team doesn't yet exist, go to `http://dockerhost:8065/` in your browser, create a team, then from the main menu click **System Console**
@@ -29,15 +30,42 @@ To enable email, configure an SMTP email service as follows:
 	       9. **SMTP Port**: `SMTP Port` from Step 1
 	       10. **Connection Security**: `TLS (Recommended)`
 	       11. Then click **Save**
+	       12. Then click **Test Connection**
+	       13. If the test failed please look in **OTHER** > **Logs** for any errors that look like `[EROR] /api/v1/admin/test_email ...`
 
-3.  **Restart Mattermost**
-	1. Use `ps -A`  to find the process ID ("pid") for service named `platform` and stop it using `kill [pid]`
-	2. The service should restart automatically. Run `ps -A` to verify the `platform` is running again 
-	3. Use the reset password page (E.g. _example.com/teamname/reset_password_) to test that email is now working by entering your email and clicking **Reset my password**.
-	4. Note: The next time users log out, or when their session tokens expire, each will be required to verify their email address.
+### Known Good Sample Settings
+
+##### Amazon SES
+* Set **SMTP Username** to **AKIASKLDSKDIWEOWE**
+* Set **SMTP Password** to **AdskfjAKLSDJShflsdfjkakldADkjkjdfKAJDSlkjweiqQIWEOU**
+* Set **SMTP Server** to **email-smtp.us-east-1.amazonaws.com**
+* Set **SMTP Port** to **465**
+* Set **Connection Security** to **TLS**
+
+##### Postfix
+* Make sure Postfix is installed on the machine where Mattermost is installed
+* Set **SMTP Username** to **<empty>**
+* Set **SMTP Password** to **<empty>**
+* Set **SMTP Server** to **localhost**
+* Set **SMTP Port** to **25**
+* Set **Connection Security** to **<empty>**
+
+##### Gmail
+* Information needed
+
+##### Office 365
+* Information needed
+
+##### Hotmail
+* Information needed
+
 
 ### Troubleshooting SMTP
 
+#### Tip 1
+If you fill in **SMTP Username** and **SMTP Password** then you must set **Connection Security** to **TLS** or to **STARTTLS**
+
+#### Tip 2
 If you have issues with your SMTP install, from your Mattermost team site go to the main menu and open **System Console -> Logs** to look for error messages related to your setup. You can do a search for the error code to narrow down the issue. Sometimes ISPs require nuanced setups for SMTP and error codes can hint at how to make the proper adjustments. 
 
 For example, if **System Console -> Logs** has an error code reading: 
@@ -48,4 +76,19 @@ Connection unsuccessful: Failed to add to email address - 554 5.7.1 <unknown[IP-
 
 Search for `554 5.7.1 error` and `Client host rejected: Access denied`.
 
-
+#### Tip 3
+* Attempt to telnet to the email service to make sure the server is reachable.
+* You must run the following commands from the same machine or virtual instance where `mattermost/bin/platform` is located.  So if you're running Mattermost from docker you need to `docker exec -ti mattermost-dev /bin/bash`
+* Telnet into email server with `telnet mail.example.com 25`.  If the command works you should see something like
+```
+Trying 24.121.12.143...
+Connected to mail.example.com.
+220 mail.example.com NO UCE ESMTP
+```
+* Then type something like `HELO <your mail server domain>`.  If the command works you should see something like
+```
+250-mail.example.com NO UCE
+250-STARTTLS
+250-PIPELINING
+250 8BITMIME
+```
