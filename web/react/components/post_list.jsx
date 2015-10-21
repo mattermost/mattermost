@@ -12,7 +12,7 @@ const UserStore = require('../stores/user_store.jsx');
 const SocketStore = require('../stores/socket_store.jsx');
 const PreferenceStore = require('../stores/preference_store.jsx');
 
-const utils = require('../utils/utils.jsx');
+const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
@@ -40,11 +40,13 @@ export default class PostList extends React.Component {
         this.loadFirstPosts = this.loadFirstPosts.bind(this);
         this.activate = this.activate.bind(this);
         this.deactivate = this.deactivate.bind(this);
-        this.resize = this.resize.bind(this);
+        this.handleResize = this.handleResize.bind(this);
+        this.resizePostList = this.resizePostList.bind(this);
 
         const state = this.getStateFromStores(props.channelId);
         state.numToDisplay = Constants.POST_CHUNK_SIZE;
         state.isFirstLoadComplete = false;
+        state.windowHeight = Utils.windowHeight();
 
         this.state = state;
     }
@@ -115,12 +117,7 @@ export default class PostList extends React.Component {
 
         const postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
 
-        $(window).resize(() => {
-            this.resize();
-            if (!this.scrolled) {
-                this.scrollToBottom();
-            }
-        });
+        window.addEventListener('resize', this.handleResize);
 
         postHolder.on('scroll', () => {
             const position = postHolder.scrollTop() + postHolder.height() + 14;
@@ -154,7 +151,7 @@ export default class PostList extends React.Component {
             this.loadFirstPosts(this.props.channelId);
         }
 
-        this.resize();
+        this.handleResize();
         this.onChange();
         this.scrollToBottom();
     }
@@ -164,7 +161,9 @@ export default class PostList extends React.Component {
         SocketStore.removeChangeListener(this.onSocketChange);
         PreferenceStore.removeChangeListener(this.onTimeChange);
         $('body').off('click.userpopover');
-        $(window).off('resize');
+
+        window.removeEventListener('resize', this.handleResize);
+
         var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         postHolder.off('scroll');
     }
@@ -202,7 +201,7 @@ export default class PostList extends React.Component {
         // it's by the user and not a comment
         } else if (isNewPost &&
                     userId === firstPost.user_id &&
-                    !utils.isComment(firstPost)) {
+                    !Utils.isComment(firstPost)) {
             this.scrollToBottom(true);
 
         // the user clicked 'load more messages'
@@ -219,6 +218,10 @@ export default class PostList extends React.Component {
         } else {
             this.scrollTo(this.prevScrollTop);
         }
+
+        if (prevState.windowHeight !== this.state.windowHeight) {
+            this.handleResize();
+        }
     }
     componentWillUpdate() {
         var postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
@@ -231,10 +234,20 @@ export default class PostList extends React.Component {
             this.deactivate();
         }
     }
-    resize() {
+    handleResize() {
+        this.setState({
+            windowHeight: Utils.windowHeight()
+        });
+
+        this.resizePostList();
+        if (!this.scrolled) {
+            this.scrollToBottom();
+        }
+    }
+    resizePostList() {
         const postHolder = $(ReactDOM.findDOMNode(this.refs.postlist));
         if ($('#create_post').length > 0) {
-            const height = $(window).height() - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
+            const height = this.state.windowHeight - $('#create_post').height() - $('#error_bar').outerHeight() - 50;
             postHolder.css('height', height + 'px');
         }
     }
@@ -280,7 +293,7 @@ export default class PostList extends React.Component {
     onChange() {
         var newState = this.getStateFromStores(this.props.channelId);
 
-        if (!utils.areStatesEqual(newState.postList, this.state.postList)) {
+        if (!Utils.areStatesEqual(newState.postList, this.state.postList)) {
             this.setState(newState);
         }
     }
@@ -310,7 +323,7 @@ export default class PostList extends React.Component {
         }
     }
     createDMIntroMessage(channel) {
-        var teammate = utils.getDirectTeammate(channel.id);
+        var teammate = Utils.getDirectTeammate(channel.id);
 
         if (teammate) {
             var teammateName = teammate.username;
@@ -370,13 +383,13 @@ export default class PostList extends React.Component {
     createDefaultIntroMessage(channel) {
         return (
             <div className='channel-intro'>
-                <h4 className='channel-intro__title'>Beginning of {channel.display_name}</h4>
+                <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
                 <p className='channel-intro__content'>
-                    Welcome to {channel.display_name}!
+                    {'Welcome to ' + channel.display_name + '!'}
                     <br/><br/>
-                    This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.
+                    {'This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
                     <br/><br/>
-                    To create a new channel or join an existing one, go to the Left Sidebar under “Channels” and click “More…”.
+                    {'To create a new channel or join an existing one, go to the Left Sidebar under “Channels” and click “More…”.'}
                     <br/>
                 </p>
             </div>
@@ -385,7 +398,7 @@ export default class PostList extends React.Component {
     createOffTopicIntroMessage(channel) {
         return (
             <div className='channel-intro'>
-                <h4 className='channel-intro__title'>Beginning of {channel.display_name}</h4>
+                <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
                 <p className='channel-intro__content'>
                     {'This is the start of ' + channel.display_name + ', a channel for non-work-related conversations.'}
                     <br/>
@@ -399,7 +412,7 @@ export default class PostList extends React.Component {
                     data-title={channel.display_name}
                     data-channelid={channel.id}
                 >
-                    <i className='fa fa-pencil'></i>Set a description
+                    <i className='fa fa-pencil'></i>{'Set a description'}
                 </a>
                 <a
                     className='intro-links'
@@ -407,7 +420,7 @@ export default class PostList extends React.Component {
                     data-toggle='modal'
                     data-target='#channel_invite'
                 >
-                    <i className='fa fa-user-plus'></i>Invite others to this channel
+                    <i className='fa fa-user-plus'></i>{'Invite others to this channel'}
                 </a>
             </div>
         );
@@ -422,7 +435,7 @@ export default class PostList extends React.Component {
 
         var members = ChannelStore.getExtraInfo(channel.id).members;
         for (var i = 0; i < members.length; i++) {
-            if (utils.isAdmin(members[i].roles)) {
+            if (Utils.isAdmin(members[i].roles)) {
                 return members[i].username;
             }
         }
@@ -443,14 +456,14 @@ export default class PostList extends React.Component {
 
         var createMessage;
         if (creatorName === '') {
-            createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + utils.displayDate(channel.create_at) + '.';
+            createMessage = 'This is the start of the ' + uiName + ' ' + uiType + ', created on ' + Utils.displayDate(channel.create_at) + '.';
         } else {
-            createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{utils.displayDate(channel.create_at)}</strong></span>);
+            createMessage = (<span>This is the start of the <strong>{uiName}</strong> {uiType}, created by <strong>{creatorName}</strong> on <strong>{Utils.displayDate(channel.create_at)}</strong></span>);
         }
 
         return (
             <div className='channel-intro'>
-                <h4 className='channel-intro__title'>Beginning of {uiName}</h4>
+                <h4 className='channel-intro__title'>{'Beginning of ' + uiName}</h4>
                 <p className='channel-intro__content'>
                     {createMessage}
                     {memberMessage}
@@ -465,7 +478,7 @@ export default class PostList extends React.Component {
                     data-title={channel.display_name}
                     data-channelid={channel.id}
                 >
-                    <i className='fa fa-pencil'></i>Set a description
+                    <i className='fa fa-pencil'></i>{'Set a description'}
                 </a>
                 <a
                     className='intro-links'
@@ -473,7 +486,7 @@ export default class PostList extends React.Component {
                     data-toggle='modal'
                     data-target='#channel_invite'
                 >
-                    <i className='fa fa-user-plus'></i>Invite others to this {uiType}
+                    <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
                 </a>
             </div>
         );
@@ -507,7 +520,7 @@ export default class PostList extends React.Component {
             if (prevPost) {
                 sameUser = prevPost.user_id === post.user_id && post.create_at - prevPost.create_at <= 1000 * 60 * 5;
 
-                sameRoot = utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
+                sameRoot = Utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
 
                 // hide the profile pic if:
                 //     the previous post was made by the same user as the current post,
@@ -516,8 +529,8 @@ export default class PostList extends React.Component {
                 //     the current post is not from a webhook
                 //     and the previous post is not from a webhook
                 if ((prevPost.user_id === post.user_id) &&
-                        !utils.isComment(prevPost) &&
-                        !utils.isComment(post) &&
+                        !Utils.isComment(prevPost) &&
+                        !Utils.isComment(post) &&
                         (!post.props || !post.props.from_webhook) &&
                         (!prevPost.props || !prevPost.props.from_webhook)) {
                     hideProfilePic = true;
@@ -526,7 +539,7 @@ export default class PostList extends React.Component {
 
             // check if it's the last comment in a consecutive string of comments on the same post
             // it is the last comment if it is last post in the channel or the next post has a different root post
-            var isLastComment = utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
+            var isLastComment = Utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
 
             var postCtl = (
                 <Post
@@ -542,7 +555,7 @@ export default class PostList extends React.Component {
                 />
             );
 
-            let currentPostDay = utils.getDateForUnixTicks(post.create_at);
+            const currentPostDay = Utils.getDateForUnixTicks(post.create_at);
             if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
                 postCtls.push(
                     <div
@@ -558,9 +571,9 @@ export default class PostList extends React.Component {
             if (post.user_id !== userId && post.create_at > lastViewed && !renderedLastViewed) {
                 renderedLastViewed = true;
 
-                // Temporary fix to solve ie10/11 rendering issue
+                // Temporary fix to solve ie11 rendering issue
                 let newSeparatorId = '';
-                if (!utils.isBrowserIE()) {
+                if (!Utils.isBrowserIE()) {
                     newSeparatorId = 'new_message_' + this.props.channelId;
                 }
                 postCtls.push(
@@ -572,7 +585,7 @@ export default class PostList extends React.Component {
                         <hr
                             className='separator__hr'
                         />
-                        <div className='separator__text'>New Messages</div>
+                        <div className='separator__text'>{'New Messages'}</div>
                     </div>
                 );
             }
@@ -638,7 +651,7 @@ export default class PostList extends React.Component {
             order = this.state.postList.order;
         }
 
-        var moreMessages = <p className='beginning-messages-text'>Beginning of Channel</p>;
+        var moreMessages = <p className='beginning-messages-text'>{'Beginning of Channel'}</p>;
         if (channel != null) {
             if (order.length >= this.state.numToDisplay) {
                 moreMessages = (
@@ -648,7 +661,7 @@ export default class PostList extends React.Component {
                         href='#'
                         onClick={this.loadMorePosts}
                     >
-                            Load more messages
+                        {'Load more messages'}
                     </a>
                 );
             } else {
