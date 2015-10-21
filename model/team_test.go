@@ -31,23 +31,23 @@ func TestTeamIsValid(t *testing.T) {
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Email = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Email = "corey@hulen.com"
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(); err == nil {
+	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")
 	}
 
