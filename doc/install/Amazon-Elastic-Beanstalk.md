@@ -1,27 +1,20 @@
 
 ## AWS Elastic Beanstalk Setup (Docker)
+These instructions will guide you through the process of setting up an Elastic Beanstalk single-docker instance of Mattermost for product evaluation.
 
-1. Create a new Elastic Beanstalk Docker application using the [Dockerrun.aws.zip](https://github.com/mattermost/platform/raw/master/docker/1.0/Dockerrun.aws.zip) file provided. 
-	1. From the AWS console select Elastic Beanstalk.
-	2. Select "Create New Application" from the top right.
-	3. Name the application and press next.
-	4. Select "Create a web server" environment.
-	5. If asked, select create an IAM role and instance profile and press next.
-	6. For predefined configuration select under Generic: Docker. For environment type select single instance.
-	7. For application source, select upload your own and upload Dockerrun.aws.zip from [Dockerrun.aws.zip](https://github.com/mattermost/platform/raw/master/docker/1.0/Dockerrun.aws.zip). Everything else may be left at default.
-	8. Select an environment name, this is how you will refer to your environment. Make sure the URL is available then press next.
-	9. The options on the additional resources page may be left at default unless you wish to change them. Press Next.
-	10. On the configuration details place. Select an instance type of t2.small or larger.
-	11. You can set the configuration details as you please but they may be left at their defaults. When you are done press next.
-	12. Environment tags my be left blank. Press next.
-	13. You will be asked to review your information. Press Launch.
-
-4. Try it out!
-	14. Wait for beanstalk to update the environment.
-	15. Try it out by entering the domain of the form \*.elasticbeanstalk.com found at the top of the dashboard into your browser. You can also map your own domain if you wish.
+1. From your [AWS console]( https://console.aws.amazon.com/console/home) select **Elastic Beanstalk** under the Compute section.
+2. Select **Create New Application** from the top right.
+3. Name your Elastic Beanstalk application and click **Next**, then choose **Create web server**.
+4. If asked, select **Create an IAM role and instance profile**, then click **Next**.
+5. From the Predefined Configuration drop-down list, select **Docker** under the generic heading. From the Environment Type drop-down list, select **Single instance**.
+6. For Application Source, select **Upload your own** and upload the [Dockerrun.aws.zip](https://github.com/mattermost/platform/raw/master/docker/1.0/Dockerrun.aws.zip) file. Click **Next** and wait while AWS uploads the application version.
+7. Type an Environment Name and URL. Make sure the URL is available by clicking **Check availability**, then click **Next**.
+8. The options on the Additional Resources page may be left at default unless you wish to change them. Click **Next**.
+9. On the Configuration Details page, select an Instance Type of **t2.small**. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity. You may select larger T2 instance types if required.
+10. Also on the Configuration Details page, under the Health Reporting section, change System Type to **Basic**. The remaining options may be left at their default values unless you wish to change them. Click **Next**.
+11. Environment tags may be left blank. Click **Next**.
+12. You will be asked to review your information, then click **Launch**. It may take a few minutes for beanstalk to launch your environment. If the launch is successful, you will see a see a large green checkmark and the Health status should change to “Green”. 
+13. Test your environment by clicking the domain link next to your application name at the top of the dashboard. Alternatively, enter the domain into your browser in the form `http://<your-ebs-application-url>.elasticbeanstalk.com`. You can also map your own domain if you wish. If everything is working correctly, the domain should navigate you to the Mattermost signup page. Enjoy exploring Mattermost!
 	
-	
-	### (Recommended) Enable Email 
-	The default single-container Docker instance for Mattermost is designed for product evaluation, and sets `ByPassEmail=true` so the product can run without enabling email, when doing so maybe difficult. 
-	
-	To see the product's full functionality, [enabling SMTP email is recommended](SMTP-Email-Setup.md).
+### (Recommended) Enable Email 
+The default single-container Docker instance for Mattermost is designed for product evaluation, and sets `SendEmailNotifications=false` so the product can function without enabling email. To see the product's full functionality, [enabling SMTP email is recommended](SMTP-Email-Setup.md).
