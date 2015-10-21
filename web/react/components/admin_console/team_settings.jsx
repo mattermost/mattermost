@@ -31,6 +31,7 @@ export default class TeamSettings extends React.Component {
         config.TeamSettings.RestrictCreationToDomains = ReactDOM.findDOMNode(this.refs.RestrictCreationToDomains).value.trim();
         config.TeamSettings.EnableTeamCreation = ReactDOM.findDOMNode(this.refs.EnableTeamCreation).checked;
         config.TeamSettings.EnableUserCreation = ReactDOM.findDOMNode(this.refs.EnableUserCreation).checked;
+        config.TeamSettings.RestrictTeamNames = ReactDOM.findDOMNode(this.refs.RestrictTeamNames).checked;
 
         var MaxUsersPerTeam = 50;
         if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MaxUsersPerTeam).value, 10))) {
@@ -205,6 +206,39 @@ export default class TeamSettings extends React.Component {
                                 onChange={this.handleChange}
                             />
                             <p className='help-text'>{'Teams can only be created from a specific domain (e.g. "mattermost.org") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='RestrictTeamNames'
+                        >
+                            {'Restrict Team Names: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='RestrictTeamNames'
+                                    value='true'
+                                    ref='RestrictTeamNames'
+                                    defaultChecked={this.props.config.TeamSettings.RestrictTeamNames}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='RestrictTeamNames'
+                                    value='false'
+                                    defaultChecked={!this.props.config.TeamSettings.RestrictTeamNames}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'}</p>
                         </div>
                     </div>
 
