@@ -248,7 +248,7 @@ export default class ViewImageModal extends React.Component {
                                 className='file-playback-controls stop'
                                 onClick={(e) => this.stopGif(e, filename)}
                             >
-                                {"◼"}
+                                {"■"}
                             </div>
                         );
                     } else {

@@ -187,7 +187,7 @@ export default class FileAttachment extends React.Component {
                     className='file-playback-controls stop'
                     onClick={(e) => this.stopGif(e, filename)}
                 >
-                    {"◼"}
+                    {"■"}
                 </div>
             );
         }
