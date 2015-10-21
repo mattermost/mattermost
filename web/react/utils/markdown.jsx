@@ -53,7 +53,7 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     paragraph(text) {
-        text = TextFormatting.doFormatText(text, this.options)
+        text = TextFormatting.doFormatText(text, this.options);
 
         if (this.formattingOptions.singleline) {
             return `<p class="markdown__paragraph-inline">${text}</p>`;
