@@ -44,11 +44,11 @@ To enable email, configure an SMTP email service as follows:
 
 ##### Postfix
 * Make sure Postfix is installed on the machine where Mattermost is installed
-* Set **SMTP Username** to **<empty>**
-* Set **SMTP Password** to **<empty>**
+* Set **SMTP Username** to **(empty)**
+* Set **SMTP Password** to **(empty)**
 * Set **SMTP Server** to **localhost**
 * Set **SMTP Port** to **25**
-* Set **Connection Security** to **<empty>**
+* Set **Connection Security** to **(empty)**
 
 ##### Gmail
 * Information needed
