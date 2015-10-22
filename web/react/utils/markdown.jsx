@@ -53,11 +53,13 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     paragraph(text) {
+        let outText = TextFormatting.doFormatText(text, this.options);
+
         if (this.formattingOptions.singleline) {
-            return `<p class="markdown__paragraph-inline">${text}</p>`;
+            return `<p class="markdown__paragraph-inline">${outText}</p>`;
         }
 
-        return super.paragraph(text);
+        return super.paragraph(outText);
     }
 
     table(header, body) {
