@@ -118,7 +118,7 @@ export function notifyMe(title, body, channel) {
             }
 
             if (permission === 'granted') {
-                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.gif'});
+                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
                 notification.onclick = function onClick() {
                     window.focus();
                     if (channel) {
