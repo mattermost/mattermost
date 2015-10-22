@@ -118,6 +118,7 @@ a:focus, a:hover {
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
   cursor: auto;
+  background: rgba(#fff, 0.1);
 }
 
 .form-group {
