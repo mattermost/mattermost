@@ -51,7 +51,7 @@ export default class CreatePost extends React.Component {
             submitting: false,
             initialText: draft.messageText,
             windowWidth: Utils.windowWidth(),
-            windowHeigth: Utils.windowHeight()
+            windowHeight: Utils.windowHeight()
         };
     }
     handleResize() {
@@ -71,7 +71,7 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        if (prevState.windowWidth !== this.state.windowWidth || prevState.windowHeight !== this.state.windowHeigth) {
+        if (prevState.windowWidth !== this.state.windowWidth || prevState.windowHeight !== this.state.windowHeight) {
             this.resizePostHolder();
             return;
         }
@@ -208,7 +208,7 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
     resizePostHolder() {
-        const height = this.state.windowHeigth - $(ReactDOM.findDOMNode(this.refs.topDiv)).height() - 50;
+        const height = this.state.windowHeight - $(ReactDOM.findDOMNode(this.refs.topDiv)).height() - 50;
         $('.post-list-holder-by-time').css('height', `${height}px`);
         if (this.state.windowWidth > 960) {
             $('#post_textbox').focus();
