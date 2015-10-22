@@ -133,7 +133,7 @@ export function handleEmoticons(text, tokens) {
             const alias = `MM_EMOTICON${index}`;
 
             tokens.set(alias, {
-                value: `<img align="absmiddle" alt=${match} class="emoji" src=${getImagePathForEmoticon(name)} title=${match} />`,
+                value: `<img align="absmiddle" alt="${match}" class="emoji" src="${getImagePathForEmoticon(name)}" title="${match}" />`,
                 originalText: match
             });
 
