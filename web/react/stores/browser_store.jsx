@@ -23,6 +23,7 @@ class BrowserStoreClass {
         this.getLastServerVersion = this.getLastServerVersion.bind(this);
         this.setLastServerVersion = this.setLastServerVersion.bind(this);
         this.clear = this.clear.bind(this);
+        this.clearAll = this.clearAll.bind(this);
 
         var currentVersion = sessionStorage.getItem('storage_version');
         if (currentVersion !== global.window.mm_config.Version) {
@@ -57,13 +58,14 @@ class BrowserStoreClass {
     setGlobalItem(name, value) {
         try {
             if (this.isLocalStorageSupported()) {
-                localStorage.setItem(name, JSON.stringify(value));
+                localStorage.setItem(getPrefix() + name, JSON.stringify(value));
             } else {
-                sessionStorage.setItem(name, JSON.stringify(value));
+                sessionStorage.setItem(getPrefix() + name, JSON.stringify(value));
             }
         } catch (err) {
             console.log('An error occurred while setting local storage, clearing all props'); //eslint-disable-line no-console
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = window.location.href;
         }
     }
@@ -72,9 +74,9 @@ class BrowserStoreClass {
         var result = null;
         try {
             if (this.isLocalStorageSupported()) {
-                result = JSON.parse(localStorage.getItem(name));
+                result = JSON.parse(getPrefix() + localStorage.getItem(name));
             } else {
-                result = JSON.parse(sessionStorage.getItem(name));
+                result = JSON.parse(getPrefix() + sessionStorage.getItem(name));
             }
         } catch (err) {
             result = null;
@@ -89,9 +91,9 @@ class BrowserStoreClass {
 
     removeGlobalItem(name) {
         if (this.isLocalStorageSupported()) {
-            localStorage.removeItem(name);
+            localStorage.removeItem(getPrefix() + name);
         } else {
-            sessionStorage.removeItem(name);
+            sessionStorage.removeItem(getPrefix() + name);
         }
     }
 
@@ -110,7 +112,13 @@ class BrowserStoreClass {
     actionOnGlobalItemsWithPrefix(prefix, action) {
         var globalPrefix = getPrefix();
         var globalPrefixiLen = globalPrefix.length;
-        for (var key in localStorage) {
+
+        var storage = sessionStorage;
+        if (this.isLocalStorageSupported()) {
+            storage = localStorage;
+        }
+
+        for (var key in storage) {
             if (key.lastIndexOf(globalPrefix + prefix, 0) === 0) {
                 var userkey = key.substring(globalPrefixiLen);
                 action(userkey, this.getGlobalItem(key));
@@ -131,6 +139,11 @@ class BrowserStoreClass {
 
     clear() {
         sessionStorage.clear();
+    }
+
+    clearAll() {
+        sessionStorage.clear();
+        localStorage.clear();
     }
 
     isLocalStorageSupported() {

@@ -1026,7 +1026,6 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	// create a mock session
 	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
-	c.SessionTokenIndex = 0
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") && channel.Type != model.CHANNEL_OPEN {
 		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")

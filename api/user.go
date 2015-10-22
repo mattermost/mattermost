@@ -429,26 +429,15 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
-	multiToken := ""
-	if originalMultiSessionCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-		multiToken = originalMultiSessionCookie.Value
-	}
-
-	// Attempt to clean all the old tokens or duplicate tokens
-	if len(multiToken) > 0 {
-		tokens := strings.Split(multiToken, " ")
-
-		multiToken = ""
-		seen := make(map[string]string)
-		seen[session.TeamId] = session.TeamId
-		for _, token := range tokens {
-			if sr := <-Srv.Store.Session().Get(token); sr.Err == nil {
-				s := sr.Data.(*model.Session)
-				if !s.IsExpired() && seen[s.TeamId] == "" {
-					multiToken += " " + token
-					seen[s.TeamId] = s.TeamId
-				}
-			}
+	tokens := GetMultiSessionCookie(r)
+	multiToken = ""
+	seen := make(map[string]string)
+	seen[session.TeamId] = session.TeamId
+	for _, token := range tokens {
+		s := GetSession(token)
+		if s != nil && !s.IsExpired() && seen[s.TeamId] == "" {
+			multiToken += " " + token
+			seen[s.TeamId] = s.TeamId
 		}
 	}
 
