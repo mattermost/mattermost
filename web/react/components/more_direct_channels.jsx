@@ -31,7 +31,7 @@ export default class MoreDirectChannels extends React.Component {
 
     getUsersFromStore() {
         const currentId = UserStore.getCurrentId();
-        const profiles = UserStore.getProfiles();
+        const profiles = UserStore.getActiveOnlyProfiles();
         const users = [];
 
         for (const id in profiles) {
