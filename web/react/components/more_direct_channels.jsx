@@ -209,12 +209,14 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         let users = this.state.users;
-        if (this.state.filter !== '') {
+        if (this.state.filter) {
+            const filter = this.state.filter.toLowerCase();
+
             users = users.filter((user) => {
-                return user.username.indexOf(this.state.filter) !== -1 ||
-                    user.first_name.indexOf(this.state.filter) !== -1 ||
-                    user.last_name.indexOf(this.state.filter) !== -1 ||
-                    user.nickname.indexOf(this.state.filter) !== -1;
+                return user.username.toLowerCase().indexOf(filter) !== -1 ||
+                    user.first_name.toLowerCase().indexOf(filter) !== -1 ||
+                    user.last_name.toLowerCase().indexOf(filter) !== -1 ||
+                    user.nickname.toLowerCase().indexOf(filter) !== -1;
             });
         }
 
