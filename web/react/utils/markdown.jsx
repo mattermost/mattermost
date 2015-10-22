@@ -11,6 +11,7 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         super(options);
 
         this.heading = this.heading.bind(this);
+        this.paragraph = this.paragraph.bind(this);
         this.text = this.text.bind(this);
 
         this.formattingOptions = formattingOptions;
@@ -53,11 +54,17 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     paragraph(text) {
-        if (this.formattingOptions.singleline) {
-            return `<p class="markdown__paragraph-inline">${text}</p>`;
+        let outText = text;
+
+        if (!('emoticons' in this.options) || this.options.emoticon) {
+            outText = TextFormatting.doFormatEmoticons(text);
         }
 
-        return super.paragraph(text);
+        if (this.formattingOptions.singleline) {
+            return `<p class="markdown__paragraph-inline">${outText}</p>`;
+        }
+
+        return super.paragraph(outText);
     }
 
     table(header, body) {

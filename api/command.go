@@ -22,6 +22,7 @@ var commands = []commandHandler{
 	joinCommand,
 	loadTestCommand,
 	echoCommand,
+	shrugCommand,
 }
 
 var echoSem chan bool
@@ -155,6 +156,34 @@ func echoCommand(c *Context, command *model.Command) bool {
 
 	} else if strings.Index(cmd, command.Command) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seconds]"})
+	}
+
+	return false
+}
+
+func shrugCommand(c *Context, command *model.Command) bool {
+	cmd := "/shrug"
+
+	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
+		message := "¯\\_(ツ)_/¯"
+
+		parameters := strings.SplitN(command.Command, " ", 2)
+		if len(parameters) > 1 {
+			message += " " + parameters[1]
+		}
+
+		post := &model.Post{}
+		post.Message = message
+		post.ChannelId = command.ChannelId
+		if _, err := CreatePost(c, post, false); err != nil {
+			l4g.Error("Unable to create /shrug post post, err=%v", err)
+			return false
+		}
+		command.Response = model.RESP_EXECUTED
+		return true
+
+	} else if strings.Index(cmd, command.Command) == 0 {
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"})
 	}
 
 	return false

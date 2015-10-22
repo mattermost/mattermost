@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlTeamStore struct {
@@ -52,7 +53,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 
 		team.PreSave()
 
-		if result.Err = team.IsValid(); result.Err != nil {
+		if result.Err = team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -84,7 +85,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 
 		team.PreUpdate()
 
-		if result.Err = team.IsValid(); result.Err != nil {
+		if result.Err = team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return

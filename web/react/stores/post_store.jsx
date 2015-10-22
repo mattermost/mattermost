@@ -230,7 +230,7 @@ class PostStoreClass extends EventEmitter {
     getPosts(channelId) {
         return BrowserStore.getItem('posts_' + channelId);
     }
-    getCurrentUsersLatestPost(channelId) {
+    getCurrentUsersLatestPost(channelId, rootId) {
         const userId = UserStore.getCurrentId();
         var postList = makePostListNonNull(this.getPosts(channelId));
         var i = 0;
@@ -239,8 +239,15 @@ class PostStoreClass extends EventEmitter {
 
         for (i; i < len; i++) {
             if (postList.posts[postList.order[i]].user_id === userId) {
-                lastPost = postList.posts[postList.order[i]];
-                break;
+                if (rootId) {
+                    if (postList.posts[postList.order[i]].root_id === rootId || postList.posts[postList.order[i]].id === rootId) {
+                        lastPost = postList.posts[postList.order[i]];
+                        break;
+                    }
+                } else {
+                    lastPost = postList.posts[postList.order[i]];
+                    break;
+                }
             }
         }
 

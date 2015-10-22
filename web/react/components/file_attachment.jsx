@@ -10,9 +10,12 @@ export default class FileAttachment extends React.Component {
         super(props);
 
         this.loadFiles = this.loadFiles.bind(this);
+        this.playGif = this.playGif.bind(this);
+        this.stopGif = this.stopGif.bind(this);
+        this.addBackgroundImage = this.addBackgroundImage.bind(this);
 
         this.canSetState = false;
-        this.state = {fileSize: -1};
+        this.state = {fileSize: -1, mime: '', playing: false, loading: false, format: ''};
     }
     componentDidMount() {
         this.loadFiles();
@@ -28,14 +31,8 @@ export default class FileAttachment extends React.Component {
         var filename = this.props.filename;
 
         if (filename) {
-            var fileInfo = utils.splitFileLocation(filename);
+            var fileInfo = this.getFileInfoFromName(filename);
             var type = utils.getFileType(fileInfo.ext);
-
-            // This is a temporary patch to fix issue with old files using absolute paths
-            if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
-                fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
-            }
-            fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
 
             if (type === 'image') {
                 var self = this; // Need this reference since we use the given "this"
@@ -58,11 +55,7 @@ export default class FileAttachment extends React.Component {
                                 $(imgDiv).addClass('normal');
                             }
 
-                            var re1 = new RegExp(' ', 'g');
-                            var re2 = new RegExp('\\(', 'g');
-                            var re3 = new RegExp('\\)', 'g');
-                            var url = path.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
-                            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg?' + utils.getSessionIndex() + ')');
+                            self.addBackgroundImage(name, path);
                         }
                     };
                 }(fileInfo.path, filename));
@@ -93,6 +86,75 @@ export default class FileAttachment extends React.Component {
 
         return true;
     }
+    playGif(e, filename) {
+        var img = new Image();
+        var fileUrl = utils.getFileUrl(filename);
+
+        this.setState({loading: true});
+        img.load(fileUrl);
+        img.onload = () => {
+            var state = {playing: true, loading: false};
+
+            switch (true) {
+            case img.width > img.height:
+                state.format = 'landscape';
+                break;
+            case img.height > img.width:
+                state.format = 'portrait';
+                break;
+            default:
+                state.format = 'quadrat';
+                break;
+            }
+
+            this.setState(state);
+
+            // keep displaying background image for a short moment while browser is
+            // loading gif, to prevent white background flashing through
+            setTimeout(() => this.removeBackgroundImage.bind(this)(filename), 100);
+        };
+        img.onError = () => this.setState({loading: false});
+
+        e.stopPropagation();
+    }
+    stopGif(e, filename) {
+        this.setState({playing: false});
+        this.addBackgroundImage(filename);
+        e.stopPropagation();
+    }
+    getFileInfoFromName(name) {
+        var fileInfo = utils.splitFileLocation(name);
+
+        // This is a temporary patch to fix issue with old files using absolute paths
+        if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
+            fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
+        }
+        fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
+
+        return fileInfo;
+    }
+    addBackgroundImage(name, path) {
+        var fileUrl = path;
+
+        if (name in this.refs) {
+            if (!path) {
+                fileUrl = this.getFileInfoFromName(name).path;
+            }
+
+            var imgDiv = ReactDOM.findDOMNode(this.refs[name]);
+            var re1 = new RegExp(' ', 'g');
+            var re2 = new RegExp('\\(', 'g');
+            var re3 = new RegExp('\\)', 'g');
+            var url = fileUrl.replace(re1, '%20').replace(re2, '%28').replace(re3, '%29');
+
+            $(imgDiv).css('background-image', 'url(' + url + '_thumb.jpg?' + utils.getSessionIndex() + ')');
+        }
+    }
+    removeBackgroundImage(name) {
+        if (name in this.refs) {
+            $(ReactDOM.findDOMNode(this.refs[name])).css('background-image', 'initial');
+        }
+    }
     render() {
         var filename = this.props.filename;
 
@@ -100,15 +162,71 @@ export default class FileAttachment extends React.Component {
         var fileUrl = utils.getFileUrl(filename);
         var type = utils.getFileType(fileInfo.ext);
 
-        var thumbnail;
-        if (type === 'image') {
-            thumbnail = (
+        var playbackControls = '';
+        var loadedFile = '';
+        var loadingIndicator = '';
+        if (this.state.mime === 'image/gif') {
+            playbackControls = (
                 <div
-                    ref={filename}
-                    className='post__load'
-                    style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                    className='file-playback-controls play'
+                    onClick={(e) => this.playGif(e, filename)}
+                >
+                    {"►"}
+                </div>
+            );
+        }
+        if (this.state.playing) {
+            loadedFile = (
+                <img
+                    className={'file__loaded ' + this.state.format}
+                    src={fileUrl}
                 />
             );
+            playbackControls = (
+                <div
+                    className='file-playback-controls stop'
+                    onClick={(e) => this.stopGif(e, filename)}
+                >
+                    {"■"}
+                </div>
+            );
+        }
+        if (this.state.loading) {
+            loadingIndicator = (
+                <img
+                    className='spinner file__loading'
+                    src='/static/images/load.gif'
+                />
+            );
+            playbackControls = '';
+        }
+
+        var thumbnail;
+        if (type === 'image') {
+            if (this.state.playing) {
+                thumbnail = (
+                    <div
+                        ref={filename}
+                        className='post__load'
+                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                    >
+                        {playbackControls}
+                        {loadedFile}
+                    </div>
+                );
+            } else {
+                thumbnail = (
+                    <div
+                        ref={filename}
+                        className='post__load'
+                        style={{backgroundImage: 'url(/static/images/load.gif)'}}
+                    >
+                        {loadingIndicator}
+                        {playbackControls}
+                        {loadedFile}
+                    </div>
+                );
+            }
         } else {
             thumbnail = <div className={'file-icon ' + utils.getIconClassName(type)}/>;
         }
@@ -119,7 +237,7 @@ export default class FileAttachment extends React.Component {
                 filename,
                 function success(data) {
                     if (this.canSetState) {
-                        this.setState({fileSize: parseInt(data.size, 10)});
+                        this.setState({fileSize: parseInt(data.size, 10), mime: data.mime});
                     }
                 }.bind(this),
                 function error() {}

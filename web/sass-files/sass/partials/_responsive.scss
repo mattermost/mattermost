@@ -199,9 +199,6 @@
 }
 
 @media screen and (max-width: 960px) {
-    .center-file-overlay {
-        font-size: 1.5em;
-    }
     .post {
         .post-header .post-header-col.post-header__reply {
             .comment-icon__container__hide {
@@ -278,8 +275,17 @@
             display: block;
         }
     }
-    .center-file-overlay {
-        font-size: 1.3em;
+    .file-overlay {
+        font-size: em(18px);
+        .overlay__circle {
+            width: 300px;
+            height: 300px;
+            margin: -150px 0 0 -150px;
+        }
+        .overlay__files {
+            margin: 60px auto 15px;
+            width: 150px;
+        }
     }
     .date-separator, .new-separator {
         &.hovered--after {
@@ -639,6 +645,9 @@
                     }
                     &.has-close {
                         .btn-close {
+                            width: 40px;
+                            text-align: center;
+                            right: 0;
                             display: block;
                             @include opacity(0.5);
                         }
@@ -748,6 +757,10 @@
 
     .post-comments {
         padding: 9px 21px 10px 10px !important;
+    }
+
+    .post-image__column .post__image .file-playback-controls.stop, .image-wrapper > a .file-playback-controls.stop {
+        @include opacity(1);
     }
 }
 @media screen and (max-width: 640px) {

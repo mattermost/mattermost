@@ -108,7 +108,7 @@ func createTeamFromSSO(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	team.Name = model.CleanTeamName(team.Name)
 
-	if err := team.IsValid(); err != nil {
+	if err := team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); err != nil {
 		c.Err = err
 		return
 	}
@@ -164,7 +164,7 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamSignup.Team.PreSave()
 
-	if err := teamSignup.Team.IsValid(); err != nil {
+	if err := teamSignup.Team.IsValid(*utils.Cfg.TeamSettings.RestrictTeamNames); err != nil {
 		c.Err = err
 		return
 	}
@@ -376,11 +376,6 @@ func FindTeamByName(c *Context, name string, all string) bool {
 
 	if name == "" || len(name) > 64 {
 		c.SetInvalidParam("findTeamByName", "domain")
-		return false
-	}
-
-	if model.IsReservedTeamName(name) {
-		c.Err = model.NewAppError("findTeamByName", "This URL is unavailable. Please try another.", "name="+name)
 		return false
 	}
 

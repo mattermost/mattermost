@@ -119,20 +119,52 @@ body.ios {
 	background-color: rgba(0, 0, 0, 0.6);
 	text-align: center;
 	color: #FFF;
-	display: table;
-	font-size: 1.7em;
+	font-size: em(20px);
 	font-weight: 600;
 	z-index: 6;
 
-	> div {
-		display: table-cell;
-		vertical-align: middle;
+	&.right-file-overlay {
+		font-size: em(18px);
+		.overlay__circle {
+			width: 300px;
+			height: 300px;
+			margin: -150px 0 0 -150px;
+		}
+		.overlay__files {
+			margin: 60px auto 15px;
+			width: 150px;
+		}
+	}
+
+	.overlay__circle {
+		background: #111;
+		background: rgba(black, 0.7);
+		width: 370px;
+		height: 370px;
+		margin: -185px 0 0 -185px;
+		@include border-radius(500px);
+		position: absolute;
+		top: 50%;
+		left: 50%;
+	}
+
+	.overlay__files {
+		display: block;
+		margin: 75px auto 20px;
+	}
+
+	.overlay__logo {
+		position: absolute;
+		left: 50%;
+		bottom: 30px;
+		margin-left: -50px;
+		@include opacity(0.3);
 	}
 
 	.fa {
-		display: block;
-		font-size: 2em;
-		margin: 0 0 0.3em;
+		display: inline-block;
+		font-size: 1.1em;
+		margin-right: 8px;
 	}
 }
 
