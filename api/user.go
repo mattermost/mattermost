@@ -1241,6 +1241,11 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewAppError("sendPasswordReset", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		return
+	}
+
 	newProps := make(map[string]string)
 	newProps["user_id"] = user.Id
 	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
@@ -1323,6 +1328,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewAppError("resetPassword", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		return
 	}
 
 	if user.TeamId != team.Id {

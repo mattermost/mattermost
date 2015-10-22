@@ -125,6 +125,7 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 			oldUser := oldUserResult.(*model.User)
 			user.CreateAt = oldUser.CreateAt
 			user.AuthData = oldUser.AuthData
+			user.AuthService = oldUser.AuthService
 			user.Password = oldUser.Password
 			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
 			user.LastPictureUpdate = oldUser.LastPictureUpdate
@@ -265,7 +266,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) StoreChanne
 
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, FailedAttempts = 0 WHERE Id = :UserId AND AuthData = ''", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdatePassword", "We couldn't update the user password", "id="+userId+", "+err.Error())
 		} else {
 			result.Data = userId
