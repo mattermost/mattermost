@@ -96,7 +96,14 @@ export default class ManageIncomingHooks extends React.Component {
         const options = [];
         channels.forEach((channel) => {
             if (channel.type !== Constants.DM_CHANNEL) {
-                options.push(<option value={channel.id}>{channel.name}</option>);
+                options.push(
+                    <option
+                        key={'incoming-hook' + channel.id}
+                        value={channel.id}
+                    >
+                        {channel.display_name}
+                    </option>
+                );
             }
         });
 
@@ -108,26 +115,31 @@ export default class ManageIncomingHooks extends React.Component {
         const hooks = [];
         this.state.hooks.forEach((hook) => {
             const c = ChannelStore.get(hook.channel_id);
-            hooks.push(
-                <div className='font--small'>
-                    <div className='padding-top x2 divider-light'></div>
-                    <div className='padding-top x2'>
-                        <strong>{'URL: '}</strong><span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
+            if (c) {
+                hooks.push(
+                    <div
+                        key={hook.id}
+                        className='font--small'
+                    >
+                        <div className='padding-top x2 divider-light'></div>
+                        <div className='padding-top x2'>
+                            <strong>{'URL: '}</strong><span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
+                        </div>
+                        <div className='padding-top'>
+                            <strong>{'Channel: '}</strong>{c.display_name}
+                        </div>
+                        <div className='padding-top'>
+                            <a
+                                className={'text-danger'}
+                                href='#'
+                                onClick={this.removeHook.bind(this, hook.id)}
+                            >
+                                {'Remove'}
+                            </a>
+                        </div>
                     </div>
-                    <div className='padding-top'>
-                        <strong>{'Channel: '}</strong>{c.name}
-                    </div>
-                    <div className='padding-top'>
-                        <a
-                            className={'text-danger'}
-                            href='#'
-                            onClick={this.removeHook.bind(this, hook.id)}
-                        >
-                            {'Remove'}
-                        </a>
-                    </div>
-                </div>
-            );
+                );
+            }
         });
 
         let displayHooks;
