@@ -20,3 +20,22 @@
 	display: block;
 }
 
+.search-help-popover {
+    transition: opacity 0.3s;
+
+    h4 {
+        text-align: left;
+    }
+    ul {
+        padding-left: 2em;
+        text-align: left;
+    }
+    .tooltip-inner {
+        max-width: 100%;
+    }
+}
+
+.search-help-popover.visible {
+    opacity: 100;
+    transition: opacity 0.3s;
+}
