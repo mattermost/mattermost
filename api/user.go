@@ -430,7 +430,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
 	tokens := GetMultiSessionCookie(r)
-	multiToken = ""
+	multiToken := ""
 	seen := make(map[string]string)
 	seen[session.TeamId] = session.TeamId
 	for _, token := range tokens {

@@ -4,8 +4,8 @@ var BrowserStore = require('../stores/browser_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var ErrorStore = require('../stores/error_store.jsx');
 
-export function track(category, action, label, prop, val) {
-    global.window.analytics.track(action, {category: category, label: label, property: prop, value: val});
+export function track(category, action, label, property, value) {
+    global.window.analytics.track(action, {category, label, property, value});
 }
 
 export function trackPage() {
