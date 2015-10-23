@@ -152,14 +152,14 @@ export function getChannel(id) {
     );
 }
 
-export function updateLastViewedAt() {
+export function updateLastViewedAt(force) {
     const channelId = ChannelStore.getCurrentId();
 
     if (channelId === null) {
         return;
     }
 
-    if (isCallInProgress(`updateLastViewed${channelId}`)) {
+    if (isCallInProgress(`updateLastViewed${channelId}`) && !force) {
         return;
     }
 
