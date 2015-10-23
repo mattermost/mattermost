@@ -211,6 +211,22 @@
                 a {
                     color: #111;
                     background-color: #E1E1E1;
+                    &:before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 5px;
+                        height: 100%;
+                        background: #000;
+                    }
+                }
+                a, a:hover, a:focus {
+                    padding-right: 10px;
+                    background-color: rgba(black, 0.1);
+                    border-radius: 0;
+                    font-weight: 400;
+                    position: relative;
                 }
             }
         }

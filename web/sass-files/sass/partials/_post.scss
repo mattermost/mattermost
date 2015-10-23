@@ -54,6 +54,7 @@ body.ios {
 	height: 2em;
 	margin: 0;
 	position: relative;
+	z-index: 0;
 	&:before, &:after {
 		content: "";
 		height: 1em;
@@ -116,12 +117,24 @@ body.ios {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background-color: rgba(0, 0, 0, 0.6);
 	text-align: center;
 	color: #FFF;
 	font-size: em(20px);
 	font-weight: 600;
 	z-index: 6;
+
+	.overlay__indent {
+		background-color: rgba(0, 0, 0, 0.6);
+		position: relative;
+		height: 100%;
+		@include clearfix;
+	}
+
+	&.center-file-overlay {
+		.overlay__indent {
+			margin-left: 220px;
+		}
+	}
 
 	&.right-file-overlay {
 		font-size: em(18px);
