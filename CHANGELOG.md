@@ -11,6 +11,31 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 - IE 10 no longer supported since global share of IE 10 fell below 5%
 
+## Release v1.1.1 (Bug Fix Release) 
+
+Released 2015-10-20 
+
+### About Bug Fix Releases
+
+This is a bug fix release (v1.1.1) and recommended only for users needing a fix to the specific issue listed below. All other users should use the most recent major stable build release (v1.1.0). 
+
+[View more information on Mattermost release numbering](https://github.com/mattermost/platform/blob/master/doc/install/release-numbering.md).
+
+### Release Purpose
+
+#### Provide option for upgrading database from Mattermost v0.7 to v1.1
+
+Upgrading Mattermost v0.7 to Mattermost v1.1 originally required installing Mattermost v1.0 to upgrade from the Mattermost v0.7 database, followed by an install of Mattermost v1.1. 
+
+This was problematic for installing Mattermost with GitLab omnibus since GitLab 8.0 contained Mattermost v0.7 and GitLab 8.1 was to include Mattermost v1.1
+
+Therefore Mattermost v1.1.1 was created that can upgrade the database in Mattermost v0.7 to Mattermost v1.1 directly. 
+
+Users who configured Mattermost v0.7 within GitLab via the `config.json` file should consult [documentation on upgrading configurations from Mattermost v0.7 to Mattermost v1.1](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md#upgrading-mattermost-v07-to-v11).
+
+#### Removes 32-char limit on salts 
+
+Mattermost v1.1 introduced a 32-char limit on salts that broke the salt generating in GitLab and this restriction was removed for 1.1.1. 
 
 ## Release v1.1.0
 
