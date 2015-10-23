@@ -101,7 +101,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Attempt to parse the token from the cookie
 	if len(token) == 0 {
-		tokens := GetMultiSessionCookie(r)
+		tokens := GetMultiSessionCookieTokens(r)
 		if len(tokens) > 0 {
 			// If there is only 1 token in the cookie then just use it like normal
 			if len(tokens) == 1 {
@@ -527,7 +527,7 @@ func GetSession(token string) *model.Session {
 	return session
 }
 
-func GetMultiSessionCookie(r *http.Request) []string {
+func GetMultiSessionCookieTokens(r *http.Request) []string {
 	if multiCookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 		multiToken := multiCookie.Value
 
@@ -540,7 +540,7 @@ func GetMultiSessionCookie(r *http.Request) []string {
 }
 
 func FindMultiSessionForTeamId(r *http.Request, teamId string) (int64, *model.Session) {
-	for index, token := range GetMultiSessionCookie(r) {
+	for index, token := range GetMultiSessionCookieTokens(r) {
 		s := GetSession(token)
 		if s != nil && !s.IsExpired() && s.TeamId == teamId {
 			return int64(index), s

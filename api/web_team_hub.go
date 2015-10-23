@@ -96,8 +96,7 @@ func ShouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 		}
 	} else {
 		// Don't share a user's view events with other users
-		// but you still need to share it with yourself
-		if webCon.UserId != msg.UserId && msg.Action == model.ACTION_CHANNEL_VIEWED {
+		if msg.Action == model.ACTION_CHANNEL_VIEWED {
 			return false
 		}
 
