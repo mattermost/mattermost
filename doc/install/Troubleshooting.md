@@ -12,5 +12,6 @@
   - This error may appear when attempt to use a self-signed certificate to setup SSL, which is not yet supported by Mattermost. You can resolve this issue by setting up a load balancer like Ngnix. A ticket exists to [add support for self-signed certificates in future](x509: certificate signed by unknown authority). 
 
 ##### Lost System Administrator account
-  - If the System Administrator account becomes unavailable, a person leaving the organization for example, you can set a new system admin from the commandline using `./platform -assign_role -team_name="yourteam" -email="you@example.com" -role="system_admin"`
+  - If the System Administrator account becomes unavailable, a person leaving the organization for example, you can set a new system admin from the commandline using `./platform -assign_role -team_name="yourteam" -email="you@example.com" -role="system_admin"`. 
+  - After assigning the role the user needs to log out and log back in before the System Administrator role is applied.
 
