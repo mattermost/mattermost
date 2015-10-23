@@ -73,6 +73,7 @@ func NewSqlStore() Store {
 	}
 
 	schemaVersion := sqlStore.GetCurrentSchemaVersion()
+	isSchemaVersion07 := false
 
 	// If the version is already set then we are potentially in an 'upgrade needed' state
 	if schemaVersion != "" {
@@ -81,7 +82,6 @@ func NewSqlStore() Store {
 			// If we are upgrading from the previous version then print a warning and continue
 
 			// Special case
-			isSchemaVersion07 := false
 			if schemaVersion == "0.7.1" || schemaVersion == "0.7.0" {
 				isSchemaVersion07 = true
 			}
@@ -140,7 +140,7 @@ func NewSqlStore() Store {
 	sqlStore.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 
-	if model.IsPreviousVersion(schemaVersion) {
+	if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 {
 		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
 		l4g.Warn("The database schema has been upgraded to version " + model.CurrentVersion)
 	}
