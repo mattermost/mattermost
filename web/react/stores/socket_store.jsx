@@ -38,7 +38,7 @@ class SocketStoreClass extends EventEmitter {
             return;
         }
 
-        if (!global.window.mm_session_token_index) {
+        if (!global.window.hasOwnProperty('mm_session_token_index')) {
             return;
         }
 
