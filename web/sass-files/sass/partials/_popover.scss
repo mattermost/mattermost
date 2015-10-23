@@ -21,21 +21,43 @@
 }
 
 .search-help-popover {
-    transition: opacity 0.3s;
+    visibility: hidden;
+    max-width: none;
+    width: 100%;
+    top: 36px;
+    @include single-transition(opacity, 0.3s, ease-in);
+    font-size: em(13px);
+
+    &.bottom > .arrow {
+        top: -18px;
+        border-width: 9px;
+        left: 30px;
+    }
+
+    .popover-content {
+        padding: 3px 13px;
+    }
 
     h4 {
-        text-align: left;
+        font-size: 1em;
     }
+
     ul {
-        padding-left: 2em;
-        text-align: left;
+        padding-left: 17px;
+        span {
+            @include opacity(0.7);
+        }
+        strong, b {
+            @include opacity(1);
+        }
     }
+
     .tooltip-inner {
         max-width: 100%;
     }
-}
 
-.search-help-popover.visible {
-    opacity: 100;
-    transition: opacity 0.3s;
+    &.visible {
+        visibility: visible;
+        @include opacity(1);
+    }
 }

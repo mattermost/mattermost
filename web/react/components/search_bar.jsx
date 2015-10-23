@@ -8,7 +8,7 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
-var Tooltip = ReactBootstrap.Tooltip;
+var Popover = ReactBootstrap.Popover;
 
 export default class SearchBar extends React.Component {
     constructor() {
@@ -163,7 +163,7 @@ export default class SearchBar extends React.Component {
                         onMouseUp={this.handleMouseInput}
                     />
                     {isSearching}
-                    <Tooltip
+                    <Popover
                         placement='bottom'
                         className={helpClass}
                     >
@@ -176,7 +176,7 @@ export default class SearchBar extends React.Component {
                                 <span>{'Use '}</span><b>{'from:'}</b><span>{' to find posts from specific users and '}</span><b>{'in:'}</b><span>{' to find posts in specific channels'}</span>
                             </li>
                         </ul>
-                    </Tooltip>
+                    </Popover>
                 </form>
             </div>
         );
