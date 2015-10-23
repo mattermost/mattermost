@@ -284,9 +284,8 @@
             height: auto;
         }
     }
-    .popover.search-help-popover {
-        width: 262px;
-        margin: 34px 0 0 14px;
+    .search-help-popover.visible {
+        visibility: hidden;
     }
     .modal-direct-channels {
         .member-count {
