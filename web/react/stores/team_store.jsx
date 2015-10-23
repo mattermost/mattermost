@@ -28,29 +28,31 @@ class TeamStoreClass extends EventEmitter {
         this.get = this.get.bind(this);
         this.getByName = this.getByName.bind(this);
         this.getAll = this.getAll.bind(this);
-        this.setCurrentId = this.setCurrentId.bind(this);
         this.getCurrentId = this.getCurrentId.bind(this);
         this.getCurrent = this.getCurrent.bind(this);
         this.getCurrentTeamUrl = this.getCurrentTeamUrl.bind(this);
-        this.storeTeam = this.storeTeam.bind(this);
-        this.pStoreTeams = this.pStoreTeams.bind(this);
-        this.pGetTeams = this.pGetTeams.bind(this);
+        this.saveTeam = this.saveTeam.bind(this);
     }
+
     emitChange() {
         this.emit(CHANGE_EVENT);
     }
+
     addChangeListener(callback) {
         this.on(CHANGE_EVENT, callback);
     }
+
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
+
     get(id) {
-        var c = this.pGetTeams();
+        var c = this.getAll();
         return c[id];
     }
+
     getByName(name) {
-        var t = this.pGetTeams();
+        var t = this.getAll();
 
         for (var id in t) {
             if (t[id].name === name) {
@@ -60,59 +62,51 @@ class TeamStoreClass extends EventEmitter {
 
         return null;
     }
-    getAll() {
-        return this.pGetTeams();
-    }
-    setCurrentId(id) {
-        if (id === null) {
-            BrowserStore.removeItem('current_team_id');
-        } else {
-            BrowserStore.setItem('current_team_id', id);
-        }
-    }
-    getCurrentId() {
-        return BrowserStore.getItem('current_team_id');
-    }
-    getCurrent() {
-        var currentId = this.getCurrentId();
 
-        if (currentId !== null) {
-            return this.get(currentId);
+    getAll() {
+        return BrowserStore.getItem('user_teams', {});
+    }
+
+    getCurrentId() {
+        var team = global.window.mm_team;
+
+        if (team) {
+            return team.id;
         }
+
         return null;
     }
+
+    getCurrent() {
+        if (global.window.mm_team != null && this.get(global.window.mm_team.id) == null) {
+            this.saveTeam(global.window.mm_team);
+        }
+
+        return global.window.mm_team;
+    }
+
     getCurrentTeamUrl() {
         if (this.getCurrent()) {
             return getWindowLocationOrigin() + '/' + this.getCurrent().name;
         }
         return null;
     }
-    storeTeam(team) {
-        var teams = this.pGetTeams();
+
+    saveTeam(team) {
+        var teams = this.getAll();
         teams[team.id] = team;
-        this.pStoreTeams(teams);
-    }
-    pStoreTeams(teams) {
         BrowserStore.setItem('user_teams', teams);
-    }
-    pGetTeams() {
-        return BrowserStore.getItem('user_teams', {});
     }
 }
 
 var TeamStore = new TeamStoreClass();
 
-TeamStore.dispatchToken = AppDispatcher.register(function registry(payload) {
+TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.CLICK_TEAM:
-        TeamStore.setCurrentId(action.id);
-        TeamStore.emitChange();
-        break;
-
     case ActionTypes.RECIEVED_TEAM:
-        TeamStore.storeTeam(action.team);
+        TeamStore.saveTeam(action.team);
         TeamStore.emitChange();
         break;
 

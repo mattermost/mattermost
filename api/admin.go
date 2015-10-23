@@ -24,7 +24,7 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/config", ApiUserRequired(getConfig)).Methods("GET")
 	sr.Handle("/save_config", ApiUserRequired(saveConfig)).Methods("POST")
 	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
-	sr.Handle("/client_props", ApiAppHandler(getClientProperties)).Methods("GET")
+	sr.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
 	sr.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
 	sr.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getAnalytics)).Methods("GET")
 }
@@ -57,8 +57,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.ArrayToJson(lines)))
 }
 
-func getClientProperties(c *Context, w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(model.MapToJson(utils.ClientProperties)))
+func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
 }
 
 func logClient(c *Context, w http.ResponseWriter, r *http.Request) {

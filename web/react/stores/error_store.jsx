@@ -34,9 +34,11 @@ class ErrorStoreClass extends EventEmitter {
     removeChangeListener(callback) {
         this.removeListener(CHANGE_EVENT, callback);
     }
+
     handledError() {
         BrowserStore.removeItem('last_error');
     }
+
     getLastError() {
         return BrowserStore.getItem('last_error');
     }

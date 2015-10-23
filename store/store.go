@@ -54,6 +54,7 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel) StoreChannel
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
 	Update(channel *model.Channel) StoreChannel
 	Get(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
@@ -153,6 +154,7 @@ type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncoming(id string) StoreChannel
 	GetIncomingByUser(userId string) StoreChannel
+	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
 	GetOutgoing(id string) StoreChannel

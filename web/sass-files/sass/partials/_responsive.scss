@@ -179,6 +179,22 @@
 }
 
 @media screen and (max-width: 1140px) {
+    .inner__wrap {
+        &.move--left {
+            .file-overlay {
+                font-size: em(18px);
+                .overlay__circle {
+                    width: 300px;
+                    height: 300px;
+                    margin: -150px 0 0 -150px;
+                }
+                .overlay__files {
+                    margin: 60px auto 15px;
+                    width: 150px;
+                }
+            }
+        }
+    }
     .post {
         .post__content {
             width: 100%;
@@ -277,6 +293,11 @@
     }
     .file-overlay {
         font-size: em(18px);
+        &.center-file-overlay {
+            .overlay__indent {
+                margin-left: 0;
+            }
+        }
         .overlay__circle {
             width: 300px;
             height: 300px;

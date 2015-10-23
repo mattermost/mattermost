@@ -426,9 +426,9 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	subjectPage := NewServerTemplatePage("find_teams_subject")
-	subjectPage.ClientProps["SiteURL"] = c.GetSiteURL()
+	subjectPage.ClientCfg["SiteURL"] = c.GetSiteURL()
 	bodyPage := NewServerTemplatePage("find_teams_body")
-	bodyPage.ClientProps["SiteURL"] = c.GetSiteURL()
+	bodyPage.ClientCfg["SiteURL"] = c.GetSiteURL()
 
 	if result := <-Srv.Store.Team().GetTeamsForEmail(email); result.Err != nil {
 		c.Err = result.Err

@@ -128,12 +128,23 @@
                 }
             }
             &.active {
+                a {
+                    &:before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 5px;
+                        height: 100%;
+                        background: #000;
+                    }
+                }
                 a, a:hover, a:focus {
-                    color: #111;
                     padding-right: 10px;
-                    background-color: #e1e1e1;
+                    background-color: rgba(black, 0.1);
                     border-radius: 0;
                     font-weight: 400;
+                    position: relative;
                 }
             }
         }

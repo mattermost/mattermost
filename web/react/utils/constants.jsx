@@ -33,7 +33,6 @@ module.exports = {
 
         RECIEVED_MSG: null,
 
-        CLICK_TEAM: null,
         RECIEVED_TEAM: null,
 
         RECIEVED_CONFIG: null,
@@ -140,7 +139,7 @@ module.exports = {
             sidebarText: '#333333',
             sidebarUnreadText: '#333333',
             sidebarTextHoverBg: '#e6f2fa',
-            sidebarTextActiveBg: '#e1e1e1',
+            sidebarTextActiveBorder: '#378FD2',
             sidebarTextActiveColor: '#111111',
             sidebarHeaderBg: '#2389d7',
             sidebarHeaderTextColor: '#ffffff',
@@ -162,7 +161,7 @@ module.exports = {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#136197',
-            sidebarTextActiveBg: '#136197',
+            sidebarTextActiveBorder: '#7AB0D6',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#2f81b7',
             sidebarHeaderTextColor: '#FFFFFF',
@@ -184,7 +183,7 @@ module.exports = {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#4A5664',
-            sidebarTextActiveBg: '#39769C',
+            sidebarTextActiveBorder: '#39769C',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1B2C3E',
             sidebarHeaderTextColor: '#FFFFFF',
@@ -206,7 +205,7 @@ module.exports = {
             sidebarText: '#fff',
             sidebarUnreadText: '#fff',
             sidebarTextHoverBg: '#302e30',
-            sidebarTextActiveBg: '#484748',
+            sidebarTextActiveBorder: '#196CAF',
             sidebarTextActiveColor: '#FFFFFF',
             sidebarHeaderBg: '#1f1f1f',
             sidebarHeaderTextColor: '#FFFFFF',
@@ -249,8 +248,8 @@ module.exports = {
             uiName: 'Sidebar Text Hover BG'
         },
         {
-            id: 'sidebarTextActiveBg',
-            uiName: 'Sidebar Text Active BG'
+            id: 'sidebarTextActiveBorder',
+            uiName: 'Sidebar Text Active Border'
         },
         {
             id: 'sidebarTextActiveColor',

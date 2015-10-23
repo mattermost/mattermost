@@ -3,6 +3,7 @@
 
 var AdminNavbarDropdown = require('./admin_navbar_dropdown.jsx');
 var UserStore = require('../../stores/user_store.jsx');
+var Utils = require('../../utils/utils.jsx');
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
@@ -36,7 +37,7 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at}
+                    src={'/api/v1/users/' + me.id + '/image?time=' + me.update_at + '&' + Utils.getSessionIndex()}
                 />
             );
         }

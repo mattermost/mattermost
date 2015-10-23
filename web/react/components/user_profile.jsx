@@ -67,13 +67,14 @@ export default class UserProfile extends React.Component {
         dataContent.push(
             <img
                 className='user-popover__image'
-                src={'/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at}
+                src={'/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at + '&' + Utils.getSessionIndex()}
                 height='128'
                 width='128'
                 key='user-popover-image'
             />
         );
-        if (!global.window.config.ShowEmailAddress === 'true') {
+
+        if (!global.window.mm_config.ShowEmailAddress === 'true') {
             dataContent.push(
                 <div
                     className='text-nowrap'

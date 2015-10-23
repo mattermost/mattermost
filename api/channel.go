@@ -131,16 +131,21 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		return nil, model.NewAppError("CreateDirectChannel", "Invalid other user id ", otherUserId)
 	}
 
-	if sc, err := CreateChannel(c, channel, true); err != nil {
-		return nil, err
+	cm1 := &model.ChannelMember{
+		UserId:      c.Session.UserId,
+		Roles:       model.CHANNEL_ROLE_ADMIN,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cm2 := &model.ChannelMember{
+		UserId:      otherUserId,
+		Roles:       "",
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+
+	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
+		return nil, result.Err
 	} else {
-		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId, Roles: "", NotifyProps: model.GetDefaultChannelNotifyProps()}
-
-		if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
-			return nil, cmresult.Err
-		}
-
-		return sc, nil
+		return result.Data.(*model.Channel), nil
 	}
 }
 
@@ -503,6 +508,8 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	sc := Srv.Store.Channel().Get(id)
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
 	uc := Srv.Store.User().Get(c.Session.UserId)
+	ihc := Srv.Store.Webhook().GetIncomingByChannel(id)
+	ohc := Srv.Store.Webhook().GetOutgoingByChannel(id)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -513,10 +520,18 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if scmresult := <-scm; scmresult.Err != nil {
 		c.Err = scmresult.Err
 		return
+	} else if ihcresult := <-ihc; ihcresult.Err != nil {
+		c.Err = ihcresult.Err
+		return
+	} else if ohcresult := <-ohc; ohcresult.Err != nil {
+		c.Err = ohcresult.Err
+		return
 	} else {
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
 		channelMember := scmresult.Data.(model.ChannelMember)
+		incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
+		outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
 
 		if !c.HasPermissionsToTeam(channel.TeamId, "deleteChannel") {
 			return
@@ -538,6 +553,23 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("deleteChannel", "Cannot delete the default channel "+model.DEFAULT_CHANNEL, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
+		}
+
+		now := model.GetMillis()
+		for _, hook := range incomingHooks {
+			go func() {
+				if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+					l4g.Error("Encountered error deleting incoming webhook, id=" + hook.Id)
+				}
+			}()
+		}
+
+		for _, hook := range outgoingHooks {
+			go func() {
+				if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
+					l4g.Error("Encountered error deleting outgoing webhook, id=" + hook.Id)
+				}
+			}()
 		}
 
 		if dresult := <-Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {

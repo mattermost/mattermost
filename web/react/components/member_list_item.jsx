@@ -105,7 +105,7 @@ export default class MemberListItem extends React.Component {
             <div className='row member-div'>
                 <img
                     className='post-profile-img pull-left'
-                    src={'/api/v1/users/' + member.id + '/image?time=' + timestamp}
+                    src={'/api/v1/users/' + member.id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
                     height='36'
                     width='36'
                 />

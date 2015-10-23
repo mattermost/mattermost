@@ -121,7 +121,7 @@ export default class RhsRootPost extends React.Component {
         let botIndicator;
 
         if (post.props && post.props.from_webhook) {
-            if (post.props.override_username && global.window.config.EnablePostUsernameOverride === 'true') {
+            if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
                     <UserProfile
                         userId={post.user_id}
@@ -134,8 +134,8 @@ export default class RhsRootPost extends React.Component {
             botIndicator = <li className='post-header-col post-header__name bot-indicator'>{'BOT'}</li>;
         }
 
-        let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
-        if (post.props && post.props.from_webhook && global.window.config.EnablePostIconOverride === 'true') {
+        let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
+        if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
             if (post.props.override_icon_url) {
                 src = post.props.override_icon_url;
             }

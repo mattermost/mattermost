@@ -428,43 +428,23 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
-	sessionCookie := &http.Cookie{
-		Name:     model.SESSION_TOKEN,
-		Value:    session.Token,
-		Path:     "/",
-		MaxAge:   maxAge,
-		HttpOnly: true,
-	}
 
-	http.SetCookie(w, sessionCookie)
-
+	tokens := GetMultiSessionCookieTokens(r)
 	multiToken := ""
-	if originalMultiSessionCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
-		multiToken = originalMultiSessionCookie.Value
-	}
-
-	// Attempt to clean all the old tokens or duplicate tokens
-	if len(multiToken) > 0 {
-		tokens := strings.Split(multiToken, " ")
-
-		multiToken = ""
-		seen := make(map[string]string)
-		seen[session.TeamId] = session.TeamId
-		for _, token := range tokens {
-			if sr := <-Srv.Store.Session().Get(token); sr.Err == nil {
-				s := sr.Data.(*model.Session)
-				if !s.IsExpired() && seen[s.TeamId] == "" {
-					multiToken += " " + token
-					seen[s.TeamId] = s.TeamId
-				}
-			}
+	seen := make(map[string]string)
+	seen[session.TeamId] = session.TeamId
+	for _, token := range tokens {
+		s := GetSession(token)
+		if s != nil && !s.IsExpired() && seen[s.TeamId] == "" {
+			multiToken += " " + token
+			seen[s.TeamId] = s.TeamId
 		}
 	}
 
-	multiToken = strings.TrimSpace(session.Token + " " + multiToken)
+	multiToken = strings.TrimSpace(multiToken + " " + session.Token)
 
 	multiSessionCookie := &http.Cookie{
-		Name:     model.MULTI_SESSION_TOKEN,
+		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    multiToken,
 		Path:     "/",
 		MaxAge:   maxAge,
@@ -1241,6 +1221,11 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		user = result.Data.(*model.User)
 	}
 
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewAppError("sendPasswordReset", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		return
+	}
+
 	newProps := make(map[string]string)
 	newProps["user_id"] = user.Id
 	newProps["time"] = fmt.Sprintf("%v", model.GetMillis())
@@ -1323,6 +1308,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	if len(user.AuthData) != 0 {
+		c.Err = model.NewAppError("resetPassword", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		return
 	}
 
 	if user.TeamId != team.Id {

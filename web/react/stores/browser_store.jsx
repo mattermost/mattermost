@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore;
 function getPrefix() {
-    if (!UserStore) {
-        UserStore = require('./user_store.jsx'); //eslint-disable-line global-require
+    if (global.window.mm_user) {
+        return global.window.mm_user.id + '_';
     }
-    return UserStore.getCurrentId() + '_';
+
+    return 'unknown_';
 }
 
 class BrowserStoreClass {
@@ -17,35 +17,55 @@ class BrowserStoreClass {
         this.setGlobalItem = this.setGlobalItem.bind(this);
         this.getGlobalItem = this.getGlobalItem.bind(this);
         this.removeGlobalItem = this.removeGlobalItem.bind(this);
-        this.clear = this.clear.bind(this);
         this.actionOnItemsWithPrefix = this.actionOnItemsWithPrefix.bind(this);
+        this.actionOnGlobalItemsWithPrefix = this.actionOnGlobalItemsWithPrefix.bind(this);
         this.isLocalStorageSupported = this.isLocalStorageSupported.bind(this);
+        this.getLastServerVersion = this.getLastServerVersion.bind(this);
+        this.setLastServerVersion = this.setLastServerVersion.bind(this);
+        this.clear = this.clear.bind(this);
+        this.clearAll = this.clearAll.bind(this);
 
-        var currentVersion = localStorage.getItem('local_storage_version');
-        if (currentVersion !== global.window.config.Version) {
-            this.clear();
-            localStorage.setItem('local_storage_version', global.window.config.Version);
+        var currentVersion = sessionStorage.getItem('storage_version');
+        if (currentVersion !== global.window.mm_config.Version) {
+            sessionStorage.clear();
+            sessionStorage.setItem('storage_version', global.window.mm_config.Version);
         }
     }
 
     getItem(name, defaultValue) {
-        return this.getGlobalItem(getPrefix() + name, defaultValue);
+        var result = null;
+        try {
+            result = JSON.parse(sessionStorage.getItem(getPrefix() + name));
+        } catch (err) {
+            result = null;
+        }
+
+        if (result === null && typeof defaultValue !== 'undefined') {
+            result = defaultValue;
+        }
+
+        return result;
     }
 
     setItem(name, value) {
-        this.setGlobalItem(getPrefix() + name, value);
+        sessionStorage.setItem(getPrefix() + name, JSON.stringify(value));
     }
 
     removeItem(name) {
-        localStorage.removeItem(getPrefix() + name);
+        sessionStorage.removeItem(getPrefix() + name);
     }
 
     setGlobalItem(name, value) {
         try {
-            localStorage.setItem(name, JSON.stringify(value));
+            if (this.isLocalStorageSupported()) {
+                localStorage.setItem(getPrefix() + name, JSON.stringify(value));
+            } else {
+                sessionStorage.setItem(getPrefix() + name, JSON.stringify(value));
+            }
         } catch (err) {
             console.log('An error occurred while setting local storage, clearing all props'); //eslint-disable-line no-console
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = window.location.href;
         }
     }
@@ -53,7 +73,11 @@ class BrowserStoreClass {
     getGlobalItem(name, defaultValue) {
         var result = null;
         try {
-            result = JSON.parse(localStorage.getItem(name));
+            if (this.isLocalStorageSupported()) {
+                result = JSON.parse(getPrefix() + localStorage.getItem(name));
+            } else {
+                result = JSON.parse(getPrefix() + sessionStorage.getItem(name));
+            }
         } catch (err) {
             result = null;
         }
@@ -66,27 +90,60 @@ class BrowserStoreClass {
     }
 
     removeGlobalItem(name) {
-        localStorage.removeItem(name);
+        if (this.isLocalStorageSupported()) {
+            localStorage.removeItem(getPrefix() + name);
+        } else {
+            sessionStorage.removeItem(getPrefix() + name);
+        }
     }
 
-    clear() {
-        localStorage.clear();
-        sessionStorage.clear();
+    getLastServerVersion() {
+        return sessionStorage.getItem('last_server_version');
+    }
+
+    setLastServerVersion(version) {
+        sessionStorage.setItem('last_server_version', version);
     }
 
     /**
      * Preforms the given action on each item that has the given prefix
      * Signature for action is action(key, value)
      */
-    actionOnItemsWithPrefix(prefix, action) {
+    actionOnGlobalItemsWithPrefix(prefix, action) {
         var globalPrefix = getPrefix();
         var globalPrefixiLen = globalPrefix.length;
-        for (var key in localStorage) {
+
+        var storage = sessionStorage;
+        if (this.isLocalStorageSupported()) {
+            storage = localStorage;
+        }
+
+        for (var key in storage) {
             if (key.lastIndexOf(globalPrefix + prefix, 0) === 0) {
                 var userkey = key.substring(globalPrefixiLen);
                 action(userkey, this.getGlobalItem(key));
             }
         }
+    }
+
+    actionOnItemsWithPrefix(prefix, action) {
+        var globalPrefix = getPrefix();
+        var globalPrefixiLen = globalPrefix.length;
+        for (var key in sessionStorage) {
+            if (key.lastIndexOf(globalPrefix + prefix, 0) === 0) {
+                var userkey = key.substring(globalPrefixiLen);
+                action(userkey, this.getGlobalItem(key));
+            }
+        }
+    }
+
+    clear() {
+        sessionStorage.clear();
+    }
+
+    clearAll() {
+        sessionStorage.clear();
+        localStorage.clear();
     }
 
     isLocalStorageSupported() {

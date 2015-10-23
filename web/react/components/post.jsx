@@ -120,6 +120,10 @@ export default class Post extends React.Component {
         var parentPost = this.props.parentPost;
         var posts = this.props.posts;
 
+        if (!post.props) {
+            post.props = {};
+        }
+
         var type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
             type = 'Comment';
@@ -140,7 +144,7 @@ export default class Post extends React.Component {
         }
 
         var currentUserCss = '';
-        if (UserStore.getCurrentId() === post.user_id) {
+        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook) {
             currentUserCss = 'current--user';
         }
 
@@ -158,8 +162,8 @@ export default class Post extends React.Component {
 
         var profilePic = null;
         if (!this.props.hideProfilePic) {
-            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp;
-            if (post.props && post.props.from_webhook && global.window.config.EnablePostIconOverride === 'true') {
+            let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
+            if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
                 if (post.props.override_icon_url) {
                     src = post.props.override_icon_url;
                 }
@@ -200,6 +204,7 @@ export default class Post extends React.Component {
                             posts={posts}
                             handleCommentClick={this.handleCommentClick}
                             retryPost={this.retryPost}
+                            resize={this.props.resize}
                         />
                         <PostInfo
                             ref='info'
@@ -223,5 +228,6 @@ Post.propTypes = {
     sameUser: React.PropTypes.bool,
     sameRoot: React.PropTypes.bool,
     hideProfilePic: React.PropTypes.bool,
-    isLastComment: React.PropTypes.bool
+    isLastComment: React.PropTypes.bool,
+    resize: React.PropTypes.func
 };

@@ -82,30 +82,29 @@ export default class SignupUserComplete extends React.Component {
         });
 
         client.createUser(user, this.props.data, this.props.hash,
-            function createUserSuccess() {
+            () => {
                 client.track('signup', 'signup_user_02_complete');
 
                 client.loginByEmail(this.props.teamName, user.email, user.password,
-                    function emailLoginSuccess(data) {
+                    () => {
                         UserStore.setLastEmail(user.email);
-                        UserStore.setCurrentUser(data);
                         if (this.props.hash > 0) {
                             BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: 'finished'}));
                         }
                         window.location.href = '/' + this.props.teamName + '/channels/town-square';
-                    }.bind(this),
-                    function emailLoginFailure(err) {
+                    },
+                    (err) => {
                         if (err.message === 'Login failed because email address has not been verified') {
                             window.location.href = '/verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.props.teamName);
                         } else {
                             this.setState({serverError: err.message});
                         }
-                    }.bind(this)
+                    }
                 );
-            }.bind(this),
-            function createUserFailure(err) {
+            },
+            (err) => {
                 this.setState({serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     render() {
@@ -149,7 +148,7 @@ export default class SignupUserComplete extends React.Component {
         // set up the email entry and hide it if an email was provided
         var yourEmailIs = '';
         if (this.state.user.email) {
-            yourEmailIs = <span>Your email address is <strong>{this.state.user.email}</strong>. You'll use this address to sign in to {global.window.config.SiteName}.</span>;
+            yourEmailIs = <span>Your email address is <strong>{this.state.user.email}</strong>. You'll use this address to sign in to {global.window.mm_config.SiteName}.</span>;
         }
 
         var emailContainerStyle = 'margin--extra';
@@ -177,7 +176,7 @@ export default class SignupUserComplete extends React.Component {
         );
 
         var signupMessage = [];
-        if (global.window.config.EnableSignUpWithGitLab === 'true') {
+        if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             signupMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
@@ -190,7 +189,7 @@ export default class SignupUserComplete extends React.Component {
         }
 
         var emailSignup;
-        if (global.window.config.EnableSignUpWithEmail === 'true') {
+        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
                 <div>
                     <div className='inner__content'>
@@ -259,7 +258,7 @@ export default class SignupUserComplete extends React.Component {
                     />
                     <h5 className='margin--less'>Welcome to:</h5>
                     <h2 className='signup-team__name'>{this.props.teamDisplayName}</h2>
-                    <h2 className='signup-team__subdomain'>on {global.window.config.SiteName}</h2>
+                    <h2 className='signup-team__subdomain'>on {global.window.mm_config.SiteName}</h2>
                     <h4 className='color--light'>Let's create your account</h4>
                     {signupMessage}
                     {emailSignup}

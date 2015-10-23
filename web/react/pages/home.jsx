@@ -2,14 +2,15 @@
 // See License.txt for license information.
 
 var ChannelStore = require('../stores/channel_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 var Constants = require('../utils/constants.jsx');
 
-function setupHomePage(props) {
+function setupHomePage() {
     var last = ChannelStore.getLastVisitedName();
     if (last == null || last.length === 0) {
-        window.location = props.TeamURL + '/channels/' + Constants.DEFAULT_CHANNEL;
+        window.location = TeamStore.getCurrentTeamUrl() + '/channels/' + Constants.DEFAULT_CHANNEL;
     } else {
-        window.location = props.TeamURL + '/channels/' + last;
+        window.location = TeamStore.getCurrentTeamUrl() + '/channels/' + last;
     }
 }
 

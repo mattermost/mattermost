@@ -2,7 +2,7 @@
   "name": "Mattermost",
   "icons": [
     {
-      "src": "../static/iamges/icon50x50.gif",
+      "src": "../static/iamges/icon50x50.png",
       "sizes": "50x50",
       "type": "image/png"
     }

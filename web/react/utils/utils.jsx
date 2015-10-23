@@ -118,7 +118,7 @@ export function notifyMe(title, body, channel) {
             }
 
             if (permission === 'granted') {
-                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.gif'});
+                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
                 notification.onclick = function onClick() {
                     window.focus();
                     if (channel) {
@@ -425,16 +425,12 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li:hover a', 'background:' + theme.sidebarTextHoverBg, 1);
     }
 
-    if (theme.sidebarTextActiveBg) {
-        changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'background:' + theme.sidebarTextActiveBg, 1);
+    if (theme.sidebarTextActiveBorder) {
+        changeCss('.sidebar--left .nav li.active a:before, .settings-modal .nav-pills>li.active a:before', 'background:' + theme.sidebarTextActiveBorder, 1);
     }
 
     if (theme.sidebarTextActiveColor) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor, 2);
-    }
-
-    if (theme.sidebarTextActiveBg === theme.onlineIndicator) {
-        changeCss('.sidebar--left .nav-pills__container li.active a .status .online--icon', 'fill:' + theme.sidebarTextActiveColor, 1);
     }
 
     if (theme.sidebarHeaderBg) {
@@ -873,7 +869,7 @@ export function getFileUrl(filename) {
     if (url.indexOf('/api/v1/files/get') !== -1) {
         url = filename.split('/api/v1/files/get')[1];
     }
-    url = getWindowLocationOrigin() + '/api/v1/files/get' + url;
+    url = getWindowLocationOrigin() + '/api/v1/files/get' + url + '?' + getSessionIndex();
 
     return url;
 }
@@ -882,6 +878,14 @@ export function getFileUrl(filename) {
 export function getFileName(path) {
     var split = path.split('/');
     return split[split.length - 1];
+}
+
+export function getSessionIndex() {
+    if (global.window.mm_session_token_index >= 0) {
+        return 'session_token_index=' + global.window.mm_session_token_index;
+    }
+
+    return '';
 }
 
 // Generates a RFC-4122 version 4 compliant globally unique identifier.
