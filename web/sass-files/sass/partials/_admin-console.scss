@@ -36,6 +36,32 @@
         }
     }
 
+    .recent-active-users {
+        width: 365px;
+        height: 375px;
+        border: 1px solid #ddd;
+        padding: 5px 10px 10px 10px;
+        margin: 10px 10px 10px 10px;
+        background: #fff;
+        float: left;
+
+        > div {
+            font-size: 18px;
+            font-weight: 300;
+        }
+
+        > table {
+            margin: 10px 10px 10px 10px;
+        }
+
+        .recent-active-users-td {
+            font-size: 14px;
+            font-weight: 300;
+            border: 1px solid #ddd;
+            padding: 3px 3px 3px 5px;
+        }
+    }
+
     .sidebar--left {
         &.sidebar--collapsable {
             background: #333;
