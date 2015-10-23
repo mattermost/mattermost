@@ -13,6 +13,7 @@ export default class PostBody extends React.Component {
         super(props);
 
         this.receivedYoutubeData = false;
+        this.isGifLoading = false;
 
         this.parseEmojis = this.parseEmojis.bind(this);
         this.createEmbed = this.createEmbed.bind(this);
@@ -70,6 +71,12 @@ export default class PostBody extends React.Component {
     }
 
     loadGif(src) {
+        if (this.isGifLoading) {
+            return;
+        }
+
+        this.isGifLoading = true;
+
         const gif = new Image();
         gif.src = src;
         gif.onload = (
