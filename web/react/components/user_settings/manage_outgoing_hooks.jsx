@@ -128,21 +128,42 @@ export default class ManageOutgoingHooks extends React.Component {
         }
 
         const channels = ChannelStore.getAll();
-        const options = [<option value=''>{'--- Select a channel ---'}</option>];
+        const options = [];
+        options.push(
+            <option
+                key='select-channel'
+                value=''
+            >
+                {'--- Select a channel ---'}
+            </option>
+        );
+
         channels.forEach((channel) => {
             if (channel.type === Constants.OPEN_CHANNEL) {
-                options.push(<option value={channel.id}>{channel.name}</option>);
+                options.push(
+                    <option
+                        key={'outgoing-hook' + channel.id}
+                        value={channel.id}
+                    >
+                        {channel.display_name}
+                    </option>
+                );
             }
         });
 
         const hooks = [];
         this.state.hooks.forEach((hook) => {
             const c = ChannelStore.get(hook.channel_id);
+
+            if (!c && hook.channel_id && hook.channel_id.length !== 0) {
+                return;
+            }
+
             let channelDiv;
             if (c) {
                 channelDiv = (
                     <div className='padding-top'>
-                        <strong>{'Channel: '}</strong>{c.name}
+                        <strong>{'Channel: '}</strong>{c.display_name}
                     </div>
                 );
             }
@@ -157,7 +178,10 @@ export default class ManageOutgoingHooks extends React.Component {
             }
 
             hooks.push(
-                <div className='font--small'>
+                <div
+                    key={hook.id}
+                    className='font--small'
+                >
                     <div className='padding-top x2 divider-light'></div>
                     <div className='padding-top x2'>
                         <strong>{'URLs: '}</strong><span className='word-break--all'>{hook.callback_urls.join(', ')}</span>

@@ -137,6 +137,27 @@ func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlWebhookStore) GetIncomingByChannel(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var webhooks []*model.IncomingWebhook
+
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
+			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByChannel", "We couldn't get the webhooks", "channelId="+channelId+", err="+err.Error())
+		}
+
+		result.Data = webhooks
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel {
 	storeChannel := make(StoreChannel)
 

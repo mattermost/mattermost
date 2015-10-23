@@ -150,6 +150,7 @@ type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncoming(id string) StoreChannel
 	GetIncomingByUser(userId string) StoreChannel
+	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
 	GetOutgoing(id string) StoreChannel
