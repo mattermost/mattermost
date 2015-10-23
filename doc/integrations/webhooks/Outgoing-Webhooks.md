@@ -4,8 +4,8 @@ Outgoing webhooks allow external applications, written in the programming langua
 
 A couple key points:
 
-- **Mattermost outgoing webhooks are Slack-compatible.** If you've used Slack's outgoing webhooks to create integrations, you can copy and paste that code to create Mattermost integrations. Mattermost automatically translates Slack's proprietary JSON payload format into markdown to render in Mattermost messages.
-- **Mattermost outgoing webhooks support full markdown.** When an integration responds with a message to post, it will have access to a rich range of formatting unavailable in Slack that is made possible through [markdown support](../../usage/Markdown.md) in Mattermost. This includes headings, formatted fonts, tables, inline images and other options supported by [Mattermost Markdown].
+- **Mattermost outgoing webhooks are Slack-compatible.** If you've used Slack's outgoing webhooks to create integrations, you can copy and paste that code to create Mattermost integrations. Mattermost automatically translates Slack's proprietary JSON payload format into markdown to render in Mattermost messages
+- **Mattermost outgoing webhooks support full markdown.** When an integration responds with a message to post, it will have access to a rich range of formatting unavailable in Slack that is made possible through [markdown support](../../usage/Markdown.md) in Mattermost. This includes headings, formatted fonts, tables, inline images and other options supported by [Mattermost Markdown]
 
 _Example:_
 
@@ -91,4 +91,24 @@ If you'd like to build your own integration that uses outgoing webhooks, you can
     "text": "This some response text."
   }
   ```
-2. Set up your integration running on Heroku, an AWS server or a server of your own to start getting real time post events from Mattermost channels
+3. Set up your integration running on Heroku, an AWS server or a server of your own to start getting real time post events from Mattermost channels
+
+Additional Notes:
+
+1. With **Enable Overriding of Usernames from Webhooks** turned on,  you can also override the username the message posts as by providing a `username` parameter in your JSON payload. For example, you might want your message looking like it came from a robot so you can use the JSON response ```{"username": "robot", "text": "Hello, this is some text."}``` to change the username of the post to robot. Note, to combat any malicious users from trying to use this to perform [phishing attacks](https://en.wikipedia.org/wiki/Phishing) a `BOT` indicator appears next to posts coming from webhooks
+
+2. With **Enable Overriding of Icon from Webhooks** turned on, you can similarly change the icon the message posts with by providing a link to an image in the `icon_url` parameter of your JSON response. For example, ```{"icon_url": "http://somewebsite.com/somecoolimage.jpg", "text": "Hello, this is some text."}``` will post using whatever image is located at `http://somewebsite.com/somecoolimage.jpg` as the icon for the post
+
+3. Also, as mentioned previously, [markdown](../../usage/Markdown.md) can be used to create richly formatted payloads, for example: ```payload={"text": "# A Header\nThe _text_ below **the** header."}``` creates a messages with a header, a carriage return and bold text for "the"
+
+4. Just like regular posts, the text will be limited to 4000 characters at maximum
+
+### Slack Compatibility
+
+As mentioned above, Mattermost makes it easy to take integrations written for Slack's proprietary JSON payload format and repurpose them to become Mattermost integrations. The following automatic translations are supported:
+
+1. The HTTP POST request body is formatted the same as Slack's, which means your Slack integration's receiving function should not need to change at all to be compatible with Mattermost
+2.  JSON responses designed for Slack using `<>` to note the need to hyperlink a URL, such as ```{"text": "<http://www.mattermost.com/>"}```, are translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack
+3. Similiarly, responses designed for Slack using `|` within a `<>` to define linked text, such as ```{"text": "Click <http://www.mattermost.com/|here> for a link."}```, are also translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack
+
+To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
