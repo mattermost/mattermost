@@ -71,7 +71,6 @@ If you'd like to build your own integration that uses outgoing webhooks, you can
     Host: localhost:5000
     Accept: application/json
     Content-Type: application/x-www-form-urlencoded
-    Accept-Encoding: gzip
 
     channel_id=hawos4dqtby53pd64o4a4cmeoo&
     channel_name=town-square&
@@ -88,7 +87,7 @@ If you'd like to build your own integration that uses outgoing webhooks, you can
  3. If you want your integration to post a message back to the same channel, it can respond to the HTTP POST request from Mattermost with a JSON response body similar to this example:
   ```
   {
-    "text": "This some response text."
+    "text": "This is some response text."
   }
   ```
 3. Set up your integration running on Heroku, an AWS server or a server of your own to start getting real time post events from Mattermost channels
