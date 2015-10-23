@@ -74,6 +74,7 @@ type ChannelStore interface {
 	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
 	UpdateLastViewedAt(channelId string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
+	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 }
 
 type PostStore interface {
@@ -86,6 +87,9 @@ type PostStore interface {
 	GetEtag(channelId string) StoreChannel
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	GetForExport(channelId string) StoreChannel
+	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
+	AnalyticsPostCountsByDay(teamId string) StoreChannel
+	AnalyticsPostCount(teamId string) StoreChannel
 }
 
 type UserStore interface {

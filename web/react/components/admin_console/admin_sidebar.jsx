@@ -24,7 +24,7 @@ export default class AdminSidebar extends React.Component {
     handleClick(name, teamId, e) {
         e.preventDefault();
         this.props.selectTab(name, teamId);
-        history.pushState({name: name, teamId: teamId}, null, `/admin_console/${name}/${teamId || ''}`);
+        history.pushState({name, teamId}, null, `/admin_console/${name}/${teamId || ''}`);
     }
 
     isSelected(name, teamId) {
@@ -119,6 +119,15 @@ export default class AdminSidebar extends React.Component {
                                                 onClick={this.handleClick.bind(this, 'team_users', team.id)}
                                             >
                                                 {'- Users'}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a
+                                                href='#'
+                                                className={this.isSelected('team_analytics', team.id)}
+                                                onClick={this.handleClick.bind(this, 'team_analytics', team.id)}
+                                            >
+                                                {'- Analytics'}
                                             </a>
                                         </li>
                                     </ul>

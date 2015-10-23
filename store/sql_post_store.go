@@ -571,3 +571,105 @@ func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var rows model.AnalyticsRows
+		_, err := s.GetReplica().Select(
+			&rows,
+			`SELECT
+			    t1.Name, COUNT(t1.UserId) AS Value
+			FROM
+			    (SELECT DISTINCT
+			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			            Posts.UserId
+			    FROM
+			        Posts, Channels
+			    WHERE
+			        Posts.ChannelId = Channels.Id
+			            AND Channels.TeamId = :TeamId
+			    ORDER BY Name DESC) AS t1
+			GROUP BY Name
+			ORDER BY Name DESC
+			LIMIT 30`,
+			map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
+		} else {
+			result.Data = rows
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var rows model.AnalyticsRows
+		_, err := s.GetReplica().Select(
+			&rows,
+			`SELECT 
+			    DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			    COUNT(Posts.Id) AS Value
+			FROM
+			    Posts,
+			    Channels
+			WHERE
+			    Posts.ChannelId = Channels.Id
+			        AND Channels.TeamId = :TeamId
+			GROUP BY Name
+			ORDER BY Name DESC
+			LIMIT 30`,
+			map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
+		} else {
+			result.Data = rows
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		v, err := s.GetReplica().SelectInt(
+			`SELECT 
+			    COUNT(Posts.Id) AS Value
+			FROM
+			    Posts,
+			    Channels
+			WHERE
+			    Posts.ChannelId = Channels.Id
+			        AND Channels.TeamId = :TeamId`,
+			map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "We couldn't get post counts", err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

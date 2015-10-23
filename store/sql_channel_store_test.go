@@ -460,6 +460,24 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	if list.Channels[0].Name != o3.Name {
 		t.Fatal("missing channel")
 	}
+
+	if r1 := <-store.Channel().AnalyticsTypeCount(o1.TeamId, model.CHANNEL_OPEN); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) != 2 {
+			t.Log(r1.Data)
+			t.Fatal("wrong value")
+		}
+	}
+
+	if r1 := <-store.Channel().AnalyticsTypeCount(o1.TeamId, model.CHANNEL_PRIVATE); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) != 2 {
+			t.Log(r1.Data)
+			t.Fatal("wrong value")
+		}
+	}
 }
 
 func TestChannelStoreGetChannelCounts(t *testing.T) {

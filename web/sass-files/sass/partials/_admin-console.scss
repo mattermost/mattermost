@@ -5,6 +5,22 @@
     .table {
         background: #fff;
     }
+
+    .total-count {
+        width: 175px;
+        height: 100px;
+        border: 1px solid #ddd;
+        padding: 22px 10px 10px 10px;
+        margin: 10px 10px 10px 10px;
+        background: #fff;
+        float: left;
+
+        > div {
+            font-size: 18px;
+            font-weight: 300;
+        }
+    }
+
     .sidebar--left {
         &.sidebar--collapsable {
             background: #333;
