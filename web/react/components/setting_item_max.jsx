@@ -36,7 +36,7 @@ export default class SettingItemMax extends React.Component {
         if (this.props.width === 'full') {
             widthClass = 'col-sm-12';
         } else {
-            widthClass = 'col-sm-9 col-sm-offset-3';
+            widthClass = 'col-sm-10 col-sm-offset-2';
         }
 
         return (
