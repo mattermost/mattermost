@@ -260,6 +260,12 @@ export default class InviteMemberModal extends React.Component {
 
             var content = null;
             var sendButton = null;
+
+            var sendButtonLabel = 'Send Invitation';
+            if (this.state.inviteIds.length > 1) {
+                sendButtonLabel = 'Send Invitations';
+            }
+
             if (this.state.emailEnabled) {
                 content = (
                     <div>
@@ -281,7 +287,7 @@ export default class InviteMemberModal extends React.Component {
                             onClick={this.handleSubmit}
                             type='button'
                             className='btn btn-primary'
-                        >Send Invitations</button>
+                        >{sendButtonLabel}</button>
                     );
             } else {
                 var teamInviteLink = null;
