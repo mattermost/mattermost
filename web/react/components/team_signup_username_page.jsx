@@ -15,7 +15,7 @@ export default class TeamSignupUsernamePage extends React.Component {
     }
     submitBack(e) {
         e.preventDefault();
-        if (global.window.config.SendEmailNotifications === 'true') {
+        if (global.window.mm_config.SendEmailNotifications === 'true') {
             this.props.state.wizard = 'send_invites';
         } else {
             this.props.state.wizard = 'team_url';

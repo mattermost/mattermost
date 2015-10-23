@@ -197,7 +197,7 @@ export default class ViewImageModal extends React.Component {
             }
             fileInfo.path = Utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
 
-            return fileInfo.path + '_preview.jpg';
+            return fileInfo.path + '_preview.jpg' + '?' + Utils.getSessionIndex();
         }
 
         // only images have proper previews, so just use a placeholder icon for non-images
@@ -306,7 +306,7 @@ export default class ViewImageModal extends React.Component {
                         width={width}
                         height={height}
                     >
-                        <source src={Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename} />
+                        <source src={Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + Utils.getSessionIndex()} />
                     </video>
                 );
             } else {

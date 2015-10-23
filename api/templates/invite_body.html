@@ -18,7 +18,7 @@
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
                                                 <h2 style="font-weight: normal; margin-top: 10px;">You've been invited</h2>
-                                                <p>{{.Props.TeamDisplayName}} started using {{.ClientProps.SiteName}}.<br> The team {{.Props.SenderStatus}} <strong>{{.Props.SenderName}}</strong>, has invited you to join <strong>{{.Props.TeamDisplayName}}</strong>.</p>
+                                                <p>{{.Props.TeamDisplayName}} started using {{.ClientCfg.SiteName}}.<br> The team {{.Props.SenderStatus}} <strong>{{.Props.SenderName}}</strong>, has invited you to join <strong>{{.Props.TeamDisplayName}}</strong>.</p>
                                                 <p style="margin: 20px 0 15px">
                                                     <a href="{{.Props.Link}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">Join Team</a>
                                                 </p>
@@ -26,9 +26,9 @@
                                         </tr>
                                         <tr>
                                             <td style="color: #999; padding-top: 20px; line-height: 25px; font-size: 13px;">
-                                                Any questions at all, mail us any time: <a href="mailto:{{.ClientProps.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.ClientProps.FeedbackEmail}}</a>.<br>
+                                                Any questions at all, mail us any time: <a href="mailto:{{.ClientCfg.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.ClientCfg.FeedbackEmail}}</a>.<br>
                                                 Best wishes,<br>
-                                                The {{.ClientProps.SiteName}} Team<br>
+                                                The {{.ClientCfg.SiteName}} Team<br>
                                             </td>
                                         </tr>
                                     </table>
@@ -41,7 +41,7 @@
                                     </p>
                                     <p style="padding: 0 50px;">
                                         (c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>
-                                        If you no longer wish to receive these emails, click on the following link: <a href="mailto:{{.ClientProps.FeedbackEmail}}?subject=Unsubscribe&body=Unsubscribe" style="text-decoration: none; color:#2389D7;">Unsubscribe</a>
+                                        If you no longer wish to receive these emails, click on the following link: <a href="mailto:{{.ClientCfg.FeedbackEmail}}?subject=Unsubscribe&body=Unsubscribe" style="text-decoration: none; color:#2389D7;">Unsubscribe</a>
                                     </p>
                                 </td>
                             </tr>

@@ -215,7 +215,7 @@ export default class UserItem extends React.Component {
             <div className='row member-div'>
                 <img
                     className='post-profile-img pull-left'
-                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                    src={`/api/v1/users/${user.id}/image?time=${user.update_at}&${Utils.getSessionIndex()}`}
                     height='36'
                     width='36'
                 />

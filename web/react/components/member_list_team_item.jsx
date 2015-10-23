@@ -169,7 +169,7 @@ export default class MemberListTeamItem extends React.Component {
             <div className='row member-div'>
                 <img
                     className='post-profile-img pull-left'
-                    src={`/api/v1/users/${user.id}/image?time=${timestamp}`}
+                    src={`/api/v1/users/${user.id}/image?time=${timestamp}&${Utils.getSessionIndex()}`}
                     height='36'
                     width='36'
                 />

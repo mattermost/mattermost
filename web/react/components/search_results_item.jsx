@@ -77,7 +77,7 @@ export default class SearchResultsItem extends React.Component {
                 <div className='post-profile-img__container'>
                     <img
                         className='post-profile-img'
-                        src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp}
+                        src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex()}
                         height='36'
                         width='36'
                     />

@@ -34,7 +34,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
         let outgoingHooksSection;
         var inputs = [];
 
-        if (global.window.config.EnableIncomingWebhooks === 'true') {
+        if (global.window.mm_config.EnableIncomingWebhooks === 'true') {
             if (this.props.activeSection === 'incoming-hooks') {
                 inputs.push(
                     <ManageIncomingHooks />
@@ -65,7 +65,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
             }
         }
 
-        if (global.window.config.EnableOutgoingWebhooks === 'true') {
+        if (global.window.mm_config.EnableOutgoingWebhooks === 'true') {
             if (this.props.activeSection === 'outgoing-hooks') {
                 inputs.push(
                     <ManageOutgoingHooks />

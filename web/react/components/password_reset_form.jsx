@@ -61,7 +61,7 @@ export default class PasswordResetForm extends React.Component {
                 <div className='signup-team__container'>
                     <h3>Password Reset</h3>
                     <form onSubmit={this.handlePasswordReset}>
-                        <p>{'Enter a new password for your ' + this.props.teamDisplayName + ' ' + global.window.config.SiteName + ' account.'}</p>
+                        <p>{'Enter a new password for your ' + this.props.teamDisplayName + ' ' + global.window.mm_config.SiteName + ' account.'}</p>
                         <div className={formClass}>
                             <input
                                 type='password'

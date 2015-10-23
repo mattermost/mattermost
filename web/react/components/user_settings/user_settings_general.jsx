@@ -122,7 +122,7 @@ export default class UserSettingsGeneralTab extends React.Component {
             () => {
                 this.updateSection('');
                 AsyncClient.getMe();
-                const verificationEnabled = global.window.config.SendEmailNotifications === 'true' && global.window.config.RequireEmailVerification === 'true' && emailUpdated;
+                const verificationEnabled = global.window.mm_config.SendEmailNotifications === 'true' && global.window.mm_config.RequireEmailVerification === 'true' && emailUpdated;
 
                 if (verificationEnabled) {
                     ErrorStore.storeLastError({message: 'Check your email at ' + user.email + ' to verify the address.'});
@@ -451,8 +451,8 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
         var emailSection;
         if (this.props.activeSection === 'email') {
-            const emailEnabled = global.window.config.SendEmailNotifications === 'true';
-            const emailVerificationEnabled = global.window.config.RequireEmailVerification === 'true';
+            const emailEnabled = global.window.mm_config.SendEmailNotifications === 'true';
+            const emailVerificationEnabled = global.window.mm_config.RequireEmailVerification === 'true';
             let helpText = 'Email is used for notifications, and requires verification if changed.';
 
             if (!emailEnabled) {
@@ -542,7 +542,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 <SettingPicture
                     title='Profile Picture'
                     submit={this.submitPicture}
-                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update}
+                    src={'/api/v1/users/' + user.id + '/image?time=' + user.last_picture_update + '&' + utils.getSessionIndex()}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={function clearSection(e) {

@@ -873,7 +873,7 @@ export function getFileUrl(filename) {
     if (url.indexOf('/api/v1/files/get') !== -1) {
         url = filename.split('/api/v1/files/get')[1];
     }
-    url = getWindowLocationOrigin() + '/api/v1/files/get' + url;
+    url = getWindowLocationOrigin() + '/api/v1/files/get' + url + '?' + getSessionIndex();
 
     return url;
 }
@@ -882,6 +882,14 @@ export function getFileUrl(filename) {
 export function getFileName(path) {
     var split = path.split('/');
     return split[split.length - 1];
+}
+
+export function getSessionIndex() {
+    if (global.window.mm_session_token_index >= 0) {
+        return 'session_token_index=' + global.window.mm_session_token_index;
+    }
+
+    return '';
 }
 
 // Generates a RFC-4122 version 4 compliant globally unique identifier.

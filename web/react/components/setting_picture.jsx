@@ -79,7 +79,7 @@ export default class SettingPicture extends React.Component {
                 >Save</a>
             );
         }
-        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + global.window.config.ProfileWidth + 'px in width and ' + global.window.config.ProfileHeight + 'px height.';
+        var helpText = 'Upload a profile picture in either JPG or PNG format, at least ' + global.window.mm_config.ProfileWidth + 'px in width and ' + global.window.mm_config.ProfileHeight + 'px height.';
 
         var self = this;
         return (

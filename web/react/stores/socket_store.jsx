@@ -38,6 +38,10 @@ class SocketStoreClass extends EventEmitter {
             return;
         }
 
+        if (!global.window.mm_session_token_index) {
+            return;
+        }
+
         this.setMaxListeners(0);
 
         if (window.WebSocket && !conn) {
@@ -45,7 +49,9 @@ class SocketStoreClass extends EventEmitter {
             if (window.location.protocol === 'https:') {
                 protocol = 'wss://';
             }
-            var connUrl = protocol + location.host + '/api/v1/websocket';
+
+            var connUrl = protocol + location.host + '/api/v1/websocket?' + Utils.getSessionIndex();
+
             if (this.failCount === 0) {
                 console.log('websocket connecting to ' + connUrl); //eslint-disable-line no-console
             }

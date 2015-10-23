@@ -14,7 +14,7 @@ export default class AboutBuildModal extends React.Component {
     }
 
     render() {
-        const config = global.window.config;
+        const config = global.window.mm_config;
 
         return (
             <Modal

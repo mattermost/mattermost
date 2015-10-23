@@ -178,7 +178,7 @@ export default class MoreDirectChannels extends React.Component {
                         className='profile-img pull-left'
                         width='38'
                         height='38'
-                        src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                        src={`/api/v1/users/${user.id}/image?time=${user.update_at}&${Utils.getSessionIndex()}`}
                     />
                     <div className='more-name'>
                         {user.username}
