@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 var UserStore = require('../stores/user_store.jsx');
+const Utils = require('../utils/utils.jsx');
 
 export default class Mention extends React.Component {
     constructor(props) {
@@ -25,7 +26,7 @@ export default class Mention extends React.Component {
                 <span>
                     <img
                         className='mention-img'
-                        src={'/api/v1/users/' + this.props.id + '/image?time=' + timestamp}
+                        src={'/api/v1/users/' + this.props.id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
                     />
                 </span>
             );

@@ -119,12 +119,12 @@ export default class PostBody extends React.Component {
             this.setState({youtubeTitle: metadata.title});
         }
 
-        if (global.window.config.GoogleDeveloperKey && !this.receivedYoutubeData) {
+        if (global.window.mm_config.GoogleDeveloperKey && !this.receivedYoutubeData) {
             $.ajax({
                 async: true,
                 url: 'https://www.googleapis.com/youtube/v3/videos',
                 type: 'GET',
-                data: {part: 'snippet', id: youtubeId, key: global.window.config.GoogleDeveloperKey},
+                data: {part: 'snippet', id: youtubeId, key: global.window.mm_config.GoogleDeveloperKey},
                 success: success.bind(this)
             });
         }

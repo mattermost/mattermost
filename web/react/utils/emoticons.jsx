@@ -2,27 +2,27 @@
 // See License.txt for license information.
 
 const emoticonPatterns = {
-    smile: /(^|\s)(:-?\))($|\s)/g, // :)
-    wink: /(^|\s)(;-?\))($|\s)/g, // ;)
-    open_mouth: /(^|\s)(:o)($|\s)/gi, // :o
-    scream: /(^|\s)(:-o)($|\s)/gi, // :-o
-    smirk: /(^|\s)(:-?])($|\s)/g, // :]
-    grinning: /(^|\s)(:-?d)($|\s)/gi, // :D
-    stuck_out_tongue_closed_eyes: /(^|\s)(x-d)($|\s)/gi, // x-d
-    stuck_out_tongue: /(^|\s)(:-?p)($|\s)/gi, // :p
-    rage: /(^|\s)(:-?[\[@])($|\s)/g, // :@
-    frowning: /(^|\s)(:-?\()($|\s)/g, // :(
-    sob: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()($|\s)/g, // :`(
-    kissing_heart: /(^|\s)(:-?\*)($|\s)/g, // :*
-    pensive: /(^|\s)(:-?\/)($|\s)/g, // :/
-    confounded: /(^|\s)(:-?s)($|\s)/gi, // :s
-    flushed: /(^|\s)(:-?\|)($|\s)/g, // :|
-    relaxed: /(^|\s)(:-?\$)($|\s)/g, // :$
-    mask: /(^|\s)(:-x)($|\s)/gi, // :-x
-    heart: /(^|\s)(<3|&lt;3)($|\s)/g, // <3
-    broken_heart: /(^|\s)(<\/3|&lt;&#x2F;3)($|\s)/g, // </3
-    thumbsup: /(^|\s)(:\+1:)($|\s)/g, // :+1:
-    thumbsdown: /(^|\s)(:\-1:)($|\s)/g // :-1:
+    smile: /(^|\s)(:-?\))(?=$|\s)/g, // :)
+    wink: /(^|\s)(;-?\))(?=$|\s)/g, // ;)
+    open_mouth: /(^|\s)(:o)(?=$|\s)/gi, // :o
+    scream: /(^|\s)(:-o)(?=$|\s)/gi, // :-o
+    smirk: /(^|\s)(:-?])(?=$|\s)/g, // :]
+    grinning: /(^|\s)(:-?d)(?=$|\s)/gi, // :D
+    stuck_out_tongue_closed_eyes: /(^|\s)(x-d)(?=$|\s)/gi, // x-d
+    stuck_out_tongue: /(^|\s)(:-?p)(?=$|\s)/gi, // :p
+    rage: /(^|\s)(:-?[\[@])(?=$|\s)/g, // :@
+    frowning: /(^|\s)(:-?\()(?=$|\s)/g, // :(
+    sob: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()(?=$|\s)/g, // :`(
+    kissing_heart: /(^|\s)(:-?\*)(?=$|\s)/g, // :*
+    pensive: /(^|\s)(:-?\/)(?=$|\s)/g, // :/
+    confounded: /(^|\s)(:-?s)(?=$|\s)/gi, // :s
+    flushed: /(^|\s)(:-?\|)(?=$|\s)/g, // :|
+    relaxed: /(^|\s)(:-?\$)(?=$|\s)/g, // :$
+    mask: /(^|\s)(:-x)(?=$|\s)/gi, // :-x
+    heart: /(^|\s)(<3|&lt;3)(?=$|\s)/g, // <3
+    broken_heart: /(^|\s)(<\/3|&lt;&#x2F;3)(?=$|\s)/g, // </3
+    thumbsup: /(^|\s)(:\+1:)(?=$|\s)/g, // :+1:
+    thumbsdown: /(^|\s)(:\-1:)(?=$|\s)/g // :-1:
 };
 
 function initializeEmoticonMap() {
@@ -127,28 +127,28 @@ const emoticonMap = initializeEmoticonMap();
 export function handleEmoticons(text, tokens) {
     let output = text;
 
-    function replaceEmoticonWithToken(match, prefix, name, suffix) {
+    function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
         if (emoticonMap[name]) {
             const index = tokens.size;
             const alias = `MM_EMOTICON${index}`;
 
             tokens.set(alias, {
-                value: `<img align="absmiddle" alt="${match}" class="emoji" src="${getImagePathForEmoticon(name)}" title="${match}" />`,
-                originalText: match
+                value: `<img align="absmiddle" alt="${matchText}" class="emoji" src="${getImagePathForEmoticon(name)}" title="${matchText}" />`,
+                originalText: fullMatch
             });
 
-            return prefix + alias + suffix;
+            return prefix + alias;
         }
 
-        return match;
+        return fullMatch;
     }
 
-    output = output.replace(/(^|\s):([a-zA-Z0-9_-]+):($|\s)/g, replaceEmoticonWithToken);
+    output = output.replace(/(^|\s)(:([a-zA-Z0-9_-]+):)(?=$|\s)/g, (fullMatch, prefix, matchText, name) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
 
     $.each(emoticonPatterns, (name, pattern) => {
         // this might look a bit funny, but since the name isn't contained in the actual match
         // like with the named emoticons, we need to add it in manually
-        output = output.replace(pattern, (match, prefix, emoticon, suffix) => replaceEmoticonWithToken(match, prefix, name, suffix));
+        output = output.replace(pattern, (fullMatch, prefix, matchText) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
     });
 
     return output;

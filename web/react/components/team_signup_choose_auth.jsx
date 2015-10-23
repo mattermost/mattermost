@@ -8,7 +8,7 @@ export default class ChooseAuthPage extends React.Component {
     }
     render() {
         var buttons = [];
-        if (global.window.config.EnableSignUpWithGitLab === 'true') {
+        if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             buttons.push(
                     <a
                         className='btn btn-custom-login gitlab btn-full'
@@ -26,7 +26,7 @@ export default class ChooseAuthPage extends React.Component {
             );
         }
 
-        if (global.window.config.EnableSignUpWithEmail === 'true') {
+        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             buttons.push(
                     <a
                         className='btn btn-custom-login email btn-full'

@@ -31,7 +31,7 @@ export default class MoreDirectChannels extends React.Component {
 
     getUsersFromStore() {
         const currentId = UserStore.getCurrentId();
-        const profiles = UserStore.getProfiles();
+        const profiles = UserStore.getActiveOnlyProfiles();
         const users = [];
 
         for (const id in profiles) {
@@ -178,7 +178,7 @@ export default class MoreDirectChannels extends React.Component {
                         className='profile-img pull-left'
                         width='38'
                         height='38'
-                        src={`/api/v1/users/${user.id}/image?time=${user.update_at}`}
+                        src={`/api/v1/users/${user.id}/image?time=${user.update_at}&${Utils.getSessionIndex()}`}
                     />
                     <div className='more-name'>
                         {user.username}
@@ -209,12 +209,14 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         let users = this.state.users;
-        if (this.state.filter !== '') {
+        if (this.state.filter) {
+            const filter = this.state.filter.toLowerCase();
+
             users = users.filter((user) => {
-                return user.username.indexOf(this.state.filter) !== -1 ||
-                    user.first_name.indexOf(this.state.filter) !== -1 ||
-                    user.last_name.indexOf(this.state.filter) !== -1 ||
-                    user.nickname.indexOf(this.state.filter) !== -1;
+                return user.username.toLowerCase().indexOf(filter) !== -1 ||
+                    user.first_name.toLowerCase().indexOf(filter) !== -1 ||
+                    user.last_name.toLowerCase().indexOf(filter) !== -1 ||
+                    user.nickname.toLowerCase().indexOf(filter) !== -1;
             });
         }
 

@@ -16,7 +16,7 @@ export default class Login extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        let state = {};
+        var state = {};
 
         const name = this.props.teamName;
         if (!name) {
@@ -49,8 +49,7 @@ export default class Login extends React.Component {
         this.setState(state);
 
         Client.loginByEmail(name, email, password,
-            function loggedIn(data) {
-                UserStore.setCurrentUser(data);
+            () => {
                 UserStore.setLastEmail(email);
 
                 const redirect = Utils.getUrlParameter('redirect');
@@ -60,7 +59,7 @@ export default class Login extends React.Component {
                     window.location.href = '/' + name + '/channels/town-square';
                 }
             },
-            function loginFailed(err) {
+            (err) => {
                 if (err.message === 'Login failed because email address has not been verified') {
                     window.location.href = '/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email);
                     return;
@@ -68,7 +67,7 @@ export default class Login extends React.Component {
                 state.serverError = err.message;
                 this.valid = false;
                 this.setState(state);
-            }.bind(this)
+            }
         );
     }
     render() {
@@ -95,7 +94,7 @@ export default class Login extends React.Component {
         }
 
         let loginMessage = [];
-        if (global.window.config.EnableSignUpWithGitLab === 'true') {
+        if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             loginMessage.push(
                     <a
                         className='btn btn-custom-login gitlab'
@@ -124,7 +123,7 @@ export default class Login extends React.Component {
         }
 
         let emailSignup;
-        if (global.window.config.EnableSignUpWithEmail === 'true') {
+        if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
                 <div>
                     <div className={'form-group' + errorClass}>
@@ -186,7 +185,7 @@ export default class Login extends React.Component {
             <div className='signup-team__container'>
                 <h5 className='margin--less'>Sign in to:</h5>
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
-                <h2 className='signup-team__subdomain'>on {global.window.config.SiteName}</h2>
+                <h2 className='signup-team__subdomain'>on {global.window.mm_config.SiteName}</h2>
                 <form onSubmit={this.handleSubmit}>
                     {verifiedBox}
                     <div className={'form-group' + errorClass}>

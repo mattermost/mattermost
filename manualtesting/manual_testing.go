@@ -111,7 +111,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 		// Respond with an auth token this can be overriden by a specific test as required
 		sessionCookie := &http.Cookie{
-			Name:     model.SESSION_TOKEN,
+			Name:     model.SESSION_COOKIE_TOKEN,
 			Value:    client.AuthToken,
 			Path:     "/",
 			MaxAge:   model.SESSION_TIME_WEB_IN_SECS,

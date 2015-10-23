@@ -324,10 +324,10 @@ class PostStoreClass extends EventEmitter {
             return 0;
         });
 
-        BrowserStore.setItem('pending_posts_' + channelId, postList);
+        BrowserStore.setGlobalItem('pending_posts_' + channelId, postList);
     }
     getPendingPosts(channelId) {
-        return BrowserStore.getItem('pending_posts_' + channelId);
+        return BrowserStore.getGlobalItem('pending_posts_' + channelId);
     }
     storeUnseenDeletedPost(post) {
         var posts = this.getUnseenDeletedPosts(post.channel_id);
@@ -371,7 +371,7 @@ class PostStoreClass extends EventEmitter {
         this.pStorePendingPosts(channelId, postList);
     }
     clearPendingPosts() {
-        BrowserStore.actionOnItemsWithPrefix('pending_posts_', function clearPending(key) {
+        BrowserStore.actionOnGlobalItemsWithPrefix('pending_posts_', function clearPending(key) {
             BrowserStore.removeItem(key);
         });
     }
@@ -414,26 +414,26 @@ class PostStoreClass extends EventEmitter {
     }
     storeCurrentDraft(draft) {
         var channelId = ChannelStore.getCurrentId();
-        BrowserStore.setItem('draft_' + channelId, draft);
+        BrowserStore.setGlobalItem('draft_' + channelId, draft);
     }
     getCurrentDraft() {
         var channelId = ChannelStore.getCurrentId();
         return this.getDraft(channelId);
     }
     storeDraft(channelId, draft) {
-        BrowserStore.setItem('draft_' + channelId, draft);
+        BrowserStore.setGlobalItem('draft_' + channelId, draft);
     }
     getDraft(channelId) {
-        return BrowserStore.getItem('draft_' + channelId, this.getEmptyDraft());
+        return BrowserStore.getGlobalItem('draft_' + channelId, this.getEmptyDraft());
     }
     storeCommentDraft(parentPostId, draft) {
-        BrowserStore.setItem('comment_draft_' + parentPostId, draft);
+        BrowserStore.setGlobalItem('comment_draft_' + parentPostId, draft);
     }
     getCommentDraft(parentPostId) {
-        return BrowserStore.getItem('comment_draft_' + parentPostId, this.getEmptyDraft());
+        return BrowserStore.getGlobalItem('comment_draft_' + parentPostId, this.getEmptyDraft());
     }
     clearDraftUploads() {
-        BrowserStore.actionOnItemsWithPrefix('draft_', function clearUploads(key, value) {
+        BrowserStore.actionOnGlobalItemsWithPrefix('draft_', function clearUploads(key, value) {
             if (value) {
                 value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
@@ -441,7 +441,7 @@ class PostStoreClass extends EventEmitter {
         });
     }
     clearCommentDraftUploads() {
-        BrowserStore.actionOnItemsWithPrefix('comment_draft_', function clearUploads(key, value) {
+        BrowserStore.actionOnGlobalItemsWithPrefix('comment_draft_', function clearUploads(key, value) {
             if (value) {
                 value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);

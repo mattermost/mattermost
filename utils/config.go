@@ -26,7 +26,7 @@ const (
 var Cfg *model.Config = &model.Config{}
 var CfgLastModified int64 = 0
 var CfgFileName string = ""
-var ClientProperties map[string]string = map[string]string{}
+var ClientCfg map[string]string = map[string]string{}
 var SanitizeOptions map[string]bool = map[string]bool{}
 
 func FindConfigFile(fileName string) string {
@@ -161,7 +161,7 @@ func LoadConfig(fileName string) {
 
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions(Cfg)
-	ClientProperties = getClientProperties(Cfg)
+	ClientCfg = getClientConfig(Cfg)
 }
 
 func getSanitizeOptions(c *model.Config) map[string]bool {
@@ -172,7 +172,7 @@ func getSanitizeOptions(c *model.Config) map[string]bool {
 	return options
 }
 
-func getClientProperties(c *model.Config) map[string]string {
+func getClientConfig(c *model.Config) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion

@@ -131,16 +131,21 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 		return nil, model.NewAppError("CreateDirectChannel", "Invalid other user id ", otherUserId)
 	}
 
-	if sc, err := CreateChannel(c, channel, true); err != nil {
-		return nil, err
+	cm1 := &model.ChannelMember{
+		UserId:      c.Session.UserId,
+		Roles:       model.CHANNEL_ROLE_ADMIN,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cm2 := &model.ChannelMember{
+		UserId:      otherUserId,
+		Roles:       "",
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+
+	if result := <-Srv.Store.Channel().SaveDirectChannel(channel, cm1, cm2); result.Err != nil {
+		return nil, result.Err
 	} else {
-		cm := &model.ChannelMember{ChannelId: sc.Id, UserId: otherUserId, Roles: "", NotifyProps: model.GetDefaultChannelNotifyProps()}
-
-		if cmresult := <-Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
-			return nil, cmresult.Err
-		}
-
-		return sc, nil
+		return result.Data.(*model.Channel), nil
 	}
 }
 

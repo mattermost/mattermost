@@ -152,7 +152,7 @@ export default class NavbarDropdown extends React.Component {
             sysAdminLink = (
                 <li>
                     <a
-                        href='/admin_console'
+                        href={'/admin_console?' + Utils.getSessionIndex()}
                     >
                         {'System Console'}
                     </a>
@@ -178,7 +178,7 @@ export default class NavbarDropdown extends React.Component {
             });
         }
 
-        if (global.window.config.EnableTeamCreation === 'true') {
+        if (global.window.mm_config.EnableTeamCreation === 'true') {
             teams.push(
                 <li key='newTeam_li'>
                     <a

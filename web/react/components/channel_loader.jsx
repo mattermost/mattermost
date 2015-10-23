@@ -26,7 +26,6 @@ export default class ChannelLoader extends React.Component {
     }
     componentDidMount() {
         /* Initial aysnc loads */
-        AsyncClient.getMe();
         AsyncClient.getPosts(ChannelStore.getCurrentId());
         AsyncClient.getChannels(true, true);
         AsyncClient.getChannelExtraInfo(true);

@@ -15,6 +15,7 @@ import (
 	"gopkg.in/fsnotify.v1"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -31,10 +32,20 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
-	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientProps: utils.ClientProperties}
+	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
+	if me.Team != nil {
+		me.Team.Sanitize()
+	}
+
+	if me.User != nil {
+		me.User.Sanitize(map[string]bool{})
+	}
+
+	me.SessionTokenIndex = c.SessionTokenIndex
+
 	if err := Templates.ExecuteTemplate(w, me.TemplateName, me); err != nil {
 		c.SetUnknownError(me.TemplateName, err.Error())
 	}
@@ -78,9 +89,9 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
-	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")      // Bug in gorilla.mux prevents us from using regex here.
-	mainrouter.Handle("/{team}/channels/{channelname}", api.UserRequired(getChannel)).Methods("GET") // Bug in gorilla.mux prevents us from using regex here.
-	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")    // Bug in gorilla.mux prevents us from using regex here.
+	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")    // Bug in gorilla.mux prevents us from using regex here.
+	mainrouter.Handle("/{team}/channels/{channelname}", api.AppHandler(getChannel)).Methods("GET") // Bug in gorilla.mux prevents us from using regex here.
+	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")  // Bug in gorilla.mux prevents us from using regex here.
 
 	watchAndParseTemplates()
 }
@@ -141,6 +152,20 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 
 }
 
+// func getTeamAndUser(c *api.Context) (*model.Team, *model.User) {
+// 	if tr := <-api.Srv.Store.Team().Get(c.Session.TeamId); tr.Err != nil {
+// 		c.Err = tr.Err
+// 		return nil, nil
+// 	} else {
+// 		if ur := <-api.Srv.Store.User().Get(c.Session.UserId); ur.Err != nil {
+// 			c.Err = ur.Err
+// 			return nil, nil
+// 		} else {
+// 			return tr.Data.(*model.Team), ur.Data.(*model.User)
+// 		}
+// 	}
+// }
+
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if !CheckBrowserCompatability(c, r) {
@@ -151,8 +176,29 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
 		page.Render(c, w)
 	} else {
+		teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+		userChan := api.Srv.Store.User().Get(c.Session.UserId)
+
+		var team *model.Team
+		if tr := <-teamChan; tr.Err != nil {
+			c.Err = tr.Err
+			return
+		} else {
+			team = tr.Data.(*model.Team)
+
+		}
+
+		var user *model.User
+		if ur := <-userChan; ur.Err != nil {
+			c.Err = ur.Err
+			return
+		} else {
+			user = ur.Data.(*model.User)
+		}
+
 		page := NewHtmlTemplatePage("home", "Home")
-		page.Props["TeamURL"] = c.GetTeamURL()
+		page.Team = team
+		page.User = user
 		page.Render(c, w)
 	}
 }
@@ -176,50 +222,19 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
-		l4g.Error("Couldn't find team name=%v, teamURL=%v, err=%v", teamName, c.GetTeamURL(), tResult.Err.Message)
+		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
 		team = tResult.Data.(*model.Team)
 	}
 
-	// If we are already logged into this team then go to home
-	if len(c.Session.UserId) != 0 && c.Session.TeamId == team.Id {
-		page := NewHtmlTemplatePage("home", "Home")
-		page.Props["TeamURL"] = c.GetTeamURL()
-		page.Render(c, w)
-		return
-	}
-
 	// We still might be able to switch to this team because we've logged in before
-	if multiCookie, err := r.Cookie(model.MULTI_SESSION_TOKEN); err == nil {
-		multiToken := multiCookie.Value
-
-		if len(multiToken) > 0 {
-			tokens := strings.Split(multiToken, " ")
-
-			for _, token := range tokens {
-				if sr := <-api.Srv.Store.Session().Get(token); sr.Err == nil {
-					s := sr.Data.(*model.Session)
-
-					if !s.IsExpired() && s.TeamId == team.Id {
-						w.Header().Set(model.HEADER_TOKEN, s.Token)
-						sessionCookie := &http.Cookie{
-							Name:     model.SESSION_TOKEN,
-							Value:    s.Token,
-							Path:     "/",
-							MaxAge:   model.SESSION_TIME_WEB_IN_SECS,
-							HttpOnly: true,
-						}
-
-						http.SetCookie(w, sessionCookie)
-
-						http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
-						return
-					}
-				}
-			}
-		}
+	_, session := api.FindMultiSessionForTeamId(r, team.Id)
+	if session != nil {
+		w.Header().Set(model.HEADER_TOKEN, session.Token)
+		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
+		return
 	}
 
 	page := NewHtmlTemplatePage("login", "Login")
@@ -315,7 +330,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 func logout(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	api.Logout(c, w, r)
-	http.Redirect(w, r, c.GetTeamURL(), http.StatusFound)
+	http.Redirect(w, r, c.GetTeamURL(), http.StatusTemporaryRedirect)
 }
 
 func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -324,7 +339,27 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	teamName := params["team"]
 
 	var team *model.Team
-	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	// We are logged into a different team.  Lets see if we have another
+	// session in the cookie that will give us access.
+	if c.Session.TeamId != team.Id {
+		index, session := api.FindMultiSessionForTeamId(r, team.Id)
+		if session == nil {
+			// redirect to login
+			http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
+		} else {
+			c.Session = *session
+			c.SessionTokenIndex = index
+		}
+	}
+
+	userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
 	var channelId string
 	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
@@ -334,17 +369,14 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		channelId = result.Data.(string)
 	}
 
-	if tResult := <-teamChan; tResult.Err != nil {
-		c.Err = tResult.Err
+	var user *model.User
+	if ur := <-userChan; ur.Err != nil {
+		c.Err = ur.Err
+		c.RemoveSessionCookie(w, r)
+		l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
 		return
 	} else {
-		team = tResult.Data.(*model.Team)
-	}
-
-	if team.Name != teamName {
-		l4g.Error("It appears you are logged into " + team.Name + ", but are trying to access " + teamName)
-		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusFound)
-		return
+		user = ur.Data.(*model.User)
 	}
 
 	if len(channelId) == 0 {
@@ -365,15 +397,6 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				channelId = sc.Id
 			}
 		} else {
-
-			// lets make sure the user is valid
-			if result := <-api.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-				c.Err = result.Err
-				c.RemoveSessionCookie(w, r)
-				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
-				return
-			}
-
 			// We will attempt to auto-join open channels
 			if cr := <-api.Srv.Store.Channel().GetByName(c.Session.TeamId, name); cr.Err != nil {
 				http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
@@ -394,7 +417,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("channel", "")
-	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientProps["SiteName"]
+	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 	page.Props["TeamType"] = team.Type
@@ -402,6 +425,8 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["ChannelName"] = name
 	page.Props["ChannelId"] = channelId
 	page.Props["UserId"] = c.Session.UserId
+	page.Team = team
+	page.User = user
 	page.Render(c, w)
 }
 
@@ -500,7 +525,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := NewHtmlTemplatePage("password_reset", "")
-	page.Props["Title"] = "Reset Password " + page.ClientProps["SiteName"]
+	page.Props["Title"] = "Reset Password " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
 	page.Props["TeamName"] = teamName
 	page.Props["Hash"] = hash
@@ -627,7 +652,10 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		root(c, w, r)
+		page := NewHtmlTemplatePage("home", "Home")
+		page.Team = team
+		page.User = ruser
+		page.Render(c, w)
 	}
 }
 
@@ -690,6 +718,11 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 				return
 			}
 
+			page := NewHtmlTemplatePage("home", "Home")
+			page.Team = team
+			page.User = user
+			page.Render(c, w)
+
 			root(c, w, r)
 		}
 	}
@@ -701,12 +734,33 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
+	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+
+	var team *model.Team
+	if tr := <-teamChan; tr.Err != nil {
+		c.Err = tr.Err
+		return
+	} else {
+		team = tr.Data.(*model.Team)
+
+	}
+
+	var user *model.User
+	if ur := <-userChan; ur.Err != nil {
+		c.Err = ur.Err
+		return
+	} else {
+		user = ur.Data.(*model.User)
+	}
+
 	params := mux.Vars(r)
 	activeTab := params["tab"]
 	teamId := params["team"]
 
 	page := NewHtmlTemplatePage("admin_console", "Admin Console")
-
+	page.User = user
+	page.Team = team
 	page.Props["ActiveTab"] = activeTab
 	page.Props["TeamId"] = teamId
 	page.Render(c, w)

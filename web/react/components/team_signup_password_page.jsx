@@ -36,15 +36,14 @@ export default class TeamSignupPasswordPage extends React.Component {
         delete teamSignup.wizard;
 
         Client.createTeamFromSignup(teamSignup,
-            function success() {
+            () => {
                 Client.track('signup', 'signup_team_08_complete');
 
                 var props = this.props;
 
                 Client.loginByEmail(teamSignup.team.name, teamSignup.team.email, teamSignup.user.password,
-                    function loginSuccess(data) {
+                    () => {
                         UserStore.setLastEmail(teamSignup.team.email);
-                        UserStore.setCurrentUser(data);
                         if (this.props.hash > 0) {
                             BrowserStore.setGlobalItem(this.props.hash, JSON.stringify({wizard: 'finished'}));
                         }
@@ -54,21 +53,21 @@ export default class TeamSignupPasswordPage extends React.Component {
                         props.updateParent(props.state, true);
 
                         window.location.href = '/' + teamSignup.team.name + '/channels/town-square';
-                    }.bind(this),
-                    function loginFail(err) {
+                    },
+                    (err) => {
                         if (err.message === 'Login failed because email address has not been verified') {
                             window.location.href = '/verify_email?email=' + encodeURIComponent(teamSignup.team.email) + '&teamname=' + encodeURIComponent(teamSignup.team.name);
                         } else {
                             this.setState({serverError: err.message});
                             $('#finish-button').button('reset');
                         }
-                    }.bind(this)
+                    }
                 );
-            }.bind(this),
-            function error(err) {
+            },
+            (err) => {
                 this.setState({serverError: err.message});
                 $('#finish-button').button('reset');
-            }.bind(this)
+            }
         );
     }
     render() {
@@ -129,7 +128,7 @@ export default class TeamSignupPasswordPage extends React.Component {
                             Finish
                         </button>
                     </div>
-                    <p>By proceeding to create your account and use {global.window.config.SiteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {global.window.config.SiteName}.</p>
+                    <p>By proceeding to create your account and use {global.window.mm_config.SiteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {global.window.mm_config.SiteName}.</p>
                     <div className='margin--extra'>
                         <a
                             href='#'

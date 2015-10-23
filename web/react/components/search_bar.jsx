@@ -8,6 +8,7 @@ var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
+var Tooltip = ReactBootstrap.Tooltip;
 
 export default class SearchBar extends React.Component {
     constructor() {
@@ -16,10 +17,14 @@ export default class SearchBar extends React.Component {
 
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
+        this.handleUserFocus = this.handleUserFocus.bind(this);
+        this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
 
-        this.state = this.getSearchTermStateFromStores();
+        const state = this.getSearchTermStateFromStores();
+        state.focused = false;
+        this.state = state;
     }
     getSearchTermStateFromStores() {
         var term = PostStore.getSearchTerm() || '';
@@ -78,9 +83,14 @@ export default class SearchBar extends React.Component {
     handleMouseInput(e) {
         e.preventDefault();
     }
+    handleUserBlur() {
+        this.setState({focused: false});
+    }
     handleUserFocus(e) {
         e.target.select();
         $('.search-bar__container').addClass('focused');
+
+        this.setState({focused: true});
     }
     performSearch(terms, isMentionSearch) {
         if (terms.length) {
@@ -115,6 +125,12 @@ export default class SearchBar extends React.Component {
         if (this.state.isSearching) {
             isSearching = <span className={'glyphicon glyphicon-refresh glyphicon-refresh-animate'}></span>;
         }
+
+        let helpClass = 'search-help-popover';
+        if (!this.state.searchTerm && this.state.focused) {
+            helpClass += ' visible';
+        }
+
         return (
             <div>
                 <div
@@ -142,10 +158,25 @@ export default class SearchBar extends React.Component {
                         placeholder='Search'
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
+                        onBlur={this.handleUserBlur}
                         onChange={this.handleUserInput}
                         onMouseUp={this.handleMouseInput}
                     />
                     {isSearching}
+                    <Tooltip
+                        placement='bottom'
+                        className={helpClass}
+                    >
+                        <h4>{'Search Options'}</h4>
+                        <ul>
+                            <li>
+                                <span>{'Use '}</span><b>{'"quotation marks"'}</b><span>{' to search for phrases'}</span>
+                            </li>
+                            <li>
+                                <span>{'Use '}</span><b>{'from:'}</b><span>{' to find posts from specific users and '}</span><b>{'in:'}</b><span>{' to find posts in specific channels'}</span>
+                            </li>
+                        </ul>
+                    </Tooltip>
                 </form>
             </div>
         );
