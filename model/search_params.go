@@ -31,9 +31,9 @@ func splitWords(text string) []string {
 	return words
 }
 
-func parseSearchFlags(input []string) ([]string, map[string]string) {
+func parseSearchFlags(input []string) ([]string, [][2]string) {
 	words := []string{}
-	flags := make(map[string]string)
+	flags := [][2]string{}
 
 	skipNextWord := false
 	for i, word := range input {
@@ -52,10 +52,10 @@ func parseSearchFlags(input []string) ([]string, map[string]string) {
 				// check for case insensitive equality
 				if strings.EqualFold(flag, searchFlag) {
 					if value != "" {
-						flags[searchFlag] = value
+						flags = append(flags, [2]string{searchFlag, value})
 						isFlag = true
 					} else if i < len(input)-1 {
-						flags[searchFlag] = input[i+1]
+						flags = append(flags, [2]string{searchFlag, input[i+1]})
 						skipNextWord = true
 						isFlag = true
 					}
@@ -75,56 +75,77 @@ func parseSearchFlags(input []string) ([]string, map[string]string) {
 	return words, flags
 }
 
-func ParseSearchParams(text string) (*SearchParams, *SearchParams) {
+func ParseSearchParams(text string) []*SearchParams {
 	words, flags := parseSearchFlags(splitWords(text))
 
-	hashtagTerms := []string{}
-	plainTerms := []string{}
+	hashtagTermList := []string{}
+	plainTermList := []string{}
 
 	for _, word := range words {
 		if validHashtag.MatchString(word) {
-			hashtagTerms = append(hashtagTerms, word)
+			hashtagTermList = append(hashtagTermList, word)
 		} else {
-			plainTerms = append(plainTerms, word)
+			plainTermList = append(plainTermList, word)
 		}
 	}
 
-	inChannel := flags["channel"]
-	if inChannel == "" {
-		inChannel = flags["in"]
-	}
+	hashtagTerms := strings.Join(hashtagTermList, " ")
+	plainTerms := strings.Join(plainTermList, " ")
 
-	fromUser := flags["from"]
+	inChannels := []string{}
+	fromUsers := []string{}
 
-	var plainParams *SearchParams
-	if len(plainTerms) > 0 {
-		plainParams = &SearchParams{
-			Terms:     strings.Join(plainTerms, " "),
-			IsHashtag: false,
-			InChannel: inChannel,
-			FromUser:  fromUser,
+	for _, flagPair := range flags {
+		flag := flagPair[0]
+		value := flagPair[1]
+
+		if flag == "in" || flag == "channel" {
+			inChannels = append(inChannels, value)
+		} else if flag == "from" {
+			fromUsers = append(fromUsers, value)
 		}
 	}
 
-	var hashtagParams *SearchParams
-	if len(hashtagTerms) > 0 {
-		hashtagParams = &SearchParams{
-			Terms:     strings.Join(hashtagTerms, " "),
-			IsHashtag: true,
-			InChannel: inChannel,
-			FromUser:  fromUser,
+	if len(inChannels) == 0 {
+		inChannels = append(inChannels, "")
+	}
+	if len(fromUsers) == 0 {
+		fromUsers = append(fromUsers, "")
+	}
+
+	paramsList := []*SearchParams{}
+
+	for _, inChannel := range inChannels {
+		for _, fromUser := range fromUsers {
+			if len(plainTerms) > 0 {
+				paramsList = append(paramsList, &SearchParams{
+					Terms:     plainTerms,
+					IsHashtag: false,
+					InChannel: inChannel,
+					FromUser:  fromUser,
+				})
+			}
+
+			if len(hashtagTerms) > 0 {
+				paramsList = append(paramsList, &SearchParams{
+					Terms:     hashtagTerms,
+					IsHashtag: true,
+					InChannel: inChannel,
+					FromUser:  fromUser,
+				})
+			}
+
+			// special case for when no terms are specified but we still have a filter
+			if len(plainTerms) == 0 && len(hashtagTerms) == 0 {
+				paramsList = append(paramsList, &SearchParams{
+					Terms:     "",
+					IsHashtag: true,
+					InChannel: inChannel,
+					FromUser:  fromUser,
+				})
+			}
 		}
 	}
 
-	// special case for when no terms are specified but we still have a filter
-	if plainParams == nil && hashtagParams == nil && (inChannel != "" || fromUser != "") {
-		plainParams = &SearchParams{
-			Terms:     "",
-			IsHashtag: false,
-			InChannel: inChannel,
-			FromUser:  fromUser,
-		}
-	}
-
-	return plainParams, hashtagParams
+	return paramsList
 }

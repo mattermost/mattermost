@@ -427,11 +427,17 @@ func TestSearchPostsInChannel(t *testing.T) {
 	channel2 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
+	channel3 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
+
 	post2 := &model.Post{ChannelId: channel2.Id, Message: "sgtitlereview\n with return"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	post3 := &model.Post{ChannelId: channel2.Id, Message: "other message with no return"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
+
+	post4 := &model.Post{ChannelId: channel3.Id, Message: "other message with no return"}
+	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
 
 	if result := Client.Must(Client.SearchPosts("channel:")).Data.(*model.PostList); len(result.Order) != 0 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
@@ -476,6 +482,10 @@ func TestSearchPostsInChannel(t *testing.T) {
 	if result := Client.Must(Client.SearchPosts("sgtitlereview channel: " + channel2.Name)).Data.(*model.PostList); len(result.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
+
+	if result := Client.Must(Client.SearchPosts("channel: " + channel2.Name + " channel: " + channel3.Name)).Data.(*model.PostList); len(result.Order) != 3 {
+		t.Fatalf("wrong number of posts returned :) %v :) %v", result.Posts, result.Order)
+	}
 }
 
 func TestSearchPostsFromUser(t *testing.T) {
@@ -510,11 +520,12 @@ func TestSearchPostsFromUser(t *testing.T) {
 	post2 := &model.Post{ChannelId: channel2.Id, Message: "sgtitlereview\n with return"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
+	// includes "X has joined the channel" messages for both user2 and user3
+
 	if result := Client.Must(Client.SearchPosts("from: " + user1.Username)).Data.(*model.PostList); len(result.Order) != 1 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 
-	// note that this includes the "User2 has joined the channel" system messages
 	if result := Client.Must(Client.SearchPosts("from: " + user2.Username)).Data.(*model.PostList); len(result.Order) != 3 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
@@ -524,6 +535,30 @@ func TestSearchPostsFromUser(t *testing.T) {
 	}
 
 	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " in:" + channel1.Name)).Data.(*model.PostList); len(result.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(result.Order))
+	}
+
+	user3 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user3.Id))
+
+	Client.LoginByEmail(team.Name, user3.Email, "pwd")
+	Client.Must(Client.JoinChannel(channel1.Id))
+	Client.Must(Client.JoinChannel(channel2.Id))
+
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username)).Data.(*model.PostList); len(result.Order) != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(result.Order))
+	}
+
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username)).Data.(*model.PostList); len(result.Order) != 5 {
+		t.Fatalf("wrong number of posts returned %v", len(result.Order))
+	}
+
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username + " in:" + channel2.Name)).Data.(*model.PostList); len(result.Order) != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(result.Order))
+	}
+
+	if result := Client.Must(Client.SearchPosts("from: " + user2.Username + " from: " + user3.Username + " in:" + channel2.Name + " joined")).Data.(*model.PostList); len(result.Order) != 2 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
 }
