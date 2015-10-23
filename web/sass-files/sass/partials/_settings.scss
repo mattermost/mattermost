@@ -33,6 +33,33 @@
     label {
         font-weight: 600;
     }
+    .no-padding--left {
+        padding-left: 0;
+    }
+    .padding-top {
+        padding-top: 7px;
+        &.x2 {
+            padding-top: 14px;
+        }
+        &.x3 {
+            padding-top: 21px;
+        }
+    }
+    .padding-bottom {
+        padding-bottom: 7px;
+        &.x2 {
+            padding-bottom: 14px;
+        }
+        &.x3 {
+            padding-bottom: 21px;
+        }
+        .control-label {
+            font-weight: 600;
+            &.text-left {
+                text-align: left;
+            }
+        }
+    }
     .settings-table {
         display: table;
         table-layout: fixed;
@@ -169,33 +196,6 @@
             }
             .has-error {
                 color: #a94442;
-            }
-            .no-padding--left {
-                padding-left: 0;
-            }
-            .padding-top {
-                padding-top: 7px;
-                &.x2 {
-                    padding-top: 14px;
-                }
-                &.x3 {
-                    padding-top: 21px;
-                }
-            }
-            .padding-bottom {
-                padding-bottom: 7px;
-                &.x2 {
-                    padding-bottom: 14px;
-                }
-                &.x3 {
-                    padding-bottom: 21px;
-                }
-                .control-label {
-                    font-weight: 600;
-                    &.text-left {
-                        text-align: left;
-                    }
-                }
             }
 
             .file-status {
