@@ -1,0 +1,31 @@
+.webhooks__container {
+    background: rgba(black, 0.1);
+    border: 1px solid;
+    @include border-radius(3px);
+    padding: 0 13px 15px;
+    margin-top: 10px;
+}
+.webhook__item {
+    font-size: 13px;
+    position: relative;
+    &:last-child {
+        .divider-light:last-child {
+            display: none;
+        }
+    }
+    .webhook__remove {
+        position: absolute;
+        right: -7px;
+        top: 8px;
+        width: 30px;
+        height: 30px;
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none;
+        color: #E05F5D;
+    }
+    .webhook__url {
+        padding-right: 20px;
+    }
+}
