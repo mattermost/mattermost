@@ -33,6 +33,14 @@ func TestChannelStoreSave(t *testing.T) {
 		t.Fatal("should be unique name")
 	}
 
+	o1.Id = ""
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_DIRECT
+	if err := (<-store.Channel().Save(&o1)).Err; err == nil {
+		t.Fatal("Should not be able to save direct channel")
+	}
+
+	o1.Type = model.CHANNEL_OPEN
 	for i := 0; i < 150; i++ {
 		o1.Id = ""
 		o1.Name = "a" + model.NewId() + "b"
@@ -46,6 +54,61 @@ func TestChannelStoreSave(t *testing.T) {
 	if err := (<-store.Channel().Save(&o1)).Err; err == nil {
 		t.Fatal("should be the limit")
 	}
+}
+
+func TestChannelStoreSaveDirectChannel(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	o1 := model.Channel{}
+	o1.TeamId = teamId
+	o1.DisplayName = "Name"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_DIRECT
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.TeamId = model.NewId()
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(&u2))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	if err := (<-store.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err != nil {
+		t.Fatal("couldn't save direct channel", err)
+	}
+
+	members := (<-store.Channel().GetMembers(o1.Id)).Data.([]model.ChannelMember)
+	if len(members) != 2 {
+		t.Fatal("should have saved 2 members")
+	}
+
+	if err := (<-store.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
+		t.Fatal("shouldn't be able to update from save")
+	}
+
+	o1.Id = ""
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	if err := (<-store.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
+		t.Fatal("Should not be able to save non-direct channel")
+	}
+
 }
 
 func TestChannelStoreUpdate(t *testing.T) {
@@ -98,6 +161,44 @@ func TestChannelStoreGet(t *testing.T) {
 
 	if err := (<-store.Channel().Get("")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
+	}
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(&u1))
+
+	u2 := model.User{}
+	u2.TeamId = model.NewId()
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(&u2))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Direct Name"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_DIRECT
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o2.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	Must(store.Channel().SaveDirectChannel(&o2, &m1, &m2))
+
+	if r2 := <-store.Channel().Get(o2.Id); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if r2.Data.(*model.Channel).ToJson() != o2.ToJson() {
+			t.Fatal("invalid returned channel")
+		}
 	}
 }
 
