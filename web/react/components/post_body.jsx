@@ -13,8 +13,12 @@ export default class PostBody extends React.Component {
         super(props);
 
         this.receivedYoutubeData = false;
+        this.isGifLoading = false;
 
         this.parseEmojis = this.parseEmojis.bind(this);
+        this.createEmbed = this.createEmbed.bind(this);
+        this.createGifEmbed = this.createGifEmbed.bind(this);
+        this.loadGif = this.loadGif.bind(this);
         this.createYoutubeEmbed = this.createYoutubeEmbed.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
@@ -46,11 +50,58 @@ export default class PostBody extends React.Component {
 
     componentDidUpdate() {
         this.parseEmojis();
+        this.props.resize();
     }
 
     componentWillReceiveProps(nextProps) {
         const linkData = Utils.extractLinks(nextProps.post.message);
         this.setState({links: linkData.links, message: linkData.text});
+    }
+
+    createEmbed(link) {
+        let embed = this.createYoutubeEmbed(link);
+
+        if (embed != null) {
+            return embed;
+        }
+
+        embed = this.createGifEmbed(link);
+
+        return embed;
+    }
+
+    loadGif(src) {
+        if (this.isGifLoading) {
+            return;
+        }
+
+        this.isGifLoading = true;
+
+        const gif = new Image();
+        gif.src = src;
+        gif.onload = (
+            () => {
+                this.setState({gifLoaded: true});
+            }
+        );
+    }
+
+    createGifEmbed(link) {
+        if (link.substring(link.length - 4) !== '.gif') {
+            return null;
+        }
+
+        if (!this.state.gifLoaded) {
+            this.loadGif(link);
+            return null;
+        }
+
+        return (
+            <img
+                className='gif-div'
+                src={link}
+            />
+        );
     }
 
     handleYoutubeTime(link) {
@@ -247,7 +298,7 @@ export default class PostBody extends React.Component {
 
         let embed;
         if (filenames.length === 0 && this.state.links) {
-            embed = this.createYoutubeEmbed(this.state.links[0]);
+            embed = this.createEmbed(this.state.links[0]);
         }
 
         let fileAttachmentHolder = '';
@@ -287,5 +338,6 @@ PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired
+    handleCommentClick: React.PropTypes.func.isRequired,
+    resize: React.PropTypes.func.isRequired
 };

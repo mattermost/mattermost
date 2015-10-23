@@ -42,6 +42,7 @@ export default class PostList extends React.Component {
         this.deactivate = this.deactivate.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.resizePostList = this.resizePostList.bind(this);
+        this.updateScroll = this.updateScroll.bind(this);
 
         const state = this.getStateFromStores(props.channelId);
         state.numToDisplay = Constants.POST_CHUNK_SIZE;
@@ -205,9 +206,10 @@ export default class PostList extends React.Component {
             this.scrollToBottom();
 
         // there's a new post and
-        // it's by the user and not a comment
+        // it's by the user (and not from their webhook) and not a comment
         } else if (isNewPost &&
                     userId === firstPost.user_id &&
+                    !firstPost.props.from_webhook &&
                     !Utils.isComment(firstPost)) {
             this.scrollToBottom(true);
 
@@ -235,6 +237,11 @@ export default class PostList extends React.Component {
             this.activate();
         } else if (nextProps.isActive === false && this.props.isActive === true) {
             this.deactivate();
+        }
+    }
+    updateScroll() {
+        if (!this.scrolled) {
+            this.scrollToBottom();
         }
     }
     handleResize() {
@@ -550,6 +557,7 @@ export default class PostList extends React.Component {
                     posts={posts}
                     hideProfilePic={hideProfilePic}
                     isLastComment={isLastComment}
+                    resize={this.updateScroll}
                 />
             );
 
