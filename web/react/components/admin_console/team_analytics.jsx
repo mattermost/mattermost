@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 var Client = require('../../utils/client.jsx');
-var LoadingScreen = require('../loading_screen.jsx');
 
 export default class UserList extends React.Component {
     constructor(props) {
@@ -15,7 +14,8 @@ export default class UserList extends React.Component {
             serverError: null,
             channel_open_count: null,
             channel_private_count: null,
-            post_count: null
+            post_count: null,
+            post_counts_day: null
         };
     }
 
@@ -41,6 +41,18 @@ export default class UserList extends React.Component {
                         this.setState({post_count: data[index].value});
                     }
                 }
+            },
+            (err) => {
+                this.setState({serverError: err.message});
+            }
+        );
+
+        Client.getAnalytics(
+            teamId,
+            'post_counts_day',
+            (data) => {
+                console.log(data);
+                this.setState({post_counts_day: data});
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -83,7 +95,8 @@ export default class UserList extends React.Component {
             serverError: null,
             channel_open_count: null,
             channel_private_count: null,
-            post_count: null
+            post_count: null,
+            post_counts_day: null
         });
 
         this.getData(newProps.team.id);
@@ -126,6 +139,26 @@ export default class UserList extends React.Component {
             </div>
         );
 
+        var postCountsByDay = (
+            <div className='total-count text-center'>
+                <div>{'Total Posts'}</div>
+                <div>{'Loading...'}</div>
+            </div>
+        );
+
+        if (this.state.post_counts_day != null) {
+            postCountsByDay = (
+                <div className='total-count-by-day'>
+                    <div>{'Total Posts By Day'}</div>
+                    <LineChart
+                        data={chartData}
+                        width="100"
+                        height="250"
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className='wrapper--fixed'>
                 <h2>{'Analytics for ' + this.props.team.name}</h2>
@@ -134,6 +167,7 @@ export default class UserList extends React.Component {
                 {postCount}
                 {openChannelCount}
                 {openPrivateCount}
+                {postCountsByDay}
             </div>
         );
     }

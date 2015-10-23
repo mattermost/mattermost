@@ -21,6 +21,21 @@
         }
     }
 
+    .total-count-by-day {
+        width: 760px;
+        height: 275px;
+        border: 1px solid #ddd;
+        padding: 5px 10px 10px 10px;
+        margin: 10px 10px 10px 10px;
+        background: #fff;
+        clear: both;
+
+        > div {
+            font-size: 18px;
+            font-weight: 300;
+        }
+    }
+
     .sidebar--left {
         &.sidebar--collapsable {
             background: #333;
