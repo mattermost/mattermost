@@ -169,7 +169,7 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         return (
-            <tr>
+            <tr key={'direct-channel-row-user' + user.id}>
                 <td
                     key={user.id}
                     className='direct-channel'

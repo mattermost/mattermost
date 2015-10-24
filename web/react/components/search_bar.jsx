@@ -198,6 +198,7 @@ export default class SearchBar extends React.Component {
                         completeWord={this.completeWord}
                     />
                     <Popover
+                        id='searchbar-help-popup'
                         placement='bottom'
                         className={helpClass}
                     >
