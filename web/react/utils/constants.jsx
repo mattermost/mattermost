@@ -318,5 +318,28 @@ module.exports = {
         ENTER: 13,
         ESCAPE: 27,
         SPACE: 32
+    },
+    HighlightedLanguages: {
+        diff: 'Diff',
+        apache: 'Apache',
+        makefile: 'Makefile',
+        http: 'HTTP',
+        json: 'JSON',
+        markdown: 'Markdown',
+        javascript: 'JavaScript',
+        css: 'CSS',
+        nginx: 'nginx',
+        objectivec: 'Objective-C',
+        python: 'Python',
+        xml: 'XML',
+        perl: 'Perl',
+        bash: 'Bash',
+        php: 'PHP',
+        coffeescript: 'CoffeeScript',
+        cs: 'C#',
+        cpp: 'C++',
+        sql: 'SQL',
+        go: 'Go',
+        ruby: 'Ruby'
     }
 };
