@@ -28,6 +28,8 @@ const highlightJsCpp = require('highlight.js/lib/languages/cpp.js');
 const highlightJsSql = require('highlight.js/lib/languages/sql.js');
 const highlightJsGo = require('highlight.js/lib/languages/go.js');
 const highlightJsRuby = require('highlight.js/lib/languages/ruby.js');
+const highlightJsJava = require('highlight.js/lib/languages/java.js');
+const highlightJsIni = require('highlight.js/lib/languages/ini.js');
 
 const Constants = require('../utils/constants.jsx');
 const HighlightedLanguages = Constants.HighlightedLanguages;
@@ -63,6 +65,8 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         highlightJs.registerLanguage('sql', highlightJsSql);
         highlightJs.registerLanguage('go', highlightJsGo);
         highlightJs.registerLanguage('ruby', highlightJsRuby);
+        highlightJs.registerLanguage('java', highlightJsJava);
+        highlightJs.registerLanguage('ini', highlightJsIni);
     }
 
     code(code, language) {

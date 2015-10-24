@@ -342,6 +342,8 @@ module.exports = {
         cpp: 'C++',
         sql: 'SQL',
         go: 'Go',
-        ruby: 'Ruby'
+        ruby: 'Ruby',
+        java: 'Java',
+        ini: 'ini'
     }
 };
