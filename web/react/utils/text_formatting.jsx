@@ -82,6 +82,7 @@ export function sanitizeHtml(text) {
     return output;
 }
 
+// Convert URLs into tokens
 function autolinkUrls(text, tokens) {
     function replaceUrlWithToken(autolinker, match) {
         const linkText = match.getMatchedText();
@@ -123,27 +124,60 @@ function autolinkUrls(text, tokens) {
 }
 
 function autolinkAtMentions(text, tokens) {
-    let output = text;
+    // Return true if provided character is punctuation
+    function isPunctuation(character) {
+        const re = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+        return re.test(character);
+    }
+
+    // Test if provided text needs to be highlighted, special mention or current user
+    function mentionExists(u) {
+        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || UserStore.getProfileByUsername(u));
+    }
+
+    function addToken(username, mention, extraText) {
+        const index = tokens.size;
+        const alias = `MM_ATMENTION${index}`;
+
+        tokens.set(alias, {
+            value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>${extraText}`,
+            originalText: mention
+        });
+        return alias;
+    }
 
     function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
-        const usernameLower = username.toLowerCase();
-        if (Constants.SPECIAL_MENTIONS.indexOf(usernameLower) !== -1 || UserStore.getProfileByUsername(usernameLower)) {
-            const index = tokens.size;
-            const alias = `MM_ATMENTION${index}`;
-
-            tokens.set(alias, {
-                value: `<a class='mention-link' href='#' data-mention='${usernameLower}'>${mention}</a>`,
-                originalText: mention
-            });
-
+        let usernameLower = username.toLowerCase();
+        
+        if (mentionExists(usernameLower)) {
+            // Exact match
+            const alias = addToken(usernameLower, mention, '');
             return prefix + alias;
+         }
+
+        // Not an exact match, attempt to truncate any punctuation to see if we can find a user
+        const originalUsername = usernameLower;
+    
+        for (let c = usernameLower.length; c > 0; c--) {
+            if (isPunctuation(usernameLower[c-1])) {
+                usernameLower = usernameLower.substring(0, c);
+
+                if (mentionExists(usernameLower)) {
+                    const extraText = originalUsername.substr(c);
+                    const alias = addToken(usernameLower, mention, extraText);
+                    return prefix + alias;
+                }
+            } else {
+                // If the last character is not punctuation, no point in going any further
+                break;
+            }
         }
 
         return fullMatch;
     }
 
-    output = output.replace(/(^|\s)(@([a-z0-9.\-_]*[a-z0-9]))/gi, replaceAtMentionWithToken);
-
+    let output = text;
+    output = output.replace(/(^|\s)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
     return output;
 }
 
