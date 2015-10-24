@@ -58,7 +58,11 @@ To enable email, configure an SMTP email service as follows:
 * Information needed
 
 ##### Hotmail
-* Information needed
+* Set **SMTP Username** to **your_email@hotmail.com**
+* Set **SMTP Password** to **your_password**
+* Set **SMTP Server** to **smtp-mail.outlook.com**
+* Set **SMTP Port** to **587**
+* Set **Connection Security** to **STARTTLS**
 
 
 ### Troubleshooting SMTP
