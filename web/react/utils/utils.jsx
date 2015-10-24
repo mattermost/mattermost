@@ -402,6 +402,11 @@ export function toTitleCase(str) {
 }
 
 export function applyTheme(theme) {
+    if (!theme.codeTheme) {
+        theme.codeTheme = Constants.DEFAULT_CODE_THEME;
+    }
+    updateCodeTheme(theme.codeTheme);
+
     if (theme.sidebarBg) {
         changeCss('.sidebar--left, .settings-modal .settings-table .settings-links, .sidebar--menu', 'background:' + theme.sidebarBg, 1);
     }
@@ -586,6 +591,27 @@ export function rgb2hex(rgbIn) {
         return ('0' + parseInt(x, 10).toString(16)).slice(-2);
     }
     return '#' + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+}
+
+export function updateCodeTheme(theme) {
+    const path = '/static/css/highlight/' + theme + '.css';
+    const $link = $('link.code_theme');
+    if (path !== $link.attr('href')) {
+        changeCss('code.hljs', 'visibility: hidden');
+        var xmlHTTP = new XMLHttpRequest();
+        xmlHTTP.open('GET', path, true);
+        xmlHTTP.onload = function onLoad() {
+            $link.attr('href', path);
+            if (isBrowserFirefox()) {
+                $link.one('load', () => {
+                    changeCss('code.hljs', 'visibility: visible');
+                });
+            } else {
+                changeCss('code.hljs', 'visibility: visible');
+            }
+        };
+        xmlHTTP.send();
+    }
 }
 
 export function placeCaretAtEnd(el) {

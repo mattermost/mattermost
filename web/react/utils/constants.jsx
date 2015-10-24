@@ -300,6 +300,13 @@ module.exports = {
             uiName: 'Mention Highlight Link'
         }
     ],
+    CODE_THEMES: {
+        github: 'GitHub',
+        solarized_light: 'Solarized light',
+        monokai: 'Monokai',
+        solarized_dark: 'Solarized Dark'
+    },
+    DEFAULT_CODE_THEME: 'github',
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings'
