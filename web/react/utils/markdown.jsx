@@ -104,7 +104,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     code(code, language) {
         if (!language || highlightJs.listLanguages().indexOf(language) < 0) {
             let parsed = super.code(code, language);
-            return '<code class="hljs">' + parsed.substr(11, parsed.length - 17);
+            return '<code class="hljs">' + $(parsed).text() + '</code>';
         }
 
         let parsed = highlightJs.highlight(language, code);
