@@ -136,16 +136,15 @@ export default class ChannelNotifications extends React.Component {
             var inputs = [];
 
             inputs.push(
-                <div>
+                <div key='channel-notification-level-radio'>
                     <div className='radio'>
                         <label>
                             <input
                                 type='radio'
                                 checked={notifyActive[0]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'default')}
-                            >
+                            />
                                 {`Global default (${globalNotifyLevelName})`}
-                            </input>
                         </label>
                         <br/>
                     </div>
@@ -155,9 +154,8 @@ export default class ChannelNotifications extends React.Component {
                                 type='radio'
                                 checked={notifyActive[1]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'all')}
-                            >
+                            />
                                 {'For all activity'}
-                            </input>
                         </label>
                         <br/>
                     </div>
@@ -167,9 +165,8 @@ export default class ChannelNotifications extends React.Component {
                                 type='radio'
                                 checked={notifyActive[2]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'mention')}
-                            >
+                            />
                                 {'Only for mentions'}
-                            </input>
                         </label>
                         <br/>
                     </div>
@@ -179,9 +176,8 @@ export default class ChannelNotifications extends React.Component {
                                 type='radio'
                                 checked={notifyActive[3]}
                                 onChange={this.handleUpdateNotifyLevel.bind(this, 'none')}
-                            >
+                            />
                                 {'Never'}
-                            </input>
                         </label>
                     </div>
                 </div>
@@ -274,16 +270,15 @@ export default class ChannelNotifications extends React.Component {
 
         if (this.state.activeSection === 'markUnreadLevel') {
             const inputs = [(
-                <div>
+                <div key='channel-notification-unread-radio'>
                     <div className='radio'>
                         <label>
                             <input
                                 type='radio'
                                 checked={this.state.markUnreadLevel === 'all'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'all')}
-                            >
+                            />
                                 {'For all unread messages'}
-                            </input>
                         </label>
                         <br />
                     </div>
@@ -293,9 +288,8 @@ export default class ChannelNotifications extends React.Component {
                                 type='radio'
                                 checked={this.state.markUnreadLevel === 'mention'}
                                 onChange={this.handleUpdateMarkUnreadLevel.bind(this, 'mention')}
-                            >
+                            />
                                 {'Only for mentions'}
-                            </input>
                         </label>
                         <br />
                     </div>
@@ -370,7 +364,7 @@ export default class ChannelNotifications extends React.Component {
                                 data-dismiss='modal'
                             >
                                 <span aria-hidden='true'>&times;</span>
-                                <span className='sr-only'>Close</span>
+                                <span className='sr-only'>{'Close'}</span>
                             </button>
                             <h4 className='modal-title'>Notification Preferences for <span className='name'>{this.state.title}</span></h4>
                         </div>
