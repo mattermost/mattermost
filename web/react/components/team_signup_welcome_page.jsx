@@ -104,21 +104,19 @@ export default class TeamSignupWelcomePage extends React.Component {
 
         return (
             <div>
-                <p>
-                    <img
-                        className='signup-team-logo'
-                        src='/static/images/logo.png'
-                    />
-                    <h3 className='sub-heading'>Welcome to:</h3>
-                    <h1 className='margin--top-none'>{global.window.mm_config.SiteName}</h1>
-                </p>
+                <img
+                    className='signup-team-logo'
+                    src='/static/images/logo.png'
+                />
+                <h3 className='sub-heading'>Welcome to:</h3>
+                <h1 className='margin--top-none'>{global.window.mm_config.SiteName}</h1>
                 <p className='margin--less'>Let's set up your new team</p>
-                <p>
+                <div>
                     Please confirm your email address:<br />
                     <div className='inner__content'>
                         <div className='block--gray'>{this.props.state.team.email}</div>
                     </div>
-                </p>
+                </div>
                 <p className='margin--extra color--light'>
                     Your account will administer the new team site. <br />
                     You can add other administrators later.
