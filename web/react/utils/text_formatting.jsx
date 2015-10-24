@@ -148,23 +148,23 @@ function autolinkAtMentions(text, tokens) {
 
     function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
         let usernameLower = username.toLowerCase();
-        
+
         if (mentionExists(usernameLower)) {
             // Exact match
             const alias = addToken(usernameLower, mention, '');
             return prefix + alias;
-         }
+        }
 
         // Not an exact match, attempt to truncate any punctuation to see if we can find a user
         const originalUsername = usernameLower;
-    
+
         for (let c = usernameLower.length; c > 0; c--) {
-            if (isPunctuation(usernameLower[c-1])) {
-                usernameLower = usernameLower.substring(0, c);
+            if (isPunctuation(usernameLower[c - 1])) {
+                usernameLower = usernameLower.substring(0, c - 1);
 
                 if (mentionExists(usernameLower)) {
-                    const extraText = originalUsername.substr(c);
-                    const alias = addToken(usernameLower, mention, extraText);
+                    const extraText = originalUsername.substr(c - 1);
+                    const alias = addToken(usernameLower, '@' + usernameLower, extraText);
                     return prefix + alias;
                 }
             } else {
