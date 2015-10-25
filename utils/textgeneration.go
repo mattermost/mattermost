@@ -121,7 +121,7 @@ Table
 :person_with_blond_hair: :person_with_pouting_face: :phone: :pig: :pig2: :pig_nose: :pill: :pineapple: :pisces: :pizza:
 `,
 
-	`**[6] [Emojo Display Test 3]**
+	`**[6] [Emoji Display Test 3]**
 :plus1: :point_down: :point_left: :point_right: :point_up: :point_up_2: :police_car: :poodle: :poop: :post_office:
 :postal_horn: :postbox: :potable_water: :pouch: :poultry_leg: :pound: :pouting_cat: :pray: :princess: :punch: 
 :purple_heart: :purse: :pushpin: :put_litter_in_its_place: :question: :rabbit: :rabbit2: :racehorse: :radio: :radio_button:
