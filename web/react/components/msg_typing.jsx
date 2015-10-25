@@ -11,11 +11,11 @@ export default class MsgTyping extends React.Component {
     constructor(props) {
         super(props);
 
-        this.timer = null;
-        this.lastTime = 0;
-
         this.onChange = this.onChange.bind(this);
+        this.getTypingText = this.getTypingText.bind(this);
+        this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
 
+        this.typingUsers = {};
         this.state = {
             text: ''
         };
@@ -27,7 +27,7 @@ export default class MsgTyping extends React.Component {
 
     componentWillReceiveProps(newProps) {
         if (this.props.channelId !== newProps.channelId) {
-            this.setState({text: ''});
+            this.setState({text: this.getTypingText()});
         }
     }
 
@@ -36,27 +36,44 @@ export default class MsgTyping extends React.Component {
     }
 
     onChange(msg) {
+        let username = 'Someone';
         if (msg.action === SocketEvents.TYPING &&
                 this.props.channelId === msg.channel_id &&
                 this.props.parentId === msg.props.parent_id) {
-            this.lastTime = new Date().getTime();
-
-            var username = 'Someone';
             if (UserStore.hasProfile(msg.user_id)) {
                 username = UserStore.getProfile(msg.user_id).username;
             }
 
-            this.setState({text: username + ' is typing...'});
-
-            if (!this.timer) {
-                this.timer = setInterval(function myTimer() {
-                    if ((new Date().getTime() - this.lastTime) > 8000) {
-                        this.setState({text: ''});
-                    }
-                }.bind(this), 3000);
+            if (this.typingUsers[username]) {
+                clearTimeout(this.typingUsers[username]);
             }
+
+            this.typingUsers[username] = setTimeout(function myTimer(user) {
+                delete this.typingUsers[user];
+                this.setState({text: this.getTypingText()});
+            }.bind(this, username), Constants.UPDATE_TYPING_MS);
+
+            this.setState({text: this.getTypingText()});
         } else if (msg.action === SocketEvents.POSTED && msg.channel_id === this.props.channelId) {
-            this.setState({text: ''});
+            if (UserStore.hasProfile(msg.user_id)) {
+                username = UserStore.getProfile(msg.user_id).username;
+            }
+            clearTimeout(this.typingUsers[username]);
+            delete this.typingUsers[username];
+            this.setState({text: this.getTypingText()});
+        }
+    }
+
+    getTypingText() {
+        let users = Object.keys(this.typingUsers);
+        switch (users.length) {
+        case 0:
+            return '';
+        case 1:
+            return users[0] + ' is typing...';
+        default:
+            const last = users.pop();
+            return users.join(', ') + ' and ' + last + ' are typing...';
         }
     }
 
