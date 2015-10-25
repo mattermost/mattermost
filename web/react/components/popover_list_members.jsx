@@ -4,8 +4,24 @@
 var UserStore = require('../stores/user_store.jsx');
 var Popover = ReactBootstrap.Popover;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Utils = require('../utils/utils.jsx');
+
+const ChannelStore = require('../stores/channel_store.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
+const Client = require('../utils/client.jsx');
+const TeamStore = require('../stores/team_store.jsx');
+
+const Constants = require('../utils/constants.jsx');
 
 export default class PopoverListMembers extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
+        this.closePopover = this.closePopover.bind(this);
+    }
+
     componentDidMount() {
         const originalLeave = $.fn.popover.Constructor.prototype.leave;
         $.fn.popover.Constructor.prototype.leave = function onLeave(obj) {
@@ -27,12 +43,62 @@ export default class PopoverListMembers extends React.Component {
             }
         };
     }
+
+    handleShowDirectChannel(teammate, e) {
+        e.preventDefault();
+
+        const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), teammate.id);
+        let channel = ChannelStore.getByName(channelName);
+
+        const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
+        AsyncClient.savePreferences([preference]);
+
+        if (channel) {
+            Utils.switchChannel(channel);
+            this.closePopover();
+        } else {
+            channel = {
+                name: channelName,
+                last_post_at: 0,
+                total_msg_count: 0,
+                type: 'D',
+                display_name: teammate.username,
+                teammate_id: teammate.id,
+                status: UserStore.getStatus(teammate.id)
+            };
+
+            Client.createDirectChannel(
+                channel,
+                teammate.id,
+                (data) => {
+                    AsyncClient.getChannel(data.id);
+                    Utils.switchChannel(data);
+
+                    this.closePopover();
+                },
+                () => {
+                    window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channelName;
+                    this.closePopover();
+                }
+            );
+        }
+    }
+
+    closePopover() {
+        var overlay = this.refs.overlay;
+        if (overlay.state.isOverlayShown) {
+            overlay.setState({isOverlayShown: false});
+        }
+    }
+
     render() {
         let popoverHtml = [];
         let count = 0;
         let countText = '-';
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
+        const currentUserId = UserStore.getCurrentId();
+        const ch = ChannelStore.getCurrent();
 
         if (members && teamMembers) {
             members.sort((a, b) => {
@@ -40,13 +106,74 @@ export default class PopoverListMembers extends React.Component {
             });
 
             members.forEach((m, i) => {
+                const details = [];
+
+                const fullName = Utils.getFullName(m);
+                if (fullName) {
+                    details.push(
+                        <span
+                            key={`${m.id}__full-name`}
+                            className='full-name'
+                        >
+                            {fullName}
+                        </span>
+                    );
+                }
+
+                if (m.nickname) {
+                    const separator = fullName ? ' - ' : '';
+                    details.push(
+                        <span
+                            key={`${m.nickname}__nickname`}
+                        >
+                            {separator + m.nickname}
+                        </span>
+                    );
+                }
+
+                let button = '';
+                if (currentUserId !== m.id && ch.type !== 'D') {
+                    button = (
+                        <button
+                            type='button'
+                            className='btn btn-primary btn-message'
+                            onClick={(e) => this.handleShowDirectChannel(m, e)}
+                        >
+                            {'Message'}
+                        </button>
+                    );
+                }
+
                 if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
                     popoverHtml.push(
                         <div
                             className='text--nowrap'
                             key={'popover-member-' + i}
                         >
-                            {m.username}
+
+                            <img
+                                className='profile-img pull-left'
+                                width='38'
+                                height='38'
+                                src={`/api/v1/users/${m.id}/image?time=${m.update_at}&${Utils.getSessionIndex()}`}
+                            />
+                            <div className='pull-left'>
+                                <div
+                                    className='more-name'
+                                >
+                                    {m.username}
+                                </div>
+                                <div
+                                    className='more-description'
+                                >
+                                    {details}
+                                </div>
+                            </div>
+                            <div
+                                className='pull-right profile-action'
+                            >
+                                {button}
+                            </div>
                         </div>
                     );
                     count++;
@@ -62,6 +189,7 @@ export default class PopoverListMembers extends React.Component {
 
         return (
             <OverlayTrigger
+                ref='overlay'
                 trigger='click'
                 placement='bottom'
                 rootClose={true}
@@ -70,7 +198,9 @@ export default class PopoverListMembers extends React.Component {
                         title='Members'
                         id='member-list-popover'
                     >
-                        {popoverHtml}
+                        <div>
+                            {popoverHtml}
+                        </div>
                     </Popover>
                 }
             >
