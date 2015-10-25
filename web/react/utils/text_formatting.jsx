@@ -140,8 +140,9 @@ function autolinkAtMentions(text, tokens) {
         const alias = `MM_ATMENTION${index}`;
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>${extraText}`,
-            originalText: mention
+            value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
+            originalText: mention,
+            extraText
         });
         return alias;
     }
@@ -194,10 +195,9 @@ function highlightCurrentMentions(text, tokens) {
             const newAlias = `MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
-                value: `<span class='mention-highlight'>${alias}</span>`,
+                value: `<span class='mention-highlight'>${alias}</span>` + token.extraText,
                 originalText: token.originalText
             });
-
             output = output.replace(alias, newAlias);
         }
     }
