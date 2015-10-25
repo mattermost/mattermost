@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	RESP_EXECUTED = "executed"
+	RESP_EXECUTED        = "executed"
+	RESP_NOT_IMPLEMENTED = "not implemented"
 )
 
 type Command struct {

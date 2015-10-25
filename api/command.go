@@ -17,14 +17,23 @@ import (
 
 type commandHandler func(c *Context, command *model.Command) bool
 
-var commands = []commandHandler{
-	logoutCommand,
-	joinCommand,
-	loadTestCommand,
-	echoCommand,
-	shrugCommand,
-}
-
+var (
+	cmds = map[string]string{
+		"logoutCommand":   "/logout",
+		"joinCommand":     "/join",
+		"loadTestCommand": "/loadtest",
+		"echoCommand":     "/echo",
+		"shrugCommand":    "/shrug",
+	}
+	commands = []commandHandler{
+		logoutCommand,
+		joinCommand,
+		loadTestCommand,
+		echoCommand,
+		shrugCommand,
+	}
+	commandNotImplementedErr = model.NewAppError("checkCommand", "Command not implemented", "")
+)
 var echoSem chan bool
 
 func InitCommand(r *mux.Router) {
@@ -45,7 +54,14 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	checkCommand(c, command)
 	if c.Err != nil {
-		return
+		if c.Err != commandNotImplementedErr {
+			return
+		} else {
+			c.Err = nil
+			command.Response = model.RESP_NOT_IMPLEMENTED
+			w.Write([]byte(command.ToJson()))
+			return
+		}
 	} else {
 		w.Write([]byte(command.ToJson()))
 	}
@@ -66,6 +82,23 @@ func checkCommand(c *Context, command *model.Command) bool {
 		}
 	}
 
+	if !command.Suggest {
+		implemented := false
+		for _, cmd := range cmds {
+			bounds := len(cmd)
+			if len(command.Command) < bounds {
+				continue
+			}
+			if command.Command[:bounds] == cmd {
+				implemented = true
+			}
+		}
+		if !implemented {
+			c.Err = commandNotImplementedErr
+			return false
+		}
+	}
+
 	for _, v := range commands {
 
 		if v(c, command) || c.Err != nil {
@@ -78,7 +111,7 @@ func checkCommand(c *Context, command *model.Command) bool {
 
 func logoutCommand(c *Context, command *model.Command) bool {
 
-	cmd := "/logout"
+	cmd := cmds["logoutCommand"]
 
 	if strings.Index(command.Command, cmd) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Logout"})
@@ -97,7 +130,7 @@ func logoutCommand(c *Context, command *model.Command) bool {
 }
 
 func echoCommand(c *Context, command *model.Command) bool {
-	cmd := "/echo"
+	cmd := cmds["echoCommand"]
 	maxThreads := 100
 
 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
@@ -162,7 +195,7 @@ func echoCommand(c *Context, command *model.Command) bool {
 }
 
 func shrugCommand(c *Context, command *model.Command) bool {
-	cmd := "/shrug"
+	cmd := cmds["shrugCommand"]
 
 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
 		message := "¯\\_(ツ)_/¯"
@@ -192,7 +225,7 @@ func shrugCommand(c *Context, command *model.Command) bool {
 func joinCommand(c *Context, command *model.Command) bool {
 
 	// looks for "/join channel-name"
-	cmd := "/join"
+	cmd := cmds["joinCommand"]
 
 	if strings.Index(command.Command, cmd) == 0 {
 
@@ -242,7 +275,7 @@ func joinCommand(c *Context, command *model.Command) bool {
 }
 
 func loadTestCommand(c *Context, command *model.Command) bool {
-	cmd := "/loadtest"
+	cmd := cmds["loadTestCommand"]
 
 	// This command is only available when EnableTesting is true
 	if !utils.Cfg.ServiceSettings.EnableTesting {
@@ -304,7 +337,7 @@ func contains(items []string, token string) bool {
 }
 
 func loadTestSetupCommand(c *Context, command *model.Command) bool {
-	cmd := "/loadtest setup"
+	cmd := cmds["loadTestCommand"] + " setup"
 
 	if strings.Index(command.Command, cmd) == 0 && !command.Suggest {
 		tokens := strings.Fields(strings.TrimPrefix(command.Command, cmd))
@@ -390,8 +423,8 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 }
 
 func loadTestUsersCommand(c *Context, command *model.Command) bool {
-	cmd1 := "/loadtest users"
-	cmd2 := "/loadtest users fuzz"
+	cmd1 := cmds["loadTestCommand"] + " users"
+	cmd2 := cmds["loadTestCommand"] + " users fuzz"
 
 	if strings.Index(command.Command, cmd1) == 0 && !command.Suggest {
 		cmd := cmd1
@@ -420,8 +453,8 @@ func loadTestUsersCommand(c *Context, command *model.Command) bool {
 }
 
 func loadTestChannelsCommand(c *Context, command *model.Command) bool {
-	cmd1 := "/loadtest channels"
-	cmd2 := "/loadtest channels fuzz"
+	cmd1 := cmds["loadTestCommand"] + " channels"
+	cmd2 := cmds["loadTestCommand"] + " channels fuzz"
 
 	if strings.Index(command.Command, cmd1) == 0 && !command.Suggest {
 		cmd := cmd1
@@ -451,8 +484,8 @@ func loadTestChannelsCommand(c *Context, command *model.Command) bool {
 }
 
 func loadTestPostsCommand(c *Context, command *model.Command) bool {
-	cmd1 := "/loadtest posts"
-	cmd2 := "/loadtest posts fuzz"
+	cmd1 := cmds["loadTestCommand"] + " posts"
+	cmd2 := cmds["loadTestCommand"] + " posts fuzz"
 
 	if strings.Index(command.Command, cmd1) == 0 && !command.Suggest {
 		cmd := cmd1
