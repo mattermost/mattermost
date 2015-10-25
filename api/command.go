@@ -165,7 +165,7 @@ func shrugCommand(c *Context, command *model.Command) bool {
 	cmd := "/shrug"
 
 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
-		message := "¯\\_(ツ)_/¯"
+		message := `¯\\\_(ツ)_/¯`
 
 		parameters := strings.SplitN(command.Command, " ", 2)
 		if len(parameters) > 1 {
