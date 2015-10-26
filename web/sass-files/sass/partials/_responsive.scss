@@ -284,6 +284,9 @@
             height: auto;
         }
     }
+    .search-help-popover.visible {
+        visibility: hidden;
+    }
     .modal-direct-channels {
         .member-count {
             float: none;
@@ -401,6 +404,9 @@
                             text-align: left;
                         }
                     }
+                    .no-padding--left {
+                        padding-left: 15px;
+                    }
                 }
                 .settings-links {
                     display: none;
@@ -425,6 +431,11 @@
             }
         }
         .settings-table {
+            .nav {
+                position: relative;
+                top: auto;
+                width: 100%;
+            }
             .settings-content {
                 &.minimize-settings {
                     padding: 0;

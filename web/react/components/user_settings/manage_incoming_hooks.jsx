@@ -119,24 +119,23 @@ export default class ManageIncomingHooks extends React.Component {
                 hooks.push(
                     <div
                         key={hook.id}
-                        className='font--small'
+                        className='webhook__item'
                     >
-                        <div className='padding-top x2 divider-light'></div>
-                        <div className='padding-top x2'>
-                            <strong>{'URL: '}</strong><span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
+                        <div className='padding-top x2 webhook__url'>
+                            <strong>{'URL: '}</strong>
+                            <span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
                         </div>
                         <div className='padding-top'>
                             <strong>{'Channel: '}</strong>{c.display_name}
                         </div>
-                        <div className='padding-top'>
-                            <a
-                                className={'text-danger'}
-                                href='#'
-                                onClick={this.removeHook.bind(this, hook.id)}
-                            >
-                                {'Remove'}
-                            </a>
-                        </div>
+                        <a
+                            className={'webhook__remove'}
+                            href='#'
+                            onClick={this.removeHook.bind(this, hook.id)}
+                        >
+                            <span aria-hidden='true'>{'×'}</span>
+                        </a>
+                        <div className='padding-top x2 divider-light'></div>
                     </div>
                 );
             }
@@ -148,35 +147,38 @@ export default class ManageIncomingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <label>{': None'}</label>;
+            displayHooks = <div className='padding-top x2'>{'None'}</div>;
         }
 
         const existingHooks = (
-            <div className='padding-top x2'>
+            <div className='webhooks__container'>
                 <label className='control-label padding-top x2'>{'Existing incoming webhooks'}</label>
-                {displayHooks}
+                <div className='padding-top divider-light'></div>
+                <div className='webhooks__list'>
+                    {displayHooks}
+                </div>
             </div>
         );
 
         return (
             <div key='addIncomingHook'>
                 {'Create webhook URLs for use in external integrations. Please see '}<a href='http://mattermost.org/webhooks'>{'http://mattermost.org/webhooks'}</a> {' to learn more.'}
-                <br/>
-                <br/>
-                <label className='control-label'>{'Add a new incoming webhook'}</label>
-                <div className='padding-top'>
-                    <select
-                        ref='channelName'
-                        className='form-control'
-                        value={this.state.channelId}
-                        onChange={this.updateChannelId}
-                    >
-                        {options}
-                    </select>
-                    {serverError}
-                    <div className='padding-top'>
+                <label className='control-label padding-top x2'>{'Add a new incoming webhook'}</label>
+                <div className='row padding-top'>
+                    <div className='col-sm-10 padding-bottom'>
+                        <select
+                            ref='channelName'
+                            className='form-control'
+                            value={this.state.channelId}
+                            onChange={this.updateChannelId}
+                        >
+                            {options}
+                        </select>
+                        {serverError}
+                    </div>
+                    <div className='col-sm-2 col-xs-4 no-padding--left padding-bottom'>
                         <a
-                            className={'btn btn-sm btn-primary' + disableButton}
+                            className={'btn form-control no-padding btn-sm btn-primary' + disableButton}
                             href='#'
                             onClick={this.addNewHook}
                         >

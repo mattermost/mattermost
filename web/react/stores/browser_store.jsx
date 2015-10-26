@@ -74,9 +74,9 @@ class BrowserStoreClass {
         var result = null;
         try {
             if (this.isLocalStorageSupported()) {
-                result = JSON.parse(getPrefix() + localStorage.getItem(name));
+                result = JSON.parse(localStorage.getItem(getPrefix() + name));
             } else {
-                result = JSON.parse(getPrefix() + sessionStorage.getItem(name));
+                result = JSON.parse(sessionStorage.getItem(getPrefix() + name));
             }
         } catch (err) {
             result = null;

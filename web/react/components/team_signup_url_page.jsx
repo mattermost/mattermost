@@ -54,7 +54,11 @@ export default class TeamSignupUrlPage extends React.Component {
                   if (data) {
                       this.setState({nameError: 'This URL is unavailable. Please try another.'});
                   } else {
-                      this.props.state.wizard = 'send_invites';
+                      if (global.window.mm_config.SendEmailNotifications === 'true') {
+                          this.props.state.wizard = 'send_invites';
+                      } else {
+                          this.props.state.wizard = 'username';
+                      }
                       this.props.state.team.type = 'O';
 
                       this.props.state.team.name = name;

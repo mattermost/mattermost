@@ -15,11 +15,6 @@ export default class TeamSignupSendInvitesPage extends React.Component {
         this.state = {
             emailEnabled: global.window.mm_config.SendEmailNotifications === 'true'
         };
-
-        if (!this.state.emailEnabled) {
-            this.props.state.wizard = 'username';
-            this.props.updateParent(this.props.state);
-        }
     }
     submitBack(e) {
         e.preventDefault();

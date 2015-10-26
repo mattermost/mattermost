@@ -569,9 +569,10 @@ body.ios {
 }
 
 .bot-indicator {
-	background-color: lightgrey;
-	border-radius:2px;
-	padding-left:2px;
-	padding-right:2px;
-	font-family:"Courier New"
+	font-family: inherit;
+	font-size: 11px;
+	padding: 2px 4px;
+	border-radius: 2px;
+	font-weight: 600;
+	margin: 0 0 0 -4px;
 }

@@ -94,8 +94,11 @@ a:focus, a:hover {
  margin: 0;
 }
 
-.text-danger {
+.text-danger, a.text-danger {
   color: #E05F5D;
+  &:hover, &:focus {
+    color: #E05F5D;
+  }
 }
 
 .btn {
@@ -111,6 +114,10 @@ a:focus, a:hover {
   @include border-radius(2px);
   &:focus {
     @include box-shadow(none);
+  }
+  &.no-padding {
+    line-height: 32px;
+    padding: 0;
   }
   &.no-resize {
     resize: none;

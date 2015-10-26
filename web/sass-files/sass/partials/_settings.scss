@@ -1,5 +1,6 @@
 @import "access-history";
 @import "activity-log";
+@import "webhooks";
 
 .user-settings {
     min-height:300px;
@@ -29,6 +30,9 @@
     li {
         list-style: none;
     }
+    label {
+        font-weight: 600;
+    }
     .settings-table {
         display: table;
         table-layout: fixed;
@@ -36,6 +40,11 @@
         > div {
             display: table-cell;
             vertical-align: top;
+        }
+        .nav {
+            position: fixed;
+            top: 57px;
+            width: 180px;
         }
         .security-links {
             margin-right: 20px;
@@ -129,10 +138,6 @@
                 }
             }
 
-            .font--small {
-                font-size: 13px;
-            }
-
             .section-describe {
                 @include opacity(0.7);
                 white-space:pre;
@@ -161,14 +166,29 @@
 
             .setting-list-item {
                 margin-top:7px;
-                .has-error {
-                    color: #a94442;
+            }
+            .has-error {
+                color: #a94442;
+            }
+            .no-padding--left {
+                padding-left: 0;
+            }
+            .padding-top {
+                padding-top: 7px;
+                &.x2 {
+                    padding-top: 14px;
                 }
-                .padding-top {
-                    padding-top: 7px;
-                    &.x2 {
-                        padding-top: 14px;
-                    }
+                &.x3 {
+                    padding-top: 21px;
+                }
+            }
+            .padding-bottom {
+                padding-bottom: 7px;
+                &.x2 {
+                    padding-bottom: 14px;
+                }
+                &.x3 {
+                    padding-bottom: 21px;
                 }
                 .control-label {
                     font-weight: 600;

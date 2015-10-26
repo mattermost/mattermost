@@ -6,6 +6,7 @@ var Constants = require('../../utils/constants.jsx');
 var ChannelStore = require('../../stores/channel_store.jsx');
 var LoadingScreen = require('../loading_screen.jsx');
 
+
 export default class ManageOutgoingHooks extends React.Component {
     constructor() {
         super();
@@ -180,9 +181,8 @@ export default class ManageOutgoingHooks extends React.Component {
             hooks.push(
                 <div
                     key={hook.id}
-                    className='font--small'
+                    className='webhook__item'
                 >
-                    <div className='padding-top x2 divider-light'></div>
                     <div className='padding-top x2'>
                         <strong>{'URLs: '}</strong><span className='word-break--all'>{hook.callback_urls.join(', ')}</span>
                     </div>
@@ -199,15 +199,15 @@ export default class ManageOutgoingHooks extends React.Component {
                         >
                             {'Regen Token'}
                         </a>
-                        <span>{' - '}</span>
                         <a
-                            className='text-danger'
+                            className='webhook__remove'
                             href='#'
                             onClick={this.removeHook.bind(this, hook.id)}
                         >
-                            {'Remove'}
+                            <span aria-hidden='true'>{'×'}</span>
                         </a>
                     </div>
+                    <div className='padding-top x2 divider-light'></div>
                 </div>
             );
         });
@@ -218,13 +218,16 @@ export default class ManageOutgoingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <label>{': None'}</label>;
+            displayHooks = <div className='padding-top x2'>{'None'}</div>;
         }
 
         const existingHooks = (
-            <div className='padding-top x2'>
+            <div className='webhooks__container'>
                 <label className='control-label padding-top x2'>{'Existing outgoing webhooks'}</label>
-                {displayHooks}
+                <div className='padding-top divider-light'></div>
+                <div className='webhooks__list'>
+                    {displayHooks}
+                </div>
             </div>
         );
 
@@ -234,41 +237,49 @@ export default class ManageOutgoingHooks extends React.Component {
             <div key='addOutgoingHook'>
                 <label className='control-label'>{'Add a new outgoing webhook'}</label>
                 <div className='padding-top'>
-                    <strong>{'Channel:'}</strong>
-                    <select
-                        ref='channelName'
-                        className='form-control'
-                        value={this.state.channelId}
-                        onChange={this.updateChannelId}
-                    >
-                        {options}
-                    </select>
-                    <span>{'Only public channels can be used'}</span>
-                    <br/>
-                    <br/>
-                    <strong>{'Trigger Words:'}</strong>
-                    <input
-                        ref='triggerWords'
-                        className='form-control'
-                        value={this.state.triggerWords}
-                        onChange={this.updateTriggerWords}
-                        placeholder='Optional if channel selected'
-                    />
-                    <span>{'Comma separated words to trigger on'}</span>
-                    <br/>
-                    <br/>
-                    <strong>{'Callback URLs:'}</strong>
-                    <textarea
-                        ref='callbackURLs'
-                        className='form-control no-resize'
-                        value={this.state.callbackURLs}
-                        resize={false}
-                        rows={3}
-                        onChange={this.updateCallbackURLs}
-                    />
-                    <span>{'New line separated URLs that will receive the HTTP POST event'}</span>
-                    {serverError}
-                    <div className='padding-top'>
+                    <div>
+                        <label className='control-label'>{'Channel'}</label>
+                        <div className='padding-top'>
+                            <select
+                                ref='channelName'
+                                className='form-control'
+                                value={this.state.channelId}
+                                onChange={this.updateChannelId}
+                            >
+                                {options}
+                            </select>
+                        </div>
+                        <div className='padding-top'>{'Only public channels can be used'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Trigger Words:'}</label>
+                        <div className='padding-top'>
+                            <input
+                                ref='triggerWords'
+                                className='form-control'
+                                value={this.state.triggerWords}
+                                onChange={this.updateTriggerWords}
+                                placeholder='Optional if channel selected'
+                            />
+                        </div>
+                        <div className='padding-top'>{'Comma separated words to trigger on'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Callback URLs:'}</label>
+                        <div className='padding-top'>
+                        <textarea
+                            ref='callbackURLs'
+                            className='form-control no-resize'
+                            value={this.state.callbackURLs}
+                            resize={false}
+                            rows={3}
+                            onChange={this.updateCallbackURLs}
+                        />
+                        </div>
+                        <div className='padding-top'>{'New line separated URLs that will receive the HTTP POST event'}</div>
+                        {serverError}
+                    </div>
+                    <div className='padding-top padding-bottom'>
                         <a
                             className={'btn btn-sm btn-primary'}
                             href='#'
