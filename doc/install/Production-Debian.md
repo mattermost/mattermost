@@ -1,4 +1,7 @@
-# Production Installation on Debian Jessie (x64)
+# (Community Guide) Production Installation on Debian Jessie (x64)
+
+Note: This install guide has been generously contributed by the Mattermost community. It has not yet been tested by the core. We have [an open ticket](https://github.com/mattermost/platform/issues/1185) requesting community help testing and improving this guide. Once the community has confirmed we have multiple deployments on these instructions, we can update the text here. If you're installing on Debian anyway, please let us know any issues or instruciton improvements? https://github.com/mattermost/platform/issues/1185
+
 
 ## Install Debian Jessie (x64)
 1. Set up 3 machines with Debian Jessie with 2GB of RAM or more.  The servers will be used for the Load Balancer, Mattermost (this must be x64 to use pre-built binaries), and Database.
