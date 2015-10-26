@@ -27,7 +27,6 @@ type IncomingWebhookRequest struct {
 	Text        string `json:"text"`
 	Username    string `json:"username"`
 	IconURL     string `json:"icon_url"`
-	IconEmoji   string `json:"icon_emoji"`
 	ChannelName string `json:"channel"`
 }
 
