@@ -27,7 +27,7 @@ export default class CreateComment extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
-        this.handleArrowUp = this.handleArrowUp.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -36,6 +36,7 @@ export default class CreateComment extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.onUserChange = this.onUserChange.bind(this);
 
         PostStore.clearCommentDraftUploads();
 
@@ -45,14 +46,21 @@ export default class CreateComment extends React.Component {
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
-            windowWidth: Utils.windowWidth()
+            windowWidth: Utils.windowWidth(),
+            ctrlSend: UserStore.getCurrentUser().props.ctrlSend
         };
+
+        UserStore.addChangeListener(this.onUserChange);
     }
     componentDidMount() {
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
+    }
+    onUserChange() {
+        const ctrlSend = UserStore.getCurrentUser().props.ctrlSend || 'false';
+        this.setState({ctrlSend});
     }
     handleResize() {
         this.setState({windowWidth: Utils.windowWidth()});
@@ -140,10 +148,12 @@ export default class CreateComment extends React.Component {
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
     }
     commentMsgKeyPress(e) {
-        if (e.which === 13 && !e.shiftKey && !e.altKey) {
-            e.preventDefault();
-            ReactDOM.findDOMNode(this.refs.textbox).blur();
-            this.handleSubmit(e);
+        if (this.state.ctrlSend === 'true' && e.ctrlKey || this.state.ctrlSend === 'false') {
+            if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                ReactDOM.findDOMNode(this.refs.textbox).blur();
+                this.handleSubmit(e);
+            }
         }
 
         const t = Date.now();
@@ -161,7 +171,12 @@ export default class CreateComment extends React.Component {
         $('.post-right__scroll').perfectScrollbar('update');
         this.setState({messageText: messageText});
     }
-    handleArrowUp(e) {
+    handleKeyDown(e) {
+        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+            this.commentMsgKeyPress(e);
+            return;
+        }
+
         if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
@@ -313,7 +328,7 @@ export default class CreateComment extends React.Component {
                             <Textbox
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.commentMsgKeyPress}
-                                onKeyDown={this.handleArrowUp}
+                                onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
                                 createMessage='Add a comment...'
                                 initialText=''
