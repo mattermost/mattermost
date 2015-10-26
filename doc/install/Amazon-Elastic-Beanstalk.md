@@ -16,8 +16,7 @@ These instructions will guide you through the process of setting up Mattermost f
 9. The options on the Additional Resources page may be left at default unless you wish to change them. Click **Next**.
 10. On the Configuration Details page, 
 	1. Select an Instance Type of **t2.small**. You may select larger T2 instance types if required.
-	2. Under the Health Reporting section, change System Type to **Basic**.
-	3. The remaining options may be left at their default values unless you wish to change them. Click **Next**.
+	2. The remaining options may be left at their default values unless you wish to change them. Click **Next**.
 11. Environment tags may be left blank. Click **Next**.
 12. You will be asked to review your information, then click **Launch**.
 13. You may see a warning that the "environment does not have an IAM instance profile associated with it". Click **Save** to dismiss the warning for now.
