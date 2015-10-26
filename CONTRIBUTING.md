@@ -4,7 +4,10 @@ Thank you for your interest in contributing to Mattermost. This guide provides a
 
 ## Choose a Ticket
 
-1. Review the list of [Good First Contribution](https://mattermost.atlassian.net/issues/?filter=10206) tickets listed in Jira. 
+1. Review the list of [Good First Contribution](https://mattermost.atlassian.net/issues/?filter=10206) tickets listed in Jira.
+    - You are welcome to work on any ticket, even if it is assigned, so long as it is not yet marked "in progress"
+    - (optional) You can share with the community that you're working on a specific ticket so no one else inadvertently duplicates your work by sharing on the forum or in the core team Mattermost instance as described in step 3. 
+
 2. These projects are intended to be a straight forward first pull requests from new contributors. 
   - If you don't find something appropriate for your interests, please see the full list of tickets [Accepting Pull Requests](https://mattermost.atlassian.net/issues/?filter=10101). 
   - Also, feel free to fix bugs you find, or items in GitHub issues that the core team has approved, but not yet added to Jira.
