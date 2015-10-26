@@ -119,7 +119,7 @@ exec bin/platform
   
 ## Set up Nginx with SSL (Recommended)
 1. You will need a SSL cert from a certificate authority.
-1. For simplicity we will generate a test certificate.
+2. For simplicity we will generate a test certificate.
   * ``` mkdir ~/cert```
   * ``` cd ~/cert```
   * ``` sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mattermost.key -out mattermost.crt```
@@ -133,8 +133,8 @@ exec bin/platform
     Common Name (e.g. server FQDN or YOUR name) []:mattermost.example.com
     Email Address []:admin@mattermost.example.com
 ```
-1. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines
-  * 
+3. Run `openssl dhparam -out dhparam.pem 4096` (it will take some time).
+4. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines:
 ```
   server {
        listen         80;
@@ -149,9 +149,10 @@ exec bin/platform
         ssl on;
         ssl_certificate /home/ubuntu/cert/mattermost.crt;
         ssl_certificate_key /home/ubuntu/cert/mattermost.key;
+        ssl_dhparam /home/ubuntu/cert/dhparam.pem;
         ssl_session_timeout 5m;
-        ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
-        ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
         ssl_prefer_server_ciphers on;
 		
 		# add to location / above
