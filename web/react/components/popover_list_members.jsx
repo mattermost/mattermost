@@ -7,12 +7,6 @@ var Overlay = ReactBootstrap.Overlay;
 const Utils = require('../utils/utils.jsx');
 
 const ChannelStore = require('../stores/channel_store.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
-const Client = require('../utils/client.jsx');
-const TeamStore = require('../stores/team_store.jsx');
-
-const Constants = require('../utils/constants.jsx');
 
 export default class PopoverListMembers extends React.Component {
     constructor(props) {
@@ -51,41 +45,18 @@ export default class PopoverListMembers extends React.Component {
     handleShowDirectChannel(teammate, e) {
         e.preventDefault();
 
-        const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), teammate.id);
-        let channel = ChannelStore.getByName(channelName);
-
-        const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
-        AsyncClient.savePreferences([preference]);
-
-        if (channel) {
-            Utils.switchChannel(channel);
-            this.closePopover();
-        } else {
-            channel = {
-                name: channelName,
-                last_post_at: 0,
-                total_msg_count: 0,
-                type: 'D',
-                display_name: teammate.username,
-                teammate_id: teammate.id,
-                status: UserStore.getStatus(teammate.id)
-            };
-
-            Client.createDirectChannel(
-                channel,
-                teammate.id,
-                (data) => {
-                    AsyncClient.getChannel(data.id);
-                    Utils.switchChannel(data);
-
-                    this.closePopover();
-                },
-                () => {
-                    window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channelName;
+        Utils.openDirectChannelToUser(
+            teammate,
+            (channel, channelAlreadyExisted) => {
+                Utils.switchChannel(channel);
+                if (channelAlreadyExisted) {
                     this.closePopover();
                 }
-            );
-        }
+            },
+            () => {
+                this.closePopover();
+            }
+        );
     }
 
     closePopover() {
