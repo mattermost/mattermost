@@ -814,6 +814,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
 		}
 
+		w.Header().Set("Content-Type", "image/png")
 		w.Write(img)
 	}
 }
