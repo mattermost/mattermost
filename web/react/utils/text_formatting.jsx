@@ -246,7 +246,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
 
     var newTokens = new Map();
     for (const [alias, token] of tokens) {
-        if (token.originalText === searchTerm) {
+        if (token.originalText.indexOf(searchTerm.replace(/\*$/, '')) > -1) {
             const index = tokens.size + newTokens.size;
             const newAlias = `MM_SEARCHTERM${index}`;
 
@@ -276,7 +276,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
         return prefix + alias;
     }
 
-    return output.replace(new RegExp(`(^|\\W)(${searchTerm})\\b`, 'gi'), replaceSearchTermWithToken);
+    return output.replace(new RegExp(`()(${searchTerm})`, 'gi'), replaceSearchTermWithToken);
 }
 
 function replaceTokens(text, tokens) {
