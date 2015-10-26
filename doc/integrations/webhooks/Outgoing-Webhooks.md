@@ -111,3 +111,8 @@ As mentioned above, Mattermost makes it easy to take integrations written for Sl
 3. Similiarly, responses designed for Slack using `|` within a `<>` to define linked text, such as ```{"text": "Click <http://www.mattermost.com/|here> for a link."}```, are also translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack
 
 To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
+
+#### Limitations
+
+- Overriding of usernames does not yet apply to notifications
+- Cannot supply `icon_emoji` to override the message icon
