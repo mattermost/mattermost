@@ -8,10 +8,10 @@ import (
 )
 
 type SearchParams struct {
-	Terms     string
-	IsHashtag bool
-	InChannel string
-	FromUser  string
+	Terms      string
+	IsHashtag  bool
+	InChannels []string
+	FromUsers  []string
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}
@@ -106,45 +106,34 @@ func ParseSearchParams(text string) []*SearchParams {
 		}
 	}
 
-	if len(inChannels) == 0 {
-		inChannels = append(inChannels, "")
-	}
-	if len(fromUsers) == 0 {
-		fromUsers = append(fromUsers, "")
-	}
-
 	paramsList := []*SearchParams{}
 
-	for _, inChannel := range inChannels {
-		for _, fromUser := range fromUsers {
-			if len(plainTerms) > 0 {
-				paramsList = append(paramsList, &SearchParams{
-					Terms:     plainTerms,
-					IsHashtag: false,
-					InChannel: inChannel,
-					FromUser:  fromUser,
-				})
-			}
+	if len(plainTerms) > 0 {
+		paramsList = append(paramsList, &SearchParams{
+			Terms:      plainTerms,
+			IsHashtag:  false,
+			InChannels: inChannels,
+			FromUsers:  fromUsers,
+		})
+	}
 
-			if len(hashtagTerms) > 0 {
-				paramsList = append(paramsList, &SearchParams{
-					Terms:     hashtagTerms,
-					IsHashtag: true,
-					InChannel: inChannel,
-					FromUser:  fromUser,
-				})
-			}
+	if len(hashtagTerms) > 0 {
+		paramsList = append(paramsList, &SearchParams{
+			Terms:      hashtagTerms,
+			IsHashtag:  true,
+			InChannels: inChannels,
+			FromUsers:  fromUsers,
+		})
+	}
 
-			// special case for when no terms are specified but we still have a filter
-			if len(plainTerms) == 0 && len(hashtagTerms) == 0 {
-				paramsList = append(paramsList, &SearchParams{
-					Terms:     "",
-					IsHashtag: true,
-					InChannel: inChannel,
-					FromUser:  fromUser,
-				})
-			}
-		}
+	// special case for when no terms are specified but we still have a filter
+	if len(plainTerms) == 0 && len(hashtagTerms) == 0 {
+		paramsList = append(paramsList, &SearchParams{
+			Terms:      "",
+			IsHashtag:  true,
+			InChannels: inChannels,
+			FromUsers:  fromUsers,
+		})
 	}
 
 	return paramsList

@@ -546,6 +546,9 @@ func TestSearchPostsFromUser(t *testing.T) {
 	Client.Must(Client.JoinChannel(channel1.Id))
 	Client.Must(Client.JoinChannel(channel2.Id))
 
+	// wait for the join/leave messages to be created for user3 since they're done asynchronously
+	time.Sleep(100 * time.Millisecond)
+
 	if result := Client.Must(Client.SearchPosts("from: " + user2.Username)).Data.(*model.PostList); len(result.Order) != 3 {
 		t.Fatalf("wrong number of posts returned %v", len(result.Order))
 	}
