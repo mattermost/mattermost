@@ -3,7 +3,7 @@
 
 var UserStore = require('../stores/user_store.jsx');
 var Popover = ReactBootstrap.Popover;
-var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+var Overlay = ReactBootstrap.Overlay;
 const Utils = require('../utils/utils.jsx');
 
 const ChannelStore = require('../stores/channel_store.jsx');
@@ -20,6 +20,10 @@ export default class PopoverListMembers extends React.Component {
 
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.closePopover = this.closePopover.bind(this);
+    }
+
+    componentWillMount() {
+        this.setState({showPopover: false});
     }
 
     componentDidMount() {
@@ -85,10 +89,7 @@ export default class PopoverListMembers extends React.Component {
     }
 
     closePopover() {
-        var overlay = this.refs.overlay;
-        if (overlay.state.isOverlayShown) {
-            overlay.setState({isOverlayShown: false});
-        }
+        this.setState({showPopover: false});
     }
 
     render() {
@@ -188,12 +189,27 @@ export default class PopoverListMembers extends React.Component {
         }
 
         return (
-            <OverlayTrigger
-                ref='overlay'
-                trigger='click'
-                placement='bottom'
-                rootClose={true}
-                overlay={
+            <div>
+                <div
+                    id='member_popover'
+                    ref='member_popover_target'
+                    onClick={(e) => this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover})}
+                >
+                    <div>
+                        {countText}
+                        <span
+                            className='fa fa-user'
+                            aria-hidden='true'
+                        />
+                    </div>
+                </div>
+                <Overlay
+                    rootClose={true}
+                    onHide={this.closePopover}
+                    show={this.state.showPopover}
+                    target={() => this.state.popoverTarget}
+                    placement='bottom'
+                >
                     <Popover
                         title='Members'
                         id='member-list-popover'
@@ -202,18 +218,8 @@ export default class PopoverListMembers extends React.Component {
                             {popoverHtml}
                         </div>
                     </Popover>
-                }
-            >
-            <div id='member_popover'>
-                <div>
-                    {countText}
-                    <span
-                        className='fa fa-user'
-                        aria-hidden='true'
-                    />
-                </div>
+                </Overlay>
             </div>
-            </OverlayTrigger>
         );
     }
 }
