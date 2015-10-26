@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
-var PostStore = require('../stores/post_store.jsx');
+var SearchStore = require('../stores/search_store.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Mention = require('./mention.jsx');
 
@@ -66,7 +66,7 @@ export default class MentionList extends React.Component {
         }
     }
     componentDidMount() {
-        PostStore.addMentionDataChangeListener(this.onListenerChange);
+        SearchStore.addMentionDataChangeListener(this.onListenerChange);
 
         $('.post-right__scroll').scroll(this.onScroll);
 
@@ -74,7 +74,7 @@ export default class MentionList extends React.Component {
         $(document).click(this.onClick);
     }
     componentWillUnmount() {
-        PostStore.removeMentionDataChangeListener(this.onListenerChange);
+        SearchStore.removeMentionDataChangeListener(this.onListenerChange);
         $('body').off('keydown.mentionlist', '#' + this.props.id);
     }
 

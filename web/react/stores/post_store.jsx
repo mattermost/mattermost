@@ -12,11 +12,7 @@ var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
 var CHANGE_EVENT = 'change';
-var SEARCH_CHANGE_EVENT = 'search_change';
-var SEARCH_TERM_CHANGE_EVENT = 'search_term_change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
-var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
-var ADD_MENTION_EVENT = 'add_mention';
 var EDIT_POST_EVENT = 'edit_post';
 
 class PostStoreClass extends EventEmitter {
@@ -26,21 +22,15 @@ class PostStoreClass extends EventEmitter {
         this.emitChange = this.emitChange.bind(this);
         this.addChangeListener = this.addChangeListener.bind(this);
         this.removeChangeListener = this.removeChangeListener.bind(this);
-        this.emitSearchChange = this.emitSearchChange.bind(this);
-        this.addSearchChangeListener = this.addSearchChangeListener.bind(this);
-        this.removeSearchChangeListener = this.removeSearchChangeListener.bind(this);
-        this.emitSearchTermChange = this.emitSearchTermChange.bind(this);
-        this.addSearchTermChangeListener = this.addSearchTermChangeListener.bind(this);
-        this.removeSearchTermChangeListener = this.removeSearchTermChangeListener.bind(this);
+
         this.emitSelectedPostChange = this.emitSelectedPostChange.bind(this);
         this.addSelectedPostChangeListener = this.addSelectedPostChangeListener.bind(this);
         this.removeSelectedPostChangeListener = this.removeSelectedPostChangeListener.bind(this);
-        this.emitMentionDataChange = this.emitMentionDataChange.bind(this);
-        this.addMentionDataChangeListener = this.addMentionDataChangeListener.bind(this);
-        this.removeMentionDataChangeListener = this.removeMentionDataChangeListener.bind(this);
-        this.emitAddMention = this.emitAddMention.bind(this);
-        this.addAddMentionListener = this.addAddMentionListener.bind(this);
-        this.removeAddMentionListener = this.removeAddMentionListener.bind(this);
+
+        this.emitEditPost = this.emitEditPost.bind(this);
+        this.addEditPostListener = this.addEditPostListener.bind(this);
+        this.removeEditPostListener = this.removeEditPostListener.bind(this);
+
         this.getCurrentPosts = this.getCurrentPosts.bind(this);
         this.storePosts = this.storePosts.bind(this);
         this.pStorePosts = this.pStorePosts.bind(this);
@@ -59,13 +49,8 @@ class PostStoreClass extends EventEmitter {
         this.pRemovePendingPost = this.pRemovePendingPost.bind(this);
         this.clearPendingPosts = this.clearPendingPosts.bind(this);
         this.updatePendingPost = this.updatePendingPost.bind(this);
-        this.storeSearchResults = this.storeSearchResults.bind(this);
-        this.getSearchResults = this.getSearchResults.bind(this);
-        this.getIsMentionSearch = this.getIsMentionSearch.bind(this);
         this.storeSelectedPost = this.storeSelectedPost.bind(this);
         this.getSelectedPost = this.getSelectedPost.bind(this);
-        this.storeSearchTerm = this.storeSearchTerm.bind(this);
-        this.getSearchTerm = this.getSearchTerm.bind(this);
         this.getEmptyDraft = this.getEmptyDraft.bind(this);
         this.storeCurrentDraft = this.storeCurrentDraft.bind(this);
         this.getCurrentDraft = this.getCurrentDraft.bind(this);
@@ -77,9 +62,6 @@ class PostStoreClass extends EventEmitter {
         this.clearCommentDraftUploads = this.clearCommentDraftUploads.bind(this);
         this.storeLatestUpdate = this.storeLatestUpdate.bind(this);
         this.getLatestUpdate = this.getLatestUpdate.bind(this);
-        this.emitEditPost = this.emitEditPost.bind(this);
-        this.addEditPostListener = this.addEditPostListener.bind(this);
-        this.removeEditPostListener = this.removeEditPostListener.bind(this);
         this.getCurrentUsersLatestPost = this.getCurrentUsersLatestPost.bind(this);
     }
     emitChange() {
@@ -94,30 +76,6 @@ class PostStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT, callback);
     }
 
-    emitSearchChange() {
-        this.emit(SEARCH_CHANGE_EVENT);
-    }
-
-    addSearchChangeListener(callback) {
-        this.on(SEARCH_CHANGE_EVENT, callback);
-    }
-
-    removeSearchChangeListener(callback) {
-        this.removeListener(SEARCH_CHANGE_EVENT, callback);
-    }
-
-    emitSearchTermChange(doSearch, isMentionSearch) {
-        this.emit(SEARCH_TERM_CHANGE_EVENT, doSearch, isMentionSearch);
-    }
-
-    addSearchTermChangeListener(callback) {
-        this.on(SEARCH_TERM_CHANGE_EVENT, callback);
-    }
-
-    removeSearchTermChangeListener(callback) {
-        this.removeListener(SEARCH_TERM_CHANGE_EVENT, callback);
-    }
-
     emitSelectedPostChange(fromSearch) {
         this.emit(SELECTED_POST_CHANGE_EVENT, fromSearch);
     }
@@ -128,30 +86,6 @@ class PostStoreClass extends EventEmitter {
 
     removeSelectedPostChangeListener(callback) {
         this.removeListener(SELECTED_POST_CHANGE_EVENT, callback);
-    }
-
-    emitMentionDataChange(id, mentionText) {
-        this.emit(MENTION_DATA_CHANGE_EVENT, id, mentionText);
-    }
-
-    addMentionDataChangeListener(callback) {
-        this.on(MENTION_DATA_CHANGE_EVENT, callback);
-    }
-
-    removeMentionDataChangeListener(callback) {
-        this.removeListener(MENTION_DATA_CHANGE_EVENT, callback);
-    }
-
-    emitAddMention(id, username) {
-        this.emit(ADD_MENTION_EVENT, id, username);
-    }
-
-    addAddMentionListener(callback) {
-        this.on(ADD_MENTION_EVENT, callback);
-    }
-
-    removeAddMentionListener(callback) {
-        this.removeListener(ADD_MENTION_EVENT, callback);
     }
 
     emitEditPost(post) {
@@ -181,9 +115,9 @@ class PostStoreClass extends EventEmitter {
 
         var postList = makePostListNonNull(this.getPosts(channelId));
 
-        for (let pid in newPostList.posts) {
+        for (const pid in newPostList.posts) {
             if (newPostList.posts.hasOwnProperty(pid)) {
-                var np = newPostList.posts[pid];
+                const np = newPostList.posts[pid];
                 if (np.delete_at === 0) {
                     postList.posts[pid] = np;
                     if (postList.order.indexOf(pid) === -1) {
@@ -194,7 +128,7 @@ class PostStoreClass extends EventEmitter {
                         delete postList.posts[pid];
                     }
 
-                    var index = postList.order.indexOf(pid);
+                    const index = postList.order.indexOf(pid);
                     if (index !== -1) {
                         postList.order.splice(index, 1);
                     }
@@ -202,7 +136,7 @@ class PostStoreClass extends EventEmitter {
             }
         }
 
-        postList.order.sort(function postSort(a, b) {
+        postList.order.sort((a, b) => {
             if (postList.posts[a].create_at > postList.posts[b].create_at) {
                 return -1;
             }
@@ -306,7 +240,7 @@ class PostStoreClass extends EventEmitter {
         var posts = postList.posts;
 
         // sort failed posts to the bottom
-        postList.order.sort(function postSort(a, b) {
+        postList.order.sort((a, b) => {
             if (posts[a].state === Constants.POST_LOADING && posts[b].state === Constants.POST_FAILED) {
                 return 1;
             }
@@ -371,7 +305,7 @@ class PostStoreClass extends EventEmitter {
         this.pStorePendingPosts(channelId, postList);
     }
     clearPendingPosts() {
-        BrowserStore.actionOnGlobalItemsWithPrefix('pending_posts_', function clearPending(key) {
+        BrowserStore.actionOnGlobalItemsWithPrefix('pending_posts_', (key) => {
             BrowserStore.removeItem(key);
         });
     }
@@ -387,27 +321,11 @@ class PostStoreClass extends EventEmitter {
         this.pStorePendingPosts(post.channel_id, postList);
         this.emitChange();
     }
-    storeSearchResults(results, isMentionSearch) {
-        BrowserStore.setItem('search_results', results);
-        BrowserStore.setItem('is_mention_search', Boolean(isMentionSearch));
-    }
-    getSearchResults() {
-        return BrowserStore.getItem('search_results');
-    }
-    getIsMentionSearch() {
-        return BrowserStore.getItem('is_mention_search');
-    }
     storeSelectedPost(postList) {
         BrowserStore.setItem('select_post', postList);
     }
     getSelectedPost() {
         return BrowserStore.getItem('select_post');
-    }
-    storeSearchTerm(term) {
-        BrowserStore.setItem('search_term', term);
-    }
-    getSearchTerm() {
-        return BrowserStore.getItem('search_term');
     }
     getEmptyDraft() {
         return {message: '', uploadsInProgress: [], previews: []};
@@ -433,7 +351,7 @@ class PostStoreClass extends EventEmitter {
         return BrowserStore.getGlobalItem('comment_draft_' + parentPostId, this.getEmptyDraft());
     }
     clearDraftUploads() {
-        BrowserStore.actionOnGlobalItemsWithPrefix('draft_', function clearUploads(key, value) {
+        BrowserStore.actionOnGlobalItemsWithPrefix('draft_', (key, value) => {
             if (value) {
                 value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
@@ -441,7 +359,7 @@ class PostStoreClass extends EventEmitter {
         });
     }
     clearCommentDraftUploads() {
-        BrowserStore.actionOnGlobalItemsWithPrefix('comment_draft_', function clearUploads(key, value) {
+        BrowserStore.actionOnGlobalItemsWithPrefix('comment_draft_', (key, value) => {
             if (value) {
                 value.uploadsInProgress = [];
                 BrowserStore.setItem(key, value);
@@ -458,7 +376,7 @@ class PostStoreClass extends EventEmitter {
 
 var PostStore = new PostStoreClass();
 
-PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
+PostStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
@@ -469,23 +387,9 @@ PostStore.dispatchToken = AppDispatcher.register(function registry(payload) {
         PostStore.pStorePost(action.post);
         PostStore.emitChange();
         break;
-    case ActionTypes.RECIEVED_SEARCH:
-        PostStore.storeSearchResults(action.results, action.is_mention_search);
-        PostStore.emitSearchChange();
-        break;
-    case ActionTypes.RECIEVED_SEARCH_TERM:
-        PostStore.storeSearchTerm(action.term);
-        PostStore.emitSearchTermChange(action.do_search, action.is_mention_search);
-        break;
     case ActionTypes.RECIEVED_POST_SELECTED:
         PostStore.storeSelectedPost(action.post_list);
         PostStore.emitSelectedPostChange(action.from_search);
-        break;
-    case ActionTypes.RECIEVED_MENTION_DATA:
-        PostStore.emitMentionDataChange(action.id, action.mention_text);
-        break;
-    case ActionTypes.RECIEVED_ADD_MENTION:
-        PostStore.emitAddMention(action.id, action.username);
         break;
     case ActionTypes.RECIEVED_EDIT_POST:
         PostStore.emitEditPost(action);
