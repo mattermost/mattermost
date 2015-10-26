@@ -6,7 +6,7 @@ Mattermost 0.7.1-beta in GitLab 8.0 was a pre-release of Mattermost and Mattermo
 
 The Mattermost team didn't think it made sense for GitLab omnibus to attempt an automated re-configuration of Mattermost (since 0.7.1-beta was a pre-release) given the scale of change, so we're providing instructions for GitLab users who have customized their Mattermost deployments in 8.0 to move to 8.1: 
 
-1. Follow the Upgrading Mattermost v0.7.1-beta to v1.1.1 instructions below to identify the settings in Mattermost's `config.json` file that differ from defaults and need to be updated from GitLab 8.0 to 8.1. 
+1. Follow the [Upgrading Mattermost v0.7.1-beta to v1.1.1 instructions](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md#upgrading-mattermost-v071-beta-to-v111) below to identify the settings in Mattermost's `config.json` file that differ from defaults and need to be updated from GitLab 8.0 to 8.1. 
 2. Upgrade to GitLab 8.1 using omnibus, and allowing it overwrite `config.json` to the new Mattermost v1.1.1 format
 3. Manually update `config.json` to new settings identified in Step 1. 
 
