@@ -40,7 +40,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - [Feature Ideas Forum](http://www.mattermost.org/feature-requests/) - For sharing ideas for future versions 
 - [Contribution Guidelines](http://www.mattermost.org/contribute-to-mattermost/) - For contributing code or feedback to the project
 
-Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq).
+Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq), or talk to the core team on our [daily builds server](https://pre-release.mattermost.com/core) via [this invite link](https://pre-release.mattermost.com/signup_user_complete/?id=rcgiyftm7jyrxnma1osd8zswby). You can also join us via a [community maintained IRC bridge](https://github.com/42wim/matterbridge) available from `#matterbridge` on irc.freenode.net.
 
 ## Installing Mattermost
 
