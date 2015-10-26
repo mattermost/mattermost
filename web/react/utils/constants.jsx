@@ -98,6 +98,7 @@ module.exports = {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_TYPE_JOIN_LEAVE: 'join_leave',
     RESERVED_TEAM_NAMES: [
         'www',
         'web',
