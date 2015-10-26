@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var Client = require('../../utils/client.jsx');
+var Utils = require('../../utils/utils.jsx');
 var LineChart = require('./line_chart.jsx');
 
 export default class TeamAnalytics extends React.Component {
@@ -18,7 +19,8 @@ export default class TeamAnalytics extends React.Component {
             post_count: null,
             post_counts_day: null,
             user_counts_with_posts_day: null,
-            recent_active_users: null
+            recent_active_users: null,
+            newly_created_users: null
         };
     }
 
@@ -34,17 +36,14 @@ export default class TeamAnalytics extends React.Component {
                 for (var index in data) {
                     if (data[index].name === 'channel_open_count') {
                         this.setState({channel_open_count: data[index].value});
-                        this.setState({channel_open_count: 55});
                     }
 
                     if (data[index].name === 'channel_private_count') {
                         this.setState({channel_private_count: data[index].value});
-                        this.setState({channel_private_count: 12});
                     }
 
                     if (data[index].name === 'post_count') {
                         this.setState({post_count: data[index].value});
-                        this.setState({post_count: 5332});
                     }
                 }
             },
@@ -57,15 +56,6 @@ export default class TeamAnalytics extends React.Component {
             teamId,
             'post_counts_day',
             (data) => {
-                data.push({name: '2015-10-24', value: 73});
-                data.push({name: '2015-10-25', value: 84});
-                data.push({name: '2015-10-26', value: 61});
-                data.push({name: '2015-10-27', value: 97});
-                data.push({name: '2015-10-28', value: 73});
-                data.push({name: '2015-10-29', value: 84});
-                data.push({name: '2015-10-30', value: 61});
-                data.push({name: '2015-10-31', value: 97});
-
                 var chartData = {
                     labels: [],
                     datasets: [{
@@ -99,15 +89,6 @@ export default class TeamAnalytics extends React.Component {
             teamId,
             'user_counts_with_posts_day',
             (data) => {
-                data.push({name: '2015-10-24', value: 22});
-                data.push({name: '2015-10-25', value: 31});
-                data.push({name: '2015-10-26', value: 25});
-                data.push({name: '2015-10-27', value: 12});
-                data.push({name: '2015-10-28', value: 22});
-                data.push({name: '2015-10-29', value: 31});
-                data.push({name: '2015-10-30', value: 25});
-                data.push({name: '2015-10-31', value: 12});
-
                 var chartData = {
                     labels: [],
                     datasets: [{
@@ -142,31 +123,56 @@ export default class TeamAnalytics extends React.Component {
             (users) => {
                 this.setState({users});
 
+                var usersList = [];
+                for (var id in users) {
+                    if (users.hasOwnProperty(id)) {
+                        usersList.push(users[id]);
+                    }
+                }
+
+                usersList.sort((a, b) => {
+                    if (a.last_activity_at < b.last_activity_at) {
+                        return 1;
+                    }
+
+                    if (a.last_activity_at > b.last_activity_at) {
+                        return -1;
+                    }
+
+                    return 0;
+                });
+
                 var recentActive = [];
-                recentActive.push({email: 'corey@spinpunch.com', date: '2015-10-23'});
-                recentActive.push({email: 'bill@spinpunch.com', date: '2015-10-22'});
-                recentActive.push({email: 'bob@spinpunch.com', date: '2015-10-22'});
-                recentActive.push({email: 'jones@spinpunch.com', date: '2015-10-21'});
+                for (let i = 0; i < usersList.length; i++) {
+                    recentActive.push(usersList[i]);
+                    if (i > 19) {
+                        break;
+                    }
+                }
+
                 this.setState({recent_active_users: recentActive});
 
-                // var memberList = [];
-                // for (var id in users) {
-                //     if (users.hasOwnProperty(id)) {
-                //         memberList.push(users[id]);
-                //     }
-                // }
+                usersList.sort((a, b) => {
+                    if (a.create_at < b.create_at) {
+                        return 1;
+                    }
 
-                // memberList.sort((a, b) => {
-                //     if (a.username < b.username) {
-                //         return -1;
-                //     }
+                    if (a.create_at > b.create_at) {
+                        return -1;
+                    }
 
-                //     if (a.username > b.username) {
-                //         return 1;
-                //     }
+                    return 0;
+                });
 
-                //     return 0;
-                // });
+                var newlyCreated = [];
+                for (let i = 0; i < usersList.length; i++) {
+                    newlyCreated.push(usersList[i]);
+                    if (i > 19) {
+                        break;
+                    }
+                }
+
+                this.setState({newly_created_users: newlyCreated});
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -183,7 +189,8 @@ export default class TeamAnalytics extends React.Component {
             post_count: null,
             post_counts_day: null,
             user_counts_with_posts_day: null,
-            recent_active_users: null
+            recent_active_users: null,
+            newly_created_users: null
         });
 
         this.getData(newProps.team.id);
@@ -201,7 +208,7 @@ export default class TeamAnalytics extends React.Component {
         var totalCount = (
             <div className='total-count text-center'>
                 <div>{'Total Users'}</div>
-                <div>{this.state.users == null ? 'Loading...' : Object.keys(this.state.users).length + 23}</div>
+                <div>{this.state.users == null ? 'Loading...' : Object.keys(this.state.users).length}</div>
             </div>
         );
 
@@ -278,18 +285,18 @@ export default class TeamAnalytics extends React.Component {
                 <div className='recent-active-users'>
                     <div>{'Recent Active Users'}</div>
                     <table width='90%'>
-                        <tr><td className='recent-active-users-td'>corey@spinpunch.com</td><td className='recent-active-users-td'>2015-12-23</td></tr>
-                        <tr><td className='recent-active-users-td'>bob@spinpunch.com</td><td className='recent-active-users-td'>2015-12-22</td></tr>
-                        <tr><td className='recent-active-users-td'>jimmy@spinpunch.com</td><td className='recent-active-users-td'>2015-12-22</td></tr>
-                        <tr><td className='recent-active-users-td'>jones@spinpunch.com</td><td className='recent-active-users-td'>2015-12-21</td></tr>
-                        <tr><td className='recent-active-users-td'>steve@spinpunch.com</td><td className='recent-active-users-td'>2015-12-20</td></tr>
-                        <tr><td className='recent-active-users-td'>aspen@spinpunch.com</td><td className='recent-active-users-td'>2015-12-19</td></tr>
-                        <tr><td className='recent-active-users-td'>scott@spinpunch.com</td><td className='recent-active-users-td'>2015-12-19</td></tr>
-                        <tr><td className='recent-active-users-td'>grant@spinpunch.com</td><td className='recent-active-users-td'>2015-12-19</td></tr>
-                        <tr><td className='recent-active-users-td'>sienna@spinpunch.com</td><td className='recent-active-users-td'>2015-12-18</td></tr>
-                        <tr><td className='recent-active-users-td'>jessica@spinpunch.com</td><td className='recent-active-users-td'>2015-12-18</td></tr>
-                        <tr><td className='recent-active-users-td'>davy@spinpunch.com</td><td className='recent-active-users-td'>2015-12-16</td></tr>
-                        <tr><td className='recent-active-users-td'>steve@spinpunch.com</td><td className='recent-active-users-td'>2015-12-11</td></tr>
+                        <tbody>
+                            {
+                                this.state.recent_active_users.map((user) => {
+                                    return (
+                                        <tr key={user.id}>
+                                            <td className='recent-active-users-td'>{user.email}</td>
+                                            <td className='recent-active-users-td'>{Utils.displayDateTime(user.last_activity_at)}</td>
+                                        </tr>
+                                    );
+                                })
+                            }
+                        </tbody>
                     </table>
                 </div>
             );
@@ -302,21 +309,23 @@ export default class TeamAnalytics extends React.Component {
             </div>
         );
 
-        if (this.state.recent_active_users != null) {
+        if (this.state.newly_created_users != null) {
             newUsers = (
                 <div className='recent-active-users'>
                     <div>{'Newly Created Users'}</div>
                     <table width='90%'>
-                        <tr><td className='recent-active-users-td'>bob@spinpunch.com</td><td className='recent-active-users-td'>2015-12-11</td></tr>
-                        <tr><td className='recent-active-users-td'>corey@spinpunch.com</td><td className='recent-active-users-td'>2015-12-10</td></tr>
-                
-                        <tr><td className='recent-active-users-td'>jimmy@spinpunch.com</td><td className='recent-active-users-td'>2015-12-8</td></tr>
-                        
-                        
-                        <tr><td className='recent-active-users-td'>aspen@spinpunch.com</td><td className='recent-active-users-td'>2015-12-5</td></tr>
-
-                        <tr><td className='recent-active-users-td'>jones@spinpunch.com</td><td className='recent-active-users-td'>2015-12-5</td></tr>
-                        <tr><td className='recent-active-users-td'>steve@spinpunch.com</td><td className='recent-active-users-td'>2015-12-5</td></tr>
+                        <tbody>
+                            {
+                                this.state.newly_created_users.map((user) => {
+                                    return (
+                                        <tr key={user.id}>
+                                            <td className='recent-active-users-td'>{user.email}</td>
+                                            <td className='recent-active-users-td'>{Utils.displayDateTime(user.create_at)}</td>
+                                        </tr>
+                                    );
+                                })
+                            }
+                        </tbody>
                     </table>
                 </div>
             );
@@ -324,7 +333,7 @@ export default class TeamAnalytics extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h2>{'Analytics for ' + this.props.team.name}</h2>
+                <h2>{'Statistics for ' + this.props.team.name}</h2>
                 {serverError}
                 {totalCount}
                 {postCount}
