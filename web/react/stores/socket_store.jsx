@@ -160,7 +160,7 @@ function handleNewPostEvent(msg) {
         if (window.isActive) {
             AsyncClient.updateLastViewedAt(true);
         }
-    } else {
+    } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
         AsyncClient.getChannel(msg.channel_id);
     }
 
