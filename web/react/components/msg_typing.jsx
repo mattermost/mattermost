@@ -12,7 +12,7 @@ export default class MsgTyping extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
-        this.getTypingText = this.getTypingText.bind(this);
+        this.updateTypingText = this.updateTypingText.bind(this);
         this.componentWillReceiveProps = this.componentWillReceiveProps.bind(this);
 
         this.typingUsers = {};
@@ -27,7 +27,7 @@ export default class MsgTyping extends React.Component {
 
     componentWillReceiveProps(newProps) {
         if (this.props.channelId !== newProps.channelId) {
-            this.setState({text: this.getTypingText()});
+            this.updateTypingText();
         }
     }
 
@@ -50,31 +50,37 @@ export default class MsgTyping extends React.Component {
 
             this.typingUsers[username] = setTimeout(function myTimer(user) {
                 delete this.typingUsers[user];
-                this.setState({text: this.getTypingText()});
+                this.updateTypingText();
             }.bind(this, username), Constants.UPDATE_TYPING_MS);
 
-            this.setState({text: this.getTypingText()});
+            this.updateTypingText();
         } else if (msg.action === SocketEvents.POSTED && msg.channel_id === this.props.channelId) {
             if (UserStore.hasProfile(msg.user_id)) {
                 username = UserStore.getProfile(msg.user_id).username;
             }
             clearTimeout(this.typingUsers[username]);
             delete this.typingUsers[username];
-            this.setState({text: this.getTypingText()});
+            this.updateTypingText();
         }
     }
 
-    getTypingText() {
-        let users = Object.keys(this.typingUsers);
+    updateTypingText() {
+        const users = Object.keys(this.typingUsers);
+        let text = '';
         switch (users.length) {
         case 0:
-            return '';
+            text = '';
+            break;
         case 1:
-            return users[0] + ' is typing...';
+            text = users[0] + ' is typing...';
+            break;
         default:
             const last = users.pop();
-            return users.join(', ') + ' and ' + last + ' are typing...';
+            text = users.join(', ') + ' and ' + last + ' are typing...';
+            break;
         }
+
+        this.setState({text});
     }
 
     render() {
