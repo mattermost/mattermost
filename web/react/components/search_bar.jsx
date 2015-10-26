@@ -105,6 +105,10 @@ export default class SearchBar extends React.Component {
     performSearch(terms, isMentionSearch) {
         if (terms.length) {
             this.setState({isSearching: true});
+
+            if(terms.search(/\*\s*$/) == -1) // append * if not present
+                terms = terms + "*";
+
             client.search(
                 terms,
                 (data) => {
