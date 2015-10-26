@@ -147,7 +147,7 @@ export default class CreateComment extends React.Component {
         }
 
         const t = Date.now();
-        if ((t - this.lastTime) > 5000) {
+        if ((t - this.lastTime) > Constants.UPDATE_TYPING_MS) {
             SocketStore.sendMessage({channel_id: this.props.channelId, action: 'typing', props: {parent_id: this.props.rootId}});
             this.lastTime = t;
         }
