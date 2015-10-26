@@ -855,6 +855,18 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decode image config first to check dimensions before loading the whole thing into memory later on
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		c.Err = model.NewAppError("uploadProfileFile", "Could not decode profile image config.", err.Error())
+		return
+	} else if config.Width*config.Height > MaxImageSize {
+		c.Err = model.NewAppError("uploadProfileFile", "Unable to upload profile image. File is too large.", err.Error())
+		return
+	}
+
+	file.Seek(0, 0)
+
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {

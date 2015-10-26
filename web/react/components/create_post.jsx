@@ -253,8 +253,14 @@ export default class CreatePost extends React.Component {
         this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
     }
     handleUploadError(err, clientId) {
+        let message = err;
+        if (message && typeof message !== 'string') {
+            // err is an AppError from the server
+            message = err.message;
+        }
+
         if (clientId === -1) {
-            this.setState({serverError: err});
+            this.setState({serverError: message});
         } else {
             const draft = PostStore.getDraft(this.state.channelId);
 
@@ -265,7 +271,7 @@ export default class CreatePost extends React.Component {
 
             PostStore.storeDraft(this.state.channelId, draft);
 
-            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: err});
+            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: message});
         }
     }
     handleTextDrop(text) {
