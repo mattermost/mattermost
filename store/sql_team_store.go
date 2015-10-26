@@ -29,7 +29,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 }
 
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
-	// REMOVE in 1.2
+	// REMOVE AFTER 1.2 SHIP see PLT-828
 	s.RemoveColumnIfExists("Teams", "AllowValet")
 }
 
