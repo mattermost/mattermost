@@ -101,6 +101,12 @@ Joining the Mattermost community is a great way to build relationships with othe
 - Review the [Mattermost Code Contribution Guidelines](http://docs.mattermost.org/developer/Code-Contribution-Guidelines/index.html) to submit patches for the core product
 - Consider building tools that help developers and IT professionals manage Mattermost more effectively (API documentation coming in Beta2)
 
+##### Check out some projects for connecting to Mattermost: 
+
+- [Matterbridge](https://github.com/42wim/matterbridge) - an IRC bridge connecting to Mattermost 
+- [GitLab Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-gitlab) - connecting GitLab to Mattermost via incoming webhooks
+- [Giphy Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-giphy) - connecting Mattermost to Giphy via outgoing webhooks
+
 #### Have other ideas or suggestions?
 
 If there’s some other way you’d like to contribute, please contact us at info@mattermost.com. We’d love to meet you!
