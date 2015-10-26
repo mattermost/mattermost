@@ -9,7 +9,7 @@ A couple key points:
 
 _Example:_
 
-Suppose you had an external application that recieved a post event asking for the status of a daily build. The application could respond with a table of total tests run and total tests failed by component category, with links to failed tests by category. An example response the application could respond with would be:
+Suppose you had an external application that recieved a post event whenever a message starting with `#build`. If a user posted the message `#build Let's see the status`, then the external application would receive an HTTP POST with data about that message. The application could then respond with a table of total tests run and total tests failed by component category, with links to failed tests by category. An example response might be:
 ```
 {"text": "
 ---
@@ -45,7 +45,7 @@ Outgoing webhooks should be enabled on your Mattermost instance by default, but 
 Once outgoing webhooks are enabled, you will be able to set one up through the Mattermost UI. You will need to know the following
 
 1. The channel (if not all of them) you want to listen to post events from
-2. The trigger words (if any) at the beginning of the post will trigger a post event
+2. The trigger words (if any) that will trigger a post event if they are the **first word** of the post
 3. The URL you want Mattermost to report the events to
 
 Once you have those, you can follow these steps to set up your webhook:
