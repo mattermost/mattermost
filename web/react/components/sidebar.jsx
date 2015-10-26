@@ -40,6 +40,9 @@ export default class Sidebar extends React.Component {
         this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
 
         this.createChannelElement = this.createChannelElement.bind(this);
+        this.updateTitle = this.updateTitle.bind(this);
+        this.setUnreadCountPerChannel = this.setUnreadCountPerChannel.bind(this);
+        this.getUnreadCount = this.getUnreadCount.bind(this);
 
         this.isLeaving = new Map();
 
@@ -48,8 +51,45 @@ export default class Sidebar extends React.Component {
         state.showDirectChannelsModal = false;
         state.loadingDMChannel = -1;
         state.windowWidth = Utils.windowWidth();
-
         this.state = state;
+
+        this.unreadCountPerChannel = {};
+        this.setUnreadCountPerChannel();
+    }
+    setUnreadCountPerChannel() {
+        const channels = ChannelStore.getAll();
+        const members = ChannelStore.getAllMembers();
+        const channelUnreadCounts = {};
+
+        channels.forEach((ch) => {
+            const chMember = members[ch.id];
+            let chMentionCount = chMember.mention_count;
+            let chUnreadCount = ch.total_msg_count - chMember.msg_count - chMentionCount;
+
+            if (ch.type === 'D') {
+                chMentionCount = chUnreadCount;
+                chUnreadCount = 0;
+            }
+
+            channelUnreadCounts[ch.id] = {msgs: chUnreadCount, mentions: chMentionCount};
+        });
+
+        this.unreadCountPerChannel = channelUnreadCounts;
+    }
+    getUnreadCount(channelId) {
+        let mentions = 0;
+        let msgs = 0;
+
+        if (channelId) {
+            return this.unreadCountPerChannel[channelId] ? this.unreadCountPerChannel[channelId] : {msgs, mentions};
+        }
+
+        Object.keys(this.unreadCountPerChannel).forEach((chId) => {
+            msgs += this.unreadCountPerChannel[chId].msgs;
+            mentions += this.unreadCountPerChannel[chId].mentions;
+        });
+
+        return {msgs, mentions};
     }
     getStateFromStores() {
         const members = ChannelStore.getAllMembers();
@@ -192,7 +232,10 @@ export default class Sidebar extends React.Component {
                 currentChannelName = Utils.getDirectTeammate(channel.id).username;
             }
 
-            document.title = currentChannelName + ' - ' + this.props.teamDisplayName + ' ' + currentSiteName;
+            const unread = this.getUnreadCount();
+            const mentionTitle = unread.mentions > 0 ? '(' + unread.mentions + ') ' : '';
+            const unreadTitle = unread.msgs > 0 ? '* ' : '';
+            document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + this.props.teamDisplayName + ' ' + currentSiteName;
         }
     }
     onScroll() {
@@ -273,6 +316,7 @@ export default class Sidebar extends React.Component {
         var members = this.state.members;
         var activeId = this.state.activeId;
         var channelMember = members[channel.id];
+        var unreadCount = this.getUnreadCount(channel.id);
         var msgCount;
 
         var linkClass = '';
@@ -284,7 +328,7 @@ export default class Sidebar extends React.Component {
 
         var unread = false;
         if (channelMember) {
-            msgCount = channel.total_msg_count - channelMember.msg_count;
+            msgCount = unreadCount.msgs + unreadCount.mentions;
             unread = (msgCount > 0 && channelMember.notify_props.mark_unread !== 'mention') || channelMember.mention_count > 0;
         }
 
@@ -301,16 +345,8 @@ export default class Sidebar extends React.Component {
 
         var badge = null;
         if (channelMember) {
-            if (channel.type === 'D') {
-                // direct message channels show badges for any number of unread posts
-                msgCount = channel.total_msg_count - channelMember.msg_count;
-                if (msgCount > 0) {
-                    badge = <span className='badge pull-right small'>{msgCount}</span>;
-                    this.badgesActive = true;
-                }
-            } else if (channelMember.mention_count > 0) {
-                // public and private channels only show badges for mentions
-                badge = <span className='badge pull-right small'>{channelMember.mention_count}</span>;
+            if (unreadCount.mentions) {
+                badge = <span className='badge pull-right small'>{unreadCount.mentions}</span>;
                 this.badgesActive = true;
             }
         } else if (this.state.loadingDMChannel === index && channel.type === 'D') {
@@ -433,6 +469,8 @@ export default class Sidebar extends React.Component {
     }
     render() {
         this.badgesActive = false;
+
+        this.setUnreadCountPerChannel();
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
         this.firstUnreadChannel = null;
