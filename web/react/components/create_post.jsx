@@ -208,7 +208,7 @@ export default class CreatePost extends React.Component {
         }
 
         const t = Date.now();
-        if ((t - this.lastTime) > 5000) {
+        if ((t - this.lastTime) > Constants.UPDATE_TYPING_MS) {
             SocketStore.sendMessage({channel_id: this.state.channelId, action: 'typing', props: {parent_id: ''}, state: {}});
             this.lastTime = t;
         }
