@@ -41,7 +41,7 @@ export default class Sidebar extends React.Component {
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
-        this.setUnreadCount = this.setUnreadCount.bind(this);
+        this.setUnreadCountPerChannel = this.setUnreadCountPerChannel.bind(this);
         this.getUnreadCount = this.getUnreadCount.bind(this);
 
         this.isLeaving = new Map();
@@ -51,14 +51,15 @@ export default class Sidebar extends React.Component {
         state.showDirectChannelsModal = false;
         state.loadingDMChannel = -1;
         state.windowWidth = Utils.windowWidth();
-
-        this.unreadCount = this.setUnreadCount();
         this.state = state;
+
+        this.unreadCountPerChannel = {};
+        this.setUnreadCountPerChannel();
     }
-    setUnreadCount() {
+    setUnreadCountPerChannel() {
         const channels = ChannelStore.getAll();
         const members = ChannelStore.getAllMembers();
-        const unreadCount = {};
+        const channelUnreadCounts = {};
 
         channels.forEach((ch) => {
             const chMember = members[ch.id];
@@ -70,22 +71,22 @@ export default class Sidebar extends React.Component {
                 chUnreadCount = 0;
             }
 
-            unreadCount[ch.id] = {msgs: chUnreadCount, mentions: chMentionCount};
+            channelUnreadCounts[ch.id] = {msgs: chUnreadCount, mentions: chMentionCount};
         });
 
-        return unreadCount;
+        this.unreadCountPerChannel = channelUnreadCounts;
     }
     getUnreadCount(channelId) {
         let mentions = 0;
         let msgs = 0;
 
         if (channelId) {
-            return this.unreadCount[channelId] ? this.unreadCount[channelId] : {msgs, mentions};
+            return this.unreadCountPerChannel[channelId] ? this.unreadCountPerChannel[channelId] : {msgs, mentions};
         }
 
-        Object.keys(this.unreadCount).forEach((chId) => {
-            msgs += this.unreadCount[chId].msgs;
-            mentions += this.unreadCount[chId].mentions;
+        Object.keys(this.unreadCountPerChannel).forEach((chId) => {
+            msgs += this.unreadCountPerChannel[chId].msgs;
+            mentions += this.unreadCountPerChannel[chId].mentions;
         });
 
         return {msgs, mentions};
@@ -469,7 +470,7 @@ export default class Sidebar extends React.Component {
     render() {
         this.badgesActive = false;
 
-        this.unreadCount = this.setUnreadCount();
+        this.setUnreadCountPerChannel();
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
         this.firstUnreadChannel = null;
