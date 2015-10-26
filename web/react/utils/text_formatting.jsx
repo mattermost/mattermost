@@ -243,11 +243,10 @@ function autolinkHashtags(text, tokens) {
 
 function highlightSearchTerm(text, tokens, searchTerm) {
     let output = text;
-    searchTerm = searchTerm.replace(/\*$/, '');
 
     var newTokens = new Map();
     for (const [alias, token] of tokens) {
-        if (token.originalText.indexOf(searchTerm) > -1) {
+        if (token.originalText.indexOf(searchTerm.replace(/\*$/, '')) > -1) {
             const index = tokens.size + newTokens.size;
             const newAlias = `MM_SEARCHTERM${index}`;
 
@@ -277,7 +276,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
         return prefix + alias;
     }
 
-   return output.replace(new RegExp(`()(${searchTerm})`, 'gi'), replaceSearchTermWithToken);
+    return output.replace(new RegExp(`()(${searchTerm})`, 'gi'), replaceSearchTermWithToken);
 }
 
 function replaceTokens(text, tokens) {
