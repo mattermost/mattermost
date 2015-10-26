@@ -364,27 +364,26 @@ func (ss SqlStore) RemoveColumnIfExists(tableName string, columnName string) boo
 	return true
 }
 
-// func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+func (ss SqlStore) RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool {
+	if !ss.DoesColumnExist(tableName, oldColumnName) {
+		return false
+	}
 
-// 	// XXX TODO FIXME this should be removed after 0.6.0
-// 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-// 		return false
-// 	}
+	var err error
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
+	}
 
-// 	if !ss.DoesColumnExist(tableName, oldColumnName) {
-// 		return false
-// 	}
+	if err != nil {
+		l4g.Critical("Failed to rename column %v", err)
+		time.Sleep(time.Second)
+		panic("Failed to drop column " + err.Error())
+	}
 
-// 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
-
-// 	if err != nil {
-// 		l4g.Critical("Failed to rename column %v", err)
-// 		time.Sleep(time.Second)
-// 		panic("Failed to drop column " + err.Error())
-// 	}
-
-// 	return true
-// }
+	return true
+}
 
 func (ss SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
 	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT)

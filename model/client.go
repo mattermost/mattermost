@@ -443,8 +443,8 @@ func (c *Client) UpdateChannel(channel *Channel) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) UpdateChannelDesc(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/channels/update_desc", MapToJson(data)); err != nil {
+func (c *Client) UpdateChannelHeader(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/channels/update_header", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

@@ -182,7 +182,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Type:        model.CHANNEL_OPEN,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name),
-			Description: sChannel.Topic["value"],
+			//Purpose:      sChannel.Topic["value"], // TODO uncomment this once Channel.Purpose is a field
 		}
 		mChannel := ImportChannel(&newChannel)
 		if mChannel == nil {

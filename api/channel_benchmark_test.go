@@ -61,8 +61,8 @@ func BenchmarkCreateDirectChannel(b *testing.B) {
 
 func BenchmarkUpdateChannel(b *testing.B) {
 	var (
-		NUM_CHANNELS_RANGE      = utils.Range{NUM_CHANNELS, NUM_CHANNELS}
-		CHANNEL_DESCRIPTION_LEN = 50
+		NUM_CHANNELS_RANGE = utils.Range{NUM_CHANNELS, NUM_CHANNELS}
+		CHANNEL_HEADER_LEN = 50
 	)
 	team, _, _ := SetupBenchmark()
 
@@ -73,7 +73,7 @@ func BenchmarkUpdateChannel(b *testing.B) {
 	}
 
 	for i := range channels {
-		channels[i].Description = utils.RandString(CHANNEL_DESCRIPTION_LEN, utils.ALPHANUMERIC)
+		channels[i].Header = utils.RandString(CHANNEL_HEADER_LEN, utils.ALPHANUMERIC)
 	}
 
 	// Benchmark Start

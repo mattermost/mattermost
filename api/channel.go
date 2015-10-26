@@ -22,7 +22,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	sr.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
-	sr.Handle("/update_desc", ApiUserRequired(updateChannelDesc)).Methods("POST")
+	sr.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
@@ -124,7 +124,7 @@ func CreateDirectChannel(c *Context, otherUserId string) (*model.Channel, *model
 	channel.Name = model.GetDMNameFromIds(otherUserId, c.Session.UserId)
 
 	channel.TeamId = c.Session.TeamId
-	channel.Description = ""
+	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
 
 	if uresult := <-uc; uresult.Err != nil {
@@ -209,7 +209,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		oldChannel.Description = channel.Description
+		oldChannel.Header = channel.Header
 
 		if len(channel.DisplayName) > 0 {
 			oldChannel.DisplayName = channel.DisplayName
@@ -233,18 +233,18 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateChannelDesc(c *Context, w http.ResponseWriter, r *http.Request) {
+func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.MapFromJson(r.Body)
 	channelId := props["channel_id"]
 	if len(channelId) != 26 {
-		c.SetInvalidParam("updateChannelDesc", "channel_id")
+		c.SetInvalidParam("updateChannelHeader", "channel_id")
 		return
 	}
 
-	channelDesc := props["channel_description"]
-	if len(channelDesc) > 1024 {
-		c.SetInvalidParam("updateChannelDesc", "channel_description")
+	channelHeader := props["channel_header"]
+	if len(channelHeader) > 1024 {
+		c.SetInvalidParam("updateChannelHeader", "channel_header")
 		return
 	}
 
@@ -261,11 +261,11 @@ func updateChannelDesc(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel := cresult.Data.(*model.Channel)
 		// Don't need to do anything channel member, just wanted to confirm it exists
 
-		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelDesc") {
+		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
 			return
 		}
 
-		channel.Description = channelDesc
+		channel.Header = channelHeader
 
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
