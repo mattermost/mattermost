@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const PostStore = require('../stores/post_store.jsx');
+const SearchStore = require('../stores/search_store.jsx');
 const CommandList = require('./command_list.jsx');
 const ErrorStore = require('../stores/error_store.jsx');
 
@@ -54,7 +54,7 @@ export default class Textbox extends React.Component {
     }
 
     componentDidMount() {
-        PostStore.addAddMentionListener(this.onListenerChange);
+        SearchStore.addAddMentionListener(this.onListenerChange);
         ErrorStore.addChangeListener(this.onRecievedError);
 
         this.resize();
@@ -62,7 +62,7 @@ export default class Textbox extends React.Component {
     }
 
     componentWillUnmount() {
-        PostStore.removeAddMentionListener(this.onListenerChange);
+        SearchStore.removeAddMentionListener(this.onListenerChange);
         ErrorStore.removeChangeListener(this.onRecievedError);
     }
 
