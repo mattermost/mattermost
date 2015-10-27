@@ -47,8 +47,8 @@ export function doFormatText(text, options) {
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    output = autolinkUrls(output, tokens);
     output = autolinkAtMentions(output, tokens);
+    output = autolinkUrls(output, tokens);
     output = autolinkHashtags(output, tokens);
 
     if (!('emoticons' in options) || options.emoticon) {
@@ -75,6 +75,13 @@ export function doFormatEmoticons(text) {
     let output = Emoticons.handleEmoticons(text, tokens);
     output = replaceTokens(output, tokens);
 
+    return output;
+}
+
+export function doFormatMentions(text) {
+    const tokens = new Map();
+    let output = autolinkAtMentions(text, tokens);
+    output = replaceTokens(output, tokens);
     return output;
 }
 
@@ -188,6 +195,7 @@ function autolinkAtMentions(text, tokens) {
 
     let output = text;
     output = output.replace(/(^|\s)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+
     return output;
 }
 

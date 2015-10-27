@@ -121,8 +121,11 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
     paragraph(text) {
         let outText = text;
 
+        // required so markdown does not strip '_' from @user_names
+        outText = TextFormatting.doFormatMentions(text);
+
         if (!('emoticons' in this.options) || this.options.emoticon) {
-            outText = TextFormatting.doFormatEmoticons(text);
+            outText = TextFormatting.doFormatEmoticons(outText);
         }
 
         if (this.formattingOptions.singleline) {
@@ -136,7 +139,7 @@ export class MattermostMarkdownRenderer extends marked.Renderer {
         return `<table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
     }
 
-    text(text) {
-        return TextFormatting.doFormatText(text, this.formattingOptions);
+    text(txt) {
+        return TextFormatting.doFormatText(txt, this.formattingOptions);
     }
 }
