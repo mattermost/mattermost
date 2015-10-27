@@ -21,7 +21,7 @@
 
 The following is a list of common error messages and solutions: 
 
-###### `We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly`
+###### `Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.`
 - Message appears in blue bar on team site. Check that [your websocket port is properly configured](https://github.com/mattermost/platform/blob/master/doc/install/Production-Ubuntu.md#set-up-nginx-server). 
 
 
