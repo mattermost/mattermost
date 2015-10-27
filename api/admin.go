@@ -26,7 +26,7 @@ func InitAdmin(r *mux.Router) {
 	sr.Handle("/test_email", ApiUserRequired(testEmail)).Methods("POST")
 	sr.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
 	sr.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
-
+	sr.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAppHandler(getAnalytics)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -141,4 +141,64 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["SUCCESS"] = "true"
 	w.Write([]byte(model.MapToJson(m)))
+}
+
+func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.HasSystemAdminPermissions("getAnalytics") {
+		return
+	}
+
+	params := mux.Vars(r)
+	teamId := params["id"]
+	name := params["name"]
+
+	if name == "standard" {
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 3)
+		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
+		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
+		rows[2] = &model.AnalyticsRow{"post_count", 0}
+		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		postChan := Srv.Store.Post().AnalyticsPostCount(teamId)
+
+		if r := <-openChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[0].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-privateChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[1].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-postChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[2].Value = float64(r.Data.(int64))
+		}
+
+		w.Write([]byte(rows.ToJson()))
+	} else if name == "post_counts_day" {
+		if r := <-Srv.Store.Post().AnalyticsPostCountsByDay(teamId); r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
+		}
+	} else if name == "user_counts_with_posts_day" {
+		if r := <-Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId); r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			w.Write([]byte(r.Data.(model.AnalyticsRows).ToJson()))
+		}
+	} else {
+		c.SetInvalidParam("getAnalytics", "name")
+	}
+
 }

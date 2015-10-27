@@ -828,3 +828,31 @@ func (s SqlChannelStore) GetForExport(teamId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		v, err := s.GetReplica().SelectInt(
+			`SELECT 
+			    COUNT(Id) AS Value
+			FROM
+			    Channels
+			WHERE
+			    TeamId = :TeamId
+			        AND Type = :ChannelType`,
+			map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.AnalyticsTypeCount", "We couldn't get channel type counts", err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

@@ -328,6 +328,20 @@ export function getConfig(success, error) {
     });
 }
 
+export function getAnalytics(teamId, name, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/analytics/' + teamId + '/' + name,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('getAnalytics', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function saveConfig(config, success, error) {
     $.ajax({
         url: '/api/v1/admin/save_config',
