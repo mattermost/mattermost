@@ -452,6 +452,15 @@ func (c *Client) UpdateChannelHeader(data map[string]string) (*Result, *AppError
 	}
 }
 
+func (c *Client) UpdateChannelPurpose(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/channels/update_purpose", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) UpdateNotifyProps(data map[string]string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/channels/update_notify_props", MapToJson(data)); err != nil {
 		return nil, err

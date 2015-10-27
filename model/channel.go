@@ -25,6 +25,7 @@ type Channel struct {
 	DisplayName   string `json:"display_name"`
 	Name          string `json:"name"`
 	Header        string `json:"header"`
+	Purpose       string `json:"purpose"`
 	LastPostAt    int64  `json:"last_post_at"`
 	TotalMsgCount int64  `json:"total_msg_count"`
 	ExtraUpdateAt int64  `json:"extra_update_at"`
@@ -91,6 +92,10 @@ func (o *Channel) IsValid() *AppError {
 
 	if len(o.Header) > 1024 {
 		return NewAppError("Channel.IsValid", "Invalid header", "id="+o.Id)
+	}
+
+	if len(o.Purpose) > 128 {
+		return NewAppError("Channel.IsValid", "Invalid purpose", "id="+o.Id)
 	}
 
 	if len(o.CreatorId) > 26 {

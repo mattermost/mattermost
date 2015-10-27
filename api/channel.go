@@ -23,6 +23,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	sr.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
+	sr.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
 	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
@@ -210,6 +211,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		oldChannel.Header = channel.Header
+		oldChannel.Purpose = channel.Purpose
 
 		if len(channel.DisplayName) > 0 {
 			oldChannel.DisplayName = channel.DisplayName
@@ -266,6 +268,49 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		channel.Header = channelHeader
+
+		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
+			c.Err = ucresult.Err
+			return
+		} else {
+			c.LogAudit("name=" + channel.Name)
+			w.Write([]byte(channel.ToJson()))
+		}
+	}
+}
+
+func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	channelId := props["channel_id"]
+	if len(channelId) != 26 {
+		c.SetInvalidParam("updateChannelPurpose", "channel_id")
+		return
+	}
+
+	channelPurpose := props["channel_purpose"]
+	if len(channelPurpose) > 1024 {
+		c.SetInvalidParam("updateChannelPurpose", "channel_purpose")
+		return
+	}
+
+	sc := Srv.Store.Channel().Get(channelId)
+	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+
+	if cresult := <-sc; cresult.Err != nil {
+		c.Err = cresult.Err
+		return
+	} else if cmcresult := <-cmc; cmcresult.Err != nil {
+		c.Err = cmcresult.Err
+		return
+	} else {
+		channel := cresult.Data.(*model.Channel)
+		// Don't need to do anything channel member, just wanted to confirm it exists
+
+		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelPurpose") {
+			return
+		}
+
+		channel.Purpose = channelPurpose
 
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
