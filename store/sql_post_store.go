@@ -630,7 +630,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
-				    t1.Name, COUNT(t1.UserId) AS Value
+				    TO_CHAR(t1.Name, 'YYYY-MM-DD') AS Name, COUNT(t1.UserId) AS Value
 				FROM
 				    (SELECT DISTINCT
 				        DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)) AS Name,
@@ -650,7 +650,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 		_, err := s.GetReplica().Select(
 			&rows,
 			query,
-			map[string]interface{}{"TeamId": teamId})
+			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
 		} else {
@@ -672,14 +672,17 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 
 		query :=
 			`SELECT 
-			    DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			    COUNT(Posts.Id) AS Value
+			    Name, COUNT(Value) AS Value
 			FROM
-			    Posts,
-			    Channels
-			WHERE
-			    Posts.ChannelId = Channels.Id
-			        AND Channels.TeamId = :TeamId
+			    (SELECT 
+			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			            '1' AS Value
+			    FROM
+			        Posts, Channels
+			    WHERE
+			        Posts.ChannelId = Channels.Id
+			            AND Channels.TeamId = :TeamId
+			            AND Posts.CreateAt >:Time) AS t1
 			GROUP BY Name
 			ORDER BY Name DESC
 			LIMIT 30`
@@ -687,14 +690,17 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT 
-				    DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)) AS Name,
-				    COUNT(Posts.Id) AS Value
+				    Name, COUNT(Value) AS Value
 				FROM
-				    Posts,
-				    Channels
-				WHERE
-				    Posts.ChannelId = Channels.Id
-				        AND Channels.TeamId = :TeamId
+				    (SELECT 
+				        TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
+				            '1' AS Value
+				    FROM
+				        Posts, Channels
+				    WHERE
+				        Posts.ChannelId = Channels.Id
+				            AND Channels.TeamId = :TeamId
+				            AND Posts.CreateAt > :Time) AS t1
 				GROUP BY Name
 				ORDER BY Name DESC
 				LIMIT 30`
@@ -704,7 +710,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 		_, err := s.GetReplica().Select(
 			&rows,
 			query,
-			map[string]interface{}{"TeamId": teamId})
+			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
 		} else {
