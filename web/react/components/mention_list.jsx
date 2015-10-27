@@ -217,12 +217,17 @@ export default class MentionList extends React.Component {
                 if (this.state.selectedMention === index) {
                     isFocused = 'mentions-focus';
                 }
+
+                if (!users[i].secondary_text) {
+                    users[i].secondary_text = Utils.getFullName(users[i]);
+                }
+
                 mentions[index] = (
                     <Mention
                         key={'mention_key_' + index}
                         ref={'mention' + index}
                         username={users[i].username}
-                        secondary_text={Utils.getFullName(users[i])}
+                        secondary_text={users[i].secondary_text}
                         id={users[i].id}
                         listId={index}
                         isFocused={isFocused}

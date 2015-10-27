@@ -12,7 +12,8 @@ To enable email, configure an SMTP email service as follows:
 	     2. If you don't have an SMTP service, here are simple instructions to set one up with [Amazon Simple Email Service (SES)](https://aws.amazon.com/ses/):
 	         2. Go to [Amazon SES console](https://console.aws.amazon.com/ses) then `SMTP Settings > Create My SMTP Credentials`
 	         3. Copy the `Server Name`, `Port`, `SMTP Username`, and `SMTP Password` for Step 2 below. 
-	         4. From the `Domains` menu set up and verify a new domain, then enable `Generate DKIM Settings` for the domain.
+	         4. From the `Domains` menu set up and verify a new domain, then enable `Generate DKIM Settings` for the domain. 
+	            1. We recommend you set up _[Sender Policy Framework](https://en.wikipedia.org/wiki/Sender_Policy_Framework) (SPF)_ and/or _[Domain Keys Identified Mail](https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail) (DKIM)_ for your email domain.
 	         5. Choose an sender address like `mattermost@example.com` and click `Send a Test Email` to verify setup is working correctly. 
 
 2.  **Configure SMTP settings** 
@@ -57,7 +58,11 @@ To enable email, configure an SMTP email service as follows:
 * Information needed
 
 ##### Hotmail
-* Information needed
+* Set **SMTP Username** to **your_email@hotmail.com**
+* Set **SMTP Password** to **your_password**
+* Set **SMTP Server** to **smtp-mail.outlook.com**
+* Set **SMTP Port** to **587**
+* Set **Connection Security** to **STARTTLS**
 
 
 ### Troubleshooting SMTP

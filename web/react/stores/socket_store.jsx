@@ -86,7 +86,7 @@ class SocketStoreClass extends EventEmitter {
 
                 this.failCount = this.failCount + 1;
 
-                ErrorStore.storeLastError({connErrorCount: this.failCount, message: 'We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.'});
+                ErrorStore.storeLastError({connErrorCount: this.failCount, message: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'});
                 ErrorStore.emitChange();
             };
 
@@ -160,7 +160,7 @@ function handleNewPostEvent(msg) {
         if (window.isActive) {
             AsyncClient.updateLastViewedAt(true);
         }
-    } else {
+    } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
         AsyncClient.getChannel(msg.channel_id);
     }
 

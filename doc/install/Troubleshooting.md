@@ -15,3 +15,11 @@
   - If the System Administrator account becomes unavailable, a person leaving the organization for example, you can set a new system admin from the commandline using `./platform -assign_role -team_name="yourteam" -email="you@example.com" -role="system_admin"`. 
   - After assigning the role the user needs to log out and log back in before the System Administrator role is applied.
 
+#### Error Messages
+
+The following is a list of common error messages and solutions: 
+
+##### "We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly"
+- Message appears in blue bar on team site. Check that [your websocket port is properly configured](https://github.com/mattermost/platform/blob/master/doc/install/Production-Ubuntu.md#set-up-nginx-server). 
+
+

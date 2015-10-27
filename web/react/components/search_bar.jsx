@@ -9,6 +9,7 @@ var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 var Popover = ReactBootstrap.Popover;
+var SearchAutocomplete = require('./search_autocomplete.jsx');
 
 export default class SearchBar extends React.Component {
     constructor() {
@@ -16,11 +17,13 @@ export default class SearchBar extends React.Component {
         this.mounted = false;
 
         this.onListenerChange = this.onListenerChange.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.completeWord = this.completeWord.bind(this);
 
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
@@ -74,11 +77,18 @@ export default class SearchBar extends React.Component {
             results: null
         });
     }
+    handleKeyDown(e) {
+        if (this.refs.autocomplete) {
+            this.refs.autocomplete.handleKeyDown(e);
+        }
+    }
     handleUserInput(e) {
         var term = e.target.value;
         PostStore.storeSearchTerm(term);
         PostStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
+
+        this.refs.autocomplete.handleInputChange(e.target, term);
     }
     handleMouseInput(e) {
         e.preventDefault();
@@ -95,9 +105,16 @@ export default class SearchBar extends React.Component {
     performSearch(terms, isMentionSearch) {
         if (terms.length) {
             this.setState({isSearching: true});
+
+            // append * if not present
+            let searchTerms = terms;
+            if (searchTerms.search(/\*\s*$/) === -1) {
+                searchTerms = searchTerms + '*';
+            }
+
             client.search(
-                terms,
-                function success(data) {
+                searchTerms,
+                (data) => {
                     this.setState({isSearching: false});
                     if (utils.isMobile()) {
                         ReactDOM.findDOMNode(this.refs.search).value = '';
@@ -108,11 +125,11 @@ export default class SearchBar extends React.Component {
                         results: data,
                         is_mention_search: isMentionSearch
                     });
-                }.bind(this),
-                function error(err) {
+                },
+                (err) => {
                     this.setState({isSearching: false});
                     AsyncClient.dispatchError(err, 'search');
-                }.bind(this)
+                }
             );
         }
     }
@@ -120,6 +137,24 @@ export default class SearchBar extends React.Component {
         e.preventDefault();
         this.performSearch(this.state.searchTerm.trim());
     }
+
+    completeWord(partialWord, word) {
+        const textbox = ReactDOM.findDOMNode(this.refs.search);
+        let text = textbox.value;
+
+        const caret = utils.getCaretPosition(textbox);
+        const preText = text.substring(0, caret - partialWord.length);
+        const postText = text.substring(caret);
+        text = preText + word + postText;
+
+        textbox.value = text;
+        utils.setCaretPosition(textbox, preText.length + word.length);
+
+        PostStore.storeSearchTerm(text);
+        PostStore.emitSearchTermChange(false);
+        this.setState({searchTerm: text});
+    }
+
     render() {
         var isSearching = null;
         if (this.state.isSearching) {
@@ -143,12 +178,13 @@ export default class SearchBar extends React.Component {
                     className='search__clear'
                     onClick={this.clearFocus}
                 >
-                    Cancel
+                    {'Cancel'}
                 </span>
                 <form
                     role='form'
                     className='search__form relative-div'
                     onSubmit={this.handleSubmit}
+                    style={{overflow: 'visible'}}
                 >
                     <span className='glyphicon glyphicon-search sidebar__search-icon' />
                     <input
@@ -160,10 +196,16 @@ export default class SearchBar extends React.Component {
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onChange={this.handleUserInput}
+                        onKeyDown={this.handleKeyDown}
                         onMouseUp={this.handleMouseInput}
                     />
                     {isSearching}
+                    <SearchAutocomplete
+                        ref='autocomplete'
+                        completeWord={this.completeWord}
+                    />
                     <Popover
+                        id='searchbar-help-popup'
                         placement='bottom'
                         className={helpClass}
                     >

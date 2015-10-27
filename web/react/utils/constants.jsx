@@ -98,6 +98,7 @@ module.exports = {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_TYPE_JOIN_LEAVE: 'join_leave',
     RESERVED_TEAM_NAMES: [
         'www',
         'web',
@@ -132,6 +133,7 @@ module.exports = {
     OFFLINE_ICON_SVG: "<svg version='1.1' id='Layer_1' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:cc='http://creativecommons.org/ns#' xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#' xmlns:svg='http://www.w3.org/2000/svg' xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd' xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape' sodipodi:docname='TRASH_1_4.svg' inkscape:version='0.48.4 r9939' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' width='12px' height='12px' viewBox='0 0 12 12' enable-background='new 0 0 12 12' xml:space='preserve'><sodipodi:namedview  inkscape:cy='139.7898' inkscape:cx='26.358185' inkscape:zoom='1.18' showguides='true' showgrid='false' id='namedview6' guidetolerance='10' gridtolerance='10' objecttolerance='10' borderopacity='1' bordercolor='#666666' pagecolor='#ffffff' inkscape:current-layer='Layer_1' inkscape:window-maximized='1' inkscape:window-y='-8' inkscape:window-x='-8' inkscape:window-height='705' inkscape:window-width='1366' inkscape:guide-bbox='true' inkscape:pageshadow='2' inkscape:pageopacity='0'><sodipodi:guide  position='50.036793,85.991376' orientation='1,0' id='guide2986'></sodipodi:guide><sodipodi:guide  position='58.426196,66.216355' orientation='0,1' id='guide3047'></sodipodi:guide></sodipodi:namedview><g><g><path fill='#cccccc' d='M6.002,7.143C5.645,7.363,5.167,7.52,4.502,7.52c-2.493,0-2.5-2.02-2.5-2.02S1.029,5.607,0.775,6.004C0.41,6.577,0.15,7.716,0.049,8.545c-0.025,0.145-0.057,0.537-0.05,0.598c0.162,1.295,2.237,2.321,4.375,2.357c0.043,0.001,0.085,0.001,0.127,0.001c0.043,0,0.084,0,0.127-0.001c1.879-0.023,3.793-0.879,4.263-2h-2.89L6.002,7.143L6.002,7.143z M4.501,5.488c1.372,0,2.483-1.117,2.483-2.494c0-1.378-1.111-2.495-2.483-2.495c-1.371,0-2.481,1.117-2.481,2.495C2.02,4.371,3.13,5.488,4.501,5.488z M7.002,6.5v2h5v-2H7.002z'/></g></g></svg>",
     MENU_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='4px' height='16px' viewBox='0 0 8 32' enable-background='new 0 0 8 32' xml:space='preserve'> <g> <circle cx='4' cy='4.062' r='4'/> <circle cx='4' cy='16' r='4'/> <circle cx='4' cy='28' r='4'/> </g> </svg>",
     COMMENT_ICON: "<svg version='1.1' id='Layer_2' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'width='15px' height='15px' viewBox='1 1.5 15 15' enable-background='new 1 1.5 15 15' xml:space='preserve'> <g> <g> <path fill='#211B1B' d='M14,1.5H3c-1.104,0-2,0.896-2,2v8c0,1.104,0.896,2,2,2h1.628l1.884,3l1.866-3H14c1.104,0,2-0.896,2-2v-8 C16,2.396,15.104,1.5,14,1.5z M15,11.5c0,0.553-0.447,1-1,1H8l-1.493,2l-1.504-1.991L5,12.5H3c-0.552,0-1-0.447-1-1v-8 c0-0.552,0.448-1,1-1h11c0.553,0,1,0.448,1,1V11.5z'/> </g> </g> </svg>",
+    UPDATE_TYPING_MS: 5000,
     THEMES: {
         default: {
             type: 'Mattermost',
@@ -300,6 +302,13 @@ module.exports = {
             uiName: 'Mention Highlight Link'
         }
     ],
+    CODE_THEMES: {
+        github: 'GitHub',
+        solarized_light: 'Solarized light',
+        monokai: 'Monokai',
+        solarized_dark: 'Solarized Dark'
+    },
+    DEFAULT_CODE_THEME: 'github',
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings'
@@ -311,6 +320,32 @@ module.exports = {
         RIGHT: 39,
         BACKSPACE: 8,
         ENTER: 13,
-        ESCAPE: 27
+        ESCAPE: 27,
+        SPACE: 32
+    },
+    HighlightedLanguages: {
+        diff: 'Diff',
+        apache: 'Apache',
+        makefile: 'Makefile',
+        http: 'HTTP',
+        json: 'JSON',
+        markdown: 'Markdown',
+        javascript: 'JavaScript',
+        css: 'CSS',
+        nginx: 'nginx',
+        objectivec: 'Objective-C',
+        python: 'Python',
+        xml: 'XML',
+        perl: 'Perl',
+        bash: 'Bash',
+        php: 'PHP',
+        coffeescript: 'CoffeeScript',
+        cs: 'C#',
+        cpp: 'C++',
+        sql: 'SQL',
+        go: 'Go',
+        ruby: 'Ruby',
+        java: 'Java',
+        ini: 'ini'
     }
 };

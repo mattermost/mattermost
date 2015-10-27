@@ -1,13 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AsyncClient = require('../utils/async_client.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const Constants = require('../utils/constants.jsx');
-const Client = require('../utils/client.jsx');
 const Modal = ReactBootstrap.Modal;
-const PreferenceStore = require('../stores/preference_store.jsx');
-const TeamStore = require('../stores/team_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 
@@ -70,52 +64,24 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleShowDirectChannel(teammate, e) {
+        e.preventDefault();
+
         if (this.state.loadingDMChannel !== -1) {
             return;
         }
 
-        e.preventDefault();
-
-        const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), teammate.id);
-        let channel = ChannelStore.getByName(channelName);
-
-        const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
-        AsyncClient.savePreferences([preference]);
-
-        if (channel) {
-            Utils.switchChannel(channel);
-
-            this.handleHide();
-        } else {
-            this.setState({loadingDMChannel: teammate.id});
-
-            channel = {
-                name: channelName,
-                last_post_at: 0,
-                total_msg_count: 0,
-                type: 'D',
-                display_name: teammate.username,
-                teammate_id: teammate.id,
-                status: UserStore.getStatus(teammate.id)
-            };
-
-            Client.createDirectChannel(
-                channel,
-                teammate.id,
-                (data) => {
-                    this.setState({loadingDMChannel: -1});
-
-                    AsyncClient.getChannel(data.id);
-                    Utils.switchChannel(data);
-
-                    this.handleHide();
-                },
-                () => {
-                    this.setState({loadingDMChannel: -1});
-                    window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channelName;
-                }
-            );
-        }
+        this.setState({loadingDMChannel: teammate.id});
+        Utils.openDirectChannelToUser(
+            teammate,
+            (channel) => {
+                Utils.switchChannel(channel);
+                this.setState({loadingDMChannel: -1});
+                this.handleHide();
+            },
+            () => {
+                this.setState({loadingDMChannel: -1});
+            }
+        );
     }
 
     handleUserChange() {
@@ -169,7 +135,7 @@ export default class MoreDirectChannels extends React.Component {
         }
 
         return (
-            <tr>
+            <tr key={'direct-channel-row-user' + user.id}>
                 <td
                     key={user.id}
                     className='direct-channel'

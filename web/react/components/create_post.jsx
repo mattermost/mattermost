@@ -38,6 +38,7 @@ export default class CreatePost extends React.Component {
         this.getFileCount = this.getFileCount.bind(this);
         this.handleArrowUp = this.handleArrowUp.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -122,6 +123,11 @@ export default class CreatePost extends React.Component {
                 post.message,
                 false,
                 (data) => {
+                    if (data.response === 'not implemented') {
+                        this.sendMessage(post);
+                        return;
+                    }
+
                     PostStore.storeDraft(data.channel_id, null);
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
@@ -130,62 +136,69 @@ export default class CreatePost extends React.Component {
                     }
                 },
                 (err) => {
-                    const state = {};
-                    state.serverError = err.message;
-                    state.submitting = false;
-                    this.setState(state);
+                    if (err.sendMessage) {
+                        this.sendMessage(post);
+                    } else {
+                        const state = {};
+                        state.serverError = err.message;
+                        state.submitting = false;
+                        this.setState(state);
+                    }
                 }
             );
         } else {
-            post.channel_id = this.state.channelId;
-            post.filenames = this.state.previews;
-
-            const time = Utils.getTimestamp();
-            const userId = UserStore.getCurrentId();
-            post.pending_post_id = `${userId}:${time}`;
-            post.user_id = userId;
-            post.create_at = time;
-            post.root_id = this.state.rootId;
-            post.parent_id = this.state.parentId;
-
-            const channel = ChannelStore.get(this.state.channelId);
-
-            PostStore.storePendingPost(post);
-            PostStore.storeDraft(channel.id, null);
-            this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
-
-            Client.createPost(post, channel,
-                (data) => {
-                    AsyncClient.getPosts();
-
-                    const member = ChannelStore.getMember(channel.id);
-                    member.msg_count = channel.total_msg_count;
-                    member.last_viewed_at = Date.now();
-                    ChannelStore.setChannelMember(member);
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECIEVED_POST,
-                        post: data
-                    });
-                },
-                (err) => {
-                    const state = {};
-
-                    if (err.message === 'Invalid RootId parameter') {
-                        if ($('#post_deleted').length > 0) {
-                            $('#post_deleted').modal('show');
-                        }
-                        PostStore.removePendingPost(post.pending_post_id);
-                    } else {
-                        post.state = Constants.POST_FAILED;
-                        PostStore.updatePendingPost(post);
-                    }
-
-                    state.submitting = false;
-                    this.setState(state);
-                }
-            );
+            this.sendMessage(post);
         }
+    }
+    sendMessage(post) {
+        post.channel_id = this.state.channelId;
+        post.filenames = this.state.previews;
+
+        const time = Utils.getTimestamp();
+        const userId = UserStore.getCurrentId();
+        post.pending_post_id = `${userId}:${time}`;
+        post.user_id = userId;
+        post.create_at = time;
+        post.root_id = this.state.rootId;
+        post.parent_id = this.state.parentId;
+
+        const channel = ChannelStore.get(this.state.channelId);
+
+        PostStore.storePendingPost(post);
+        PostStore.storeDraft(channel.id, null);
+        this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
+
+        Client.createPost(post, channel,
+            (data) => {
+                AsyncClient.getPosts();
+
+                const member = ChannelStore.getMember(channel.id);
+                member.msg_count = channel.total_msg_count;
+                member.last_viewed_at = Date.now();
+                ChannelStore.setChannelMember(member);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_POST,
+                    post: data
+                });
+            },
+            (err) => {
+                const state = {};
+
+                if (err.message === 'Invalid RootId parameter') {
+                    if ($('#post_deleted').length > 0) {
+                        $('#post_deleted').modal('show');
+                    }
+                    PostStore.removePendingPost(post.pending_post_id);
+                } else {
+                    post.state = Constants.POST_FAILED;
+                    PostStore.updatePendingPost(post);
+                }
+
+                state.submitting = false;
+                this.setState(state);
+            }
+        );
     }
     postMsgKeyPress(e) {
         if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
@@ -195,7 +208,7 @@ export default class CreatePost extends React.Component {
         }
 
         const t = Date.now();
-        if ((t - this.lastTime) > 5000) {
+        if ((t - this.lastTime) > Constants.UPDATE_TYPING_MS) {
             SocketStore.sendMessage({channel_id: this.state.channelId, action: 'typing', props: {parent_id: ''}, state: {}});
             this.lastTime = t;
         }
@@ -240,8 +253,14 @@ export default class CreatePost extends React.Component {
         this.setState({uploadsInProgress: draft.uploadsInProgress, previews: draft.previews});
     }
     handleUploadError(err, clientId) {
+        let message = err;
+        if (message && typeof message !== 'string') {
+            // err is an AppError from the server
+            message = err.message;
+        }
+
         if (clientId === -1) {
-            this.setState({serverError: err});
+            this.setState({serverError: message});
         } else {
             const draft = PostStore.getDraft(this.state.channelId);
 
@@ -252,7 +271,7 @@ export default class CreatePost extends React.Component {
 
             PostStore.storeDraft(this.state.channelId, draft);
 
-            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: err});
+            this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: message});
         }
     }
     handleTextDrop(text) {

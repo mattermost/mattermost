@@ -9,12 +9,8 @@ export default class ErrorBar extends React.Component {
 
         this.onErrorChange = this.onErrorChange.bind(this);
         this.handleClose = this.handleClose.bind(this);
-        this.prevTimer = null;
 
         this.state = ErrorStore.getLastError();
-        if (this.isValidError(this.state)) {
-            this.prevTimer = setTimeout(this.handleClose, 10000);
-        }
     }
 
     isValidError(s) {
@@ -56,16 +52,8 @@ export default class ErrorBar extends React.Component {
     onErrorChange() {
         var newState = ErrorStore.getLastError();
 
-        if (this.prevTimer != null) {
-            clearInterval(this.prevTimer);
-            this.prevTimer = null;
-        }
-
         if (newState) {
             this.setState(newState);
-            if (!this.isConnectionError(newState)) {
-                this.prevTimer = setTimeout(this.handleClose, 10000);
-            }
         } else {
             this.setState({message: null});
         }
