@@ -17,16 +17,19 @@ const (
 )
 
 type Team struct {
-	Id             string `json:"id"`
-	CreateAt       int64  `json:"create_at"`
-	UpdateAt       int64  `json:"update_at"`
-	DeleteAt       int64  `json:"delete_at"`
-	DisplayName    string `json:"display_name"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	Type           string `json:"type"`
-	CompanyName    string `json:"company_name"`
-	AllowedDomains string `json:"allowed_domains"`
+	Id               string `json:"id"`
+	CreateAt         int64  `json:"create_at"`
+	UpdateAt         int64  `json:"update_at"`
+	DeleteAt         int64  `json:"delete_at"`
+	DisplayName      string `json:"display_name"`
+	Name             string `json:"name"`
+	Email            string `json:"email"`
+	Type             string `json:"type"`
+	CompanyName      string `json:"company_name"`
+	AllowedDomains   string `json:"allowed_domains"`
+	InviteId         string `json:"invite_id"`
+	AllowOpenInvite  bool   `json:"allow_open_invite"`
+	AllowTeamListing bool   `json:"allow_team_listing"`
 }
 
 type Invites struct {
@@ -145,6 +148,10 @@ func (o *Team) IsValid(restrictTeamNames bool) *AppError {
 
 	if len(o.AllowedDomains) > 500 {
 		return NewAppError("Team.IsValid", "Invalid allowed domains", "id="+o.Id)
+	}
+
+	if len(o.InviteId) > 0 && len(o.InviteId) != 26 {
+		return NewAppError("Team.IsValid", "Invalid inviate Id", "")
 	}
 
 	return nil
