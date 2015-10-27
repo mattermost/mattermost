@@ -6,6 +6,7 @@ package store
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/platform/model"
@@ -413,10 +414,15 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 	go func() {
 		result := StoreResult{}
 
+		queryParams := map[string]interface{}{
+			"TeamId": teamId,
+			"UserId": userId,
+		}
+
 		termMap := map[string]bool{}
 		terms := params.Terms
 
-		if terms == "" && params.InChannel == "" && params.FromUser == "" {
+		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 {
 			result.Data = []*model.Post{}
 			storeChannel <- result
 			return
@@ -468,13 +474,45 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-		if params.InChannel != "" {
+		if len(params.InChannels) > 1 {
+			inClause := ":InChannel0"
+			queryParams["InChannel0"] = params.InChannels[0]
+
+			for i := 1; i < len(params.InChannels); i++ {
+				paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
+				inClause += ", :" + paramName
+				queryParams[paramName] = params.InChannels[i]
+			}
+
+			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
+		} else if len(params.InChannels) == 1 {
+			queryParams["InChannel"] = params.InChannels[0]
 			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
 		} else {
 			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
 		}
 
-		if params.FromUser != "" {
+		if len(params.FromUsers) > 1 {
+			inClause := ":FromUser0"
+			queryParams["FromUser0"] = params.FromUsers[0]
+
+			for i := 1; i < len(params.FromUsers); i++ {
+				paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
+				inClause += ", :" + paramName
+				queryParams[paramName] = params.FromUsers[i]
+			}
+
+			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+				AND UserId IN (
+					SELECT
+						Id
+					FROM
+						Users
+					WHERE
+						TeamId = :TeamId
+						AND Username IN (`+inClause+`))`, 1)
+		} else if len(params.FromUsers) == 1 {
+			queryParams["FromUser"] = params.FromUsers[0]
 			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
 				AND UserId IN (
 					SELECT
@@ -506,13 +544,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		}
 
-		queryParams := map[string]interface{}{
-			"TeamId":    teamId,
-			"UserId":    userId,
-			"Terms":     terms,
-			"InChannel": params.InChannel,
-			"FromUser":  params.FromUser,
-		}
+		queryParams["Terms"] = terms
 
 		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {

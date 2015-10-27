@@ -34,7 +34,7 @@ function handleError(methodName, xhr, status, err) {
 
             if (oldError && oldError.connErrorCount) {
                 errorCount += oldError.connErrorCount;
-                connectError = 'We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.';
+                connectError = 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.';
             }
 
             e = {message: connectError, connErrorCount: errorCount};

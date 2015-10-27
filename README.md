@@ -40,7 +40,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 - [Feature Ideas Forum](http://www.mattermost.org/feature-requests/) - For sharing ideas for future versions 
 - [Contribution Guidelines](http://www.mattermost.org/contribute-to-mattermost/) - For contributing code or feedback to the project
 
-Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq).
+Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq), or talk to the core team on our [daily builds server](https://pre-release.mattermost.com/core) via [this invite link](https://pre-release.mattermost.com/signup_user_complete/?id=rcgiyftm7jyrxnma1osd8zswby). 
 
 ## Installing Mattermost
 
@@ -100,6 +100,12 @@ Joining the Mattermost community is a great way to build relationships with othe
 - Share [feature ideas](http://www.mattermost.org/feature-requests/) with the Mattermost community
 - Review the [Mattermost Code Contribution Guidelines](http://docs.mattermost.org/developer/Code-Contribution-Guidelines/index.html) to submit patches for the core product
 - Consider building tools that help developers and IT professionals manage Mattermost more effectively (API documentation coming in Beta2)
+
+##### Check out some projects for connecting to Mattermost: 
+
+- [Matterbridge](https://github.com/42wim/matterbridge) - an IRC bridge connecting to Mattermost 
+- [GitLab Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-gitlab) - connecting GitLab to Mattermost via incoming webhooks
+- [Giphy Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-giphy) - connecting Mattermost to Giphy via outgoing webhooks
 
 #### Have other ideas or suggestions?
 
