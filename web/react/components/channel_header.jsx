@@ -110,11 +110,11 @@ export default class ChannelHeader extends React.Component {
                 bSize='large'
                 placement='bottom'
                 className='description'
-                onMouseOver={() => this.refs.descriptionOverlay.show()}
-                onMouseOut={() => this.refs.descriptionOverlay.hide()}
+                onMouseOver={() => this.refs.headerOverlay.show()}
+                onMouseOut={() => this.refs.headerOverlay.hide()}
             >
                 <MessageWrapper
-                    message={channel.description}
+                    message={channel.header}
                 />
             </Popover>
         );
@@ -144,7 +144,7 @@ export default class ChannelHeader extends React.Component {
         if (isDirect) {
             dropdownContents.push(
                 <li
-                    key='edit_description_direct'
+                    key='edit_header_direct'
                     role='presentation'
                 >
                     <a
@@ -152,11 +152,11 @@ export default class ChannelHeader extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#edit_channel'
-                        data-desc={channel.description}
+                        data-header={channel.header}
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Set Channel Description...
+                        Set Channel Header...
                     </a>
                 </li>
             );
@@ -216,7 +216,7 @@ export default class ChannelHeader extends React.Component {
 
             dropdownContents.push(
                 <li
-                    key='set_channel_description'
+                    key='set_channel_header'
                     role='presentation'
                 >
                     <a
@@ -224,11 +224,11 @@ export default class ChannelHeader extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#edit_channel'
-                        data-desc={channel.description}
+                        data-header={channel.header}
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Set {channelTerm} Description...
+                        Set {channelTerm} Header...
                     </a>
                 </li>
             );
@@ -336,12 +336,12 @@ export default class ChannelHeader extends React.Component {
                                     trigger={['hover', 'focus']}
                                     placement='bottom'
                                     overlay={popoverContent}
-                                    ref='descriptionOverlay'
+                                    ref='headerOverlay'
                                 >
                                 <div
                                     onClick={TextFormatting.handleClick}
                                     className='description'
-                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.description, {singleline: true, mentionHighlight: false})}}
+                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
                                 />
                                 </OverlayTrigger>
                             </div>

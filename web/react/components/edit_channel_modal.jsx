@@ -14,7 +14,7 @@ export default class EditChannelModal extends React.Component {
         this.onShow = this.onShow.bind(this);
 
         this.state = {
-            description: '',
+            header: '',
             title: '',
             channelId: '',
             serverError: ''
@@ -28,32 +28,32 @@ export default class EditChannelModal extends React.Component {
             return;
         }
 
-        data.channel_description = this.state.description.trim();
+        data.channel_header = this.state.header.trim();
 
-        Client.updateChannelDesc(data,
-            function handleUpdateSuccess() {
+        Client.updateChannelHeader(data,
+            () => {
                 this.setState({serverError: ''});
                 AsyncClient.getChannel(this.state.channelId);
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
-            }.bind(this),
-            function handleUpdateError(err) {
-                if (err.message === 'Invalid channel_description parameter') {
-                    this.setState({serverError: 'This description is too long, please enter a shorter one'});
+            },
+            (err) => {
+                if (err.message === 'Invalid channel_header parameter') {
+                    this.setState({serverError: 'This channel header is too long, please enter a shorter one'});
                 } else {
                     this.setState({serverError: err.message});
                 }
-            }.bind(this)
+            }
         );
     }
     handleUserInput(e) {
-        this.setState({description: e.target.value});
+        this.setState({header: e.target.value});
     }
     handleClose() {
-        this.setState({description: '', serverError: ''});
+        this.setState({header: '', serverError: ''});
     }
     onShow(e) {
         const button = e.relatedTarget;
-        this.setState({description: $(button).attr('data-desc'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
+        this.setState({header: $(button).attr('data-header'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
     }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
@@ -73,7 +73,7 @@ export default class EditChannelModal extends React.Component {
                 className='modal-title'
                 ref='title'
             >
-                Edit Description
+                Edit Header
             </h4>
         );
         if (this.state.title) {
@@ -82,7 +82,7 @@ export default class EditChannelModal extends React.Component {
                     className='modal-title'
                     ref='title'
                 >
-                    Edit Description for <span className='name'>{this.state.title}</span>
+                    Edit Header for <span className='name'>{this.state.title}</span>
                 </h4>
             );
         }
@@ -113,9 +113,8 @@ export default class EditChannelModal extends React.Component {
                             <textarea
                                 className='form-control no-resize'
                                 rows='6'
-                                ref='channelDesc'
                                 maxLength='1024'
-                                value={this.state.description}
+                                value={this.state.header}
                                 onChange={this.handleUserInput}
                             />
                             {serverError}

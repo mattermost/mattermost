@@ -90,8 +90,9 @@ export default class AccessHistoryModal extends React.Component {
             case '/channels/update':
                 currentAuditDesc = 'Updated the ' + channelName + ' channel/group name';
                 break;
-            case '/channels/update_desc':
-                currentAuditDesc = 'Updated the ' + channelName + ' channel/group description';
+            case '/channels/update_desc': // support the old path
+            case '/channels/update_header':
+                currentAuditDesc = 'Updated the ' + channelName + ' channel/group header';
                 break;
             default:
                 let userIdField = [];

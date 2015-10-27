@@ -358,11 +358,11 @@ export default class PostList extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#edit_channel'
-                        data-desc={channel.description}
+                        data-header={channel.header}
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        <i className='fa fa-pencil'></i>{'Set a description'}
+                        <i className='fa fa-pencil'></i>{'Set a header'}
                     </a>
                 </div>
             );
@@ -413,11 +413,11 @@ export default class PostList extends React.Component {
                     href='#'
                     data-toggle='modal'
                     data-target='#edit_channel'
-                    data-desc={channel.description}
+                    data-header={channel.header}
                     data-title={channel.display_name}
                     data-channelid={channel.id}
                 >
-                    <i className='fa fa-pencil'></i>{'Set a description'}
+                    <i className='fa fa-pencil'></i>{'Set a header'}
                 </a>
                 <a
                     className='intro-links'
@@ -479,11 +479,11 @@ export default class PostList extends React.Component {
                     href='#'
                     data-toggle='modal'
                     data-target='#edit_channel'
-                    data-desc={channel.description}
+                    data-header={channel.header}
                     data-title={channel.display_name}
                     data-channelid={channel.id}
                 >
-                    <i className='fa fa-pencil'></i>{'Set a description'}
+                    <i className='fa fa-pencil'></i>{'Set a header'}
                 </a>
                 <a
                     className='intro-links'

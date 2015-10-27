@@ -575,21 +575,21 @@ export function updateChannel(channel, success, error) {
     track('api', 'api_channels_update');
 }
 
-export function updateChannelDesc(data, success, error) {
+export function updateChannelHeader(data, success, error) {
     $.ajax({
-        url: '/api/v1/channels/update_desc',
+        url: '/api/v1/channels/update_header',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
         data: JSON.stringify(data),
         success,
         error: function onError(xhr, status, err) {
-            var e = handleError('updateChannelDesc', xhr, status, err);
+            var e = handleError('updateChannelHeader', xhr, status, err);
             error(e);
         }
     });
 
-    track('api', 'api_channels_desc');
+    track('api', 'api_channels_header');
 }
 
 export function updateNotifyProps(data, success, error) {

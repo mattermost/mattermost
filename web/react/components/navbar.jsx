@@ -106,18 +106,18 @@ export default class Navbar extends React.Component {
                 </li>
             );
 
-            var setChannelDescriptionOption = (
+            var setChannelHeaderOption = (
                 <li role='presentation'>
                     <a
                         role='menuitem'
                         href='#'
                         data-toggle='modal'
                         data-target='#edit_channel'
-                        data-desc={channel.description}
+                        data-header={channel.header}
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Set Channel Description...
+                        Set Channel Header...
                     </a>
                 </li>
             );
@@ -249,7 +249,7 @@ export default class Navbar extends React.Component {
                             {viewInfoOption}
                             {addMembersOption}
                             {manageMembersOption}
-                            {setChannelDescriptionOption}
+                            {setChannelHeaderOption}
                             {notificationPreferenceOption}
                             {renameChannelOption}
                             {deleteChannelOption}
@@ -335,10 +335,10 @@ export default class Navbar extends React.Component {
                 <Popover
                     bsStyle='info'
                     placement='bottom'
-                    id='description-popover'
+                    id='header-popover'
                 >
                     <MessageWrapper
-                        message={channel.description}
+                        message={channel.header}
                         options={{singleline: true, mentionHighlight: false}}
                     />
                 </Popover>
@@ -360,20 +360,20 @@ export default class Navbar extends React.Component {
                 }
             }
 
-            if (channel.description.length === 0) {
+            if (channel.header.length === 0) {
                 popoverContent = (
                     <Popover
                         bsStyle='info'
                         placement='bottom'
-                        id='description-popover'
+                        id='header-popover'
                     >
                         <div>
-                            {'No channel description yet.'}
+                            {'No channel header yet.'}
                             <br/>
                             <a
                                 href='#'
                                 data-toggle='modal'
-                                data-desc={channel.description}
+                                data-header={channel.header}
                                 data-title={channel.display_name}
                                 data-channelid={channel.id}
                                 data-target='#edit_channel'

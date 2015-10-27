@@ -30,7 +30,7 @@ export default class NewChannelFlow extends React.Component {
             flowState: SHOW_NEW_CHANNEL,
             channelDisplayName: '',
             channelName: '',
-            channelDescription: '',
+            channelHeader: '',
             nameModified: false
         };
     }
@@ -43,7 +43,7 @@ export default class NewChannelFlow extends React.Component {
                 flowState: SHOW_NEW_CHANNEL,
                 channelDisplayName: '',
                 channelName: '',
-                channelDescription: '',
+                channelHeader: '',
                 nameModified: false
             });
         }
@@ -65,7 +65,7 @@ export default class NewChannelFlow extends React.Component {
 
         const cu = UserStore.getCurrentUser();
         channel.team_id = cu.team_id;
-        channel.description = this.state.channelDescription;
+        channel.header = this.state.channelHeader;
         channel.type = this.state.channelType;
 
         Client.createChannel(channel,
@@ -109,7 +109,7 @@ export default class NewChannelFlow extends React.Component {
     channelDataChanged(data) {
         this.setState({
             channelDisplayName: data.displayName,
-            channelDescription: data.description
+            channelHeader: data.header
         });
         if (!this.state.nameModified) {
             this.setState({channelName: Utils.cleanUpUrlable(data.displayName.trim())});
@@ -119,7 +119,7 @@ export default class NewChannelFlow extends React.Component {
         const channelData = {
             name: this.state.channelName,
             displayName: this.state.channelDisplayName,
-            description: this.state.channelDescription
+            header: this.state.channelHeader
         };
 
         let showChannelModal = false;
