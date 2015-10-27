@@ -36,7 +36,7 @@ export default class NewChannelModal extends React.Component {
     handleChange() {
         const newData = {
             displayName: ReactDOM.findDOMNode(this.refs.display_name).value,
-            header: ReactDOM.findDOMNode(this.refs.channel_header).value
+            purpose: ReactDOM.findDOMNode(this.refs.channel_purpose).value
         };
         this.props.onDataChanged(newData);
     }
@@ -136,22 +136,22 @@ export default class NewChannelModal extends React.Component {
                             </div>
                             <div className='form-group less'>
                                 <div className='col-sm-3'>
-                                    <label className='form__label control-label'>{'Header'}</label>
+                                    <label className='form__label control-label'>{'Purpose'}</label>
                                     <label className='form__label light'>{'(optional)'}</label>
                                 </div>
                                 <div className='col-sm-9'>
                                     <textarea
                                         className='form-control no-resize'
-                                        ref='channel_header'
+                                        ref='channel_purpose'
                                         rows='4'
-                                        placeholder='Header'
-                                        maxLength='1024'
-                                        value={this.props.channelData.header}
+                                        placeholder='Purpose'
+                                        maxLength='128'
+                                        value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
                                         tabIndex='2'
                                     />
                                     <p className='input__help'>
-                                        {'This text is shown in the channel header and supports markdown formatting.'}
+                                        {`Describe how this ${channelTerm} should be used.`}
                                     </p>
                                     {serverError}
                                 </div>

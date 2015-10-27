@@ -8,6 +8,7 @@ var ChannelStore = require('../stores/channel_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var MessageWrapper = require('./message_wrapper.jsx');
 var NotifyCounts = require('./notify_counts.jsx');
+const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
 const Utils = require('../utils/utils.jsx');
 
 var Constants = require('../utils/constants.jsx');
@@ -26,7 +27,9 @@ export default class Navbar extends React.Component {
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
 
-        this.state = this.getStateFromStores();
+        const state = this.getStateFromStores();
+        state.showEditChannelPurposeModal = false;
+        this.state = state;
     }
     getStateFromStores() {
         return {
@@ -121,6 +124,19 @@ export default class Navbar extends React.Component {
                     </a>
                 </li>
             );
+
+            var setChannelPurposeOption = null;
+            if (!isDirect) {
+                setChannelPurposeOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                        />
+                    </li>
+                );
+            }
 
             var addMembersOption;
             var leaveChannelOption;
@@ -250,6 +266,7 @@ export default class Navbar extends React.Component {
                             {addMembersOption}
                             {manageMembersOption}
                             {setChannelHeaderOption}
+                            {setChannelPurposeOption}
                             {notificationPreferenceOption}
                             {renameChannelOption}
                             {deleteChannelOption}
@@ -392,17 +409,24 @@ export default class Navbar extends React.Component {
         var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent);
 
         return (
-            <nav
-                className='navbar navbar-default navbar-fixed-top'
-                role='navigation'
-            >
-                <div className='container-fluid theme'>
-                    <div className='navbar-header'>
-                        {collapseButtons}
-                        {channelMenuDropdown}
+            <div>
+                <nav
+                    className='navbar navbar-default navbar-fixed-top'
+                    role='navigation'
+                >
+                    <div className='container-fluid theme'>
+                        <div className='navbar-header'>
+                            {collapseButtons}
+                            {channelMenuDropdown}
+                        </div>
                     </div>
-                </div>
-            </nav>
+                </nav>
+                <EditChannelPurposeModal
+                    show={this.state.showEditChannelPurposeModal}
+                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                    channel={channel}
+                />
+            </div>
         );
     }
 }

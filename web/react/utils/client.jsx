@@ -592,6 +592,23 @@ export function updateChannelHeader(data, success, error) {
     track('api', 'api_channels_header');
 }
 
+export function updateChannelPurpose(data, success, error) {
+    $.ajax({
+        url: '/api/v1/channels/update_purpose',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('updateChannelPurpose', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_channels_purpose');
+}
+
 export function updateNotifyProps(data, success, error) {
     $.ajax({
         url: '/api/v1/channels/update_notify_props',

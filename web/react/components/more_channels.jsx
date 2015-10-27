@@ -105,12 +105,11 @@ export default class MoreChannels extends React.Component {
                                         );
                                 }
 
-                                // TODO Switch channel.header to channel.purpose once that has been added
                                 return (
                                     <tr key={channel.id}>
                                         <td>
                                             <p className='more-name'>{channel.display_name}</p>
-                                            <p className='more-header'>{channel.header}</p>
+                                            <p className='more-purpose'>{channel.purpose}</p>
                                         </td>
                                         <td className='td--action'>
                                             {joinButton}

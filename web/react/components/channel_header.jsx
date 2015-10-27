@@ -11,6 +11,7 @@ const TextFormatting = require('../utils/text_formatting.jsx');
 const Utils = require('../utils/utils.jsx');
 const MessageWrapper = require('./message_wrapper.jsx');
 const PopoverListMembers = require('./popover_list_members.jsx');
+const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
 
 const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 const Constants = require('../utils/constants.jsx');
@@ -27,7 +28,9 @@ export default class ChannelHeader extends React.Component {
         this.handleLeave = this.handleLeave.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
 
-        this.state = this.getStateFromStores();
+        const state = this.getStateFromStores();
+        state.showEditChannelPurposeModal = false;
+        this.state = state;
     }
     getStateFromStores() {
         return {
@@ -234,6 +237,20 @@ export default class ChannelHeader extends React.Component {
             );
             dropdownContents.push(
                 <li
+                    key='set_channel_purpose'
+                    role='presentation'
+                >
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                    >
+                        Set {channelTerm} Purpose...
+                    </a>
+                </li>
+            );
+            dropdownContents.push(
+                <li
                     key='notification_preferences'
                     role='presentation'
                 >
@@ -307,84 +324,91 @@ export default class ChannelHeader extends React.Component {
         }
 
         return (
-            <table className='channel-header alt'>
-                <tbody>
-                    <tr>
-                        <th>
-                            <div className='channel-header__info'>
-                                <div className='dropdown'>
+            <div>
+                <table className='channel-header alt'>
+                    <tbody>
+                        <tr>
+                            <th>
+                                <div className='channel-header__info'>
+                                    <div className='dropdown'>
+                                        <a
+                                            href='#'
+                                            className='dropdown-toggle theme'
+                                            type='button'
+                                            id='channel_header_dropdown'
+                                            data-toggle='dropdown'
+                                            aria-expanded='true'
+                                        >
+                                            <strong className='heading'>{channelTitle} </strong>
+                                            <span className='glyphicon glyphicon-chevron-down header-dropdown__icon' />
+                                        </a>
+                                        <ul
+                                            className='dropdown-menu'
+                                            role='menu'
+                                            aria-labelledby='channel_header_dropdown'
+                                        >
+                                            {dropdownContents}
+                                        </ul>
+                                    </div>
+                                    <OverlayTrigger
+                                        trigger={['hover', 'focus']}
+                                        placement='bottom'
+                                        overlay={popoverContent}
+                                        ref='headerOverlay'
+                                    >
+                                    <div
+                                        onClick={TextFormatting.handleClick}
+                                        className='description'
+                                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
+                                    />
+                                    </OverlayTrigger>
+                                </div>
+                            </th>
+                            <th>
+                                <PopoverListMembers
+                                    members={this.state.users}
+                                    channelId={channel.id}
+                                />
+                            </th>
+                            <th className='search-bar__container'><NavbarSearchBox /></th>
+                            <th>
+                                <div className='dropdown channel-header__links'>
                                     <a
                                         href='#'
                                         className='dropdown-toggle theme'
                                         type='button'
-                                        id='channel_header_dropdown'
+                                        id='channel_header_right_dropdown'
                                         data-toggle='dropdown'
                                         aria-expanded='true'
                                     >
-                                        <strong className='heading'>{channelTitle} </strong>
-                                        <span className='glyphicon glyphicon-chevron-down header-dropdown__icon' />
+                                        <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
                                     </a>
                                     <ul
-                                        className='dropdown-menu'
+                                        className='dropdown-menu dropdown-menu-right'
                                         role='menu'
-                                        aria-labelledby='channel_header_dropdown'
+                                        aria-labelledby='channel_header_right_dropdown'
                                     >
-                                        {dropdownContents}
+                                        <li role='presentation'>
+                                            <a
+                                                role='menuitem'
+                                                href='#'
+                                                onClick={this.searchMentions}
+                                            >
+                                                Recent Mentions
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    placement='bottom'
-                                    overlay={popoverContent}
-                                    ref='headerOverlay'
-                                >
-                                <div
-                                    onClick={TextFormatting.handleClick}
-                                    className='description'
-                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false})}}
-                                />
-                                </OverlayTrigger>
-                            </div>
-                        </th>
-                        <th>
-                            <PopoverListMembers
-                                members={this.state.users}
-                                channelId={channel.id}
-                            />
-                        </th>
-                        <th className='search-bar__container'><NavbarSearchBox /></th>
-                        <th>
-                            <div className='dropdown channel-header__links'>
-                                <a
-                                    href='#'
-                                    className='dropdown-toggle theme'
-                                    type='button'
-                                    id='channel_header_right_dropdown'
-                                    data-toggle='dropdown'
-                                    aria-expanded='true'
-                                >
-                                    <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
-                                </a>
-                                <ul
-                                    className='dropdown-menu dropdown-menu-right'
-                                    role='menu'
-                                    aria-labelledby='channel_header_right_dropdown'
-                                >
-                                    <li role='presentation'>
-                                        <a
-                                            role='menuitem'
-                                            href='#'
-                                            onClick={this.searchMentions}
-                                        >
-                                            Recent Mentions
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </th>
-                    </tr>
-                </tbody>
-            </table>
+                            </th>
+                        </tr>
+                    </tbody>
+                </table>
+                <EditChannelPurposeModal
+                    show={this.state.showEditChannelPurposeModal}
+                    onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                    channel={channel}
+                />
+            </div>
         );
     }
 }
