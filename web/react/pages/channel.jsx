@@ -2,13 +2,12 @@
 // See License.txt for license information.
 
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Navbar = require('../components/navbar.jsx');
-var Sidebar = require('../components/sidebar.jsx');
-var ChannelHeader = require('../components/channel_header.jsx');
-var PostListContainer = require('../components/post_list_container.jsx');
-var CreatePost = require('../components/create_post.jsx');
-var SidebarRight = require('../components/sidebar_right.jsx');
-var SidebarRightMenu = require('../components/sidebar_right_menu.jsx');
+var ChannelView = require('../components/channel_view.jsx');
+var ChannelLoader = require('../components/channel_loader.jsx');
+var ErrorBar = require('../components/error_bar.jsx');
+var ErrorStore = require('../stores/error_store.jsx');
+
+var MentionList = require('../components/mention_list.jsx');
 var GetLinkModal = require('../components/get_link_modal.jsx');
 var MemberInviteModal = require('../components/invite_member_modal.jsx');
 var EditChannelModal = require('../components/edit_channel_modal.jsx');
@@ -24,15 +23,10 @@ var TeamSettingsModal = require('../components/team_settings_modal.jsx');
 var ChannelMembersModal = require('../components/channel_members.jsx');
 var ChannelInviteModal = require('../components/channel_invite_modal.jsx');
 var TeamMembersModal = require('../components/team_members.jsx');
-var ErrorBar = require('../components/error_bar.jsx');
-var ErrorStore = require('../stores/error_store.jsx');
-var ChannelLoader = require('../components/channel_loader.jsx');
-var MentionList = require('../components/mention_list.jsx');
 var ChannelInfoModal = require('../components/channel_info_modal.jsx');
 var AccessHistoryModal = require('../components/access_history_modal.jsx');
 var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
-var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
 var RegisterAppModal = require('../components/register_app_modal.jsx');
 var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
 
@@ -61,19 +55,30 @@ function setupChannelPage(props) {
     );
 
     ReactDOM.render(
-        <Navbar teamDisplayName={props.TeamDisplayName} />,
-        document.getElementById('navbar')
+        <ChannelView
+
+        />,
+        document.getElementById('channel_view')
     );
 
     ReactDOM.render(
-        <Sidebar
-            teamDisplayName={props.TeamDisplayName}
-            teamName={props.TeamName}
-            teamType={props.TeamType}
-        />,
-        document.getElementById('sidebar-left')
+        <MentionList id='post_textbox' />,
+        document.getElementById('post_mention_tab')
     );
 
+    ReactDOM.render(
+        <MentionList id='reply_textbox' />,
+        document.getElementById('reply_mention_tab')
+    );
+
+    ReactDOM.render(
+        <MentionList id='edit_textbox' />,
+        document.getElementById('edit_mention_tab')
+    );
+
+    //
+    // Modals
+    //
     ReactDOM.render(
         <GetLinkModal />,
         document.getElementById('get_link_modal')
@@ -102,11 +107,6 @@ function setupChannelPage(props) {
     ReactDOM.render(
         <MemberInviteModal teamType={props.TeamType} />,
         document.getElementById('invite_member_modal')
-    );
-
-    ReactDOM.render(
-        <ChannelHeader />,
-        document.getElementById('channel-header')
     );
 
     ReactDOM.render(
@@ -150,11 +150,6 @@ function setupChannelPage(props) {
     );
 
     ReactDOM.render(
-        <PostListContainer />,
-        document.getElementById('post-list')
-    );
-
-    ReactDOM.render(
         <EditPostModal />,
         document.getElementById('edit_post_modal')
     );
@@ -170,39 +165,6 @@ function setupChannelPage(props) {
     );
 
     ReactDOM.render(
-        <CreatePost />,
-        document.getElementById('post-create')
-    );
-
-    ReactDOM.render(
-        <SidebarRight />,
-        document.getElementById('sidebar-right')
-    );
-
-    ReactDOM.render(
-        <SidebarRightMenu
-            teamDisplayName={props.TeamDisplayName}
-            teamType={props.TeamType}
-        />,
-        document.getElementById('sidebar-menu')
-    );
-
-    ReactDOM.render(
-        <MentionList id='post_textbox' />,
-        document.getElementById('post_mention_tab')
-    );
-
-    ReactDOM.render(
-        <MentionList id='reply_textbox' />,
-        document.getElementById('reply_mention_tab')
-    );
-
-    ReactDOM.render(
-        <MentionList id='edit_textbox' />,
-        document.getElementById('edit_mention_tab')
-    );
-
-    ReactDOM.render(
         <AccessHistoryModal />,
         document.getElementById('access_history_modal')
     );
@@ -215,13 +177,6 @@ function setupChannelPage(props) {
     ReactDOM.render(
         <RemovedFromChannelModal />,
         document.getElementById('removed_from_channel_modal')
-    );
-
-    ReactDOM.render(
-        <FileUploadOverlay
-            overlayType='center'
-        />,
-        document.getElementById('file_upload_overlay')
     );
 
     ReactDOM.render(

@@ -53,9 +53,13 @@ export default class SidebarRight extends React.Component {
     }
     render() {
         var postHolder = $('.post-list-holder-by-time').not('.inactive');
-        const position = postHolder.scrollTop() + postHolder.height() + 14;
-        const bottom = postHolder[0].scrollHeight;
-        this.plScrolledToBottom = position >= bottom;
+        if (postHolder[0]) {
+            const position = postHolder.scrollTop() + postHolder.height() + 14;
+            const bottom = postHolder[0].scrollHeight;
+            this.plScrolledToBottom = position >= bottom;
+        } else {
+            this.plScrolledToBottom = true;
+        }
 
         if (!(this.state.search_visible || this.state.post_right_visible)) {
             $('.inner__wrap').removeClass('move--left').removeClass('move--right');

@@ -178,10 +178,6 @@ export default class Sidebar extends React.Component {
         window.addEventListener('resize', this.handleResize);
     }
     shouldComponentUpdate(nextProps, nextState) {
-        if (!Utils.areStatesEqual(nextProps, this.props)) {
-            return true;
-        }
-
         if (!Utils.areStatesEqual(nextState, this.state)) {
             return true;
         }
@@ -235,7 +231,7 @@ export default class Sidebar extends React.Component {
             const unread = this.getUnreadCount();
             const mentionTitle = unread.mentions > 0 ? '(' + unread.mentions + ') ' : '';
             const unreadTitle = unread.msgs > 0 ? '* ' : '';
-            document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + this.props.teamDisplayName + ' ' + currentSiteName;
+            document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + TeamStore.getCurrent().display_name + ' ' + currentSiteName;
         }
     }
     onScroll() {
@@ -543,9 +539,9 @@ export default class Sidebar extends React.Component {
                 />
 
                 <SidebarHeader
-                    teamDisplayName={this.props.teamDisplayName}
-                    teamName={this.props.teamName}
-                    teamType={this.props.teamType}
+                    teamDisplayName={TeamStore.getCurrent().display_name}
+                    teamName={TeamStore.getCurrent().name}
+                    teamType={TeamStore.getCurrent().type}
                 />
                 <SearchBox />
 
@@ -631,11 +627,6 @@ export default class Sidebar extends React.Component {
 }
 
 Sidebar.defaultProps = {
-    teamType: '',
-    teamDisplayName: ''
 };
 Sidebar.propTypes = {
-    teamType: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string,
-    teamName: React.PropTypes.string
 };
