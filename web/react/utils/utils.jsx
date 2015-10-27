@@ -8,6 +8,7 @@ var PreferenceStore = require('../stores/preference_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
+var Client = require('./client.jsx');
 var AsyncClient = require('./async_client.jsx');
 var client = require('./client.jsx');
 var Autolinker = require('autolinker');
@@ -1008,4 +1009,45 @@ export function windowWidth() {
 
 export function windowHeight() {
     return $(window).height();
+}
+
+export function openDirectChannelToUser(user, successCb, errorCb) {
+    const channelName = this.getDirectChannelName(UserStore.getCurrentId(), user.id);
+    let channel = ChannelStore.getByName(channelName);
+
+    const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
+    AsyncClient.savePreferences([preference]);
+
+    if (channel) {
+        if ($.isFunction(successCb)) {
+            successCb(channel, true);
+        }
+    } else {
+        channel = {
+            name: channelName,
+            last_post_at: 0,
+            total_msg_count: 0,
+            type: 'D',
+            display_name: user.username,
+            teammate_id: user.id,
+            status: UserStore.getStatus(user.id)
+        };
+
+        Client.createDirectChannel(
+            channel,
+            user.id,
+            (data) => {
+                AsyncClient.getChannel(data.id);
+                if ($.isFunction(successCb)) {
+                    successCb(data, false);
+                }
+            },
+            () => {
+                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/' + channelName;
+                if ($.isFunction(errorCb)) {
+                    errorCb();
+                }
+            }
+        );
+    }
 }
