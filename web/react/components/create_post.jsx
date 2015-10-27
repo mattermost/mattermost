@@ -8,6 +8,7 @@ const ChannelStore = require('../stores/channel_store.jsx');
 const PostStore = require('../stores/post_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const SocketStore = require('../stores/socket_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
 const MsgTyping = require('./msg_typing.jsx');
 const Textbox = require('./textbox.jsx');
 const FileUpload = require('./file_upload.jsx');
@@ -39,7 +40,7 @@ export default class CreatePost extends React.Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -54,14 +55,15 @@ export default class CreatePost extends React.Component {
             initialText: draft.messageText,
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight(),
-            ctrlSend: UserStore.getCurrentUser().props.ctrlSend
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
         };
 
-        UserStore.addChangeListener(this.onUserChange);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
-    onUserChange() {
-        const ctrlSend = UserStore.getCurrentUser().props.ctrlSend || 'false';
-        this.setState({ctrlSend});
+    onPreferenceChange() {
+        this.setState({
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+        });
     }
     handleResize() {
         this.setState({

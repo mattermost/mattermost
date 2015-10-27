@@ -22,7 +22,6 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.submitEmail = this.submitEmail.bind(this);
         this.submitUser = this.submitUser.bind(this);
         this.submitPicture = this.submitPicture.bind(this);
-        this.submitCtrlSend = this.submitCtrlSend.bind(this);
 
         this.updateUsername = this.updateUsername.bind(this);
         this.updateFirstName = this.updateFirstName.bind(this);
@@ -31,7 +30,6 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.updateEmail = this.updateEmail.bind(this);
         this.updateConfirmEmail = this.updateConfirmEmail.bind(this);
         this.updatePicture = this.updatePicture.bind(this);
-        this.updateCtrlSend = this.updateCtrlSend.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
         this.handleClose = this.handleClose.bind(this);
@@ -178,13 +176,6 @@ export default class UserSettingsGeneralTab extends React.Component {
             }.bind(this)
         );
     }
-    submitCtrlSend(e) {
-        e.preventDefault();
-
-        var user = UserStore.getCurrentUser();
-        user.props = this.state.props;
-        this.submitUser(user, true);
-    }
     updateUsername(e) {
         this.setState({username: e.target.value});
     }
@@ -202,11 +193,6 @@ export default class UserSettingsGeneralTab extends React.Component {
     }
     updateConfirmEmail(e) {
         this.setState({confirmEmail: e.target.value});
-    }
-    updateCtrlSend(value) {
-        let props = this.state.props;
-        props.ctrlSend = value;
-        this.setState({props});
     }
     updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
@@ -242,8 +228,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         var user = props.user;
 
         return {username: user.username, firstName: user.first_name, lastName: user.last_name, nickname: user.nickname,
-                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false,
-                        props: user.props};
+                        email: user.email, confirmEmail: '', picture: null, loadingPicture: false, emailChangeInProgress: false};
     }
     render() {
         var user = this.props.user;
@@ -586,75 +571,6 @@ export default class UserSettingsGeneralTab extends React.Component {
             );
         }
 
-        var miscellaneousSection;
-        var describeCtrlSend = this.state.props.ctrlSend === 'true' ? 'On' : 'Off';
-        if (this.props.activeSection === 'ctrlSend') {
-            var ctrlSendActive = [false, false];
-            if (this.state.props.ctrlSend === 'true') {
-                ctrlSendActive[0] = true;
-            } else {
-                ctrlSendActive[1] = true;
-            }
-
-            let ctrlSendInputs = [];
-            ctrlSendInputs.push(
-                <div
-                    key='ctrlSendSetting'
-                    className='form-group'
-                >
-                    <div className=''>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    type='radio'
-                                    onChange={() => this.updateCtrlSend('true')}
-                                    checked={ctrlSendActive[0]}
-                                />
-                                {'On'}
-                            </label>
-                            <br/>
-                        </div>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    type='radio'
-                                    onChange={() => this.updateCtrlSend('false')}
-                                    checked={ctrlSendActive[1]}
-                                />
-                                {'Off'}
-                            </label>
-                            <br/>
-                        </div>
-                        <div><br/>{'If enabled \'Enter\' inserts a new line and ctrl + enter submits the message.'}</div>
-                    </div>
-                </div>
-            );
-
-            miscellaneousSection = (
-                <SettingItemMax
-                    title='Send messages on Ctrl + Enter'
-                    inputs={ctrlSendInputs}
-                    submit={this.submitCtrlSend}
-                    server_error={serverError}
-                    client_error={emailError}
-                    updateSection={function clearCtrlSend(e) {
-                        this.updateSection('ctrlSend');
-                        e.preventDefault();
-                    }.bind(this)}
-                />
-            );
-        } else {
-            miscellaneousSection = (
-                <SettingItemMin
-                    title='Send messages on Ctrl + Enter'
-                    describe={describeCtrlSend}
-                    updateSection={function updateCtrlSend() {
-                        this.updateSection('ctrlSend');
-                    }.bind(this)}
-                />
-            );
-        }
-
         return (
             <div>
                 <div className='modal-header'>
@@ -686,8 +602,6 @@ export default class UserSettingsGeneralTab extends React.Component {
                     {emailSection}
                     <div className='divider-light'/>
                     {pictureSection}
-                    <div className='divider-light'/>
-                    {miscellaneousSection}
                     <div className='divider-dark'/>
                 </div>
             </div>

@@ -8,6 +8,7 @@ const SocketStore = require('../stores/socket_store.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const PostStore = require('../stores/post_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
 const Textbox = require('./textbox.jsx');
 const MsgTyping = require('./msg_typing.jsx');
 const FileUpload = require('./file_upload.jsx');
@@ -36,7 +37,7 @@ export default class CreateComment extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleResize = this.handleResize.bind(this);
-        this.onUserChange = this.onUserChange.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         PostStore.clearCommentDraftUploads();
 
@@ -47,20 +48,21 @@ export default class CreateComment extends React.Component {
             previews: draft.previews,
             submitting: false,
             windowWidth: Utils.windowWidth(),
-            ctrlSend: UserStore.getCurrentUser().props.ctrlSend
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
         };
-
-        UserStore.addChangeListener(this.onUserChange);
     }
     componentDidMount() {
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
         window.removeEventListener('resize', this.handleResize);
     }
-    onUserChange() {
-        const ctrlSend = UserStore.getCurrentUser().props.ctrlSend || 'false';
-        this.setState({ctrlSend});
+    onPreferenceChange() {
+        this.setState({
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+        });
     }
     handleResize() {
         this.setState({windowWidth: Utils.windowWidth()});
