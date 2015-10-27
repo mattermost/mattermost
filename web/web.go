@@ -969,20 +969,20 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var props map[string]string
+	var parsedRequest *model.IncomingWebhookRequest
 	if r.Header.Get("Content-Type") == "application/json" {
-		props = model.MapFromJson(r.Body)
+		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
 	} else {
-		props = model.MapFromJson(strings.NewReader(r.FormValue("payload")))
+		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
 	}
 
-	text := props["text"]
+	text := parsedRequest.Text
 	if len(text) == 0 {
 		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
 		return
 	}
 
-	channelName := props["channel"]
+	channelName := parsedRequest.ChannelName
 
 	var hook *model.IncomingWebhook
 	if result := <-hchan; result.Err != nil {
@@ -1012,8 +1012,8 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		cchan = api.Srv.Store.Channel().Get(hook.ChannelId)
 	}
 
-	overrideUsername := props["username"]
-	overrideIconUrl := props["icon_url"]
+	overrideUsername := parsedRequest.Username
+	overrideIconUrl := parsedRequest.IconURL
 
 	if result := <-cchan; result.Err != nil {
 		c.Err = model.NewAppError("incomingWebhook", "Couldn't find the channel", "err="+result.Err.Message)

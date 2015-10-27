@@ -3,11 +3,12 @@
 
 var SearchResults = require('./search_results.jsx');
 var RhsThread = require('./rhs_thread.jsx');
+var SearchStore = require('../stores/search_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
 var Utils = require('../utils/utils.jsx');
 
 function getStateFromStores() {
-    return {search_visible: PostStore.getSearchResults() != null, post_right_visible: PostStore.getSelectedPost() != null, is_mention_search: PostStore.getIsMentionSearch()};
+    return {search_visible: SearchStore.getSearchResults() != null, post_right_visible: PostStore.getSelectedPost() != null, is_mention_search: SearchStore.getIsMentionSearch()};
 }
 
 export default class SidebarRight extends React.Component {
@@ -22,11 +23,11 @@ export default class SidebarRight extends React.Component {
         this.state = getStateFromStores();
     }
     componentDidMount() {
-        PostStore.addSearchChangeListener(this.onSearchChange);
+        SearchStore.addSearchChangeListener(this.onSearchChange);
         PostStore.addSelectedPostChangeListener(this.onSelectedChange);
     }
     componentWillUnmount() {
-        PostStore.removeSearchChangeListener(this.onSearchChange);
+        SearchStore.removeSearchChangeListener(this.onSearchChange);
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
     }
     componentDidUpdate() {

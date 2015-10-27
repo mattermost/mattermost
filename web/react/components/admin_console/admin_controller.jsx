@@ -18,6 +18,7 @@ var SqlSettingsTab = require('./sql_settings.jsx');
 var TeamSettingsTab = require('./team_settings.jsx');
 var ServiceSettingsTab = require('./service_settings.jsx');
 var TeamUsersTab = require('./team_users.jsx');
+var TeamAnalyticsTab = require('./team_analytics.jsx');
 
 export default class AdminController extends React.Component {
     constructor(props) {
@@ -148,6 +149,10 @@ export default class AdminController extends React.Component {
             } else if (this.state.selected === 'team_users') {
                 if (this.state.teams) {
                     tab = <TeamUsersTab team={this.state.teams[this.state.selectedTeam]} />;
+                }
+            } else if (this.state.selected === 'team_analytics') {
+                if (this.state.teams) {
+                    tab = <TeamAnalyticsTab team={this.state.teams[this.state.selectedTeam]} />;
                 }
             }
         }

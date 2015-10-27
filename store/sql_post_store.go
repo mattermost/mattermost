@@ -6,6 +6,7 @@ package store
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/platform/model"
@@ -413,10 +414,15 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 	go func() {
 		result := StoreResult{}
 
+		queryParams := map[string]interface{}{
+			"TeamId": teamId,
+			"UserId": userId,
+		}
+
 		termMap := map[string]bool{}
 		terms := params.Terms
 
-		if terms == "" && params.InChannel == "" && params.FromUser == "" {
+		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 {
 			result.Data = []*model.Post{}
 			storeChannel <- result
 			return
@@ -468,13 +474,45 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-		if params.InChannel != "" {
+		if len(params.InChannels) > 1 {
+			inClause := ":InChannel0"
+			queryParams["InChannel0"] = params.InChannels[0]
+
+			for i := 1; i < len(params.InChannels); i++ {
+				paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
+				inClause += ", :" + paramName
+				queryParams[paramName] = params.InChannels[i]
+			}
+
+			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
+		} else if len(params.InChannels) == 1 {
+			queryParams["InChannel"] = params.InChannels[0]
 			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
 		} else {
 			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
 		}
 
-		if params.FromUser != "" {
+		if len(params.FromUsers) > 1 {
+			inClause := ":FromUser0"
+			queryParams["FromUser0"] = params.FromUsers[0]
+
+			for i := 1; i < len(params.FromUsers); i++ {
+				paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
+				inClause += ", :" + paramName
+				queryParams[paramName] = params.FromUsers[i]
+			}
+
+			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
+				AND UserId IN (
+					SELECT
+						Id
+					FROM
+						Users
+					WHERE
+						TeamId = :TeamId
+						AND Username IN (`+inClause+`))`, 1)
+		} else if len(params.FromUsers) == 1 {
+			queryParams["FromUser"] = params.FromUsers[0]
 			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
 				AND UserId IN (
 					SELECT
@@ -506,13 +544,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		}
 
-		queryParams := map[string]interface{}{
-			"TeamId":    teamId,
-			"UserId":    userId,
-			"Terms":     terms,
-			"InChannel": params.InChannel,
-			"FromUser":  params.FromUser,
-		}
+		queryParams["Terms"] = terms
 
 		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {
@@ -563,6 +595,155 @@ func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 			result.Err = model.NewAppError("SqlPostStore.GetForExport", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT
+			    t1.Name, COUNT(t1.UserId) AS Value
+			FROM
+			    (SELECT DISTINCT
+			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			            Posts.UserId
+			    FROM
+			        Posts, Channels
+			    WHERE
+			        Posts.ChannelId = Channels.Id
+			            AND Channels.TeamId = :TeamId
+			    ORDER BY Name DESC) AS t1
+			GROUP BY Name
+			ORDER BY Name DESC
+			LIMIT 30`
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query =
+				`SELECT
+				    TO_CHAR(t1.Name, 'YYYY-MM-DD') AS Name, COUNT(t1.UserId) AS Value
+				FROM
+				    (SELECT DISTINCT
+				        DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)) AS Name,
+				            Posts.UserId
+				    FROM
+				        Posts, Channels
+				    WHERE
+				        Posts.ChannelId = Channels.Id
+				            AND Channels.TeamId = :TeamId
+				    ORDER BY Name DESC) AS t1
+				GROUP BY Name
+				ORDER BY Name DESC
+				LIMIT 30`
+		}
+
+		var rows model.AnalyticsRows
+		_, err := s.GetReplica().Select(
+			&rows,
+			query,
+			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
+		} else {
+			result.Data = rows
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT 
+			    Name, COUNT(Value) AS Value
+			FROM
+			    (SELECT 
+			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			            '1' AS Value
+			    FROM
+			        Posts, Channels
+			    WHERE
+			        Posts.ChannelId = Channels.Id
+			            AND Channels.TeamId = :TeamId
+			            AND Posts.CreateAt >:Time) AS t1
+			GROUP BY Name
+			ORDER BY Name DESC
+			LIMIT 30`
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query =
+				`SELECT 
+				    Name, COUNT(Value) AS Value
+				FROM
+				    (SELECT 
+				        TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
+				            '1' AS Value
+				    FROM
+				        Posts, Channels
+				    WHERE
+				        Posts.ChannelId = Channels.Id
+				            AND Channels.TeamId = :TeamId
+				            AND Posts.CreateAt > :Time) AS t1
+				GROUP BY Name
+				ORDER BY Name DESC
+				LIMIT 30`
+		}
+
+		var rows model.AnalyticsRows
+		_, err := s.GetReplica().Select(
+			&rows,
+			query,
+			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
+		} else {
+			result.Data = rows
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		v, err := s.GetReplica().SelectInt(
+			`SELECT 
+			    COUNT(Posts.Id) AS Value
+			FROM
+			    Posts,
+			    Channels
+			WHERE
+			    Posts.ChannelId = Channels.Id
+			        AND Channels.TeamId = :TeamId`,
+			map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "We couldn't get post counts", err.Error())
+		} else {
+			result.Data = v
 		}
 
 		storeChannel <- result

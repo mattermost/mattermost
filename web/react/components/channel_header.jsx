@@ -3,7 +3,7 @@
 
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
-const PostStore = require('../stores/post_store.jsx');
+const SearchStore = require('../stores/search_store.jsx');
 const NavbarSearchBox = require('./search_bar.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
 const Client = require('../utils/client.jsx');
@@ -35,19 +35,19 @@ export default class ChannelHeader extends React.Component {
             memberChannel: ChannelStore.getCurrentMember(),
             memberTeam: UserStore.getCurrentUser(),
             users: ChannelStore.getCurrentExtraInfo().members,
-            searchVisible: PostStore.getSearchResults() !== null
+            searchVisible: SearchStore.getSearchResults() !== null
         };
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
-        PostStore.addSearchChangeListener(this.onListenerChange);
+        SearchStore.addSearchChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
         ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
-        PostStore.removeSearchChangeListener(this.onListenerChange);
+        SearchStore.removeSearchChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
     }
     onListenerChange() {

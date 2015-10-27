@@ -150,3 +150,151 @@ func TestEmailTest(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGetAnalyticsStandard(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	if _, err := Client.GetAnalytics(team.Id, "standard"); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if result, err := Client.GetAnalytics(team.Id, "standard"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Name != "channel_open_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[0].Value != 2 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Name != "channel_private_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Name != "post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+}
+
+func TestGetPostCount(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	if _, err := Client.GetAnalytics(team.Id, "post_counts_day"); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if result, err := Client.GetAnalytics(team.Id, "post_counts_day"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+}
+
+func TestUserCountsWithPostsByDay(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	if _, err := Client.GetAnalytics(team.Id, "user_counts_with_posts_day"); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	if result, err := Client.GetAnalytics(team.Id, "user_counts_with_posts_day"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+}

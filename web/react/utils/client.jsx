@@ -34,7 +34,7 @@ function handleError(methodName, xhr, status, err) {
 
             if (oldError && oldError.connErrorCount) {
                 errorCount += oldError.connErrorCount;
-                connectError = 'We cannot reach the Mattermost service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.';
+                connectError = 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.';
             }
 
             e = {message: connectError, connErrorCount: errorCount};
@@ -323,6 +323,20 @@ export function getConfig(success, error) {
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('getConfig', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function getAnalytics(teamId, name, success, error) {
+    $.ajax({
+        url: '/api/v1/admin/analytics/' + teamId + '/' + name,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('getAnalytics', xhr, status, err);
             error(e);
         }
     });

@@ -3,9 +3,23 @@
 
 var UserStore = require('../stores/user_store.jsx');
 var Popover = ReactBootstrap.Popover;
-var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+var Overlay = ReactBootstrap.Overlay;
+const Utils = require('../utils/utils.jsx');
+
+const ChannelStore = require('../stores/channel_store.jsx');
 
 export default class PopoverListMembers extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
+        this.closePopover = this.closePopover.bind(this);
+    }
+
+    componentWillMount() {
+        this.setState({showPopover: false});
+    }
+
     componentDidMount() {
         const originalLeave = $.fn.popover.Constructor.prototype.leave;
         $.fn.popover.Constructor.prototype.leave = function onLeave(obj) {
@@ -27,12 +41,36 @@ export default class PopoverListMembers extends React.Component {
             }
         };
     }
+
+    handleShowDirectChannel(teammate, e) {
+        e.preventDefault();
+
+        Utils.openDirectChannelToUser(
+            teammate,
+            (channel, channelAlreadyExisted) => {
+                Utils.switchChannel(channel);
+                if (channelAlreadyExisted) {
+                    this.closePopover();
+                }
+            },
+            () => {
+                this.closePopover();
+            }
+        );
+    }
+
+    closePopover() {
+        this.setState({showPopover: false});
+    }
+
     render() {
         let popoverHtml = [];
         let count = 0;
         let countText = '-';
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
+        const currentUserId = UserStore.getCurrentId();
+        const ch = ChannelStore.getCurrent();
 
         if (members && teamMembers) {
             members.sort((a, b) => {
@@ -40,13 +78,74 @@ export default class PopoverListMembers extends React.Component {
             });
 
             members.forEach((m, i) => {
+                const details = [];
+
+                const fullName = Utils.getFullName(m);
+                if (fullName) {
+                    details.push(
+                        <span
+                            key={`${m.id}__full-name`}
+                            className='full-name'
+                        >
+                            {fullName}
+                        </span>
+                    );
+                }
+
+                if (m.nickname) {
+                    const separator = fullName ? ' - ' : '';
+                    details.push(
+                        <span
+                            key={`${m.nickname}__nickname`}
+                        >
+                            {separator + m.nickname}
+                        </span>
+                    );
+                }
+
+                let button = '';
+                if (currentUserId !== m.id && ch.type !== 'D') {
+                    button = (
+                        <button
+                            type='button'
+                            className='btn btn-primary btn-message'
+                            onClick={(e) => this.handleShowDirectChannel(m, e)}
+                        >
+                            {'Message'}
+                        </button>
+                    );
+                }
+
                 if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
                     popoverHtml.push(
                         <div
                             className='text--nowrap'
                             key={'popover-member-' + i}
                         >
-                            {m.username}
+
+                            <img
+                                className='profile-img pull-left'
+                                width='38'
+                                height='38'
+                                src={`/api/v1/users/${m.id}/image?time=${m.update_at}&${Utils.getSessionIndex()}`}
+                            />
+                            <div className='pull-left'>
+                                <div
+                                    className='more-name'
+                                >
+                                    {m.username}
+                                </div>
+                                <div
+                                    className='more-description'
+                                >
+                                    {details}
+                                </div>
+                            </div>
+                            <div
+                                className='pull-right profile-action'
+                            >
+                                {button}
+                            </div>
                         </div>
                     );
                     count++;
@@ -61,29 +160,37 @@ export default class PopoverListMembers extends React.Component {
         }
 
         return (
-            <OverlayTrigger
-                trigger='click'
-                placement='bottom'
-                rootClose={true}
-                overlay={
+            <div>
+                <div
+                    id='member_popover'
+                    ref='member_popover_target'
+                    onClick={(e) => this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover})}
+                >
+                    <div>
+                        {countText}
+                        <span
+                            className='fa fa-user'
+                            aria-hidden='true'
+                        />
+                    </div>
+                </div>
+                <Overlay
+                    rootClose={true}
+                    onHide={this.closePopover}
+                    show={this.state.showPopover}
+                    target={() => this.state.popoverTarget}
+                    placement='bottom'
+                >
                     <Popover
                         title='Members'
                         id='member-list-popover'
                     >
-                        {popoverHtml}
+                        <div>
+                            {popoverHtml}
+                        </div>
                     </Popover>
-                }
-            >
-            <div id='member_popover'>
-                <div>
-                    {countText}
-                    <span
-                        className='fa fa-user'
-                        aria-hidden='true'
-                    />
-                </div>
+                </Overlay>
             </div>
-            </OverlayTrigger>
         );
     }
 }

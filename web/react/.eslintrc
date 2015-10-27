@@ -20,7 +20,8 @@
         "globals": {
             "React": false,
             "ReactDOM": false,
-            "ReactBootstrap": false
+            "ReactBootstrap": false,
+            "Chart": false
         },
         "rules": {
             "comma-dangle": [2, "never"],

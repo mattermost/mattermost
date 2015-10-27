@@ -171,7 +171,7 @@ export default class UserSettingsGeneralTab extends React.Component {
             }.bind(this),
             function imageUploadFailure(err) {
                 var state = this.setupInitialState(this.props);
-                state.serverError = err;
+                state.serverError = err.message;
                 this.setState(state);
             }.bind(this)
         );

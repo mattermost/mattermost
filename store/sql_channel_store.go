@@ -40,7 +40,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
 
-	// BEGIN REMOVE AFTER 1.1.0
+	// REMOVE AFTER 1.2 SHIP see PLT-828
 	if s.CreateColumnIfNotExists("ChannelMembers", "NotifyProps", "varchar(2000)", "varchar(2000)", "{}") {
 		// populate NotifyProps from existing NotifyLevel field
 
@@ -83,7 +83,6 @@ func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
 
 		s.RemoveColumnIfExists("ChannelMembers", "NotifyLevel")
 	}
-	// END REMOVE AFTER 1.1.0
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {
@@ -821,6 +820,34 @@ func (s SqlChannelStore) GetForExport(teamId string) StoreChannel {
 			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "We couldn't get all the channels", "teamId="+teamId+", err="+err.Error())
 		} else {
 			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		v, err := s.GetReplica().SelectInt(
+			`SELECT 
+			    COUNT(Id) AS Value
+			FROM
+			    Channels
+			WHERE
+			    TeamId = :TeamId
+			        AND Type = :ChannelType`,
+			map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.AnalyticsTypeCount", "We couldn't get channel type counts", err.Error())
+		} else {
+			result.Data = v
 		}
 
 		storeChannel <- result

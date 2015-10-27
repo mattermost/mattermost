@@ -23,6 +23,13 @@ type IncomingWebhook struct {
 	TeamId    string `json:"team_id"`
 }
 
+type IncomingWebhookRequest struct {
+	Text        string `json:"text"`
+	Username    string `json:"username"`
+	IconURL     string `json:"icon_url"`
+	ChannelName string `json:"channel"`
+}
+
 func (o *IncomingWebhook) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -103,4 +110,15 @@ func (o *IncomingWebhook) PreSave() {
 
 func (o *IncomingWebhook) PreUpdate() {
 	o.UpdateAt = GetMillis()
+}
+
+func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
+	decoder := json.NewDecoder(data)
+	var o IncomingWebhookRequest
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
 }

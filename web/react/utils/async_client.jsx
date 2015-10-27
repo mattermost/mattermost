@@ -132,7 +132,7 @@ export function getChannel(id) {
     callTracker['getChannel' + id] = utils.getTimestamp();
 
     client.getChannel(id,
-        function getChannelSuccess(data, textStatus, xhr) {
+        (data, textStatus, xhr) => {
             callTracker['getChannel' + id] = 0;
 
             if (xhr.status === 304 || !data) {
@@ -145,7 +145,7 @@ export function getChannel(id) {
                 member: data.member
             });
         },
-        function getChannelFailure(err) {
+        (err) => {
             callTracker['getChannel' + id] = 0;
             dispatchError(err, 'getChannel');
         }
