@@ -335,7 +335,7 @@ export function getAnalytics(teamId, name, success, error) {
         contentType: 'application/json',
         type: 'GET',
         success,
-        error: function onError(xhr, status, err) {
+        error: (xhr, status, err) => {
             var e = handleError('getAnalytics', xhr, status, err);
             error(e);
         }
