@@ -159,6 +159,13 @@ func LoadConfig(fileName string) {
 	configureLog(&config.LogSettings)
 	TestConnection(&config)
 
+	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		dir := config.FileSettings.Directory
+		if len(dir) > 0 && dir[len(dir)-1:] != "/" {
+			config.FileSettings.Directory += "/"
+		}
+	}
+
 	Cfg = &config
 	SanitizeOptions = getSanitizeOptions(Cfg)
 	ClientCfg = getClientConfig(Cfg)
