@@ -6,6 +6,7 @@ const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const TextFormatting = require('../utils/text_formatting.jsx');
+var UserProfile = require('./user_profile.jsx');
 const twemoji = require('twemoji');
 
 export default class PostBody extends React.Component {
@@ -223,7 +224,7 @@ export default class PostBody extends React.Component {
         let comment = '';
         let postClass = '';
 
-        if (parentPost) {
+        if (parentPost && !this.props.sameRoot) {
             const profile = UserStore.getProfile(parentPost.user_id);
 
             let apostrophe = '';
@@ -258,17 +259,15 @@ export default class PostBody extends React.Component {
             }
 
             comment = (
-                <p className='post-link'>
-                    <span>
-                        {'Commented on '}{name}{apostrophe}{' message: '}
-                        <a
-                            className='theme'
-                            onClick={this.props.handleCommentClick}
-                        >
-                            {message}
-                        </a>
-                    </span>
-                </p>
+                <div style={{color: '#a8adb7'}}>
+                    {' Commented on '}{name}{apostrophe}{' message: '}
+                    <a
+                        className='theme'
+                        onClick={this.props.handleCommentClick}
+                    >
+                        {message}
+                    </a>
+                </div>
             );
 
             postClass += ' post-comment';
@@ -312,9 +311,23 @@ export default class PostBody extends React.Component {
             );
         }
 
+        let username = '';
+        if (!this.props.hideProfilePic) {
+            username = (
+                <strong>
+                    <UserProfile userId={post.user_id}/>
+                </strong>
+            );
+        }
+
         return (
             <div className='post-body'>
-                {comment}
+                <div
+                    style={{padding: '0.3em 0.0em 0.2em', margin: '-0.3em 0 0', width: 600, position: 'relative'}}
+                >
+                    {username}
+                    {comment}
+                </div>
                 <div
                     key={`${post.id}_message`}
                     id={`${post.id}_message`}
@@ -339,5 +352,7 @@ PostBody.propTypes = {
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
-    resize: React.PropTypes.func.isRequired
+    resize: React.PropTypes.func.isRequired,
+    sameRoot: React.PropTypes.bool,
+    hideProfilePic: React.PropTypes.bool
 };

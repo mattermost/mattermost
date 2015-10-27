@@ -397,7 +397,8 @@ body.ios {
 		padding: 0;
 	}
 	p {
-		margin: 0 0 5px;
+		margin: 0 0 1em;
+        line-height: 1.6em;
 		font-size: 0.97em;
 		white-space: pre-wrap;
 	}
@@ -439,7 +440,7 @@ body.ios {
 			}
 		}
 		&.post__content {
-			padding-left: 46px;
+			padding-left: 0;
 			max-width: 100%;
 			@include legacy-pie-clearfix;
 		}
@@ -501,7 +502,7 @@ body.ios {
 		&.post-header-post {
 			position: relative;
 			z-index: 1;
-			width: 200px;
+			width: 65px;
 			text-align: right;
 			float: left;
 			padding-right: 15px;
