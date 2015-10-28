@@ -113,11 +113,10 @@
 		text-align: center;
 		padding: 2em 1em;
 		.primary-message {
-			font-size: 1.2em;
+			font-size: 1.25em;
 		}
 		.secondary-message {
-			font-size: 1.25em;
-			color: #888;
+			@include opacity(0.8);
 			margin: 1em 0 0;
 		}
 	}

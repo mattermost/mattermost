@@ -98,7 +98,7 @@ export default class GetLinkModal extends React.Component {
                                 <br /><br />
                                 </p>
                                 <textarea
-                                    className='form-control no-resize'
+                                    className='form-control no-resize min-height'
                                     readOnly='true'
                                     ref='textarea'
                                     value={this.state.value}

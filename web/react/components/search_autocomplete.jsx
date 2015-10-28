@@ -10,6 +10,7 @@ const patterns = new Map([
     ['channels', /\b(?:in|channel):\s*(\S*)$/i],
     ['users', /\bfrom:\s*(\S*)$/i]
 ]);
+const Popover = ReactBootstrap.Popover;
 
 export default class SearchAutocomplete extends React.Component {
     constructor(props) {
@@ -34,6 +35,11 @@ export default class SearchAutocomplete extends React.Component {
 
     componentDidMount() {
         $(document).on('click', this.handleDocumentClick);
+    }
+
+    componentDidUpdate() {
+        $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content').perfectScrollbar();
+        $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content').css('max-height', $(window).height() - 200);
     }
 
     componentWillUnmount() {
@@ -193,7 +199,7 @@ export default class SearchAutocomplete extends React.Component {
 
         if (this.state.mode === 'channels') {
             suggestions = this.state.suggestions.map((channel, index) => {
-                let className = 'search-autocomplete__channel';
+                let className = 'search-autocomplete__item';
                 if (this.state.selection === index) {
                     className += ' selected';
                 }
@@ -211,7 +217,7 @@ export default class SearchAutocomplete extends React.Component {
             });
         } else if (this.state.mode === 'users') {
             suggestions = this.state.suggestions.map((user, index) => {
-                let className = 'search-autocomplete__user';
+                let className = 'search-autocomplete__item';
                 if (this.state.selection === index) {
                     className += ' selected';
                 }
@@ -224,7 +230,7 @@ export default class SearchAutocomplete extends React.Component {
                         className={className}
                     >
                         <img
-                            className='profile-img'
+                            className='profile-img rounded'
                             src={'/api/v1/users/' + user.id + '/image?time=' + user.update_at}
                         />
                         {user.username}
@@ -234,12 +240,15 @@ export default class SearchAutocomplete extends React.Component {
         }
 
         return (
-            <div
-                ref='container'
-                className='search-autocomplete'
+            <Popover
+                ref='searchPopover'
+                onShow={this.componentDidMount}
+                id='search-autocomplete__popover'
+                className='search-help-popover autocomplete visible'
+                placement='bottom'
             >
                 {suggestions}
-            </div>
+            </Popover>
         );
     }
 }

@@ -71,7 +71,7 @@
         .nav {
             position: fixed;
             top: 57px;
-            width: 180px;
+            width: 179px;
         }
         .security-links {
             margin-right: 20px;
@@ -93,6 +93,7 @@
                 padding: 1em 0;
                 margin-bottom: 0;
                 cursor: pointer;
+                position: relative;
                 @include clearfix;
                 &:hover {
                     background: #f9f9f9;

@@ -28,6 +28,36 @@
     @include single-transition(opacity, 0.3s, ease-in);
     font-size: em(13px);
 
+    &.autocomplete {
+        display: block;
+        .popover-content {
+            padding: 10px;
+            position: relative;
+        }
+    }
+
+    .search-autocomplete__item {
+        cursor: pointer;
+        padding: 6px 8px;
+        margin: 3px 0;
+        @include border-radius(2px);
+
+        &:hover {
+            background: rgba(black, 0.1);
+        }
+
+        &.selected {
+            background: rgba(black, 0.2);
+        }
+
+        .profile-img {
+            margin-top: -1px;
+            height: 16px;
+            margin-right: 6px;
+            width: 16px;
+        }
+    }
+
     &.bottom > .arrow {
         top: -18px;
         border-width: 9px;

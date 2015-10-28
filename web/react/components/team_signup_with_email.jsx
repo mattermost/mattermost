@@ -71,7 +71,7 @@ export default class EmailSignUpPage extends React.Component {
                         className='btn btn-md btn-primary'
                         type='submit'
                     >
-                        {'Sign up'}
+                        {'Create Team'}
                     </button>
                     {serverError}
                 </div>
