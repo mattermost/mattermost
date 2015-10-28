@@ -69,22 +69,6 @@ export function doFormatText(text, options) {
     return output;
 }
 
-export function doFormatEmoticons(text) {
-    const tokens = new Map();
-
-    let output = Emoticons.handleEmoticons(text, tokens);
-    output = replaceTokens(output, tokens);
-
-    return output;
-}
-
-export function doFormatMentions(text) {
-    const tokens = new Map();
-    let output = autolinkAtMentions(text, tokens);
-    output = replaceTokens(output, tokens);
-    return output;
-}
-
 export function sanitizeHtml(text) {
     let output = text;
 
