@@ -211,11 +211,15 @@ export function displayDateTime(ticks) {
     }
 
     interval = Math.floor(seconds / 60);
-    if (interval > 1) {
+    if (interval >= 2) {
         return interval + ' minutes ago';
     }
 
-    return '1 minute ago';
+    if (interval >= 1) {
+        return '1 minute ago';
+    }
+
+    return 'just now';
 }
 
 export function displayCommentDateTime(ticks) {
