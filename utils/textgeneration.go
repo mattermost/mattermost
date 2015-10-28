@@ -21,7 +21,8 @@ _italics_
 **_bold-italic_**
 ~~strikethrough~~
 ` + "```" + `
-code block
+multi-line code block<enter here>
+multi-line code block
 ` + "```" + `
 ` + "`monospace`" + `
 [Link to Mattermost](www.mattermost.com)
