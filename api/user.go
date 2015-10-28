@@ -652,6 +652,12 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		for k, p := range profiles {
 			options := utils.SanitizeOptions
 			options["passwordupdate"] = false
+
+			if c.HasSystemAdminPermissions("getProfiles") {
+				options["fullname"] = true
+				options["email"] = true
+			}
+
 			p.Sanitize(options)
 			profiles[k] = p
 		}

@@ -56,6 +56,8 @@ export default class TeamAnalytics extends React.Component {
             teamId,
             'post_counts_day',
             (data) => {
+                data.reverse();
+
                 var chartData = {
                     labels: [],
                     datasets: [{
@@ -89,6 +91,8 @@ export default class TeamAnalytics extends React.Component {
             teamId,
             'user_counts_with_posts_day',
             (data) => {
+                data.reverse();
+
                 var chartData = {
                     labels: [],
                     datasets: [{
