@@ -42,7 +42,7 @@ export default class SettingPicture extends React.Component {
             img = (
                 <img
                     ref='image'
-                    className='profile-img'
+                    className='profile-img rounded'
                     src=''
                 />
             );
@@ -50,7 +50,7 @@ export default class SettingPicture extends React.Component {
             img = (
                 <img
                     ref='image'
-                    className='profile-img'
+                    className='profile-img rounded'
                     src={this.props.src}
                 />
             );

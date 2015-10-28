@@ -33,6 +33,33 @@
     label {
         font-weight: 600;
     }
+    .no-padding--left {
+        padding-left: 0;
+    }
+    .padding-top {
+        padding-top: 7px;
+        &.x2 {
+            padding-top: 14px;
+        }
+        &.x3 {
+            padding-top: 21px;
+        }
+    }
+    .padding-bottom {
+        padding-bottom: 7px;
+        &.x2 {
+            padding-bottom: 14px;
+        }
+        &.x3 {
+            padding-bottom: 21px;
+        }
+        .control-label {
+            font-weight: 600;
+            &.text-left {
+                text-align: left;
+            }
+        }
+    }
     .settings-table {
         display: table;
         table-layout: fixed;
@@ -44,7 +71,7 @@
         .nav {
             position: fixed;
             top: 57px;
-            width: 180px;
+            width: 179px;
         }
         .security-links {
             margin-right: 20px;
@@ -66,6 +93,7 @@
                 padding: 1em 0;
                 margin-bottom: 0;
                 cursor: pointer;
+                position: relative;
                 @include clearfix;
                 &:hover {
                     background: #f9f9f9;
@@ -169,33 +197,6 @@
             }
             .has-error {
                 color: #a94442;
-            }
-            .no-padding--left {
-                padding-left: 0;
-            }
-            .padding-top {
-                padding-top: 7px;
-                &.x2 {
-                    padding-top: 14px;
-                }
-                &.x3 {
-                    padding-top: 21px;
-                }
-            }
-            .padding-bottom {
-                padding-bottom: 7px;
-                &.x2 {
-                    padding-bottom: 14px;
-                }
-                &.x3 {
-                    padding-bottom: 21px;
-                }
-                .control-label {
-                    font-weight: 600;
-                    &.text-left {
-                        text-align: left;
-                    }
-                }
             }
 
             .file-status {

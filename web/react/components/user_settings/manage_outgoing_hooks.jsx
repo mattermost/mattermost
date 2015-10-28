@@ -236,6 +236,7 @@ export default class ManageOutgoingHooks extends React.Component {
         return (
             <div key='addOutgoingHook'>
                 <label className='control-label'>{'Add a new outgoing webhook'}</label>
+                <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
                     <div>
                         <label className='control-label'>{'Channel'}</label>

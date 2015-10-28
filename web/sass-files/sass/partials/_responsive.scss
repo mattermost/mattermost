@@ -379,7 +379,9 @@
             }
             .btn {
                 &.btn-primary {
-                    margin: 8px 0 0 -10px;
+                    display: block;
+                    margin: 10px 0 6px;
+                    width: 100%;
                     float: none;
                 }
             }
@@ -401,7 +403,13 @@
                     &.minimize-settings {
                         display: block;
                         .section-edit {
-                            text-align: left;
+                            position: absolute;
+                            top: 7px;
+                            right: 0;
+                            width: 50px;
+                            .fa {
+                                display: inline-block;
+                            }
                         }
                     }
                     .no-padding--left {

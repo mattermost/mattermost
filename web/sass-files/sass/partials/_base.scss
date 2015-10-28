@@ -37,6 +37,9 @@ body {
 img {
   max-width: 100%;
   height: auto;
+  &.rounded {
+    @include border-radius(100%);
+  }
 }
 
 .popover {
@@ -121,6 +124,9 @@ a:focus, a:hover {
   }
   &.no-resize {
     resize: none;
+  }
+  &.min-height {
+    min-height: 100px;
   }
 }
 

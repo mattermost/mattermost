@@ -96,75 +96,74 @@ export default class RegisterAppModal extends React.Component {
         var body = '';
         if (this.state.clientId === '') {
             body = (
-                <div className='form-group user-settings'>
-                    <h3>{'Register a New Application'}</h3>
-                    <br/>
-                    <label className='col-sm-4 control-label'>{'Application Name'}</label>
-                    <div className='col-sm-7'>
-                        <input
-                            ref='name'
-                            className='form-control'
-                            type='text'
-                            placeholder='Required'
-                        />
-                        {nameError}
+                <div className='settings-modal'>
+                    <div className='form-horizontal user-settings'>
+                        <h4 className='padding-bottom x3'>{'Register a New Application'}</h4>
+                        <div className='row'>
+                            <label className='col-sm-4 control-label'>{'Application Name'}</label>
+                            <div className='col-sm-7'>
+                                <input
+                                    ref='name'
+                                    className='form-control'
+                                    type='text'
+                                    placeholder='Required'
+                                />
+                                {nameError}
+                            </div>
+                        </div>
+                        <div className='row padding-top x2'>
+                            <label className='col-sm-4 control-label'>{'Homepage URL'}</label>
+                            <div className='col-sm-7'>
+                                <input
+                                    ref='homepage'
+                                    className='form-control'
+                                    type='text'
+                                    placeholder='Required'
+                                />
+                                {homepageError}
+                            </div>
+                        </div>
+                        <div className='row padding-top x2'>
+                            <label className='col-sm-4 control-label'>{'Description'}</label>
+                            <div className='col-sm-7'>
+                                <input
+                                    ref='desc'
+                                    className='form-control'
+                                    type='text'
+                                    placeholder='Optional'
+                                />
+                            </div>
+                        </div>
+                        <div className='row padding-top padding-bottom x2'>
+                            <label className='col-sm-4 control-label'>{'Callback URL'}</label>
+                            <div className='col-sm-7'>
+                                <textarea
+                                    ref='callback'
+                                    className='form-control'
+                                    type='text'
+                                    placeholder='Required'
+                                    rows='5'
+                                />
+                                {callbackError}
+                            </div>
+                        </div>
+                        {serverError}
+                        <hr />
+                        <a
+                            className='btn btn-sm theme pull-right'
+                            href='#'
+                            data-dismiss='modal'
+                            aria-label='Close'
+                        >
+                            {'Cancel'}
+                        </a>
+                        <a
+                            className='btn btn-sm btn-primary pull-right'
+                            onClick={this.register}
+                        >
+                            {'Register'}
+                        </a>
                     </div>
-                    <br/>
-                    <br/>
-                    <label className='col-sm-4 control-label'>{'Homepage URL'}</label>
-                    <div className='col-sm-7'>
-                        <input
-                            ref='homepage'
-                            className='form-control'
-                            type='text'
-                            placeholder='Required'
-                        />
-                        {homepageError}
-                    </div>
-                    <br/>
-                    <br/>
-                    <label className='col-sm-4 control-label'>{'Description'}</label>
-                    <div className='col-sm-7'>
-                        <input
-                            ref='desc'
-                            className='form-control'
-                            type='text'
-                            placeholder='Optional'
-                        />
-                    </div>
-                    <br/>
-                    <br/>
-                    <label className='col-sm-4 control-label'>{'Callback URL'}</label>
-                    <div className='col-sm-7'>
-                        <textarea
-                            ref='callback'
-                            className='form-control'
-                            type='text'
-                            placeholder='Required'
-                            rows='5'
-                        />
-                        {callbackError}
-                    </div>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    {serverError}
-                    <a
-                        className='btn btn-sm theme pull-right'
-                        href='#'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                    >
-                        {'Cancel'}
-                    </a>
-                    <a
-                        className='btn btn-sm btn-primary pull-right'
-                        onClick={this.register}
-                    >
-                        {'Register'}
-                    </a>
                 </div>
             );
         } else {

@@ -5,6 +5,9 @@ var NavbarDropdown = require('./navbar_dropdown.jsx');
 var UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 
+const Tooltip = ReactBootstrap.Tooltip;
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+
 export default class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
@@ -47,7 +50,15 @@ export default class SidebarHeader extends React.Component {
                     {profilePicture}
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={1000}
+                            placement='bottom'
+                            overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDisplayName}</Tooltip>}
+                            ref='descriptionOverlay'
+                        >
                         <div className='team__name'>{this.props.teamDisplayName}</div>
+                        </OverlayTrigger>
                     </div>
                 </a>
                 <NavbarDropdown

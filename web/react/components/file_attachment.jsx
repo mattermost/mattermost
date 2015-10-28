@@ -270,7 +270,7 @@ export default class FileAttachment extends React.Component {
                         href={fileUrl}
                         download={filenameString}
                         data-toggle='tooltip'
-                        title={filenameString}
+                        title={'Download ' + filenameString}
                         className='post-image__name'
                     >
                         {trimmedFilename}

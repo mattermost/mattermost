@@ -58,6 +58,7 @@ export default class NavbarDropdown extends React.Component {
         TeamStore.addChangeListener(this.onListenerChange);
 
         $(ReactDOM.findDOMNode(this.refs.dropdown)).on('hide.bs.dropdown', () => {
+            $('.sidebar--left .dropdown-menu').scrollTop(0);
             this.blockToggle = true;
             setTimeout(() => {
                 this.blockToggle = false;
