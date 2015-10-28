@@ -297,7 +297,7 @@ export default class PostBody extends React.Component {
         }
 
         let embed;
-        if (filenames.length === 0 && this.state.links) {
+        if (filenames.length === 0 && this.state.links && this.state.links.length > 0) {
             embed = this.createEmbed(this.state.links[0]);
         }
 

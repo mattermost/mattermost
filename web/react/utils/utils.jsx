@@ -226,46 +226,62 @@ export function getTimestamp() {
     return Date.now();
 }
 
-function testUrlMatch(text) {
-    var urlMatcher = new Autolinker.matchParser.MatchParser({
+// extracts links not styled by Markdown
+export function extractLinks(text) {
+    const urlMatcher = new Autolinker.matchParser.MatchParser({
         urls: true,
         emails: false,
         twitter: false,
         phone: false,
         hashtag: false
     });
-    var result = [];
-    function replaceFn(match) {
-        var linkData = {};
-        var matchText = match.getMatchedText();
+    const links = [];
+    let replaceText = text;
 
-        linkData.text = matchText;
-        if (matchText.trim().indexOf('http') === 0) {
-            linkData.link = matchText;
-        } else {
-            linkData.link = 'http://' + matchText;
+    // pull out the Markdown code blocks
+    const codeBlocks = [];
+    const splitText = replaceText.split('`'); // also handles ```
+    for (let i = 1; i < splitText.length; i += 2) {
+        if (splitText[i].trim() !== '') {
+            codeBlocks.push(splitText[i]);
+        }
+    }
+
+    function replaceFn(match) {
+        let link = '';
+        const matchText = match.getMatchedText();
+        const tempText = replaceText;
+
+        const start = replaceText.indexOf(matchText);
+        const end = start + matchText.length;
+
+        replaceText = replaceText.substring(0, start) + replaceText.substring(end);
+
+        // if it's a Markdown link, just skip it
+        if (start > 1) {
+            if (tempText.charAt(start - 2) === ']' && tempText.charAt(start - 1) === '(' && tempText.charAt(end) === ')') {
+                return;
+            }
         }
 
-        result.push(linkData);
+        // if it's in a Markdown code block, skip it
+        for (const i in codeBlocks) {
+            if (codeBlocks[i].indexOf(matchText) === 0) {
+                codeBlocks[i] = codeBlocks[i].replace(matchText, '');
+                return;
+            }
+        }
+
+        if (matchText.trim().indexOf('http') === 0) {
+            link = matchText;
+        } else {
+            link = 'http://' + matchText;
+        }
+
+        links.push(link);
     }
     urlMatcher.replace(text, replaceFn, this);
-    return result;
-}
-
-export function extractLinks(text) {
-    var repRegex = new RegExp('<br>', 'g');
-    var matches = testUrlMatch(text.replace(repRegex, '\n'));
-
-    if (!matches.length) {
-        return {links: null, text: text};
-    }
-
-    var links = [];
-    for (var i = 0; i < matches.length; i++) {
-        links.push(matches[i].link);
-    }
-
-    return {links: links, text: text};
+    return {links, text};
 }
 
 export function escapeRegExp(string) {
