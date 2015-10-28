@@ -1,6 +1,6 @@
 # Mattermost
 
-Mattermost is an open source, on-prem Slack-alternative. 
+Mattermost is an open source, self hosted Slack-alternative. 
 
 It offers modern communication from behind your firewall, including messaging and file sharing across PCs and phones with archiving and instant search.
 
@@ -11,7 +11,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 #### Sharing Messaging and Files
 
 - Send messages, comments, files and images across public, private and 1-1 channels
-- Personalize notifications for unreads and mentions by channel and keyword
+- Personalize notifications for unread messages and mentions by channel and keyword
 - Use #hashtags to tag and find messages, discussions and files
 
 #### Archiving and Search 
@@ -30,7 +30,7 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 
 - Host and manage dozens of teams from a single Mattermost server 
 - Easily manage your Mattermost server using a web-based System Console
-- Script setup and maintenance using Mattermost command line tools 
+- Script Mattermost setup and maintenance task using Mattermost command line tools 
 
 ## Learn More
 
@@ -92,7 +92,7 @@ Joining the Mattermost community is a great way to build relationships with othe
 
 #### Write
 
-- As with most open source projects, Mattermost documentation is maintained in a public repository. You can propose changes by [submitting pull requests (no programming skills required)](http://forum.mattermost.org/t/help-improve-mattermost-documentation/194). We highly welcome you to add improvements, write guides and tutorials, and expand on sections. 
+- As with most open source projects, Mattermost documentation is maintained in a public repository. You can propose changes by [submitting pull requests (no programming skills required)](http://forum.mattermost.org/t/help-improve-mattermost-documentation/194). We welcome you to add improvements, write guides and tutorials, and expand on sections. 
 - Prior to contributing, please review [Mattermost Documentation Guidelines](http://www.mattermost.org/documentation-guidelines/), which include standards on writing Mattermost documentation for a global audience, who might not use English as their first language.
 
 #### Contribute
