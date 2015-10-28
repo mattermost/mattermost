@@ -166,10 +166,13 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			teams := result.Data.([]*model.Team)
-			l4g.Info(teams)
-
 			for _, team := range teams {
 				page.Props[team.Name] = team.DisplayName
+			}
+
+			if len(teams) == 1 && *utils.Cfg.TeamSettings.EnableTeamListing {
+				http.Redirect(w, r, c.GetSiteURL()+"/"+teams[0].Name, http.StatusTemporaryRedirect)
+				return
 			}
 		}
 

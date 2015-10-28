@@ -36,12 +36,6 @@ export default class TeamSignUp extends React.Component {
         }
     }
 
-    componentDidMount() {
-        if (global.window.mm_config.EnableTeamListing === 'true' && this.props.teams.length === 1) {
-            window.location.href = '/' + this.props.teams[0].name;
-        }
-    }
-
     updatePage(page) {
         this.setState({page});
     }
