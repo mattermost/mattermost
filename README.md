@@ -50,7 +50,7 @@ If you use Docker, you can [install Mattermost in a single-container preview in 
 
 #### Quick Start Install for Product Evaluation 
 
-- [Local Machine Install with Docker](http://docs.mattermost.org/install/Docker-Single-Container/index.html) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
+- [Local Machine Install with Docker](http://docs.mattermost.org/install/Docker-Single-Container/index.html) - Explore product functionality using a single-container Docker install on a local machine, including Mac OS X, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
 
 - [AWS EBS Install with Docker](http://docs.mattermost.org/install/Amazon-Elastic-Beanstalk/index.html) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
 
