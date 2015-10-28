@@ -67,6 +67,26 @@ func TestChannelIsValid(t *testing.T) {
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
+
+	o.Header = strings.Repeat("01234567890", 100)
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.Header = "1234"
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	o.Purpose = strings.Repeat("01234567890", 20)
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.Purpose = "1234"
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestChannelPreSave(t *testing.T) {

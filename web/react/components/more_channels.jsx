@@ -109,7 +109,7 @@ export default class MoreChannels extends React.Component {
                                     <tr key={channel.id}>
                                         <td>
                                             <p className='more-name'>{channel.display_name}</p>
-                                            <p className='more-description'>{channel.description}</p>
+                                            <p className='more-purpose'>{channel.purpose}</p>
                                         </td>
                                         <td className='td--action'>
                                             {joinButton}
