@@ -155,13 +155,67 @@ Unnamed: :u5272: :u5408: :u55b6: :u6307: :u6708: :u6709: :u6e80: :u7121: :u7533:
 `,
 
 	`**[7] [Auto Linking]**
-Should be links:
-http://wikipedia.com 
-https://wikipedia.com
-www.wikipedia.com
+#### should be turned into links:
+http://example.com
+https://example.com
+www.example.com
+www.example.com/index
+www.example.com/index.html
+www.example.com/index/sub
+www.example.com/index?params=1
+www.example.com/index?params=1&other=2
+www.example.com/index?params=1;other=2
+http://example.com:8065
+<http://example.com>
+<www.example.com>
+http://www.example.com/_/page
+www.example.com/_/page
+https://en.wikipedia.org/wiki/🐬
+https://en.wikipedia.org/wiki/Rendering_(computer_graphics)
+http://127.0.0.1
+http://192.168.1.1:4040
+http://[::1]:80
+http://[::1]:8065
+https://[::1]:80
+http://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:80
+http://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:8065
+https://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:443
+http://username:password@example.com
+http://username:password@127.0.0.1
+http://username:password@[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:80
+test@example.com
 
-Should not be a link:
-README.md
+#### should be turned into links which link to the correct place:
+[example link](example.com) links to ` + "`" + `http://example.com` + "`" + `
+[example.com](example.com) links to ` + "`" + `http://example.com` + "`" + `
+[example.com/other](example.com) links to ` + "`" + `http://example.com` + "`" + `
+[example.com/other_link](example.com/example) links to `+ "`" + `http://example.com/example`+ "`" + `
+www.example.com links to ` + "`" + `http://www.example.com` + "`" + `
+https://example.com links to ` + "`" + `https://example.com` + "`" + `and not ` + "`" + `http://example.com` + "`" + `
+https://en.wikipedia.org/wiki/🐬 links to the Wikipedia article on dolphins
+https://en.wikipedia.org/wiki/URLs#Syntax links to the Syntax section of the Wikipedia article on URLs
+test@example.com links to ` + "`" + `mailto:test@example.com` + "`" + `
+[email link](mailto:test@example.com) links to ` + "`" + `mailto:test@example.com` + "`" + `and not ` + "`" + `http://mailto:test@example.com` + "`" + `
+[other link](ts3server://example.com) links to `+ "`" + `ts3server://example.com` + "`" + `and not ` + "`" + `http://ts3server://example.com` + "`" + `
+
+#### should not be turned into links:
+example.com
+readme.md
+<example.com>
+http://
+@example.com
+
+#### should only turn the actual link into a link and not change surrounding text
+(http://example.com)
+(test@example.com)
+This is a sentence with a http://example.com in it.
+This is a sentence with a [link](http://example.com) in it.
+This is a sentence with a http://example.com/_/underscore in it.
+This is a sentence with a link (http://example.com) in it.
+This is a sentence with a (https://en.wikipedia.org/wiki/Rendering_(computer_graphics)) in it.
+This is a sentence with a http://192.168.1.1:4040 in it.
+This is a sentence with a https://::1 in it.
+This is a link to http://example.com.
 `,
 
 	"*", "?", ".", "}{][)(><", "{}[]()<>",
