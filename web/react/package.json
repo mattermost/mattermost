@@ -6,7 +6,6 @@
     "autolinker": "0.18.1",
     "babel-runtime": "5.8.24",
     "flux": "2.1.1",
-    "highlight.js": "^8.9.1",
     "keymirror": "0.1.1",
     "marked": "0.3.5",
     "object-assign": "3.0.0",
