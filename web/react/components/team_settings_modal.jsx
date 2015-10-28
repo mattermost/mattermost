@@ -82,7 +82,6 @@ export default class TeamSettingsModal extends React.Component {
                                         activeTab={this.state.activeTab}
                                         activeSection={this.state.activeSection}
                                         updateSection={this.updateSection}
-                                        teamDisplayName={this.props.teamDisplayName}
                                     />
                                 </div>
                             </div>
@@ -95,5 +94,4 @@ export default class TeamSettingsModal extends React.Component {
 }
 
 TeamSettingsModal.propTypes = {
-    teamDisplayName: React.PropTypes.string.isRequired
 };

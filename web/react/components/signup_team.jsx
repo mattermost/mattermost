@@ -12,6 +12,11 @@ export default class TeamSignUp extends React.Component {
 
         this.updatePage = this.updatePage.bind(this);
 
+        if (global.window.mm_config.EnableTeamListing === 'true') {
+            this.state = {page: 'team_listing'};
+            return;
+        }
+
         var count = 0;
 
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
@@ -31,11 +36,49 @@ export default class TeamSignUp extends React.Component {
         }
     }
 
+    componentDidMount() {
+        if (global.window.mm_config.EnableTeamListing === 'true' && this.props.teams.length === 1) {
+            window.location.href = '/' + this.props.teams[0].name;
+        }
+    }
+
     updatePage(page) {
         this.setState({page});
     }
 
     render() {
+        if (this.state.page === 'team_listing') {
+            return (
+                <div>
+                    <h3>{'Choose a Team'}</h3>
+                    <div className='signup-team-all'>
+                        {
+                            this.props.teams.map((team) => {
+                                return (
+                                    <div
+                                        key={'team_' + team.name}
+                                        className='signup-team-dir'
+                                    >
+                                        <a
+                                            href={'/' + team.name}
+                                        >
+                                            <div className='signup-team-dir__group'>
+                                                <span className='signup-team-dir__name'>{team.display_name}</span>
+                                                <span
+                                                    className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
+                                                    aria-hidden='true'
+                                                />
+                                            </div>
+                                        </a>
+                                    </div>
+                                );
+                            })
+                        }
+                    </div>
+                </div>
+            );
+        }
+
         if (this.state.page === 'choose') {
             return (
                 <ChoosePage
@@ -51,3 +94,8 @@ export default class TeamSignUp extends React.Component {
         }
     }
 }
+
+TeamSignUp.propTypes = {
+    teams: React.PropTypes.array
+};
+

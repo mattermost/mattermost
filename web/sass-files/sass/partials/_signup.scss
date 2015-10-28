@@ -313,6 +313,34 @@
 
 }
 
+.signup-team-all {
+    width: 280px;
+    box-shadow: 3px 3px 1px #d5d5d5;
+    margin: 0px 0px 0px 5px;
+}
+
+.signup-team-dir {
+    background: #fafafa;
+    border-bottom: 1px solid #d5d5d5;
+}
+
+.signup-team-dir__group {
+    padding: 15px 10px 15px 10px;
+}
+
+.signup-team-dir__name {
+    line-height: 1.3 !important;
+    font-size: 1.5em !important;
+    font-weight: 300 !important;
+}
+
+.signup-team-dir__arrow {
+    float: right;
+    line-height: 1.3 !important;
+    font-size: 1.5em !important;
+    font-weight: 300 !important;
+}
+
 .authorize-box {
     margin: 100px auto;
     width:500px;

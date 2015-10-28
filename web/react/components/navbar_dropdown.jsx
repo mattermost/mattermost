@@ -111,7 +111,7 @@ export default class NavbarDropdown extends React.Component {
                             data-toggle='modal'
                             data-target='#get_link'
                             data-title='Team Invite'
-                            data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id}
+                            data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id}
                         >
                             {'Get Team Invite Link'}
                         </a>

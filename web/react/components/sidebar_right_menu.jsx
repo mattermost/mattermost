@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var UserStore = require('../stores/user_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 var client = require('../utils/client.jsx');
 var utils = require('../utils/utils.jsx');
 
@@ -51,7 +52,7 @@ export default class SidebarRightMenu extends React.Component {
                             data-toggle='modal'
                             data-target='#get_link'
                             data-title='Team Invite'
-                            data-value={utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id}
+                            data-value={utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id}
                         ><i className='glyphicon glyphicon-link'></i>Get Team Invite Link</a>
                     </li>
                 );

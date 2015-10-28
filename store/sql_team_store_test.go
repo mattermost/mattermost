@@ -132,6 +132,54 @@ func TestTeamStoreGetByName(t *testing.T) {
 	}
 }
 
+func TestTeamStoreGetByIniviteId(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.InviteId = model.NewId()
+
+	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Email = model.NewId() + "@nowhere.com"
+	o2.Type = model.TEAM_OPEN
+
+	if err := (<-store.Team().Save(&o2)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 := <-store.Team().GetByInviteId(o1.InviteId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+			t.Fatal("invalid returned team")
+		}
+	}
+
+	o2.InviteId = ""
+	<-store.Team().Update(&o2)
+
+	if r1 := <-store.Team().GetByInviteId(o2.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.Team).Id != o2.Id {
+			t.Fatal("invalid returned team")
+		}
+	}
+
+	if err := (<-store.Team().GetByInviteId("")).Err; err == nil {
+		t.Fatal("Missing id should have failed")
+	}
+}
+
 func TestTeamStoreGetForEmail(t *testing.T) {
 	Setup()
 
@@ -159,5 +207,34 @@ func TestTeamStoreGetForEmail(t *testing.T) {
 
 	if r1 := <-store.Team().GetTeamsForEmail("missing"); r1.Err != nil {
 		t.Fatal(r1.Err)
+	}
+}
+
+func TestAllTeamListing(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.AllowTeamListing = true
+	Must(store.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Email = model.NewId() + "@nowhere.com"
+	o2.Type = model.TEAM_OPEN
+	Must(store.Team().Save(&o2))
+
+	if r1 := <-store.Team().GetAllTeamListing(); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		if len(teams) == 0 {
+			t.Fatal("failed team listing")
+		}
 	}
 }

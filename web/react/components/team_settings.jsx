@@ -37,7 +37,6 @@ export default class TeamSettings extends React.Component {
                         team={this.state.team}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
-                        teamDisplayName={this.props.teamDisplayName}
                     />
                 </div>
             );
@@ -72,12 +71,11 @@ export default class TeamSettings extends React.Component {
 
 TeamSettings.defaultProps = {
     activeTab: '',
-    activeSection: '',
-    teamDisplayName: ''
+    activeSection: ''
 };
+
 TeamSettings.propTypes = {
     activeTab: React.PropTypes.string.isRequired,
     activeSection: React.PropTypes.string.isRequired,
-    updateSection: React.PropTypes.func.isRequired,
-    teamDisplayName: React.PropTypes.string.isRequired
+    updateSection: React.PropTypes.func.isRequired
 };
