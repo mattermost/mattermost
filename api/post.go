@@ -249,7 +249,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 		}
 
 		for _, hook := range relevantHooks {
-			go func() {
+			go func(hook *model.OutgoingWebhook) {
 				p := url.Values{}
 				p.Set("token", hook.Token)
 
@@ -270,7 +270,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 				client := &http.Client{}
 
 				for _, url := range hook.CallbackURLs {
-					go func() {
+					go func(url string) {
 						req, _ := http.NewRequest("POST", url, strings.NewReader(p.Encode()))
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 						req.Header.Set("Accept", "application/json")
@@ -289,10 +289,10 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 								}
 							}
 						}
-					}()
+					}(url)
 				}
 
-			}()
+			}(hook)
 		}
 
 	}()
