@@ -93,6 +93,7 @@ export default class RhsComment extends React.Component {
                         role='menuitem'
                         data-toggle='modal'
                         data-target='#edit_post'
+                        data-refocusid='#reply_textbox'
                         data-title='Comment'
                         data-message={post.message}
                         data-postid={post.id}
