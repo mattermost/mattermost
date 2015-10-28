@@ -304,7 +304,8 @@ module.exports = {
     ],
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
-        CATEGORY_DISPLAY_SETTINGS: 'display_settings'
+        CATEGORY_DISPLAY_SETTINGS: 'display_settings',
+        CATEGORY_ADVANCED_SETTINGS: 'advanced_settings'
     },
     KeyCodes: {
         UP: 38,
