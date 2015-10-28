@@ -33,14 +33,6 @@ export default class UserList extends React.Component {
         this.getTeamProfiles(this.props.team.id);
     }
 
-    // this.setState({
-    //     teamId: this.state.teamId,
-    //     users: this.state.users,
-    //     serverError: this.state.serverError,
-    //     showPasswordModal: this.state.showPasswordModal,
-    //     user: this.state.user
-    // });
-
     getTeamProfiles(teamId) {
         Client.getProfilesForTeam(
             teamId,
@@ -95,8 +87,6 @@ export default class UserList extends React.Component {
     }
 
     doPasswordResetDismiss() {
-        this.state.showPasswordModal = false;
-        this.state.user = null;
         this.setState({
             teamId: this.state.teamId,
             users: this.state.users,
