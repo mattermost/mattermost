@@ -172,14 +172,15 @@ class PostStoreClass extends EventEmitter {
         var lastPost = null;
 
         for (i; i < len; i++) {
-            if (postList.posts[postList.order[i]].user_id === userId) {
+            let post = postList.posts[postList.order[i]];
+            if (post.user_id === userId && (post.props && !post.props.from_webhook || !post.props)) {
                 if (rootId) {
-                    if (postList.posts[postList.order[i]].root_id === rootId || postList.posts[postList.order[i]].id === rootId) {
-                        lastPost = postList.posts[postList.order[i]];
+                    if (post.root_id === rootId || post.id === rootId) {
+                        lastPost = post;
                         break;
                     }
                 } else {
-                    lastPost = postList.posts[postList.order[i]];
+                    lastPost = post;
                     break;
                 }
             }
