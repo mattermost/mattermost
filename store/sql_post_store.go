@@ -603,3 +603,152 @@ func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT
+			    t1.Name, COUNT(t1.UserId) AS Value
+			FROM
+			    (SELECT DISTINCT
+			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			            Posts.UserId
+			    FROM
+			        Posts, Channels
+			    WHERE
+			        Posts.ChannelId = Channels.Id
+			            AND Channels.TeamId = :TeamId
+			    ORDER BY Name DESC) AS t1
+			GROUP BY Name
+			ORDER BY Name DESC
+			LIMIT 30`
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query =
+				`SELECT
+				    TO_CHAR(t1.Name, 'YYYY-MM-DD') AS Name, COUNT(t1.UserId) AS Value
+				FROM
+				    (SELECT DISTINCT
+				        DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)) AS Name,
+				            Posts.UserId
+				    FROM
+				        Posts, Channels
+				    WHERE
+				        Posts.ChannelId = Channels.Id
+				            AND Channels.TeamId = :TeamId
+				    ORDER BY Name DESC) AS t1
+				GROUP BY Name
+				ORDER BY Name DESC
+				LIMIT 30`
+		}
+
+		var rows model.AnalyticsRows
+		_, err := s.GetReplica().Select(
+			&rows,
+			query,
+			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
+		} else {
+			result.Data = rows
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`SELECT 
+			    Name, COUNT(Value) AS Value
+			FROM
+			    (SELECT 
+			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+			            '1' AS Value
+			    FROM
+			        Posts, Channels
+			    WHERE
+			        Posts.ChannelId = Channels.Id
+			            AND Channels.TeamId = :TeamId
+			            AND Posts.CreateAt >:Time) AS t1
+			GROUP BY Name
+			ORDER BY Name DESC
+			LIMIT 30`
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query =
+				`SELECT 
+				    Name, COUNT(Value) AS Value
+				FROM
+				    (SELECT 
+				        TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name,
+				            '1' AS Value
+				    FROM
+				        Posts, Channels
+				    WHERE
+				        Posts.ChannelId = Channels.Id
+				            AND Channels.TeamId = :TeamId
+				            AND Posts.CreateAt > :Time) AS t1
+				GROUP BY Name
+				ORDER BY Name DESC
+				LIMIT 30`
+		}
+
+		var rows model.AnalyticsRows
+		_, err := s.GetReplica().Select(
+			&rows,
+			query,
+			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
+		} else {
+			result.Data = rows
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		v, err := s.GetReplica().SelectInt(
+			`SELECT 
+			    COUNT(Posts.Id) AS Value
+			FROM
+			    Posts,
+			    Channels
+			WHERE
+			    Posts.ChannelId = Channels.Id
+			        AND Channels.TeamId = :TeamId`,
+			map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "We couldn't get post counts", err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

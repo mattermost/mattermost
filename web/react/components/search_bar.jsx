@@ -3,7 +3,7 @@
 
 var client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
-var PostStore = require('../stores/post_store.jsx');
+var SearchStore = require('../stores/search_store.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
@@ -30,17 +30,17 @@ export default class SearchBar extends React.Component {
         this.state = state;
     }
     getSearchTermStateFromStores() {
-        var term = PostStore.getSearchTerm() || '';
+        var term = SearchStore.getSearchTerm() || '';
         return {
             searchTerm: term
         };
     }
     componentDidMount() {
-        PostStore.addSearchTermChangeListener(this.onListenerChange);
+        SearchStore.addSearchTermChangeListener(this.onListenerChange);
         this.mounted = true;
     }
     componentWillUnmount() {
-        PostStore.removeSearchTermChangeListener(this.onListenerChange);
+        SearchStore.removeSearchTermChangeListener(this.onListenerChange);
         this.mounted = false;
     }
     onListenerChange(doSearch, isMentionSearch) {
@@ -84,8 +84,8 @@ export default class SearchBar extends React.Component {
     }
     handleUserInput(e) {
         var term = e.target.value;
-        PostStore.storeSearchTerm(term);
-        PostStore.emitSearchTermChange(false);
+        SearchStore.storeSearchTerm(term);
+        SearchStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
 
         this.refs.autocomplete.handleInputChange(e.target, term);
@@ -150,8 +150,8 @@ export default class SearchBar extends React.Component {
         textbox.value = text;
         utils.setCaretPosition(textbox, preText.length + word.length);
 
-        PostStore.storeSearchTerm(text);
-        PostStore.emitSearchTermChange(false);
+        SearchStore.storeSearchTerm(text);
+        SearchStore.emitSearchTermChange(false);
         this.setState({searchTerm: text});
     }
 

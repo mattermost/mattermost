@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PostStore = require('../stores/post_store.jsx');
+var SearchStore = require('../stores/search_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var SearchBox = require('./search_bar.jsx');
 var Utils = require('../utils/utils.jsx');
@@ -9,7 +9,7 @@ var SearchResultsHeader = require('./search_results_header.jsx');
 var SearchResultsItem = require('./search_results_item.jsx');
 
 function getStateFromStores() {
-    return {results: PostStore.getSearchResults()};
+    return {results: SearchStore.getSearchResults()};
 }
 
 export default class SearchResults extends React.Component {
@@ -30,7 +30,7 @@ export default class SearchResults extends React.Component {
 
     componentDidMount() {
         this.mounted = true;
-        PostStore.addSearchChangeListener(this.onChange);
+        SearchStore.addSearchChangeListener(this.onChange);
         this.resize();
         window.addEventListener('resize', this.handleResize);
     }
@@ -40,7 +40,7 @@ export default class SearchResults extends React.Component {
     }
 
     componentWillUnmount() {
-        PostStore.removeSearchChangeListener(this.onChange);
+        SearchStore.removeSearchChangeListener(this.onChange);
         this.mounted = false;
         window.removeEventListener('resize', this.handleResize);
     }
@@ -78,7 +78,7 @@ export default class SearchResults extends React.Component {
             searchForm = <SearchBox />;
         }
         var noResults = (!results || !results.order || !results.order.length);
-        var searchTerm = PostStore.getSearchTerm();
+        var searchTerm = SearchStore.getSearchTerm();
 
         var ctls = null;
 

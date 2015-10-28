@@ -1,5 +1,7 @@
 # Outgoing Webhooks
 
+#### [To be released in Mattermost v1.2, available now on master]
+
 Outgoing webhooks allow external applications, written in the programming language of your choice--to receive HTTP POST requests whenever a user posts to a certain channel, with a trigger word at the beginning of the message, or a combination of both. If the external application responds appropriately to the HTTP request, as response post can be made in the channel where the original post occurred.
 
 A couple key points:
@@ -112,7 +114,7 @@ As mentioned above, Mattermost makes it easy to take integrations written for Sl
 
 To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
 
-#### Limitations
+#### Known Issues
 
 - Overriding of usernames does not yet apply to notifications
 - Cannot supply `icon_emoji` to override the message icon
