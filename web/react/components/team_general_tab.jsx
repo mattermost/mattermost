@@ -45,8 +45,6 @@ export default class GeneralTab extends React.Component {
             newId += Math.floor(Math.random() * 16).toString(16);
         }
 
-        console.log(newId);
-
         this.setState({invite_id: newId});
     }
 
