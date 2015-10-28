@@ -27,4 +27,4 @@ The following is a list of common error messages and solutions:
 
 ###### `panic: runtime error: invalid memory address or nil pointer dereference`
  - This error can occur if you have manually manipulated the Mattermost database, typically with deletions. Mattermost is designed to serve as a searchable archive, and manual manipulation of the database elements compromises integrity and may prevent upgrade. 
- - **Solution:** Restore from databse backup created prior to manual database updates, or reinstall the system.
+ - **Solution:** Restore from database backup created prior to manual database updates, or reinstall the system.
