@@ -122,7 +122,7 @@ func (o *Team) IsValid(restrictTeamNames bool) *AppError {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 
-	if len(o.DisplayName) > 64 {
+	if len(o.DisplayName) == 0 || len(o.DisplayName) > 64 {
 		return NewAppError("Team.IsValid", "Invalid name", "id="+o.Id)
 	}
 
@@ -150,10 +150,6 @@ func (o *Team) IsValid(restrictTeamNames bool) *AppError {
 		return NewAppError("Team.IsValid", "Invalid allowed domains", "id="+o.Id)
 	}
 
-	if len(o.InviteId) > 0 && len(o.InviteId) != 26 {
-		return NewAppError("Team.IsValid", "Invalid inviate Id", "")
-	}
-
 	return nil
 }
 
@@ -164,6 +160,10 @@ func (o *Team) PreSave() {
 
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
+
+	if len(o.InviteId) == 0 {
+		o.InviteId = NewId()
+	}
 }
 
 func (o *Team) PreUpdate() {

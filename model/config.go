@@ -123,6 +123,7 @@ type TeamSettings struct {
 	EnableUserCreation        bool
 	RestrictCreationToDomains string
 	RestrictTeamNames         *bool
+	EnableTeamListing         *bool
 }
 
 type Config struct {
@@ -174,6 +175,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictTeamNames == nil {
 		o.TeamSettings.RestrictTeamNames = new(bool)
 		*o.TeamSettings.RestrictTeamNames = true
+	}
+
+	if o.TeamSettings.EnableTeamListing == nil {
+		o.TeamSettings.EnableTeamListing = new(bool)
+		*o.TeamSettings.EnableTeamListing = false
 	}
 }
 

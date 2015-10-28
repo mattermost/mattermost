@@ -3,9 +3,19 @@
 
 var SignupTeam = require('../components/signup_team.jsx');
 
-function setupSignupTeamPage() {
+function setupSignupTeamPage(props) {
+    var teams = [];
+
+    for (var prop in props) {
+        if (props.hasOwnProperty(prop)) {
+            if (prop !== 'Title') {
+                teams.push({name: prop, display_name: props[prop]});
+            }
+        }
+    }
+
     ReactDOM.render(
-        <SignupTeam />,
+        <SignupTeam teams={teams} />,
         document.getElementById('signup-team')
     );
 }

@@ -90,7 +90,7 @@ function setupChannelPage(props) {
     );
 
     ReactDOM.render(
-        <TeamSettingsModal teamDisplayName={props.TeamDisplayName} />,
+        <TeamSettingsModal />,
         document.getElementById('team_settings_modal')
     );
 

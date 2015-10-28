@@ -152,20 +152,6 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 
 }
 
-// func getTeamAndUser(c *api.Context) (*model.Team, *model.User) {
-// 	if tr := <-api.Srv.Store.Team().Get(c.Session.TeamId); tr.Err != nil {
-// 		c.Err = tr.Err
-// 		return nil, nil
-// 	} else {
-// 		if ur := <-api.Srv.Store.User().Get(c.Session.UserId); ur.Err != nil {
-// 			c.Err = ur.Err
-// 			return nil, nil
-// 		} else {
-// 			return tr.Data.(*model.Team), ur.Data.(*model.User)
-// 		}
-// 	}
-// }
-
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if !CheckBrowserCompatability(c, r) {
@@ -174,6 +160,19 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(c.Session.UserId) == 0 {
 		page := NewHtmlTemplatePage("signup_team", "Signup")
+
+		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			teams := result.Data.([]*model.Team)
+			l4g.Info(teams)
+
+			for _, team := range teams {
+				page.Props[team.Name] = team.DisplayName
+			}
+		}
+
 		page.Render(c, w)
 	} else {
 		teamChan := api.Srv.Store.Team().Get(c.Session.TeamId)
@@ -240,6 +239,11 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("login", "Login")
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
+
+	if team.AllowOpenInvite {
+		page.Props["InviteId"] = team.InviteId
+	}
+
 	page.Render(c, w)
 }
 
@@ -285,7 +289,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	if len(id) > 0 {
 		props = make(map[string]string)
 
-		if result := <-api.Srv.Store.Team().Get(id); result.Err != nil {
+		if result := <-api.Srv.Store.Team().GetByInviteId(id); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
