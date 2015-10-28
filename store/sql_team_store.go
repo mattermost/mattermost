@@ -280,8 +280,14 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	go func() {
 		result := StoreResult{}
 
+		query := "SELECT * FROM Teams WHERE AllowTeamListing = 1"
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "SELECT * FROM Teams WHERE AllowTeamListing = true"
+		}
+
 		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams WHERE AllowTeamListing = 1"); err != nil {
+		if _, err := s.GetReplica().Select(&data, query); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "We could not get all teams", err.Error())
 		}
 
