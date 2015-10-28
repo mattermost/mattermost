@@ -100,7 +100,9 @@ export default class UserSettingsAppearance extends React.Component {
         );
     }
     updateTheme(theme) {
-        theme.codeTheme = this.state.theme.codeTheme;
+        if (!theme.codeTheme) {
+            theme.codeTheme = this.state.theme.codeTheme;
+        }
         this.setState({theme});
         Utils.applyTheme(theme);
     }
