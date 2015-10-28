@@ -466,22 +466,6 @@ body.ios {
 			white-space: nowrap;
 			cursor: pointer;
 		}
-		.post-body--code {
-			font-size: .97em;
-			position:relative;
-			.post-body--code__language {
-				position: absolute;
-				right: 0;
-				background: #fff;
-				cursor: default;
-				padding: 0.3em 0.5em 0.1em;
-				border-bottom-left-radius: 4px;
-				@include opacity(.3);
-			}
-			code {
-				white-space: pre;
-			}
-		}
 	}
 	.create-reply-form-wrap {
 		width: 100%;

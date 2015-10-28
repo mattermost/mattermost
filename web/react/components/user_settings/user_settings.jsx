@@ -10,6 +10,7 @@ var AppearanceTab = require('./user_settings_appearance.jsx');
 var DeveloperTab = require('./user_settings_developer.jsx');
 var IntegrationsTab = require('./user_settings_integrations.jsx');
 var DisplayTab = require('./user_settings_display.jsx');
+var AdvancedTab = require('./user_settings_advanced.jsx');
 
 export default class UserSettings extends React.Component {
     constructor(props) {
@@ -103,6 +104,17 @@ export default class UserSettings extends React.Component {
             return (
                 <div>
                     <DisplayTab
+                        user={this.state.user}
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        updateTab={this.props.updateTab}
+                    />
+                </div>
+            );
+        } else if (this.props.activeTab === 'advanced') {
+            return (
+                <div>
+                    <AdvancedTab
                         user={this.state.user}
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}

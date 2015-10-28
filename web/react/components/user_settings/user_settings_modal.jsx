@@ -43,6 +43,7 @@ export default class UserSettingsModal extends React.Component {
             tabs.push({name: 'integrations', uiName: 'Integrations', icon: 'glyphicon glyphicon-transfer'});
         }
         tabs.push({name: 'display', uiName: 'Display', icon: 'glyphicon glyphicon-eye-open'});
+        tabs.push({name: 'advanced', uiName: 'Advanced', icon: 'glyphicon glyphicon-list-alt'});
 
         return (
             <div

@@ -8,6 +8,7 @@ const SocketStore = require('../stores/socket_store.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const PostStore = require('../stores/post_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
 const Textbox = require('./textbox.jsx');
 const MsgTyping = require('./msg_typing.jsx');
 const FileUpload = require('./file_upload.jsx');
@@ -27,7 +28,7 @@ export default class CreateComment extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
-        this.handleArrowUp = this.handleArrowUp.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -36,6 +37,7 @@ export default class CreateComment extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         PostStore.clearCommentDraftUploads();
 
@@ -45,14 +47,22 @@ export default class CreateComment extends React.Component {
             uploadsInProgress: draft.uploadsInProgress,
             previews: draft.previews,
             submitting: false,
-            windowWidth: Utils.windowWidth()
+            windowWidth: Utils.windowWidth(),
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
         };
     }
     componentDidMount() {
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
         window.removeEventListener('resize', this.handleResize);
+    }
+    onPreferenceChange() {
+        this.setState({
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+        });
     }
     handleResize() {
         this.setState({windowWidth: Utils.windowWidth()});
@@ -140,10 +150,12 @@ export default class CreateComment extends React.Component {
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
     }
     commentMsgKeyPress(e) {
-        if (e.which === 13 && !e.shiftKey && !e.altKey) {
-            e.preventDefault();
-            ReactDOM.findDOMNode(this.refs.textbox).blur();
-            this.handleSubmit(e);
+        if (this.state.ctrlSend === 'true' && e.ctrlKey || this.state.ctrlSend === 'false') {
+            if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                ReactDOM.findDOMNode(this.refs.textbox).blur();
+                this.handleSubmit(e);
+            }
         }
 
         const t = Date.now();
@@ -161,7 +173,12 @@ export default class CreateComment extends React.Component {
         $('.post-right__scroll').perfectScrollbar('update');
         this.setState({messageText: messageText});
     }
-    handleArrowUp(e) {
+    handleKeyDown(e) {
+        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+            this.commentMsgKeyPress(e);
+            return;
+        }
+
         if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
@@ -313,7 +330,7 @@ export default class CreateComment extends React.Component {
                             <Textbox
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.commentMsgKeyPress}
-                                onKeyDown={this.handleArrowUp}
+                                onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
                                 createMessage='Add a comment...'
                                 initialText=''

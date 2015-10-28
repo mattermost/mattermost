@@ -570,6 +570,7 @@ export default class UserSettingsGeneralTab extends React.Component {
                 />
             );
         }
+
         return (
             <div>
                 <div className='modal-header'>

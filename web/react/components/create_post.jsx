@@ -8,6 +8,7 @@ const ChannelStore = require('../stores/channel_store.jsx');
 const PostStore = require('../stores/post_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const SocketStore = require('../stores/socket_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
 const MsgTyping = require('./msg_typing.jsx');
 const Textbox = require('./textbox.jsx');
 const FileUpload = require('./file_upload.jsx');
@@ -36,9 +37,10 @@ export default class CreatePost extends React.Component {
         this.removePreview = this.removePreview.bind(this);
         this.onChange = this.onChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
-        this.handleArrowUp = this.handleArrowUp.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -52,8 +54,16 @@ export default class CreatePost extends React.Component {
             submitting: false,
             initialText: draft.messageText,
             windowWidth: Utils.windowWidth(),
-            windowHeight: Utils.windowHeight()
+            windowHeight: Utils.windowHeight(),
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
         };
+
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
+    }
+    onPreferenceChange() {
+        this.setState({
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+        });
     }
     handleResize() {
         this.setState({
@@ -201,10 +211,12 @@ export default class CreatePost extends React.Component {
         );
     }
     postMsgKeyPress(e) {
-        if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
-            e.preventDefault();
-            ReactDOM.findDOMNode(this.refs.textbox).blur();
-            this.handleSubmit(e);
+        if (this.state.ctrlSend === 'true' && e.ctrlKey || this.state.ctrlSend === 'false') {
+            if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                ReactDOM.findDOMNode(this.refs.textbox).blur();
+                this.handleSubmit(e);
+            }
         }
 
         const t = Date.now();
@@ -328,7 +340,12 @@ export default class CreatePost extends React.Component {
         const draft = PostStore.getDraft(channelId);
         return draft.previews.length + draft.uploadsInProgress.length;
     }
-    handleArrowUp(e) {
+    handleKeyDown(e) {
+        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+            this.postMsgKeyPress(e);
+            return;
+        }
+
         if (e.keyCode === KeyCodes.UP && this.state.messageText === '') {
             e.preventDefault();
 
@@ -393,7 +410,7 @@ export default class CreatePost extends React.Component {
                             <Textbox
                                 onUserInput={this.handleUserInput}
                                 onKeyPress={this.postMsgKeyPress}
-                                onKeyDown={this.handleArrowUp}
+                                onKeyDown={this.handleKeyDown}
                                 onHeightChange={this.resizePostHolder}
                                 messageText={this.state.messageText}
                                 createMessage='Write a message...'
