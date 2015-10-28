@@ -315,6 +315,8 @@ module.exports = {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
         CATEGORY_ADVANCED_SETTINGS: 'advanced_settings'
+        TUTORIAL_INTRO_COMPLETE: 'tutorial_intro_complete',
+        TUTORIAL_POPOVERS: 'tutorial_popovers'
     },
     KeyCodes: {
         UP: 38,
