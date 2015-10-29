@@ -42,6 +42,10 @@ export default class PopoverListMembers extends React.Component {
         };
     }
 
+    componentDidUpdate() {
+        $(ReactDOM.findDOMNode(this.refs.memebersPopover)).find('.popover-content').perfectScrollbar();
+    }
+
     handleShowDirectChannel(teammate, e) {
         e.preventDefault();
 
@@ -106,27 +110,27 @@ export default class PopoverListMembers extends React.Component {
                 let button = '';
                 if (currentUserId !== m.id && ch.type !== 'D') {
                     button = (
-                        <button
-                            type='button'
-                            className='btn btn-primary btn-message'
+                        <a
+                            href='#'
+                            className='btn-message'
                             onClick={(e) => this.handleShowDirectChannel(m, e)}
                         >
                             {'Message'}
-                        </button>
+                        </a>
                     );
                 }
 
                 if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
                     popoverHtml.push(
                         <div
-                            className='text--nowrap'
+                            className='text-nowrap'
                             key={'popover-member-' + i}
                         >
 
                             <img
-                                className='profile-img pull-left'
-                                width='38'
-                                height='38'
+                                className='profile-img rounded pull-left'
+                                width='26px'
+                                height='26px'
                                 src={`/api/v1/users/${m.id}/image?time=${m.update_at}&${Utils.getSessionIndex()}`}
                             />
                             <div className='pull-left'>
@@ -135,14 +139,9 @@ export default class PopoverListMembers extends React.Component {
                                 >
                                     {m.username}
                                 </div>
-                                <div
-                                    className='more-description'
-                                >
-                                    {details}
-                                </div>
                             </div>
                             <div
-                                className='pull-right profile-action'
+                                className='pull-right'
                             >
                                 {button}
                             </div>
@@ -182,12 +181,11 @@ export default class PopoverListMembers extends React.Component {
                     placement='bottom'
                 >
                     <Popover
+                        ref='memebersPopover'
                         title='Members'
                         id='member-list-popover'
                     >
-                        <div>
-                            {popoverHtml}
-                        </div>
+                        {popoverHtml}
                     </Popover>
                 </Overlay>
             </div>

@@ -398,9 +398,15 @@ body.ios {
 	}
 	p {
 		margin: 0 0 1em;
-        line-height: 1.6em;
+		line-height: 1.6em;
 		font-size: 0.97em;
 		white-space: pre-wrap;
+	}
+
+	span {
+		p:last-child {
+			margin-bottom: 0.5em;
+		}
 	}
 
 	.post-loading-gif {

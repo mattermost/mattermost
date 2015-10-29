@@ -1,0 +1,84 @@
+.team_statistics {
+	.total-count {
+		margin: 1em 0;
+		text-align: center;
+		background: #fff;
+		border: 1px solid #ddd;
+		width: 100%;
+		@include border-radius(3px);
+
+		.title {
+			font-weight: 400;
+			padding: 7px 10px;
+			border-bottom: 1px solid #ddd;
+			text-align: left;
+
+			.fa {
+				float: right;
+				margin: 3px 0 0;
+				color: #555;
+				font-size: 16px;
+			}
+
+		}
+
+		.content {
+			font-size: 30px;
+			font-weight: 600;
+			color: #555;
+			padding: 0.3em 0 0.35em;
+			overflow: auto;
+		}
+
+	}
+
+	.total-count--day {
+		width: 760px;
+		height: 275px;
+		border: 1px solid #ddd;
+		padding: 5px 10px 10px 10px;
+		margin: 10px 10px 10px 10px;
+		background: #fff;
+		clear: both;
+
+		> div {
+			font-size: 18px;
+			font-weight: 300;
+		}
+	}
+
+	.recent-active-users {
+
+		table {
+			width: 100%;
+			table-layout: fixed;
+		}
+
+		.content {
+			max-height: 400px;
+			overflow: auto;
+			padding: 0;
+		}
+
+		tr {
+			&:first-child {
+				td {
+					border-top: none;
+				}
+			}
+			td {
+				font-weight: 400;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+				font-size: 13px;
+				border-left: 1px solid #ddd;
+				border-top: 1px solid #ddd;
+				padding: 5px 5px 6px;
+				@include clearfix;
+				&:first-child {
+					border-left: none;
+				}
+			}
+		}
+	}
+}
