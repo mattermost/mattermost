@@ -7,11 +7,14 @@ var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
 
+const Modal = ReactBootstrap.Modal;
+
 export default class InviteMemberModal extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleHide = this.handleHide.bind(this);
         this.addInviteFields = this.addInviteFields.bind(this);
         this.clearFields = this.clearFields.bind(this);
         this.removeInviteFields = this.removeInviteFields.bind(this);
@@ -22,36 +25,9 @@ export default class InviteMemberModal extends React.Component {
             emailErrors: {},
             firstNameErrors: {},
             lastNameErrors: {},
-            emailEnabled: global.window.mm_config.SendEmailNotifications === 'true'
+            emailEnabled: global.window.mm_config.SendEmailNotifications === 'true',
+            showConfirmModal: false
         };
-    }
-
-    componentDidMount() {
-        var self = this;
-        $('#invite_member').on('hide.bs.modal', function hide(e) {
-            if ($('#invite_member').attr('data-confirm') === 'true') {
-                $('#invite_member').attr('data-confirm', 'false');
-                return;
-            }
-
-            var notEmpty = false;
-            for (var i = 0; i < self.state.inviteIds.length; i++) {
-                var index = self.state.inviteIds[i];
-                if (ReactDOM.findDOMNode(self.refs['email' + index]).value.trim() !== '') {
-                    notEmpty = true;
-                    break;
-                }
-            }
-
-            if (notEmpty) {
-                $('#confirm_invite_modal').modal('show');
-                e.preventDefault();
-            }
-        });
-
-        $('#invite_member').on('hidden.bs.modal', function show() {
-            self.clearFields();
-        });
     }
 
     handleSubmit() {
@@ -94,25 +70,55 @@ export default class InviteMemberModal extends React.Component {
         var data = {};
         data.invites = invites;
 
-        Client.inviteMembers(data,
-            function success() {
-                $(ReactDOM.findDOMNode(this.refs.modal)).attr('data-confirm', 'true');
-                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
-            }.bind(this),
-            function fail(err) {
+        Client.inviteMembers(
+            data,
+            () => {
+                this.handleHide(false);
+            },
+            (err) => {
                 if (err.message === 'This person is already on your team') {
                     emailErrors[err.detailed_error] = err.message;
                     this.setState({emailErrors: emailErrors});
                 } else {
                     this.setState({serverError: err.message});
                 }
-            }.bind(this)
+            }
         );
     }
 
-    componentDidUpdate() {
-        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
-        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('overflow-y', 'scroll');
+    handleHide(requireConfirm) {
+        if (requireConfirm) {
+            var notEmpty = false;
+            for (var i = 0; i < this.state.inviteIds.length; i++) {
+                var index = this.state.inviteIds[i];
+                if (ReactDOM.findDOMNode(this.refs['email' + index]).value.trim() !== '') {
+                    notEmpty = true;
+                    break;
+                }
+            }
+
+            if (notEmpty) {
+                this.setState({
+                    showConfirmModal: true
+                });
+
+                return;
+            }
+        }
+
+        this.clearFields();
+
+        this.setState({showConfirmModal: false});
+        this.props.onModalDismissed();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
+            if ($(window).width() > 768) {
+                $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+            }
+        }
     }
 
     addInviteFields() {
@@ -292,7 +298,7 @@ export default class InviteMemberModal extends React.Component {
                     );
             } else {
                 var teamInviteLink = null;
-                if (currentUser && this.props.teamType === 'O') {
+                if (currentUser && TeamStore.getCurrent().type === 'O') {
                     var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id;
                     var link =
                         (
@@ -302,11 +308,7 @@ export default class InviteMemberModal extends React.Component {
                                 data-target='#get_link'
                                 data-title='Team Invite'
                                 data-value={linkUrl}
-                                onClick={
-                                    function click() {
-                                        $('#invite_member').modal('hide');
-                                    }
-                                }
+                                onClick={() => this.handleHide(this, false)}
                             >Team Invite Link</a>
                     );
 
@@ -327,64 +329,49 @@ export default class InviteMemberModal extends React.Component {
 
             return (
                 <div>
-                    <div
-                        className='modal fade'
-                        ref='modal'
-                        id='invite_member'
-                        tabIndex='-1'
-                        role='dialog'
-                        aria-hidden='true'
+                    <Modal
+                        className='modal-invite-member'
+                        show={this.props.show}
+                        onHide={this.handleHide.bind(this, true)}
+                        enforceFocus={!this.state.showConfirmModal}
                     >
-                       <div className='modal-dialog'>
-                          <div className='modal-content'>
-                            <div className='modal-header'>
+                        <Modal.Header closeButton={true}>
+                            <Modal.Title>{'Invite New Member'}</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body ref='modalBody'>
+                            <form role='form'>
+                                {inviteSections}
+                            </form>
+                            {content}
+                        </Modal.Body>
+                        <Modal.Footer>
                             <button
                                 type='button'
-                                className='close'
-                                data-dismiss='modal'
-                                aria-label='Close'
+                                className='btn btn-default'
+                                onClick={this.handleHide.bind(this, true)}
                             >
-                                <span aria-hidden='true'>×</span>
+                                {'Cancel'}
                             </button>
-                            <h4
-                                className='modal-title'
-                                id='myModalLabel'
-                            >Invite New Member</h4>
-                            </div>
-                            <div
-                                ref='modalBody'
-                                className='modal-body'
-                            >
-                                <form role='form'>
-                                    {inviteSections}
-                                </form>
-                                {content}
-                            </div>
-                            <div className='modal-footer'>
-                                <button
-                                    type='button'
-                                    className='btn btn-default'
-                                    data-dismiss='modal'
-                                >Cancel</button>
-                                {sendButton}
-                            </div>
-                          </div>
-                       </div>
-                    </div>
+                            {sendButton}
+                        </Modal.Footer>
+                    </Modal>
                     <ConfirmModal
-                        id='confirm_invite_modal'
-                        parent_id='invite_member'
                         title='Discard Invitations?'
                         message='You have unsent invitations, are you sure you want to discard them?'
                         confirm_button='Yes, Discard'
+                        show={this.state.showConfirmModal}
+                        onConfirm={this.handleHide.bind(this, false)}
+                        onCancel={() => this.setState({showConfirmModal: false})}
                     />
                 </div>
             );
         }
-        return <div/>;
+
+        return null;
     }
 }
 
 InviteMemberModal.propTypes = {
-    teamType: React.PropTypes.string
+    show: React.PropTypes.bool.isRequired,
+    onModalDismissed: React.PropTypes.func.isRequired
 };

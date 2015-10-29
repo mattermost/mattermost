@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var InviteMemberModal = require('./invite_member_modal.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var client = require('../utils/client.jsx');
@@ -15,6 +16,10 @@ export default class SidebarRightMenu extends React.Component {
         super(props);
 
         this.handleLogoutClick = this.handleLogoutClick.bind(this);
+
+        this.state = {
+            showInviteMemberModal: false
+        };
     }
 
     handleLogoutClick(e) {
@@ -38,10 +43,12 @@ export default class SidebarRightMenu extends React.Component {
 
             inviteLink = (
                 <li>
-                    <a href='#'
-                        data-toggle='modal'
-                        data-target='#invite_member'
-                    ><i className='glyphicon glyphicon-user'></i>Invite New Member</a>
+                    <a
+                        href='#'
+                        onClick={() => this.setState({showInviteMemberModal: true})}
+                    >
+                        <i className='glyphicon glyphicon-user'></i>Invite New Member
+                    </a>
                 </li>
             );
 
@@ -141,6 +148,10 @@ export default class SidebarRightMenu extends React.Component {
                             ><i className='glyphicon glyphicon-earphone'></i>Report a Problem</a></li>
                     </ul>
                 </div>
+                <InviteMemberModal
+                    show={this.state.showInviteMemberModal}
+                    onModalDismissed={() => this.setState({showInviteMemberModal: false})}
+                />
             </div>
         );
     }

@@ -9,7 +9,6 @@ var ErrorStore = require('../stores/error_store.jsx');
 
 var MentionList = require('../components/mention_list.jsx');
 var GetLinkModal = require('../components/get_link_modal.jsx');
-var MemberInviteModal = require('../components/invite_member_modal.jsx');
 var EditChannelModal = require('../components/edit_channel_modal.jsx');
 var DeleteChannelModal = require('../components/delete_channel_modal.jsx');
 var RenameChannelModal = require('../components/rename_channel_modal.jsx');
@@ -100,11 +99,6 @@ function setupChannelPage(props) {
     ReactDOM.render(
         <TeamMembersModal teamDisplayName={props.TeamDisplayName} />,
         document.getElementById('team_members_modal')
-    );
-
-    ReactDOM.render(
-        <MemberInviteModal teamType={props.TeamType} />,
-        document.getElementById('invite_member_modal')
     );
 
     ReactDOM.render(

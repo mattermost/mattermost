@@ -186,6 +186,8 @@ export function createStandardIntroMessage(channel) {
         );
     }
 
+    // TODO show channel_invite modal now that it's a React-Bootstrap modal
+
     return (
         <div className='channel-intro'>
             <h4 className='channel-intro__title'>{'Beginning of ' + uiName}</h4>
@@ -213,6 +215,7 @@ export function createStandardIntroMessage(channel) {
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
             </a>
+
         </div>
     );
 }
