@@ -57,12 +57,10 @@ export default class EditPostModal extends React.Component {
         this.setState({editText: editMessage});
     }
     handleEditKeyPress(e) {
-        if (this.state.ctrlSend === 'true' && e.ctrlKey || this.state.ctrlSend === 'false') {
-            if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
-                e.preventDefault();
-                ReactDOM.findDOMNode(this.refs.editbox).blur();
-                this.handleEdit(e);
-            }
+        if (this.state.ctrlSend === 'false' && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            ReactDOM.findDOMNode(this.refs.editbox).blur();
+            this.handleEdit(e);
         }
     }
     handleUserInput(e) {
