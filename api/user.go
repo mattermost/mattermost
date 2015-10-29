@@ -653,7 +653,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 			options := utils.SanitizeOptions
 			options["passwordupdate"] = false
 
-			if c.HasSystemAdminPermissions("getProfiles") {
+			if c.IsSystemAdmin() {
 				options["fullname"] = true
 				options["email"] = true
 			}
