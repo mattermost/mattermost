@@ -6,6 +6,10 @@ var AsyncClient = require('../utils/async_client.jsx');
 var Textbox = require('./textbox.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
+var PreferenceStore = require('../stores/preference_store.jsx');
+
+var Constants = require('../utils/constants.jsx');
+var KeyCodes = Constants.KeyCodes;
 
 export default class EditPostModal extends React.Component {
     constructor() {
@@ -16,6 +20,8 @@ export default class EditPostModal extends React.Component {
         this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleEditPostEvent = this.handleEditPostEvent.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         this.state = {editText: '', title: '', post_id: '', channel_id: '', comments: 0, refocusId: ''};
     }
@@ -51,7 +57,7 @@ export default class EditPostModal extends React.Component {
         this.setState({editText: editMessage});
     }
     handleEditKeyPress(e) {
-        if (e.which === 13 && !e.shiftKey && !e.altKey) {
+        if (this.state.ctrlSend === 'false' && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit(e);
@@ -71,6 +77,16 @@ export default class EditPostModal extends React.Component {
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('show');
+    }
+    handleKeyDown(e) {
+        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+            this.handleEdit(e);
+        }
+    }
+    onPreferenceChange() {
+        this.setState({
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+        });
     }
     componentDidMount() {
         var self = this;
@@ -101,9 +117,11 @@ export default class EditPostModal extends React.Component {
         });
 
         PostStore.addEditPostListener(this.handleEditPostEvent);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
     componentWillUnmount() {
         PostStore.removeEditPostListener(this.handleEditPostEvent);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     render() {
         var error = (<div className='form-group'><br /></div>);
@@ -138,6 +156,7 @@ export default class EditPostModal extends React.Component {
                             <Textbox
                                 onUserInput={this.handleEditInput}
                                 onKeyPress={this.handleEditKeyPress}
+                                onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}
                                 createMessage='Edit the post...'
                                 id='edit_textbox'
