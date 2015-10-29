@@ -19,7 +19,6 @@ Our development process centers about three principles:
 3. Slow is smooth, smooth is fast – Thinking carefully and building predictably at high quality are more important than jamming in any one feature.
 When we’re not sure on a decision, these principles are our tie-breakers.
 
-
 ### - Beginning of release
 - (Ops) Queue an agenda item for first team meeting of the release to review Roadmap
 
@@ -70,7 +69,6 @@ When we’re not sure on a decision, these principles are our tie-breakers.
   - (PM) Create meta issue for regressions in GitHub (see [example](https://github.com/mattermost/platform/issues/574))
 
 ### - (4 weekdays before release date) Release Candidate Testing 
-
 - Final testing is conducted by the team on the acceptance server and any issues found are filed
  - (Dev) Tests upgrade from previous version to current version, following the [Upgrade Guide](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md) 
  - (Ops) Posts copy of the **Release Candidate Testing** checklist into Town Square in PRODUCTION 
