@@ -187,7 +187,6 @@ export default class Post extends React.Component {
                     id={'post_' + post.id}
                     className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}
                 >
-                    {profilePic}
                     <div className='post__content'>
                         <PostHeader
                             ref='header'
@@ -196,6 +195,7 @@ export default class Post extends React.Component {
                             commentCount={commentCount}
                             handleCommentClick={this.handleCommentClick}
                             isLastComment={this.props.isLastComment}
+                            hideProfilePic={this.props.hideProfilePic}
                         />
                         <PostBody
                             post={post}
@@ -205,6 +205,7 @@ export default class Post extends React.Component {
                             handleCommentClick={this.handleCommentClick}
                             retryPost={this.retryPost}
                             resize={this.props.resize}
+                            hideProfilePic={this.props.hideProfilePic}
                         />
                         <PostInfo
                             ref='info'
