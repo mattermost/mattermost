@@ -15,11 +15,10 @@ These instructions will guide you through the process of setting up Mattermost f
 8. Type an Environment Name and URL. Make sure the URL is available by clicking **Check availability**, then click **Next**.
 9. The options on the Additional Resources page may be left at default unless you wish to change them. Click **Next**.
 10. On the Configuration Details page, 
-	1. Select an Instance Type of **t2.small**. You may select larger T2 instance types if required.
+	1. Select an Instance Type of **t2.small** or larger.
 	2. The remaining options may be left at their default values unless you wish to change them. Click **Next**.
 11. Environment tags may be left blank. Click **Next**.
 12. You will be asked to review your information, then click **Launch**.
-13. You may see a warning that the "environment does not have an IAM instance profile associated with it". Click **Save** to dismiss the warning for now.
 14. It may take a few minutes for beanstalk to launch your environment. If the launch is successful, you will see a see a large green checkmark and the Health status should change to “Green”. 
 15. Test your environment by clicking the domain link next to your application name at the top of the dashboard. Alternatively, enter the domain into your browser in the form `http://<your-ebs-application-url>.elasticbeanstalk.com`. You can also map your own domain if you wish. If everything is working correctly, the domain should navigate you to the Mattermost signup page. Enjoy exploring Mattermost!
 	
