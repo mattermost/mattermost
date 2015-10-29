@@ -2,63 +2,16 @@
     > div {
         height: 100%;
     }
+
+    h3 {
+        font-weight: 600;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.5em;
+        margin: 1em 0;
+    }
+
     .table {
         background: #fff;
-    }
-
-    .total-count {
-        width: 175px;
-        height: 100px;
-        border: 1px solid #ddd;
-        padding: 22px 10px 10px 10px;
-        margin: 10px 10px 10px 10px;
-        background: #fff;
-        float: left;
-
-        > div {
-            font-size: 18px;
-            font-weight: 300;
-        }
-    }
-
-    .total-count-by-day {
-        width: 760px;
-        height: 275px;
-        border: 1px solid #ddd;
-        padding: 5px 10px 10px 10px;
-        margin: 10px 10px 10px 10px;
-        background: #fff;
-        clear: both;
-
-        > div {
-            font-size: 18px;
-            font-weight: 300;
-        }
-    }
-
-    .recent-active-users {
-        width: 365px;
-        border: 1px solid #ddd;
-        padding: 5px 10px 10px 10px;
-        margin: 10px 10px 10px 10px;
-        background: #fff;
-        float: left;
-
-        > div {
-            font-size: 18px;
-            font-weight: 300;
-        }
-
-        > table {
-            margin: 10px 10px 10px 10px;
-        }
-
-        .recent-active-users-td {
-            font-size: 14px;
-            font-weight: 300;
-            border: 1px solid #ddd;
-            padding: 3px 3px 3px 5px;
-        }
     }
 
     .sidebar--left {

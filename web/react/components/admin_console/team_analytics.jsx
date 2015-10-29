@@ -210,69 +210,89 @@ export default class TeamAnalytics extends React.Component {
         }
 
         var totalCount = (
-            <div className='total-count text-center'>
-                <div>{'Total Users'}</div>
-                <div>{this.state.users == null ? 'Loading...' : Object.keys(this.state.users).length}</div>
+            <div className='col-sm-3'>
+                <div className='total-count'>
+                    <div className='title'>{'Total Users'}<i className='fa fa-users'/></div>
+                    <div className='content'>{this.state.users == null ? 'Loading...' : Object.keys(this.state.users).length}</div>
+                </div>
             </div>
         );
 
         var openChannelCount = (
-            <div className='total-count text-center'>
-                <div>{'Public Groups'}</div>
-                <div>{this.state.channel_open_count == null ? 'Loading...' : this.state.channel_open_count}</div>
+            <div className='col-sm-3'>
+                <div className='total-count'>
+                    <div className='title'>{'Public Groups'}<i className='fa fa-unlock-alt'/></div>
+                    <div className='content'>{this.state.channel_open_count == null ? 'Loading...' : this.state.channel_open_count}</div>
+                </div>
             </div>
         );
 
         var openPrivateCount = (
-            <div className='total-count text-center'>
-                <div>{'Private Groups'}</div>
-                <div>{this.state.channel_private_count == null ? 'Loading...' : this.state.channel_private_count}</div>
+            <div className='col-sm-3'>
+                <div className='total-count'>
+                    <div className='title'>{'Private Groups'}<i className='fa fa-lock'/></div>
+                    <div className='content'>{this.state.channel_private_count == null ? 'Loading...' : this.state.channel_private_count}</div>
+                </div>
             </div>
         );
 
         var postCount = (
-            <div className='total-count text-center'>
-                <div>{'Total Posts'}</div>
-                <div>{this.state.post_count == null ? 'Loading...' : this.state.post_count}</div>
+            <div className='col-sm-3'>
+                <div className='total-count'>
+                    <div className='title'>{'Total Posts'}<i className='fa fa-comment'/></div>
+                    <div className='content'>{this.state.post_count == null ? 'Loading...' : this.state.post_count}</div>
+                </div>
             </div>
         );
 
         var postCountsByDay = (
-            <div className='total-count-by-day'>
-                <div>{'Total Posts'}</div>
-                <div>{'Loading...'}</div>
+            <div className='col-sm-12'>
+                <div className='total-count by-day'>
+                    <div className='title'>{'Total Posts'}</div>
+                    <div className='content'>{'Loading...'}</div>
+                </div>
             </div>
         );
 
         if (this.state.post_counts_day != null) {
             postCountsByDay = (
-                <div className='total-count-by-day'>
-                    <div>{'Total Posts'}</div>
-                    <LineChart
-                        data={this.state.post_counts_day}
-                        width='740'
-                        height='225'
-                    />
+                <div className='col-sm-12'>
+                    <div className='total-count by-day'>
+                        <div className='title'>{'Total Posts'}</div>
+                        <div className='content'>
+                            <LineChart
+                                data={this.state.post_counts_day}
+                                width='740'
+                                height='225'
+                            />
+                        </div>
+                    </div>
                 </div>
             );
         }
 
         var usersWithPostsByDay = (
-            <div className='total-count-by-day'>
-                <div>{'Total Posts'}</div>
-                <div>{'Loading...'}</div>
+            <div className='col-sm-12'>
+                <div className='total-count by-day'>
+                    <div className='title'>{'Total Posts'}</div>
+                    <div>{'Loading...'}</div>
+                </div>
             </div>
         );
 
         if (this.state.user_counts_with_posts_day != null) {
             usersWithPostsByDay = (
-                <div className='total-count-by-day'>
-                    <div>{'Active Users With Posts'}</div>
-                    <LineChart
-                        data={this.state.user_counts_with_posts_day}
-                        width='740'
-                        height='225'
-                    />
+                <div className='col-sm-12'>
+                    <div className='total-count by-day'>
+                        <div className='title'>{'Active Users With Posts'}</div>
+                        <div className='content'>
+                            <LineChart
+                                data={this.state.user_counts_with_posts_day}
+                                width='740'
+                                height='225'
+                            />
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -286,22 +306,26 @@ export default class TeamAnalytics extends React.Component {
 
         if (this.state.recent_active_users != null) {
             recentActiveUser = (
-                <div className='recent-active-users'>
-                    <div>{'Recent Active Users'}</div>
-                    <table width='90%'>
-                        <tbody>
-                            {
-                                this.state.recent_active_users.map((user) => {
-                                    return (
-                                        <tr key={user.id}>
-                                            <td className='recent-active-users-td'>{user.email}</td>
-                                            <td className='recent-active-users-td'>{Utils.displayDateTime(user.last_activity_at)}</td>
-                                        </tr>
-                                    );
-                                })
-                            }
-                        </tbody>
-                    </table>
+                <div className='col-sm-6'>
+                    <div className='total-count recent-active-users'>
+                        <div className='title'>{'Recent Active Users'}</div>
+                        <div className='content'>
+                            <table>
+                                <tbody>
+                                    {
+                                        this.state.recent_active_users.map((user) => {
+                                            return (
+                                                <tr key={user.id}>
+                                                    <td>{user.email}</td>
+                                                    <td>{Utils.displayDateTime(user.last_activity_at)}</td>
+                                                </tr>
+                                            );
+                                        })
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -315,38 +339,50 @@ export default class TeamAnalytics extends React.Component {
 
         if (this.state.newly_created_users != null) {
             newUsers = (
-                <div className='recent-active-users'>
-                    <div>{'Newly Created Users'}</div>
-                    <table width='90%'>
-                        <tbody>
-                            {
-                                this.state.newly_created_users.map((user) => {
-                                    return (
-                                        <tr key={user.id}>
-                                            <td className='recent-active-users-td'>{user.email}</td>
-                                            <td className='recent-active-users-td'>{Utils.displayDateTime(user.create_at)}</td>
-                                        </tr>
-                                    );
-                                })
-                            }
-                        </tbody>
-                    </table>
+                <div className='col-sm-6'>
+                    <div className='total-count recent-active-users'>
+                        <div className='title'>{'Newly Created Users'}</div>
+                        <div className='content'>
+                            <table>
+                                <tbody>
+                                    {
+                                        this.state.newly_created_users.map((user) => {
+                                            return (
+                                                <tr key={user.id}>
+                                                    <td>{user.email}</td>
+                                                    <td>{Utils.displayDateTime(user.create_at)}</td>
+                                                </tr>
+                                            );
+                                        })
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             );
         }
 
         return (
-            <div className='wrapper--fixed'>
-                <h2>{'Statistics for ' + this.props.team.name}</h2>
+            <div className='wrapper--fixed team_statistics'>
+                <h3>{'Statistics for ' + this.props.team.name}</h3>
                 {serverError}
-                {totalCount}
-                {postCount}
-                {openChannelCount}
-                {openPrivateCount}
-                {postCountsByDay}
-                {usersWithPostsByDay}
-                {recentActiveUser}
-                {newUsers}
+                <div className='row'>
+                    {totalCount}
+                    {postCount}
+                    {openChannelCount}
+                    {openPrivateCount}
+                </div>
+                <div className='row'>
+                    {postCountsByDay}
+                </div>
+                <div className='row'>
+                    {usersWithPostsByDay}
+                </div>
+                <div className='row'>
+                    {recentActiveUser}
+                    {newUsers}
+                </div>
             </div>
         );
     }
