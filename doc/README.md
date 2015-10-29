@@ -27,7 +27,7 @@ Set up Mattermost in your data center
 - [Code Contribution Guidelines](developer/Code-Contribution-Guidelines.md)
 - [Developer Machine Setup](developer/Setup.md)
 - [Mattermost Style Guide](developer/Style-Guide.md)
-- [API Overview](api/Overview.md)
+- [API Overview](developer/API.md)
  - [Incoming Webhooks](integrations/webhooks/Incoming-Webhooks.md) 
 
 ## Help
