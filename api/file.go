@@ -137,7 +137,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewAppError("uploadFile", "Unable to upload image file.", err.Error())
 				return
 			} else if config.Width*config.Height > MaxImageSize {
-				c.Err = model.NewAppError("uploadFile", "Unable to upload image file. File is too large.", err.Error())
+				c.Err = model.NewAppError("uploadFile", "Unable to upload image file. File is too large.", "File exceeds max image size.")
 				return
 			}
 		}
