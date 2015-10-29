@@ -84,7 +84,7 @@ export default class EditPostModal extends React.Component {
             if (!button) {
                 return;
             }
-            self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refoucsid')});
+            self.setState({editText: $(button).attr('data-message'), title: $(button).attr('data-title'), channel_id: $(button).attr('data-channelid'), post_id: $(button).attr('data-postid'), comments: $(button).attr('data-comments'), refocusId: $(button).attr('data-refocusid')});
         });
 
         $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function onShown() {
