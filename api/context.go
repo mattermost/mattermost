@@ -320,7 +320,7 @@ func (c *Context) HasSystemAdminPermissions(where string) bool {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+c.Session.UserId)
+	c.Err = model.NewAppError(where, "You do not have the appropriate permissions (system)", "userId="+c.Session.UserId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
