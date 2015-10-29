@@ -9,6 +9,7 @@ const LoadingScreen = require('./loading_screen.jsx');
 const PostStore = require('../stores/post_store.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
+const TeamStore = require('../stores/team_store.jsx');
 const SocketStore = require('../stores/socket_store.jsx');
 const PreferenceStore = require('../stores/preference_store.jsx');
 
@@ -386,17 +387,55 @@ export default class PostList extends React.Component {
         }
     }
     createDefaultIntroMessage(channel) {
+        const team = TeamStore.getCurrent();
+        let inviteModalLink;
+        if (team.type === Constants.INVITE_TEAM) {
+            inviteModalLink = (
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#invite_member'
+                >
+                    <i className='fa fa-user-plus'></i>{'Invite others to this team'}
+                </a>
+            );
+        } else {
+            inviteModalLink = (
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#get_link'
+                    data-title='Team Invite'
+                    data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + team.id}
+                >
+                    <i className='fa fa-user-plus'></i>{'Invite others to this team'}
+                </a>
+            );
+        }
+
         return (
             <div className='channel-intro'>
                 <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
                 <p className='channel-intro__content'>
-                    {'Welcome to ' + channel.display_name + '!'}
+                    <strong>{'Welcome to ' + channel.display_name + '!'}</strong>
                     <br/><br/>
                     {'This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
-                    <br/><br/>
-                    {'To create a new channel or join an existing one, go to the Left Sidebar under “Channels” and click “More…”.'}
-                    <br/>
                 </p>
+                {inviteModalLink}
+                <a
+                    className='intro-links'
+                    href='#'
+                    data-toggle='modal'
+                    data-target='#edit_channel'
+                    data-header={channel.header}
+                    data-title={channel.display_name}
+                    data-channelid={channel.id}
+                >
+                    <i className='fa fa-pencil'></i>{'Set a header'}
+                </a>
+                <br/>
             </div>
         );
     }
