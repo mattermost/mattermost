@@ -73,7 +73,7 @@ export default class EditChannelModal extends React.Component {
                 className='modal-title'
                 ref='title'
             >
-                Edit Header
+            {'Edit Header'}
             </h4>
         );
         if (this.state.title) {
@@ -82,7 +82,7 @@ export default class EditChannelModal extends React.Component {
                     className='modal-title'
                     ref='title'
                 >
-                    Edit Header for <span className='name'>{this.state.title}</span>
+                    {'Edit Header for '}<span className='name'>{this.state.title}</span>
                 </h4>
             );
         }
@@ -105,11 +105,12 @@ export default class EditChannelModal extends React.Component {
                                 data-dismiss='modal'
                                 aria-label='Close'
                             >
-                                <span aria-hidden='true'>&times;</span>
+                                <span aria-hidden='true'>{'×'}</span>
                             </button>
                             {editTitle}
                         </div>
                         <div className='modal-body'>
+                            <p>{'Edit the text appearing next to the channel name in the channel header.'}</p>
                             <textarea
                                 className='form-control no-resize'
                                 rows='6'
@@ -125,14 +126,14 @@ export default class EditChannelModal extends React.Component {
                                 className='btn btn-default'
                                 data-dismiss='modal'
                             >
-                                Cancel
+                                {'Cancel'}
                             </button>
                             <button
                                 type='button'
                                 className='btn btn-primary'
                                 onClick={this.handleEdit}
                             >
-                                Save
+                                {'Save'}
                             </button>
                         </div>
                     </div>
