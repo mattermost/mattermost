@@ -123,7 +123,7 @@ export default class EditPostModal extends React.Component {
     }
     componentWillUnmount() {
         PostStore.removeEditPostListener(this.handleEditPostEvent);
-        PreferenceStore.removeEditPostListener(this.onPreferenceChange);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     render() {
         var error = (<div className='form-group'><br /></div>);
