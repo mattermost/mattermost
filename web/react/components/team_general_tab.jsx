@@ -53,7 +53,12 @@ export default class GeneralTab extends React.Component {
     }
 
     handleTeamListingRadio(listing) {
-        this.setState({allow_team_listing: listing});
+        if (global.window.mm_config.EnableTeamListing !== 'true' && listing) {
+            ReactDOM.findDOMNode(this.refs.teamListingRadioNo).checked = true;
+            this.setState({clientError: 'Team directory has been disabled.  Please ask a system admin to enable it.'});
+        } else {
+            this.setState({allow_team_listing: listing});
+        }
     }
 
     handleOpenInviteSubmit(e) {
@@ -263,6 +268,7 @@ export default class GeneralTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                ref='teamListingRadioNo'
                                 name='userTeamListingOptions'
                                 type='radio'
                                 defaultChecked={!this.state.allow_team_listing}
@@ -272,7 +278,7 @@ export default class GeneralTab extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'When allowed then the team will appear on the main page as part of team directory if team browsing is enabled in the system console.'}</div>
+                    <div><br/>{'When allowed the team will appear on the main page as part of team directory.'}</div>
                 </div>
             ];
 
@@ -282,6 +288,7 @@ export default class GeneralTab extends React.Component {
                     inputs={inputs}
                     submit={this.handleTeamListingSubmit}
                     server_error={serverError}
+                    client_error={clientError}
                     updateSection={this.onUpdateTeamListingSection}
                 />
             );
