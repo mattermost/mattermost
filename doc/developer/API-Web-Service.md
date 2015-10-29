@@ -1,6 +1,8 @@
-# API Overview
+# Mattermost Web Service API
 
-This provides a basic overview of the Mattermost API. All examples assume there is a Mattermost instance running at http://localhost:8065.
+This provides a basic overview of the Mattermost Web Service API. Drivers interfacing with this API are available in different languages. Current documentation focuses on the transport layer for the API and functional documentation will be developed next.  
+
+All examples assume there is a Mattermost instance running at http://localhost:8065.
 
 ## Schema
 
