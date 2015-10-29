@@ -8,8 +8,6 @@ const Markdown = require('./markdown.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('./utils.jsx');
 
-const marked = require('marked');
-
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags, and
 // @mentions to links by taking a user's message and returning a string of formatted html. Also takes a number of options
 // as part of the second parameter:
@@ -22,11 +20,8 @@ export function formatText(text, options = {}) {
     let output;
 
     if (!('markdown' in options) || options.markdown) {
-        // the markdown renderer will call doFormatText as necessary so just call marked
-        output = marked(text, {
-            renderer: new Markdown.MattermostMarkdownRenderer(null, options),
-            sanitize: true
-        });
+        // the markdown renderer will call doFormatText as necessary
+        output = Markdown.format(text, options);
     } else {
         output = sanitizeHtml(text);
         output = doFormatText(output, options);
@@ -48,7 +43,7 @@ export function doFormatText(text, options) {
 
     // replace important words and phrases with tokens
     output = autolinkAtMentions(output, tokens);
-    output = autolinkUrls(output, tokens);
+    output = autolinkEmails(output, tokens);
     output = autolinkHashtags(output, tokens);
 
     if (!('emoticons' in options) || options.emoticon) {
@@ -98,28 +93,21 @@ export function sanitizeHtml(text) {
     return output;
 }
 
-// Convert URLs into tokens
-function autolinkUrls(text, tokens) {
-    function replaceUrlWithToken(autolinker, match) {
+// Convert emails into tokens
+function autolinkEmails(text, tokens) {
+    function replaceEmailWithToken(autolinker, match) {
         const linkText = match.getMatchedText();
         let url = linkText;
 
         if (match.getType() === 'email') {
             url = `mailto:${url}`;
-        } else if (!(/^(mailto|https?|ftp)/.test(url))) {
-            url = `http://${url}`;
         }
 
         const index = tokens.size;
-        const alias = `MM_LINK${index}`;
-
-        var target = 'target="_blank"';
-        if (url.lastIndexOf(Utils.getTeamURLFromAddressBar(), 0) === 0) {
-            target = '';
-        }
+        const alias = `MM_EMAIL${index}`;
 
         tokens.set(alias, {
-            value: `<a class="theme" ${target} href="${url}">${linkText}</a>`,
+            value: `<a class="theme" href="${url}">${linkText}</a>`,
             originalText: linkText
         });
 
@@ -128,12 +116,12 @@ function autolinkUrls(text, tokens) {
 
     // we can't just use a static autolinker because we need to set replaceFn
     const autolinker = new Autolinker({
-        urls: true,
+        urls: false,
         email: true,
         phone: false,
         twitter: false,
         hashtag: false,
-        replaceFn: replaceUrlWithToken
+        replaceFn: replaceEmailWithToken
     });
 
     return autolinker.link(text);
