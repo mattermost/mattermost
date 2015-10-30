@@ -1021,6 +1021,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	overrideUsername := parsedRequest.Username
 	overrideIconUrl := parsedRequest.IconURL
+	attachments := parsedRequest.Attachments
 
 	if result := <-cchan; result.Err != nil {
 		c.Err = model.NewAppError("incomingWebhook", "Couldn't find the channel", "err="+result.Err.Message)
@@ -1039,7 +1040,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl); err != nil {
+	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl, attachments); err != nil {
 		c.Err = err
 		return
 	}

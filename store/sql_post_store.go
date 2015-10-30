@@ -32,12 +32,14 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("Filenames").SetMaxSize(4000)
+		table.ColMap("Attachments")
 	}
 
 	return s
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("Posts", "Attachments", "TEXT", "TEXT", "")
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {

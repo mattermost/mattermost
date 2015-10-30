@@ -324,8 +324,12 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		return false
 	}
 
+	var setDefault string
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		if strings.ToLower(postgresColType) != "text" {
+			setDefault = " DEFAULT '" + postgresColType + "'"
+		}
+		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + setDefault)
 		if err != nil {
 			l4g.Critical("Failed to create column %v", err)
 			time.Sleep(time.Second)
@@ -335,7 +339,10 @@ func (ss SqlStore) CreateColumnIfNotExists(tableName string, columnName string, 
 		return true
 
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		if strings.ToLower(mySqlColType) != "text" {
+			setDefault = " DEFAULT '" + mySqlColType + "'"
+		}
+		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + setDefault)
 		if err != nil {
 			l4g.Critical("Failed to create column %v", err)
 			time.Sleep(time.Second)
@@ -529,6 +536,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.ArrayToJson(t), nil
 	case model.EncryptStringMap:
 		return encrypt([]byte(utils.Cfg.SqlSettings.AtRestEncryptKey), model.MapToJson(t))
+	case model.Attachments:
+		return t.ToJson(), nil
 	}
 
 	return val, nil
@@ -569,6 +578,16 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 			}
 
 			b := []byte(ue)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{new(string), target, binder}, true
+	case *model.Attachments:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*string)
+			if !ok {
+				return errors.New("FromDb: Unable to convert model.Attachments to *string")
+			}
+			b := []byte(*s)
 			return json.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{new(string), target, binder}, true

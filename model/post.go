@@ -30,6 +30,7 @@ type Post struct {
 	Hashtags      string      `json:"hashtags"`
 	Filenames     StringArray `json:"filenames"`
 	PendingPostId string      `json:"pending_post_id" db:"-"`
+	Attachments   Attachments `json:"attachments"`
 }
 
 func (o *Post) ToJson() string {
@@ -133,6 +134,10 @@ func (o *Post) PreSave() {
 	if o.Filenames == nil {
 		o.Filenames = []string{}
 	}
+
+	if o.Attachments == nil {
+		o.Attachments = Attachments{}
+	}
 }
 
 func (o *Post) MakeNonNil() {
@@ -141,6 +146,10 @@ func (o *Post) MakeNonNil() {
 	}
 	if o.Filenames == nil {
 		o.Filenames = []string{}
+	}
+
+	if o.Attachments == nil {
+		o.Attachments = Attachments{}
 	}
 }
 

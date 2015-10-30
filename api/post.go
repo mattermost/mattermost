@@ -145,7 +145,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	return rpost, nil
 }
 
-func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIconUrl string) (*model.Post, *model.AppError) {
+func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIconUrl string, attachments model.Attachments) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
@@ -153,7 +153,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 	linkRegex := regexp.MustCompile(`<\s*(\S*)\s*>`)
 	text = linkRegex.ReplaceAllString(text, "${1}")
 
-	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text}
+	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text, Attachments: attachments}
 	post.AddProp("from_webhook", "true")
 
 	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
@@ -212,6 +212,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		}
 
 		if triggerWebhooks {
+			fmt.Println("triggerWebhooks", post)
 			handleWebhookEventsAndForget(c, post, team, channel, user)
 		}
 	}()
@@ -284,7 +285,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, 0}
 
 							if text, ok := respProps["text"]; ok {
-								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"]); err != nil {
+								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Attachments); err != nil {
 									l4g.Error("Failed to create response post, err=%v", err)
 								}
 							}
