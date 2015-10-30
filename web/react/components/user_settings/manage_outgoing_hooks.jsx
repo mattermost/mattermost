@@ -6,7 +6,6 @@ var Constants = require('../../utils/constants.jsx');
 var ChannelStore = require('../../stores/channel_store.jsx');
 var LoadingScreen = require('../loading_screen.jsx');
 
-
 export default class ManageOutgoingHooks extends React.Component {
     constructor() {
         super();
