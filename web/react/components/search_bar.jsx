@@ -185,6 +185,7 @@ export default class SearchBar extends React.Component {
                     className='search__form relative-div'
                     onSubmit={this.handleSubmit}
                     style={{overflow: 'visible'}}
+                    autoComplete='off'
                 >
                     <span className='glyphicon glyphicon-search sidebar__search-icon' />
                     <input
