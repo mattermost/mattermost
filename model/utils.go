@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -301,3 +302,15 @@ var UrlRegex = regexp.MustCompile(`^((?:[a-z]+:\/\/)?(?:(?:[a-z0-9\-]+\.)+(?:[a-
 var PartialUrlRegex = regexp.MustCompile(`/([A-Za-z0-9]{26})/([A-Za-z0-9]{26})/((?:[A-Za-z0-9]{26})?.+(?:\.[A-Za-z0-9]{3,})?)`)
 
 var SplitRunes = map[rune]bool{',': true, ' ': true, '.': true, '!': true, '?': true, ':': true, ';': true, '\n': true, '<': true, '>': true, '(': true, ')': true, '{': true, '}': true, '[': true, ']': true, '+': true, '/': true, '\\': true}
+
+func IsValidHttpUrl(rawUrl string) bool {
+	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {
+		return false
+	}
+
+	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+		return false
+	}
+
+	return true
+}

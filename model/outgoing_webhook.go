@@ -100,6 +100,12 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewAppError("OutgoingWebhook.IsValid", "Invalid callback urls", "")
 	}
 
+	for _, callback := range o.CallbackURLs {
+		if !IsValidHttpUrl(callback) {
+			return NewAppError("OutgoingWebhook.IsValid", "Invalid callback URLs. Each must be a valid URL and start with http:// or https://", "")
+		}
+	}
+
 	return nil
 }
 
