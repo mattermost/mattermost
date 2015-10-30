@@ -18,21 +18,25 @@ export default class TutorialIntroScreens extends React.Component {
         this.handleNext = this.handleNext.bind(this);
         this.createScreen = this.createScreen.bind(this);
 
-        this.state = {screen: 0};
+        this.state = {currentScreen: 0};
     }
     handleNext() {
-        if (this.state.screen < 2) {
-            this.setState({screen: this.state.screen + 1});
+        if (this.state.currentScreen < 2) {
+            this.setState({currentScreen: this.state.currentScreen + 1});
             return;
         }
 
         Utils.switchChannel(ChannelStore.getByName(Constants.DEFAULT_CHANNEL));
 
-        const preference = PreferenceStore.setPreference(Preferences.TUTORIAL_INTRO_COMPLETE, UserStore.getCurrentId(), 'true');
+        let preference = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+
+        const newValue = (parseInt(preference.value, 10) + 1).toString();
+
+        preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), newValue);
         AsyncClient.savePreferences([preference]);
     }
     createScreen() {
-        switch (this.state.screen) {
+        switch (this.state.currentScreen) {
         case 0:
             return this.createScreenOne();
         case 1:

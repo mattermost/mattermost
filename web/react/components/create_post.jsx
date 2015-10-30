@@ -1,21 +1,26 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const Client = require('../utils/client.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const PostStore = require('../stores/post_store.jsx');
-const UserStore = require('../stores/user_store.jsx');
-const SocketStore = require('../stores/socket_store.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
 const MsgTyping = require('./msg_typing.jsx');
 const Textbox = require('./textbox.jsx');
 const FileUpload = require('./file_upload.jsx');
 const FilePreview = require('./file_preview.jsx');
+const TutorialTip = require('./tutorial/tutorial_tip.jsx');
+
+const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+const Client = require('../utils/client.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
 const Utils = require('../utils/utils.jsx');
 
+const ChannelStore = require('../stores/channel_store.jsx');
+const PostStore = require('../stores/post_store.jsx');
+const UserStore = require('../stores/user_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
+const SocketStore = require('../stores/socket_store.jsx');
+
 const Constants = require('../utils/constants.jsx');
+const Preferences = Constants.Preferences;
+const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
@@ -36,15 +41,16 @@ export default class CreatePost extends React.Component {
         this.handleTextDrop = this.handleTextDrop.bind(this);
         this.removePreview = this.removePreview.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         PostStore.clearDraftUploads();
 
         const draft = this.getCurrentDraft();
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
@@ -55,15 +61,11 @@ export default class CreatePost extends React.Component {
             initialText: draft.messageText,
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight(),
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value,
+            showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.POST_POPOVER
         };
 
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-    }
-    onPreferenceChange() {
-        this.setState({
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
-        });
     }
     handleResize() {
         this.setState({
@@ -318,11 +320,13 @@ export default class CreatePost extends React.Component {
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
+        PreferenceStore.addChangeListener(this.onPreferenceChange);
         this.resizePostHolder();
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
+        PreferenceStore.removeChangeListener(this.onPreferenceChange);
         window.removeEventListener('resize', this.handleResize);
     }
     onChange() {
@@ -332,6 +336,13 @@ export default class CreatePost extends React.Component {
 
             this.setState({channelId, messageText: draft.messageText, initialText: draft.messageText, submitting: false, serverError: null, postError: null, previews: draft.previews, uploadsInProgress: draft.uploadsInProgress});
         }
+    }
+    onPreferenceChange() {
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        this.setState({
+            showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.POST_POPOVER,
+            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+        });
     }
     getFileCount(channelId) {
         if (channelId === this.state.channelId) {
@@ -367,6 +378,25 @@ export default class CreatePost extends React.Component {
             });
         }
     }
+    createTutorialTip() {
+        const screens = [];
+
+        screens.push(
+            <div>
+                <h4><strong>{'Sending Messages'}</strong></h4>
+                {'Type here to write a message.'}
+                <br/><br/>
+                {'Click the attachment button to upload an image or a file.'}
+            </div>
+        );
+
+        return (
+            <TutorialTip
+                placement='top'
+                screens={screens}
+            />
+        );
+    }
     render() {
         let serverError = null;
         if (this.state.serverError) {
@@ -396,6 +426,11 @@ export default class CreatePost extends React.Component {
         let postFooterClassName = 'post-create-footer';
         if (postError) {
             postFooterClassName += ' has-error';
+        }
+
+        let tutorialTip = null;
+        if (this.state.showTutorialTip) {
+            tutorialTip = this.createTutorialTip();
         }
 
         return (
@@ -436,6 +471,7 @@ export default class CreatePost extends React.Component {
                         >
                             <i className='fa fa-paper-plane' />
                         </a>
+                        {tutorialTip}
                     </div>
                     <div className={postFooterClassName}>
                         {postError}

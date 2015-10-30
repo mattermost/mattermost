@@ -314,9 +314,14 @@ module.exports = {
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
-        CATEGORY_ADVANCED_SETTINGS: 'advanced_settings'
-        TUTORIAL_INTRO_COMPLETE: 'tutorial_intro_complete',
-        TUTORIAL_POPOVERS: 'tutorial_popovers'
+        CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
+        TUTORIAL_STEP: 'tutorial_step'
+    },
+    TutorialSteps: {
+        INTRO_SCREENS: 0,
+        POST_POPOVER: 1,
+        CHANNEL_POPOVER: 2,
+        MENU_POPOVER: 3
     },
     KeyCodes: {
         UP: 38,

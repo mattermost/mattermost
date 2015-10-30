@@ -9,9 +9,7 @@ import (
 )
 
 const (
-	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW     = "direct_channel_show"
-	PREFERENCE_CATEGORY_TUTORIAL_INTRO_COMPLETE = "tutorial_intro_complete"
-	PREFERENCE_CATEGORY_TUTORIAL_POPOVERS       = "tutorial_popovers"
+	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
 )
 
 type Preference struct {

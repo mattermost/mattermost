@@ -1,0 +1,21 @@
+.tip-overlay {
+    position:absolute;
+    background-color:#EEE;
+    box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);
+    border:1px solid #CCC;
+    border-radius:3px;
+    padding:10px;
+    z-index:999;
+}
+
+.tip-button {
+    height:20px;
+    width:20px;
+    z-index:998;
+}
+
+.tip-div {
+    position:absolute;
+    top:0px;
+    right:0px;
+}
