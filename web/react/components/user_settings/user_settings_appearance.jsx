@@ -7,6 +7,7 @@ var Utils = require('../../utils/utils.jsx');
 
 const CustomThemeChooser = require('./custom_theme_chooser.jsx');
 const PremadeThemeChooser = require('./premade_theme_chooser.jsx');
+const CodeThemeChooser = require('./code_theme_chooser.jsx');
 const AppDispatcher = require('../../dispatcher/app_dispatcher.jsx');
 const Constants = require('../../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
@@ -18,12 +19,14 @@ export default class UserSettingsAppearance extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.submitTheme = this.submitTheme.bind(this);
         this.updateTheme = this.updateTheme.bind(this);
+        this.updateCodeTheme = this.updateCodeTheme.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleImportModal = this.handleImportModal.bind(this);
 
         this.state = this.getStateFromStores();
 
         this.originalTheme = this.state.theme;
+        this.originalCodeTheme = this.state.theme.codeTheme;
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
@@ -56,6 +59,10 @@ export default class UserSettingsAppearance extends React.Component {
         let type = 'premade';
         if (theme.type === 'custom') {
             type = 'custom';
+        }
+
+        if (!theme.codeTheme) {
+            theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
 
         return {theme, type};
@@ -93,6 +100,15 @@ export default class UserSettingsAppearance extends React.Component {
         );
     }
     updateTheme(theme) {
+        if (!theme.codeTheme) {
+            theme.codeTheme = this.state.theme.codeTheme;
+        }
+        this.setState({theme});
+        Utils.applyTheme(theme);
+    }
+    updateCodeTheme(codeTheme) {
+        var theme = this.state.theme;
+        theme.codeTheme = codeTheme;
         this.setState({theme});
         Utils.applyTheme(theme);
     }
@@ -102,6 +118,7 @@ export default class UserSettingsAppearance extends React.Component {
     handleClose() {
         const state = this.getStateFromStores();
         state.serverError = null;
+        state.theme.codeTheme = this.originalCodeTheme;
 
         Utils.applyTheme(state.theme);
 
@@ -170,7 +187,13 @@ export default class UserSettingsAppearance extends React.Component {
                     </div>
                     {custom}
                     <hr />
-                                {serverError}
+                    <strong className='radio'>{'Code Theme'}</strong>
+                    <CodeThemeChooser
+                        theme={this.state.theme}
+                        updateTheme={this.updateCodeTheme}
+                    />
+                    <hr />
+                    {serverError}
                     <a
                         className='btn btn-sm btn-primary'
                         href='#'

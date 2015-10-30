@@ -40,11 +40,12 @@ export default class CustomThemeChooser extends React.Component {
         const theme = {type: 'custom'};
         let index = 0;
         Constants.THEME_ELEMENTS.forEach((element) => {
-            if (index < colors.length) {
+            if (index < colors.length - 1) {
                 theme[element.id] = colors[index];
             }
             index++;
         });
+        theme.codeTheme = colors[colors.length - 1];
 
         this.props.updateTheme(theme);
     }
@@ -77,6 +78,8 @@ export default class CustomThemeChooser extends React.Component {
 
             colors += theme[element.id] + ',';
         });
+
+        colors += theme.codeTheme;
 
         const pasteBox = (
             <div className='col-sm-12'>

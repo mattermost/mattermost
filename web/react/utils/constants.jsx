@@ -304,6 +304,13 @@ module.exports = {
             uiName: 'Mention Highlight Link'
         }
     ],
+    CODE_THEMES: {
+        github: 'GitHub',
+        solarized_light: 'Solarized light',
+        monokai: 'Monokai',
+        solarized_dark: 'Solarized Dark'
+    },
+    DEFAULT_CODE_THEME: 'github',
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
@@ -318,5 +325,30 @@ module.exports = {
         ENTER: 13,
         ESCAPE: 27,
         SPACE: 32
+    },
+    HighlightedLanguages: {
+        diff: 'Diff',
+        apache: 'Apache',
+        makefile: 'Makefile',
+        http: 'HTTP',
+        json: 'JSON',
+        markdown: 'Markdown',
+        javascript: 'JavaScript',
+        css: 'CSS',
+        nginx: 'nginx',
+        objectivec: 'Objective-C',
+        python: 'Python',
+        xml: 'XML',
+        perl: 'Perl',
+        bash: 'Bash',
+        php: 'PHP',
+        coffeescript: 'CoffeeScript',
+        cs: 'C#',
+        cpp: 'C++',
+        sql: 'SQL',
+        go: 'Go',
+        ruby: 'Ruby',
+        java: 'Java',
+        ini: 'ini'
     }
 };
