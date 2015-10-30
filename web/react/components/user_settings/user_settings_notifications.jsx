@@ -37,18 +37,18 @@ function getNotificationsStateFromStores() {
         if (user.notify_props.mention_keys) {
             var keys = user.notify_props.mention_keys.split(',');
 
-            if (keys.indexOf(user.username) !== -1) {
+            if (keys.indexOf(user.username) === -1) {
+                usernameKey = false;
+            } else {
                 usernameKey = true;
                 keys.splice(keys.indexOf(user.username), 1);
-            } else {
-                usernameKey = false;
             }
 
-            if (keys.indexOf('@' + user.username) !== -1) {
+            if (keys.indexOf('@' + user.username) === -1) {
+                mentionKey = false;
+            } else {
                 mentionKey = true;
                 keys.splice(keys.indexOf('@' + user.username), 1);
-            } else {
-                mentionKey = false;
             }
 
             customKeys = keys.join(',');

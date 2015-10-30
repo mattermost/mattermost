@@ -259,7 +259,6 @@ export default class GitLabSettings extends React.Component {
     }
 }
 
-
 //config.GitLabSettings.Scope = ReactDOM.findDOMNode(this.refs.Scope).value.trim();
 //  <div className='form-group'>
 //     <label

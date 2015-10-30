@@ -46,7 +46,7 @@ travis:
 	cd web/react/ && npm run build-libs
 
 	@echo Checking for style guide compliance
-	cd web/react && $(ESLINT) --quiet components/* dispatcher/* pages/* stores/* utils/*
+	cd web/react && $(ESLINT) --ext ".jsx" --ignore-pattern node_modules --quiet .
 	@echo Running gofmt
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ mattermost.go 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
@@ -143,7 +143,7 @@ install:
 
 check: install
 	@echo Running ESLint...
-	-cd web/react && $(ESLINT) components/* dispatcher/* pages/* stores/* utils/*
+	-cd web/react && $(ESLINT) --ext ".jsx" --ignore-pattern node_modules .
 	@echo Running gofmt
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ mattermost.go 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
