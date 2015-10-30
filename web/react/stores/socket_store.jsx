@@ -189,7 +189,9 @@ function handleNewPostEvent(msg) {
         }
 
         let username = 'Someone';
-        if (UserStore.hasProfile(msg.user_id)) {
+        if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
+            username = post.props.override_username;
+        } else if (UserStore.hasProfile(msg.user_id)) {
             username = UserStore.getProfile(msg.user_id).username;
         }
 
