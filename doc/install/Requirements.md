@@ -10,6 +10,27 @@ Supported Operating Systems and Browsers for the Mattermost Web Client include:
 - iPhone 4s and higher (Safari on iOS 8.3+, Chrome 43+)  
 - Android 5 and higher (Chrome 43+)  
 
+### Email Client
+
+Supported Email Clients for rendering Mattermost email notifications include:
+
+Web based clients: 
+- Gmail
+- Office 365
+- Outlook
+- Yahoo
+- AOL
+
+Desktop Clients:
+- Apple Mail version 7+
+- Outlook 2016+
+- Thunderbird 38.2+
+
+Mobile Clients: 
+- Gmail Mobile App (Android, iOS)
+- iOS Mail App (iOS 7+)
+- Blackberry Mail App  (OS version 4+)
+
 ### Server
 
 Supported Operating Systems for the Mattermost Server include: 
