@@ -2,7 +2,7 @@
 
 Mattermost APIs let you integrate your favorite tools and services withing your Mattermost experience. 
 
-## Slack-compatible integration support 
+## Slack-compatible Webhooks
 
 To offer an alternative to propreitary SaaS services, Mattermost focuses on being "Slack-compatible, but not Slack limited". That means providing support for developers of Slack applications to easily extend their apps to Mattermost, as well as support and capabilities beyond what Slack offers. 
 
@@ -18,13 +18,13 @@ Outgoing webhooks allow external applications to receive webhook events from eve
 
 Over time, Mattermost outgoing webhooks will support not only Slack applications using a compatible format, but also offer optional events and triggers beyond Slack's feature set. 
 
+## Mattermost Web Service API
+
+Mattermost offers a Web Service API accessible by Mattermost Drivers, listed below. Initial documentation on the [transport layer for the web service is available](API-Web-Service.md) and functional documentation is under development. 
+
 ## Mattermost Drivers
 
-Mattermost is written in Golang and React and designed as a self-hosted system, which differs from  Slack's technical platform and focus on SaaS. Therefore the Mattermost drivers will differ from Slack's interfaces. 
-
-Another key difference is that as an open source project, you are welcome to access and use Mattermost's APIs on your installations the same way the core team would use them for buildling new features. 
-
-While detailed documentation of the interfaces is pending, if you want to build deep integrations with Mattermost there are two drivers at the heart of the system: 
+Mattermost drivers offer access to the Mattermost web service API in different languages and frameworks.
 
 ### [ReactJS Javascript Driver](https://github.com/mattermost/platform/blob/master/web/react/utils/client.jsx)
 
