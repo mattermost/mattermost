@@ -80,9 +80,9 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) StoreChannel {
 		var sessions []*model.Session
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "We encounted an error finding the session", "sessionIdOrToken="+sessionIdOrToken+", "+err.Error())
+			result.Err = model.NewAppError("SqlSessionStore.Get", "We encountered an error finding the session", "sessionIdOrToken="+sessionIdOrToken+", "+err.Error())
 		} else if sessions == nil || len(sessions) == 0 {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "We encounted an error finding the session", "sessionIdOrToken="+sessionIdOrToken)
+			result.Err = model.NewAppError("SqlSessionStore.Get", "We encountered an error finding the session", "sessionIdOrToken="+sessionIdOrToken)
 		} else {
 			result.Data = sessions[0]
 		}
@@ -109,7 +109,7 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 		var sessions []*model.Session
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetSessions", "We encounted an error while finding user sessions", err.Error())
+			result.Err = model.NewAppError("SqlSessionStore.GetSessions", "We encountered an error while finding user sessions", err.Error())
 		} else {
 
 			result.Data = sessions
@@ -165,7 +165,7 @@ func (me SqlSessionStore) CleanUpExpiredSessions(userId string) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt > ExpiresAt", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.CleanUpExpiredSessions", "We encounted an error while deleting expired user sessions", err.Error())
+			result.Err = model.NewAppError("SqlSessionStore.CleanUpExpiredSessions", "We encountered an error while deleting expired user sessions", err.Error())
 		} else {
 			result.Data = userId
 		}

@@ -548,7 +548,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Search", "We encounted an error while searching for posts", "teamId="+teamId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.Search", "We encountered an error while searching for posts", "teamId="+teamId+", err="+err.Error())
 		}
 
 		list := &model.PostList{Order: make([]string, 0, len(posts))}

@@ -37,7 +37,7 @@ func (s SqlSystemStore) Save(system *model.System) StoreChannel {
 		result := StoreResult{}
 
 		if err := s.GetMaster().Insert(system); err != nil {
-			result.Err = model.NewAppError("SqlSystemStore.Save", "We encounted an error saving the system property", "")
+			result.Err = model.NewAppError("SqlSystemStore.Save", "We encountered an error saving the system property", "")
 		}
 
 		storeChannel <- result
@@ -55,7 +55,7 @@ func (s SqlSystemStore) Update(system *model.System) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := s.GetMaster().Update(system); err != nil {
-			result.Err = model.NewAppError("SqlSystemStore.Save", "We encounted an error updating the system property", "")
+			result.Err = model.NewAppError("SqlSystemStore.Save", "We encountered an error updating the system property", "")
 		}
 
 		storeChannel <- result
@@ -75,7 +75,7 @@ func (s SqlSystemStore) Get() StoreChannel {
 		var systems []model.System
 		props := make(model.StringMap)
 		if _, err := s.GetReplica().Select(&systems, "SELECT * FROM Systems"); err != nil {
-			result.Err = model.NewAppError("SqlSystemStore.Get", "We encounted an error finding the system properties", "")
+			result.Err = model.NewAppError("SqlSystemStore.Get", "We encountered an error finding the system properties", "")
 		} else {
 			for _, prop := range systems {
 				props[prop.Name] = prop.Value
