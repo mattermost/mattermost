@@ -25,7 +25,6 @@ export default class UserSettingsDisplay extends React.Component {
         this.handleClockRadio = this.handleClockRadio.bind(this);
         this.handleNameRadio = this.handleNameRadio.bind(this);
         this.updateSection = this.updateSection.bind(this);
-        this.handleClose = this.handleClose.bind(this);
 
         this.state = getDisplayStateFromStores();
     }
@@ -52,15 +51,6 @@ export default class UserSettingsDisplay extends React.Component {
     updateSection(section) {
         this.setState(getDisplayStateFromStores());
         this.props.updateSection(section);
-    }
-    handleClose() {
-        this.updateSection('');
-    }
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     }
     render() {
         const serverError = this.state.serverError || null;

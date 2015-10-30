@@ -7,7 +7,6 @@ var SettingItemMax = require('../setting_item_max.jsx');
 var client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var utils = require('../../utils/utils.jsx');
-var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
@@ -77,7 +76,6 @@ export default class NotificationsTab extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleClose = this.handleClose.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleNotifyRadio = this.handleNotifyRadio.bind(this);
@@ -128,27 +126,15 @@ export default class NotificationsTab extends React.Component {
             }.bind(this)
         );
     }
-    handleClose() {
-        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function clearField() {
-            this.value = '';
-        });
-
-        this.setState(assign({}, getNotificationsStateFromStores(), {serverError: null}));
-
-        this.props.updateTab('general');
-    }
     updateSection(section) {
         this.setState(getNotificationsStateFromStores());
         this.props.updateSection(section);
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onListenerChange);
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onListenerChange);
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
-        this.props.updateSection('');
     }
     onListenerChange() {
         var newState = getNotificationsStateFromStores();

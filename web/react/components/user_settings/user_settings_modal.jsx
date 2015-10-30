@@ -1,9 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const ConfirmModal = require('../confirm_modal.jsx');
 const Modal = ReactBootstrap.Modal;
-var SettingsSidebar = require('../settings_sidebar.jsx');
-var UserSettings = require('./user_settings.jsx');
+const SettingsSidebar = require('../settings_sidebar.jsx');
+const UserSettings = require('./user_settings.jsx');
 
 export default class UserSettingsModal extends React.Component {
     constructor(props) {
@@ -11,26 +12,38 @@ export default class UserSettingsModal extends React.Component {
 
         this.handleHide = this.handleHide.bind(this);
         this.handleHidden = this.handleHidden.bind(this);
+        this.handleConfirm = this.handleConfirm.bind(this);
 
         this.updateTab = this.updateTab.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
         this.state = {
             active_tab: 'general',
-            active_section: ''
+            active_section: '',
+            showConfirmModal: false
         };
+
+        this.requireConfirm = false;
     }
 
     componentDidMount() {
         $('body').on('click', '.settings-content .modal-back', () => {
-            $(this).closest('.modal-dialog').removeClass('display--content');
+            if (!this.requireConfirm) {
+                $(this).closest('.modal-dialog').removeClass('display--content');
+            }
         });
         $('body').on('click', '.settings-content .modal-header .close', () => {
+            if (!this.props.show) {
+                return;
+            }
+
             this.handleHide();
 
-            setTimeout(() => {
-                $('.modal-dialog.display--content').removeClass('display--content');
-            }, 500);
+            if (!this.requireConfirm) {
+                setTimeout(() => {
+                    $('.modal-dialog.display--content').removeClass('display--content');
+                }, 500);
+            }
         });
     }
 
@@ -43,25 +56,64 @@ export default class UserSettingsModal extends React.Component {
         }
     }
 
-    handleHide() {
-        // called when the close button is pressed
+    // called when the close button is pressed
+    handleHide(skipConfirm) {
+        if (!skipConfirm && this.requireConfirm) {
+            this.afterConfirm = () => this.handleHide(true);
+            this.showConfirmModal();
+
+            return false;
+        }
+
         this.props.onModalDismissed();
     }
 
+    // called after the dialog is fully hidden and faded out
     handleHidden() {
-        // called after the dialog is fully hidden and faded out
         this.setState({
-            active_tag: 'general',
+            active_tab: 'general',
             active_section: ''
         });
     }
 
-    updateTab(tab) {
-        this.setState({active_tab: tab});
+    handleConfirm() {
+        this.setState({
+            showConfirmModal: false
+        });
+
+        this.requireConfirm = false;
+
+        if (this.afterConfirm) {
+            this.afterConfirm();
+            this.afterConfirm = null;
+        }
     }
 
-    updateSection(section) {
-        this.setState({active_section: section});
+    showConfirmModal() {
+        this.setState({
+            showConfirmModal: true
+        });
+    }
+
+    updateTab(tab, skipConfirm) {
+        if (!skipConfirm && this.requireConfirm) {
+            this.afterConfirm = () => this.updateTab(tab, true);
+            this.showConfirmModal();
+        } else {
+            this.setState({
+                active_tab: tab,
+                active_section: ''
+            });
+        }
+    }
+
+    updateSection(section, skipConfirm) {
+        if (!skipConfirm && this.requireConfirm) {
+            this.afterConfirm = () => this.updateSection(section, true);
+            this.showConfirmModal();
+        } else {
+            this.setState({active_section: section});
+        }
     }
 
     render() {
@@ -84,7 +136,7 @@ export default class UserSettingsModal extends React.Component {
             <Modal
                 dialogClassName='settings-modal'
                 show={this.props.show}
-                onHide={this.handleHide}
+                onHide={() => this.handleHide()}
                 onExited={this.handleHidden}
             >
                 <Modal.Header closeButton={true}>
@@ -106,10 +158,19 @@ export default class UserSettingsModal extends React.Component {
                                 activeSection={this.state.active_section}
                                 updateSection={this.updateSection}
                                 updateTab={this.updateTab}
+                                setRequireConfirm={(requireConfirm) => this.requireConfirm = requireConfirm}
                             />
                         </div>
                     </div>
                 </Modal.Body>
+                <ConfirmModal
+                    title='Discard Changes?'
+                    message='You have unsaved changes, are you sure you want to discard them?'
+                    confirm_button='Yes, Discard'
+                    show={this.state.showConfirmModal}
+                    onConfirm={this.handleConfirm}
+                    onCancel={() => this.setState({showConfirmModal: false})}
+                />
             </Modal>
         );
     }

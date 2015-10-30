@@ -11,9 +11,7 @@ export default class ConfirmModal extends React.Component {
     }
 
     handleConfirm() {
-        if (this.props.onConfirm) {
-            this.props.onConfirm();
-        }
+        this.props.onConfirm();
     }
 
     render() {

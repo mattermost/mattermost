@@ -32,7 +32,6 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.updatePicture = this.updatePicture.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
-        this.handleClose = this.handleClose.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
         this.state = this.setupInitialState(props);
@@ -209,20 +208,6 @@ export default class UserSettingsGeneralTab extends React.Component {
         this.setState(assign({}, this.setupInitialState(this.props), {emailChangeInProgress: emailChangeInProgress, clientError: '', serverError: '', emailError: ''}));
         this.submitActive = false;
         this.props.updateSection(section);
-    }
-    handleClose() {
-        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function clearForms() {
-            this.value = '';
-        });
-
-        this.setState(assign({}, this.setupInitialState(this.props), {clientError: null, serverError: null, emailError: null}));
-        this.props.updateSection('');
-    }
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     }
     setupInitialState(props) {
         var user = props.user;

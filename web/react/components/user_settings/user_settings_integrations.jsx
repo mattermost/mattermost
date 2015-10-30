@@ -11,23 +11,11 @@ export default class UserSettingsIntegrationsTab extends React.Component {
         super(props);
 
         this.updateSection = this.updateSection.bind(this);
-        this.handleClose = this.handleClose.bind(this);
 
         this.state = {};
     }
     updateSection(section) {
         this.props.updateSection(section);
-    }
-    handleClose() {
-        this.updateSection('');
-        $('.ps-container.modal-body').scrollTop(0);
-        $('.ps-container.modal-body').perfectScrollbar('update');
-    }
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     }
     render() {
         let incomingHooksSection;

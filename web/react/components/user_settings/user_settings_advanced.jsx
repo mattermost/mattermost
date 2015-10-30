@@ -13,7 +13,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         this.updateSection = this.updateSection.bind(this);
         this.updateSetting = this.updateSetting.bind(this);
-        this.handleClose = this.handleClose.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
         this.state = this.setupInitialState();
@@ -57,18 +56,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
     updateSection(section) {
         this.props.updateSection(section);
-    }
-
-    handleClose() {
-        this.updateSection('');
-    }
-
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     }
 
     render() {

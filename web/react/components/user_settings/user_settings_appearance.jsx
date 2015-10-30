@@ -25,8 +25,7 @@ export default class UserSettingsAppearance extends React.Component {
 
         this.state = this.getStateFromStores();
 
-        this.originalTheme = this.state.theme;
-        this.originalCodeTheme = this.state.theme.codeTheme;
+        this.originalTheme = Object.assign({}, this.state.theme);
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
@@ -34,7 +33,6 @@ export default class UserSettingsAppearance extends React.Component {
         if (this.props.activeSection === 'theme') {
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     }
     componentDidUpdate() {
         if (this.props.activeSection === 'theme') {
@@ -44,14 +42,15 @@ export default class UserSettingsAppearance extends React.Component {
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
+
+        this.handleClose();
     }
     getStateFromStores() {
         const user = UserStore.getCurrentUser();
         let theme = null;
 
         if ($.isPlainObject(user.theme_props) && !$.isEmptyObject(user.theme_props)) {
-            theme = user.theme_props;
+            theme = Object.assign({}, user.theme_props);
         } else {
             theme = $.extend(true, {}, Constants.THEMES.default);
         }
@@ -86,11 +85,11 @@ export default class UserSettingsAppearance extends React.Component {
                     me: data
                 });
 
-                $('#user_settings').off('hidden.bs.modal', this.handleClose);
-                this.props.updateTab('general');
+                this.props.setRequireConfirm(false);
+                this.originalTheme = Object.assign({}, this.state.theme);
+
                 $('.ps-container.modal-body').scrollTop(0);
                 $('.ps-container.modal-body').perfectScrollbar('update');
-                $('#user_settings').modal('hide');
             },
             (err) => {
                 var state = this.getStateFromStores();
@@ -103,29 +102,36 @@ export default class UserSettingsAppearance extends React.Component {
         if (!theme.codeTheme) {
             theme.codeTheme = this.state.theme.codeTheme;
         }
+
+        let themeChanged = this.state.theme.length === theme.length;
+        if (!themeChanged) {
+            for (const field in theme) {
+                if (theme.hasOwnProperty(field)) {
+                    if (this.state.theme[field] !== theme[field]) {
+                        themeChanged = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        this.props.setRequireConfirm(themeChanged);
+
         this.setState({theme});
         Utils.applyTheme(theme);
     }
     updateCodeTheme(codeTheme) {
         var theme = this.state.theme;
         theme.codeTheme = codeTheme;
-        this.setState({theme});
-        Utils.applyTheme(theme);
+        this.updateTheme(theme);
     }
     updateType(type) {
         this.setState({type});
     }
     handleClose() {
         const state = this.getStateFromStores();
-        state.serverError = null;
-        state.theme.codeTheme = this.originalCodeTheme;
 
         Utils.applyTheme(state.theme);
-
-        this.setState(state);
-
-        $('.ps-container.modal-body').scrollTop(0);
-        $('.ps-container.modal-body').perfectScrollbar('update');
     }
     handleImportModal() {
         AppDispatcher.handleViewAction({
@@ -251,5 +257,6 @@ UserSettingsAppearance.defaultProps = {
 };
 UserSettingsAppearance.propTypes = {
     activeSection: React.PropTypes.string,
-    updateTab: React.PropTypes.func
+    updateTab: React.PropTypes.func,
+    setRequireConfirm: React.PropTypes.func.isRequired
 };

@@ -17,7 +17,6 @@ export default class SecurityTab extends React.Component {
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
-        this.handleClose = this.handleClose.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
         const state = this.setupInitialState();
@@ -80,23 +79,8 @@ export default class SecurityTab extends React.Component {
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
     }
-    handleClose() {
-        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function resetValue() {
-            this.value = '';
-        });
-        this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
-
-        this.props.updateTab('general');
-    }
     setupInitialState() {
         return {currentPassword: '', newPassword: '', confirmPassword: ''};
-    }
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
-        this.props.updateSection('');
     }
     render() {
         var serverError;
