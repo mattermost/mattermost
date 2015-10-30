@@ -13,6 +13,7 @@ export default class UserSettingsModal extends React.Component {
         this.handleHide = this.handleHide.bind(this);
         this.handleHidden = this.handleHidden.bind(this);
         this.handleConfirm = this.handleConfirm.bind(this);
+        this.handleCancelConfirmation = this.handleCancelConfirmation.bind(this);
 
         this.updateTab = this.updateTab.bind(this);
         this.updateSection = this.updateSection.bind(this);
@@ -20,7 +21,8 @@ export default class UserSettingsModal extends React.Component {
         this.state = {
             active_tab: 'general',
             active_section: '',
-            showConfirmModal: false
+            showConfirmModal: false,
+            enforceFocus: true
         };
 
         this.requireConfirm = false;
@@ -78,7 +80,8 @@ export default class UserSettingsModal extends React.Component {
 
     handleConfirm() {
         this.setState({
-            showConfirmModal: false
+            showConfirmModal: false,
+            enforceFocus: true
         });
 
         this.requireConfirm = false;
@@ -89,9 +92,17 @@ export default class UserSettingsModal extends React.Component {
         }
     }
 
+    handleCancelConfirmation() {
+        this.setState({
+            showConfirmModal: false,
+            enforceFocus: true
+        });
+    }
+
     showConfirmModal() {
         this.setState({
-            showConfirmModal: true
+            showConfirmModal: true,
+            enforceFocus: false
         });
     }
 
@@ -136,8 +147,9 @@ export default class UserSettingsModal extends React.Component {
             <Modal
                 dialogClassName='settings-modal'
                 show={this.props.show}
-                onHide={() => this.handleHide()}
+                onHide={this.handleHide}
                 onExited={this.handleHidden}
+                enforceFocus={this.state.enforceFocus}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{'Account Settings'}</Modal.Title>
@@ -158,6 +170,7 @@ export default class UserSettingsModal extends React.Component {
                                 activeSection={this.state.active_section}
                                 updateSection={this.updateSection}
                                 updateTab={this.updateTab}
+                                setEnforceFocus={(enforceFocus) => this.setState({enforceFocus})}
                                 setRequireConfirm={(requireConfirm) => this.requireConfirm = requireConfirm}
                             />
                         </div>
@@ -169,7 +182,7 @@ export default class UserSettingsModal extends React.Component {
                     confirm_button='Yes, Discard'
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
-                    onCancel={() => this.setState({showConfirmModal: false})}
+                    onCancel={this.handleCancelConfirmation}
                 />
             </Modal>
         );

@@ -72,6 +72,8 @@ export default class UserSettingsAppearance extends React.Component {
         if (!Utils.areStatesEqual(this.state, newState)) {
             this.setState(newState);
         }
+
+        this.props.setEnforceFocus(true);
     }
     submitTheme(e) {
         e.preventDefault();
@@ -138,6 +140,8 @@ export default class UserSettingsAppearance extends React.Component {
             type: ActionTypes.TOGGLE_IMPORT_THEME_MODAL,
             value: true
         });
+
+        this.props.setEnforceFocus(false);
     }
     render() {
         var serverError;
@@ -258,5 +262,6 @@ UserSettingsAppearance.defaultProps = {
 UserSettingsAppearance.propTypes = {
     activeSection: React.PropTypes.string,
     updateTab: React.PropTypes.func,
-    setRequireConfirm: React.PropTypes.func.isRequired
+    setRequireConfirm: React.PropTypes.func.isRequired,
+    setEnforceFocus: React.PropTypes.func.isRequired
 };

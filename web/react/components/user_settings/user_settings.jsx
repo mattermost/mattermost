@@ -56,6 +56,7 @@ export default class UserSettings extends React.Component {
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                         updateTab={this.props.updateTab}
+                        setEnforceFocus={this.props.setEnforceFocus}
                     />
                 </div>
             );
@@ -77,6 +78,7 @@ export default class UserSettings extends React.Component {
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
                         updateTab={this.props.updateTab}
+                        setEnforceFocus={this.props.setEnforceFocus}
                         setRequireConfirm={this.props.setRequireConfirm}
                     />
                 </div>
@@ -134,5 +136,6 @@ UserSettings.propTypes = {
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
+    setEnforceFocus: React.PropTypes.func.isRequired,
     setRequireConfirm: React.PropTypes.func.isRequired
 };

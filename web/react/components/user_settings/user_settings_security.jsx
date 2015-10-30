@@ -13,6 +13,9 @@ export default class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
+        this.showAccessHistoryModal = this.showAccessHistoryModal.bind(this);
+        this.showActivityLogModal = this.showActivityLogModal.bind(this);
+        this.hideModals = this.hideModals.bind(this);
         this.submitPassword = this.submitPassword.bind(this);
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
@@ -23,6 +26,21 @@ export default class SecurityTab extends React.Component {
         state.showAccessHistoryModal = false;
         state.showActivityLogModal = false;
         this.state = state;
+    }
+    showAccessHistoryModal() {
+        this.props.setEnforceFocus(false);
+        this.setState({showAccessHistoryModal: true});
+    }
+    showActivityLogModal() {
+        this.props.setEnforceFocus(false);
+        this.setState({showActivityLogModal: true});
+    }
+    hideModals() {
+        this.props.setEnforceFocus(true);
+        this.setState({
+            showAccessHistoryModal: false,
+            showActivityLogModal: false
+        });
     }
     submitPassword(e) {
         e.preventDefault();
@@ -238,7 +256,7 @@ export default class SecurityTab extends React.Component {
                     <a
                         className='security-links theme'
                         href='#'
-                        onClick={() => this.setState({showAccessHistoryModal: true})}
+                        onClick={this.showAccessHistoryModal}
                     >
                         <i className='fa fa-clock-o'></i>View Access History
                     </a>
@@ -246,18 +264,18 @@ export default class SecurityTab extends React.Component {
                     <a
                         className='security-links theme'
                         href='#'
-                        onClick={() => this.setState({showActivityLogModal: true})}
+                        onClick={this.showActivityLogModal}
                     >
                         <i className='fa fa-globe'></i>View and Logout of Active Sessions
                     </a>
                 </div>
                 <AccessHistoryModal
                     show={this.state.showAccessHistoryModal}
-                    onModalDismissed={() => this.setState({showAccessHistoryModal: false})}
+                    onModalDismissed={this.hideModals}
                 />
                 <ActivityLogModal
                     show={this.state.showActivityLogModal}
-                    onModalDismissed={() => this.setState({showActivityLogModal: false})}
+                    onModalDismissed={this.hideModals}
                 />
             </div>
         );
@@ -272,5 +290,6 @@ SecurityTab.propTypes = {
     user: React.PropTypes.object,
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func
+    updateTab: React.PropTypes.func,
+    setEnforceFocus: React.PropTypes.func.isRequired
 };

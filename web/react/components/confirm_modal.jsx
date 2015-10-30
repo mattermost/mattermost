@@ -20,7 +20,6 @@ export default class ConfirmModal extends React.Component {
                 className='modal-confirm'
                 show={this.props.show}
                 onHide={this.props.onCancel}
-                enforceFocus={false}
             >
                 <Modal.Header closeButton={false}>
                     <Modal.Title>{this.props.title}</Modal.Title>
