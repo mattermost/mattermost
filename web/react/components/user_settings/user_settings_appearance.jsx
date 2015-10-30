@@ -126,10 +126,8 @@ export default class UserSettingsAppearance extends React.Component {
 
         $('.ps-container.modal-body').scrollTop(0);
         $('.ps-container.modal-body').perfectScrollbar('update');
-        $('#user_settings').modal('hide');
     }
     handleImportModal() {
-        $('#user_settings').modal('hide');
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_IMPORT_THEME_MODAL,
             value: true

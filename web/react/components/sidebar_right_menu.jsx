@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var InviteMemberModal = require('./invite_member_modal.jsx');
+var UserSettingsModal = require('./user_settings/user_settings_modal.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var client = require('../utils/client.jsx');
@@ -18,6 +19,7 @@ export default class SidebarRightMenu extends React.Component {
         this.handleLogoutClick = this.handleLogoutClick.bind(this);
 
         this.state = {
+            showUserSettingsModal: false,
             showInviteMemberModal: false
         };
     }
@@ -122,9 +124,11 @@ export default class SidebarRightMenu extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                data-toggle='modal'
-                                data-target='#user_settings'
-                            ><i className='glyphicon glyphicon-cog'></i>Account Settings</a></li>
+                                onClick={() => this.setState({showUserSettingsModal: true})}
+                            >
+                                <i className='glyphicon glyphicon-cog'></i>Account Settings
+                            </a>
+                        </li>
                         {teamSettingsLink}
                         {inviteLink}
                         {teamLink}
@@ -148,6 +152,10 @@ export default class SidebarRightMenu extends React.Component {
                             ><i className='glyphicon glyphicon-earphone'></i>Report a Problem</a></li>
                     </ul>
                 </div>
+                <UserSettingsModal
+                    show={this.state.showUserSettingsModal}
+                    onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                />
                 <InviteMemberModal
                     show={this.state.showInviteMemberModal}
                     onModalDismissed={() => this.setState({showInviteMemberModal: false})}

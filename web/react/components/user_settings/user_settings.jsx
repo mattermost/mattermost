@@ -32,7 +32,7 @@ export default class UserSettings extends React.Component {
     onListenerChange() {
         var user = UserStore.getCurrentUser();
         if (!utils.areStatesEqual(this.state.user, user)) {
-            this.setState({user: user});
+            this.setState({user});
         }
     }
 

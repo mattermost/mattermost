@@ -8,6 +8,7 @@ var TeamStore = require('../stores/team_store.jsx');
 
 var AboutBuildModal = require('./about_build_modal.jsx');
 var InviteMemberModal = require('./invite_member_modal.jsx');
+var UserSettingsModal = require('./user_settings/user_settings_modal.jsx');
 
 var Constants = require('../utils/constants.jsx');
 
@@ -43,6 +44,7 @@ export default class NavbarDropdown extends React.Component {
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
         const state = getStateFromStores();
+        state.showUserSettingsModal = false;
         state.showAboutModal = false;
         state.showInviteMemberModal = false;
         this.state = state;
@@ -221,8 +223,7 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                data-toggle='modal'
-                                data-target='#user_settings'
+                                onClick={() => this.setState({showUserSettingsModal: true})}
                             >
                                 {'Account Settings'}
                             </a>
@@ -267,6 +268,10 @@ export default class NavbarDropdown extends React.Component {
                                 {'About Mattermost'}
                             </a>
                         </li>
+                        <UserSettingsModal
+                            show={this.state.showUserSettingsModal}
+                            onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                        />
                         <AboutBuildModal
                             show={this.state.showAboutModal}
                             onModalDismissed={this.aboutModalDismissed}

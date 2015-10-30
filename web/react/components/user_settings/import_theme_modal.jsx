@@ -74,7 +74,6 @@ export default class ImportThemeModal extends React.Component {
 
                 this.setState({show: false});
                 Utils.applyTheme(theme);
-                $('#user_settings').modal('show');
             },
             (err) => {
                 var state = this.getStateFromStores();

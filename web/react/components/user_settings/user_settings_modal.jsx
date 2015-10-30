@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const Modal = ReactBootstrap.Modal;
 var SettingsSidebar = require('../settings_sidebar.jsx');
 var UserSettings = require('./user_settings.jsx');
 
@@ -8,27 +9,61 @@ export default class UserSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleHide = this.handleHide.bind(this);
+        this.handleHidden = this.handleHidden.bind(this);
+
         this.updateTab = this.updateTab.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
-        this.state = {active_tab: 'general', active_section: ''};
+        this.state = {
+            active_tab: 'general',
+            active_section: ''
+        };
     }
+
     componentDidMount() {
-        $('body').on('click', '.modal-back', function changeDisplay() {
+        $('body').on('click', '.settings-content .modal-back', () => {
             $(this).closest('.modal-dialog').removeClass('display--content');
         });
-        $('body').on('click', '.modal-header .close', () => {
+        $('body').on('click', '.settings-content .modal-header .close', () => {
+            this.handleHide();
+
             setTimeout(() => {
                 $('.modal-dialog.display--content').removeClass('display--content');
             }, 500);
         });
     }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
+            if ($(window).width() > 768) {
+                $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+            }
+        }
+    }
+
+    handleHide() {
+        // called when the close button is pressed
+        this.props.onModalDismissed();
+    }
+
+    handleHidden() {
+        // called after the dialog is fully hidden and faded out
+        this.setState({
+            active_tag: 'general',
+            active_section: ''
+        });
+    }
+
     updateTab(tab) {
         this.setState({active_tab: tab});
     }
+
     updateSection(section) {
         this.setState({active_section: section});
     }
+
     render() {
         var tabs = [];
         tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
@@ -46,33 +81,16 @@ export default class UserSettingsModal extends React.Component {
         tabs.push({name: 'advanced', uiName: 'Advanced', icon: 'glyphicon glyphicon-list-alt'});
 
         return (
-            <div
-                className='modal fade'
-                ref='modal'
-                id='user_settings'
-                role='dialog'
-                tabIndex='-1'
-                aria-hidden='true'
+            <Modal
+                dialogClassName='settings-modal'
+                show={this.props.show}
+                onHide={this.handleHide}
+                onExited={this.handleHidden}
             >
-              <div className='modal-dialog settings-modal'>
-                <div className='modal-content'>
-                  <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                        ref='title'
-                    >
-                        {'Account Settings'}
-                    </h4>
-                  </div>
-                  <div className='modal-body'>
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>{'Account Settings'}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body ref='modalBody'>
                     <div className='settings-table'>
                         <div className='settings-links'>
                             <SettingsSidebar
@@ -83,6 +101,7 @@ export default class UserSettingsModal extends React.Component {
                         </div>
                         <div className='settings-content minimize-settings'>
                             <UserSettings
+                                ref='userSettings'
                                 activeTab={this.state.active_tab}
                                 activeSection={this.state.active_section}
                                 updateSection={this.updateSection}
@@ -90,10 +109,13 @@ export default class UserSettingsModal extends React.Component {
                             />
                         </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                </Modal.Body>
+            </Modal>
         );
     }
 }
+
+UserSettingsModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onModalDismissed: React.PropTypes.func.isRequired
+};
