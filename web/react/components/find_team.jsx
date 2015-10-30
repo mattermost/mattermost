@@ -50,7 +50,7 @@ export default class FindTeam extends React.Component {
         if (this.state.sent) {
             return (
                 <div>
-                    <h4>{'Find Your team'}</h4>
+                    <h4>{'Find Your teams'}</h4>
                     <p>{'An email was sent with links to any teams to which you are a member.'}</p>
                 </div>
             );
