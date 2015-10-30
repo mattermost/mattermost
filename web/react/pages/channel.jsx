@@ -23,8 +23,6 @@ var ChannelMembersModal = require('../components/channel_members.jsx');
 var ChannelInviteModal = require('../components/channel_invite_modal.jsx');
 var TeamMembersModal = require('../components/team_members.jsx');
 var ChannelInfoModal = require('../components/channel_info_modal.jsx');
-var AccessHistoryModal = require('../components/access_history_modal.jsx');
-var ActivityLogModal = require('../components/activity_log_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
 var RegisterAppModal = require('../components/register_app_modal.jsx');
 var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
@@ -154,16 +152,6 @@ function setupChannelPage(props) {
     ReactDOM.render(
         <PostDeletedModal />,
         document.getElementById('post_deleted_modal')
-    );
-
-    ReactDOM.render(
-        <AccessHistoryModal />,
-        document.getElementById('access_history_modal')
-    );
-
-    ReactDOM.render(
-        <ActivityLogModal />,
-        document.getElementById('activity_log_modal')
     );
 
     ReactDOM.render(

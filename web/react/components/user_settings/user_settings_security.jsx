@@ -3,6 +3,8 @@
 
 var SettingItemMin = require('../setting_item_min.jsx');
 var SettingItemMax = require('../setting_item_max.jsx');
+var AccessHistoryModal = require('../access_history_modal.jsx');
+var ActivityLogModal = require('../activity_log_modal.jsx');
 var Client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var Constants = require('../../utils/constants.jsx');
@@ -18,7 +20,10 @@ export default class SecurityTab extends React.Component {
         this.handleClose = this.handleClose.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
-        this.state = this.setupInitialState();
+        const state = this.setupInitialState();
+        state.showAccessHistoryModal = false;
+        state.showActivityLogModal = false;
+        this.state = state;
     }
     submitPassword(e) {
         e.preventDefault();
@@ -74,12 +79,6 @@ export default class SecurityTab extends React.Component {
     }
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
-    }
-    handleHistoryOpen() {
-        $('#user_settings').modal('hide');
-    }
-    handleDevicesOpen() {
-        $('#user_settings').modal('hide');
     }
     handleClose() {
         $(ReactDOM.findDOMNode(this)).find('.form-control').each(function resetValue() {
@@ -253,25 +252,29 @@ export default class SecurityTab extends React.Component {
                     <div className='divider-dark'/>
                     <br></br>
                     <a
-                        data-toggle='modal'
                         className='security-links theme'
-                        data-target='#access-history'
                         href='#'
-                        onClick={this.handleHistoryOpen}
+                        onClick={() => this.setState({showAccessHistoryModal: true})}
                     >
                         <i className='fa fa-clock-o'></i>View Access History
                     </a>
                     <b> </b>
                     <a
-                        data-toggle='modal'
                         className='security-links theme'
-                        data-target='#activity-log'
                         href='#'
-                        onClick={this.handleDevicesOpen}
+                        onClick={() => this.setState({showActivityLogModal: true})}
                     >
                         <i className='fa fa-globe'></i>View and Logout of Active Sessions
                     </a>
                 </div>
+                <AccessHistoryModal
+                    show={this.state.showAccessHistoryModal}
+                    onModalDismissed={() => this.setState({showAccessHistoryModal: false})}
+                />
+                <ActivityLogModal
+                    show={this.state.showActivityLogModal}
+                    onModalDismissed={() => this.setState({showActivityLogModal: false})}
+                />
             </div>
         );
     }
