@@ -10,11 +10,16 @@ export default class PostsView extends React.Component {
         super(props);
 
         this.handleScroll = this.handleScroll.bind(this);
+        this.isAtBottom = this.isAtBottom.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.postsRerendered = this.postsRerendered.bind(this);
         this.createPosts = this.createPosts.bind(this);
-        this.scrollToBottom = this.scrollToBottom.bind(this);
+        this.updateScrolling = this.updateScrolling.bind(this);
         this.handleResize = this.handleResize.bind(this);
+
+        this.jumpToPostNode = null;
+        this.wasAtBottom = true;
+        this.scrollHeight = 0;
     }
     static get SCROLL_TYPE_FREE() {
         return 1;
@@ -22,9 +27,28 @@ export default class PostsView extends React.Component {
     static get SCROLL_TYPE_BOTTOM() {
         return 2;
     }
+    static get SIDEBAR_OPEN() {
+        return 3;
+    }
+    isAtBottom() {
+        return ((this.refs.postlist.scrollHeight - this.refs.postlist.scrollTop) === this.refs.postlist.clientHeight);
+    }
     handleScroll() {
-        const atBottom = ((this.refs.postlist.scrollHeight - this.refs.postlist.scrollTop) === this.refs.postlist.clientHeight);
-        this.props.postListScrolled(atBottom);
+        // HACK FOR RHS -- REMOVE WHEN RHS DIES
+        const childNodes = this.refs.postlistcontent.childNodes;
+        for (let i = 0; i < childNodes.length; i++) {
+            // If the node is 1/3 down the page
+            if (childNodes[i].offsetTop > (this.refs.postlist.scrollTop + (this.refs.postlist.offsetHeight / 3))) {
+                this.jumpToPostNode = childNodes[i];
+                break;
+            }
+        }
+        this.wasAtBottom = this.isAtBottom();
+
+        // --- --------
+
+        this.props.postListScrolled(this.isAtBottom());
+        this.prevScrollHeight = this.refs.postlist.scrollHeight;
     }
     loadMorePostsTop() {
         this.props.loadMorePostsTopClicked();
@@ -134,25 +158,53 @@ export default class PostsView extends React.Component {
 
         return postCtls;
     }
-    scrollToBottom() {
+    updateScrolling() {
         if (this.props.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
             window.requestAnimationFrame(() => {
                 this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
             });
+        } else if (this.props.scrollType === PostsView.SCROLL_TYPE_POST && this.props.scrollPost) {
+            window.requestAnimationFrame(() => {
+                const postNode = ReactDOM.findDOMNode(this.refs[this.props.scrollPost]);
+                postNode.scrollIntoView();
+                if (this.refs.postlist.scrollTop === postNode.offsetTop) {
+                    this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3);
+                } else {
+                    this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3) + (this.refs.postlist.scrollTop - postNode.offsetTop);
+                }
+            });
+        } else if (this.props.scrollType === PostsView.SIDEBAR_OPEN) {
+            // If we are at the bottom then stay there
+            if (this.wasAtBottom) {
+                this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+            } else {
+                window.requestAnimationFrame(() => {
+                    this.jumpToPostNode.scrollIntoView();
+                    if (this.refs.postlist.scrollTop === this.jumpToPostNode.offsetTop) {
+                        this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3);
+                    } else {
+                        this.refs.postlist.scrollTop -= (this.refs.postlist.offsetHeight / 3) + (this.refs.postlist.scrollTop - this.jumpToPostNode.offsetTop);
+                    }
+                });
+            }
+        } else if (this.refs.postlist.scrollHeight !== this.prevScrollHeight) {
+            window.requestAnimationFrame(() => {
+                this.refs.postlist.scrollTop += (this.refs.postlist.scrollHeight - this.prevScrollHeight);
+            });
         }
     }
     handleResize() {
-        this.scrollToBottom();
+        this.updateScrolling();
     }
     componentDidMount() {
-        this.scrollToBottom();
+        this.updateScrolling();
         window.addEventListener('resize', this.handleResize);
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
     }
     componentDidUpdate() {
-        this.scrollToBottom();
+        this.updateScrolling();
     }
     shouldComponentUpdate(nextProps) {
         if (this.props.isActive !== nextProps.isActive) {
@@ -197,7 +249,7 @@ export default class PostsView extends React.Component {
                         className='more-messages-text theme'
                         href='#'
                         onClick={this.loadMorePostsTop}
-                        >
+                    >
                         {'Load more messages'}
                     </a>
                 );
@@ -238,7 +290,7 @@ PostsView.defaultProps = {
 
 PostsView.propTypes = {
     isActive: React.PropTypes.bool,
-    postList: React.PropTypes.object.isRequired,
+    postList: React.PropTypes.object,
     scrollPost: React.PropTypes.string,
     scrollType: React.PropTypes.number,
     postListScrolled: React.PropTypes.func.isRequired,

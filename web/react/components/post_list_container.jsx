@@ -25,10 +25,12 @@ export default class PostListContainer extends React.Component {
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.postsLoaded = this.postsLoaded.bind(this);
         this.postsLoadedFailure = this.postsLoadedFailure.bind(this);
+        this.handlePostListJumpRequest = this.handlePostListJumpRequest.bind(this);
 
         const currentChannelId = ChannelStore.getCurrentId();
         const state = {
             scrollType: PostsView.SCROLL_TYPE_BOTTOM,
+            scrollPost: null,
             numPostsToDisplay: Constants.POST_CHUNK_SIZE
         };
         if (currentChannelId) {
@@ -51,11 +53,29 @@ export default class PostListContainer extends React.Component {
         ChannelStore.addChangeListener(this.onChannelChange);
         ChannelStore.addLeaveListener(this.onChannelLeave);
         PostStore.addChangeListener(this.onPostsChange);
+        PostStore.addPostListJumpListener(this.handlePostListJumpRequest);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         ChannelStore.removeLeaveListener(this.onChannelLeave);
         PostStore.removeChangeListener(this.onPostsChange);
+        PostStore.removePostListJumpListener(this.handlePostListJumpRequest);
+    }
+    handlePostListJumpRequest(type, post) {
+        switch (type) {
+        case Constants.PostListJumpTypes.BOTTOM:
+            this.setState({scrollType: PostsView.SCROLL_TYPE_BOTTOM});
+            break;
+        case Constants.PostListJumpTypes.POST:
+            this.setState({
+                scrollType: PostsView.SCROLL_TYPE_POST,
+                scrollPost: post
+            });
+            break;
+        case Constants.PostListJumpTypes.SIDEBAR_OPEN:
+            this.setState({scrollType: PostsView.SIDEBAR_OPEN});
+            break;
+        }
     }
     onChannelChange() {
         const postLists = Object.assign({}, this.state.postLists);
@@ -70,7 +90,7 @@ export default class PostListContainer extends React.Component {
         PostStore.clearUnseenDeletedPosts(channelId);
 
         let lastViewed = Number.MAX_VALUE;
-        let member = ChannelStore.getMember(channelId);
+        const member = ChannelStore.getMember(channelId);
         if (member != null) {
             lastViewed = member.last_viewed_at;
         }
@@ -219,10 +239,11 @@ export default class PostListContainer extends React.Component {
                     isActive={isActive}
                     postList={postLists[i]}
                     scrollType={this.state.scrollType}
+                    scrollPost={this.state.scrollPost}
                     postListScrolled={this.handlePostListScroll}
                     loadMorePostsTopClicked={this.loadMorePostsTop}
                     numPostsToDisplay={this.state.numPostsToDisplay}
-                    introText={channel ? createChannelIntroMessage(channel) : []}
+                    introText={channel ? createChannelIntroMessage(channel) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );

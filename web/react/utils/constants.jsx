@@ -350,5 +350,10 @@ module.exports = {
         ruby: 'Ruby',
         java: 'Java',
         ini: 'ini'
+    },
+    PostListJumpTypes: {
+        BOTTOM: 1,
+        POST: 2,
+        SIDEBAR_OPEN: 3
     }
 };

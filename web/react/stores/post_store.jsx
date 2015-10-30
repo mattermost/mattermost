@@ -14,6 +14,7 @@ var ActionTypes = Constants.ActionTypes;
 var CHANGE_EVENT = 'change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var EDIT_POST_EVENT = 'edit_post';
+var POST_LIST_JUMP_EVENT = 'post_list_jump';
 
 class PostStoreClass extends EventEmitter {
     constructor() {
@@ -30,6 +31,10 @@ class PostStoreClass extends EventEmitter {
         this.emitEditPost = this.emitEditPost.bind(this);
         this.addEditPostListener = this.addEditPostListener.bind(this);
         this.removeEditPostListener = this.removeEditPostListener.bind(this);
+
+        this.emitPostListJump = this.emitPostListJump.bind(this);
+        this.addPostListJumpListener = this.addPostListJumpListener.bind(this);
+        this.removePostListJumpListener = this.removePostListJumpListener.bind(this);
 
         this.getCurrentPosts = this.getCurrentPosts.bind(this);
         this.storePosts = this.storePosts.bind(this);
@@ -98,6 +103,30 @@ class PostStoreClass extends EventEmitter {
 
     removeEditPostListener(callback) {
         this.removeListener(EDIT_POST_EVENT, callback);
+    }
+
+    emitPostListJump(type, post) {
+        this.emit(POST_LIST_JUMP_EVENT, type, post);
+    }
+
+    addPostListJumpListener(callback) {
+        this.on(POST_LIST_JUMP_EVENT, callback);
+    }
+
+    removePostListJumpListener(callback) {
+        this.removeListener(POST_LIST_JUMP_EVENT, callback);
+    }
+
+    jumpPostListBottom() {
+        this.emitPostListJump(Constants.PostListJumpTypes.BOTTOM, null);
+    }
+
+    jumpPostListToPost(post) {
+        this.emitPostListJump(Constants.PostListJumpTypes.POST, post);
+    }
+
+    jumpPostListSidebarOpen() {
+        this.emitPostListJump(Constants.PostListJumpTypes.SIDEBAR_OPEN, null);
     }
 
     getCurrentPosts() {

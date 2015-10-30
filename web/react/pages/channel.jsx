@@ -55,9 +55,7 @@ function setupChannelPage(props) {
     );
 
     ReactDOM.render(
-        <ChannelView
-
-        />,
+        <ChannelView/>,
         document.getElementById('channel_view')
     );
 

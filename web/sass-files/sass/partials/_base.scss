@@ -8,6 +8,18 @@ body {
   background: $body-bg;
   position: relative;
   height: 100%;
+  &.white {
+      background: #fff;
+      > .container-fluid {
+          overflow: auto;
+      }
+      .inner__wrap {
+          > .row.content {
+              min-height: 100%;
+              margin-bottom: -89px;
+          }
+      }
+  }
 }
 
 .inner__wrap {
