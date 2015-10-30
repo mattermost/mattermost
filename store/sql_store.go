@@ -121,7 +121,10 @@ func NewSqlStore() Store {
 	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 
-	sqlStore.master.CreateTablesIfNotExists()
+	err := sqlStore.master.CreateTablesIfNotExists()
+	if err != nil {
+		l4g.Critical("Error creating database tables: %v", err)
+	}
 
 	sqlStore.team.(*SqlTeamStore).UpgradeSchemaIfNeeded()
 	sqlStore.channel.(*SqlChannelStore).UpgradeSchemaIfNeeded()
