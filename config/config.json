@@ -18,7 +18,8 @@
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
         "RestrictCreationToDomains": "",
-        "RestrictTeamNames": true
+        "RestrictTeamNames": true,
+        "EnableTeamListing": false
     },
     "SqlSettings": {
         "DriverName": "mysql",

@@ -442,16 +442,16 @@ export function inviteMembers(data, success, error) {
     track('api', 'api_teams_invite_members');
 }
 
-export function updateTeamDisplayName(data, success, error) {
+export function updateTeam(team, success, error) {
     $.ajax({
-        url: '/api/v1/teams/update_name',
+        url: '/api/v1/teams/update',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify(data),
+        data: JSON.stringify(team),
         success,
-        error: function onError(xhr, status, err) {
-            var e = handleError('updateTeamDisplayName', xhr, status, err);
+        error: (xhr, status, err) => {
+            var e = handleError('updateTeam', xhr, status, err);
             error(e);
         }
     });

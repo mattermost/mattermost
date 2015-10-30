@@ -211,8 +211,8 @@ func (c *Client) InviteMembers(invites *Invites) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) UpdateTeamDisplayName(data map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/teams/update_name", MapToJson(data)); err != nil {
+func (c *Client) UpdateTeam(team *Team) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/teams/update", team.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

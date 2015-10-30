@@ -8,6 +8,7 @@ function setupLoginPage(props) {
         <Login
             teamDisplayName={props.TeamDisplayName}
             teamName={props.TeamName}
+            inviteId={props.InviteId}
         />,
         document.getElementById('login')
     );

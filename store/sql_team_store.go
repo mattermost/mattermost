@@ -23,6 +23,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 		table.ColMap("Email").SetMaxSize(128)
 		table.ColMap("CompanyName").SetMaxSize(64)
 		table.ColMap("AllowedDomains").SetMaxSize(500)
+		table.ColMap("InviteId").SetMaxSize(32)
 	}
 
 	return s
@@ -31,10 +32,14 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
 	// REMOVE AFTER 1.2 SHIP see PLT-828
 	s.RemoveColumnIfExists("Teams", "AllowValet")
+	s.CreateColumnIfNotExists("Teams", "InviteId", "varchar(26)", "varchar(26)", "")
+	s.CreateColumnIfNotExists("Teams", "AllowOpenInvite", "tinyint(1)", "boolean", "0")
+	s.CreateColumnIfNotExists("Teams", "AllowTeamListing", "tinyint(1)", "boolean", "0")
 }
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
+	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
 }
 
 func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
@@ -98,6 +103,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 		} else {
 			oldTeam := oldResult.(*model.Team)
 			team.CreateAt = oldTeam.CreateAt
+			team.UpdateAt = model.GetMillis()
 			team.Name = oldTeam.Name
 
 			if count, err := s.GetMaster().Update(team); err != nil {
@@ -147,8 +153,42 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlTeamStore.Get", "We couldn't find the existing team", "id="+id)
 		} else {
-			result.Data = obj.(*model.Team)
+			team := obj.(*model.Team)
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+
+			result.Data = team
 		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		team := model.Team{}
+
+		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Id = :InviteId OR InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "We couldn't find the existing team", "inviteId="+inviteId+", "+err.Error())
+		}
+
+		if len(team.InviteId) == 0 {
+			team.InviteId = team.Id
+		}
+
+		if len(inviteId) == 0 || team.InviteId != inviteId {
+			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "We couldn't find the existing team", "inviteId="+inviteId)
+		}
+
+		result.Data = &team
 
 		storeChannel <- result
 		close(storeChannel)
@@ -167,6 +207,10 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetByName", "We couldn't find the existing team", "name="+name+", "+err.Error())
+		}
+
+		if len(team.InviteId) == 0 {
+			team.InviteId = team.Id
 		}
 
 		result.Data = &team
@@ -189,6 +233,12 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForEmail", "We encounted a problem when looking up teams", "email="+email+", "+err.Error())
 		}
 
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
 		result.Data = data
 
 		storeChannel <- result
@@ -207,6 +257,44 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams"); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "We could not get all teams", err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT * FROM Teams WHERE AllowTeamListing = 1"
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "SELECT * FROM Teams WHERE AllowTeamListing = true"
+		}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, query); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "We could not get all teams", err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
 		}
 
 		result.Data = data

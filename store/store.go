@@ -50,6 +50,8 @@ type TeamStore interface {
 	GetByName(name string) StoreChannel
 	GetTeamsForEmail(domain string) StoreChannel
 	GetAll() StoreChannel
+	GetAllTeamListing() StoreChannel
+	GetByInviteId(inviteId string) StoreChannel
 }
 
 type ChannelStore interface {

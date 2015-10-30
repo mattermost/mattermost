@@ -4,6 +4,7 @@
 var utils = require('../utils/utils.jsx');
 var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
+var TeamStore = require('../stores/team_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
 
 export default class InviteMemberModal extends React.Component {
@@ -292,7 +293,7 @@ export default class InviteMemberModal extends React.Component {
             } else {
                 var teamInviteLink = null;
                 if (currentUser && this.props.teamType === 'O') {
-                    var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + currentUser.team_id;
+                    var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id;
                     var link =
                         (
                             <a

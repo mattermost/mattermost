@@ -281,41 +281,23 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
 
-	data := make(map[string]string)
-	data["new_name"] = "NewName"
-	if _, err := Client.UpdateTeamDisplayName(data); err == nil {
+	vteam := &model.Team{DisplayName: team.DisplayName, Name: team.Name, Email: team.Email, Type: team.Type}
+	vteam.DisplayName = "NewName"
+	if _, err := Client.UpdateTeam(vteam); err == nil {
 		t.Fatal("Should have errored, not admin")
 	}
 
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
-	data["new_name"] = ""
-	if _, err := Client.UpdateTeamDisplayName(data); err == nil {
+	vteam.DisplayName = ""
+	if _, err := Client.UpdateTeam(vteam); err == nil {
 		t.Fatal("Should have errored, empty name")
 	}
 
-	data["new_name"] = "NewName"
-	if _, err := Client.UpdateTeamDisplayName(data); err != nil {
+	vteam.DisplayName = "NewName"
+	if _, err := Client.UpdateTeam(vteam); err != nil {
 		t.Fatal(err)
 	}
-	// No GET team web service, so hard to confirm here that team name updated
-
-	data["team_id"] = "junk"
-	if _, err := Client.UpdateTeamDisplayName(data); err == nil {
-		t.Fatal("Should have errored, junk team id")
-	}
-
-	data["team_id"] = "12345678901234567890123456"
-	if _, err := Client.UpdateTeamDisplayName(data); err == nil {
-		t.Fatal("Should have errored, bad team id")
-	}
-
-	data["team_id"] = team.Id
-	data["new_name"] = "NewNameAgain"
-	if _, err := Client.UpdateTeamDisplayName(data); err != nil {
-		t.Fatal(err)
-	}
-	// No GET team web service, so hard to confirm here that team name updated
 }
 
 func TestFuzzyTeamCreate(t *testing.T) {
