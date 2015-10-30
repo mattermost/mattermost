@@ -165,7 +165,7 @@ function handleNewPostEvent(msg) {
     }
 
     // Send desktop notification
-    if (UserStore.getCurrentId() !== msg.user_id) {
+    if (UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') {
         const msgProps = msg.props;
 
         let mentions = [];
