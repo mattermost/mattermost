@@ -12,7 +12,7 @@ Incoming webhooks allow external applications to post messages into Mattermost c
 
 In addition to supporting Slack's incoming webhook formatting, Mattermost webhooks offer full support of industry-standard markdown formatting, including headings, tables and in-line images. 
 
-### Outgoing Webhooks (coming in Mattermost v1.2) 
+### [Outgoing Webhooks (in Mattermost v1.2)](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Outgoing-Webhooks.md) 
 
 Outgoing webhooks allow external applications to receive webhook events from events happening within Mattermost channels and private groups via JSON payloads via HTTP POST requests sent to incoming webhook URLs defined by your applications. 
 
