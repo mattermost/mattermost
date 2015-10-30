@@ -11,7 +11,7 @@ import (
 )
 
 type TestEnvironment struct {
-	Teams       []*model.Team
+	Teams        []*model.Team
 	Environments []TeamEnvironment
 }
 
