@@ -602,3 +602,74 @@ body.ios {
 	font-weight: 600;
 	margin: 0 0 0 -4px;
 }
+
+.attachment {
+    .attachment__content {
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 4px;
+        padding: 2px 5px;
+        margin: 0 0 5px 0;
+    }
+    .attachment__thumb-pretext {
+        border: 0 none;
+        background: transparent;
+    }
+    .attachment__container {
+        border-left-width: 4px;
+        border-left-style: solid;
+        padding: 2px 0 2px 10px;
+        &.attachment__container--good {
+            border-left-color: #00C100;
+        }
+        &.attachment__container--warning {
+            border-left-color: #DEDE01;
+        }
+        &.attachment__container--danger {
+            border-left-color: #E40303;
+        }
+    }
+    .attachment__body {
+        float: left;
+        width: 80%;
+        padding-right: 5px;
+        &.attachment__body--no_thumb {
+            width: 100%;
+        }
+    }
+    .attachment__thumb-pretext {
+        margin-left: 5px;
+    }
+    .attachment__title {
+        margin: 5px 0;
+        padding: 0;
+        line-height: 16px;
+        font-size: 16px;
+        a {
+            font-size: 16px;
+        }
+    }
+    .attachment__author-icon {
+        @include border-radius(50px);
+        margin-right: 5px;
+        width: 14px;
+        height: 14px;
+    }
+    .attachment__image {
+        max-width: 100%;
+    }
+    .attachment__thumb-container {
+        width: 20%;
+        float: right;
+        img {
+            height: 75px;
+            max-width: 100%;
+        }
+    }
+    .attachment___fields {
+        width: 100%;
+        .attachment___field-caption {
+            font-weight: 700;
+        }
+    }
+}

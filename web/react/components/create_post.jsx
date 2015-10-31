@@ -171,6 +171,7 @@ export default class CreatePost extends React.Component {
         post.create_at = time;
         post.root_id = this.state.rootId;
         post.parent_id = this.state.parentId;
+        post.attachments = [];
 
         const channel = ChannelStore.get(this.state.channelId);
 
