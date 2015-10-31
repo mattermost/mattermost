@@ -8,6 +8,60 @@ export default class PostAttachment extends React.Component {
         super(props);
 
         this.getFieldsTable = this.getFieldsTable.bind(this);
+        this.getInitState = this.getInitState.bind(this);
+        this.shouldCollapse = this.shouldCollapse.bind(this);
+        this.toggleCollapseState = this.toggleCollapseState.bind(this);
+    }
+
+    componentDidMount() {
+        $(this.refs.attachment).on('click', '.attachment-link-more', this.toggleCollapseState);
+    }
+
+    componentWillUnmount() {
+        $(this.refs.attachment).off('click', '.attachment-link-more', this.toggleCollapseState);
+    }
+
+    componentWillMount() {
+        this.setState(this.getInitState());
+    }
+
+    getInitState() {
+        const shouldCollapse = this.shouldCollapse();
+        const text = TextFormatting.formatText(this.props.attachment.text || '');
+        const uncollapsedText = text + (shouldCollapse ? '<a class="attachment-link-more" href="#">▲ collapse text</a>' : '');
+        const collapsedText = shouldCollapse ? this.getCollapsedText() : text;
+
+        return {
+            shouldCollapse,
+            collapsedText,
+            uncollapsedText,
+            text: shouldCollapse ? collapsedText : uncollapsedText,
+            collapsed: shouldCollapse
+        };
+    }
+
+    toggleCollapseState(e) {
+        e.preventDefault();
+
+        let state = this.state;
+        state.text = state.collapsed ? state.uncollapsedText : state.collapsedText;
+        state.collapsed = !state.collapsed;
+        this.setState(state);
+    }
+
+    shouldCollapse() {
+        return (this.props.attachment.text.match(/\n/g) || []).length >= 5 || this.props.attachment.text.length > 700;
+    }
+
+    getCollapsedText() {
+        let text = this.props.attachment.text || '';
+        if ((text.match(/\n/g) || []).length >= 5) {
+            text = text.split('\n').splice(0, 5).join('\n');
+        } else if (text.length > 700) {
+            text = text.substr(0, 700);
+        }
+
+        return TextFormatting.formatText(text) + '<a class="attachment-link-more" href="#">▼ read more</a>';
     }
 
     getFieldsTable() {
@@ -169,7 +223,7 @@ export default class PostAttachment extends React.Component {
             text = (
                 <div
                     className='attachment__text'
-                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(data.text || '')}}
+                    dangerouslySetInnerHTML={{__html: this.state.text}}
                 >
                 </div>
             );
@@ -208,11 +262,12 @@ export default class PostAttachment extends React.Component {
         return (
             <div
                 className='attachment'
+                ref='attachment'
             >
                 {preText}
                 <div className='attachment__content'>
                     <div
-                        className={useBorderStyle ? 'attachment__container' : 'attachment__container attachment__container--' + data.color}
+                        className={useBorderStyle ? 'clearfix attachment__container' : 'clearfix attachment__container attachment__container--' + data.color}
                         style={useBorderStyle}
                     >
                         {author}
