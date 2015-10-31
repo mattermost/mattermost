@@ -983,8 +983,10 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
 	}
 
+	attachments := parsedRequest.Attachments
+
 	text := parsedRequest.Text
-	if len(text) == 0 {
+	if len(text) == 0 && (attachments == nil || len(attachments) == 0) {
 		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
 		return
 	}
@@ -1021,7 +1023,6 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	overrideUsername := parsedRequest.Username
 	overrideIconUrl := parsedRequest.IconURL
-	attachments := parsedRequest.Attachments
 
 	if result := <-cchan; result.Err != nil {
 		c.Err = model.NewAppError("incomingWebhook", "Couldn't find the channel", "err="+result.Err.Message)
