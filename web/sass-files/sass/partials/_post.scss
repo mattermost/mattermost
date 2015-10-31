@@ -637,6 +637,9 @@ body.ios {
             width: 100%;
         }
     }
+    .attachment__text p:last-of-type {
+        display: inline-block;
+    }
     .attachment__thumb-pretext {
         margin-left: 5px;
     }
