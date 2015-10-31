@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	l4g "code.google.com/p/log4go"
 )
 
 type SqlPostStore struct {
@@ -39,7 +40,18 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-	s.CreateColumnIfNotExists("Posts", "Attachments", "TEXT", "TEXT", "")
+	if s.CreateColumnIfNotExists("Posts", "Attachments", "TEXT", "TEXT", "") {
+		// set default values
+		_, err := s.GetMaster().Exec(
+			`UPDATE
+				Posts
+			SET
+				Attachments = '[]'`)
+		if err != nil {
+			l4g.Error("Unable to set default values for Posts.Attachments")
+			l4g.Error(err.Error())
+		}
+	}
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
