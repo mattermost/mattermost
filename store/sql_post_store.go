@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	l4g "code.google.com/p/log4go"
 )
 
 type SqlPostStore struct {
