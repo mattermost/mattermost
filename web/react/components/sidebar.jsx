@@ -136,7 +136,7 @@ export default class Sidebar extends React.Component {
                 channel.type = 'D';
             }
 
-            channel.display_name = teammate.username;
+            channel.display_name = Utils.displayUsername(teammate.id);
             channel.teammate_id = teammate.id;
             channel.status = UserStore.getStatus(teammate.id);
 

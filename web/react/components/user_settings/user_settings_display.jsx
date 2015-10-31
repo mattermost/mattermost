@@ -9,8 +9,12 @@ import PreferenceStore from '../../stores/preference_store.jsx';
 
 function getDisplayStateFromStores() {
     const militaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'});
+    const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'username'});
 
-    return {militaryTime: militaryTime.value};
+    return {
+        militaryTime: militaryTime.value,
+        nameFormat: nameFormat.value
+    };
 }
 
 export default class UserSettingsDisplay extends React.Component {
@@ -19,15 +23,17 @@ export default class UserSettingsDisplay extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleClockRadio = this.handleClockRadio.bind(this);
+        this.handleNameRadio = this.handleNameRadio.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.handleClose = this.handleClose.bind(this);
 
         this.state = getDisplayStateFromStores();
     }
     handleSubmit() {
-        const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', this.state.militaryTime);
+        const timePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', this.state.militaryTime);
+        const namePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', this.state.nameFormat);
 
-        savePreferences([preference],
+        savePreferences([timePreference, namePreference],
             () => {
                 PreferenceStore.emitChange();
                 this.updateSection('');
@@ -39,6 +45,9 @@ export default class UserSettingsDisplay extends React.Component {
     }
     handleClockRadio(militaryTime) {
         this.setState({militaryTime});
+    }
+    handleNameRadio(nameFormat) {
+        this.setState({nameFormat});
     }
     updateSection(section) {
         this.setState(getDisplayStateFromStores());
@@ -56,6 +65,7 @@ export default class UserSettingsDisplay extends React.Component {
     render() {
         const serverError = this.state.serverError || null;
         let clockSection;
+        let nameFormatSection;
         if (this.props.activeSection === 'clock') {
             const clockFormat = [false, false];
             if (this.state.militaryTime === 'true') {
@@ -127,6 +137,88 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        if (this.props.activeSection === 'name_format') {
+            const nameFormat = [false, false, false];
+            if (this.state.nameFormat === 'nickname_full_name') {
+                nameFormat[0] = true;
+            } else if (this.state.nameFormat === 'full_name') {
+                nameFormat[2] = true;
+            } else {
+                nameFormat[1] = true;
+            }
+
+            const inputs = [
+                <div key='userDisplayNameOptions'>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={nameFormat[0]}
+                                onChange={this.handleNameRadio.bind(this, 'nickname_full_name')}
+                            />
+                            {'Show nickname if one exists, otherwise show first and last name (team default)'}
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={nameFormat[1]}
+                                onChange={this.handleNameRadio.bind(this, 'username')}
+                            />
+                            {'Show username'}
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                checked={nameFormat[2]}
+                                onChange={this.handleNameRadio.bind(this, 'full_name')}
+                            />
+                            {'Show first and last name'}
+                        </label>
+                        <br/>
+                    </div>
+                    <div><br/>{'How should other users be shown in Direct Messages list?'}</div>
+                </div>
+            ];
+
+            nameFormatSection = (
+                <SettingItemMax
+                    title='Show real names, nick names or usernames?'
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            let describe = '';
+            if (this.state.nameFormat === 'username') {
+                describe = 'Show username';
+            } else if (this.state.nameFormat === 'full_name') {
+                describe = 'Show first and last name';
+            } else {
+                describe = 'Show nickname if one exists, otherwise show first and last name (team default)';
+            }
+
+            nameFormatSection = (
+                <SettingItemMin
+                    title='Show real names, nick names or usernames?'
+                    describe={describe}
+                    updateSection={() => {
+                        this.props.updateSection('name_format');
+                    }}
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -150,6 +242,8 @@ export default class UserSettingsDisplay extends React.Component {
                     <h3 className='tab-header'>{'Display Settings'}</h3>
                     <div className='divider-dark first'/>
                     {clockSection}
+                    <div className='divider-dark'/>
+                    {nameFormatSection}
                     <div className='divider-dark'/>
                 </div>
             </div>
