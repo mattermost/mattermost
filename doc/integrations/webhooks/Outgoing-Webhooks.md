@@ -114,7 +114,7 @@ As mentioned above, Mattermost makes it easy to take integrations written for Sl
 
 To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
 
-#### Known Issues
+#### Known Issues in v1.1
 
 - Overriding of usernames does not yet apply to notifications
 - Cannot supply `icon_emoji` to override the message icon
