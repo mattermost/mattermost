@@ -90,9 +90,9 @@ As mentioned above, Mattermost makes it easy to take integrations written for Sl
 
 To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
 
-#### Known Issues
+#### Known Issues in v1.1
 
 - The `attachments` payload used in Slack is not yet supported
-- Overriding of usernames does not yet apply to notifications
+- Overriding of usernames does not yet apply to notifications (fixed on master) 
 - Cannot supply `icon_emoji` to override the message icon
-- Webhook UI fails when connected to deleted channel
+- Webhook UI fails when connected to deleted channel (fixed on master)
