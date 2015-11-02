@@ -393,6 +393,7 @@ export default class CreatePost extends React.Component {
             <TutorialTip
                 placement='top'
                 screens={screens}
+                overlayClass='tip-overlay--chat'
             />
         );
     }

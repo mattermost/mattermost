@@ -358,6 +358,7 @@ export default class Sidebar extends React.Component {
             <TutorialTip
                 placement='right'
                 screens={screens}
+                overlayClass='tip-overlay--sidebar'
             />
         );
     }

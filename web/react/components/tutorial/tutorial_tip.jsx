@@ -80,13 +80,19 @@ export default class TutorialTip extends React.Component {
                 />
 
                 <Overlay
+                    show={this.state.show}
+                >
+                    <div className='tip-backdrop'/>
+                </Overlay>
+
+                <Overlay
                     placement={this.props.placement}
                     show={this.state.show}
                     rootClose={true}
                     onHide={this.toggle}
                     target={() => this.refs.target}
                 >
-                    <div className='tip-overlay'>
+                    <div className={'tip-overlay ' + this.props.overlayClass}>
                         {this.props.screens[this.state.currentScreen]}
                         <div className='tutorial__circles'>{dots}</div>
                         <div className='text-right'>
@@ -113,7 +119,12 @@ export default class TutorialTip extends React.Component {
     }
 }
 
+TutorialTip.defaultProps = {
+    overlayClass: ''
+};
+
 TutorialTip.propTypes = {
     screens: React.PropTypes.array.isRequired,
-    placement: React.PropTypes.string.isRequired
+    placement: React.PropTypes.string.isRequired,
+    overlayClass: React.PropTypes.string
 };

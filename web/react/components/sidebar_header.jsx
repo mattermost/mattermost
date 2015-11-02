@@ -44,8 +44,6 @@ export default class SidebarHeader extends React.Component {
             this.refs.dropdown.blockToggle = false;
             return;
         }
-        console.log(this.refs.tip);
-        this.refs.tip.toggle();
         $('.team__header').find('.dropdown-toggle').dropdown('toggle');
     }
     createTutorialTip() {
@@ -97,6 +95,7 @@ export default class SidebarHeader extends React.Component {
                     ref='tip'
                     placement='right'
                     screens={screens}
+                    overlayClass='tip-overlay--sidebar'
                 />
             </div>
         );
