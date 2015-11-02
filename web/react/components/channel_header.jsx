@@ -4,6 +4,7 @@
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const SearchStore = require('../stores/search_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
 const NavbarSearchBox = require('./search_bar.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
 const Client = require('../utils/client.jsx');
@@ -46,12 +47,14 @@ export default class ChannelHeader extends React.Component {
         ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
         SearchStore.addSearchChangeListener(this.onListenerChange);
         UserStore.addChangeListener(this.onListenerChange);
+        PreferenceStore.addChangeListener(this.onListenerChange);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
         ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
         SearchStore.removeSearchChangeListener(this.onListenerChange);
-        UserStore.addChangeListener(this.onListenerChange);
+        UserStore.removeChangeListener(this.onListenerChange);
+        PreferenceStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
         const newState = this.getStateFromStores();
@@ -134,7 +137,7 @@ export default class ChannelHeader extends React.Component {
                 } else {
                     contact = this.state.users[0];
                 }
-                channelTitle = contact.nickname || contact.username;
+                channelTitle = Utils.displayUsername(contact.id);
             }
         }
 

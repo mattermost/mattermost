@@ -884,6 +884,23 @@ export function getDisplayName(user) {
     return user.username;
 }
 
+export function displayUsername(userId) {
+    const user = UserStore.getProfile(userId);
+    const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value;
+
+    let username = '';
+    if (nameFormat === 'nickname_full_name') {
+        username = user.nickname || getFullName(user);
+    } else if (nameFormat === 'full_name') {
+        username = getFullName(user);
+    }
+    if (!username.trim().length) {
+        username = user.username;
+    }
+
+    return username;
+}
+
 //IE10 does not set window.location.origin automatically so this must be called instead when using it
 export function getWindowLocationOrigin() {
     var windowLocationOrigin = window.location.origin;
