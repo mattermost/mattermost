@@ -90,14 +90,10 @@ export default class SearchBar extends React.Component {
 
         this.refs.autocomplete.handleInputChange(e.target, term);
     }
-    handleMouseInput(e) {
-        e.preventDefault();
-    }
     handleUserBlur() {
         this.setState({focused: false});
     }
-    handleUserFocus(e) {
-        e.target.select();
+    handleUserFocus() {
         $('.search-bar__container').addClass('focused');
 
         this.setState({focused: true});
@@ -198,7 +194,6 @@ export default class SearchBar extends React.Component {
                         onBlur={this.handleUserBlur}
                         onChange={this.handleUserInput}
                         onKeyDown={this.handleKeyDown}
-                        onMouseUp={this.handleMouseInput}
                     />
                     {isSearching}
                     <SearchAutocomplete
