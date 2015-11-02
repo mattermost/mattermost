@@ -37,7 +37,8 @@ User Interface
 
 Team Settings
 
-- Ability to change team URL
+- Added Team Settings option to include account creation URL on team login page
+- Added Team Settings option to include link to given team on root page
 - Ability to rotate invite code for invite URL 
 
 System Console
