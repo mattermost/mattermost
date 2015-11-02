@@ -170,7 +170,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 				page.Props[team.Name] = team.DisplayName
 			}
 
-			if len(teams) == 1 && *utils.Cfg.TeamSettings.EnableTeamListing {
+			if len(teams) == 1 && *utils.Cfg.TeamSettings.EnableTeamListing && !utils.Cfg.TeamSettings.EnableTeamCreation {
 				http.Redirect(w, r, c.GetSiteURL()+"/"+teams[0].Name, http.StatusTemporaryRedirect)
 				return
 			}

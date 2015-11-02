@@ -12,11 +12,6 @@ export default class TeamSignUp extends React.Component {
 
         this.updatePage = this.updatePage.bind(this);
 
-        if (global.window.mm_config.EnableTeamListing === 'true') {
-            this.state = {page: 'team_listing'};
-            return;
-        }
-
         var count = 0;
 
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
@@ -41,50 +36,83 @@ export default class TeamSignUp extends React.Component {
     }
 
     render() {
-        if (this.state.page === 'team_listing') {
+        var teamListing = null;
+
+        if (global.window.mm_config.EnableTeamListing === 'true') {
+            if (this.props.teams.length === 0) {
+                if (global.window.mm_config.EnableTeamCreation !== 'true') {
+                    teamListing = (<div>{'There are no teams include in the Team Directory and team creation has been disabled.'}</div>);
+                }
+            } else {
+                teamListing = (
+                    <div>
+                        <h3>{'Choose a Team'}</h3>
+                        <div className='signup-team-all'>
+                            {
+                                this.props.teams.map((team) => {
+                                    return (
+                                        <div
+                                            key={'team_' + team.name}
+                                            className='signup-team-dir'
+                                        >
+                                            <a
+                                                href={'/' + team.name}
+                                            >
+                                                <div className='signup-team-dir__group'>
+                                                    <span className='signup-team-dir__name'>{team.display_name}</span>
+                                                    <span
+                                                        className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
+                                                        aria-hidden='true'
+                                                    />
+                                                </div>
+                                            </a>
+                                        </div>
+                                    );
+                                })
+                            }
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        if (global.window.mm_config.EnableTeamCreation !== 'true') {
+            if (teamListing == null) {
+                return (<div>{'Team creation has been disabled.  Please contact an administrator for access.'}</div>);
+            }
+
             return (
                 <div>
-                    <h3>{'Choose a Team'}</h3>
-                    <div className='signup-team-all'>
-                        {
-                            this.props.teams.map((team) => {
-                                return (
-                                    <div
-                                        key={'team_' + team.name}
-                                        className='signup-team-dir'
-                                    >
-                                        <a
-                                            href={'/' + team.name}
-                                        >
-                                            <div className='signup-team-dir__group'>
-                                                <span className='signup-team-dir__name'>{team.display_name}</span>
-                                                <span
-                                                    className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
-                                                    aria-hidden='true'
-                                                />
-                                            </div>
-                                        </a>
-                                    </div>
-                                );
-                            })
-                        }
-                    </div>
+                    {teamListing}
                 </div>
             );
         }
 
         if (this.state.page === 'choose') {
             return (
-                <ChoosePage
-                    updatePage={this.updatePage}
-                />
+                <div>
+                    {teamListing}
+                    <ChoosePage
+                        updatePage={this.updatePage}
+                    />
+                </div>
             );
         }
 
         if (this.state.page === 'email') {
-            return <EmailSignUpPage />;
+            return (
+                <div>
+                    {teamListing}
+                    <EmailSignUpPage />
+                </div>
+            );
         } else if (this.state.page === 'gitlab') {
-            return <SSOSignupPage service={Constants.GITLAB_SERVICE} />;
+            return (
+                <div>
+                    {teamListing}
+                    <SSOSignupPage service={Constants.GITLAB_SERVICE} />
+                </div>
+            );
         }
     }
 }

@@ -54,7 +54,6 @@ export default class GeneralTab extends React.Component {
 
     handleTeamListingRadio(listing) {
         if (global.window.mm_config.EnableTeamListing !== 'true' && listing) {
-            ReactDOM.findDOMNode(this.refs.teamListingRadioNo).checked = true;
             this.setState({clientError: 'Team directory has been disabled.  Please ask a system admin to enable it.'});
         } else {
             this.setState({allow_team_listing: listing});
@@ -278,13 +277,13 @@ export default class GeneralTab extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'When allowed the team will appear on the main page as part of team directory.'}</div>
+                    <div><br/>{'Including this team will display the team name from the Team Directory section of the Home Page, and provide a link to the sign-in page.'}</div>
                 </div>
             ];
 
             teamListingSection = (
                 <SettingItemMax
-                    title='Allow in Team Directory'
+                    title='Include this team in the Team Directory'
                     inputs={inputs}
                     submit={this.handleTeamListingSubmit}
                     server_error={serverError}
@@ -302,7 +301,7 @@ export default class GeneralTab extends React.Component {
 
             teamListingSection = (
                 <SettingItemMin
-                    title='Allow in Team Directory'
+                    title='Include this team in the Team Directory'
                     describe={describe}
                     updateSection={this.onUpdateTeamListingSection}
                 />
@@ -337,13 +336,13 @@ export default class GeneralTab extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'When allowed the team signup link will be included on the login page and anyone can signup to this team.'}</div>
+                    <div><br/>{'When allowed, a link to account creation will be included on the sign-in page of this team and allow any visitor to sign-up.'}</div>
                 </div>
             ];
 
             openInviteSection = (
                 <SettingItemMax
-                    title='Allow Open Invitations'
+                    title='Allow anyone to sign-up from login page'
                     inputs={inputs}
                     submit={this.handleOpenInviteSubmit}
                     server_error={serverError}
@@ -360,7 +359,7 @@ export default class GeneralTab extends React.Component {
 
             openInviteSection = (
                 <SettingItemMin
-                    title='Allow Open Invitations'
+                    title='Allow anyone to sign-up from login page'
                     describe={describe}
                     updateSection={this.onUpdateOpenInviteSection}
                 />
@@ -387,7 +386,7 @@ export default class GeneralTab extends React.Component {
                             maxLength='32'
                         />
                     </div>
-                    <div><br/>{'When allowing open invites this code is used as part of the signup process.  Changing this code will invalidate the previous open signup link.'}</div>
+                    <div><br/>{'Your Invite Code is used in the URL sent to people to join your team. Regenerating your Invite Code will invalidate the URLs in previous invitations, unless "Allow anyone to sign-up from login page" is enabled.'}</div>
                     <div className='help-text'>
                         <button
                             className='btn btn-default'
@@ -413,7 +412,7 @@ export default class GeneralTab extends React.Component {
             inviteSection = (
                 <SettingItemMin
                     title={`Invite Code`}
-                    describe={`Click 'Edit' to re-generate invite Code.`}
+                    describe={`Click 'Edit' to regenerate Invite Code.`}
                     updateSection={this.onUpdateInviteIdSection}
                 />
             );

@@ -32,7 +32,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 func (s SqlTeamStore) UpgradeSchemaIfNeeded() {
 	// REMOVE AFTER 1.2 SHIP see PLT-828
 	s.RemoveColumnIfExists("Teams", "AllowValet")
-	s.CreateColumnIfNotExists("Teams", "InviteId", "varchar(26)", "varchar(26)", "")
+	s.CreateColumnIfNotExists("Teams", "InviteId", "varchar(32)", "varchar(32)", "")
 	s.CreateColumnIfNotExists("Teams", "AllowOpenInvite", "tinyint(1)", "boolean", "0")
 	s.CreateColumnIfNotExists("Teams", "AllowTeamListing", "tinyint(1)", "boolean", "0")
 }

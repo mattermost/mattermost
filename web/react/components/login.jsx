@@ -185,7 +185,7 @@ export default class Login extends React.Component {
         if (this.props.inviteId) {
             userSignUp = (
                 <div>
-                    <span>{'Do not have an account? '}
+                    <span>{`Don't have an account? `}
                         <a
                             href={'/signup_user_complete/?id=' + this.props.inviteId}
                             className='signup-team-login'
