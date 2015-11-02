@@ -45,6 +45,11 @@ Team Settings
 - Added Team Settings option to include link to given team on root page
 - Ability to rotate invite code for invite URL 
 
+Extras
+
+- Added `/shrug KEYWORD` command to output: `¯\_(ツ)_/¯ KEYWORD`
+- Added `/me KEYWORD` command to output: _`KEYWORD`_ 
+
 System Console
 
 - New statistics page
