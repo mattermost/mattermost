@@ -3,6 +3,7 @@
 
 var AdminSidebarHeader = require('./admin_sidebar_header.jsx');
 var SelectTeamModal = require('./select_team_modal.jsx');
+var Utils = require('../../utils/utils.jsx');
 
 export default class AdminSidebar extends React.Component {
     constructor(props) {
@@ -24,12 +25,13 @@ export default class AdminSidebar extends React.Component {
     handleClick(name, teamId, e) {
         e.preventDefault();
         this.props.selectTab(name, teamId);
-        history.pushState({name, teamId}, null, `/admin_console/${name}/${teamId || ''}`);
+        var tokenIndex = Utils.getUrlParameter('session_token_index');
+        history.pushState({name, teamId}, null, `/admin_console/${name}/${teamId || ''}?session_token_index=${tokenIndex}`);
     }
 
     isSelected(name, teamId) {
         if (this.props.selected === name) {
-            if (name === 'team_users') {
+            if (name === 'team_users' || name === 'team_analytics') {
                 if (this.props.selectedTeam != null && this.props.selectedTeam === teamId) {
                     return 'active';
                 }
