@@ -25,8 +25,8 @@ export default class TeamSignupDisplayNamePage extends React.Component {
         if (!displayName) {
             this.setState({nameError: 'This field is required'});
             return;
-        } else if (displayName.length <= 2 || displayName.length > 15) {
-            this.setState({nameError: 'Name must be 3 or more characters up to a maximum of 15'});
+        } else if (displayName.length < 4 || displayName.length > 15) {
+            this.setState({nameError: 'Name must be 4 or more characters up to a maximum of 15'});
             return;
         }
 
