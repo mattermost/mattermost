@@ -142,7 +142,10 @@ export default class SearchAutocomplete extends React.Component {
             let channels = ChannelStore.getAll();
 
             if (filter) {
-                channels = channels.filter((channel) => channel.name.startsWith(filter));
+                channels = channels.filter((channel) => channel.name.startsWith(filter) && channel.type !== 'D');
+            } else {
+                // don't show direct channels
+                channels = channels.filter((channel) => channel.type !== 'D');
             }
 
             channels.sort((a, b) => a.name.localeCompare(b.name));
