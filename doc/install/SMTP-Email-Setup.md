@@ -52,10 +52,18 @@ To enable email, configure an SMTP email service as follows:
 * Set **Connection Security** to **(empty)**
 
 ##### Gmail
-* Information needed
+* Set **SMTP Username** to **your_email@gmail.com**
+* Set **SMTP Password** to **your_password**
+* Set **SMTP Server** to **smtp.gmail.com**
+* Set **SMTP Port** to **587**
+* Set **Connection Security** to **TLS**
 
 ##### Office 365
-* Information needed
+* Set **SMTP Username** to **Office 365 username**
+* Set **SMTP Password** to **Office 365 password**
+* Set **SMTP Server** to **smtp.office365.com**
+* Set **SMTP Port** to **587**
+* Set **Connection Security** to **TLS**
 
 ##### Hotmail
 * Set **SMTP Username** to **your_email@hotmail.com**
