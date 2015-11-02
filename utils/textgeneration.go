@@ -196,14 +196,14 @@ test@example.com
 [example link](example.com) links to ` + "`" + `http://example.com` + "`" + `
 [example.com](example.com) links to ` + "`" + `http://example.com` + "`" + `
 [example.com/other](example.com) links to ` + "`" + `http://example.com` + "`" + `
-[example.com/other_link](example.com/example) links to `+ "`" + `http://example.com/example`+ "`" + `
+[example.com/other_link](example.com/example) links to ` + "`" + `http://example.com/example` + "`" + `
 www.example.com links to ` + "`" + `http://www.example.com` + "`" + `
 https://example.com links to ` + "`" + `https://example.com` + "`" + `and not ` + "`" + `http://example.com` + "`" + `
 https://en.wikipedia.org/wiki/🐬 links to the Wikipedia article on dolphins
 https://en.wikipedia.org/wiki/URLs#Syntax links to the Syntax section of the Wikipedia article on URLs
 test@example.com links to ` + "`" + `mailto:test@example.com` + "`" + `
 [email link](mailto:test@example.com) links to ` + "`" + `mailto:test@example.com` + "`" + `and not ` + "`" + `http://mailto:test@example.com` + "`" + `
-[other link](ts3server://example.com) links to `+ "`" + `ts3server://example.com` + "`" + `and not ` + "`" + `http://ts3server://example.com` + "`" + `
+[other link](ts3server://example.com) links to ` + "`" + `ts3server://example.com` + "`" + `and not ` + "`" + `http://ts3server://example.com` + "`" + `
 
 #### should not be turned into links:
 example.com
