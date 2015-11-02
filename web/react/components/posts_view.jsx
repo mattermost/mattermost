@@ -47,7 +47,7 @@ export default class PostsView extends React.Component {
 
         // --- --------
 
-        this.props.postListScrolled(this.isAtBottom());
+        this.props.postViewScrolled(this.isAtBottom());
         this.prevScrollHeight = this.refs.postlist.scrollHeight;
     }
     loadMorePostsTop() {
@@ -293,7 +293,7 @@ PostsView.propTypes = {
     postList: React.PropTypes.object,
     scrollPost: React.PropTypes.string,
     scrollType: React.PropTypes.number,
-    postListScrolled: React.PropTypes.func.isRequired,
+    postViewScrolled: React.PropTypes.func.isRequired,
     loadMorePostsTopClicked: React.PropTypes.func.isRequired,
     numPostsToDisplay: React.PropTypes.number,
     introText: React.PropTypes.element,

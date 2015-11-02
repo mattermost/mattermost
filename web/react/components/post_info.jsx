@@ -3,7 +3,7 @@
 
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
-var UpdatingTimeSinceCounter = require('./updating_time_since_counter.jsx');
+var TimeSince = require('./time_since.jsx');
 
 var Constants = require('../utils/constants.jsx');
 
@@ -146,7 +146,7 @@ export default class PostInfo extends React.Component {
         return (
             <ul className='post-header post-info'>
                 <li className='post-header-col'>
-                    <UpdatingTimeSinceCounter
+                    <TimeSince
                         eventTime={post.create_at}
                     />
                 </li>

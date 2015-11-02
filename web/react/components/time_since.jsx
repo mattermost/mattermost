@@ -6,7 +6,7 @@ var Utils = require('../utils/utils.jsx');
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class UpdatingTimeSinceCounter extends React.Component {
+export default class TimeSince extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -41,10 +41,10 @@ export default class UpdatingTimeSinceCounter extends React.Component {
         );
     }
 }
-UpdatingTimeSinceCounter.defaultProps = {
+TimeSince.defaultProps = {
     eventTime: 0
 };
 
-UpdatingTimeSinceCounter.propTypes = {
+TimeSince.propTypes = {
     eventTime: React.PropTypes.number.isRequired
 };

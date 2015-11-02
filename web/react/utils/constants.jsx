@@ -351,7 +351,7 @@ module.exports = {
         java: 'Java',
         ini: 'ini'
     },
-    PostListJumpTypes: {
+    PostsViewJumpTypes: {
         BOTTOM: 1,
         POST: 2,
         SIDEBAR_OPEN: 3

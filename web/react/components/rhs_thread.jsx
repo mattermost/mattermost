@@ -34,12 +34,12 @@ export default class RhsThread extends React.Component {
         }
 
         var channelId = postList.posts[postList.order[0]].channel_id;
-        var pendingPostList = PostStore.getPendingPosts(channelId);
+        var pendingPostsList = PostStore.getPendingPosts(channelId);
 
-        if (pendingPostList) {
-            for (var pid in pendingPostList.posts) {
-                if (pendingPostList.posts.hasOwnProperty(pid)) {
-                    postList.posts[pid] = pendingPostList.posts[pid];
+        if (pendingPostsList) {
+            for (var pid in pendingPostsList.posts) {
+                if (pendingPostsList.posts.hasOwnProperty(pid)) {
+                    postList.posts[pid] = pendingPostsList.posts[pid];
                 }
             }
         }

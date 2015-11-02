@@ -34,7 +34,7 @@ export default class SidebarRight extends React.Component {
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
     }
     componentWillUpdate() {
-        PostStore.jumpPostListSidebarOpen();
+        PostStore.jumpPostsViewSidebarOpen();
     }
     doStrangeThings() {
         // We should have a better way to do this stuff

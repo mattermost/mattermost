@@ -14,18 +14,18 @@ const LoadingScreen = require('./loading_screen.jsx');
 
 import {createChannelIntroMessage} from '../utils/channel_intro_mssages.jsx';
 
-export default class PostListContainer extends React.Component {
+export default class PostsViewContainer extends React.Component {
     constructor() {
         super();
 
         this.onChannelChange = this.onChannelChange.bind(this);
         this.onChannelLeave = this.onChannelLeave.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
-        this.handlePostListScroll = this.handlePostListScroll.bind(this);
+        this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.postsLoaded = this.postsLoaded.bind(this);
         this.postsLoadedFailure = this.postsLoadedFailure.bind(this);
-        this.handlePostListJumpRequest = this.handlePostListJumpRequest.bind(this);
+        this.handlePostsViewJumpRequest = this.handlePostsViewJumpRequest.bind(this);
 
         const currentChannelId = ChannelStore.getCurrentId();
         const state = {
@@ -53,26 +53,26 @@ export default class PostListContainer extends React.Component {
         ChannelStore.addChangeListener(this.onChannelChange);
         ChannelStore.addLeaveListener(this.onChannelLeave);
         PostStore.addChangeListener(this.onPostsChange);
-        PostStore.addPostListJumpListener(this.handlePostListJumpRequest);
+        PostStore.addPostsViewJumpListener(this.handlePostsViewJumpRequest);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         ChannelStore.removeLeaveListener(this.onChannelLeave);
         PostStore.removeChangeListener(this.onPostsChange);
-        PostStore.removePostListJumpListener(this.handlePostListJumpRequest);
+        PostStore.removePostsViewJumpListener(this.handlePostsViewJumpRequest);
     }
-    handlePostListJumpRequest(type, post) {
+    handlePostsViewJumpRequest(type, post) {
         switch (type) {
-        case Constants.PostListJumpTypes.BOTTOM:
+        case Constants.PostsViewJumpTypes.BOTTOM:
             this.setState({scrollType: PostsView.SCROLL_TYPE_BOTTOM});
             break;
-        case Constants.PostListJumpTypes.POST:
+        case Constants.PostsViewJumpTypes.POST:
             this.setState({
                 scrollType: PostsView.SCROLL_TYPE_POST,
                 scrollPost: post
             });
             break;
-        case Constants.PostListJumpTypes.SIDEBAR_OPEN:
+        case Constants.PostsViewJumpTypes.SIDEBAR_OPEN:
             this.setState({scrollType: PostsView.SIDEBAR_OPEN});
             break;
         }
@@ -121,9 +121,9 @@ export default class PostListContainer extends React.Component {
     onPostsChange() {
         const channels = this.state.channels;
         const postLists = Object.assign({}, this.state.postLists);
-        const newPostList = this.getChannelPosts(channels[this.state.currentChannelIndex]);
+        const newPostsView = this.getChannelPosts(channels[this.state.currentChannelIndex]);
 
-        postLists[this.state.currentChannelIndex] = newPostList;
+        postLists[this.state.currentChannelIndex] = newPostsView;
         this.setState({postLists});
     }
     getChannelPosts(id) {
@@ -210,7 +210,7 @@ export default class PostListContainer extends React.Component {
     postsLoadedFailure(err) {
         AsyncClient.dispatchError(err, 'getPosts');
     }
-    handlePostListScroll(atBottom) {
+    handlePostsViewScroll(atBottom) {
         if (atBottom) {
             this.setState({scrollType: PostsView.SCROLL_TYPE_BOTTOM});
         } else {
@@ -240,7 +240,7 @@ export default class PostListContainer extends React.Component {
                     postList={postLists[i]}
                     scrollType={this.state.scrollType}
                     scrollPost={this.state.scrollPost}
-                    postListScrolled={this.handlePostListScroll}
+                    postViewScrolled={this.handlePostsViewScroll}
                     loadMorePostsTopClicked={this.loadMorePostsTop}
                     numPostsToDisplay={this.state.numPostsToDisplay}
                     introText={channel ? createChannelIntroMessage(channel) : null}

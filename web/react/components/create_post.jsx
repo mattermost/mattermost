@@ -176,7 +176,7 @@ export default class CreatePost extends React.Component {
 
         PostStore.storePendingPost(post);
         PostStore.storeDraft(channel.id, null);
-        PostStore.jumpPostListBottom();
+        PostStore.jumpPostsViewToBottom();
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         Client.createPost(post, channel,

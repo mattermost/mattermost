@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 var CreatePost = require('../components/create_post.jsx');
-var PostListContainer = require('../components/post_list_container.jsx');
+var PostsViewContainer = require('../components/posts_view_container.jsx');
 var ChannelHeader = require('../components/channel_header.jsx');
 var Navbar = require('../components/navbar.jsx');
 var FileUploadOverlay = require('../components/file_upload_overlay.jsx');
@@ -32,7 +32,7 @@ export default class CenterPanel extends React.Component {
                             <ChannelHeader />
                         </div>
                         <div id='post-list'>
-                            <PostListContainer />
+                            <PostsViewContainer />
                         </div>
                         <div
                             className='post-create__container'
