@@ -443,13 +443,6 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 		var posts []*model.Post
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			// Parse text for wildcards
-			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
-				terms = wildcard.ReplaceAllLiteralString(terms, "* ")
-			}
-		}
-
 		searchQuery := `
 			SELECT
 				*
