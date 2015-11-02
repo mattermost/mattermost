@@ -4,6 +4,7 @@
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 const Post = require('./post.jsx');
+const Constants = require('../utils/constants.jsx');
 
 export default class PostsView extends React.Component {
     constructor(props) {
@@ -68,6 +69,11 @@ export default class PostsView extends React.Component {
             const post = posts[order[i]];
             const parentPost = posts[post.parent_id];
             const prevPost = posts[order[i + 1]];
+
+            // If the post is a comment whose parent has been deleted, don't add it to the list.
+            if (parentPost && parentPost.state === Constants.POST_DELETED) {
+                continue;
+            }
 
             let sameUser = false;
             let sameRoot = false;
