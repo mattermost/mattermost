@@ -27,20 +27,26 @@ multi-line code block
 ` + "`monospace`" + `
 [Link to Mattermost](www.mattermost.com)
 Inline Image with link, alt text, and hover text: ![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
+
 Line:
 ***
+
 > i am a blockquote!
+
 * list item
 * another list item
   * indented list item
+
 1. numbered list, item number 1
 2. item number two
+
 Table
 | Left-Aligned  | Center Aligned  | Right Aligned |
 | :------------ |:---------------:| -----:|
 | Left column 1 | this text       |  $100 |
 | Left column 2 | is              |   $10 |
 | Left column 3 | centered        |    $1 |
+
 # Large heading
 ## Smaller heading
 ### Even smaller heading
