@@ -247,7 +247,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) StoreChannel {
 					result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that handle already exists", "id="+channel.Id+", "+err.Error())
 				}
 			} else {
-				result.Err = model.NewAppError("SqlChannelStore.Update", "We encounted an error updating the channel", "id="+channel.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlChannelStore.Update", "We encountered an error updating the channel", "id="+channel.Id+", "+err.Error())
 			}
 		} else if count != 1 {
 			result.Err = model.NewAppError("SqlChannelStore.Update", "We couldn't update the channel", "id="+channel.Id)
@@ -297,7 +297,7 @@ func (s SqlChannelStore) Get(id string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := s.GetReplica().Get(model.Channel{}, id); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Get", "We encounted an error finding the channel", "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.Get", "We encountered an error finding the channel", "id="+id+", "+err.Error())
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlChannelStore.Get", "We couldn't find the existing channel", "id="+id)
 		} else {
@@ -537,7 +537,7 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) StoreChannel 
 		}
 
 		if _, err := s.GetMaster().Update(member); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.UpdateMember", "We encounted an error updating the channel member",
+			result.Err = model.NewAppError("SqlChannelStore.UpdateMember", "We encountered an error updating the channel member",
 				"channel_id="+member.ChannelId+", "+"user_id="+member.UserId+", "+err.Error())
 		} else {
 			result.Data = member

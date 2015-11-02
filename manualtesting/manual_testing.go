@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-type TestEnviroment struct {
+type TestEnvironment struct {
 	Params        map[string][]string
 	Client        *model.Client
 	CreatedTeamId string
@@ -121,8 +121,8 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/channels/town-square", http.StatusTemporaryRedirect)
 	}
 
-	// Setup test enviroment
-	env := TestEnviroment{
+	// Setup test environment
+	env := TestEnvironment{
 		Params:        params,
 		Client:        client,
 		CreatedTeamId: teamID,

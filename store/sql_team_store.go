@@ -97,7 +97,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 		}
 
 		if oldResult, err := s.GetMaster().Get(model.Team{}, team.Id); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "We encounted an error finding the team", "id="+team.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.Update", "We encountered an error finding the team", "id="+team.Id+", "+err.Error())
 		} else if oldResult == nil {
 			result.Err = model.NewAppError("SqlTeamStore.Update", "We couldn't find the existing team to update", "id="+team.Id)
 		} else {
@@ -107,7 +107,7 @@ func (s SqlTeamStore) Update(team *model.Team) StoreChannel {
 			team.Name = oldTeam.Name
 
 			if count, err := s.GetMaster().Update(team); err != nil {
-				result.Err = model.NewAppError("SqlTeamStore.Update", "We encounted an error updating the team", "id="+team.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlTeamStore.Update", "We encountered an error updating the team", "id="+team.Id+", "+err.Error())
 			} else if count != 1 {
 				result.Err = model.NewAppError("SqlTeamStore.Update", "We couldn't update the team", "id="+team.Id)
 			} else {
@@ -149,7 +149,7 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := s.GetReplica().Get(model.Team{}, id); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Get", "We encounted an error finding the team", "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.Get", "We encountered an error finding the team", "id="+id+", "+err.Error())
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlTeamStore.Get", "We couldn't find the existing team", "id="+id)
 		} else {
@@ -230,7 +230,7 @@ func (s SqlTeamStore) GetTeamsForEmail(email string) StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, Users WHERE Teams.Id = Users.TeamId AND Users.Email = :Email", map[string]interface{}{"Email": email}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForEmail", "We encounted a problem when looking up teams", "email="+email+", "+err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForEmail", "We encountered a problem when looking up teams", "email="+email+", "+err.Error())
 		}
 
 		for _, team := range data {

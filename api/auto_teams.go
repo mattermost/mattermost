@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-type TeamEnviroment struct {
+type TeamEnvironment struct {
 	Users    []*model.User
 	Channels []*model.Channel
 }

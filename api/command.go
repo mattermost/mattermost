@@ -381,11 +381,11 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 
 		if doTeams {
 			if err := CreateBasicUser(client); err != nil {
-				l4g.Error("Failed to create testing enviroment")
+				l4g.Error("Failed to create testing environment")
 				return true
 			}
 			client.LoginByEmail(BTEST_TEAM_NAME, BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
-			enviroment, err := CreateTestEnviromentWithTeams(
+			environment, err := CreateTestEnvironmentWithTeams(
 				client,
 				utils.Range{numTeams, numTeams},
 				utils.Range{numChannels, numChannels},
@@ -393,18 +393,18 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 				utils.Range{numPosts, numPosts},
 				doFuzz)
 			if err != true {
-				l4g.Error("Failed to create testing enviroment")
+				l4g.Error("Failed to create testing environment")
 				return true
 			} else {
-				l4g.Info("Testing enviroment created")
-				for i := 0; i < len(enviroment.Teams); i++ {
-					l4g.Info("Team Created: " + enviroment.Teams[i].Name)
-					l4g.Info("\t User to login: " + enviroment.Enviroments[i].Users[0].Email + ", " + USER_PASSWORD)
+				l4g.Info("Testing environment created")
+				for i := 0; i < len(environment.Teams); i++ {
+					l4g.Info("Team Created: " + environment.Teams[i].Name)
+					l4g.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
 				}
 			}
 		} else {
 			client.MockSession(c.Session.Token)
-			CreateTestEnviromentInTeam(
+			CreateTestEnvironmentInTeam(
 				client,
 				c.Session.TeamId,
 				utils.Range{numChannels, numChannels},
@@ -416,7 +416,7 @@ func loadTestSetupCommand(c *Context, command *model.Command) bool {
 	} else if strings.Index(cmd, command.Command) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{
 			Suggestion:  cmd,
-			Description: "Creates a testing enviroment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"})
+			Description: "Creates a testing environment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>"})
 	}
 
 	return false
