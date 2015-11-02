@@ -72,6 +72,10 @@
             position: fixed;
             top: 57px;
             width: 179px;
+            &.absolute {
+                position: absolute;
+                top: 0;
+            }
         }
         .security-links {
             margin-right: 20px;

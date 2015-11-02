@@ -125,9 +125,6 @@ a:focus, a:hover {
   &.no-resize {
     resize: none;
   }
-  &.min-height {
-    min-height: 100px;
-  }
 }
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
