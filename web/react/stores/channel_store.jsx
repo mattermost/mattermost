@@ -183,11 +183,21 @@ class ChannelStoreClass extends EventEmitter {
             channels.push(channel);
         }
 
-        channels.sort(function chanSort(a, b) {
-            if (a.display_name.toLowerCase() < b.display_name.toLowerCase()) {
+        channels.sort((a, b) => {
+            let channelADisplayName = '';
+            let channelBDisplayName = '';
+
+            if (a && a.display_name) {
+                channelADisplayName = a.display_name.toLowerCase();
+            }
+            if (b && b.display_name) {
+                channelBDisplayName = b.display_name.toLowerCase();
+            }
+
+            if (channelADisplayName < channelBDisplayName) {
                 return -1;
             }
-            if (a.display_name.toLowerCase() > b.display_name.toLowerCase()) {
+            if (channelADisplayName > channelBDisplayName) {
                 return 1;
             }
             return 0;
