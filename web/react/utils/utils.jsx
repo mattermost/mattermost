@@ -976,7 +976,7 @@ export function isBrowserIE() {
 }
 
 export function isBrowserEdge() {
-    return window.naviagtor && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('edge') > -1;
+    return window.navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('edge') > -1;
 }
 
 export function getDirectChannelName(id, otherId) {
