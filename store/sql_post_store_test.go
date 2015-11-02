@@ -526,32 +526,32 @@ func TestPostStoreSearch(t *testing.T) {
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
 
 	r1 := (<-store.Post().Search(teamId, userId, &model.SearchParams{Terms: "corey", IsHashtag: false})).Data.(*model.PostList)
-	if len(r1.Order) != 1 && r1.Order[0] != o1.Id {
+	if len(r1.Order) != 1 || r1.Order[0] != o1.Id {
 		t.Fatal("returned wrong search result")
 	}
 
 	r3 := (<-store.Post().Search(teamId, userId, &model.SearchParams{Terms: "new", IsHashtag: false})).Data.(*model.PostList)
-	if len(r3.Order) != 2 && r3.Order[0] != o1.Id {
+	if len(r3.Order) != 2 || (r3.Order[0] != o1.Id && r3.Order[1] != o1.Id) {
 		t.Fatal("returned wrong search result")
 	}
 
 	r4 := (<-store.Post().Search(teamId, userId, &model.SearchParams{Terms: "john", IsHashtag: false})).Data.(*model.PostList)
-	if len(r4.Order) != 1 && r4.Order[0] != o2.Id {
+	if len(r4.Order) != 1 || r4.Order[0] != o2.Id {
 		t.Fatal("returned wrong search result")
 	}
 
 	r5 := (<-store.Post().Search(teamId, userId, &model.SearchParams{Terms: "matter*", IsHashtag: false})).Data.(*model.PostList)
-	if len(r5.Order) != 1 && r5.Order[0] != o1.Id {
+	if len(r5.Order) != 1 || r5.Order[0] != o1.Id {
 		t.Fatal("returned wrong search result")
 	}
 
 	r6 := (<-store.Post().Search(teamId, userId, &model.SearchParams{Terms: "#hashtag", IsHashtag: true})).Data.(*model.PostList)
-	if len(r6.Order) != 1 && r6.Order[0] != o4.Id {
+	if len(r6.Order) != 1 || r6.Order[0] != o4.Id {
 		t.Fatal("returned wrong search result")
 	}
 
 	r7 := (<-store.Post().Search(teamId, userId, &model.SearchParams{Terms: "#secret", IsHashtag: true})).Data.(*model.PostList)
-	if len(r7.Order) != 1 && r7.Order[0] != o5.Id {
+	if len(r7.Order) != 1 || r7.Order[0] != o5.Id {
 		t.Fatal("returned wrong search result")
 	}
 
