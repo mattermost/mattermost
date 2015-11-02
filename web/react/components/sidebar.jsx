@@ -1,19 +1,26 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AsyncClient = require('../utils/async_client.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const Client = require('../utils/client.jsx');
-const Constants = require('../utils/constants.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
 const NewChannelFlow = require('./new_channel_flow.jsx');
 const MoreDirectChannels = require('./more_direct_channels.jsx');
 const SearchBox = require('./search_bar.jsx');
 const SidebarHeader = require('./sidebar_header.jsx');
-const TeamStore = require('../stores/team_store.jsx');
 const UnreadChannelIndicator = require('./unread_channel_indicator.jsx');
+const TutorialTip = require('./tutorial/tutorial_tip.jsx');
+
+const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
+const TeamStore = require('../stores/team_store.jsx');
+const PreferenceStore = require('../stores/preference_store.jsx');
+
+const AsyncClient = require('../utils/async_client.jsx');
+const Client = require('../utils/client.jsx');
 const Utils = require('../utils/utils.jsx');
+
+const Constants = require('../utils/constants.jsx');
+const Preferences = Constants.Preferences;
+const TutorialSteps = Constants.TutorialSteps;
+
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
@@ -155,12 +162,15 @@ export default class Sidebar extends React.Component {
 
         visibleDirectChannels.sort(this.sortChannelsByDisplayName);
 
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+
         return {
             activeId: currentId,
             channels: ChannelStore.getAll(),
             members,
             visibleDirectChannels,
-            hiddenDirectChannelCount
+            hiddenDirectChannelCount,
+            showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.CHANNEL_POPOVER
         };
     }
 
@@ -308,6 +318,51 @@ export default class Sidebar extends React.Component {
         this.setState({showDirectChannelsModal: false});
     }
 
+    createTutorialTip() {
+        const screens = [];
+
+        screens.push(
+            <div>
+                <h4>{'Channels'}</h4>
+                <p><strong>{'Channels'}</strong>{' organize conversations across different topics. They’re open to everyone on your team. To send private communications use '}<strong>{'Direct Messages'}</strong>{' for a single person or '}<strong>{'Private Groups'}</strong>{' for multiple people.'}
+                </p>
+            </div>
+        );
+
+        screens.push(
+            <div>
+                <h4>{'"Town Square" and "Off-Topic" channels'}</h4>
+                <p>{'Here are two public channels to start:'}</p>
+                <p>
+                    <strong>{'Town Square'}</strong>{' is a place for team-wide communication. Everyone in your team is a member of this channel.'}
+                </p>
+                <p>
+                    <strong>{'Off-Topic'}</strong>{' is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.'}
+                </p>
+            </div>
+        );
+
+        screens.push(
+            <div>
+                <h4>{'Creating and Joining Channels'}</h4>
+                <p>
+                    {'Click '}<strong>{'"More..."'}</strong>{' to create a new channel or join an existing one.'}
+                </p>
+                <p>
+                    {'You can also create a new channel or private group by clicking the '}<strong>{'"+" symbol'}</strong>{' next to the channel or private group header.'}
+                </p>
+            </div>
+        );
+
+        return (
+            <TutorialTip
+                placement='right'
+                screens={screens}
+                overlayClass='tip-overlay--sidebar'
+            />
+        );
+    }
+
     createChannelElement(channel, index, arr, handleClose) {
         var members = this.state.members;
         var activeId = this.state.activeId;
@@ -444,6 +499,11 @@ export default class Sidebar extends React.Component {
             rowClass += ' has-close';
         }
 
+        let tutorialTip = null;
+        if (this.state.showTutorialTip && channel.name === Constants.DEFAULT_CHANNEL) {
+            tutorialTip = this.createTutorialTip();
+        }
+
         return (
             <li
                 key={channel.name}
@@ -460,6 +520,7 @@ export default class Sidebar extends React.Component {
                     {badge}
                     {closeButton}
                 </a>
+                {tutorialTip}
             </li>
         );
     }
