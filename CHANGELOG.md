@@ -9,6 +9,10 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 
 ### Improvements 
 
+Onboarding 
+
+- New tutorial explaining how to use Mattermost for new users
+
 Messaging and Notifications 
 
 - Users can now search for teammates to add to **Direct Message** list via **More** menu
@@ -29,11 +33,11 @@ Integrations
 User Interface
 
 - Member list in Channel display now scrollable, and includes Message button to message channel members directly
-- Syntax highlighted added for code blocks
+- Added ability to edit previous message by hitting UP arrow
+- Syntax highlighting added for code blocks
    - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`. 
    - Use by adding the name of the language on the first link of the code block, for example: ```python
    - Syntax color theme can be defined under **Account Settings** > **Appearance Settings** > **Custom Theme**
-- Added ability to edit previous message by hitting UP arrow
 
 Team Settings
 
@@ -45,10 +49,6 @@ System Console
 
 - New statistics page
 - Configurable option to create an account directly from team page
-
-Onboarding 
-
-- New tutorial explaining how to use Mattermost for new users
 
 #### Bug Fixes
 
