@@ -50,7 +50,6 @@ export default class PostBody extends React.Component {
 
     componentDidUpdate() {
         this.parseEmojis();
-        this.props.resize();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -338,6 +337,5 @@ PostBody.propTypes = {
     post: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    resize: React.PropTypes.func.isRequired
+    handleCommentClick: React.PropTypes.func.isRequired
 };

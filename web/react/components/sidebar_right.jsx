@@ -20,23 +20,48 @@ export default class SidebarRight extends React.Component {
         this.onSelectedChange = this.onSelectedChange.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
 
+        this.doStrangeThings = this.doStrangeThings.bind(this);
+
         this.state = getStateFromStores();
     }
     componentDidMount() {
         SearchStore.addSearchChangeListener(this.onSearchChange);
         PostStore.addSelectedPostChangeListener(this.onSelectedChange);
+        this.doStrangeThings();
     }
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onSearchChange);
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
     }
-    componentDidUpdate() {
-        if (this.plScrolledToBottom) {
-            var postHolder = $('.post-list-holder-by-time').not('.inactive');
-            postHolder.scrollTop(postHolder[0].scrollHeight);
-        } else {
-            $('.top-visible-post')[0].scrollIntoView();
+    componentWillUpdate() {
+        PostStore.jumpPostsViewSidebarOpen();
+    }
+    doStrangeThings() {
+        // We should have a better way to do this stuff
+        // Hence the function name.
+        $('.inner__wrap').removeClass('.move--right');
+        $('.inner__wrap').addClass('move--left');
+        $('.sidebar--left').removeClass('move--right');
+        $('.sidebar--right').addClass('move--left');
+
+        //$('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
+
+        if (!(this.state.search_visible || this.state.post_right_visible)) {
+            $('.inner__wrap').removeClass('move--left').removeClass('move--right');
+            $('.sidebar--right').removeClass('move--left');
+            return (
+                <div></div>
+            );
         }
+
+        /*setTimeout(() => {
+            $('.sidebar__overlay').fadeOut('200', () => {
+                $('.sidebar__overlay').remove();
+            });
+            }, 500);*/
+    }
+    componentDidUpdate() {
+        this.doStrangeThings();
     }
     onSelectedChange(fromSearch) {
         var newState = getStateFromStores(fromSearch);
@@ -52,30 +77,6 @@ export default class SidebarRight extends React.Component {
         }
     }
     render() {
-        var postHolder = $('.post-list-holder-by-time').not('.inactive');
-        const position = postHolder.scrollTop() + postHolder.height() + 14;
-        const bottom = postHolder[0].scrollHeight;
-        this.plScrolledToBottom = position >= bottom;
-
-        if (!(this.state.search_visible || this.state.post_right_visible)) {
-            $('.inner__wrap').removeClass('move--left').removeClass('move--right');
-            $('.sidebar--right').removeClass('move--left');
-            return (
-                <div></div>
-            );
-        }
-
-        $('.inner__wrap').removeClass('.move--right').addClass('move--left');
-        $('.sidebar--left').removeClass('move--right');
-        $('.sidebar--right').addClass('move--left');
-        $('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
-
-        setTimeout(() => {
-            $('.sidebar__overlay').fadeOut('200', function fadeOverlay() {
-                $(this).remove();
-            });
-        }, 500);
-
         var content = '';
 
         if (this.state.search_visible) {

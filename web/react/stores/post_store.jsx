@@ -14,6 +14,7 @@ var ActionTypes = Constants.ActionTypes;
 var CHANGE_EVENT = 'change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var EDIT_POST_EVENT = 'edit_post';
+var POSTS_VIEW_JUMP_EVENT = 'post_list_jump';
 
 class PostStoreClass extends EventEmitter {
     constructor() {
@@ -29,7 +30,11 @@ class PostStoreClass extends EventEmitter {
 
         this.emitEditPost = this.emitEditPost.bind(this);
         this.addEditPostListener = this.addEditPostListener.bind(this);
-        this.removeEditPostListener = this.removeEditPostListener.bind(this);
+        this.removeEditPostListener = this.removeEditPostListner.bind(this);
+
+        this.emitPostsViewJump = this.emitPostsViewJump.bind(this);
+        this.addPostsViewJumpListener = this.addPostsViewJumpListener.bind(this);
+        this.removePostsViewJumpListener = this.removePostsViewJumpListener.bind(this);
 
         this.getCurrentPosts = this.getCurrentPosts.bind(this);
         this.storePosts = this.storePosts.bind(this);
@@ -96,8 +101,32 @@ class PostStoreClass extends EventEmitter {
         this.on(EDIT_POST_EVENT, callback);
     }
 
-    removeEditPostListener(callback) {
+    removeEditPostListner(callback) {
         this.removeListener(EDIT_POST_EVENT, callback);
+    }
+
+    emitPostsViewJump(type, post) {
+        this.emit(POSTS_VIEW_JUMP_EVENT, type, post);
+    }
+
+    addPostsViewJumpListener(callback) {
+        this.on(POSTS_VIEW_JUMP_EVENT, callback);
+    }
+
+    removePostsViewJumpListener(callback) {
+        this.removeListener(POSTS_VIEW_JUMP_EVENT, callback);
+    }
+
+    jumpPostsViewToBottom() {
+        this.emitPostsViewJump(Constants.PostsViewJumpTypes.BOTTOM, null);
+    }
+
+    jumpPostsViewToPost(post) {
+        this.emitPostsViewJump(Constants.PostsViewJumpTypes.POST, post);
+    }
+
+    jumpPostsViewSidebarOpen() {
+        this.emitPostsViewJump(Constants.PostsViewJumpTypes.SIDEBAR_OPEN, null);
     }
 
     getCurrentPosts() {
@@ -108,16 +137,16 @@ class PostStoreClass extends EventEmitter {
         }
         return null;
     }
-    storePosts(channelId, newPostList) {
-        if (isPostListNull(newPostList)) {
+    storePosts(channelId, newPostsView) {
+        if (isPostListNull(newPostsView)) {
             return;
         }
 
         var postList = makePostListNonNull(this.getPosts(channelId));
 
-        for (const pid in newPostList.posts) {
-            if (newPostList.posts.hasOwnProperty(pid)) {
-                const np = newPostList.posts[pid];
+        for (const pid in newPostsView.posts) {
+            if (newPostsView.posts.hasOwnProperty(pid)) {
+                const np = newPostsView.posts[pid];
                 if (np.delete_at === 0) {
                     postList.posts[pid] = np;
                     if (postList.order.indexOf(pid) === -1) {

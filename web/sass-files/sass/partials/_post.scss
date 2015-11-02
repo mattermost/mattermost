@@ -441,7 +441,10 @@ body.ios {
 		&.post-profile-img__container {
 			float: left;
 			.post-profile-img {
+                width: 36px;
+                height: 36px;
 				margin-right: 10px;
+                vertical-align: inherit;
 				@include border-radius(50px);
 			}
 		}
