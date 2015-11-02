@@ -888,11 +888,11 @@ export function displayUsername(userId) {
     const user = UserStore.getProfile(userId);
     const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value;
 
-    let username;
+    let username = '';
     if (nameFormat === 'nickname_full_name') {
-        username = user.nickname || getFullName();
+        username = user.nickname || getFullName(user);
     } else if (nameFormat === 'full_name') {
-        username = getFullName();
+        username = getFullName(user);
     }
     if (!username.trim().length) {
         username = user.username;
