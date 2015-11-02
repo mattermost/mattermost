@@ -80,6 +80,11 @@ func TestOutgoingWebhookIsValid(t *testing.T) {
 		t.Fatal("should be invalid")
 	}
 
+	o.CallbackURLs = []string{"nowhere.com/"}
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
 	o.CallbackURLs = []string{"http://nowhere.com/"}
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
