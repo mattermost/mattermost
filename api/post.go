@@ -212,7 +212,6 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		}
 
 		if triggerWebhooks {
-			fmt.Println("triggerWebhooks", post)
 			handleWebhookEventsAndForget(c, post, team, channel, user)
 		}
 	}()
