@@ -19,8 +19,7 @@ export default class SidebarRightMenu extends React.Component {
         this.handleLogoutClick = this.handleLogoutClick.bind(this);
 
         this.state = {
-            showUserSettingsModal: false,
-            showInviteMemberModal: false
+            showUserSettingsModal: false
         };
     }
 
@@ -47,7 +46,7 @@ export default class SidebarRightMenu extends React.Component {
                 <li>
                     <a
                         href='#'
-                        onClick={() => this.setState({showInviteMemberModal: true})}
+                        onClick={InviteMemberModal.show}
                     >
                         <i className='glyphicon glyphicon-user'></i>Invite New Member
                     </a>
@@ -155,10 +154,6 @@ export default class SidebarRightMenu extends React.Component {
                 <UserSettingsModal
                     show={this.state.showUserSettingsModal}
                     onModalDismissed={() => this.setState({showUserSettingsModal: false})}
-                />
-                <InviteMemberModal
-                    show={this.state.showInviteMemberModal}
-                    onModalDismissed={() => this.setState({showInviteMemberModal: false})}
                 />
             </div>
         );

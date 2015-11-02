@@ -46,7 +46,6 @@ export default class NavbarDropdown extends React.Component {
         const state = getStateFromStores();
         state.showUserSettingsModal = false;
         state.showAboutModal = false;
-        state.showInviteMemberModal = false;
         this.state = state;
     }
     handleLogoutClick(e) {
@@ -102,7 +101,7 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <a
                         href='#'
-                        onClick={() => this.setState({showInviteMemberModal: true})}
+                        onClick={InviteMemberModal.show}
                     >
                         {'Invite New Member'}
                     </a>
@@ -275,10 +274,6 @@ export default class NavbarDropdown extends React.Component {
                         <AboutBuildModal
                             show={this.state.showAboutModal}
                             onModalDismissed={this.aboutModalDismissed}
-                        />
-                        <InviteMemberModal
-                            show={this.state.showInviteMemberModal}
-                            onModalDismissed={() => this.setState({showInviteMemberModal: false})}
                         />
                     </ul>
                 </li>

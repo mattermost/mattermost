@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const ModalStore = require('../../stores/modal_store.jsx');
 const UserStore = require('../../stores/user_store.jsx');
 const Utils = require('../../utils/utils.jsx');
 const Client = require('../../utils/client.jsx');
@@ -24,10 +25,10 @@ export default class ImportThemeModal extends React.Component {
         };
     }
     componentDidMount() {
-        UserStore.addImportModalListener(this.updateShow);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_IMPORT_THEME_MODAL, this.updateShow);
     }
     componentWillUnmount() {
-        UserStore.removeImportModalListener(this.updateShow);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_IMPORT_THEME_MODAL, this.updateShow);
     }
     updateShow(show) {
         this.setState({show});

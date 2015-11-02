@@ -2,7 +2,10 @@
 // See License.txt for license information.
 
 var utils = require('../utils/utils.jsx');
+var ActionTypes = require('../utils/constants.jsx').ActionTypes;
+var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Client = require('../utils/client.jsx');
+var ModalStore = require('../stores/modal_store.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var ConfirmModal = require('./confirm_modal.jsx');
@@ -13,6 +16,7 @@ export default class InviteMemberModal extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleToggle = this.handleToggle.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleHide = this.handleHide.bind(this);
         this.addInviteFields = this.addInviteFields.bind(this);
@@ -20,6 +24,7 @@ export default class InviteMemberModal extends React.Component {
         this.removeInviteFields = this.removeInviteFields.bind(this);
 
         this.state = {
+            show: false,
             inviteIds: [0],
             idCount: 0,
             emailErrors: {},
@@ -28,6 +33,20 @@ export default class InviteMemberModal extends React.Component {
             emailEnabled: global.window.mm_config.SendEmailNotifications === 'true',
             showConfirmModal: false
         };
+    }
+
+    componentDidMount() {
+        ModalStore.addModalListener(ActionTypes.TOGGLE_INVITE_MEMBER_MODAL, this.handleToggle);
+    }
+
+    componentWillUnmount() {
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_INVITE_MEMBER_MODAL, this.handleToggle);
+    }
+
+    handleToggle(value) {
+        this.setState({
+            show: value
+        });
     }
 
     handleSubmit() {
@@ -108,12 +127,14 @@ export default class InviteMemberModal extends React.Component {
 
         this.clearFields();
 
-        this.setState({showConfirmModal: false});
-        this.props.onModalDismissed();
+        this.setState({
+            show: false,
+            showConfirmModal: false
+        });
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
+    componentDidUpdate(prevProps, prevState) {
+        if (!prevState.show && this.state.show) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
             if ($(window).width() > 768) {
                 $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
@@ -331,7 +352,7 @@ export default class InviteMemberModal extends React.Component {
                 <div>
                     <Modal
                         className='modal-invite-member'
-                        show={this.props.show}
+                        show={this.state.show}
                         onHide={this.handleHide.bind(this, true)}
                         enforceFocus={!this.state.showConfirmModal}
                     >
@@ -369,9 +390,14 @@ export default class InviteMemberModal extends React.Component {
 
         return null;
     }
+
+    static show() {
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.TOGGLE_INVITE_MEMBER_MODAL,
+            value: true
+        });
+    }
 }
 
 InviteMemberModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
 };

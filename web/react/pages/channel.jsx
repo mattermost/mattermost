@@ -25,6 +25,7 @@ var ChannelInfoModal = require('../components/channel_info_modal.jsx');
 var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
 var RegisterAppModal = require('../components/register_app_modal.jsx');
 var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
+var InviteMemberModal = require('../components/invite_member_modal.jsx');
 
 var AsyncClient = require('../utils/async_client.jsx');
 var Constants = require('../utils/constants.jsx');
@@ -76,6 +77,11 @@ function setupChannelPage(props) {
     ReactDOM.render(
         <GetLinkModal />,
         document.getElementById('get_link_modal')
+    );
+
+    ReactDOM.render(
+        <InviteMemberModal />,
+        document.getElementById('invite_member_modal')
     );
 
     ReactDOM.render(
