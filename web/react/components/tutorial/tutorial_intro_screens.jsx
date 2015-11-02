@@ -120,8 +120,9 @@ export default class TutorialIntroScreens extends React.Component {
                         href='mailto:feedback@mattermost.com'
                         target='_blank'
                     >
-                        {'feedback@mattermost.com.'}
+                        {'feedback@mattermost.com'}
                     </a>
+                    {'.'}
                 </p>
                 {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
                 <div className='tutorial__circles'>
