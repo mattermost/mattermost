@@ -373,29 +373,28 @@ export default class GeneralTab extends React.Component {
             const inputs = [];
 
             inputs.push(
-                <div
-                    key='teamInviteSetting'
-                    className='form-group'
-                >
-                    <label className='col-sm-5 control-label'>{'Invite Code'}</label>
-                    <div className='col-sm-7'>
-                        <input
-                            className='form-control'
-                            type='text'
-                            onChange={this.updateInviteId}
-                            value={this.state.invite_id}
-                            maxLength='32'
-                        />
+                <div key='teamInviteSetting'>
+                    <div className='row'>
+                        <label className='col-sm-5 control-label'>{'Invite Code'}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateInviteId}
+                                value={this.state.invite_id}
+                                maxLength='32'
+                            />
+                            <div className='padding-top x2'>
+                                <a
+                                    href="#"
+                                    onClick={this.handleGenerateInviteId}
+                                >
+                                    {'Re-Generate'}
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div><br/>{'When allowing open invites this code is used as part of the signup process.  Changing this code will invalidate the previous open signup link.'}</div>
-                    <div className='help-text'>
-                        <button
-                            className='btn btn-default'
-                            onClick={this.handleGenerateInviteId}
-                        >
-                            {'Re-Generate'}
-                        </button>
-                    </div>
+                    <div className='setting-list__hint'>{'When allowing open invites this code is used as part of the signup process.  Changing this code will invalidate the previous open signup link.'}</div>
                 </div>
             );
 
@@ -494,8 +493,11 @@ export default class GeneralTab extends React.Component {
                     <h3 className='tab-header'>{'General Settings'}</h3>
                     <div className='divider-dark first'/>
                     {nameSection}
+                    <div className='divider-light'/>
                     {openInviteSection}
+                    <div className='divider-light'/>
                     {teamListingSection}
+                    <div className='divider-light'/>
                     {inviteSection}
                     <div className='divider-dark'/>
                 </div>

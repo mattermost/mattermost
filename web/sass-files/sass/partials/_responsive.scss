@@ -266,6 +266,11 @@
     }
 }
 @media screen and (max-width: 768px) {
+    .form-control {
+        &.min-height {
+                min-height: 100px;
+        }
+    }
     .file-details__container {
         display: block;
         .file-details__preview {
@@ -283,6 +288,9 @@
             width: 100%;
             height: auto;
         }
+    }
+    .gif-div {
+        max-width: 100%;
     }
     .search-help-popover.visible {
         visibility: hidden;
@@ -439,7 +447,7 @@
             }
         }
         .settings-table {
-            .nav {
+            .nav, .nav.absolute {
                 position: relative;
                 top: auto;
                 width: 100%;

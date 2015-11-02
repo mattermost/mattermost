@@ -5,6 +5,9 @@ export default class SettingsSidebar extends React.Component {
     componentDidUpdate() {
         $('.settings-modal').find('.modal-body').scrollTop(0);
         $('.settings-modal').find('.modal-body').perfectScrollbar('update');
+        if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+            $('.settings-modal .settings-links .nav').addClass('absolute');
+        }
     }
     constructor(props) {
         super(props);
