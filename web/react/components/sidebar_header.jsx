@@ -57,7 +57,7 @@ export default class SidebarHeader extends React.Component {
                 <strong>{'Invite New Members'}</strong>
                 {', access your '}
                 <strong>{'Account Settings'}</strong>
-                {', and set your '}<strong>{'Theme Color'}</strong>{'.'}
+                {' and set your '}<strong>{'Theme Color'}</strong>{'.'}
                 </p>
                 <p>
                 {'Team administrators can also access their '}<strong>{'Team Settings'}</strong>{' from this menu.'}

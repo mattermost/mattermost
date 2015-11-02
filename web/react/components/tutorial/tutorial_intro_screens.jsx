@@ -20,10 +20,6 @@ export default class TutorialIntroScreens extends React.Component {
 
         this.state = {currentScreen: 0};
     }
-    componentDidMount() {
-        const height = $(window).outerHeight() - 120;
-        $('.tutorial-steps__container').css('height', `${height}px`);
-    }
     handleNext() {
         if (this.state.currentScreen < 2) {
             this.setState({currentScreen: this.state.currentScreen + 1});
