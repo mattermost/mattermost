@@ -35,7 +35,7 @@ export default class CenterPanel extends React.Component {
         this.setState({showTutorialScreens: parseInt(tutorialPref.value, 10) <= TutorialSteps.INTRO_SCREENS});
     }
     render() {
-        let postsContainer
+        let postsContainer;
         if (this.state.showTutorialScreens) {
             postsContainer = <TutorialIntroScreens />;
         } else {
