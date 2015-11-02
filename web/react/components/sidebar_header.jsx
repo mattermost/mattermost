@@ -49,43 +49,18 @@ export default class SidebarHeader extends React.Component {
     createTutorialTip() {
         const screens = [];
 
-        let teamSettingsLink = <strong>{'Team Settings'}</strong>;
-        if (Utils.isAdmin(UserStore.getCurrentUser().roles)) {
-            teamSettingsLink = (
-                <a
-                    href='#'
-                    data-toggle='modal'
-                    data-target='#team_settings'
-                >
-                    {'Team Settings'}
-                </a>
-            );
-        }
-
         screens.push(
             <div>
                 <h4>{'Main Menu'}</h4>
                 <p>
                 {'The '}<strong>{'Main Menu'}</strong>{' is where you can '}
-                <a
-                    href='#'
-                    data-toggle='modal'
-                    data-target='#invite_member'
-                >
-                    {'Invite New Members'}
-                </a>
+                <strong>{'Invite New Members'}</strong>
                 {', access your '}
-                <a
-                    href='#'
-                    data-toggle='modal'
-                    data-target='#user_settings'
-                >
-                    {'Account Settings'}
-                </a>
+                <strong>{'Account Settings'}</strong>
                 {', and set your '}<strong>{'Theme Color'}</strong>{'.'}
                 </p>
                 <p>
-                {'Team administrators can also access their '}{teamSettingsLink}{' from this menu.'}
+                {'Team administrators can also access their '}<strong>{'Team Settings'}</strong>{' from this menu.'}
                 </p>
             </div>
         );
