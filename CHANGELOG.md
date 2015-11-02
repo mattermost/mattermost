@@ -7,9 +7,78 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 - **Release candidate anticipated:** 2015-11-10
 - **Final release anticipated:** 2015-11-16
 
-### Changes
+### Improvements 
 
-- IE 10 no longer supported since global share of IE 10 fell below 5%
+Messaging and Notifications 
+
+- Users can now search for teammates to add to **Direct Message** list via **More** menu
+- Users can now personalize Direct Messages list by removing users listed
+- Link previews - Adding URL with .gif file adds image below message 
+
+Search 
+
+- Adding search term `in:[channel_url_name]` now limits searches within a specific channel
+- Adding search term `from:[username]` now limits searches to messages from a specific user
+- Tip explaining search options when clicking into search box
+
+Integrations 
+
+- [Outgoing webhooks](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Outgoing-Webhooks.md) now available
+- Made available [application template showing outgoing webhooks working with Mattermost and external application](https://github.com/mattermost/mattermost-integration-giphy)
+
+User Interface
+
+- Member list in Channel display now scrollable, and includes Message button to message channel members directly
+- Syntax highlighted added for code blocks
+   - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`. 
+   - Use by adding the name of the language on the first link of the code block, for example: ```python
+   - Syntax color theme can be defined under **Account Settings** > **Appearance Settings** > **Custom Theme**
+- Added ability to edit previous message by hitting UP arrow
+
+Team Settings
+
+- Ability to change team URL
+- Ability to rotate invite code for invite URL 
+
+System Console
+
+- New statistics page
+- Configurable option to create an account directly from team page
+
+Onboarding 
+
+- New tutorial explaining how to use Mattermost for new users
+
+#### Bug Fixes
+
+- Various fixes to theme colors 
+
+### Compatibility  
+
+- IE 11 new minimum version for IE, since IE 10 share fell below 5% on desktop 
+- Safari 8 new minimum version for Safari, since Safari 7 fell below 1% on desktop 
+
+#### Known Issues
+
+- Microsoft Edge does not yet support drag and drop 
+- Incoming webhooks no longer disrupted when channel is deleted
+
+#### Contributors 
+
+Many thanks to our external contributors. In no particular order:
+
+- [florianorben](https://github.com/florianorben)
+- [trashcan](https://github.com/trashcan)
+- [girishso](https://github.com/girishso)
+- [apaatsio](https://github.com/apaatsio)
+- [jlebleu](https://github.com/jlebleu)
+- [stasvovk](https://github.com/stasvovk)
+- [mcmillhj](https://github.com/mcmillhj)
+- [sharms](https://github.com/sharms)
+- [jvasallo](https://github.com/jvasallo)
+- [layzerar](https://github.com/layzerar)
+- [optimistiks](https://github.com/optimistiks)
+- [layzerar](https://github.com/layzerar)
 
 ## Release v1.1.1 (Bug Fix Release) 
 
