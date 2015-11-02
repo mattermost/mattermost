@@ -204,7 +204,6 @@ export default class Post extends React.Component {
                             posts={posts}
                             handleCommentClick={this.handleCommentClick}
                             retryPost={this.retryPost}
-                            resize={this.props.resize}
                         />
                         <PostInfo
                             ref='info'
@@ -228,6 +227,5 @@ Post.propTypes = {
     sameUser: React.PropTypes.bool,
     sameRoot: React.PropTypes.bool,
     hideProfilePic: React.PropTypes.bool,
-    isLastComment: React.PropTypes.bool,
-    resize: React.PropTypes.func
+    isLastComment: React.PropTypes.bool
 };

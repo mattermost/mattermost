@@ -12,7 +12,6 @@ export default class PostsView extends React.Component {
         this.handleScroll = this.handleScroll.bind(this);
         this.isAtBottom = this.isAtBottom.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
-        this.postsRerendered = this.postsRerendered.bind(this);
         this.createPosts = this.createPosts.bind(this);
         this.updateScrolling = this.updateScrolling.bind(this);
         this.handleResize = this.handleResize.bind(this);
@@ -52,8 +51,6 @@ export default class PostsView extends React.Component {
     }
     loadMorePostsTop() {
         this.props.loadMorePostsTopClicked();
-    }
-    postsRerendered() {
     }
     createPosts(posts, order) {
         const postCtls = [];
@@ -111,7 +108,6 @@ export default class PostsView extends React.Component {
                     posts={posts}
                     hideProfilePic={hideProfilePic}
                     isLastComment={isLastComment}
-                    resize={this.postsRerendered}
                 />
             );
 
