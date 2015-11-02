@@ -16,38 +16,93 @@
     @include border-radius(3px);
     padding: 20px;
     z-index: 1000;
+
+    .arrow {
+        border-width: 10px;
+        position: absolute;
+        display: block;
+        width: 0;
+        height: 0;
+        border-color: transparent;
+        border-style: solid;
+    }
+
+    &.tip-overlay--sidebar {
+        max-width: 75%;
+        margin: 50px 0 0 10px;
+        .arrow {
+            top: 80px;
+            left: -10px;
+            margin-top: -10px;
+            border-left-width: 0;
+            border-right-color: #fff;
+        }
+    }
+
+    &.tip-overlay--header {
+        margin: 10px 0 0 10px;
+        .arrow {
+            top: 15px;
+            left: -10px;
+            border-left-width: 0;
+            border-right-color: #fff;
+        }
+    }
+
+    &.tip-overlay--chat {
+        margin-top: -10px;
+        .arrow {
+            left: 50%;
+            margin-left: -10px;
+            border-bottom-width: 0;
+            border-top-color: #fff;
+            bottom: -10px;
+        }
+    }
+
     h4 {
         font-size: em(16px);
         font-weight: 600;
         margin: 5px 0 15px;
     }
+
     p {
         font-size: 13px;
         line-height: 1.6;
+
         strong {
             font-weight: 600;
         }
+
     }
+
     .btn {
         background: #cccccc;
         color: #fff;
         @include border-radius(3px);
         border: none;
         margin-bottom: 10px;
+
         &:hover, &:active, &:focus {
             color: #fff;
             border: none;
             background: #bbb;
         }
+
     }
+
     .tip-opt {
         font-size: 12px;
+
         span {
             @include opacity(0.5);
         }
+
     }
+
     .tutorial__circles {
         margin: 1.5em 0px -1.7em -4px;
+
         .circle {
             width: 7px;
             height: 7px;
@@ -56,8 +111,11 @@
                 background: #000;
                 @include opacity(0.4);
             }
+
         }
+
     }
+
 }
 
 .tip-button {
@@ -72,6 +130,16 @@
     position:absolute;
     top:0px;
     right:0px;
+
+    &.tip-overlay--header {
+        top: 20px;
+    }
+
+    &.tip-overlay--sidebar {
+        left: 0;
+        top: -9px;
+    }
+
 }
 
 .tutorial-steps__container {

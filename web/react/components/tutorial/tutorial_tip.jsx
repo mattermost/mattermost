@@ -70,7 +70,7 @@ export default class TutorialTip extends React.Component {
         }
 
         return (
-            <div className='tip-div'>
+            <div className={'tip-div ' + this.props.overlayClass}>
                 <img
                     className='tip-button'
                     src='/static/images/tutorialTip.gif'
@@ -93,6 +93,7 @@ export default class TutorialTip extends React.Component {
                     target={() => this.refs.target}
                 >
                     <div className={'tip-overlay ' + this.props.overlayClass}>
+                        <div className='arrow'></div>
                         {this.props.screens[this.state.currentScreen]}
                         <div className='tutorial__circles'>{dots}</div>
                         <div className='text-right'>

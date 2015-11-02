@@ -179,6 +179,15 @@
 }
 
 @media screen and (max-width: 1140px) {
+    .tip-overlay {
+        &.tip-overlay--chat {
+            margin: -10px 0 0 -10px;
+            .arrow {
+                right: 15px;
+                left: auto;
+            }
+        }
+    }
     .inner__wrap {
         &.move--left {
             .file-overlay {
@@ -266,6 +275,18 @@
     }
 }
 @media screen and (max-width: 768px) {
+    .tip-div {
+        left: 15px;
+        right: auto;
+    }
+    .tip-overlay {
+        &.tip-overlay--chat {
+            margin-left: 10px;
+            .arrow {
+                left: 32px;
+            }
+        }
+    }
     .file-details__container {
         display: block;
         .file-details__preview {
@@ -482,7 +503,6 @@
             padding-bottom: 10px;
             display: table;
             width: 100%;
-            table-layout: fixed;
             .post-body__cell {
                 display: table-cell;
                 padding-left: 45px;

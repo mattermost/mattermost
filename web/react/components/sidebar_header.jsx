@@ -64,7 +64,8 @@ export default class SidebarHeader extends React.Component {
 
         screens.push(
             <div>
-                <h4><strong>{'Sending Messages'}</strong></h4>
+                <h4>{'Main Menu'}</h4>
+                <p>
                 {'The '}<strong>{'Main Menu'}</strong>{' is where you can '}
                 <a
                     href='#'
@@ -82,8 +83,10 @@ export default class SidebarHeader extends React.Component {
                     {'Account Settings'}
                 </a>
                 {', and set your '}<strong>{'Theme Color'}</strong>{'.'}
-                <br/><br/>
+                </p>
+                <p>
                 {'Team administrators can also access their '}{teamSettingsLink}{' from this menu.'}
+                </p>
             </div>
         );
 
@@ -95,7 +98,7 @@ export default class SidebarHeader extends React.Component {
                     ref='tip'
                     placement='right'
                     screens={screens}
-                    overlayClass='tip-overlay--sidebar'
+                    overlayClass='tip-overlay--header'
                 />
             </div>
         );
