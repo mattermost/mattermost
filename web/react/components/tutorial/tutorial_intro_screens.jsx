@@ -20,6 +20,10 @@ export default class TutorialIntroScreens extends React.Component {
 
         this.state = {currentScreen: 0};
     }
+    componentDidMount() {
+        const height = $(window).outerHeight() - 120;
+        $('.tutorial-steps__container').css('height', `${height}px`);
+    }
     handleNext() {
         if (this.state.currentScreen < 2) {
             this.setState({currentScreen: this.state.currentScreen + 1});
@@ -48,35 +52,29 @@ export default class TutorialIntroScreens extends React.Component {
     createScreenOne() {
         return (
             <div>
-                <h4><strong>{'Welcome to:'}</strong></h4>
-                <h2><strong>{'Mattermost'}</strong></h2>
-                <br/>
-                {'Your team communications all in one place,'}
-                <br/>
-                {'instantly searchable and available anywhere.'}
-                <br/><br/>
-                {'Keep your team connected to help them'}
-                <br/>
-                {'achieve what matters most.'}
-                <br/><br/>
-                <span>{'[ x ][ ][ ]'}</span>
+                <h3>{'Welcome to:'}</h3>
+                <h1>{'Mattermost'}</h1>
+                <p>{'Your team communications all in one place, instantly searchable and available anywhere.'}</p>
+                <p>{'Keep your team connected to help them achieve what matters most.'}</p>
+                <div className='tutorial__circles'>
+                    <div className='circle active'/>
+                    <div className='circle'/>
+                    <div className='circle'/>
+                </div>
             </div>
         );
     }
     createScreenTwo() {
         return (
             <div>
-                <h4><strong>{'How Mattermost works:'}</strong></h4>
-                <br/>
-                {'Communication happens in public discussion channels,'}
-                <br/>
-                {'private groups and direct messages.'}
-                <br/><br/>
-                {'Everything is archived and searchable from'}
-                <br/>
-                {'any web-enabled laptop, tablet or phone.'}
-                <br/><br/>
-                <span>{'[ ][ x ][ ]'}</span>
+                <h3>{'How Mattermost works:'}</h3>
+                <p>{'Communication happens in public discussion channels, private groups and direct messages.'}</p>
+                <p>{'Everything is archived and searchable from any web-enabled laptop, tablet or phone.'}</p>
+                <div className='tutorial__circles'>
+                    <div className='circle'/>
+                    <div className='circle active'/>
+                    <div className='circle'/>
+                </div>
             </div>
         );
     }
@@ -111,26 +109,26 @@ export default class TutorialIntroScreens extends React.Component {
 
         return (
             <div>
-                <h4><strong>{'You’re all set'}</strong></h4>
-                <br/>
-                {inviteModalLink}
-                {' when you’re ready.'}
-                <br/><br/>
-                {'Need anything, just email us at '}
-                <a
-                    href='mailto:feedback@mattermost.com'
-                    target='_blank'
-                >
-                    {'feedback@mattermost.com.'}
-                </a>
-                <br/><br/>
-                {'Click “Next” to enter Town Square. This is the first channel'}
-                <br/>
-                {'teammates see when they sign up - use it for posting updates'}
-                <br/>
-                {'everyone needs to know.'}
-                <br/><br/>
-                <span>{'[ ][ ][ x ]'}</span>
+                <h3>{'You’re all set'}</h3>
+                <p>
+                    {inviteModalLink}
+                    {' when you’re ready.'}
+                </p>
+                <p>
+                    {'Need anything, just email us at '}
+                    <a
+                        href='mailto:feedback@mattermost.com'
+                        target='_blank'
+                    >
+                        {'feedback@mattermost.com.'}
+                    </a>
+                </p>
+                {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
+                <div className='tutorial__circles'>
+                    <div className='circle'/>
+                    <div className='circle'/>
+                    <div className='circle active'/>
+                </div>
             </div>
         );
     }
@@ -138,16 +136,19 @@ export default class TutorialIntroScreens extends React.Component {
         const screen = this.createScreen();
 
         return (
-            <div>
-                {screen}
-                <br/><br/>
-                <button
-                    className='btn btn-primary'
-                    tabIndex='1'
-                    onClick={this.handleNext}
-                >
-                    {'Next'}
-                </button>
+            <div className='tutorial-steps__container'>
+                <div className='tutorial__content'>
+                    <div className='tutorial__steps'>
+                        {screen}
+                        <button
+                            className='btn btn-primary'
+                            tabIndex='1'
+                            onClick={this.handleNext}
+                        >
+                            {'Next'}
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }

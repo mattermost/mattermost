@@ -323,28 +323,34 @@ export default class Sidebar extends React.Component {
 
         screens.push(
             <div>
-                <h4><strong>{'Channels'}</strong></h4>
-                <strong>{'Channels'}</strong>{' organize conversations across different topics. They’re open to everyone on your team. To send private communications use '}<strong>{'Direct Messages'}</strong>{' for a single person or '}<strong>{'Private Groups'}</strong>{' for multiple people.'}
+                <h4>{'Channels'}</h4>
+                <p><strong>{'Channels'}</strong>{' organize conversations across different topics. They’re open to everyone on your team. To send private communications use '}<strong>{'Direct Messages'}</strong>{' for a single person or '}<strong>{'Private Groups'}</strong>{' for multiple people.'}
+                </p>
             </div>
         );
 
         screens.push(
             <div>
-                <h4><strong>{'"Town Square" and "Off-Topic" channels'}</strong></h4>
-                {'Here are two public channels to start:'}
-                <br/><br/>
-                <strong>{'Town Square'}</strong>{' is a place for team-wide communication. Everyone in your team is a member of this channel.'}
-                <br/><br/>
-                <strong>{'Off-Topic'}</strong>{' is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.'}
+                <h4>{'"Town Square" and "Off-Topic" channels'}</h4>
+                <p>{'Here are two public channels to start:'}</p>
+                <p>
+                    <strong>{'Town Square'}</strong>{' is a place for team-wide communication. Everyone in your team is a member of this channel.'}
+                </p>
+                <p>
+                    <strong>{'Off-Topic'}</strong>{' is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.'}
+                </p>
             </div>
         );
 
         screens.push(
             <div>
-                <h4><strong>{'Creating and Joining Channels'}</strong></h4>
-                {'Click '}<strong>{'"More..."'}</strong>{' to create a new channel or join an existing one.'}
-                <br/><br/>
-                {'You can also create a new channel or private group by clicking the '}<strong>{'"+" symbol'}</strong>{' next to the channel or private group header.'}
+                <h4>{'Creating and Joining Channels'}</h4>
+                <p>
+                    {'Click '}<strong>{'"More..."'}</strong>{' to create a new channel or join an existing one.'}
+                </p>
+                <p>
+                    {'You can also create a new channel or private group by clicking the '}<strong>{'"+" symbol'}</strong>{' next to the channel or private group header.'}
+                </p>
             </div>
         );
 

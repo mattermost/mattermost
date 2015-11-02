@@ -1,21 +1,120 @@
+.tip-backdrop {
+    background: rgba(black, 0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+}
+
 .tip-overlay {
+    width: 350px;
+    max-width: 90%;
     position:absolute;
-    background-color:#EEE;
-    box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);
-    border:1px solid #CCC;
-    border-radius:3px;
-    padding:10px;
-    z-index:999;
+    background-color: #fff;
+    @include border-radius(3px);
+    padding: 20px;
+    z-index: 1000;
+    h4 {
+        font-size: em(16px);
+        font-weight: 600;
+        margin: 5px 0 15px;
+    }
+    p {
+        font-size: 13px;
+        line-height: 1.6;
+        strong {
+            font-weight: 600;
+        }
+    }
+    .btn {
+        background: #cccccc;
+        color: #fff;
+        @include border-radius(3px);
+        border: none;
+        margin-bottom: 10px;
+        &:hover, &:active, &:focus {
+            color: #fff;
+            border: none;
+            background: #bbb;
+        }
+    }
+    .tip-opt {
+        font-size: 12px;
+        span {
+            @include opacity(0.5);
+        }
+    }
+    .tutorial__circles {
+        margin: 1.5em 0px -1.7em -4px;
+        .circle {
+            width: 7px;
+            height: 7px;
+            margin: 0 4px;
+            &.active {
+                background: #000;
+                @include opacity(0.4);
+            }
+        }
+    }
 }
 
 .tip-button {
-    height:20px;
-    width:20px;
-    z-index:998;
+    z-index: 998;
+    right: -10px;
+    top: -10px;
+    position: relative;
+    cursor: pointer;
 }
 
 .tip-div {
     position:absolute;
     top:0px;
     right:0px;
+}
+
+.tutorial-steps__container {
+    text-align: center;
+    width: 100%;
+    display: table;
+    .tutorial__content {
+        display: table-cell;
+        vertical-align: middle;
+        padding-bottom: 100px;
+        padding: 0 40px;
+        .tutorial__steps {
+            max-width: 310px;
+            min-height: 420px;
+            text-align: left;
+            display: inline-block;
+        }
+    }
+    h1 {
+        font-size: em(40px);
+        margin: -20px 0 30px;
+        font-weight: 600;
+    }
+    h3 {
+        font-size: em(24px);
+        margin-bottom: 30px;
+        font-weight: 600;
+    }
+}
+
+.tutorial__circles {
+    margin: 2em 0;
+    .circle {
+        width: 9px;
+        height: 9px;
+        @include border-radius(9px);
+        @include opacity(0.1);
+        background: #000;
+        display: inline-block;
+        margin: 0 5px;
+        &.active {
+            background: $primary-color;
+            @include opacity(1);
+        }
+    }
 }

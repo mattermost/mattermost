@@ -52,9 +52,19 @@ export default class TutorialTip extends React.Component {
         if (this.props.screens.length > 1) {
             for (let i = 0; i < this.props.screens.length; i++) {
                 if (i === this.state.currentScreen) {
-                    dots.push(<span key={'dotactive' + i}>{'[ x ]'}</span>);
+                    dots.push(
+                        <div
+                            className='circle active'
+                            key={'dotactive' + i}
+                        />
+                    );
                 } else {
-                    dots.push(<span key={'dotinactive' + i}>{'[ ]'}</span>);
+                    dots.push(
+                        <div
+                            className='circle'
+                            key={'dotinactive' + i}
+                        />
+                    );
                 }
             }
         }
@@ -63,7 +73,8 @@ export default class TutorialTip extends React.Component {
             <div className='tip-div'>
                 <img
                     className='tip-button'
-                    src='/static/images/next.png'
+                    src='/static/images/tutorialTip.gif'
+                    width='35'
                     onClick={this.toggle}
                     ref='target'
                 />
@@ -77,24 +88,24 @@ export default class TutorialTip extends React.Component {
                 >
                     <div className='tip-overlay'>
                         {this.props.screens[this.state.currentScreen]}
-                        <br/>
-                        {dots}
-                        <button
-                            className='btn btn-default'
-                            onClick={this.handleNext}
-                        >
-                            {buttonText}
-                        </button>
-                        <br/>
-                        <span>
-                            {'Seen this before? '}
-                            <a
-                                href='#'
-                                onClick={this.skipTutorial}
+                        <div className='tutorial__circles'>{dots}</div>
+                        <div className='text-right'>
+                            <button
+                                className='btn btn-default'
+                                onClick={this.handleNext}
                             >
-                                {'Opt out of these tips.'}
-                            </a>
-                        </span>
+                                {buttonText}
+                            </button>
+                            <div className='tip-opt'>
+                                {'Seen this before? '}
+                                <a
+                                    href='#'
+                                    onClick={this.skipTutorial}
+                                >
+                                    {'Opt out of these tips.'}
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </Overlay>
             </div>
