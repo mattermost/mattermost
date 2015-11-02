@@ -556,6 +556,11 @@ export default class PostList extends React.Component {
             var post = posts[order[i]];
             var parentPost = posts[post.parent_id];
 
+            // If the post is a comment whose parent has been deleted, don't add it to the list.
+            if (parentPost && parentPost.state === Constants.POST_DELETED) {
+                continue;
+            }
+
             var sameUser = false;
             var sameRoot = false;
             var hideProfilePic = false;

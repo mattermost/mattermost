@@ -126,7 +126,7 @@ export default class PostInfo extends React.Component {
             lastCommentClass = ' comment-icon__container__show';
         }
 
-        if (this.props.commentCount >= 1 && post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING) {
+        if (this.props.commentCount >= 1 && post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && post.state !== Constants.POST_DELETED) {
             comments = (
                 <a
                     href='#'
