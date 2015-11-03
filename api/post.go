@@ -31,6 +31,8 @@ func InitPost(r *mux.Router) {
 	sr.Handle("/posts/{time:[0-9]+}", ApiUserRequiredActivity(getPostsSince, false)).Methods("GET")
 	sr.Handle("/post/{post_id:[A-Za-z0-9]+}", ApiUserRequired(getPost)).Methods("GET")
 	sr.Handle("/post/{post_id:[A-Za-z0-9]+}/delete", ApiUserRequired(deletePost)).Methods("POST")
+	sr.Handle("/post/{post_id:[A-Za-z0-9]+}/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
+	sr.Handle("/post/{post_id:[A-Za-z0-9]+}/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -809,6 +811,70 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		result := make(map[string]string)
 		result["id"] = postId
 		w.Write([]byte(model.MapToJson(result)))
+	}
+}
+
+func getPostsBefore(c *Context, w http.ResponseWriter, r *http.Request) {
+	getPostsBeforeOrAfter(c, w, r, true)
+}
+func getPostsAfter(c *Context, w http.ResponseWriter, r *http.Request) {
+	getPostsBeforeOrAfter(c, w, r, false)
+}
+func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, before bool) {
+	params := mux.Vars(r)
+
+	id := params["id"]
+	if len(id) != 26 {
+		c.SetInvalidParam("getPostsBeforeOrAfter", "channelId")
+		return
+	}
+
+	postId := params["post_id"]
+	if len(postId) != 26 {
+		c.SetInvalidParam("getPostsBeforeOrAfter", "postId")
+		return
+	}
+
+	numPosts, err := strconv.Atoi(params["num_posts"])
+	if err != nil || numPosts <= 0 {
+		c.SetInvalidParam("getPostsBeforeOrAfter", "numPosts")
+		return
+	}
+
+	offset, err := strconv.Atoi(params["offset"])
+	if err != nil || offset < 0 {
+		c.SetInvalidParam("getPostsBeforeOrAfter", "offset")
+		return
+	}
+
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, id, c.Session.UserId)
+	// We can do better than this etag in this situation
+	etagChan := Srv.Store.Post().GetEtag(id)
+
+	if !c.HasPermissionsToChannel(cchan, "getPostsBeforeOrAfter") {
+		return
+	}
+
+	etag := (<-etagChan).Data.(string)
+	if HandleEtag(etag, w, r) {
+		return
+	}
+
+	var pchan store.StoreChannel
+	if before {
+		pchan = Srv.Store.Post().GetPostsBefore(id, postId, numPosts, offset)
+	} else {
+		pchan = Srv.Store.Post().GetPostsAfter(id, postId, numPosts, offset)
+	}
+
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		list := result.Data.(*model.PostList)
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(list.ToJson()))
 	}
 }
 
