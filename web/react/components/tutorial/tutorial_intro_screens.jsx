@@ -50,7 +50,7 @@ export default class TutorialIntroScreens extends React.Component {
             <div>
                 <h3>{'Welcome to:'}</h3>
                 <h1>{'Mattermost'}</h1>
-                <p>{'Your team communications all in one place, instantly searchable and available anywhere.'}</p>
+                <p>{'All your team communication in one place, instantly searchable and available anywhere.'}</p>
                 <p>{'Keep your team connected to help them achieve what matters most.'}</p>
                 <div className='tutorial__circles'>
                     <div className='circle active'/>
