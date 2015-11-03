@@ -30,19 +30,14 @@ export default class ChannelLoader extends React.Component {
         AsyncClient.getChannels(true, true);
         AsyncClient.getChannelExtraInfo(true);
         AsyncClient.findTeams();
-        AsyncClient.getStatuses();
         AsyncClient.getMyTeam();
+        setTimeout(() => AsyncClient.getStatuses(), 3000); // temporary until statuses are reworked a bit
 
         /* Perform pending post clean-up */
         PostStore.clearPendingPosts();
 
         /* Set up interval functions */
-        this.intervalId = setInterval(
-            () => {
-                AsyncClient.getStatuses();
-            },
-            30000
-        );
+        this.intervalId = setInterval(() => AsyncClient.getStatuses(), 30000);
 
         /* Device tracking setup */
         var iOS = (/(iPad|iPhone|iPod)/g).test(navigator.userAgent);

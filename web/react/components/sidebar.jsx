@@ -113,6 +113,9 @@ export default class Sidebar extends React.Component {
         for (var i = 0; i < directChannels.length; i++) {
             const dm = directChannels[i];
             const teammate = Utils.getDirectTeammate(dm.id);
+            if (!teammate) {
+                continue;
+            }
 
             const member = members[dm.id];
             const msgCount = dm.total_msg_count - member.msg_count;

@@ -593,7 +593,9 @@ export function getStatuses() {
     const teammateIds = [];
     for (var i = 0; i < directChannels.length; i++) {
         const teammate = utils.getDirectTeammate(directChannels[i].id);
-        teammateIds.push(teammate.id);
+        if (teammate) {
+            teammateIds.push(teammate.id);
+        }
     }
 
     if (isCallInProgress('getStatuses') || teammateIds.length === 0) {
