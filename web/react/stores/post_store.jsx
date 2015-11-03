@@ -15,6 +15,7 @@ var CHANGE_EVENT = 'change';
 var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 var EDIT_POST_EVENT = 'edit_post';
 var POSTS_VIEW_JUMP_EVENT = 'post_list_jump';
+var POSTS_VIEW_RESIZE_EVENT = 'post_list_resize';
 
 class PostStoreClass extends EventEmitter {
     constructor() {
@@ -35,6 +36,10 @@ class PostStoreClass extends EventEmitter {
         this.emitPostsViewJump = this.emitPostsViewJump.bind(this);
         this.addPostsViewJumpListener = this.addPostsViewJumpListener.bind(this);
         this.removePostsViewJumpListener = this.removePostsViewJumpListener.bind(this);
+
+        this.emitPostsViewResize = this.emitPostsViewResize.bind(this);
+        this.addPostsViewResizeListener = this.addPostsViewResizeListener.bind(this);
+        this.removePostsViewResizeListener = this.removePostsViewResizeListener.bind(this);
 
         this.getCurrentPosts = this.getCurrentPosts.bind(this);
         this.storePosts = this.storePosts.bind(this);
@@ -127,6 +132,18 @@ class PostStoreClass extends EventEmitter {
 
     jumpPostsViewSidebarOpen() {
         this.emitPostsViewJump(Constants.PostsViewJumpTypes.SIDEBAR_OPEN, null);
+    }
+
+    emitPostsViewResize() {
+        this.emit(POSTS_VIEW_RESIZE_EVENT);
+    }
+
+    addPostsViewResizeListener(callback) {
+        this.on(POSTS_VIEW_RESIZE_EVENT, callback);
+    }
+
+    removePostsViewResizeListener(callback) {
+        this.removeListener(POSTS_VIEW_RESIZE_EVENT, callback);
     }
 
     getCurrentPosts() {
