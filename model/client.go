@@ -783,8 +783,8 @@ func (c *Client) ResetPassword(data map[string]string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetStatuses() (*Result, *AppError) {
-	if r, err := c.DoApiGet("/users/status", "", ""); err != nil {
+func (c *Client) GetStatuses(data []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/status", ArrayToJson(data)); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
