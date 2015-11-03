@@ -36,8 +36,6 @@ export default class TutorialIntroScreens extends React.Component {
         AsyncClient.savePreferences([preference]);
     }
     componentDidMount() {
-        const height = $(window).height() - 100;
-        $('.tutorials__scroll').height(height);
         $('.tutorials__scroll').perfectScrollbar();
     }
     createScreen() {
@@ -135,10 +133,14 @@ export default class TutorialIntroScreens extends React.Component {
         );
     }
     render() {
+        const height = Utils.windowHeight() - 100;
         const screen = this.createScreen();
 
         return (
-            <div className='tutorials__scroll'>
+            <div
+                className='tutorials__scroll'
+                style={{height}}
+            >
                 <div className='tutorial-steps__container'>
                     <div className='tutorial__content'>
                         <div className='tutorial__steps'>
