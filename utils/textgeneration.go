@@ -17,12 +17,17 @@ const (
 var FUZZY_STRINGS_POSTS = []string{
 	`**[1] - [Markdown Tests]**
 _italics_
+more _italics_
 **bold**
+more **bold**
 **_bold-italic_**
+more **_bold-italic_*8
 ~~strikethrough~~
+more ~~strikethrough~~
 ` + "```" + `
 multi-line code block<enter here>
 multi-line code block
+emoji that should not render in code block: :ice_cream:
 ` + "```" + `
 ` + "`monospace`" + `
 [Link to Mattermost](www.mattermost.com)
@@ -30,8 +35,14 @@ Inline Image with link, alt text, and hover text: ![Build Status](https://travis
 
 Line:
 ***
+`,
 
+` **[2] - **[More Markdown Tests]**
 > i am a blockquote!
+
+> i am a 2nd multiline 
+> quote.
+i am text right after a multiline quote, but not in the quote
 
 * list item
 * another list item
@@ -40,12 +51,24 @@ Line:
 1. numbered list, item number 1
 2. item number two
 
+`,
+
+` **[3]** - **[More Markdown Tests]**
+
 Table
+
 | Left-Aligned  | Center Aligned  | Right Aligned |
 | :------------ |:---------------:| -----:|
 | Left column 1 | this text       |  $100 |
 | Left column 2 | is              |   $10 |
 | Left column 3 | centered        |    $1 |
+
+Ugly table
+
+Markdown | Less | Pretty
+--- | --- | ---
+*Still* | ~~renders~~ | **nicely**
+1 | 2 | 3
 
 # Large heading
 ## Smaller heading
