@@ -37,7 +37,12 @@
 <script>
   window.setup_channel_page({{ .Props }});
   $('body').tooltip( {selector: '[data-toggle=tooltip]'} );
-  $('.modal-body').css('max-height', $(window).height() - 200);
+  if($(window).height() > 1200){
+    $('.modal-body').css('max-height', 1000);
+  }
+  else {
+    $('.modal-body').css('max-height', $(window).height() - 200);
+  }
   $('.modal-body').perfectScrollbar();
 </script>
 </body>
