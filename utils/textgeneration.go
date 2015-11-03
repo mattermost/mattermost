@@ -33,8 +33,10 @@ emoji that should not render in code block: :ice_cream:
 [Link to Mattermost](www.mattermost.com)
 Inline Image with link, alt text, and hover text: ![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
 
-Line:
+Three types of lines:
 ***
+___
+---
 `,
 
 	` **[2] - **[More Markdown Tests]**
