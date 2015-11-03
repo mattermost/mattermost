@@ -62,6 +62,9 @@ export default class SidebarHeader extends React.Component {
                 <p>
                 {'Team administrators can also access their '}<strong>{'Team Settings'}</strong>{' from this menu.'}
                 </p>
+                <p>
+                {'System administrators will find a '}<strong>{'System Console'}</strong>{' option to administrate the entire system.'}
+                </p>
             </div>
         );
 
