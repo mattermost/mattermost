@@ -139,7 +139,7 @@ export default class ChannelInviteModal extends React.Component {
 
         return (
             <div
-                className='modal fade'
+                className='modal fade more-modal'
                 id='channel_invite'
                 tabIndex='-1'
                 role='dialog'

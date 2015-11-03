@@ -314,32 +314,39 @@
 }
 
 .signup-team-all {
-    width: 280px;
-    box-shadow: 3px 3px 1px #d5d5d5;
-    margin: 0px 0px 50px 5px;
+    margin: 0 0 20px;
+    border: 1px solid #ddd;
+    @include border-radius(2px);
+    .signup-team-dir {
+        background: #fafafa;
+        border-top: 1px solid #d5d5d5;
+        &:first-child {
+            border: none;
+        }
+        a {
+            color: inherit;
+            display: block;
+            padding: 0 15px;
+            line-height: 3.5em;
+            height: 3.5em;
+            font-size: 1.1em;
+        }
+    }
+    .signup-team-dir__name {
+        white-space: nowrap;
+        float: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 90%;
+    }
+    .signup-team-dir__arrow {
+        float: right;
+        font-size: 0.9em;
+        color: #999;
+        line-height: 3.5em;
+    }
 }
 
-.signup-team-dir {
-    background: #fafafa;
-    border-bottom: 1px solid #d5d5d5;
-}
-
-.signup-team-dir__group {
-    padding: 15px 10px 15px 10px;
-}
-
-.signup-team-dir__name {
-    line-height: 1.3 !important;
-    font-size: 1.5em !important;
-    font-weight: 300 !important;
-}
-
-.signup-team-dir__arrow {
-    float: right;
-    line-height: 1.3 !important;
-    font-size: 1.5em !important;
-    font-weight: 300 !important;
-}
 
 .authorize-box {
     margin: 100px auto;

@@ -149,6 +149,12 @@
 			@include opacity(0.8);
 			margin: 5px 0;
 		}
+		.profile-img {
+			-moz-border-radius: 50px;
+			-webkit-border-radius: 50px;
+			border-radius: 50px;
+			margin-right: 8px;
+		}
 		.more-name {
 			font-weight: 600;
 			font-size: 0.95em;
@@ -230,8 +236,8 @@
 				position: relative;
 
 				&:hover .file-playback-controls.stop {
-			        @include opacity(1);
-			    }
+					@include opacity(1);
+				}
 			}
 			img {
 				max-width: 100%;
@@ -347,7 +353,7 @@
 	}
 }
 
-.modal-direct-channels {
+.more-modal {
 
 	.user-list {
 		margin-top: 10px;
@@ -362,11 +368,12 @@
 	}
 
 	.modal-body {
-		padding: 20px 0 0;
+		padding: 10px 0 0;
 		@include clearfix;
 	}
 
 	.filter-row {
+		margin-top: 10px;
 		padding: 0 15px;
 	}
 
@@ -378,12 +385,5 @@
 
 	.more-purpose {
 		@include opacity(0.7);
-	}
-
-	.profile-img {
-		-moz-border-radius: 50px;
-		-webkit-border-radius: 50px;
-		border-radius: 50px;
-		margin-right: 8px;
 	}
 }

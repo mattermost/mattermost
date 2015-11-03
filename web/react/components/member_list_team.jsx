@@ -15,9 +15,11 @@ export default class MemberListTeam extends React.Component {
         }, this);
 
         return (
-            <div className='member-list-holder'>
-                {memberList}
-            </div>
+            <table className='table more-table member-list-holder'>
+                <tbody>
+                    {memberList}
+                </tbody>
+            </table>
         );
     }
 }

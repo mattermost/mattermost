@@ -150,7 +150,7 @@ export default class ChannelMembers extends React.Component {
 
         return (
             <div
-                className='modal fade'
+                className='modal fade more-modal'
                 ref='modal'
                 id='channel_members'
                 tabIndex='-1'
@@ -181,11 +181,7 @@ export default class ChannelMembers extends React.Component {
                             ref='modalBody'
                             className='modal-body'
                         >
-                            <div className='col-sm-12'>
-                                <div className='team-member-list'>
-                                    {memberList}
-                                </div>
-                            </div>
+                            {memberList}
                         </div>
                         <div className='modal-footer'>
                             <button
