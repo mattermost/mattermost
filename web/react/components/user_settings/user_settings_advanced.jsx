@@ -126,6 +126,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
@@ -133,7 +134,10 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
                         {'Advanced Settings'}
                     </h4>
                 </div>
@@ -152,5 +156,7 @@ AdvancedSettingsDisplay.propTypes = {
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
-    activeSection: React.PropTypes.string
+    activeSection: React.PropTypes.string,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired
 };

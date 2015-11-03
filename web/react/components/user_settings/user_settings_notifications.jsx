@@ -630,15 +630,19 @@ export default class NotificationsTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>
-                        Notifications
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Notification Settings'}
                     </h4>
                 </div>
                 <div
@@ -672,5 +676,7 @@ NotificationsTab.propTypes = {
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
     activeSection: React.PropTypes.string,
-    activeTab: React.PropTypes.string
+    activeTab: React.PropTypes.string,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired
 };

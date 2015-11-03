@@ -20,7 +20,8 @@ export default class UserSettingsAppearance extends React.Component {
         this.submitTheme = this.submitTheme.bind(this);
         this.updateTheme = this.updateTheme.bind(this);
         this.updateCodeTheme = this.updateCodeTheme.bind(this);
-        this.handleClose = this.handleClose.bind(this);
+        this.deactivate = this.deactivate.bind(this);
+        this.resetFields = this.resetFields.bind(this);
         this.handleImportModal = this.handleImportModal.bind(this);
 
         this.state = this.getStateFromStores();
@@ -42,8 +43,6 @@ export default class UserSettingsAppearance extends React.Component {
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
-
-        this.handleClose();
     }
     getStateFromStores() {
         const user = UserStore.getCurrentUser();
@@ -130,10 +129,19 @@ export default class UserSettingsAppearance extends React.Component {
     updateType(type) {
         this.setState({type});
     }
-    handleClose() {
+    deactivate() {
         const state = this.getStateFromStores();
 
         Utils.applyTheme(state.theme);
+    }
+    resetFields() {
+        const state = this.getStateFromStores();
+        state.serverError = null;
+        this.setState(state);
+
+        Utils.applyTheme(state.theme);
+
+        this.props.setRequireConfirm(false);
     }
     handleImportModal() {
         AppDispatcher.handleViewAction({
@@ -212,7 +220,7 @@ export default class UserSettingsAppearance extends React.Component {
                     <a
                         className='btn btn-sm theme'
                         href='#'
-                        onClick={this.handleClose}
+                        onClick={this.resetFields}
                     >
                         {'Cancel'}
                     </a>
@@ -226,8 +234,8 @@ export default class UserSettingsAppearance extends React.Component {
                     <button
                         type='button'
                         className='close'
-                        data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
@@ -235,7 +243,11 @@ export default class UserSettingsAppearance extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>{'Appearance Settings'}
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Appearance Settings'}
                     </h4>
                 </div>
                 <div className='user-settings'>
@@ -262,6 +274,8 @@ UserSettingsAppearance.defaultProps = {
 UserSettingsAppearance.propTypes = {
     activeSection: React.PropTypes.string,
     updateTab: React.PropTypes.func,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired,
     setRequireConfirm: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };

@@ -237,14 +237,19 @@ export default class SecurityTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>Security Settings
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Security Settings'}
                     </h4>
                 </div>
                 <div className='user-settings'>
@@ -291,5 +296,7 @@ SecurityTab.propTypes = {
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired,
     setEnforceFocus: React.PropTypes.func.isRequired
 };
