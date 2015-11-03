@@ -304,11 +304,33 @@ module.exports = {
         {
             id: 'mentionHighlightLink',
             uiName: 'Mention Highlight Link'
+        },
+        {
+            id: 'codeTheme',
+            uiName: 'Code Theme',
+            themes: [
+                {
+                    id: 'solarized_dark',
+                    uiName: 'Solarized Dark'
+                },
+                {
+                    id: 'solarized_light',
+                    uiName: 'Solarized light'
+                },
+                {
+                    id: 'github',
+                    uiName: 'GitHub'
+                },
+                {
+                    id: 'monokai',
+                    uiName: 'Monokai'
+                }
+            ]
         }
     ],
     CODE_THEMES: {
         github: 'GitHub',
-        solarized_light: 'Solarized light',
+        solarized_light: 'Solarized Light',
         monokai: 'Monokai',
         solarized_dark: 'Solarized Dark'
     },

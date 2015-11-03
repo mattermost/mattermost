@@ -55,26 +55,70 @@ export default class CustomThemeChooser extends React.Component {
         const elements = [];
         let colors = '';
         Constants.THEME_ELEMENTS.forEach((element, index) => {
-            elements.push(
-                <div
-                    className='col-sm-4 form-group'
-                    key={'custom-theme-key' + index}
-                >
-                    <label className='custom-label'>{element.uiName}</label>
+            if (element.id === 'codeTheme') {
+                const codeThemeOptions = [];
+
+                element.themes.forEach((codeTheme, codeThemeIndex) => {
+                    codeThemeOptions.push(
+                        <option
+                            key={'code-theme-key' + codeThemeIndex}
+                            value={codeTheme.id}
+                        >
+                            {codeTheme.uiName}
+                        </option>
+                    );
+                });
+
+                elements.push(
                     <div
-                        className='input-group color-picker'
-                        id={element.id}
+                        className='col-sm-4 form-group'
+                        key={'custom-theme-key' + index}
                     >
-                        <input
-                            className='form-control'
-                            type='text'
-                            defaultValue={theme[element.id]}
-                            onChange={this.onInputChange}
-                        />
-                        <span className='input-group-addon'><i></i></span>
+                        <label className='custom-label'>{element.uiName}</label>
+                        <div
+                            className='input-group dropdown'
+                            id={element.id}
+                        >
+                            <select
+                                className='form-control'
+                                type='text'
+                                defaultValue={theme[element.id]}
+                                onChange={this.onInputChange}
+                            >
+                                {codeThemeOptions}
+                            </select>
+                            <span className='input-group-addon'>
+                                <i>
+                                    <img
+                                        src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
+                                    />
+                                </i>
+                            </span>
+                        </div>
                     </div>
-                </div>
-            );
+                );
+            } else {
+                elements.push(
+                    <div
+                        className='col-sm-4 form-group'
+                        key={'custom-theme-key' + index}
+                    >
+                        <label className='custom-label'>{element.uiName}</label>
+                        <div
+                            className='input-group color-picker'
+                            id={element.id}
+                        >
+                            <input
+                                className='form-control'
+                                type='text'
+                                defaultValue={theme[element.id]}
+                                onChange={this.onInputChange}
+                            />
+                            <span className='input-group-addon'><i></i></span>
+                        </div>
+                    </div>
+                );
+            }
 
             colors += theme[element.id] + ',';
         });

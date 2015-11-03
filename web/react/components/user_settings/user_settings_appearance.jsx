@@ -203,12 +203,7 @@ export default class UserSettingsAppearance extends React.Component {
                     </div>
                     {custom}
                     <hr />
-                    <strong className='radio'>{'Code Theme'}</strong>
-                    <CodeThemeChooser
-                        theme={this.state.theme}
-                        updateTheme={this.updateCodeTheme}
-                    />
-                    <hr />
+
                     {serverError}
                     <a
                         className='btn btn-sm btn-primary'
@@ -227,6 +222,13 @@ export default class UserSettingsAppearance extends React.Component {
                 </div>
             </div>
         );
+
+                   /* <strong className='radio'>{'Code Theme'}</strong>
+                    <CodeThemeChooser
+                        theme={this.state.theme}
+                        updateTheme={this.updateCodeTheme}
+                    />
+                    <hr /> */
 
         return (
             <div>
