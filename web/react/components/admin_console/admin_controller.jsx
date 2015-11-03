@@ -6,6 +6,7 @@ var AdminStore = require('../../stores/admin_store.jsx');
 var TeamStore = require('../../stores/team_store.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var LoadingScreen = require('../loading_screen.jsx');
+var Utils = require('../../utils/utils.jsx');
 
 var EmailSettingsTab = require('./email_settings.jsx');
 var LogSettingsTab = require('./log_settings.jsx');
@@ -46,7 +47,8 @@ export default class AdminController extends React.Component {
         };
 
         if (!props.tab) {
-            history.replaceState(null, null, `/admin_console/${this.state.selected}`);
+            var tokenIndex = Utils.getUrlParameter('session_token_index');
+            history.replaceState(null, null, `/admin_console/${this.state.selected}?session_token_index=${tokenIndex}`);
         }
     }
 
