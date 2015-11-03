@@ -77,12 +77,12 @@ export default class PostBody extends React.Component {
         this.isGifLoading = true;
 
         const gif = new Image();
-        gif.src = src;
         gif.onload = (
             () => {
                 this.setState({gifLoaded: true});
             }
         );
+        gif.src = src;
     }
 
     createGifEmbed(link) {
@@ -92,7 +92,12 @@ export default class PostBody extends React.Component {
 
         if (!this.state.gifLoaded) {
             this.loadGif(link);
-            return null;
+            return (
+                <img
+                    className='gif-div placeholder'
+                    height='500px'
+                />
+            );
         }
 
         return (

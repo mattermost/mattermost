@@ -56,5 +56,8 @@
     max-width: 450px;
     max-height: 500px;
     margin-bottom: 8px;
-    border-radius:5px
+    border-radius:5px;
+    &.placeholder {
+        height: 500px;
+    }
 }
