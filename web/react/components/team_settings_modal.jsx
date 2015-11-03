@@ -17,11 +17,13 @@ export default class TeamSettingsModal extends React.Component {
         };
     }
     componentDidMount() {
-        $('body').on('click', '.modal-back', function handleBackClick() {
+        const modal = $(ReactDOM.findDOMNode(this.refs.modal));
+
+        modal.on('click', '.modal-back', function handleBackClick() {
             $(this).closest('.modal-dialog').removeClass('display--content');
             $(this).closest('.modal-dialog').find('.settings-table .nav li.active').removeClass('active');
         });
-        $('body').on('click', '.modal-header .close', () => {
+        modal.on('click', '.modal-header .close', () => {
             setTimeout(() => {
                 $('.modal-dialog.display--content').removeClass('display--content');
             }, 500);

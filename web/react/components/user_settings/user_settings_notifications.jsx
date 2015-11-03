@@ -7,7 +7,6 @@ var SettingItemMax = require('../setting_item_max.jsx');
 var client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var utils = require('../../utils/utils.jsx');
-var assign = require('object-assign');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
@@ -77,7 +76,6 @@ export default class NotificationsTab extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleClose = this.handleClose.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleNotifyRadio = this.handleNotifyRadio.bind(this);
@@ -128,27 +126,15 @@ export default class NotificationsTab extends React.Component {
             }.bind(this)
         );
     }
-    handleClose() {
-        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function clearField() {
-            this.value = '';
-        });
-
-        this.setState(assign({}, getNotificationsStateFromStores(), {serverError: null}));
-
-        this.props.updateTab('general');
-    }
     updateSection(section) {
         this.setState(getNotificationsStateFromStores());
         this.props.updateSection(section);
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onListenerChange);
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onListenerChange);
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
-        this.props.updateSection('');
     }
     onListenerChange() {
         var newState = getNotificationsStateFromStores();
@@ -644,15 +630,19 @@ export default class NotificationsTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>
-                        Notifications
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Notification Settings'}
                     </h4>
                 </div>
                 <div
@@ -686,5 +676,7 @@ NotificationsTab.propTypes = {
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
     activeSection: React.PropTypes.string,
-    activeTab: React.PropTypes.string
+    activeTab: React.PropTypes.string,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired
 };

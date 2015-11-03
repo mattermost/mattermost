@@ -63,6 +63,7 @@ export default class DeveloperTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
@@ -70,7 +71,11 @@ export default class DeveloperTab extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>{'Developer Settings'}
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Developer Settings'}
                     </h4>
                 </div>
                 <div className='user-settings'>
@@ -89,5 +94,7 @@ DeveloperTab.defaultProps = {
 };
 DeveloperTab.propTypes = {
     activeSection: React.PropTypes.string,
-    updateSection: React.PropTypes.func
+    updateSection: React.PropTypes.func,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired
 };

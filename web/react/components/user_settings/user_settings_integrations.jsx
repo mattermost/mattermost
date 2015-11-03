@@ -11,23 +11,11 @@ export default class UserSettingsIntegrationsTab extends React.Component {
         super(props);
 
         this.updateSection = this.updateSection.bind(this);
-        this.handleClose = this.handleClose.bind(this);
 
         this.state = {};
     }
     updateSection(section) {
         this.props.updateSection(section);
-    }
-    handleClose() {
-        this.updateSection('');
-        $('.ps-container.modal-body').scrollTop(0);
-        $('.ps-container.modal-body').perfectScrollbar('update');
-    }
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     }
     render() {
         let incomingHooksSection;
@@ -104,6 +92,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
@@ -111,7 +100,10 @@ export default class UserSettingsIntegrationsTab extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
                         {'Integration Settings'}
                     </h4>
                 </div>
@@ -132,5 +124,7 @@ UserSettingsIntegrationsTab.propTypes = {
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
-    activeSection: React.PropTypes.string
+    activeSection: React.PropTypes.string,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired
 };

@@ -7,6 +7,8 @@ var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 
 var AboutBuildModal = require('./about_build_modal.jsx');
+var InviteMemberModal = require('./invite_member_modal.jsx');
+var UserSettingsModal = require('./user_settings/user_settings_modal.jsx');
 
 var Constants = require('../utils/constants.jsx');
 
@@ -41,7 +43,10 @@ export default class NavbarDropdown extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
-        this.state = getStateFromStores();
+        const state = getStateFromStores();
+        state.showUserSettingsModal = false;
+        state.showAboutModal = false;
+        this.state = state;
     }
     handleLogoutClick(e) {
         e.preventDefault();
@@ -96,8 +101,7 @@ export default class NavbarDropdown extends React.Component {
                 <li>
                     <a
                         href='#'
-                        data-toggle='modal'
-                        data-target='#invite_member'
+                        onClick={InviteMemberModal.show}
                     >
                         {'Invite New Member'}
                     </a>
@@ -218,8 +222,7 @@ export default class NavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                data-toggle='modal'
-                                data-target='#user_settings'
+                                onClick={() => this.setState({showUserSettingsModal: true})}
                             >
                                 {'Account Settings'}
                             </a>
@@ -264,6 +267,10 @@ export default class NavbarDropdown extends React.Component {
                                 {'About Mattermost'}
                             </a>
                         </li>
+                        <UserSettingsModal
+                            show={this.state.showUserSettingsModal}
+                            onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                        />
                         <AboutBuildModal
                             show={this.state.showAboutModal}
                             onModalDismissed={this.aboutModalDismissed}

@@ -20,13 +20,13 @@ export default class UserSettingsAppearance extends React.Component {
         this.submitTheme = this.submitTheme.bind(this);
         this.updateTheme = this.updateTheme.bind(this);
         this.updateCodeTheme = this.updateCodeTheme.bind(this);
-        this.handleClose = this.handleClose.bind(this);
+        this.deactivate = this.deactivate.bind(this);
+        this.resetFields = this.resetFields.bind(this);
         this.handleImportModal = this.handleImportModal.bind(this);
 
         this.state = this.getStateFromStores();
 
-        this.originalTheme = this.state.theme;
-        this.originalCodeTheme = this.state.theme.codeTheme;
+        this.originalTheme = Object.assign({}, this.state.theme);
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
@@ -34,7 +34,6 @@ export default class UserSettingsAppearance extends React.Component {
         if (this.props.activeSection === 'theme') {
             $(ReactDOM.findDOMNode(this.refs[this.state.theme])).addClass('active-border');
         }
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
     }
     componentDidUpdate() {
         if (this.props.activeSection === 'theme') {
@@ -44,14 +43,13 @@ export default class UserSettingsAppearance extends React.Component {
     }
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
     }
     getStateFromStores() {
         const user = UserStore.getCurrentUser();
         let theme = null;
 
         if ($.isPlainObject(user.theme_props) && !$.isEmptyObject(user.theme_props)) {
-            theme = user.theme_props;
+            theme = Object.assign({}, user.theme_props);
         } else {
             theme = $.extend(true, {}, Constants.THEMES.default);
         }
@@ -73,6 +71,8 @@ export default class UserSettingsAppearance extends React.Component {
         if (!Utils.areStatesEqual(this.state, newState)) {
             this.setState(newState);
         }
+
+        this.props.setEnforceFocus(true);
     }
     submitTheme(e) {
         e.preventDefault();
@@ -86,11 +86,11 @@ export default class UserSettingsAppearance extends React.Component {
                     me: data
                 });
 
-                $('#user_settings').off('hidden.bs.modal', this.handleClose);
-                this.props.updateTab('general');
+                this.props.setRequireConfirm(false);
+                this.originalTheme = Object.assign({}, this.state.theme);
+
                 $('.ps-container.modal-body').scrollTop(0);
                 $('.ps-container.modal-body').perfectScrollbar('update');
-                $('#user_settings').modal('hide');
             },
             (err) => {
                 var state = this.getStateFromStores();
@@ -103,37 +103,53 @@ export default class UserSettingsAppearance extends React.Component {
         if (!theme.codeTheme) {
             theme.codeTheme = this.state.theme.codeTheme;
         }
+
+        let themeChanged = this.state.theme.length === theme.length;
+        if (!themeChanged) {
+            for (const field in theme) {
+                if (theme.hasOwnProperty(field)) {
+                    if (this.state.theme[field] !== theme[field]) {
+                        themeChanged = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        this.props.setRequireConfirm(themeChanged);
+
         this.setState({theme});
         Utils.applyTheme(theme);
     }
     updateCodeTheme(codeTheme) {
         var theme = this.state.theme;
         theme.codeTheme = codeTheme;
-        this.setState({theme});
-        Utils.applyTheme(theme);
+        this.updateTheme(theme);
     }
     updateType(type) {
         this.setState({type});
     }
-    handleClose() {
+    deactivate() {
+        const state = this.getStateFromStores();
+
+        Utils.applyTheme(state.theme);
+    }
+    resetFields() {
         const state = this.getStateFromStores();
         state.serverError = null;
-        state.theme.codeTheme = this.originalCodeTheme;
+        this.setState(state);
 
         Utils.applyTheme(state.theme);
 
-        this.setState(state);
-
-        $('.ps-container.modal-body').scrollTop(0);
-        $('.ps-container.modal-body').perfectScrollbar('update');
-        $('#user_settings').modal('hide');
+        this.props.setRequireConfirm(false);
     }
     handleImportModal() {
-        $('#user_settings').modal('hide');
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_IMPORT_THEME_MODAL,
             value: true
         });
+
+        this.props.setEnforceFocus(false);
     }
     render() {
         var serverError;
@@ -204,7 +220,7 @@ export default class UserSettingsAppearance extends React.Component {
                     <a
                         className='btn btn-sm theme'
                         href='#'
-                        onClick={this.handleClose}
+                        onClick={this.resetFields}
                     >
                         {'Cancel'}
                     </a>
@@ -218,8 +234,8 @@ export default class UserSettingsAppearance extends React.Component {
                     <button
                         type='button'
                         className='close'
-                        data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
@@ -227,7 +243,11 @@ export default class UserSettingsAppearance extends React.Component {
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>{'Appearance Settings'}
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Appearance Settings'}
                     </h4>
                 </div>
                 <div className='user-settings'>
@@ -253,5 +273,9 @@ UserSettingsAppearance.defaultProps = {
 };
 UserSettingsAppearance.propTypes = {
     activeSection: React.PropTypes.string,
-    updateTab: React.PropTypes.func
+    updateTab: React.PropTypes.func,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired,
+    setRequireConfirm: React.PropTypes.func.isRequired,
+    setEnforceFocus: React.PropTypes.func.isRequired
 };

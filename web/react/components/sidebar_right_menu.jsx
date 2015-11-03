@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var InviteMemberModal = require('./invite_member_modal.jsx');
+var UserSettingsModal = require('./user_settings/user_settings_modal.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TeamStore = require('../stores/team_store.jsx');
 var client = require('../utils/client.jsx');
@@ -15,6 +17,10 @@ export default class SidebarRightMenu extends React.Component {
         super(props);
 
         this.handleLogoutClick = this.handleLogoutClick.bind(this);
+
+        this.state = {
+            showUserSettingsModal: false
+        };
     }
 
     handleLogoutClick(e) {
@@ -38,10 +44,12 @@ export default class SidebarRightMenu extends React.Component {
 
             inviteLink = (
                 <li>
-                    <a href='#'
-                        data-toggle='modal'
-                        data-target='#invite_member'
-                    ><i className='glyphicon glyphicon-user'></i>Invite New Member</a>
+                    <a
+                        href='#'
+                        onClick={InviteMemberModal.show}
+                    >
+                        <i className='glyphicon glyphicon-user'></i>Invite New Member
+                    </a>
                 </li>
             );
 
@@ -115,9 +123,11 @@ export default class SidebarRightMenu extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                data-toggle='modal'
-                                data-target='#user_settings'
-                            ><i className='glyphicon glyphicon-cog'></i>Account Settings</a></li>
+                                onClick={() => this.setState({showUserSettingsModal: true})}
+                            >
+                                <i className='glyphicon glyphicon-cog'></i>Account Settings
+                            </a>
+                        </li>
                         {teamSettingsLink}
                         {inviteLink}
                         {teamLink}
@@ -141,6 +151,10 @@ export default class SidebarRightMenu extends React.Component {
                             ><i className='glyphicon glyphicon-earphone'></i>Report a Problem</a></li>
                     </ul>
                 </div>
+                <UserSettingsModal
+                    show={this.state.showUserSettingsModal}
+                    onModalDismissed={() => this.setState({showUserSettingsModal: false})}
+                />
             </div>
         );
     }

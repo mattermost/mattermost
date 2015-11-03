@@ -3,6 +3,7 @@
 // See License.txt for license information.
 
 const Utils = require('./utils.jsx');
+const InviteMemberModal = require('../components/invite_member_modal.jsx');
 const UserProfile = require('../components/user_profile.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
 const Constants = require('../utils/constants.jsx');
@@ -109,8 +110,7 @@ export function createDefaultIntroMessage(channel) {
             <a
                 className='intro-links'
                 href='#'
-                data-toggle='modal'
-                data-target='#invite_member'
+                onClick={InviteMemberModal.show}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this team'}
             </a>
@@ -213,6 +213,7 @@ export function createStandardIntroMessage(channel) {
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
             </a>
+
         </div>
     );
 }

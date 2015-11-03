@@ -3,6 +3,8 @@
 
 var SettingItemMin = require('../setting_item_min.jsx');
 var SettingItemMax = require('../setting_item_max.jsx');
+var AccessHistoryModal = require('../access_history_modal.jsx');
+var ActivityLogModal = require('../activity_log_modal.jsx');
 var Client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var Constants = require('../../utils/constants.jsx');
@@ -11,14 +13,34 @@ export default class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
+        this.showAccessHistoryModal = this.showAccessHistoryModal.bind(this);
+        this.showActivityLogModal = this.showActivityLogModal.bind(this);
+        this.hideModals = this.hideModals.bind(this);
         this.submitPassword = this.submitPassword.bind(this);
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
-        this.handleClose = this.handleClose.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
-        this.state = this.setupInitialState();
+        const state = this.setupInitialState();
+        state.showAccessHistoryModal = false;
+        state.showActivityLogModal = false;
+        this.state = state;
+    }
+    showAccessHistoryModal() {
+        this.props.setEnforceFocus(false);
+        this.setState({showAccessHistoryModal: true});
+    }
+    showActivityLogModal() {
+        this.props.setEnforceFocus(false);
+        this.setState({showActivityLogModal: true});
+    }
+    hideModals() {
+        this.props.setEnforceFocus(true);
+        this.setState({
+            showAccessHistoryModal: false,
+            showActivityLogModal: false
+        });
     }
     submitPassword(e) {
         e.preventDefault();
@@ -75,29 +97,8 @@ export default class SecurityTab extends React.Component {
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
     }
-    handleHistoryOpen() {
-        $('#user_settings').modal('hide');
-    }
-    handleDevicesOpen() {
-        $('#user_settings').modal('hide');
-    }
-    handleClose() {
-        $(ReactDOM.findDOMNode(this)).find('.form-control').each(function resetValue() {
-            this.value = '';
-        });
-        this.setState({currentPassword: '', newPassword: '', confirmPassword: '', serverError: null, passwordError: null});
-
-        this.props.updateTab('general');
-    }
     setupInitialState() {
         return {currentPassword: '', newPassword: '', confirmPassword: ''};
-    }
-    componentDidMount() {
-        $('#user_settings').on('hidden.bs.modal', this.handleClose);
-    }
-    componentWillUnmount() {
-        $('#user_settings').off('hidden.bs.modal', this.handleClose);
-        this.props.updateSection('');
     }
     render() {
         var serverError;
@@ -236,14 +237,19 @@ export default class SecurityTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label='Close'
+                        onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>&times;</span>
+                        <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
                     >
-                        <i className='modal-back'></i>Security Settings
+                        <i
+                            className='modal-back'
+                            onClick={this.props.collapseModal}
+                        />
+                        {'Security Settings'}
                     </h4>
                 </div>
                 <div className='user-settings'>
@@ -253,25 +259,29 @@ export default class SecurityTab extends React.Component {
                     <div className='divider-dark'/>
                     <br></br>
                     <a
-                        data-toggle='modal'
                         className='security-links theme'
-                        data-target='#access-history'
                         href='#'
-                        onClick={this.handleHistoryOpen}
+                        onClick={this.showAccessHistoryModal}
                     >
                         <i className='fa fa-clock-o'></i>View Access History
                     </a>
                     <b> </b>
                     <a
-                        data-toggle='modal'
                         className='security-links theme'
-                        data-target='#activity-log'
                         href='#'
-                        onClick={this.handleDevicesOpen}
+                        onClick={this.showActivityLogModal}
                     >
                         <i className='fa fa-globe'></i>View and Logout of Active Sessions
                     </a>
                 </div>
+                <AccessHistoryModal
+                    show={this.state.showAccessHistoryModal}
+                    onModalDismissed={this.hideModals}
+                />
+                <ActivityLogModal
+                    show={this.state.showActivityLogModal}
+                    onModalDismissed={this.hideModals}
+                />
             </div>
         );
     }
@@ -285,5 +295,8 @@ SecurityTab.propTypes = {
     user: React.PropTypes.object,
     activeSection: React.PropTypes.string,
     updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func
+    updateTab: React.PropTypes.func,
+    closeModal: React.PropTypes.func.isRequired,
+    collapseModal: React.PropTypes.func.isRequired,
+    setEnforceFocus: React.PropTypes.func.isRequired
 };
