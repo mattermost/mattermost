@@ -59,6 +59,20 @@ export function isTestDomain() {
     return false;
 }
 
+export function isChrome() {
+    if (navigator.userAgent.indexOf('Chrome') > -1) {
+        return true;
+    }
+    return false;
+}
+
+export function isSafari() {
+    if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+        return true;
+    }
+    return false;
+}
+
 export function isInRole(roles, inRole) {
     var parts = roles.split(' ');
     for (var i = 0; i < parts.length; i++) {
@@ -500,16 +514,16 @@ export function applyTheme(theme) {
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
         changeCss('.post-image__column .post-image__details', 'background:' + theme.centerChannelBg, 1);
-        changeCss('.sidebar--right, .dropdown-menu, .popover', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.sidebar--right, .dropdown-menu, .popover, .tip-overlay', 'background:' + theme.centerChannelBg, 1);
         changeCss('.popover.bottom>.arrow:after', 'border-bottom-color:' + theme.centerChannelBg, 1);
-        changeCss('.popover.right>.arrow:after', 'border-right-color:' + theme.centerChannelBg, 1);
+        changeCss('.popover.right>.arrow:after, .tip-overlay.tip-overlay--sidebar .arrow, .tip-overlay.tip-overlay--header .arrow', 'border-right-color:' + theme.centerChannelBg, 1);
         changeCss('.popover.left>.arrow:after', 'border-left-color:' + theme.centerChannelBg, 1);
-        changeCss('.popover.top>.arrow:after', 'border-top-color:' + theme.centerChannelBg, 1);
+        changeCss('.popover.top>.arrow:after, .tip-overlay.tip-overlay--chat .arrow', 'border-top-color:' + theme.centerChannelBg, 1);
         changeCss('.search-bar__container .search__form .search-bar, .form-control', 'background:' + theme.centerChannelBg, 1);
     }
 
     if (theme.centerChannelColor) {
-        changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .command-name, .modal .modal-content, .dropdown-menu, .popover, .mentions-name', 'color:' + theme.centerChannelColor, 1);
+        changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .command-name, .modal .modal-content, .dropdown-menu, .popover, .mentions-name, .tip-overlay', 'color:' + theme.centerChannelColor, 1);
         changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
         changeCss('.channel-header__links a', 'fill:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
         changeCss('.channel-header__links a:hover, .channel-header__links a:active', 'fill:' + theme.centerChannelColor, 2);
@@ -519,7 +533,7 @@ export function applyTheme(theme) {
         changeCss('.dropdown-menu, .popover ', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px', 3);
         changeCss('.dropdown-menu, .popover ', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px', 2);
         changeCss('.dropdown-menu, .popover ', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.1) + ' 0px 6px 12px', 1);
-        changeCss('.post-body hr, .loading-screen .loading__content .round', 'background:' + theme.centerChannelColor, 1);
+        changeCss('.post-body hr, .loading-screen .loading__content .round, .tutorial__circles .circle, .tip-overlay .tutorial__circles .circle.active', 'background:' + theme.centerChannelColor, 1);
         changeCss('.channel-header .heading', 'color:' + theme.centerChannelColor, 1);
         changeCss('.markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
@@ -568,7 +582,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.buttonBg) {
-        changeCss('.btn.btn-primary', 'background:' + theme.buttonBg, 1);
+        changeCss('.btn.btn-primary, .tutorial__circles .circle.active', 'background:' + theme.buttonBg, 1);
         changeCss('.btn.btn-primary:hover, .btn.btn-primary:active, .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.25), 1);
         changeCss('.file-playback-controls', 'color:' + changeColor(theme.buttonBg, -0.25), 1);
     }
