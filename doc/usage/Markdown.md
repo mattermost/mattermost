@@ -26,7 +26,7 @@ Renders as:
 code block
 ```
 
-Create in-line monospaced font by surrounding it with back spaces. 
+Create in-line monospaced font by surrounding it with backticks. 
 ```
 `monospace`
 ```
