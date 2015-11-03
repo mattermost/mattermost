@@ -35,6 +35,11 @@ export default class TutorialIntroScreens extends React.Component {
         preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), newValue);
         AsyncClient.savePreferences([preference]);
     }
+    componentDidMount() {
+        const height = $(window).height() - 100;
+        $('.tutorials__scroll').height(height);
+        $('.tutorials__scroll').perfectScrollbar();
+    }
     createScreen() {
         switch (this.state.currentScreen) {
         case 0:
@@ -133,17 +138,19 @@ export default class TutorialIntroScreens extends React.Component {
         const screen = this.createScreen();
 
         return (
-            <div className='tutorial-steps__container'>
-                <div className='tutorial__content'>
-                    <div className='tutorial__steps'>
-                        {screen}
-                        <button
-                            className='btn btn-primary'
-                            tabIndex='1'
-                            onClick={this.handleNext}
-                        >
-                            {'Next'}
-                        </button>
+            <div className='tutorials__scroll'>
+                <div className='tutorial-steps__container'>
+                    <div className='tutorial__content'>
+                        <div className='tutorial__steps'>
+                            {screen}
+                            <button
+                                className='btn btn-primary'
+                                tabIndex='1'
+                                onClick={this.handleNext}
+                            >
+                                {'Next'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

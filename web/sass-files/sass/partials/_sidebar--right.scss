@@ -80,13 +80,18 @@
     }
     .sidebar--right__subheader {
         font-size: 1em;
-        text-transform: uppercase;
-        color: #999;
-        font-weight: 400;
-        color: #888;
-        height: 44px;
-        line-height: 44px;
-        padding: 0 1em;
+        padding: 1em 1em 0;
+        h4 {
+            font-size: 1em;
+        }
+        ul {
+            @include opacity(0.7);
+            padding: 10px 0 0 30px;
+        }
+        li {
+            font-size: 0.95em;
+            padding-bottom: 10px;
+        }
     }
 }
 

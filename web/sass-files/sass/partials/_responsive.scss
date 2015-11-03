@@ -275,6 +275,14 @@
     }
 }
 @media screen and (max-width: 768px) {
+    .form-control {
+        &.min-height {
+            min-height: 100px;
+        }
+    }
+    .gif-div {
+        max-width: 100%;
+    }
     .tip-div {
         left: 15px;
         right: auto;
@@ -460,7 +468,7 @@
             }
         }
         .settings-table {
-            .nav {
+            .nav, .nav.absolute {
                 position: relative;
                 top: auto;
                 width: 100%;

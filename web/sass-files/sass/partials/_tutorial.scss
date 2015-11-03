@@ -146,11 +146,12 @@
     text-align: center;
     width: 100%;
     display: table;
+    height: 100%;
     .tutorial__content {
         display: table-cell;
         vertical-align: middle;
         padding-bottom: 100px;
-        padding: 0 40px;
+        padding: 20px 40px 40px;
         .tutorial__steps {
             max-width: 310px;
             min-height: 420px;
@@ -176,7 +177,7 @@
         width: 9px;
         height: 9px;
         @include border-radius(9px);
-        @include opacity(0.1);
+        @include opacity(0.2);
         background: #000;
         display: inline-block;
         margin: 0 5px;

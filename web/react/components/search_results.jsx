@@ -83,7 +83,16 @@ export default class SearchResults extends React.Component {
         var ctls = null;
 
         if (noResults) {
-            ctls = <div className='sidebar--right__subheader'>No results</div>;
+            ctls =
+            (
+                <div className='sidebar--right__subheader'>
+                    <h4>{'NO RESULTS'}</h4>
+                    <ul>
+                        <li>If you're searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term</li>
+                        <li>Due to the volume of results, two letter searches and common words like "this", "a" and "is" won't appear in search results</li>
+                    </ul>
+                </div>
+            );
         } else {
             ctls = results.order.map(function mymap(id) {
                 var post = results.posts[id];
