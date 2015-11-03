@@ -1,11 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+var utils = require('../utils/utils.jsx');
 
 export default class SettingsSidebar extends React.Component {
     componentDidUpdate() {
         $('.settings-modal').find('.modal-body').scrollTop(0);
         $('.settings-modal').find('.modal-body').perfectScrollbar('update');
-        if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+        if (utils.isSafari()) {
             $('.settings-modal .settings-links .nav').addClass('absolute');
         }
     }

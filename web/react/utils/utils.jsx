@@ -59,6 +59,20 @@ export function isTestDomain() {
     return false;
 }
 
+export function isChrome() {
+    if (navigator.userAgent.indexOf('Chrome') > -1) {
+        return true;
+    }
+    return false;
+}
+
+export function isSafari() {
+    if (navigator.userAgent.indexOf('Safari') !== -1 && navigator.userAgent.indexOf('Chrome') === -1) {
+        return true;
+    }
+    return false;
+}
+
 export function isInRole(roles, inRole) {
     var parts = roles.split(' ');
     for (var i = 0; i < parts.length; i++) {
