@@ -127,6 +127,7 @@ module.exports = {
     MAX_DMS: 20,
     DM_CHANNEL: 'D',
     OPEN_CHANNEL: 'O',
+    PRIVATE_CHANNEL: 'P',
     INVITE_TEAM: 'I',
     OPEN_TEAM: 'O',
     MAX_POST_LEN: 4000,

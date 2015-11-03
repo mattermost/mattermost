@@ -204,12 +204,13 @@ class UserStoreClass extends EventEmitter {
     }
 
     getActiveOnlyProfiles() {
-        var active = {};
-        var current = this.getProfiles();
+        const active = {};
+        const profiles = this.getProfiles();
+        const currentId = this.getCurrentId();
 
-        for (var key in current) {
-            if (current[key].delete_at === 0) {
-                active[key] = current[key];
+        for (var key in profiles) {
+            if (profiles[key].delete_at === 0 && profiles[key].id !== currentId) {
+                active[key] = profiles[key];
             }
         }
 
@@ -219,9 +220,10 @@ class UserStoreClass extends EventEmitter {
     getActiveOnlyProfileList() {
         const profileMap = this.getActiveOnlyProfiles();
         const profiles = [];
+        const currentId = this.getCurrentId();
 
         for (const id in profileMap) {
-            if (profileMap.hasOwnProperty(id)) {
+            if (profileMap.hasOwnProperty(id) && id !== currentId) {
                 profiles.push(profileMap[id]);
             }
         }
@@ -233,6 +235,14 @@ class UserStoreClass extends EventEmitter {
         var ps = this.getProfiles();
         ps[profile.id] = profile;
         BrowserStore.setItem('profiles', ps);
+    }
+
+    saveProfiles(profiles) {
+        const currentId = this.getCurrentId();
+        if (currentId in profiles) {
+            delete profiles[currentId];
+        }
+        BrowserStore.setItem('profiles', profiles);
     }
 
     setSessions(sessions) {
@@ -320,15 +330,8 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECIEVED_PROFILES:
-        for (var id in action.profiles) {
-            // profiles can have incomplete data, so don't overwrite current user
-            if (id === UserStore.getCurrentId()) {
-                continue;
-            }
-            var profile = action.profiles[id];
-            UserStore.saveProfile(profile);
-            UserStore.emitChange(profile.id);
-        }
+        UserStore.saveProfiles(action.profiles);
+        UserStore.emitChange();
         break;
     case ActionTypes.RECIEVED_ME:
         UserStore.setCurrentUser(action.me);

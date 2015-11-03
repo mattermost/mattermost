@@ -49,7 +49,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 
 	sr.Handle("/me", ApiAppHandler(getMe)).Methods("GET")
-	sr.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("GET")
+	sr.Handle("/status", ApiUserRequiredActivity(getStatuses, false)).Methods("POST")
 	sr.Handle("/profiles", ApiUserRequired(getProfiles)).Methods("GET")
 	sr.Handle("/profiles/{id:[A-Za-z0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}", ApiUserRequired(getUser)).Methods("GET")
@@ -1483,16 +1483,31 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+	if len(userIds) == 0 {
+		c.SetInvalidParam("getStatuses", "userIds")
+		return
+	}
 
 	if result := <-Srv.Store.User().GetProfiles(c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-
 		profiles := result.Data.(map[string]*model.User)
 
 		statuses := map[string]string{}
 		for _, profile := range profiles {
+			found := false
+			for _, uid := range userIds {
+				if uid == profile.Id {
+					found = true
+				}
+			}
+
+			if !found {
+				continue
+			}
+
 			if profile.IsOffline() {
 				statuses[profile.Id] = model.USER_OFFLINE
 			} else if profile.IsAway() {

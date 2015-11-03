@@ -38,7 +38,7 @@ export default class ChannelLoader extends React.Component {
 
         /* Set up interval functions */
         this.intervalId = setInterval(
-            function pollStatuses() {
+            () => {
                 AsyncClient.getStatuses();
             },
             30000

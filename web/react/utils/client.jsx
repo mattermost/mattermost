@@ -1069,12 +1069,13 @@ export function exportTeam(success, error) {
     });
 }
 
-export function getStatuses(success, error) {
+export function getStatuses(ids, success, error) {
     $.ajax({
         url: '/api/v1/users/status',
         dataType: 'json',
         contentType: 'application/json',
-        type: 'GET',
+        type: 'POST',
+        data: JSON.stringify(ids),
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('getStatuses', xhr, status, err);
