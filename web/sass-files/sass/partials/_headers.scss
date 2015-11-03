@@ -1,5 +1,6 @@
 #channel-header {
     padding: 3px 0;
+    height: 58px;
 }
 .row {
 	&.header {
@@ -42,6 +43,9 @@
 			text-overflow: ellipsis;
 			margin-top: 2px;
 			max-height: 45px;
+            .markdown-inline-img {
+                max-height: 45px
+            }
 		}
 		&.popover {
 			white-space: normal;

@@ -34,6 +34,11 @@ const highlightJsIni = require('highlight.js/lib/languages/ini.js');
 const Constants = require('../utils/constants.jsx');
 const HighlightedLanguages = Constants.HighlightedLanguages;
 
+function markdownImageLoaded(image) {
+    image.style.height = 'auto';
+}
+window.markdownImageLoaded = markdownImageLoaded;
+
 class MattermostInlineLexer extends marked.InlineLexer {
     constructor(links, options) {
         super(links, options);
@@ -130,6 +135,16 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         }
 
         return super.br();
+    }
+
+    image(href, title, text) {
+        let out = '<img src="' + href + '" alt="' + text + '"';
+        if (title) {
+            out += ' title="' + title + '"';
+        }
+        out += ' onload="window.markdownImageLoaded(this)" class="markdown-inline-img"';
+        out += this.options.xhtml ? '/>' : '>';
+        return out;
     }
 
     heading(text, level, raw) {
