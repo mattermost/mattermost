@@ -193,7 +193,8 @@ export function format(text, options) {
     const markdownOptions = {
         renderer: new MattermostMarkdownRenderer(null, options),
         sanitize: true,
-        gfm: true
+        gfm: true,
+        tables: true
     };
 
     const tokens = marked.lexer(text, markdownOptions);
