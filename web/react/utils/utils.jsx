@@ -1090,3 +1090,24 @@ export function openDirectChannelToUser(user, successCb, errorCb) {
         );
     }
 }
+
+// Use when sorting multiple channels or teams by their `display_name` field
+export function sortByDisplayName(a, b) {
+    let aDisplayName = '';
+    let bDisplayName = '';
+
+    if (a && a.display_name) {
+        aDisplayName = a.display_name.toLowerCase();
+    }
+    if (b && b.display_name) {
+        bDisplayName = b.display_name.toLowerCase();
+    }
+
+    if (aDisplayName < bDisplayName) {
+        return -1;
+    }
+    if (aDisplayName > bDisplayName) {
+        return 1;
+    }
+    return 0;
+}

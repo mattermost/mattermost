@@ -18,24 +18,8 @@ function getStateFromStores() {
             teams.push(teamsObject[teamId]);
         }
     }
-    teams.sort((teamA, teamB) => {
-        let teamADisplayName = '';
-        let teamBDisplayName = '';
 
-        if (teamA && teamA.display_name) {
-            teamADisplayName = teamA.display_name.toLowerCase();
-        }
-        if (teamB && teamB.display_name) {
-            teamBDisplayName = teamB.display_name.toLowerCase();
-        }
-
-        if (teamADisplayName < teamBDisplayName) {
-            return -1;
-        } else if (teamADisplayName > teamBDisplayName) {
-            return 1;
-        }
-        return 0;
-    });
+    teams.sort(Utils.sortByDisplayName);
     return {teams};
 }
 

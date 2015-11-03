@@ -4,6 +4,7 @@
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var EventEmitter = require('events').EventEmitter;
 
+var Utils;
 var Constants = require('../utils/constants.jsx');
 var ActionTypes = Constants.ActionTypes;
 
@@ -183,26 +184,11 @@ class ChannelStoreClass extends EventEmitter {
             channels.push(channel);
         }
 
-        channels.sort((a, b) => {
-            let channelADisplayName = '';
-            let channelBDisplayName = '';
+        if (!Utils) {
+            Utils = require('../utils/utils.jsx'); //eslint-disable-line global-require
+        }
 
-            if (a && a.display_name) {
-                channelADisplayName = a.display_name.toLowerCase();
-            }
-            if (b && b.display_name) {
-                channelBDisplayName = b.display_name.toLowerCase();
-            }
-
-            if (channelADisplayName < channelBDisplayName) {
-                return -1;
-            }
-            if (channelADisplayName > channelBDisplayName) {
-                return 1;
-            }
-            return 0;
-        });
-
+        channels.sort(Utils.sortByDisplayName);
         this.pStoreChannels(channels);
     }
     pStoreChannels(channels) {
