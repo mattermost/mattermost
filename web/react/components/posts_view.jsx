@@ -4,7 +4,6 @@
 const Post = require('./post.jsx');
 
 const UserStore = require('../stores/user_store.jsx');
-const PostStore = require('../stores/post_store.jsx');
 
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
