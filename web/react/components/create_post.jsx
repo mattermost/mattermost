@@ -236,8 +236,8 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
     resizePostHolder() {
-        const height = this.state.windowHeight - $(ReactDOM.findDOMNode(this.refs.topDiv)).height() - 50;
-        $('.post-list-holder-by-time').css('height', `${height}px`);
+        PostStore.emitPostsViewResize();
+
         if (this.state.windowWidth > 960) {
             $('#post_textbox').focus();
         }

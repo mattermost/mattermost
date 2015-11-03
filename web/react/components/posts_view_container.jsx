@@ -25,6 +25,7 @@ export default class PostsViewContainer extends React.Component {
         this.onChannelLeave = this.onChannelLeave.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
         this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
+        this.handlePostsViewResize = this.handlePostsViewResize.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.postsLoaded = this.postsLoaded.bind(this);
         this.postsLoadedFailure = this.postsLoadedFailure.bind(this);
@@ -34,7 +35,9 @@ export default class PostsViewContainer extends React.Component {
         const state = {
             scrollType: PostsView.SCROLL_TYPE_BOTTOM,
             scrollPost: null,
-            numPostsToDisplay: Constants.POST_CHUNK_SIZE
+            numPostsToDisplay: Constants.POST_CHUNK_SIZE,
+            messageSeparatorTime: 0,
+            height: 0
         };
         if (currentChannelId) {
             Object.assign(state, {
@@ -57,12 +60,14 @@ export default class PostsViewContainer extends React.Component {
         ChannelStore.addLeaveListener(this.onChannelLeave);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.handlePostsViewJumpRequest);
+        PostStore.addPostsViewResizeListener(this.handlePostsViewResize);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChannelChange);
         ChannelStore.removeLeaveListener(this.onChannelLeave);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.handlePostsViewJumpRequest);
+        PostStore.removePostsViewResizeListener(this.handlePostsViewResize);
     }
     handlePostsViewJumpRequest(type, post) {
         switch (type) {
@@ -79,6 +84,12 @@ export default class PostsViewContainer extends React.Component {
             this.setState({scrollType: PostsView.SIDEBAR_OPEN});
             break;
         }
+    }
+    handlePostsViewResize() {
+        const textboxHeight = $('#create_post').length > 0 ? $('#create_post').height() : 64;
+        const headerHeight = $('#channel-header').length > 0 ? $('#channel-header').height() : 57;
+
+        this.setState({height: Utils.windowHeight() - textboxHeight - headerHeight});
     }
     onChannelChange() {
         const postLists = Object.assign({}, this.state.postLists);
@@ -248,6 +259,8 @@ export default class PostsViewContainer extends React.Component {
                     numPostsToDisplay={this.state.numPostsToDisplay}
                     introText={channel ? createChannelIntroMessage(channel) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
+                    handleResize={this.handlePostsViewResize}
+                    height={this.state.height}
                 />
             );
             if ((!postLists[i] || !channel) && isActive) {

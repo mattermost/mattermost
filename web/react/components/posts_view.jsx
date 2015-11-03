@@ -1,9 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const UserStore = require('../stores/user_store.jsx');
-const Utils = require('../utils/utils.jsx');
 const Post = require('./post.jsx');
+
+const UserStore = require('../stores/user_store.jsx');
+const PostStore = require('../stores/post_store.jsx');
+
+const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 
 export default class PostsView extends React.Component {
@@ -199,6 +202,7 @@ export default class PostsView extends React.Component {
         this.updateScrolling();
     }
     componentDidMount() {
+        this.props.handleResize();
         this.updateScrolling();
         window.addEventListener('resize', this.handleResize);
     }
@@ -228,6 +232,10 @@ export default class PostsView extends React.Component {
             return true;
         }
         if (!Utils.areStatesEqual(this.props.postList, nextProps.postList)) {
+            return true;
+        }
+
+        if (this.props.height !== nextProps.height) {
             return true;
         }
 
@@ -273,6 +281,7 @@ export default class PostsView extends React.Component {
                 ref='postlist'
                 className={'post-list-holder-by-time ' + activeClass}
                 onScroll={this.handleScroll}
+                style={{height: this.props.height}}
             >
                 <div className='post-list__table'>
                     <div
@@ -299,5 +308,7 @@ PostsView.propTypes = {
     loadMorePostsTopClicked: React.PropTypes.func.isRequired,
     numPostsToDisplay: React.PropTypes.number,
     introText: React.PropTypes.element,
-    messageSeparatorTime: React.PropTypes.number
+    messageSeparatorTime: React.PropTypes.number,
+    handleResize: React.PropTypes.func.isRequired,
+    height: React.PropTypes.number.isRequired
 };
