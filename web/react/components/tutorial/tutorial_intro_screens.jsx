@@ -53,7 +53,7 @@ export default class TutorialIntroScreens extends React.Component {
             <div>
                 <h3>{'Welcome to:'}</h3>
                 <h1>{'Mattermost'}</h1>
-                <p>{'Your team communications all in one place, instantly searchable and available anywhere.'}</p>
+                <p>{'Your team communication all in one place, instantly searchable and available anywhere.'}</p>
                 <p>{'Keep your team connected to help them achieve what matters most.'}</p>
                 <div className='tutorial__circles'>
                     <div className='circle active'/>
@@ -68,7 +68,7 @@ export default class TutorialIntroScreens extends React.Component {
             <div>
                 <h3>{'How Mattermost works:'}</h3>
                 <p>{'Communication happens in public discussion channels, private groups and direct messages.'}</p>
-                <p>{'Everything is archived and searchable from any web-enabled laptop, tablet or phone.'}</p>
+                <p>{'Everything is archived and searchable from any web-enabled desktop, laptop or phone.'}</p>
                 <div className='tutorial__circles'>
                     <div className='circle'/>
                     <div className='circle active'/>
@@ -123,7 +123,7 @@ export default class TutorialIntroScreens extends React.Component {
                     </a>
                     {'.'}
                 </p>
-                {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
+                {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'}
                 <div className='tutorial__circles'>
                     <div className='circle'/>
                     <div className='circle'/>
