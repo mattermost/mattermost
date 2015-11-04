@@ -1,26 +1,25 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var MemberList = require('./member_list.jsx');
-var LoadingScreen = require('./loading_screen.jsx');
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
+const MemberList = require('./member_list.jsx');
+const LoadingScreen = require('./loading_screen.jsx');
+
+const UserStore = require('../stores/user_store.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
+
+const Utils = require('../utils/utils.jsx');
+const Client = require('../utils/client.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+
+const Modal = ReactBootstrap.Modal;
 
 export default class ChannelInviteModal extends React.Component {
     constructor() {
         super();
 
-        this.componentDidMount = this.componentDidMount.bind(this);
-        this.componentWillUnmount = this.componentWillUnmount.bind(this);
-        this.onShow = this.onShow.bind(this);
-        this.onHide = this.onHide.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleInvite = this.handleInvite.bind(this);
 
-        this.isShown = false;
         this.state = this.getStateFromStores();
     }
     getStateFromStores() {
@@ -39,7 +38,7 @@ export default class ChannelInviteModal extends React.Component {
             }
         }
 
-        nonmembers.sort(function sortByUsername(a, b) {
+        nonmembers.sort((a, b) => {
             return a.username.localeCompare(b.username);
         });
 
@@ -49,35 +48,27 @@ export default class ChannelInviteModal extends React.Component {
         }
 
         return {
-            nonmembers: nonmembers,
-            memberIds: memberIds,
-            channelName: channelName,
-            loading: loading
+            nonmembers,
+            memberIds,
+            channelName,
+            loading
         };
     }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.onHide);
-        $(ReactDOM.findDOMNode(this)).on('show.bs.modal', this.onShow);
-
-        ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
-        ChannelStore.addChangeListener(this.onListenerChange);
-        UserStore.addChangeListener(this.onListenerChange);
-    }
-    componentWillUnmount() {
-        ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
-        ChannelStore.removeChangeListener(this.onListenerChange);
-        UserStore.removeChangeListener(this.onListenerChange);
-    }
-    onShow() {
-        this.isShown = true;
-        this.onListenerChange();
-    }
-    onHide() {
-        this.isShown = false;
+    componentWillReceiveProps(nextProps) {
+        if (!this.props.show && nextProps.show) {
+            ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
+            ChannelStore.addChangeListener(this.onListenerChange);
+            UserStore.addChangeListener(this.onListenerChange);
+            this.onListenerChange();
+        } else if (this.props.show && !nextProps.show) {
+            ChannelStore.removeExtraInfoChangeListener(this.onListenerChange);
+            ChannelStore.removeChangeListener(this.onListenerChange);
+            UserStore.removeChangeListener(this.onListenerChange);
+        }
     }
     onListenerChange() {
         var newState = this.getStateFromStores();
-        if (!utils.areStatesEqual(this.state, newState) && this.isShown) {
+        if (!Utils.areStatesEqual(this.state, newState)) {
             this.setState(newState);
         }
     }
@@ -90,8 +81,8 @@ export default class ChannelInviteModal extends React.Component {
         var data = {};
         data.user_id = userId;
 
-        client.addChannelMember(ChannelStore.getCurrentId(), data,
-            function sucess() {
+        Client.addChannelMember(ChannelStore.getCurrentId(), data,
+            () => {
                 var nonmembers = this.state.nonmembers;
                 var memberIds = this.state.memberIds;
 
@@ -103,13 +94,12 @@ export default class ChannelInviteModal extends React.Component {
                     }
                 }
 
-                this.setState({inviteError: null, memberIds: memberIds, nonmembers: nonmembers});
+                this.setState({inviteError: null, memberIds, nonmembers});
                 AsyncClient.getChannelExtraInfo(true);
-            }.bind(this),
-
-            function error(err) {
+            },
+            (err) => {
                 this.setState({inviteError: err.message});
-            }.bind(this)
+            }
         );
     }
     render() {
@@ -121,7 +111,7 @@ export default class ChannelInviteModal extends React.Component {
         var currentMember = ChannelStore.getCurrentMember();
         var isAdmin = false;
         if (currentMember) {
-            isAdmin = utils.isAdmin(currentMember.roles) || utils.isAdmin(UserStore.getCurrentUser().roles);
+            isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
         }
 
         var content;
@@ -138,43 +128,32 @@ export default class ChannelInviteModal extends React.Component {
         }
 
         return (
-            <div
-                className='modal fade more-modal'
-                id='channel_invite'
-                tabIndex='-1'
-                role='dialog'
-                aria-hidden='true'
+            <Modal
+                show={this.props.show}
+                onHide={this.props.onModalDismissed}
             >
-              <div
-                  className='modal-dialog'
-                  role='document'
-              >
-                <div className='modal-content'>
-                  <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                    >
-                        <span aria-hidden='true'>&times;</span>
-                    </button>
-                    <h4 className='modal-title'>Add New Members to <span className='name'>{this.state.channelName}</span></h4>
-                  </div>
-                  <div className='modal-body'>
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.state.channelName}</span></Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
                     {inviteError}
                     {content}
-                  </div>
-                  <div className='modal-footer'>
+                </Modal.Body>
+                <Modal.Footer>
                     <button
                         type='button'
                         className='btn btn-default'
-                        data-dismiss='modal'
-                    >Close</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+                        onClick={this.props.onModalDismissed}
+                    >
+                        {'Close'}
+                    </button>
+                </Modal.Footer>
+            </Modal>
         );
     }
 }
+
+ChannelInviteModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onModalDismissed: React.PropTypes.func.isRequired
+};

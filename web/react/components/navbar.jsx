@@ -1,22 +1,26 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var MessageWrapper = require('./message_wrapper.jsx');
-var NotifyCounts = require('./notify_counts.jsx');
 const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
+const MessageWrapper = require('./message_wrapper.jsx');
+const NotifyCounts = require('./notify_counts.jsx');
+const ChannelMembersModal = require('./channel_members_modal.jsx');
+const ChannelInviteModal = require('./channel_invite_modal.jsx');
+
+const UserStore = require('../stores/user_store.jsx');
+const ChannelStore = require('../stores/channel_store.jsx');
+const TeamStore = require('../stores/team_store.jsx');
+
+const Client = require('../utils/client.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
 const Utils = require('../utils/utils.jsx');
 
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+const Constants = require('../utils/constants.jsx');
+const ActionTypes = Constants.ActionTypes;
+const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 
-var Popover = ReactBootstrap.Popover;
-var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Popover = ReactBootstrap.Popover;
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class Navbar extends React.Component {
     constructor(props) {
@@ -29,6 +33,8 @@ export default class Navbar extends React.Component {
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
+        state.showMembersModal = false;
+        state.showInviteModal = false;
         this.state = state;
     }
     getStateFromStores() {
@@ -45,17 +51,18 @@ export default class Navbar extends React.Component {
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onChange);
+        ChannelStore.removeExtraInfoChangeListener(this.onChange);
     }
     handleSubmit(e) {
         e.preventDefault();
     }
     handleLeave() {
         Client.leaveChannel(this.state.channel.id,
-            function success() {
+            () => {
                 AsyncClient.getChannels(true);
                 window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
             },
-            function error(err) {
+            (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
             }
         );
@@ -104,7 +111,7 @@ export default class Navbar extends React.Component {
                         data-channelid={channel.id}
                         href='#'
                     >
-                        View Info
+                        {'View Info'}
                     </a>
                 </li>
             );
@@ -120,7 +127,7 @@ export default class Navbar extends React.Component {
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Set Channel Header...
+                        {'Set Channel Header...'}
                     </a>
                 </li>
             );
@@ -145,11 +152,10 @@ export default class Navbar extends React.Component {
                     <li role='presentation'>
                         <a
                             role='menuitem'
-                            data-toggle='modal'
-                            data-target='#channel_invite'
                             href='#'
+                            onClick={() => this.setState({showInviteModal: false})}
                         >
-                            Add Members
+                            {'Add Members'}
                         </a>
                     </li>
                 );
@@ -161,7 +167,7 @@ export default class Navbar extends React.Component {
                             href='#'
                             onClick={this.handleLeave}
                         >
-                            Leave Channel
+                            {'Leave Channel'}
                         </a>
                     </li>
                 );
@@ -175,11 +181,10 @@ export default class Navbar extends React.Component {
                     <li role='presentation'>
                         <a
                             role='menuitem'
-                            data-toggle='modal'
-                            data-target='#channel_members'
                             href='#'
+                            onClick={() => this.setState({showMembersModal: true})}
                         >
-                            Manage Members
+                            {'Manage Members'}
                         </a>
                     </li>
                 );
@@ -195,7 +200,7 @@ export default class Navbar extends React.Component {
                             data-name={channel.name}
                             data-channelid={channel.id}
                         >
-                            Rename Channel...
+                            {'Rename Channel...'}
                         </a>
                     </li>
                 );
@@ -210,7 +215,7 @@ export default class Navbar extends React.Component {
                             data-title={channel.display_name}
                             data-channelid={channel.id}
                         >
-                            Delete Channel...
+                            {'Delete Channel...'}
                         </a>
                     </li>
                 );
@@ -228,7 +233,7 @@ export default class Navbar extends React.Component {
                             data-title={channel.display_name}
                             data-channelid={channel.id}
                         >
-                            Notification Preferences
+                            {'Notification Preferences'}
                         </a>
                     </li>
                 );
@@ -299,7 +304,7 @@ export default class Navbar extends React.Component {
                     data-toggle='collapse'
                     data-target='#navbar-collapse-1'
                 >
-                    <span className='sr-only'>Toggle sidebar</span>
+                    <span className='sr-only'>{'Toggle sidebar'}</span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
@@ -315,7 +320,7 @@ export default class Navbar extends React.Component {
                     data-target='#sidebar-nav'
                     onClick={this.toggleLeftSidebar}
                 >
-                    <span className='sr-only'>Toggle sidebar</span>
+                    <span className='sr-only'>{'Toggle sidebar'}</span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
@@ -425,6 +430,14 @@ export default class Navbar extends React.Component {
                     show={this.state.showEditChannelPurposeModal}
                     onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
                     channel={channel}
+                />
+                <ChannelMembersModal
+                    show={this.state.showMembersModal}
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
+                />
+                <ChannelInviteModal
+                    show={this.state.showInviteModal}
+                    onModalDismissed={() => this.setState({showInviteModal: false})}
                 />
             </div>
         );
