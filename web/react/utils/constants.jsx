@@ -159,7 +159,8 @@ module.exports = {
             buttonBg: '#2389d7',
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#fff2bb',
-            mentionHighlightLink: '#2f81b7'
+            mentionHighlightLink: '#2f81b7',
+            codeTheme: 'github'
         },
         organization: {
             type: 'Organization',
@@ -181,7 +182,8 @@ module.exports = {
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#fff2bb',
-            mentionHighlightLink: '#2f81b7'
+            mentionHighlightLink: '#2f81b7',
+            codeTheme: 'github'
         },
         mattermostDark: {
             type: 'Mattermost Dark',
@@ -203,7 +205,8 @@ module.exports = {
             buttonBg: '#4CBBA4',
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#984063',
-            mentionHighlightLink: '#A4FFEB'
+            mentionHighlightLink: '#A4FFEB',
+            codeTheme: 'solarized_dark'
         },
         windows10: {
             type: 'Windows Dark',
@@ -225,7 +228,8 @@ module.exports = {
             buttonBg: '#0177e7',
             buttonColor: '#FFFFFF',
             mentionHighlightBg: '#784098',
-            mentionHighlightLink: '#A4FFEB'
+            mentionHighlightLink: '#A4FFEB',
+            codeTheme: 'monokai'
         }
     },
     THEME_ELEMENTS: [
@@ -315,7 +319,7 @@ module.exports = {
                 },
                 {
                     id: 'solarized_light',
-                    uiName: 'Solarized light'
+                    uiName: 'Solarized Light'
                 },
                 {
                     id: 'github',
@@ -328,12 +332,6 @@ module.exports = {
             ]
         }
     ],
-    CODE_THEMES: {
-        github: 'GitHub',
-        solarized_light: 'Solarized Light',
-        monokai: 'Monokai',
-        solarized_dark: 'Solarized Dark'
-    },
     DEFAULT_CODE_THEME: 'github',
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',

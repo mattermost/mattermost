@@ -87,13 +87,9 @@ export default class CustomThemeChooser extends React.Component {
                             >
                                 {codeThemeOptions}
                             </select>
-                            <span className='input-group-addon'>
-                                <i>
-                                    <img
-                                        src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
-                                    />
-                                </i>
-                            </span>
+                            <img
+                                src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
+                            />
                         </div>
                     </div>
                 );
@@ -118,9 +114,9 @@ export default class CustomThemeChooser extends React.Component {
                         </div>
                     </div>
                 );
-            }
 
-            colors += theme[element.id] + ',';
+                colors += theme[element.id] + ',';
+            }
         });
 
         colors += theme.codeTheme;
@@ -131,6 +127,7 @@ export default class CustomThemeChooser extends React.Component {
                     {'Copy and paste to share theme colors:'}
                 </label>
                 <input
+                    readOnly='true'
                     type='text'
                     className='form-control'
                     value={colors}
