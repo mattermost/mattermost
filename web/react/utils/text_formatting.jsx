@@ -166,7 +166,7 @@ function autolinkAtMentions(text, tokens) {
     }
 
     let output = text;
-    output = output.replace(/(^|\s)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/(^|[^a-z0-9])(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
 
     return output;
 }
