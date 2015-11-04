@@ -81,7 +81,7 @@ export default class PostsViewContainer extends React.Component {
         }
     }
     onChannelChange() {
-        const postLists = Object.assign({}, this.state.postLists);
+        const postLists = this.state.postLists.slice();
         const channels = this.state.channels.slice();
         const channelId = ChannelStore.getCurrentId();
 
@@ -112,7 +112,7 @@ export default class PostsViewContainer extends React.Component {
             postLists});
     }
     onChannelLeave(id) {
-        const postLists = Object.assign({}, this.state.postLists);
+        const postLists = this.state.postLists.slice();
         const channels = this.state.channels.slice();
         const index = channels.indexOf(id);
         if (index !== -1) {
@@ -123,7 +123,7 @@ export default class PostsViewContainer extends React.Component {
     }
     onPostsChange() {
         const channels = this.state.channels;
-        const postLists = Object.assign({}, this.state.postLists);
+        const postLists = this.state.postLists.slice();
         const newPostsView = this.getChannelPosts(channels[this.state.currentChannelIndex]);
 
         postLists[this.state.currentChannelIndex] = newPostsView;
