@@ -98,7 +98,7 @@ export default class TutorialTip extends React.Component {
                         <div className='tutorial__circles'>{dots}</div>
                         <div className='text-right'>
                             <button
-                                className='btn btn-default'
+                                className='btn btn-primary'
                                 onClick={this.handleNext}
                             >
                                 {buttonText}
