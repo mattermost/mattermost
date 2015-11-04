@@ -12,18 +12,23 @@ Each release of Mattermost contains logic to upgrade it from the previously majo
       1. In some cases there will be **minor build releases**, such as 1.2.1 and 1.2.2. The minor build number indicates a bug fix or security issue release. Testing on minor build versions is less extensive than on major build versions and it is recommended that you use the minor build only if you need the specific additions included. 
   3. Review Release Notes 
     1. Check the release notes for the version of Mattermost you are able to install, and note any setting changes in the **Compatibility** section that apply to your deployment
-  4. Download the `mattermost.tar.gz` file with the correct version for your upgrade.
+  4. Download the `mattermost.tar.gz` file with the correct version for your upgrade
+    1. You can use `wget` to retrieve a specific version. For example, to download v1.1.0 run `wget https://github.com/mattermost/platform/releases/download/v1.1.0/mattermost.tar.gz`
 2. Stop the Mattermost Server
   1. As best practice, consider posting to the Town Square channel of active teams pre-announcing the scheduled downtime to apply these upgrade procedures. 
+  2. To stop the server run `sudo stop mattermost`
 2. Backup your data
   1. Back up your `config.json` file, which contains your system configuration. This will be used to restore your current settings after the new version is installed
   2. Backup your database using your organization's standard procedures for backing up MySQL or PostgreSQL
   3. If you're using local file storage, back up the location where files are stored
 4. Decompress `mattermost.tar.gz` and use its contents to replace the current version of Mattermost on disk
+  1. Run `tar -xvzf mattermost.tar.gz`
 5. Restore the state of your server by copying the backed up version of `config.json` in place of the default `config.json` 
 6. Start your server and address any setting changes relevant in the latest version of Mattermost
-  1. The server will upgrade your database schema to be compatibile with the new release, as well as upgrade your `config.json` file to the latest format, using default values for new settings added
-  2. Go to the System Console to update any settings that have been added or modified based on the **Compatibility** documentation in the release notes
+  1. Run `sudo start mattermost`
+  2. The server will upgrade your database schema to be compatibile with the new release, as well as upgrade your `config.json` file to the latest format, using default values for new settings added
+  3. Go to the System Console to update any settings that have been added or modified based on the **Compatibility** documentation in the release notes
+7. Test the system is working by going to the URL of an existing team
 
 ### Upgrading from Mattermost Beta (Version 0.7)
 
