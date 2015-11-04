@@ -17,26 +17,26 @@ export default class MemberList extends React.Component {
 
         var message = '';
         if (members.length === 0) {
-            message = <span>No users to add.</span>;
+            message = <tr><td>No users to add.</td></tr>;
         }
 
         return (
             <table className='table more-table member-list-holder'>
                 <tbody>
-                {members.map(function mymembers(member) {
-                    return (
-                        <MemberListItem
-                            key={member.id}
-                            member={member}
-                            isAdmin={this.props.isAdmin}
-                            handleInvite={this.props.handleInvite}
-                            handleRemove={this.props.handleRemove}
-                            handleMakeAdmin={this.props.handleMakeAdmin}
-                        />
-                    );
-                }, this)}
+                    {members.map(function mymembers(member) {
+                        return (
+                            <MemberListItem
+                                key={member.id}
+                                member={member}
+                                isAdmin={this.props.isAdmin}
+                                handleInvite={this.props.handleInvite}
+                                handleRemove={this.props.handleRemove}
+                                handleMakeAdmin={this.props.handleMakeAdmin}
+                            />
+                        );
+                    }, this)}
+                    {message}
                 </tbody>
-                {message}
             </table>
         );
     }
