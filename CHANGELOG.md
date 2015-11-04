@@ -64,6 +64,32 @@ System Console
 - IE 11 new minimum version for IE, since IE 10 share fell below 5% on desktop 
 - Safari 8 new minimum version for Safari, since Safari 7 fell below 1% on desktop 
 
+#### Config.json Changes from v1.1 to v1.2
+
+Multiple settings were added to [`config.json`](./config/config.json). These options can be modified in the System Console, or manually updated in the existing config.json file. This is a list of changes and their new default values in a fresh install: 
+- Under `TeamSettings` in `config.json`:
+  - Added: `"RestrictTeamNames": true` to control whether team names are restricted
+  - Added: `"EnableTeamListing": false` to control whether teams can be listed on the root page of the site
+- Under `ServiceSettings` in `config.json`
+  - Added: `EnableOutgoingWebhooks": true` to turn on outgoing webhooks
+
+#### Database Changes from v1.1 to v1.2
+
+The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this. 
+
+##### Channels Table
+1. Renamed `Description` to `Header`
+2. Added `Purpose` column with type `varchar(1024)`
+
+##### Preferences Table
+1. Added `Preferences` Table
+
+##### Teams Table 
+1. Added `InviteId` column with type `varchar(32)`
+2. Added `AllowOpenInvite` column with type `tinyint(1)`
+3. Added `AllowTeamListing` column with type `tinyint(1)`
+4. Added `idx_teams_invite_id` index
+
 #### Known Issues
 
 - Microsoft Edge does not yet support drag and drop 
