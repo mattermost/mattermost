@@ -171,6 +171,10 @@ function autolinkAtMentions(text, tokens) {
     return output;
 }
 
+function escapeRegex(text) {
+    return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
 function highlightCurrentMentions(text, tokens) {
     let output = text;
 
@@ -210,7 +214,7 @@ function highlightCurrentMentions(text, tokens) {
     }
 
     for (const mention of UserStore.getCurrentMentionKeys()) {
-        output = output.replace(new RegExp(`(^|\\W)(${mention})\\b`, 'gi'), replaceCurrentMentionWithToken);
+        output = output.replace(new RegExp(`(^|\\W)(${escapeRegex(mention)})\\b`, 'gi'), replaceCurrentMentionWithToken);
     }
 
     return output;
@@ -290,7 +294,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
         return prefix + alias;
     }
 
-    return output.replace(new RegExp(`()(${searchTerm})`, 'gi'), replaceSearchTermWithToken);
+    return output.replace(new RegExp(`()(${escapeRegex(searchTerm)})`, 'gi'), replaceSearchTermWithToken);
 }
 
 function replaceTokens(text, tokens) {
