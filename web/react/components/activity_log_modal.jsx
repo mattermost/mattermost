@@ -4,6 +4,7 @@
 const UserStore = require('../stores/user_store.jsx');
 const Client = require('../utils/client.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
+const Modal = ReactBootstrap.Modal;
 const LoadingScreen = require('./loading_screen.jsx');
 const Utils = require('../utils/utils.jsx');
 
@@ -49,16 +50,23 @@ export default class ActivityLogModal extends React.Component {
     }
     onShow() {
         AsyncClient.getSessions();
+
+        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
+        if ($(window).width() > 768) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+        }
     }
     onHide() {
-        $('#user_settings').modal('show');
         this.setState({moreInfo: []});
+        this.props.onModalDismissed();
     }
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.onShow);
-
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.onHide);
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.show && !prevProps.show) {
+            this.onShow();
+        }
     }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);
@@ -151,44 +159,24 @@ export default class ActivityLogModal extends React.Component {
         }
 
         return (
-            <div>
-                <div
-                    className='modal fade'
-                    ref='modal'
-                    id='activity-log'
-                    tabIndex='-1'
-                    role='dialog'
-                    aria-hidden='true'
-                >
-                    <div className='modal-dialog modal-lg'>
-                        <div className='modal-content'>
-                            <div className='modal-header'>
-                                <button
-                                    type='button'
-                                    className='close'
-                                    data-dismiss='modal'
-                                    aria-label='Close'
-                                >
-                                    <span aria-hidden='true'>&times;</span>
-                                </button>
-                                <h4
-                                    className='modal-title'
-                                    id='myModalLabel'
-                                >
-                                    Active Sessions
-                                </h4>
-                            </div>
-                            <p className='session-help-text'>Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the 'Logout' button below to end a session.</p>
-                            <div
-                                ref='modalBody'
-                                className='modal-body'
-                            >
-                                {content}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Modal
+                show={this.props.show}
+                onHide={this.onHide}
+                bsSize='large'
+            >
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>{'Active Sessions'}</Modal.Title>
+                </Modal.Header>
+                <p className='session-help-text'>{'Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the \'Logout\' button below to end a session.'}</p>
+                <Modal.Body ref='modalBody'>
+                    {content}
+                </Modal.Body>
+            </Modal>
         );
     }
 }
+
+ActivityLogModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onModalDismissed: React.PropTypes.func.isRequired
+};
