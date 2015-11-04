@@ -11,7 +11,7 @@ Follow these steps to configure Mattermost to use GitLab as a single-sign-on (SS
 
 3. Submit the application and copy the given _Id_ and _Secret_ into the appropriate _SSOSettings_ fields in config/config.json
 
-4. Also in config/config.json, set _Allow_ to `true` for the _gitlab_ section, leave _Scope_ blank and use the following for the endpoints:
+4. Also in config/config.json, set _Enable_ to `true` for the _gitlab_ section, leave _Scope_ blank and use the following for the endpoints:
   * _AuthEndpoint_: `https://<your-gitlab-url>/oauth/authorize` (example https://example.com/oauth/authorize)  
   * _TokenEndpoint_: `https://<your-gitlab-url>/oauth/token`  
   * _UserApiEndpoint_: `https://<your-gitlab-url>/api/v3/user`  
