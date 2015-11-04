@@ -13,5 +13,5 @@ Some things to know about search:
 
 - Search in Mattermost uses the full text search features included in either a MySQL or Postgres database, which has some limitations
   - Special cases that are not supported in default full text search, such as searching for IP addresses like `10.100.200.101`, can be added in future as the search feature evolves
-  - Due to the volume of results, two letter searches and common words like "this", "a" and "is" won't appear in search results
+  - Two letter searches and common words like "this", "a" and "is" won't appear in search results
   - For searching in Chinese try adding * to the end of queries
