@@ -890,7 +890,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	channels := []store.StoreChannel{}
 
 	for _, params := range paramsList {
-		channels = append(channels, Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, params))
+		// don't allow users to search for everything
+		if params.Terms != "*" {
+			channels = append(channels, Srv.Store.Post().Search(c.Session.TeamId, c.Session.UserId, params))
+		}
 	}
 
 	posts := &model.PostList{}

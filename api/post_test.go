@@ -450,6 +450,10 @@ func TestSearchPosts(t *testing.T) {
 	if len(r3.Order) != 1 && r3.Order[0] == post3.Id {
 		t.Fatal("wrong serach")
 	}
+
+	if r4 := Client.Must(Client.SearchPosts("*")).Data.(*model.PostList); len(r4.Order) != 0 {
+		t.Fatal("searching for just * shouldn't return any results")
+	}
 }
 
 func TestSearchHashtagPosts(t *testing.T) {
