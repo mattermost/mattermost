@@ -5,7 +5,7 @@ The search box in Mattermost brings back results from any channel of which you�
 Some things to know about search: 
 
 - Multiple search terms are connected with “OR” by default. Typing in `Mattermost website` returns results containing “Mattermost” or “website”
-- You can use quotes to return search results for exact terms. For example: Searching `"Mattermost website"` will only return messages containing the entire phrase `"Mattermost website"` and will not return messages with only `Mattermost` or `website`
+- You can use quotes to return search results for exact terms. For example: Searching `"Mattermost website"` returns messages containing the entire phrase `"Mattermost website"` and not messages containing only `Mattermost` or `website`
 - You can use the `*` character for wildcard searches that match within words. For example: Searching for `rea*` brings back messages containing `reach`, `reason` and other words starting with `rea`.
 - You can use from: to find posts from specific users and in: to find posts in specific channels. For example: Searching `Mattermost in:town-square' will only return messages in Town Square that contain 'Mattermost'
 
