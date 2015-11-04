@@ -64,22 +64,6 @@ export function doFormatText(text, options) {
     return output;
 }
 
-export function doFormatEmoticons(text) {
-    const tokens = new Map();
-
-    let output = Emoticons.handleEmoticons(text, tokens);
-    output = replaceTokens(output, tokens);
-
-    return output;
-}
-
-export function doFormatMentions(text) {
-    const tokens = new Map();
-    let output = autolinkAtMentions(text, tokens);
-    output = replaceTokens(output, tokens);
-    return output;
-}
-
 export function sanitizeHtml(text) {
     let output = text;
 
@@ -182,9 +166,13 @@ function autolinkAtMentions(text, tokens) {
     }
 
     let output = text;
-    output = output.replace(/(^|\s)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/(^|[^a-z0-9])(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
 
     return output;
+}
+
+function escapeRegex(text) {
+    return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 function highlightCurrentMentions(text, tokens) {
@@ -226,7 +214,7 @@ function highlightCurrentMentions(text, tokens) {
     }
 
     for (const mention of UserStore.getCurrentMentionKeys()) {
-        output = output.replace(new RegExp(`(^|\\W)(${mention})\\b`, 'gi'), replaceCurrentMentionWithToken);
+        output = output.replace(new RegExp(`(^|\\W)(${escapeRegex(mention)})\\b`, 'gi'), replaceCurrentMentionWithToken);
     }
 
     return output;
@@ -306,7 +294,7 @@ function highlightSearchTerm(text, tokens, searchTerm) {
         return prefix + alias;
     }
 
-    return output.replace(new RegExp(`()(${searchTerm})`, 'gi'), replaceSearchTermWithToken);
+    return output.replace(new RegExp(`()(${escapeRegex(searchTerm)})`, 'gi'), replaceSearchTermWithToken);
 }
 
 function replaceTokens(text, tokens) {
