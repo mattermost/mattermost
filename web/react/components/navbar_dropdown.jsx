@@ -11,23 +11,15 @@ var AboutBuildModal = require('./about_build_modal.jsx');
 var Constants = require('../utils/constants.jsx');
 
 function getStateFromStores() {
-    let teams = [];
-    let teamsObject = UserStore.getTeams();
-    for (let teamId in teamsObject) {
+    const teams = [];
+    const teamsObject = UserStore.getTeams();
+    for (const teamId in teamsObject) {
         if (teamsObject.hasOwnProperty(teamId)) {
             teams.push(teamsObject[teamId]);
         }
     }
-    teams.sort(function sortByDisplayName(teamA, teamB) {
-        let teamADisplayName = teamA.display_name.toLowerCase();
-        let teamBDisplayName = teamB.display_name.toLowerCase();
-        if (teamADisplayName < teamBDisplayName) {
-            return -1;
-        } else if (teamADisplayName > teamBDisplayName) {
-            return 1;
-        }
-        return 0;
-    });
+
+    teams.sort(Utils.sortByDisplayName);
     return {teams};
 }
 
