@@ -118,9 +118,13 @@ export default class RenameChannelModal extends React.Component {
         const button = $(e.relatedTarget);
         this.setState({displayName: button.attr('data-display'), channelName: button.attr('data-name'), channelId: button.attr('data-channelid')});
     }
+    handleShown() {
+        $('#rename_channel #display_name').focus();
+    }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.handleShow);
         $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.handleShown);
     }
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
@@ -176,6 +180,7 @@ export default class RenameChannelModal extends React.Component {
                                         onChange={this.onDisplayNameChange}
                                         type='text'
                                         ref='displayName'
+                                        id='display_name'
                                         className='form-control'
                                         placeholder='Enter display name'
                                         value={this.state.displayName}

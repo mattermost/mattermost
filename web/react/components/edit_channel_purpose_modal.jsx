@@ -15,6 +15,12 @@ export default class EditChannelPurposeModal extends React.Component {
         this.state = {serverError: ''};
     }
 
+    componentDidUpdate() {
+        if (this.props.show) {
+            $(ReactDOM.findDOMNode(this.refs.purpose)).focus();
+        }
+    }
+
     handleHide() {
         this.setState({serverError: ''});
 
@@ -77,6 +83,7 @@ export default class EditChannelPurposeModal extends React.Component {
         return (
             <Modal
                 className='modal-edit-channel-purpose'
+                ref='modal'
                 show={this.props.show}
                 onHide={this.handleHide}
             >
