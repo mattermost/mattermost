@@ -588,13 +588,23 @@ export function getMe() {
 }
 
 export function getStatuses() {
-    if (isCallInProgress('getStatuses')) {
+    const directChannels = ChannelStore.getAll().filter((channel) => channel.type === Constants.DM_CHANNEL);
+
+    const teammateIds = [];
+    for (var i = 0; i < directChannels.length; i++) {
+        const teammate = utils.getDirectTeammate(directChannels[i].id);
+        if (teammate) {
+            teammateIds.push(teammate.id);
+        }
+    }
+
+    if (isCallInProgress('getStatuses') || teammateIds.length === 0) {
         return;
     }
 
     callTracker.getStatuses = utils.getTimestamp();
-    client.getStatuses(
-        function getStatusesSuccess(data, textStatus, xhr) {
+    client.getStatuses(teammateIds,
+        (data, textStatus, xhr) => {
             callTracker.getStatuses = 0;
 
             if (xhr.status === 304 || !data) {
@@ -606,7 +616,7 @@ export function getStatuses() {
                 statuses: data
             });
         },
-        function getStatusesFailure(err) {
+        (err) => {
             callTracker.getStatuses = 0;
             dispatchError(err, 'getStatuses');
         }

@@ -1020,9 +1020,15 @@ func TestStatuses(t *testing.T) {
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
+	user2 := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser2.Id))
+
 	Client.LoginByEmail(team.Name, user.Email, user.Password)
 
-	r1, err := Client.GetStatuses()
+	userIds := []string{ruser2.Id}
+
+	r1, err := Client.GetStatuses(userIds)
 	if err != nil {
 		t.Fatal(err)
 	}

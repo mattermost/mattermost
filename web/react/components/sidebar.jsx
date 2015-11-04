@@ -100,74 +100,56 @@ export default class Sidebar extends React.Component {
     }
     getStateFromStores() {
         const members = ChannelStore.getAllMembers();
-        var teamMemberMap = UserStore.getActiveOnlyProfiles();
-        var currentId = ChannelStore.getCurrentId();
-        const currentUserId = UserStore.getCurrentId();
+        const currentChannelId = ChannelStore.getCurrentId();
 
-        var teammates = [];
-        for (var id in teamMemberMap) {
-            if (id === currentUserId) {
-                continue;
-            }
-            teammates.push(teamMemberMap[id]);
-        }
+        const channels = Object.assign([], ChannelStore.getAll());
+        const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
+        const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
+        const directChannels = channels.filter((channel) => channel.type === Constants.DM_CHANNEL);
 
         const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         var visibleDirectChannels = [];
-        var hiddenDirectChannelCount = 0;
-        for (var i = 0; i < teammates.length; i++) {
-            const teammate = teammates[i];
-
-            if (teammate.id === currentUserId) {
+        for (var i = 0; i < directChannels.length; i++) {
+            const dm = directChannels[i];
+            const teammate = Utils.getDirectTeammate(dm.id);
+            if (!teammate) {
                 continue;
             }
 
-            const channelName = Utils.getDirectChannelName(currentUserId, teammate.id);
+            const member = members[dm.id];
+            const msgCount = dm.total_msg_count - member.msg_count;
 
-            let forceShow = false;
-            let channel = ChannelStore.getByName(channelName);
+            // always show a channel if either it is the current one or if it is unread, but it is not currently being left
+            const forceShow = (currentChannelId === dm.id || msgCount > 0) && !this.isLeaving.get(dm.id);
+            const preferenceShow = preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'));
 
-            if (channel) {
-                const member = members[channel.id];
-                const msgCount = channel.total_msg_count - member.msg_count;
+            if (preferenceShow || forceShow) {
+                dm.display_name = Utils.displayUsername(teammate.id);
+                dm.teammate_id = teammate.id;
+                dm.status = UserStore.getStatus(teammate.id);
 
-                // always show a channel if either it is the current one or if it is unread, but it is not currently being left
-                forceShow = (currentId === channel.id || msgCount > 0) && !this.isLeaving.get(channel.id);
-            } else {
-                channel = {};
-                channel.fake = true;
-                channel.name = channelName;
-                channel.last_post_at = 0;
-                channel.total_msg_count = 0;
-                channel.type = 'D';
-            }
+                visibleDirectChannels.push(dm);
 
-            channel.display_name = Utils.displayUsername(teammate.id);
-            channel.teammate_id = teammate.id;
-            channel.status = UserStore.getStatus(teammate.id);
-
-            if (preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'))) {
-                visibleDirectChannels.push(channel);
-            } else if (forceShow) {
-                // make sure that unread direct channels are visible
-                const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
-                AsyncClient.savePreferences([preference]);
-
-                visibleDirectChannels.push(channel);
-            } else {
-                hiddenDirectChannelCount += 1;
+                if (forceShow && !preferenceShow) {
+                    // make sure that unread direct channels are visible
+                    const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
+                    AsyncClient.savePreferences([preference]);
+                }
             }
         }
+
+        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList().length - visibleDirectChannels.length;
 
         visibleDirectChannels.sort(this.sortChannelsByDisplayName);
 
         const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
 
         return {
-            activeId: currentId,
-            channels: ChannelStore.getAll(),
+            activeId: currentChannelId,
             members,
+            publicChannels,
+            privateChannels,
             visibleDirectChannels,
             hiddenDirectChannelCount,
             showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.CHANNEL_POPOVER
@@ -534,11 +516,9 @@ export default class Sidebar extends React.Component {
         this.lastUnreadChannel = null;
 
         // create elements for all 3 types of channels
-        const publicChannels = this.state.channels.filter((channel) => channel.type === 'O');
-        const publicChannelItems = publicChannels.map(this.createChannelElement);
+        const publicChannelItems = this.state.publicChannels.map(this.createChannelElement);
 
-        const privateChannels = this.state.channels.filter((channel) => channel.type === 'P');
-        const privateChannelItems = privateChannels.map(this.createChannelElement);
+        const privateChannelItems = this.state.privateChannels.map(this.createChannelElement);
 
         const directMessageItems = this.state.visibleDirectChannels.map((channel, index, arr) => {
             return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
