@@ -12,6 +12,7 @@ export default class EditChannelModal extends React.Component {
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.onShow = this.onShow.bind(this);
+        this.handleShown = this.handleShown.bind(this);
 
         this.state = {
             header: '',

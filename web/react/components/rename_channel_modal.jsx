@@ -16,6 +16,7 @@ export default class RenameChannelModal extends React.Component {
         this.displayNameKeyUp = this.displayNameKeyUp.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleShow = this.handleShow.bind(this);
+        this.handleShown = this.handleShown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
