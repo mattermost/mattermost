@@ -983,8 +983,10 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
 	}
 
+	attachments := parsedRequest.Attachments
+
 	text := parsedRequest.Text
-	if len(text) == 0 {
+	if len(text) == 0 && (attachments == nil || len(attachments) == 0) {
 		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
 		return
 	}
@@ -1039,7 +1041,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl); err != nil {
+	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl, attachments); err != nil {
 		c.Err = err
 		return
 	}

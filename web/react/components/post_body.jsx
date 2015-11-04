@@ -7,6 +7,7 @@ const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const TextFormatting = require('../utils/text_formatting.jsx');
 const twemoji = require('twemoji');
+const PostAttachmentList = require('./post_attachment_list.jsx');
 
 export default class PostBody extends React.Component {
     constructor(props) {
@@ -316,6 +317,15 @@ export default class PostBody extends React.Component {
             );
         }
 
+        let postAttachments = '';
+        if (post.attachments && post.attachments.length) {
+            postAttachments = (
+                <PostAttachmentList
+                    attachments={post.attachments}
+                />
+            );
+        }
+
         return (
             <div className='post-body'>
                 {comment}
@@ -331,6 +341,7 @@ export default class PostBody extends React.Component {
                         dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
                     />
                 </div>
+                {postAttachments}
                 {fileAttachmentHolder}
                 {embed}
             </div>

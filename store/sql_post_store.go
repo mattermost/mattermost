@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -32,12 +33,25 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(4000)
 		table.ColMap("Filenames").SetMaxSize(4000)
+		table.ColMap("Attachments")
 	}
 
 	return s
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
+	if s.CreateColumnIfNotExists("Posts", "Attachments", "TEXT", "TEXT", "") {
+		// set default values
+		_, err := s.GetMaster().Exec(
+			`UPDATE
+				Posts
+			SET
+				Attachments = '[]'`)
+		if err != nil {
+			l4g.Error("Unable to set default values for Posts.Attachments")
+			l4g.Error(err.Error())
+		}
+	}
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
