@@ -206,7 +206,7 @@ export default class MoreDirectChannels extends React.Component {
 
         return (
             <Modal
-                className='modal-direct-channels'
+                dialogClassName='more-modal'
                 show={this.props.show}
                 onHide={this.handleHide}
             >

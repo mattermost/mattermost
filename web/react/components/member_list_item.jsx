@@ -37,7 +37,7 @@ export default class MemberListItem extends React.Component {
             invite = (
                     <a
                         onClick={this.handleInvite}
-                        className='btn btn-sm btn-primary member-invite'
+                        className='btn btn-sm btn-primary'
                     >
                         <i className='glyphicon glyphicon-envelope'/>
                         {' Add'}
@@ -102,17 +102,19 @@ export default class MemberListItem extends React.Component {
         }
 
         return (
-            <div className='row member-div'>
-                <img
-                    className='post-profile-img pull-left'
-                    src={'/api/v1/users/' + member.id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
-                    height='36'
-                    width='36'
-                />
-                <span className='member-name'>{member.username}</span>
-                <span className='member-email'>{member.email}</span>
-                {invite}
-            </div>
+            <tr>
+                <td className='direct-channel'>
+                    <img
+                        className='profile-img pull-left'
+                        src={'/api/v1/users/' + member.id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
+                        height='36'
+                        width='36'
+                    />
+                    <div className='member-name'>{member.username}</div>
+                    <div className='member-description'>{member.email}</div>
+                </td>
+                <td className='td--action lg'>{invite}</td>
+            </tr>
         );
     }
 }

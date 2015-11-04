@@ -21,7 +21,8 @@ export default class MemberList extends React.Component {
         }
 
         return (
-            <div className='member-list-holder'>
+            <table className='table more-table member-list-holder'>
+                <tbody>
                 {members.map(function mymembers(member) {
                     return (
                         <MemberListItem
@@ -34,8 +35,9 @@ export default class MemberList extends React.Component {
                         />
                     );
                 }, this)}
+                </tbody>
                 {message}
-            </div>
+            </table>
         );
     }
 }

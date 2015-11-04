@@ -46,7 +46,7 @@ export default class TeamSignUp extends React.Component {
             } else {
                 teamListing = (
                     <div>
-                        <h3>{'Choose a Team'}</h3>
+                        <h4>{'Choose a Team'}</h4>
                         <div className='signup-team-all'>
                             {
                                 this.props.teams.map((team) => {
@@ -58,19 +58,18 @@ export default class TeamSignUp extends React.Component {
                                             <a
                                                 href={'/' + team.name}
                                             >
-                                                <div className='signup-team-dir__group'>
-                                                    <span className='signup-team-dir__name'>{team.display_name}</span>
-                                                    <span
-                                                        className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
-                                                        aria-hidden='true'
-                                                    />
-                                                </div>
+                                                <span className='signup-team-dir__name'>{team.display_name}</span>
+                                                <span
+                                                    className='glyphicon glyphicon-menu-right right signup-team-dir__arrow'
+                                                    aria-hidden='true'
+                                                />
                                             </a>
                                         </div>
                                     );
                                 })
                             }
                         </div>
+                        <h4>{'Or Create a Team'}</h4>
                     </div>
                 );
             }

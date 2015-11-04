@@ -100,7 +100,7 @@
     .date-separator, .new-separator {
         &.hovered--comment {
             &:before, &:after {
-                background: none;
+                background: none !important;
             }
         }
     }
