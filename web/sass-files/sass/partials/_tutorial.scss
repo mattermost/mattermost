@@ -153,10 +153,17 @@
         padding-bottom: 100px;
         padding: 20px 40px 40px;
         .tutorial__steps {
+            position: relative;
             max-width: 310px;
-            min-height: 420px;
+            min-height: 350px;
+            margin-bottom: 50px;
             text-align: left;
             display: inline-block;
+                padding-bottom: 30px;
+        }
+        .btn-primary {
+            position: absolute;
+            bottom: 0;
         }
     }
     h1 {
