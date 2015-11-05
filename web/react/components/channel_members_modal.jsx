@@ -70,6 +70,16 @@ export default class ChannelMembersModal extends React.Component {
             channelName
         };
     }
+    onShow() {
+        if ($(window).width() > 768) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+        }
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.show && !prevProps.show) {
+            this.onShow();
+        }
+    }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onChange);
@@ -128,6 +138,11 @@ export default class ChannelMembersModal extends React.Component {
          );
     }
     render() {
+        var maxHeight = 1000;
+        if (Utils.windowHeight() <= 1200) {
+            maxHeight = Utils.windowHeight() - 300;
+        }
+
         const currentMember = ChannelStore.getCurrentMember();
         let isAdmin = false;
         if (currentMember) {
@@ -137,6 +152,7 @@ export default class ChannelMembersModal extends React.Component {
         return (
             <div>
                 <Modal
+                    dialogClassName='more-modal'
                     show={this.props.show}
                     onHide={this.props.onModalDismissed}
                 >
@@ -153,15 +169,16 @@ export default class ChannelMembersModal extends React.Component {
                             <i className='glyphicon glyphicon-envelope'/>{' Add New Members'}
                         </a>
                     </Modal.Header>
-                    <Modal.Body>
-                        <div className='col-sm-12'>
-                            <div className='team-member-list'>
-                                <MemberList
-                                    memberList={this.state.memberList}
-                                    isAdmin={isAdmin}
-                                    handleRemove={this.handleRemove}
-                                />
-                            </div>
+                    <Modal.Body
+                        ref='modalBody'
+                        style={{maxHeight}}
+                    >
+                        <div className='team-member-list'>
+                            <MemberList
+                                memberList={this.state.memberList}
+                                isAdmin={isAdmin}
+                                handleRemove={this.handleRemove}
+                            />
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
