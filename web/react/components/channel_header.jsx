@@ -1,20 +1,23 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+const NavbarSearchBox = require('./search_bar.jsx');
+const MessageWrapper = require('./message_wrapper.jsx');
+const PopoverListMembers = require('./popover_list_members.jsx');
+const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
+const ChannelInviteModal = require('./channel_invite_modal.jsx');
+const ChannelMembersModal = require('./channel_members_modal.jsx');
+
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
 const SearchStore = require('../stores/search_store.jsx');
 const PreferenceStore = require('../stores/preference_store.jsx');
-const NavbarSearchBox = require('./search_bar.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
-const Client = require('../utils/client.jsx');
-const TextFormatting = require('../utils/text_formatting.jsx');
-const Utils = require('../utils/utils.jsx');
-const MessageWrapper = require('./message_wrapper.jsx');
-const PopoverListMembers = require('./popover_list_members.jsx');
-const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
 
 const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+const Utils = require('../utils/utils.jsx');
+const TextFormatting = require('../utils/text_formatting.jsx');
+const AsyncClient = require('../utils/async_client.jsx');
+const Client = require('../utils/client.jsx');
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
 
@@ -31,6 +34,8 @@ export default class ChannelHeader extends React.Component {
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
+        state.showInviteModal = false;
+        state.showMembersModal = false;
         this.state = state;
     }
     getStateFromStores() {
@@ -86,7 +91,7 @@ export default class ChannelHeader extends React.Component {
 
         let terms = '';
         if (user.notify_props && user.notify_props.mention_keys) {
-            let termKeys = UserStore.getCurrentMentionKeys();
+            const termKeys = UserStore.getCurrentMentionKeys();
             if (user.notify_props.all === 'true' && termKeys.indexOf('@all') !== -1) {
                 termKeys.splice(termKeys.indexOf('@all'), 1);
             }
@@ -146,7 +151,7 @@ export default class ChannelHeader extends React.Component {
             channelTerm = 'Group';
         }
 
-        let dropdownContents = [];
+        const dropdownContents = [];
         if (isDirect) {
             dropdownContents.push(
                 <li
@@ -162,7 +167,7 @@ export default class ChannelHeader extends React.Component {
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Set Channel Header...
+                        {'Set Channel Header...'}
                     </a>
                 </li>
             );
@@ -179,7 +184,7 @@ export default class ChannelHeader extends React.Component {
                         data-channelid={channel.id}
                         href='#'
                     >
-                        View Info
+                        {'View Info'}
                     </a>
                 </li>
             );
@@ -192,11 +197,10 @@ export default class ChannelHeader extends React.Component {
                     >
                         <a
                             role='menuitem'
-                            data-toggle='modal'
-                            data-target='#channel_invite'
                             href='#'
+                            onClick={() => this.setState({showInviteModal: true})}
                         >
-                            Add Members
+                            {'Add Members'}
                         </a>
                     </li>
                 );
@@ -209,11 +213,10 @@ export default class ChannelHeader extends React.Component {
                         >
                             <a
                                 role='menuitem'
-                                data-toggle='modal'
-                                data-target='#channel_members'
                                 href='#'
+                                onClick={() => this.setState({showMembersModal: true})}
                             >
-                                Manage Members
+                                {'Manage Members'}
                             </a>
                         </li>
                     );
@@ -234,7 +237,7 @@ export default class ChannelHeader extends React.Component {
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Set {channelTerm} Header...
+                        {'Set '}{channelTerm}{' Header...'}
                     </a>
                 </li>
             );
@@ -248,7 +251,7 @@ export default class ChannelHeader extends React.Component {
                         href='#'
                         onClick={() => this.setState({showEditChannelPurposeModal: true})}
                     >
-                        Set {channelTerm} Purpose...
+                        {'Set '}{channelTerm}{' Purpose...'}
                     </a>
                 </li>
             );
@@ -265,7 +268,7 @@ export default class ChannelHeader extends React.Component {
                         data-title={channel.display_name}
                         data-channelid={channel.id}
                     >
-                        Notification Preferences
+                        {'Notification Preferences'}
                     </a>
                 </li>
             );
@@ -286,7 +289,7 @@ export default class ChannelHeader extends React.Component {
                                 data-name={channel.name}
                                 data-channelid={channel.id}
                             >
-                                Rename {channelTerm}...
+                                {'Rename '}{channelTerm}{'...'}
                             </a>
                         </li>
                     );
@@ -303,7 +306,7 @@ export default class ChannelHeader extends React.Component {
                                 data-title={channel.display_name}
                                 data-channelid={channel.id}
                             >
-                                Delete {channelTerm}...
+                                {'Delete '}{channelTerm}{'...'}
                             </a>
                         </li>
                     );
@@ -319,7 +322,7 @@ export default class ChannelHeader extends React.Component {
                             href='#'
                             onClick={this.handleLeave}
                         >
-                            Leave {channelTerm}
+                            {'Leave '}{channelTerm}
                         </a>
                     </li>
                 );
@@ -397,7 +400,7 @@ export default class ChannelHeader extends React.Component {
                                                 href='#'
                                                 onClick={this.searchMentions}
                                             >
-                                                Recent Mentions
+                                                {'Recent Mentions'}
                                             </a>
                                         </li>
                                     </ul>
@@ -410,6 +413,14 @@ export default class ChannelHeader extends React.Component {
                     show={this.state.showEditChannelPurposeModal}
                     onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
                     channel={channel}
+                />
+                <ChannelInviteModal
+                    show={this.state.showInviteModal}
+                    onModalDismissed={() => this.setState({showInviteModal: false})}
+                />
+                <ChannelMembersModal
+                    show={this.state.showMembersModal}
+                    onModalDismissed={() => this.setState({showMembersModal: false})}
                 />
             </div>
         );
