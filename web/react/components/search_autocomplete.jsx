@@ -3,6 +3,7 @@
 
 const ChannelStore = require('../stores/channel_store.jsx');
 const KeyCodes = require('../utils/constants.jsx').KeyCodes;
+const Popover = ReactBootstrap.Popover;
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
 
@@ -10,7 +11,6 @@ const patterns = new Map([
     ['channels', /\b(?:in|channel):\s*(\S*)$/i],
     ['users', /\bfrom:\s*(\S*)$/i]
 ]);
-const Popover = ReactBootstrap.Popover;
 
 export default class SearchAutocomplete extends React.Component {
     constructor(props) {
@@ -22,6 +22,8 @@ export default class SearchAutocomplete extends React.Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
 
         this.completeWord = this.completeWord.bind(this);
+        this.getSelection = this.getSelection.bind(this);
+        this.scrollToItem = this.scrollToItem.bind(this);
         this.updateSuggestions = this.updateSuggestions.bind(this);
 
         this.state = {
@@ -37,9 +39,18 @@ export default class SearchAutocomplete extends React.Component {
         $(document).on('click', this.handleDocumentClick);
     }
 
-    componentDidUpdate() {
-        $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content').perfectScrollbar();
-        $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content').css('max-height', $(window).height() - 200);
+    componentDidUpdate(prevProps, prevState) {
+        const content = $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content');
+
+        if (this.state.show) {
+            if (!prevState.show) {
+                content.perfectScrollbar();
+                content.css('max-height', $(window).height() - 200);
+            }
+
+            // keep the keyboard selection visible when scrolling
+            this.scrollToItem(this.getSelection());
+        }
     }
 
     componentWillUnmount() {
@@ -111,15 +122,7 @@ export default class SearchAutocomplete extends React.Component {
         } else if (e.which === KeyCodes.ENTER || e.which === KeyCodes.SPACE) {
             e.preventDefault();
 
-            this.completeSelectedWord();
-        }
-    }
-
-    completeSelectedWord() {
-        if (this.state.mode === 'channels') {
-            this.completeWord(this.state.suggestions[this.state.selection].name);
-        } else if (this.state.mode === 'users') {
-            this.completeWord(this.state.suggestions[this.state.selection].username);
+            this.completeWord(this.getSelection());
         }
     }
 
@@ -133,6 +136,40 @@ export default class SearchAutocomplete extends React.Component {
             filter: '',
             selection: 0
         });
+    }
+
+    getSelection() {
+        if (this.state.mode === 'channels') {
+            return this.state.suggestions[this.state.selection].name;
+        } else if (this.state.mode === 'users') {
+            return this.state.suggestions[this.state.selection].username;
+        }
+
+        return '';
+    }
+
+    scrollToItem(itemName) {
+        const content = $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content');
+        const visibleContentHeight = content[0].clientHeight;
+        const actualContentHeight = content[0].scrollHeight;
+
+        if (this.state.suggestions.length > 0 && visibleContentHeight < actualContentHeight) {
+            const contentTop = content.scrollTop();
+            const contentTopPadding = parseInt(content.css('padding-top'), 10);
+            const contentBottomPadding = parseInt(content.css('padding-top'), 10);
+
+            const item = $(this.refs[itemName]);
+            const itemTop = item[0].offsetTop - parseInt(item.css('margin-top'), 10);
+            const itemBottom = item[0].offsetTop + item.height() + parseInt(item.css('margin-bottom'), 10);
+
+            if (itemTop - contentTopPadding < contentTop) {
+                // the item is off the top of the visible space
+                content.scrollTop(itemTop - contentTopPadding);
+            } else if (itemBottom + contentTopPadding + contentBottomPadding > contentTop + visibleContentHeight) {
+                // the item has gone off the bottom of the visible space
+                content.scrollTop(itemBottom - visibleContentHeight + contentTopPadding + contentBottomPadding);
+            }
+        }
     }
 
     updateSuggestions(mode, filter) {
