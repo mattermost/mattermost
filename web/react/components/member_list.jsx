@@ -15,7 +15,7 @@ export default class MemberList extends React.Component {
             members = this.props.memberList;
         }
 
-        var message = '';
+        var message = null;
         if (members.length === 0) {
             message = <tr><td>No users to add.</td></tr>;
         }

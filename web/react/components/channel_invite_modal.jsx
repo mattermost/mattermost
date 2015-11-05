@@ -54,6 +54,16 @@ export default class ChannelInviteModal extends React.Component {
             loading
         };
     }
+    onShow() {
+        if ($(window).width() > 768) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+        }
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.show && !prevProps.show) {
+            this.onShow();
+        }
+    }
     componentWillReceiveProps(nextProps) {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onListenerChange);
@@ -103,6 +113,11 @@ export default class ChannelInviteModal extends React.Component {
         );
     }
     render() {
+        var maxHeight = 1000;
+        if (Utils.windowHeight() <= 1200) {
+            maxHeight = Utils.windowHeight() - 300;
+        }
+
         var inviteError = null;
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
@@ -129,13 +144,17 @@ export default class ChannelInviteModal extends React.Component {
 
         return (
             <Modal
+                dialogClassName='more-modal'
                 show={this.props.show}
                 onHide={this.props.onModalDismissed}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{'Add New Members to '}<span className='name'>{this.state.channelName}</span></Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body
+                    ref='modalBody'
+                    style={{maxHeight}}
+                >
                     {inviteError}
                     {content}
                 </Modal.Body>

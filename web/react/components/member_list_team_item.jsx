@@ -166,40 +166,42 @@ export default class MemberListTeamItem extends React.Component {
         }
 
         return (
-            <div className='row member-div'>
-                <img
-                    className='post-profile-img pull-left'
-                    src={`/api/v1/users/${user.id}/image?time=${timestamp}&${Utils.getSessionIndex()}`}
-                    height='36'
-                    width='36'
-                />
-                <span className='member-name'>{Utils.getDisplayName(user)}</span>
-                <span className='member-email'>{email}</span>
-                <div className='dropdown member-drop'>
-                    <a
-                        href='#'
-                        className='dropdown-toggle theme'
-                        type='button'
-                        id='channel_header_dropdown'
-                        data-toggle='dropdown'
-                        aria-expanded='true'
-                    >
-                        <span>{currentRoles} </span>
-                        <span className='caret'></span>
-                    </a>
-                    <ul
-                        className='dropdown-menu member-menu'
-                        role='menu'
-                        aria-labelledby='channel_header_dropdown'
-                    >
-                        {makeAdmin}
-                        {makeMember}
-                        {makeActive}
-                        {makeNotActive}
-                    </ul>
-                </div>
-                {serverError}
-            </div>
+            <tr>
+                <td className='row member-div'>
+                    <img
+                        className='post-profile-img pull-left'
+                        src={`/api/v1/users/${user.id}/image?time=${timestamp}&${Utils.getSessionIndex()}`}
+                        height='36'
+                        width='36'
+                    />
+                    <span className='member-name'>{Utils.getDisplayName(user)}</span>
+                    <span className='member-email'>{email}</span>
+                    <div className='dropdown member-drop'>
+                        <a
+                            href='#'
+                            className='dropdown-toggle theme'
+                            type='button'
+                            id='channel_header_dropdown'
+                            data-toggle='dropdown'
+                            aria-expanded='true'
+                        >
+                            <span>{currentRoles} </span>
+                            <span className='caret'></span>
+                        </a>
+                        <ul
+                            className='dropdown-menu member-menu'
+                            role='menu'
+                            aria-labelledby='channel_header_dropdown'
+                        >
+                            {makeAdmin}
+                            {makeMember}
+                            {makeActive}
+                            {makeNotActive}
+                        </ul>
+                    </div>
+                    {serverError}
+                </td>
+            </tr>
         );
     }
 }

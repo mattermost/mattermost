@@ -174,7 +174,7 @@
 				td {
 					width: 100%;
 					white-space: nowrap;
-					overflow: hidden;
+					@include legacy-pie-clearfix;
 					text-overflow: ellipsis;
 					padding: 8px 8px 8px 15px;
 					&.td--action {
