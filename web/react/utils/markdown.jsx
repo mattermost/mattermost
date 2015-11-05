@@ -157,21 +157,13 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 }
 
 class MattermostLexer extends marked.Lexer {
-    token(src, top, bq) {
-        var src = src.replace(/^ +$/gm, '')
-            , next
-            , loose
-            , cap
-            , bull
-            , b
-            , item
-            , space
-            , i
-            , l;
+    token(originalSrc, top, bq) {
+        let src = originalSrc.replace(/^ +$/gm, '');
 
         while (src) {
             // newline
-            if (cap = this.rules.newline.exec(src)) {
+            let cap = this.rules.newline.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 if (cap[0].length > 1) {
                     this.tokens.push({
@@ -181,20 +173,20 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // code
-            if (cap = this.rules.code.exec(src)) {
+            cap = this.rules.code.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 cap = cap[0].replace(/^ {4}/gm, '');
                 this.tokens.push({
                     type: 'code',
-                    text: !this.options.pedantic
-                        ? cap.replace(/\n+$/, '')
-                        : cap
+                    text: this.options.pedantic ? cap : cap.replace(/\n+$/, '')
                 });
                 continue;
             }
 
             // fences (gfm)
-            if (cap = this.rules.fences.exec(src)) {
+            cap = this.rules.fences.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.push({
                     type: 'code',
@@ -205,7 +197,8 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // heading
-            if (cap = this.rules.heading.exec(src)) {
+            cap = this.rules.heading.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.push({
                     type: 'heading',
@@ -216,17 +209,18 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // table no leading pipe (gfm)
-            if (top && (cap = this.rules.nptable.exec(src))) {
+            cap = this.rules.nptable.exec(src);
+            if (top && cap) {
                 src = src.substring(cap[0].length);
 
-                item = {
+                const item = {
                     type: 'table',
                     header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
                     align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
                     cells: cap[3].replace(/\n$/, '').split('\n')
                 };
 
-                for (i = 0; i < item.align.length; i++) {
+                for (let i = 0; i < item.align.length; i++) {
                     if (/^ *-+: *$/.test(item.align[i])) {
                         item.align[i] = 'right';
                     } else if (/^ *:-+: *$/.test(item.align[i])) {
@@ -238,7 +232,7 @@ class MattermostLexer extends marked.Lexer {
                     }
                 }
 
-                for (i = 0; i < item.cells.length; i++) {
+                for (let i = 0; i < item.cells.length; i++) {
                     item.cells[i] = item.cells[i].split(/ *\| */);
                 }
 
@@ -248,7 +242,8 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // lheading
-            if (cap = this.rules.lheading.exec(src)) {
+            cap = this.rules.lheading.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.push({
                     type: 'heading',
@@ -259,7 +254,8 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // hr
-            if (cap = this.rules.hr.exec(src)) {
+            cap = this.rules.hr.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.push({
                     type: 'hr'
@@ -268,7 +264,8 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // blockquote
-            if (cap = this.rules.blockquote.exec(src)) {
+            cap = this.rules.blockquote.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
 
                 this.tokens.push({
@@ -290,9 +287,10 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // list
-            if (cap = this.rules.list.exec(src)) {
+            cap = this.rules.list.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
-                bull = cap[2];
+                const bull = cap[2];
 
                 this.tokens.push({
                     type: 'list_start',
@@ -302,31 +300,29 @@ class MattermostLexer extends marked.Lexer {
                 // Get each top-level item.
                 cap = cap[0].match(this.rules.item);
 
-                next = false;
-                l = cap.length;
-                i = 0;
+                let next = false;
+                const l = cap.length;
 
-                for (; i < l; i++) {
-                    item = cap[i];
+                for (let i = 0; i < l; i++) {
+                    let item = cap[i];
 
                     // Remove the list item's bullet
                     // so it is seen as the next token.
-                    space = item.length;
+                    let space = item.length;
                     item = item.replace(/^ *([*+-]|\d+\.) +/, '');
 
                     // Outdent whatever the
                     // list item contains. Hacky.
                     if (~item.indexOf('\n ')) {
                         space -= item.length;
-                        item = !this.options.pedantic
-                            ? item.replace(new RegExp('^ \{1,' + space + '\}', 'gm'), '')
-                            : item.replace(/^ {1,4}/gm, '');
+                        item = this.options.pedantic ? item.replace(/^ {1,4}/gm, '') : item.replace(new RegExp('^ \{1,' + space + '\}', 'gm'), '');
                     }
 
                     // Determine whether the next list item belongs here.
                     // Backpedal if it does not belong in this list.
                     if (this.options.smartLists && i !== l - 1) {
-                        b = block.bullet.exec(cap[i + 1])[0];
+                        const bullet = /(?:[*+-]|\d+\.)/;
+                        const b = bullet.exec(cap[i + 1])[0];
                         if (bull !== b && !(bull.length > 1 && b.length > 1)) {
                             src = cap.slice(i + 1).join('\n') + src;
                             i = l - 1;
@@ -336,16 +332,16 @@ class MattermostLexer extends marked.Lexer {
                     // Determine whether item is loose or not.
                     // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
                     // for discount behavior.
-                    loose = next || /\n\n(?!\s*$)/.test(item);
+                    let loose = next || (/\n\n(?!\s*$)/).test(item);
                     if (i !== l - 1) {
                         next = item.charAt(item.length - 1) === '\n';
-                        if (!loose) loose = next;
+                        if (!loose) {
+                            loose = next;
+                        }
                     }
 
                     this.tokens.push({
-                        type: loose
-                            ? 'loose_item_start'
-                            : 'list_item_start'
+                        type: loose ? 'loose_item_start' : 'list_item_start'
                     });
 
                     // Recurse.
@@ -364,21 +360,20 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // html
-            if (cap = this.rules.html.exec(src)) {
+            cap = this.rules.html.exec(src);
+            if (cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.push({
-                    type: this.options.sanitize
-                        ? 'paragraph'
-                        : 'html',
-                        pre: !this.options.sanitizer
-                        && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-                        text: cap[0]
+                    type: this.options.sanitize ? 'paragraph' : 'html',
+                    pre: !this.options.sanitizer && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
+                    text: cap[0]
                 });
                 continue;
             }
 
             // def
-            if ((!bq && top) && (cap = this.rules.def.exec(src))) {
+            cap = this.rules.def.exec(src);
+            if ((!bq && top) && cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.links[cap[1].toLowerCase()] = {
                     href: cap[2],
@@ -388,17 +383,18 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // table (gfm)
-            if (top && (cap = this.rules.table.exec(src))) {
+            cap = this.rules.table.exec(src);
+            if (top && cap) {
                 src = src.substring(cap[0].length);
 
-                item = {
+                const item = {
                     type: 'table',
                     header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
                     align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
                     cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
                 };
 
-                for (i = 0; i < item.align.length; i++) {
+                for (let i = 0; i < item.align.length; i++) {
                     if (/^ *-+: *$/.test(item.align[i])) {
                         item.align[i] = 'right';
                     } else if (/^ *:-+: *$/.test(item.align[i])) {
@@ -410,10 +406,8 @@ class MattermostLexer extends marked.Lexer {
                     }
                 }
 
-                for (i = 0; i < item.cells.length; i++) {
-                    item.cells[i] = item.cells[i]
-                    .replace(/^ *\| *| *\| *$/g, '')
-                    .split(/ *\| */);
+                for (let i = 0; i < item.cells.length; i++) {
+                    item.cells[i] = item.cells[i].replace(/^ *\| *| *\| *$/g, '').split(/ *\| */);
                 }
 
                 this.tokens.push(item);
@@ -422,19 +416,19 @@ class MattermostLexer extends marked.Lexer {
             }
 
             // top-level paragraph
-            if (top && (cap = this.rules.paragraph.exec(src))) {
+            cap = this.rules.paragraph.exec(src);
+            if (top && cap) {
                 src = src.substring(cap[0].length);
                 this.tokens.push({
                     type: 'paragraph',
-                    text: cap[1].charAt(cap[1].length - 1) === '\n'
-                        ? cap[1].slice(0, -1)
-                        : cap[1]
+                    text: cap[1].charAt(cap[1].length - 1) === '\n' ? cap[1].slice(0, -1) : cap[1]
                 });
                 continue;
             }
 
             // text
-            if (cap = this.rules.text.exec(src)) {
+            cap = this.rules.text.exec(src);
+            if (cap) {
                 // Top-level should never reach here.
                 src = src.substring(cap[0].length);
                 this.tokens.push({
