@@ -109,7 +109,6 @@ export default class CreateComment extends React.Component {
         post.pending_post_id = `${userId}:${time}`;
         post.user_id = userId;
         post.create_at = time;
-        post.attachments = [];
 
         PostStore.storePendingPost(post);
         PostStore.storeCommentDraft(this.props.rootId, null);
