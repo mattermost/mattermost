@@ -147,7 +147,7 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	return rpost, nil
 }
 
-func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIconUrl string) (*model.Post, *model.AppError) {
+func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
@@ -155,7 +155,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 	linkRegex := regexp.MustCompile(`<\s*(\S*)\s*>`)
 	text = linkRegex.ReplaceAllString(text, "${1}")
 
-	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text}
+	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
 	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
@@ -171,6 +171,14 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 			post.AddProp("override_icon_url", overrideIconUrl)
 		} else {
 			post.AddProp("override_icon_url", model.DEFAULT_WEBHOOK_ICON)
+		}
+	}
+
+	if len(props) > 0 {
+		for key, val := range props {
+			if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
+				post.AddProp(key, val)
+			}
 		}
 	}
 
@@ -286,7 +294,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 							newContext := &Context{mockSession, model.NewId(), "", c.Path, nil, c.teamURLValid, c.teamURL, c.siteURL, 0}
 
 							if text, ok := respProps["text"]; ok {
-								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"]); err != nil {
+								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
 									l4g.Error("Failed to create response post, err=%v", err)
 								}
 							}

@@ -9,8 +9,10 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"time"
 )
 
 type SqlPostStore struct {
@@ -38,6 +40,15 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
+	col := s.GetColumnInformation("Posts", "Props")
+	if col.Type != "text" {
+		_, err := s.GetMaster().Exec("ALTER TABLE Posts MODIFY COLUMN Props TEXT")
+		if err != nil {
+			l4g.Critical("Failed to alter column Posts.Props to TEXT: " + err.Error())
+			time.Sleep(time.Second)
+			panic("Failed to alter column Posts.Props to TEXT: " + err.Error())
+		}
+	}
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {

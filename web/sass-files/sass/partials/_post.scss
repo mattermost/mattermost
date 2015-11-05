@@ -668,6 +668,7 @@ body.ios {
     }
     .attachment__image {
         max-width: 100%;
+        margin-bottom: 1em;
     }
     .attachment__thumb-container {
         width: 20%;
@@ -681,6 +682,9 @@ body.ios {
         width: 100%;
         .attachment___field-caption {
             font-weight: 700;
+        }
+        .attachment___field p {
+            margin: 0;
         }
     }
 }

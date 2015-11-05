@@ -50,6 +50,15 @@ type SqlStore struct {
 	preference PreferenceStore
 }
 
+type Column struct {
+	Field   string
+	Type    string
+	Null    string
+	Key     interface{}
+	Default interface{}
+	Extra   interface{}
+}
+
 func NewSqlStore() Store {
 
 	sqlStore := &SqlStore{}
@@ -455,6 +464,20 @@ func IsUniqueConstraintError(err string, mysql string, postgres string) bool {
 	return unique && field
 }
 
+func (ss SqlStore) GetColumnInformation(tableName, columnName string) Column {
+	var col Column
+	err := ss.GetMaster().SelectOne(&col, "SHOW COLUMNS FROM "+tableName+" WHERE Field = :Columnname", map[string]interface{}{
+		"Columnname": columnName,
+	})
+	if err != nil {
+		l4g.Critical("Failed to get information for column %s from table %s: %v", tableName, columnName, err.Error())
+		time.Sleep(time.Second)
+		panic("Failed to get information for column " + tableName + " from table " + columnName + ": " + err.Error())
+	}
+
+	return col
+}
+
 func (ss SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
 }
@@ -529,6 +552,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.ArrayToJson(t), nil
 	case model.EncryptStringMap:
 		return encrypt([]byte(utils.Cfg.SqlSettings.AtRestEncryptKey), model.MapToJson(t))
+	case model.StringInterface:
+		return model.StringInterfaceToJson(t), nil
 	}
 
 	return val, nil
@@ -569,6 +594,16 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 			}
 
 			b := []byte(ue)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{new(string), target, binder}, true
+	case *model.StringInterface:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*string)
+			if !ok {
+				return errors.New("FromDb: Unable to convert StringInterface to *string")
+			}
+			b := []byte(*s)
 			return json.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{new(string), target, binder}, true

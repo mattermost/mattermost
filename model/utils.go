@@ -17,6 +17,7 @@ import (
 	"time"
 )
 
+type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 type EncryptStringMap map[string]string
@@ -120,6 +121,25 @@ func ArrayFromJson(data io.Reader) []string {
 	var objmap []string
 	if err := decoder.Decode(&objmap); err != nil {
 		return make([]string, 0)
+	} else {
+		return objmap
+	}
+}
+
+func StringInterfaceToJson(objmap map[string]interface{}) string {
+	if b, err := json.Marshal(objmap); err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
+	decoder := json.NewDecoder(data)
+
+	var objmap map[string]interface{}
+	if err := decoder.Decode(&objmap); err != nil {
+		return make(map[string]interface{})
 	} else {
 		return objmap
 	}

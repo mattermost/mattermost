@@ -990,6 +990,15 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	channelName := parsedRequest.ChannelName
+	webhookType := parsedRequest.Type
+
+	if parsedRequest.Attachments != nil {
+		if len(parsedRequest.Props) == 0 {
+			parsedRequest.Props = make(model.StringInterface)
+		}
+		parsedRequest.Props["attachments"] = parsedRequest.Attachments
+		webhookType = model.POST_SLACK_ATTACHMENT
+	}
 
 	var hook *model.IncomingWebhook
 	if result := <-hchan; result.Err != nil {
@@ -1039,7 +1048,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl); err != nil {
+	if _, err := api.CreateWebhookPost(c, channel.Id, text, overrideUsername, overrideIconUrl, parsedRequest.Props, webhookType); err != nil {
 		c.Err = err
 		return
 	}
