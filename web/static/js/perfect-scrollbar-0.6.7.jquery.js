@@ -443,10 +443,11 @@ function bindClickRailHandler(element, i) {
   function pageOffset(el) {
     return el.getBoundingClientRect();
   }
-  var stopPropagation = window.Event.prototype.stopPropagation.bind;
 
   if (i.settings.stopPropagationOnClick) {
-    i.event.bind(i.scrollbarY, 'click', stopPropagation);
+    i.event.bind(i.scrollbarY, 'click', function (e) {
+      e.stopPropagation();
+    });
   }
   i.event.bind(i.scrollbarYRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarYHeight / 2);
@@ -467,7 +468,9 @@ function bindClickRailHandler(element, i) {
   });
 
   if (i.settings.stopPropagationOnClick) {
-    i.event.bind(i.scrollbarX, 'click', stopPropagation);
+    i.event.bind(i.scrollbarY, 'click', function (e) {
+      e.stopPropagation();
+    });
   }
   i.event.bind(i.scrollbarXRail, 'click', function (e) {
     var halfOfScrollbarLength = h.toInt(i.scrollbarXWidth / 2);
