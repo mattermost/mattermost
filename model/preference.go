@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"unicode/utf8"
 )
 
 const (
@@ -52,7 +53,7 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "Invalid name", "name="+o.Name)
 	}
 
-	if len(o.Value) > 128 {
+	if utf8.RuneCountInString(o.Value) > 128 {
 		return NewAppError("Preference.IsValid", "Value is too long", "value="+o.Value)
 	}
 

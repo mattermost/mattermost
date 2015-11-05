@@ -9,6 +9,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -122,7 +123,7 @@ func (o *Team) IsValid(restrictTeamNames bool) *AppError {
 		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
 	}
 
-	if len(o.DisplayName) == 0 || len(o.DisplayName) > 64 {
+	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > 64 {
 		return NewAppError("Team.IsValid", "Invalid name", "id="+o.Id)
 	}
 

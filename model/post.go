@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"unicode/utf8"
 )
 
 const (
@@ -94,11 +95,11 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "Invalid original id", "")
 	}
 
-	if len(o.Message) > 4000 {
+	if utf8.RuneCountInString(o.Message) > 4000 {
 		return NewAppError("Post.IsValid", "Invalid message", "id="+o.Id)
 	}
 
-	if len(o.Hashtags) > 1000 {
+	if utf8.RuneCountInString(o.Hashtags) > 1000 {
 		return NewAppError("Post.IsValid", "Invalid hashtags", "id="+o.Id)
 	}
 
@@ -106,7 +107,7 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "Invalid type", "id="+o.Type)
 	}
 
-	if len(ArrayToJson(o.Filenames)) > 4000 {
+	if utf8.RuneCountInString(ArrayToJson(o.Filenames)) > 4000 {
 		return NewAppError("Post.IsValid", "Invalid filenames", "id="+o.Id)
 	}
 

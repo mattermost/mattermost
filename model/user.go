@@ -10,6 +10,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -80,15 +81,15 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "Invalid email", "user_id="+u.Id)
 	}
 
-	if len(u.Nickname) > 64 {
+	if utf8.RuneCountInString(u.Nickname) > 64 {
 		return NewAppError("User.IsValid", "Invalid nickname", "user_id="+u.Id)
 	}
 
-	if len(u.FirstName) > 64 {
+	if utf8.RuneCountInString(u.FirstName) > 64 {
 		return NewAppError("User.IsValid", "Invalid first name", "user_id="+u.Id)
 	}
 
-	if len(u.LastName) > 64 {
+	if utf8.RuneCountInString(u.LastName) > 64 {
 		return NewAppError("User.IsValid", "Invalid last name", "user_id="+u.Id)
 	}
 
