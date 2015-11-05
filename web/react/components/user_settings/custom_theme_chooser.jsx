@@ -76,7 +76,7 @@ export default class CustomThemeChooser extends React.Component {
                     >
                         <label className='custom-label'>{element.uiName}</label>
                         <div
-                            className='input-group dropdown'
+                            className='input-group theme-group dropdown'
                             id={element.id}
                         >
                             <select
@@ -87,9 +87,11 @@ export default class CustomThemeChooser extends React.Component {
                             >
                                 {codeThemeOptions}
                             </select>
-                            <img
-                                src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
-                            />
+                            <span className='input-group-addon'>
+                                <img
+                                    src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
+                                />
+                            </span>
                         </div>
                     </div>
                 );
