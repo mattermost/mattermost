@@ -76,6 +76,8 @@ export default class Sidebar extends React.Component {
             if (ch.type === 'D') {
                 chMentionCount = chUnreadCount;
                 chUnreadCount = 0;
+            } else if (chMember.notify_props && chMember.notify_props.mark_unread === 'mention') {
+                chUnreadCount = 0;
             }
 
             channelUnreadCounts[ch.id] = {msgs: chUnreadCount, mentions: chMentionCount};
@@ -362,7 +364,7 @@ export default class Sidebar extends React.Component {
         var unread = false;
         if (channelMember) {
             msgCount = unreadCount.msgs + unreadCount.mentions;
-            unread = (msgCount > 0 && channelMember.notify_props.mark_unread !== 'mention') || channelMember.mention_count > 0;
+            unread = msgCount > 0 || channelMember.mention_count > 0;
         }
 
         if (unread) {
