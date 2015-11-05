@@ -46,6 +46,6 @@ git checkout -b <branch name>
   - For example, for a ticket ID `PLT-394` start your comment with:  `PLT-394:`. See [previously closed pull requests](https://github.com/mattermost/platform/pulls?q=is%3Apr+is%3Aclosed) for examples
 
 3. Once submitted, your pull request will be checked via an automated build process and will be reviewed by at least two members of the Mattermost core team, who may either accept the PR or follow-up with feedback. It would then get merged into `master` for the next release
-  4. If the build fails, check the error log to narrow down the reason. Sometimes one of the multiple build tests will randomly fail, potentially due to race conditions, so if you see just one build failure and can't find an obvious error message try re-running the build. 
+  4. If the build fails, check the error log to narrow down the reason. Sometimes one of the multiple build tests will randomly fail due to issues in Travis CI so if you see just one build failure and no clear error message it maybe a random issue. 
 
 4. If you've included your mailing address in Step 1, you'll be receiving a [Limited Edition Mattermost Mug](http://forum.mattermost.org/t/limited-edition-mattermost-mugs/143) as a thank you gift after your first pull request has been accepted
