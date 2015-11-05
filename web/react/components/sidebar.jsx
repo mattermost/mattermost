@@ -20,6 +20,7 @@ const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
+const NotificationPrefs = Constants.NotificationPrefs;
 
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
@@ -75,6 +76,8 @@ export default class Sidebar extends React.Component {
 
             if (ch.type === 'D') {
                 chMentionCount = chUnreadCount;
+                chUnreadCount = 0;
+            } else if (chMember.notify_props && chMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
                 chUnreadCount = 0;
             }
 
@@ -362,7 +365,7 @@ export default class Sidebar extends React.Component {
         var unread = false;
         if (channelMember) {
             msgCount = unreadCount.msgs + unreadCount.mentions;
-            unread = (msgCount > 0 && channelMember.notify_props.mark_unread !== 'mention') || channelMember.mention_count > 0;
+            unread = msgCount > 0 || channelMember.mention_count > 0;
         }
 
         if (unread) {

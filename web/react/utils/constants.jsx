@@ -384,5 +384,8 @@ module.exports = {
         BOTTOM: 1,
         POST: 2,
         SIDEBAR_OPEN: 3
+    },
+    NotificationPrefs: {
+        MENTION: 'mention'
     }
 };
