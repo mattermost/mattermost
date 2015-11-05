@@ -461,9 +461,9 @@ func (ss SqlStore) GetColumnDataType(tableName, columnName string) string {
 		"Columnname": columnName,
 	})
 	if err != nil {
-		l4g.Critical("Failed to get data type for column %s from table %s: %v", tableName, columnName, err.Error())
+		l4g.Critical("Failed to get data type for column %s from table %s: %v", columnName, tableName, err.Error())
 		time.Sleep(time.Second)
-		panic("Failed to get get data type for column " + tableName + " from table " + columnName + ": " + err.Error())
+		panic("Failed to get get data type for column " + columnName + " from table " + tableName + ": " + err.Error())
 	}
 
 	return dataType
