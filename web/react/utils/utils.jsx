@@ -1125,3 +1125,12 @@ export function sortByDisplayName(a, b) {
     }
     return 0;
 }
+
+export function getChannelTerm(channelType) {
+    let channelTerm = 'Channel';
+    if (channelType === Constants.PRIVATE_CHANNEL) {
+        channelTerm = 'Group';
+    }
+
+    return channelTerm;
+}

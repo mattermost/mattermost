@@ -3,6 +3,8 @@
 
 const AsyncClient = require('../utils/async_client.jsx');
 const Client = require('../utils/client.jsx');
+const Utils = require('../utils/utils.jsx');
+
 const Modal = ReactBootstrap.Modal;
 
 export default class EditChannelPurposeModal extends React.Component {
@@ -75,11 +77,6 @@ export default class EditChannelPurposeModal extends React.Component {
             title = <span>{'Edit Purpose for '}<span className='name'>{this.props.channel.display_name}</span></span>;
         }
 
-        let channelTerm = 'Channel';
-        if (this.props.channel.channelType === 'P') {
-            channelTerm = 'Group';
-        }
-
         return (
             <Modal
                 className='modal-edit-channel-purpose'
@@ -93,7 +90,7 @@ export default class EditChannelPurposeModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{`Describe how this ${channelTerm} should be used.`}</p>
+                    <p>{`Describe how this ${Utils.getChannelTerm(this.props.channel.channelType)} should be used.`}</p>
                     <textarea
                         ref='purpose'
                         className='form-control no-resize'

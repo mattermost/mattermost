@@ -6,6 +6,7 @@ const KeyCodes = require('../utils/constants.jsx').KeyCodes;
 const Popover = ReactBootstrap.Popover;
 const UserStore = require('../stores/user_store.jsx');
 const Utils = require('../utils/utils.jsx');
+const Constants = require('../utils/constants.jsx');
 
 const patterns = new Map([
     ['channels', /\b(?:in|channel):\s*(\S*)$/i],
@@ -25,6 +26,9 @@ export default class SearchAutocomplete extends React.Component {
         this.getSelection = this.getSelection.bind(this);
         this.scrollToItem = this.scrollToItem.bind(this);
         this.updateSuggestions = this.updateSuggestions.bind(this);
+
+        this.renderChannelSuggestion = this.renderChannelSuggestion.bind(this);
+        this.renderUserSuggestion = this.renderUserSuggestion.bind(this);
 
         this.state = {
             show: false,
@@ -230,6 +234,46 @@ export default class SearchAutocomplete extends React.Component {
         });
     }
 
+    renderChannelSuggestion(channel) {
+        let className = 'search-autocomplete__item';
+        if (channel.name === this.getSelection()) {
+            className += ' selected';
+        }
+
+        return (
+            <div
+                key={channel.name}
+                ref={channel.name}
+                onClick={this.handleClick.bind(this, channel.name)}
+                className={className}
+            >
+                {channel.name}
+            </div>
+        );
+    }
+
+    renderUserSuggestion(user) {
+        let className = 'search-autocomplete__item';
+        if (user.username === this.getSelection()) {
+            className += ' selected';
+        }
+
+        return (
+            <div
+                key={user.username}
+                ref={user.username}
+                onClick={this.handleClick.bind(this, user.username)}
+                className={className}
+            >
+                <img
+                    className='profile-img rounded'
+                    src={'/api/v1/users/' + user.id + '/image?time=' + user.update_at}
+                />
+                {user.username}
+            </div>
+        );
+    }
+
     render() {
         if (!this.state.show || this.state.suggestions.length === 0) {
             return null;
@@ -238,45 +282,33 @@ export default class SearchAutocomplete extends React.Component {
         let suggestions = [];
 
         if (this.state.mode === 'channels') {
-            suggestions = this.state.suggestions.map((channel, index) => {
-                let className = 'search-autocomplete__item';
-                if (this.state.selection === index) {
-                    className += ' selected';
-                }
-
-                return (
+            const publicChannels = this.state.suggestions.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
+            if (publicChannels.length > 0) {
+                suggestions.push(
                     <div
-                        key={channel.name}
-                        ref={channel.name}
-                        onClick={this.handleClick.bind(this, channel.name)}
-                        className={className}
+                        key='public-channel-divider'
+                        className='search-autocomplete__divider'
                     >
-                        {channel.name}
+                        {'Public ' + Utils.getChannelTerm(Constants.OPEN_CHANNEL) + 's'}
                     </div>
                 );
-            });
+                suggestions = suggestions.concat(publicChannels.map(this.renderChannelSuggestion));
+            }
+
+            const privateChannels = this.state.suggestions.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
+            if (privateChannels.length > 0) {
+                suggestions.push(
+                    <div
+                        key='private-channel-divider'
+                        className='search-autocomplete__divider'
+                    >
+                        {'Private ' + Utils.getChannelTerm(Constants.PRIVATE_CHANNEL) + 's'}
+                    </div>
+                );
+                suggestions = suggestions.concat(privateChannels.map(this.renderChannelSuggestion));
+            }
         } else if (this.state.mode === 'users') {
-            suggestions = this.state.suggestions.map((user, index) => {
-                let className = 'search-autocomplete__item';
-                if (this.state.selection === index) {
-                    className += ' selected';
-                }
-
-                return (
-                    <div
-                        key={user.username}
-                        ref={user.username}
-                        onClick={this.handleClick.bind(this, user.username)}
-                        className={className}
-                    >
-                        <img
-                            className='profile-img rounded'
-                            src={'/api/v1/users/' + user.id + '/image?time=' + user.update_at}
-                        />
-                        {user.username}
-                    </div>
-                );
-            });
+            suggestions = this.state.suggestions.map(this.renderUserSuggestion);
         }
 
         return (
