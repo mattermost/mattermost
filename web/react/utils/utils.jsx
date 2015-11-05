@@ -155,7 +155,7 @@ var canDing = true;
 
 export function ding() {
     if (!isBrowserFirefox() && canDing) {
-        var audio = new Audio('/static/images/bing.wav');
+        var audio = new Audio('/static/images/bing.mp3');
         audio.play();
         canDing = false;
         setTimeout(() => canDing = true, 3000);
