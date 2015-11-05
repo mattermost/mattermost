@@ -146,7 +146,7 @@ export default class Sidebar extends React.Component {
 
         visibleDirectChannels.sort(this.sortChannelsByDisplayName);
 
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
 
         return {
             activeId: currentChannelId,

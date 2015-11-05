@@ -50,7 +50,7 @@ export default class CreatePost extends React.Component {
         PostStore.clearDraftUploads();
 
         const draft = this.getCurrentDraft();
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
@@ -336,7 +336,7 @@ export default class CreatePost extends React.Component {
         }
     }
     onPreferenceChange() {
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
         this.setState({
             showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.POST_POPOVER,
             ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value

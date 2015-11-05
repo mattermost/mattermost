@@ -31,7 +31,7 @@ export default class SidebarHeader extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     getStateFromStores() {
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
 
         return {showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.MENU_POPOVER};
     }

@@ -21,7 +21,7 @@ export default class CenterPanel extends React.Component {
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
         this.state = {showTutorialScreens: parseInt(tutorialPref.value, 10) === TutorialSteps.INTRO_SCREENS};
     }
     componentDidMount() {
@@ -31,7 +31,7 @@ export default class CenterPanel extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
     onPreferenceChange() {
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '0'});
+        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
         this.setState({showTutorialScreens: parseInt(tutorialPref.value, 10) <= TutorialSteps.INTRO_SCREENS});
     }
     render() {
