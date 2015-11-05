@@ -40,8 +40,8 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-	col := s.GetColumnInformation("Posts", "Props")
-	if col.Type != "text" {
+	colType := s.GetColumnDataType("Posts", "Props")
+	if colType != "text" {
 		_, err := s.GetMaster().Exec("ALTER TABLE Posts MODIFY COLUMN Props TEXT")
 		if err != nil {
 			l4g.Critical("Failed to alter column Posts.Props to TEXT: " + err.Error())

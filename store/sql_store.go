@@ -50,15 +50,6 @@ type SqlStore struct {
 	preference PreferenceStore
 }
 
-type Column struct {
-	Field   string
-	Type    string
-	Null    string
-	Key     interface{}
-	Default interface{}
-	Extra   interface{}
-}
-
 func NewSqlStore() Store {
 
 	sqlStore := &SqlStore{}
@@ -464,18 +455,18 @@ func IsUniqueConstraintError(err string, mysql string, postgres string) bool {
 	return unique && field
 }
 
-func (ss SqlStore) GetColumnInformation(tableName, columnName string) Column {
-	var col Column
-	err := ss.GetMaster().SelectOne(&col, "SHOW COLUMNS FROM "+tableName+" WHERE Field = :Columnname", map[string]interface{}{
+func (ss SqlStore) GetColumnDataType(tableName, columnName string) string {
+	dataType, err := ss.GetMaster().SelectStr("SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS where table_name = :Tablename AND column_name = :Columnname", map[string]interface{}{
+		"Tablename":  tableName,
 		"Columnname": columnName,
 	})
 	if err != nil {
-		l4g.Critical("Failed to get information for column %s from table %s: %v", tableName, columnName, err.Error())
+		l4g.Critical("Failed to get data type for column %s from table %s: %v", tableName, columnName, err.Error())
 		time.Sleep(time.Second)
-		panic("Failed to get information for column " + tableName + " from table " + columnName + ": " + err.Error())
+		panic("Failed to get get data type for column " + tableName + " from table " + columnName + ": " + err.Error())
 	}
 
-	return col
+	return dataType
 }
 
 func (ss SqlStore) GetMaster() *gorp.DbMap {
