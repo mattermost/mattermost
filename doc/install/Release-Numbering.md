@@ -1,4 +1,10 @@
-### Mattermost Release Numbering 
+# Mattermost Release Schedule and Numbering 
+
+## Release Schedule
+
+Mattermost releases stable builds monthly on the 16th in [binary form](https://github.com/mattermost/platform/releases)
+
+## Release Numbering 
 
 Mattermost numbers its stable releases based on the following format: 
 
