@@ -50,7 +50,7 @@ export default class ImportThemeModal extends React.Component {
         theme.sidebarText = colors[5];
         theme.sidebarUnreadText = colors[5];
         theme.sidebarTextHoverBg = colors[4];
-        theme.sidebarTextActiveBg = colors[2];
+        theme.sidebarTextActiveBorder = colors[2];
         theme.sidebarTextActiveColor = colors[3];
         theme.sidebarHeaderBg = colors[1];
         theme.sidebarHeaderTextColor = colors[5];
@@ -59,9 +59,13 @@ export default class ImportThemeModal extends React.Component {
         theme.mentionColor = '#ffffff';
         theme.centerChannelBg = '#ffffff';
         theme.centerChannelColor = '#333333';
+        theme.newMessageSeparator = '#F80';
         theme.linkColor = '#2389d7';
         theme.buttonBg = '#26a970';
         theme.buttonColor = '#ffffff';
+        theme.mentionHighlightBg = '#fff2bb';
+        theme.mentionHighlightLink = '#2f81b7';
+        theme.codeTheme = 'github';
 
         let user = UserStore.getCurrentUser();
         user.theme_props = theme;

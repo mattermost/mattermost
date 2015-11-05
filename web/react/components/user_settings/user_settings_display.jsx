@@ -172,13 +172,13 @@ export default class UserSettingsDisplay extends React.Component {
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'How should other users be shown in Direct Messages list?'}</div>
+                    <div><br/>{'Set what name to display in the Direct Messages list.'}</div>
                 </div>
             ];
 
             nameFormatSection = (
                 <SettingItemMax
-                    title='Show real names, nick names or usernames?'
+                    title='Teammate Name Display'
                     inputs={inputs}
                     submit={this.handleSubmit}
                     server_error={serverError}
@@ -200,7 +200,7 @@ export default class UserSettingsDisplay extends React.Component {
 
             nameFormatSection = (
                 <SettingItemMin
-                    title='Show real names, nick names or usernames?'
+                    title='Teammate Name Display'
                     describe={describe}
                     updateSection={() => {
                         this.props.updateSection('name_format');

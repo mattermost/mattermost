@@ -182,16 +182,16 @@ body.ios {
 }
 
 #post-list {
-    flex: 1 1 auto;
-    position: relative;
-    overflow-y: hidden;
+	flex: 1 1 auto;
+	position: relative;
+	overflow-y: hidden;
 	.post-list-holder-by-time {
 		background: #fff;
 		overflow-y: scroll;
 		width: 100%;
 		padding: 1em 0 0;
 		position: absolute;
-        height: 100%;
+		height: 100%;
 		-webkit-overflow-scrolling: touch;
 		&::-webkit-scrollbar {
 			width: 0px !important;
@@ -212,6 +212,20 @@ body.ios {
 		.post-list__content {
 			display: table-cell;
 			vertical-align: bottom;
+			div {
+				&:last-child {
+					.post {
+						.post-header {
+							.post-header-col.post-header__reply {
+								.dropdown-menu {
+									top: auto;
+									bottom: 25px;
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	.more-messages-text {
@@ -387,16 +401,6 @@ body.ios {
 			}
 		}
 	}
-	&.post--last {
-		.post-header {
-			.post-header-col.post-header__reply {
-				.dropdown-menu {
-					top: auto;
-					bottom: 25px;
-				}
-			}
-		}
-	}
 	.post-create-footer {
 		padding: 0;
 	}
@@ -445,10 +449,10 @@ body.ios {
 		&.post-profile-img__container {
 			float: left;
 			.post-profile-img {
-                width: 36px;
-                height: 36px;
+				width: 36px;
+				height: 36px;
 				margin-right: 10px;
-                vertical-align: inherit;
+				vertical-align: inherit;
 				@include border-radius(50px);
 			}
 		}
