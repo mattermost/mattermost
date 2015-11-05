@@ -992,6 +992,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	channelName := parsedRequest.ChannelName
 	webhookType := parsedRequest.Type
 
+	//attachments is in here for slack compatibility
 	if parsedRequest.Attachments != nil {
 		if len(parsedRequest.Props) == 0 {
 			parsedRequest.Props = make(model.StringInterface)

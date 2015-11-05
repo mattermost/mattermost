@@ -42,7 +42,13 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
 	colType := s.GetColumnDataType("Posts", "Props")
 	if colType != "text" {
-		_, err := s.GetMaster().Exec("ALTER TABLE Posts MODIFY COLUMN Props TEXT")
+
+		query := "ALTER TABLE Posts MODIFY COLUMN Props TEXT"
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "ALTER TABLE Posts ALTER COLUMN Props TYPE text"
+		}
+
+		_, err := s.GetMaster().Exec(query)
 		if err != nil {
 			l4g.Critical("Failed to alter column Posts.Props to TEXT: " + err.Error())
 			time.Sleep(time.Second)
