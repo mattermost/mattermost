@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"unicode/utf8"
 )
 
 const (
@@ -74,7 +75,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "Update at must be a valid time", "id="+o.Id)
 	}
 
-	if len(o.DisplayName) > 64 {
+	if utf8.RuneCountInString(o.DisplayName) > 64 {
 		return NewAppError("Channel.IsValid", "Invalid display name", "id="+o.Id)
 	}
 
@@ -90,11 +91,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "Invalid type", "id="+o.Id)
 	}
 
-	if len(o.Header) > 1024 {
+	if utf8.RuneCountInString(o.Header) > 1024 {
 		return NewAppError("Channel.IsValid", "Invalid header", "id="+o.Id)
 	}
 
-	if len(o.Purpose) > 128 {
+	if utf8.RuneCountInString(o.Purpose) > 128 {
 		return NewAppError("Channel.IsValid", "Invalid purpose", "id="+o.Id)
 	}
 

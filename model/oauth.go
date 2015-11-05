@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"unicode/utf8"
 )
 
 type OAuthApp struct {
@@ -57,7 +58,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "Invalid homepage", "app_id="+a.Id)
 	}
 
-	if len(a.Description) > 512 {
+	if utf8.RuneCountInString(a.Description) > 512 {
 		return NewAppError("OAuthApp.IsValid", "Invalid description", "app_id="+a.Id)
 	}
 
