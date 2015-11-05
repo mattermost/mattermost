@@ -61,9 +61,7 @@ export default class CenterPanel extends React.Component {
                         <div id='channel-header'>
                             <ChannelHeader />
                         </div>
-                        <div id='post-list'>
-                            {postsContainer}
-                        </div>
+                        {postsContainer}
                         <div
                             className='post-create__container'
                             id='post-create'
