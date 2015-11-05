@@ -62,7 +62,7 @@ export default class SearchAutocomplete extends React.Component {
     }
 
     handleDocumentClick(e) {
-        const container = $(ReactDOM.findDOMNode(this.refs.container));
+        const container = $(ReactDOM.findDOMNode(this.refs.searchPopover));
 
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             this.setState({
