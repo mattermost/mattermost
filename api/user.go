@@ -87,6 +87,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hash := r.URL.Query().Get("h")
 
+	sendWelcomeEmail := true
+
 	if IsVerifyHashRequired(user, team, hash) {
 		data := r.URL.Query().Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
@@ -109,6 +111,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		user.Email = props["email"]
 		user.EmailVerified = true
+		sendWelcomeEmail = false
 	}
 
 	if len(user.AuthData) > 0 && len(user.AuthService) > 0 {
@@ -118,6 +121,10 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	ruser := CreateUser(c, team, user)
 	if c.Err != nil {
 		return
+	}
+
+	if sendWelcomeEmail {
+		sendWelcomeEmailAndForget(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -197,8 +204,6 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 		if err := JoinDefaultChannels(ruser, channelRole); err != nil {
 			l4g.Error("Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v", ruser.Id, ruser.TeamId, err)
 		}
-
-		sendWelcomeEmailAndForget(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), user.EmailVerified)
 
 		addDirectChannelsAndForget(ruser)
 

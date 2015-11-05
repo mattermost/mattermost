@@ -510,16 +510,14 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			}
 
 			subjectPage := NewServerTemplatePage("invite_subject")
-			subjectPage.Props["SiteURL"] = c.GetSiteURL()
 			subjectPage.Props["SenderName"] = sender
 			subjectPage.Props["TeamDisplayName"] = team.DisplayName
 
 			bodyPage := NewServerTemplatePage("invite_body")
-			bodyPage.Props["SiteURL"] = c.GetSiteURL()
+			bodyPage.Props["TeamURL"] = c.GetTeamURL()
 			bodyPage.Props["TeamDisplayName"] = team.DisplayName
 			bodyPage.Props["SenderName"] = sender
 			bodyPage.Props["SenderStatus"] = senderRole
-			bodyPage.Props["Email"] = invite
 			props := make(map[string]string)
 			props["email"] = invite
 			props["id"] = team.Id
