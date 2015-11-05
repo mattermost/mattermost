@@ -12,6 +12,7 @@ export default class EditChannelModal extends React.Component {
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.onShow = this.onShow.bind(this);
+        this.handleShown = this.handleShown.bind(this);
 
         this.state = {
             header: '',
@@ -55,9 +56,13 @@ export default class EditChannelModal extends React.Component {
         const button = e.relatedTarget;
         this.setState({header: $(button).attr('data-header'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
     }
+    handleShown() {
+        $('#edit_channel #edit_header').focus();
+    }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
         $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.handleShown);
     }
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
@@ -114,6 +119,7 @@ export default class EditChannelModal extends React.Component {
                             <textarea
                                 className='form-control no-resize'
                                 rows='6'
+                                id='edit_header'
                                 maxLength='1024'
                                 value={this.state.header}
                                 onChange={this.handleUserInput}
