@@ -438,11 +438,6 @@ export function toTitleCase(str) {
 }
 
 export function applyTheme(theme) {
-    if (!theme.codeTheme) {
-        theme.codeTheme = Constants.DEFAULT_CODE_THEME;
-    }
-    updateCodeTheme(theme.codeTheme);
-
     if (theme.sidebarBg) {
         changeCss('.sidebar--left, .settings-modal .settings-table .settings-links, .sidebar--menu', 'background:' + theme.sidebarBg, 1);
     }
@@ -598,6 +593,11 @@ export function applyTheme(theme) {
     if (theme.mentionHighlightLink) {
         changeCss('.mention-highlight .mention-link', 'color:' + theme.mentionHighlightLink, 1);
     }
+
+    if (!theme.codeTheme) {
+        theme.codeTheme = Constants.DEFAULT_CODE_THEME;
+    }
+    updateCodeTheme(theme.codeTheme);
 }
 export function changeCss(className, classValue, classRepeat) {
     // we need invisible container to store additional css definitions

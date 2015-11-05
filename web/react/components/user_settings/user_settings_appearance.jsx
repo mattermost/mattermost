@@ -7,7 +7,6 @@ var Utils = require('../../utils/utils.jsx');
 
 const CustomThemeChooser = require('./custom_theme_chooser.jsx');
 const PremadeThemeChooser = require('./premade_theme_chooser.jsx');
-const CodeThemeChooser = require('./code_theme_chooser.jsx');
 const AppDispatcher = require('../../dispatcher/app_dispatcher.jsx');
 const Constants = require('../../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
@@ -19,7 +18,6 @@ export default class UserSettingsAppearance extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.submitTheme = this.submitTheme.bind(this);
         this.updateTheme = this.updateTheme.bind(this);
-        this.updateCodeTheme = this.updateCodeTheme.bind(this);
         this.deactivate = this.deactivate.bind(this);
         this.resetFields = this.resetFields.bind(this);
         this.handleImportModal = this.handleImportModal.bind(this);
@@ -100,10 +98,6 @@ export default class UserSettingsAppearance extends React.Component {
         );
     }
     updateTheme(theme) {
-        if (!theme.codeTheme) {
-            theme.codeTheme = this.state.theme.codeTheme;
-        }
-
         let themeChanged = this.state.theme.length === theme.length;
         if (!themeChanged) {
             for (const field in theme) {
@@ -120,11 +114,6 @@ export default class UserSettingsAppearance extends React.Component {
 
         this.setState({theme});
         Utils.applyTheme(theme);
-    }
-    updateCodeTheme(codeTheme) {
-        var theme = this.state.theme;
-        theme.codeTheme = codeTheme;
-        this.updateTheme(theme);
     }
     updateType(type) {
         this.setState({type});
@@ -202,12 +191,6 @@ export default class UserSettingsAppearance extends React.Component {
                         <br/>
                     </div>
                     {custom}
-                    <hr />
-                    <strong className='radio'>{'Code Theme'}</strong>
-                    <CodeThemeChooser
-                        theme={this.state.theme}
-                        updateTheme={this.updateCodeTheme}
-                    />
                     <hr />
                     {serverError}
                     <a

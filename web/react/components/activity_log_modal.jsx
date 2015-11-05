@@ -167,8 +167,8 @@ export default class ActivityLogModal extends React.Component {
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{'Active Sessions'}</Modal.Title>
                 </Modal.Header>
-                <p className='session-help-text'>{'Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the \'Logout\' button below to end a session.'}</p>
                 <Modal.Body ref='modalBody'>
+                    <p className='session-help-text'>{'Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the \'Logout\' button below to end a session.'}</p>
                     {content}
                 </Modal.Body>
             </Modal>

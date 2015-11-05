@@ -125,6 +125,15 @@
             }
 
             .appearance-section {
+                .theme-group {
+                    .input-group-addon {
+                        padding: 4px 5px;
+                        width: 40px;
+                        img {
+                            border: 1px solid rgba(black, 0.15);
+                        }
+                    }
+                }
                 .premade-themes {
                     margin-bottom: 10px;
                     .theme-label {
