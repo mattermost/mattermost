@@ -182,12 +182,16 @@ body.ios {
 }
 
 #post-list {
+    flex: 1 1 auto;
+    position: relative;
+    overflow-y: hidden;
 	.post-list-holder-by-time {
 		background: #fff;
 		overflow-y: scroll;
 		width: 100%;
 		padding: 1em 0 0;
-		position: relative;
+		position: absolute;
+        height: 100%;
 		-webkit-overflow-scrolling: touch;
 		&::-webkit-scrollbar {
 			width: 0px !important;

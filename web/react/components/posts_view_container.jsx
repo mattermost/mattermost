@@ -261,7 +261,7 @@ export default class PostsViewContainer extends React.Component {
         }
 
         return (
-            <div>{postListCtls}</div>
+            <div id='post-list'>{postListCtls}</div>
         );
     }
 }

@@ -18,15 +18,15 @@
 	margin-left: 220px;
 	position: relative;
 	background: #fff;
+    display: flex;
+    flex-direction: column;
 	.channel__wrap & {
 		padding-top: 0;
 	}
 }
 #post-create {
+    flex: 0 0 auto;
 	background: #fff;
-	position: absolute;
-	bottom: 0;
-	left: 0;
 	width: 100%;
 	z-index: 3;
 }
