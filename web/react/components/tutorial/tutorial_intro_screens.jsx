@@ -52,7 +52,7 @@ export default class TutorialIntroScreens extends React.Component {
         }
     }
     createScreenOne() {
-        const circles = this.createCircles(0);
+        const circles = this.createCircles();
 
         return (
             <div>
@@ -65,7 +65,7 @@ export default class TutorialIntroScreens extends React.Component {
         );
     }
     createScreenTwo() {
-        const circles = this.createCircles(1);
+        const circles = this.createCircles();
 
         return (
             <div>
@@ -105,7 +105,7 @@ export default class TutorialIntroScreens extends React.Component {
             );
         }
 
-        const circles = this.createCircles(2);
+        const circles = this.createCircles();
 
         return (
             <div>
@@ -129,11 +129,11 @@ export default class TutorialIntroScreens extends React.Component {
             </div>
         );
     }
-    createCircles(index) {
+    createCircles() {
         const circles = [];
         for (let i = 0; i < NUM_SCREENS; i++) {
             let className = 'circle';
-            if (i === index) {
+            if (i === this.state.currentScreen) {
                 className += ' active';
             }
 
