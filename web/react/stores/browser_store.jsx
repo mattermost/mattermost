@@ -30,7 +30,11 @@ class BrowserStoreClass {
         var currentVersion = sessionStorage.getItem('storage_version');
         if (currentVersion !== global.window.mm_config.Version) {
             sessionStorage.clear();
-            sessionStorage.setItem('storage_version', global.window.mm_config.Version);
+            try {
+                sessionStorage.setItem('storage_version', global.window.mm_config.Version);
+            } catch (e) {
+                // Do nothing
+            }
         }
     }
 
