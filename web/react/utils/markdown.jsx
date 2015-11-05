@@ -289,74 +289,78 @@ class MattermostLexer extends marked.Lexer {
             // list
             cap = this.rules.list.exec(src);
             if (cap) {
-                src = src.substring(cap[0].length);
                 const bull = cap[2];
-
-                this.tokens.push({
-                    type: 'list_start',
-                    ordered: bull.length > 1
-                });
+                let l = cap[0].length;
 
                 // Get each top-level item.
                 cap = cap[0].match(this.rules.item);
 
-                let next = false;
-                const l = cap.length;
+                if (cap.length > 1) {
+                    src = src.substring(l);
 
-                for (let i = 0; i < l; i++) {
-                    let item = cap[i];
+                    this.tokens.push({
+                        type: 'list_start',
+                        ordered: bull.length > 1
+                    });
 
-                    // Remove the list item's bullet
-                    // so it is seen as the next token.
-                    let space = item.length;
-                    item = item.replace(/^ *([*+-]|\d+\.) +/, '');
+                    let next = false;
+                    l = cap.length;
 
-                    // Outdent whatever the
-                    // list item contains. Hacky.
-                    if (~item.indexOf('\n ')) {
-                        space -= item.length;
-                        item = this.options.pedantic ? item.replace(/^ {1,4}/gm, '') : item.replace(new RegExp('^ \{1,' + space + '\}', 'gm'), '');
-                    }
+                    for (let i = 0; i < l; i++) {
+                        let item = cap[i];
 
-                    // Determine whether the next list item belongs here.
-                    // Backpedal if it does not belong in this list.
-                    if (this.options.smartLists && i !== l - 1) {
-                        const bullet = /(?:[*+-]|\d+\.)/;
-                        const b = bullet.exec(cap[i + 1])[0];
-                        if (bull !== b && !(bull.length > 1 && b.length > 1)) {
-                            src = cap.slice(i + 1).join('\n') + src;
-                            i = l - 1;
+                        // Remove the list item's bullet
+                        // so it is seen as the next token.
+                        let space = item.length;
+                        item = item.replace(/^ *([*+-]|\d+\.) +/, '');
+
+                        // Outdent whatever the
+                        // list item contains. Hacky.
+                        if (~item.indexOf('\n ')) {
+                            space -= item.length;
+                            item = this.options.pedantic ? item.replace(/^ {1,4}/gm, '') : item.replace(new RegExp('^ \{1,' + space + '\}', 'gm'), '');
                         }
-                    }
 
-                    // Determine whether item is loose or not.
-                    // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
-                    // for discount behavior.
-                    let loose = next || (/\n\n(?!\s*$)/).test(item);
-                    if (i !== l - 1) {
-                        next = item.charAt(item.length - 1) === '\n';
-                        if (!loose) {
-                            loose = next;
+                        // Determine whether the next list item belongs here.
+                        // Backpedal if it does not belong in this list.
+                        if (this.options.smartLists && i !== l - 1) {
+                            const bullet = /(?:[*+-]|\d+\.)/;
+                            const b = bullet.exec(cap[i + 1])[0];
+                            if (bull !== b && !(bull.length > 1 && b.length > 1)) {
+                                src = cap.slice(i + 1).join('\n') + src;
+                                i = l - 1;
+                            }
                         }
+
+                        // Determine whether item is loose or not.
+                        // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
+                        // for discount behavior.
+                        let loose = next || (/\n\n(?!\s*$)/).test(item);
+                        if (i !== l - 1) {
+                            next = item.charAt(item.length - 1) === '\n';
+                            if (!loose) {
+                                loose = next;
+                            }
+                        }
+
+                        this.tokens.push({
+                            type: loose ? 'loose_item_start' : 'list_item_start'
+                        });
+
+                        // Recurse.
+                        this.token(item, false, bq);
+
+                        this.tokens.push({
+                            type: 'list_item_end'
+                        });
                     }
 
                     this.tokens.push({
-                        type: loose ? 'loose_item_start' : 'list_item_start'
+                        type: 'list_end'
                     });
 
-                    // Recurse.
-                    this.token(item, false, bq);
-
-                    this.tokens.push({
-                        type: 'list_item_end'
-                    });
+                    continue;
                 }
-
-                this.tokens.push({
-                    type: 'list_end'
-                });
-
-                continue;
             }
 
             // html
