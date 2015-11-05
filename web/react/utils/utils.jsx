@@ -151,10 +151,14 @@ export function notifyMe(title, body, channel) {
     }
 }
 
+var canDing = true;
+
 export function ding() {
-    if (!isBrowserFirefox()) {
+    if (!isBrowserFirefox() && canDing) {
         var audio = new Audio('/static/images/ding.mp3');
         audio.play();
+        canDing = false;
+        setTimeout(() => canDing = true, 3000);
     }
 }
 
