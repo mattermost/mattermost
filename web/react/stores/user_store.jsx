@@ -58,6 +58,8 @@ class UserStoreClass extends EventEmitter {
         this.setStatus = this.setStatus.bind(this);
         this.getStatuses = this.getStatuses.bind(this);
         this.getStatus = this.getStatus.bind(this);
+
+        this.profileCache = null;
     }
 
     emitChange(userId) {
@@ -184,6 +186,10 @@ class UserStoreClass extends EventEmitter {
     }
 
     getProfiles() {
+        if (this.profileCache !== null) {
+            return this.profileCache;
+        }
+
         return BrowserStore.getItem('profiles', {});
     }
 
@@ -218,6 +224,7 @@ class UserStoreClass extends EventEmitter {
     saveProfile(profile) {
         var ps = this.getProfiles();
         ps[profile.id] = profile;
+        this.profileCache = ps;
         BrowserStore.setItem('profiles', ps);
     }
 
@@ -226,6 +233,8 @@ class UserStoreClass extends EventEmitter {
         if (currentId in profiles) {
             delete profiles[currentId];
         }
+
+        this.profileCache = profiles;
         BrowserStore.setItem('profiles', profiles);
     }
 
