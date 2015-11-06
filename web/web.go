@@ -983,6 +983,11 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
 	}
 
+	if parsedRequest == nil {
+		c.Err = model.NewAppError("incomingWebhook", "Unable to parse incoming data", "")
+		return
+	}
+
 	text := parsedRequest.Text
 	if len(text) == 0 {
 		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
