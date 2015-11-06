@@ -326,6 +326,13 @@ func IsInRole(userRoles string, inRole string) bool {
 	return false
 }
 
+func (u *User) IsSSOUser() bool {
+	if len(u.AuthData) != 0 && len(u.AuthService) != 0 {
+		return true
+	}
+	return false
+}
+
 func (u *User) PreExport() {
 	u.Password = ""
 	u.AuthData = ""
