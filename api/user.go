@@ -213,6 +213,11 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 			}
 		}
 
+		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
+		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
+			l4g.Error("Encountered error saving tutorial preference, err=%v", presult.Err.Message)
+		}
+
 		ruser.Sanitize(map[string]bool{})
 
 		// This message goes to every channel, so the channelId is irrelevant
