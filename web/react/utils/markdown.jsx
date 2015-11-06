@@ -24,7 +24,7 @@ class MattermostInlineLexer extends marked.InlineLexer {
         // modified version of the regex that doesn't break up words in snake_case,
         // allows for links starting with www, and allows links succounded by parentheses
         // the original is /^[\s\S]+?(?=[\\<!\[_*`~]|https?:\/\/| {2,}\n|$)/
-        this.rules.text = /^[\s\S]+?(?=[^\w\/]_|[\\<!\[*`~]|https?:\/\/|www\.|\(| {2,}\n|$)/;
+        this.rules.text = /^[\s\S]+?(?:[^\w\/](?=_)|(?=_\W|[\\<!\[*`~]|https?:\/\/|www\.|\(| {2,}\n|$))/;
 
         // modified version of the regex that allows links starting with www and those surrounded
         // by parentheses
