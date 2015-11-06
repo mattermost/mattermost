@@ -50,12 +50,6 @@ func TestGetAllPreferences(t *testing.T) {
 		t.Fatal(err)
 	} else if data := result.Data.(model.Preferences); len(data) != 4 {
 		t.Fatal("received the wrong number of preferences")
-	} else if !((data[0] == preferences1[0] && data[1] == preferences1[1]) || (data[0] == preferences1[1] && data[1] == preferences1[0])) {
-		for i := 0; i < 3; i++ {
-			if data[0] != preferences1[i] && data[1] != preferences1[i] && data[2] != preferences1[i] {
-				t.Fatal("got incorrect preferences")
-			}
-		}
 	}
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
