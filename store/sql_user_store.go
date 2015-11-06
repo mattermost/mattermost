@@ -140,7 +140,9 @@ func (us SqlUserStore) Update(user *model.User, allowActiveUpdate bool) StoreCha
 				user.DeleteAt = oldUser.DeleteAt
 			}
 
-			if user.Email != oldUser.Email {
+			if user.IsSSOUser() {
+				user.Email = oldUser.Email
+			} else if user.Email != oldUser.Email {
 				user.EmailVerified = false
 			}
 

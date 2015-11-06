@@ -114,7 +114,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		sendWelcomeEmail = false
 	}
 
-	if len(user.AuthData) > 0 && len(user.AuthService) > 0 {
+	if user.IsSSOUser() {
 		user.EmailVerified = true
 	}
 
