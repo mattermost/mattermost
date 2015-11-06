@@ -289,7 +289,7 @@ export default class SearchAutocomplete extends React.Component {
                         key='public-channel-divider'
                         className='search-autocomplete__divider'
                     >
-                        {'Public ' + Utils.getChannelTerm(Constants.OPEN_CHANNEL) + 's'}
+                        <span>{'Public ' + Utils.getChannelTerm(Constants.OPEN_CHANNEL) + 's'}</span>
                     </div>
                 );
                 suggestions = suggestions.concat(publicChannels.map(this.renderChannelSuggestion));
@@ -302,7 +302,7 @@ export default class SearchAutocomplete extends React.Component {
                         key='private-channel-divider'
                         className='search-autocomplete__divider'
                     >
-                        {'Private ' + Utils.getChannelTerm(Constants.PRIVATE_CHANNEL) + 's'}
+                        <span>{'Private ' + Utils.getChannelTerm(Constants.PRIVATE_CHANNEL) + 's'}</span>
                     </div>
                 );
                 suggestions = suggestions.concat(privateChannels.map(this.renderChannelSuggestion));
