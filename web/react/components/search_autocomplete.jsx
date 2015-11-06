@@ -189,7 +189,16 @@ export default class SearchAutocomplete extends React.Component {
                 channels = channels.filter((channel) => channel.type !== 'D');
             }
 
-            channels.sort((a, b) => a.name.localeCompare(b.name));
+            channels.sort((a, b) => {
+                // put public channels first and then sort alphabebetically
+                if (a.type === b.type) {
+                    return a.name.localeCompare(b.name);
+                } else if (a.type === Constants.OPEN_CHANNEL) {
+                    return -1;
+                }
+
+                return 1;
+            });
 
             suggestions = channels;
         } else if (mode === 'users') {
