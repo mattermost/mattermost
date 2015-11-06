@@ -135,13 +135,13 @@ function autolinkAtMentions(text, tokens) {
         return alias;
     }
 
-    function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
+    function replaceAtMentionWithToken(fullMatch, mention, username) {
         let usernameLower = username.toLowerCase();
 
         if (mentionExists(usernameLower)) {
             // Exact match
             const alias = addToken(usernameLower, mention, '');
-            return prefix + alias;
+            return alias;
         }
 
         // Not an exact match, attempt to truncate any punctuation to see if we can find a user
@@ -154,7 +154,7 @@ function autolinkAtMentions(text, tokens) {
                 if (mentionExists(usernameLower)) {
                     const extraText = originalUsername.substr(c - 1);
                     const alias = addToken(usernameLower, '@' + usernameLower, extraText);
-                    return prefix + alias;
+                    return alias;
                 }
             } else {
                 // If the last character is not punctuation, no point in going any further
@@ -166,7 +166,7 @@ function autolinkAtMentions(text, tokens) {
     }
 
     let output = text;
-    output = output.replace(/(^|[^a-z0-9])(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
 
     return output;
 }
