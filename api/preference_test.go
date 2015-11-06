@@ -48,14 +48,8 @@ func TestGetAllPreferences(t *testing.T) {
 
 	if result, err := Client.GetAllPreferences(); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 3 {
+	} else if data := result.Data.(model.Preferences); len(data) != 4 {
 		t.Fatal("received the wrong number of preferences")
-	} else if !((data[0] == preferences1[0] && data[1] == preferences1[1]) || (data[0] == preferences1[1] && data[1] == preferences1[0])) {
-		for i := 0; i < 3; i++ {
-			if data[0] != preferences1[i] && data[1] != preferences1[i] && data[2] != preferences1[i] {
-				t.Fatal("got incorrect preferences")
-			}
-		}
 	}
 
 	Client.LoginByEmail(team.Name, user2.Email, "pwd")
@@ -63,7 +57,7 @@ func TestGetAllPreferences(t *testing.T) {
 	// note that user2 will automatically have a preference set for them to show user1 for direct messages
 	if result, err := Client.GetAllPreferences(); err != nil {
 		t.Fatal(err)
-	} else if data := result.Data.(model.Preferences); len(data) != 1 {
+	} else if data := result.Data.(model.Preferences); len(data) != 2 {
 		t.Fatal("received the wrong number of preferences")
 	}
 }
