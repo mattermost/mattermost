@@ -11,6 +11,7 @@ import (
 
 const (
 	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
+	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
 )
 
 type Preference struct {
