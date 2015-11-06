@@ -513,7 +513,7 @@ export function applyTheme(theme) {
         changeCss('#post-list .post-list-holder-by-time', 'background:' + theme.centerChannelBg, 1);
         changeCss('#post-create', 'background:' + theme.centerChannelBg, 1);
         changeCss('.date-separator .separator__text, .new-separator .separator__text', 'background:' + theme.centerChannelBg, 1);
-        changeCss('.post-image__column .post-image__details', 'background:' + theme.centerChannelBg, 1);
+        changeCss('.post-image__column .post-image__details, .search-help-popover .search-autocomplete__divider span', 'background:' + theme.centerChannelBg, 1);
         changeCss('.sidebar--right, .dropdown-menu, .popover, .tip-overlay', 'background:' + theme.centerChannelBg, 1);
         changeCss('.popover.bottom>.arrow:after', 'border-bottom-color:' + theme.centerChannelBg, 1);
         changeCss('.popover.right>.arrow:after, .tip-overlay.tip-overlay--sidebar .arrow, .tip-overlay.tip-overlay--header .arrow', 'border-right-color:' + theme.centerChannelBg, 1);
@@ -541,11 +541,12 @@ export function applyTheme(theme) {
         changeCss('.channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8), 1);
         changeCss('.custom-textarea, .custom-textarea:focus, .preview-container .preview-div, .post-image__column .post-image__details, .sidebar--right .sidebar-right__body, .markdown__table th, .markdown__table td, .command-box, .modal .modal-content, .settings-modal .settings-table .settings-content .divider-light, .webhooks__container, .dropdown-menu, .modal .modal-header, .popover, .mentions--top .mentions-box', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
+        changeCss('.search-help-popover .search-autocomplete__divider span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7), 1);
         changeCss('.popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.popover.left>.arrow', 'border-left-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.popover.top>.arrow', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.25), 1);
         changeCss('.command-name, .popover .popover-title', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.dropdown-menu .divider', 'background:' + theme.centerChannelColor, 1);
+        changeCss('.dropdown-menu .divider, .search-help-popover .search-autocomplete__divider:before', 'background:' + theme.centerChannelColor, 1);
         changeCss('.custom-textarea', 'color:' + theme.centerChannelColor, 1);
         changeCss('.post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.post-image__column .post-image__details', 'color:' + theme.centerChannelColor, 2);

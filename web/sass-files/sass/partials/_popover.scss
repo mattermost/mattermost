@@ -36,10 +36,36 @@
         }
     }
 
+    .search-autocomplete__divider {
+        margin: 10px 0 5px;
+        line-height: 21px;
+        position: relative;
+        &:first-child {
+            margin-top: 5px;
+        }
+        span {
+            display: inline-block;
+            padding-right: 10px;
+            background: #fff;
+            z-index: 5;
+            position: relative;
+        }
+        &:before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: #ddd;
+            top: 10px;
+            left: 0;
+            @include opacity(0.2);
+        }
+    }
+
     .search-autocomplete__item {
         cursor: pointer;
         padding: 6px 8px;
-        margin: 3px 0;
+        margin: 3px 0 0 5px;
         @include border-radius(2px);
         white-space: nowrap;
         overflow: hidden;
