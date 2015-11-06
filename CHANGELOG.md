@@ -17,7 +17,8 @@ Messaging and Notifications
 
 - Users can now search for teammates to add to **Direct Message** list via **More** menu
 - Users can now personalize Direct Messages list by removing users listed
-- Link previews - Adding URL with .gif file adds image below message 
+- Link previews - Adding URL with .gif file adds image below message
+- Added new browser tab alerts to indicate unread messages and mentions
 
 Search 
 
@@ -38,6 +39,8 @@ User Interface
    - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`. 
    - Use by adding the name of the language on the first link of the code block, for example: ```python
    - Syntax color theme can be defined under **Account Settings** > **Appearance Settings** > **Custom Theme**
+- Updated Drag & Drop UI
+- Added 24 hour time display option 
 
 Team Settings
 
@@ -49,6 +52,7 @@ Extras
 
 - Added `/shrug KEYWORD` command to output: `¯\_(ツ)_/¯ KEYWORD`
 - Added `/me KEYWORD` command to output: _`KEYWORD`_ 
+- Added setting option to send a message on control-enter instead of enter
 
 System Console
 
@@ -57,7 +61,10 @@ System Console
 
 #### Bug Fixes
 
-- Various fixes to theme colors 
+- Various fixes to theme colors
+- Fixed issue with the centre channel scroll position jumping when right hand side was opened and closed
+- Added support for simultaneous login to different teams in different browser tabs
+- Incoming webhooks no longer disrupted when channel is deleted
 
 ### Compatibility  
 
@@ -93,7 +100,17 @@ The following is for informational purposes only, no action needed. Mattermost a
 #### Known Issues
 
 - Microsoft Edge does not yet support drag and drop 
-- Incoming webhooks no longer disrupted when channel is deleted
+- After upgrading to v1.2 existing users will see the newly added tutorial tips upon login (this is a special case for v1.2 and will not happen in future upgrades)
+- Channel list becomes reordered when there are lowercase channel names in a Postgres database
+- Member list only shows "20" members for channels with more than 20 members
+- Searches containing punctuation are not highlighted in the results (including in: or from: search modifiers and searches with quotations)
+- Media files of type .avi .mkv .wmv .mov .flv .mp4a do not play  properly
+- Editing a post so that it's text is blank (which should delete it) throws a 404
+- No scroll bar in centre channel
+- Theme color import from Slack fails to import the “Active Channel” selection color
+- Pasting images into text box fails to upload on [BROWSERS]
+- Users cannot claim accounts imported from Slack via password reset
+- Slack import @mentions break
 
 #### Contributors 
 
@@ -110,7 +127,10 @@ Many thanks to our external contributors. In no particular order:
 - [jvasallo](https://github.com/jvasallo)
 - [layzerar](https://github.com/layzerar)
 - [optimistiks](https://github.com/optimistiks)
-- [layzerar](https://github.com/layzerar)
+- [Tsynapse](https://github.com/Tsynapse)
+- [vinnymac](https://github.com/vinnymac)
+- [yuvipanda](https://github.com/yuvipanda)
+- [toyorg](https://github.com/toyorg)
 
 ## Release v1.1.1 (Bug Fix Release) 
 
