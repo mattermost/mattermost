@@ -85,6 +85,13 @@ export default class PostsViewContainer extends React.Component {
         const channels = this.state.channels.slice();
         const channelId = ChannelStore.getCurrentId();
 
+        // Has the channel really changed?
+        if (channelId === channels[this.state.currentChannelIndex]) {
+            // Dirty hack
+            this.forceUpdate();
+            return;
+        }
+
         PostStore.clearUnseenDeletedPosts(channelId);
 
         let lastViewed = Number.MAX_VALUE;
