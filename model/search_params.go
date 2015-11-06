@@ -16,7 +16,7 @@ type SearchParams struct {
 
 var searchFlags = [...]string{"from", "channel", "in"}
 
-func splitWords(text string) []string {
+func splitWordsNoQuotes(text string) []string {
 	words := []string{}
 
 	for _, word := range strings.Fields(text) {
@@ -27,6 +27,32 @@ func splitWords(text string) []string {
 			words = append(words, word)
 		}
 	}
+
+	return words
+}
+
+func splitWords(text string) []string {
+	words := []string{}
+
+	foundQuote := false
+	location := 0
+	for i, char := range text {
+		if char == '"' {
+			if foundQuote {
+				// Grab the quoted section
+				word := text[location : i+1]
+				words = append(words, word)
+				foundQuote = false
+				location = i + 1
+			} else {
+				words = append(words, splitWordsNoQuotes(text[location:i])...)
+				foundQuote = true
+				location = i
+			}
+		}
+	}
+
+	words = append(words, splitWordsNoQuotes(text[location:])...)
 
 	return words
 }
@@ -127,7 +153,7 @@ func ParseSearchParams(text string) []*SearchParams {
 	}
 
 	// special case for when no terms are specified but we still have a filter
-	if len(plainTerms) == 0 && len(hashtagTerms) == 0 {
+	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0) {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:      "",
 			IsHashtag:  true,
