@@ -11,12 +11,15 @@ const AsyncClient = require('../../utils/async_client.jsx');
 const Constants = require('../../utils/constants.jsx');
 const Preferences = Constants.Preferences;
 
+const NUM_SCREENS = 3;
+
 export default class TutorialIntroScreens extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleNext = this.handleNext.bind(this);
         this.createScreen = this.createScreen.bind(this);
+        this.createCircles = this.createCircles.bind(this);
 
         this.state = {currentScreen: 0};
     }
@@ -49,31 +52,27 @@ export default class TutorialIntroScreens extends React.Component {
         }
     }
     createScreenOne() {
+        const circles = this.createCircles();
+
         return (
             <div>
                 <h3>{'Welcome to:'}</h3>
                 <h1>{'Mattermost'}</h1>
                 <p>{'Your team communication all in one place, instantly searchable and available anywhere.'}</p>
                 <p>{'Keep your team connected to help them achieve what matters most.'}</p>
-                <div className='tutorial__circles'>
-                    <div className='circle active'/>
-                    <div className='circle'/>
-                    <div className='circle'/>
-                </div>
+                {circles}
             </div>
         );
     }
     createScreenTwo() {
+        const circles = this.createCircles();
+
         return (
             <div>
                 <h3>{'How Mattermost works:'}</h3>
                 <p>{'Communication happens in public discussion channels, private groups and direct messages.'}</p>
                 <p>{'Everything is archived and searchable from any web-enabled desktop, laptop or phone.'}</p>
-                <div className='tutorial__circles'>
-                    <div className='circle'/>
-                    <div className='circle active'/>
-                    <div className='circle'/>
-                </div>
+                {circles}
             </div>
         );
     }
@@ -106,6 +105,8 @@ export default class TutorialIntroScreens extends React.Component {
             );
         }
 
+        const circles = this.createCircles();
+
         return (
             <div>
                 <h3>{'You’re all set'}</h3>
@@ -124,11 +125,34 @@ export default class TutorialIntroScreens extends React.Component {
                     {'.'}
                 </p>
                 {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'}
-                <div className='tutorial__circles'>
-                    <div className='circle'/>
-                    <div className='circle'/>
-                    <div className='circle active'/>
-                </div>
+                {circles}
+            </div>
+        );
+    }
+    createCircles() {
+        const circles = [];
+        for (let i = 0; i < NUM_SCREENS; i++) {
+            let className = 'circle';
+            if (i === this.state.currentScreen) {
+                className += ' active';
+            }
+
+            circles.push(
+                <a
+                    href='#'
+                    key={'circle' + i}
+                    className={className}
+                    onClick={(e) => { //eslint-disable-line no-loop-func
+                        e.preventDefault();
+                        this.setState({currentScreen: i});
+                    }}
+                />
+            );
+        }
+
+        return (
+            <div className='tutorial__circles'>
+                {circles}
             </div>
         );
     }
