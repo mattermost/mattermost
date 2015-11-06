@@ -41,7 +41,7 @@ Procedures for upgrading the Mattermost server
 
 ## Developer Documentation 
 
-- [Code Contribution Guidelines](../CONTRIBUTING.md)
+- [Code Contribution Guidelines](https://github.com/mattermost/platform/blob/master/CONTRIBUTING.md)
 - [Developer Machine Setup](developer/Setup.md)
 - [Mattermost Style Guide](developer/Style-Guide.md)
 - [API Overview](developer/API.md)
