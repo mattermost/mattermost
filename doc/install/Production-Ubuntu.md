@@ -103,7 +103,7 @@ exec bin/platform
 		  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		  proxy_set_header X-Forwarded-Proto $scheme;
 		  proxy_set_header   X-Frame-Options   SAMEORIGIN;
-          proxy_pass http://localhost:8065;
+          proxy_pass http://10.10.10.2:8065;
       }
     }
 ```
