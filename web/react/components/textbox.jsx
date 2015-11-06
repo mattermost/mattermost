@@ -6,6 +6,7 @@ const SearchStore = require('../stores/search_store.jsx');
 const CommandList = require('./command_list.jsx');
 const ErrorStore = require('../stores/error_store.jsx');
 
+const TextFormatting = require('../utils/text_formatting.jsx');
 const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const ActionTypes = Constants.ActionTypes;
@@ -30,6 +31,7 @@ export default class Textbox extends React.Component {
         this.handleFocus = this.handleFocus.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
+        this.showPreview = this.showPreview.bind(this);
 
         this.state = {
             mentionText: '-1',
@@ -41,6 +43,7 @@ export default class Textbox extends React.Component {
         this.addedMention = false;
         this.doProcessMentions = false;
         this.mentions = [];
+        this.value = this.props.messageText;
     }
 
     getStateFromStores() {
@@ -104,6 +107,8 @@ export default class Textbox extends React.Component {
         }
         this.addedMention = false;
         this.refs.commands.getSuggestedCommands(nextProps.messageText);
+
+        this.value = nextProps.messageText;
     }
 
     updateMentionTab(mentionText) {
@@ -118,7 +123,8 @@ export default class Textbox extends React.Component {
     }
 
     handleChange() {
-        this.props.onUserInput(ReactDOM.findDOMNode(this.refs.message).value);
+        const text = ReactDOM.findDOMNode(this.refs.message).value;
+        this.props.onUserInput(text);
     }
 
     handleKeyPress(e) {
@@ -240,6 +246,7 @@ export default class Textbox extends React.Component {
 
         const lht = parseInt($(e).css('lineHeight'), 10);
         const lines = e.scrollHeight / lht;
+        const previewLinkHeightMod = 20;
         let mod = 15;
 
         if (lines < 2.5 || this.props.messageText === '') {
@@ -248,12 +255,18 @@ export default class Textbox extends React.Component {
 
         if (e.scrollHeight - mod < 167) {
             $(e).css({height: 'auto', 'overflow-y': 'hidden'}).height(e.scrollHeight - mod);
-            $(w).css({height: 'auto'}).height(e.scrollHeight + 2);
+            $(w).css({height: 'auto'}).height(e.scrollHeight + 2 + previewLinkHeightMod);
             $(w).closest('.post-body__cell').removeClass('scroll');
+            if (this.state.preview) {
+                $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'auto'}).height(e.scrollHeight - mod);
+            }
         } else {
-            $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167);
-            $(w).css({height: 'auto'}).height(167);
+            $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
+            $(w).css({height: 'auto'}).height(167 + previewLinkHeightMod);
             $(w).closest('.post-body__cell').addClass('scroll');
+            if (this.state.preview) {
+                $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
+            }
         }
 
         if (prevHeight !== $(e).height() && this.props.onHeightChange) {
@@ -279,7 +292,16 @@ export default class Textbox extends React.Component {
         this.doProcessMentions = true;
     }
 
+    showPreview(e) {
+        e.preventDefault();
+        e.target.blur();
+        this.setState({preview: !this.state.preview});
+        this.resize();
+    }
+
     render() {
+        let previewLinkVisible = (this.value || '').length > 0;
+
         return (
             <div
                 ref='wrapper'
@@ -308,7 +330,22 @@ export default class Textbox extends React.Component {
                     onFocus={this.handleFocus}
                     onBlur={this.handleBlur}
                     onPaste={this.handlePaste}
+                    style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                 />
+                <div
+                    ref='preview'
+                    className='form-control custom-textarea textbox-preview-area'
+                    style={{display: this.state.preview ? 'block' : 'none'}}
+                    dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.value) : ''}}
+                >
+                </div>
+                <a
+                    style={{visibility: previewLinkVisible ? 'visible' : 'hidden'}}
+                    onClick={this.showPreview}
+                    className='textbox-preview-link'
+                >
+                    {this.state.preview ? 'Edit message' : 'Preview'}
+                </a>
             </div>
         );
     }

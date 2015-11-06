@@ -46,7 +46,21 @@ body.ios {
 
 .textarea-wrapper {
 	position:relative;
-	min-height:37px;
+	min-height:57px;
+    .textbox-preview-area {
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        left: 0;
+        box-shadow: none;
+    }
+    .textbox-preview-link {
+        position: absolute;
+        z-index: 3;
+        bottom: 0;
+        right: 10px;
+        cursor: pointer;
+    }
 }
 
 .date-separator, .new-separator {
