@@ -242,8 +242,8 @@ func Etag(parts ...interface{}) string {
 }
 
 var validHashtag = regexp.MustCompile(`^(#[A-Za-z]+[A-Za-z0-9_\-]*[A-Za-z0-9])$`)
-var puncStart = regexp.MustCompile(`^[.,()&$!\[\]{}"':;\\]+`)
-var puncEnd = regexp.MustCompile(`[.,()&$#!\[\]{}"';\\]+$`)
+var puncStart = regexp.MustCompile(`^[.,()&$!\[\]{}':;\\]+`)
+var puncEnd = regexp.MustCompile(`[.,()&$#!\[\]{}';\\]+$`)
 
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
