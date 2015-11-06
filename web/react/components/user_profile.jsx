@@ -41,7 +41,7 @@ export default class UserProfile extends React.Component {
         UserStore.removeChangeListener(this.onChange);
     }
     onChange(userId) {
-        if (userId === this.props.userId) {
+        if (!userId || userId === this.props.userId) {
             var newState = this.getStateFromStores(this.props.userId);
             if (!Utils.areStatesEqual(newState, this.state)) {
                 this.setState(newState);
