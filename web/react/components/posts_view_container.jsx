@@ -87,6 +87,8 @@ export default class PostsViewContainer extends React.Component {
 
         // Has the channel really changed?
         if (channelId === channels[this.state.currentChannelIndex]) {
+            // Dirty hack
+            this.forceUpdate();
             return;
         }
 
