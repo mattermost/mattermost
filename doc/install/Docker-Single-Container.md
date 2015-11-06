@@ -11,13 +11,28 @@ Otherwise, see step-by-step available:
 
 ### Mac OSX ###
 
-1. Install Docker Toolbox using instructions at: http://docs.docker.com/installation/mac/  
-    1. Start Docker Toolbox from the command line and run: `docker-machine create -d virtualbox dev`  
-2. Get your Docker IP address with: `docker-machine ip dev`
-3. Use `sudo nano /etc/hosts` to add `<Docker IP> dockerhost` to your /etc/hosts file 
-4. Run: `docker-machine env dev` and copy the export statements to your ~/.bash\_profile by running `sudo nano ~/.bash_profile`. Then run: `source ~/.bash_profile`
-5. Run: `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
-6. When docker is done fetching the image, open http://dockerhost:8065/ in your browser.
+1. Install Docker Toolbox using instructions at: https://docs.docker.com/installation/mac/
+
+   Ensure you have completed the "hello-world" exercise, either through the Docker Quickstart Terminal
+   or own your own using the "From your shell" steps.
+
+   At the end of the exercise, you should have a Docker VM named "default"
+
+   If you are expecting to interact with Docker often, then having `docker-machine`
+   configure your shell upon login may be convenient. One may accomplish that via the command:
+
+   ``` bash
+   echo 'eval "$(docker-machine env default)"' >> $HOME/.bash_profile
+   ```
+
+   Be sure to remember that this is in place in the case you wish to communicate with
+   a separate Docker host than the Docker VM.
+1. Run: `docker run --name mattermost-dev -d --publish 8065:80 mattermost/platform`
+1. When docker is done fetching the image, navigate to the page via the command:
+
+   ``` bash
+   open http://$(docker-machine ip dev):8065/
+   ```
 
 ### Ubuntu ###
 1. Follow the instructions at https://docs.docker.com/installation/ubuntulinux/ or use the summary below:
