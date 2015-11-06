@@ -10,27 +10,28 @@ import (
 )
 
 const (
-	POST_DEFAULT    = ""
-	POST_JOIN_LEAVE = "join_leave"
+	POST_DEFAULT          = ""
+	POST_SLACK_ATTACHMENT = "slack_attachment"
+	POST_JOIN_LEAVE       = "join_leave"
 )
 
 type Post struct {
-	Id            string      `json:"id"`
-	CreateAt      int64       `json:"create_at"`
-	UpdateAt      int64       `json:"update_at"`
-	DeleteAt      int64       `json:"delete_at"`
-	UserId        string      `json:"user_id"`
-	ChannelId     string      `json:"channel_id"`
-	RootId        string      `json:"root_id"`
-	ParentId      string      `json:"parent_id"`
-	OriginalId    string      `json:"original_id"`
-	Message       string      `json:"message"`
-	ImgCount      int64       `json:"img_count"`
-	Type          string      `json:"type"`
-	Props         StringMap   `json:"props"`
-	Hashtags      string      `json:"hashtags"`
-	Filenames     StringArray `json:"filenames"`
-	PendingPostId string      `json:"pending_post_id" db:"-"`
+	Id            string          `json:"id"`
+	CreateAt      int64           `json:"create_at"`
+	UpdateAt      int64           `json:"update_at"`
+	DeleteAt      int64           `json:"delete_at"`
+	UserId        string          `json:"user_id"`
+	ChannelId     string          `json:"channel_id"`
+	RootId        string          `json:"root_id"`
+	ParentId      string          `json:"parent_id"`
+	OriginalId    string          `json:"original_id"`
+	Message       string          `json:"message"`
+	ImgCount      int64           `json:"img_count"`
+	Type          string          `json:"type"`
+	Props         StringInterface `json:"props"`
+	Hashtags      string          `json:"hashtags"`
+	Filenames     StringArray     `json:"filenames"`
+	PendingPostId string          `json:"pending_post_id" db:"-"`
 }
 
 func (o *Post) ToJson() string {
@@ -103,7 +104,8 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "Invalid hashtags", "id="+o.Id)
 	}
 
-	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE) {
+	// should be removed once more message types are supported
+	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_SLACK_ATTACHMENT) {
 		return NewAppError("Post.IsValid", "Invalid type", "id="+o.Type)
 	}
 
@@ -128,7 +130,7 @@ func (o *Post) PreSave() {
 	o.UpdateAt = o.CreateAt
 
 	if o.Props == nil {
-		o.Props = make(map[string]string)
+		o.Props = make(map[string]interface{})
 	}
 
 	if o.Filenames == nil {
@@ -138,14 +140,14 @@ func (o *Post) PreSave() {
 
 func (o *Post) MakeNonNil() {
 	if o.Props == nil {
-		o.Props = make(map[string]string)
+		o.Props = make(map[string]interface{})
 	}
 	if o.Filenames == nil {
 		o.Filenames = []string{}
 	}
 }
 
-func (o *Post) AddProp(key string, value string) {
+func (o *Post) AddProp(key string, value interface{}) {
 
 	o.MakeNonNil()
 

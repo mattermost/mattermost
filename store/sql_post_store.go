@@ -9,8 +9,10 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"time"
 )
 
 type SqlPostStore struct {
@@ -30,7 +32,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("Message").SetMaxSize(4000)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
-		table.ColMap("Props").SetMaxSize(4000)
+		table.ColMap("Props")
 		table.ColMap("Filenames").SetMaxSize(4000)
 	}
 
@@ -38,6 +40,21 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
+	colType := s.GetColumnDataType("Posts", "Props")
+	if colType != "text" {
+
+		query := "ALTER TABLE Posts MODIFY COLUMN Props TEXT"
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "ALTER TABLE Posts ALTER COLUMN Props TYPE text"
+		}
+
+		_, err := s.GetMaster().Exec(query)
+		if err != nil {
+			l4g.Critical("Failed to alter column Posts.Props to TEXT: " + err.Error())
+			time.Sleep(time.Second)
+			panic("Failed to alter column Posts.Props to TEXT: " + err.Error())
+		}
+	}
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {

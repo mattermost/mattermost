@@ -24,10 +24,13 @@ type IncomingWebhook struct {
 }
 
 type IncomingWebhookRequest struct {
-	Text        string `json:"text"`
-	Username    string `json:"username"`
-	IconURL     string `json:"icon_url"`
-	ChannelName string `json:"channel"`
+	Text        string          `json:"text"`
+	Username    string          `json:"username"`
+	IconURL     string          `json:"icon_url"`
+	ChannelName string          `json:"channel"`
+	Props       StringInterface `json:"props"`
+	Attachments interface{}     `json:"attachments"`
+	Type        string          `json:"type"`
 }
 
 func (o *IncomingWebhook) ToJson() string {

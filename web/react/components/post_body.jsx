@@ -7,6 +7,7 @@ const Utils = require('../utils/utils.jsx');
 const Constants = require('../utils/constants.jsx');
 const TextFormatting = require('../utils/text_formatting.jsx');
 const twemoji = require('twemoji');
+const PostBodyAdditionalContent = require('./post_body_additional_content.jsx');
 
 export default class PostBody extends React.Component {
     constructor(props) {
@@ -331,6 +332,9 @@ export default class PostBody extends React.Component {
                         dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
                     />
                 </div>
+                <PostBodyAdditionalContent
+                    post={post}
+                />
                 {fileAttachmentHolder}
                 {embed}
             </div>
