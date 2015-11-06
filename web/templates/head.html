@@ -52,6 +52,15 @@
                 headers: { 'X-MM-TokenIndex': mm_session_token_index }
             });
         }
+
+        $(function () {
+            $(window).bind('storage', function (e) {
+                if (e.originalEvent.key === '__logout__') {
+                    console.log('detected logout from a different tab');
+                    window.location.href = '/' + window.mm_team.name;
+                }
+            });
+        });
     </script>
 
     <script>

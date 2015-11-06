@@ -231,6 +231,7 @@ export function resetPassword(data, success, error) {
 export function logout() {
     track('api', 'api_users_logout');
     var currentTeamUrl = TeamStore.getCurrentTeamUrl();
+    BrowserStore.signalLogout();
     BrowserStore.clear();
     ErrorStore.storeLastError(null);
     window.location.href = currentTeamUrl + '/logout';
