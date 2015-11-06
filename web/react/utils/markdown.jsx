@@ -94,7 +94,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         if (title) {
             out += ' title="' + title + '"';
         }
-        out += ' onload="window.markdownImageLoaded(this)" class="markdown-inline-img"';
+        out += ' onload="window.markdownImageLoaded(this)" onerror="window.markdownImageLoaded(this)" class="markdown-inline-img"';
         out += this.options.xhtml ? '/>' : '>';
         return out;
     }
