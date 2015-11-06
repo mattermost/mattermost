@@ -9,6 +9,7 @@ var utils = require('../utils/utils.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var twemoji = require('twemoji');
 var Constants = require('../utils/constants.jsx');
+const PostBodyAdditionalContent = require('./post_body_additional_content.jsx');
 
 export default class RhsRootPost extends React.Component {
     constructor(props) {
@@ -179,6 +180,9 @@ export default class RhsRootPost extends React.Component {
                             ref='message_holder'
                             onClick={TextFormatting.handleClick}
                             dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+                        />
+                        <PostBodyAdditionalContent
+                            post={post}
                         />
                         {fileAttachment}
                     </div>
