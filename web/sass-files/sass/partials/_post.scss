@@ -496,6 +496,9 @@ body.ios {
 				border-bottom-left-radius: 4px;
 				@include opacity(.3);
 			}
+            &.tex .katex-display {
+                text-align: left;
+            }
 			code {
 				white-space: pre;
 			}
