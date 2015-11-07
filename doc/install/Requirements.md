@@ -47,7 +47,7 @@ The Mattermost roadmap does not currently include production support for Fedora,
 
 Mattermost offers both real-time communication and file sharing. CPU and Memory requirements are typically driven by the number of concurrent users using real-time messaging. Storage requirements are typically driven by number and size of files shared. 
 
-The below guidelines offer estimates based on real world usage of Mattermost across industries. 
+The below guidelines offer estimates based on real world usage of Mattermost in multi-team configurations ranging from 10-100 users per team. 
 
 ### CPU
 
