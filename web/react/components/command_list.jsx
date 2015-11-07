@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 var client = require('../utils/client.jsx');
+var utils = require('../utils/utils.jsx');
 
 export default class CommandList extends React.Component {
     constructor(props) {
@@ -11,6 +12,7 @@ export default class CommandList extends React.Component {
         this.addFirstCommand = this.addFirstCommand.bind(this);
         this.isEmpty = this.isEmpty.bind(this);
         this.getSuggestedCommands = this.getSuggestedCommands.bind(this);
+        this.getSuggestedWebhooks = utils.debounce(this.getSuggestedWebhooks.bind(this), 500);
 
         this.state = {
             suggestions: [ ],
@@ -43,6 +45,30 @@ export default class CommandList extends React.Component {
         client.executeCommand(
             this.props.channelId,
             cmd,
+            true,
+            false,
+            function success(data) {
+                if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
+                    data.suggestions = [];
+                }
+                this.setState({suggestions: data.suggestions, cmd: cmd});
+            }.bind(this),
+            function fail() {
+            }
+        );
+    }
+
+    getSuggestedWebhooks(cmd) {
+        //TODO getSuggestedWebhooksTriggers
+        var suggestedWebhookTriggers = ['$'];
+        if (suggestedWebhookTriggers.indexOf(cmd.charAt(0)) === -1) {
+            return;
+        }
+
+        client.executeCommand(
+            this.props.channelId,
+            cmd,
+            true,
             true,
             function success(data) {
                 if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {

@@ -134,6 +134,7 @@ export default class CreatePost extends React.Component {
                 this.state.channelId,
                 post.message,
                 false,
+                false,
                 (data) => {
                     if (data.response === 'not implemented') {
                         this.sendMessage(post);

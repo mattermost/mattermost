@@ -5,6 +5,7 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -51,6 +52,7 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 		Command:     strings.TrimSpace(props["command"]),
 		ChannelId:   strings.TrimSpace(props["channelId"]),
 		Suggest:     props["suggest"] == "true",
+		FromWebhook: props["fromWebhook"] == "true",
 		Suggestions: make([]*model.SuggestCommand, 0, 128),
 	}
 
@@ -70,6 +72,10 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func checkCommand(c *Context, command *model.Command) bool {
+
+	if command.FromWebhook {
+		return suggestFromWebHooks(c, command)
+	}
 
 	if len(command.Command) == 0 || strings.Index(command.Command, "/") != 0 {
 		c.Err = model.NewAppError("checkCommand", "Command must start with /", "")
@@ -570,4 +576,111 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 	}
 
 	return false
+}
+
+func suggestFromWebHooks(c *Context, command *model.Command) bool {
+	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+		return false
+	} else {
+		var user = result.Data.(*model.User)
+
+		hchan := Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId)
+		tchan := Srv.Store.Team().Get(c.Session.TeamId)
+		cchan := Srv.Store.Channel().Get(command.ChannelId)
+
+		var team *model.Team
+		if result := <-tchan; result.Err != nil {
+			l4g.Error("Encountered error getting team, team_id=%s, err=%v", c.Session.TeamId, result.Err)
+			return false
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var channel *model.Channel
+		if result := <-cchan; result.Err != nil {
+			l4g.Error("Encountered error getting channel, channel_id=%s, err=%v", command.ChannelId, result.Err)
+			return false
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+
+		hooks := []*model.OutgoingWebhook{}
+
+		if result := <-hchan; result.Err != nil {
+			l4g.Error("Encountered error getting webhooks by team, err=%v", result.Err)
+			return false
+		} else {
+			hooks = result.Data.([]*model.OutgoingWebhook)
+		}
+
+		if len(hooks) == 0 {
+			return false
+		}
+
+		firstWord := strings.Split(command.Command, " ")[0]
+
+		relevantHooks := []*model.OutgoingWebhook{}
+
+		for _, hook := range hooks {
+			if hook.ChannelId == command.ChannelId {
+				if len(hook.TriggerWords) == 0 || hook.HasTriggerWord(firstWord) {
+					relevantHooks = append(relevantHooks, hook)
+				}
+			} else if len(hook.ChannelId) == 0 && hook.HasTriggerWord(firstWord) {
+				relevantHooks = append(relevantHooks, hook)
+			}
+		}
+
+		done := make(chan bool)
+		hooksToCall := len(relevantHooks)
+		for _, hook := range relevantHooks {
+			go func(hook *model.OutgoingWebhook) {
+				p := url.Values{}
+				p.Set("token", hook.Token)
+
+				p.Set("team_id", hook.TeamId)
+				p.Set("team_domain", team.Name)
+
+				p.Set("channel_id", command.ChannelId)
+				p.Set("channel_name", channel.Name)
+
+				p.Set("user_id", user.Id)
+				p.Set("user_name", user.Username)
+
+				p.Set("text", command.Command)
+				p.Set("trigger_word", firstWord)
+				p.Set("suggest", "true")
+
+				client := &http.Client{}
+
+				for _, url := range hook.CallbackURLs {
+					go func(url string) {
+						req, _ := http.NewRequest("POST", url, strings.NewReader(p.Encode()))
+						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+						req.Header.Set("Accept", "application/json")
+						if resp, err := client.Do(req); err != nil {
+							hooksToCall -= 1
+							l4g.Error("Event POST failed, err=%s", err.Error())
+						} else {
+							webhookSuggestions := model.WebhookSuggestionsFromJson(resp.Body)
+							if webhookSuggestions != nil {
+								for _, suggestion := range webhookSuggestions.Suggestions {
+									command.AddSuggestion(suggestion)
+								}
+							} else {
+								l4g.Error("Invalid POST response, res=%s", resp.Body)
+							}
+							hooksToCall -= 1
+							if hooksToCall == 0 {
+								done <- true
+							}
+						}
+					}(url)
+				}
+
+			}(hook)
+		}
+		<-done
+		return true
+	}
 }

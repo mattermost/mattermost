@@ -774,13 +774,13 @@ export function getChannelExtraInfo(id, success, error) {
     });
 }
 
-export function executeCommand(channelId, command, suggest, success, error) {
+export function executeCommand(channelId, command, suggest, fromWebhook, success, error) {
     $.ajax({
         url: '/api/v1/command',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({channelId: channelId, command: command, suggest: '' + suggest}),
+        data: JSON.stringify({channelId: channelId, command: command, suggest: '' + suggest, fromWebhook: '' + fromWebhook}),
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('executeCommand', xhr, status, err);

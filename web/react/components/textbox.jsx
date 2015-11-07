@@ -106,6 +106,7 @@ export default class Textbox extends React.Component {
         }
         this.addedMention = false;
         this.refs.commands.getSuggestedCommands(nextProps.messageText);
+        this.refs.commands.getSuggestedWebhooks(nextProps.messageText);
     }
 
     updateMentionTab(mentionText) {
