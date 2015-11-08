@@ -69,7 +69,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             usedLanguage = 'xml';
         }
 
-        if (usedLanguage && (usedLanguage === 'tex' || usedLanguage === 'tex')) {
+        if (usedLanguage && (usedLanguage === 'tex' || usedLanguage === 'latex')) {
             try {
                 var html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
                 return '<div class="post-body--code tex">' + html + '</div>';
