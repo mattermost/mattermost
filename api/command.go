@@ -631,6 +631,10 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 			}
 		}
 
+		if relevantHooks == 0 {
+			return false
+		}
+
 		done := make(chan bool)
 		hooksToCall := len(relevantHooks)
 		for _, hook := range relevantHooks {
@@ -665,7 +669,9 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 							webhookSuggestions := model.WebhookSuggestionsFromJson(resp.Body)
 							if webhookSuggestions != nil {
 								for _, suggestion := range webhookSuggestions.Suggestions {
-									command.AddSuggestion(suggestion)
+									if suggestion != "" {
+										command.AddSuggestion(suggestion)
+									}
 								}
 							} else {
 								l4g.Error("Invalid POST response, res=%s", resp.Body)
