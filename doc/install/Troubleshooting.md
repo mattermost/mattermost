@@ -31,4 +31,6 @@ The following is a list of common error messages and solutions:
 
 ###### `Token request failed`
  - This error can appear in the web browser after attempting to create a new team with GitLab SSO enabled
- - **Solution:** Check that your SSL settings for the SSO provider match the `http://` or `https://` choice selected in `config.json` under `GitLabSettings`
+ - **Solutions:** 
+   1. Check that your SSL settings for the SSO provider match the `http://` or `https://` choice selected in `config.json` under `GitLabSettings`
+   2. Follow steps 1 to 3 of the manual [GitLab SSO configuration procedure](https://github.com/mattermost/platform/blob/master/doc/integrations/Single-Sign-On/Gitlab.md) to confirm your `Secret` and `Id` settings in `config.json` match your GitLab settings, and if they don't, manually update `config.json` to the correct settings and see if this clears the issue. 
