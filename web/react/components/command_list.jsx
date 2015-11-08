@@ -59,26 +59,34 @@ export default class CommandList extends React.Component {
     }
 
     getSuggestedWebhooks(cmd) {
-        //TODO getSuggestedWebhooksTriggers
-        var suggestedWebhookTriggers = ['$'];
-        if (suggestedWebhookTriggers.indexOf(cmd.charAt(0)) === -1) {
-            return;
-        }
+        //TODO replace client.listOutgoingHooks with some websocket updated trigger list
+        //     to prevent post request on every keystroke
+        // var self = this;
+        client.listOutgoingHooks(function webhookSuccess(webhooks) {
+            var suggestedWebhookTriggers = [];
+            webhooks.map((webhook) => {
+                suggestedWebhookTriggers = suggestedWebhookTriggers.concat(webhook.trigger_words);
+            });
 
-        client.executeCommand(
-            this.props.channelId,
-            cmd,
-            true,
-            true,
-            function success(data) {
-                if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
-                    data.suggestions = [];
-                }
-                this.setState({suggestions: data.suggestions, cmd: cmd});
-            }.bind(this),
-            function fail() {
+            if (suggestedWebhookTriggers.indexOf(cmd.charAt(0)) === -1) {
+                return;
             }
-        );
+
+            client.executeCommand(
+                this.props.channelId,
+                cmd,
+                true,
+                true,
+                function success(data) {
+                    if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
+                        data.suggestions = [];
+                    }
+                    this.setState({suggestions: data.suggestions, cmd: cmd});
+                }.bind(this),
+                function fail() {
+                }
+            );
+        }.bind(this));
     }
 
     render() {
