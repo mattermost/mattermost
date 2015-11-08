@@ -631,7 +631,7 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 			}
 		}
 
-		if relevantHooks == 0 {
+		if len(relevantHooks) == 0 {
 			return false
 		}
 
@@ -669,7 +669,7 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 							webhookSuggestions := model.WebhookSuggestionsFromJson(resp.Body)
 							if webhookSuggestions != nil {
 								for _, suggestion := range webhookSuggestions.Suggestions {
-									if suggestion != "" {
+									if suggestion != nil {
 										command.AddSuggestion(suggestion)
 									}
 								}
