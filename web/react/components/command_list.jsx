@@ -81,7 +81,8 @@ export default class CommandList extends React.Component {
                     if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
                         data.suggestions = [];
                     }
-                    this.setState({suggestions: data.suggestions, cmd: cmd});
+                    var suggestions = this.state.suggestions.concat(data.suggestions);
+                    this.setState({suggestions: suggestions, cmd: cmd});
                 }.bind(this),
                 function fail() {
                 }
