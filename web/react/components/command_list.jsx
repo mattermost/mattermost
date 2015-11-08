@@ -13,8 +13,10 @@ export default class CommandList extends React.Component {
         this.isEmpty = this.isEmpty.bind(this);
         this.getSuggestedCommands = this.getSuggestedCommands.bind(this);
         this.getSuggestedWebhooks = utils.debounce(this.getSuggestedWebhooks.bind(this), 500);
+        this.getSuggestedWebhooksTriggers.bind(this)();
 
         this.state = {
+            triggers: [ ],
             suggestions: [ ],
             cmd: ''
         };
@@ -58,36 +60,38 @@ export default class CommandList extends React.Component {
         );
     }
 
-    getSuggestedWebhooks(cmd) {
-        //TODO replace client.listOutgoingHooks with some websocket updated trigger list
-        //     to prevent post request on every keystroke
-        // var self = this;
-        client.listOutgoingHooks(function webhookSuccess(webhooks) {
-            var suggestedWebhookTriggers = [];
+    getSuggestedWebhooksTriggers() {
+        //TODO replace with some websocket updated trigger list
+        //     to prevent need for reloading page if webhook is added
+
+        var self = this;
+        client.listOutgoingHooks(function success(webhooks) {
             webhooks.map((webhook) => {
-                suggestedWebhookTriggers = suggestedWebhookTriggers.concat(webhook.trigger_words);
+                self.setState({triggers: self.state.triggers.concat(webhook.trigger_words)});
             });
+        });
+    }
 
-            if (suggestedWebhookTriggers.indexOf(cmd.charAt(0)) === -1) {
-                return;
-            }
+    getSuggestedWebhooks(cmd) {
+        if (this.state.triggers.indexOf(cmd.charAt(0)) === -1) {
+            return;
+        }
 
-            client.executeCommand(
-                this.props.channelId,
-                cmd,
-                true,
-                true,
-                function success(data) {
-                    if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
-                        data.suggestions = [];
-                    }
-                    var suggestions = this.state.suggestions.concat(data.suggestions);
-                    this.setState({suggestions: suggestions, cmd: cmd});
-                }.bind(this),
-                function fail() {
+        client.executeCommand(
+            this.props.channelId,
+            cmd,
+            true,
+            true,
+            function success(data) {
+                if (data.suggestions.length === 1 && data.suggestions[0].suggestion === cmd) {
+                    data.suggestions = [];
                 }
-            );
-        }.bind(this));
+                var suggestions = this.state.suggestions.concat(data.suggestions);
+                this.setState({suggestions: suggestions, cmd: cmd});
+            }.bind(this),
+            function fail() {
+            }
+        );
     }
 
     render() {
