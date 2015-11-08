@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Mattermost. This guide provides a
 
 ## Choose a Ticket
 
-1. Review the list of [Good First Contribution][first-contribs]tickets listed in Jira
+1. Review the list of [Good First Contribution][first-contribs] tickets listed in Jira
     - You are welcome to work on any ticket, even if it is assigned, so long as it is not yet marked "in progress"
     - (optional) Comment on the ticket that you're starting so no one else inadvertently duplicates your work
 
@@ -18,9 +18,9 @@ Thank you for your interest in contributing to Mattermost. This guide provides a
 
 ## Install Mattermost and set up a Fork
 
-1. Follow [developer setup instructions][setup]to install Mattermost
+1. Follow [developer setup instructions][setup] to install Mattermost
 
-2. Create a branch with <branch name> set to the ID of the ticket you're working on, for example `PLT-394`, using command: 
+2. Create a branch with `<branch name>` set to the ID of the ticket you're working on, for example `PLT-394`, using command: 
 
 ```
 git checkout -b <branch name>
@@ -39,7 +39,7 @@ git checkout -b <branch name>
 
 ## Submitting a Pull Request 
 
-1. Please add yourself to the Mattermost [approved contributor list][approved-contributor-list]prior to submitting by completing the [contributor license agreement][cla].
+1. Please add yourself to the Mattermost [approved contributor list][approved-contributor-list] prior to submitting by completing the [contributor license agreement][cla].
 
 2. All contributors are required to register on the [Mattermost core team channel][core-channel-invite].
 
