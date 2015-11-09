@@ -669,6 +669,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			p.Sanitize(options)
+			p.ClearNonProfileFields()
 			profiles[k] = p
 		}
 

@@ -26,7 +26,6 @@ type Post struct {
 	ParentId      string          `json:"parent_id"`
 	OriginalId    string          `json:"original_id"`
 	Message       string          `json:"message"`
-	ImgCount      int64           `json:"img_count"`
 	Type          string          `json:"type"`
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
