@@ -16,6 +16,7 @@ export default class PostBody extends React.Component {
         this.receivedYoutubeData = false;
         this.isGifLoading = false;
 
+        this.handleUserChange = this.handleUserChange.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
         this.createEmbed = this.createEmbed.bind(this);
         this.createGifEmbed = this.createGifEmbed.bind(this);
@@ -47,10 +48,20 @@ export default class PostBody extends React.Component {
 
     componentDidMount() {
         this.parseEmojis();
+
+        UserStore.addChangeListener(this.handleUserChange);
     }
 
     componentDidUpdate() {
         this.parseEmojis();
+    }
+
+    componentWillUnmount() {
+        UserStore.removeChangeListener(this.handleUserChange);
+    }
+
+    handleUserChange() {
+        this.forceUpdate();
     }
 
     componentWillReceiveProps(nextProps) {
