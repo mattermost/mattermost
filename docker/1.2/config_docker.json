@@ -5,15 +5,21 @@
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "EnableIncomingWebhooks": false,
-        "EnableTesting": false
+        "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true,
+        "EnablePostUsernameOverride": false,
+        "EnablePostIconOverride": false,
+        "EnableTesting": false,
+        "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "RestrictCreationToDomains": ""
+        "RestrictCreationToDomains": "",
+        "RestrictTeamNames": true,
+        "EnableTeamListing": false
     },
     "SqlSettings": {
         "DriverName": "mysql",
