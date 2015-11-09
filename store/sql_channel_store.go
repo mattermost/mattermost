@@ -40,55 +40,6 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 }
 
 func (s SqlChannelStore) UpgradeSchemaIfNeeded() {
-
-	// REMOVE AFTER 1.2 SHIP see PLT-828
-	if s.CreateColumnIfNotExists("ChannelMembers", "NotifyProps", "varchar(2000)", "varchar(2000)", "{}") {
-		// populate NotifyProps from existing NotifyLevel field
-
-		// set default values
-		_, err := s.GetMaster().Exec(
-			`UPDATE
-				ChannelMembers
-			SET
-				NotifyProps = CONCAT('{"desktop":"', CONCAT(NotifyLevel, '","mark_unread":"` + model.CHANNEL_MARK_UNREAD_ALL + `"}'))`)
-		if err != nil {
-			l4g.Error("Unable to set default values for ChannelMembers.NotifyProps")
-			l4g.Error(err.Error())
-		}
-
-		// assume channels with all notifications enabled are just using the default settings
-		_, err = s.GetMaster().Exec(
-			`UPDATE
-				ChannelMembers
-			SET
-				NotifyProps = '{"desktop":"` + model.CHANNEL_NOTIFY_DEFAULT + `","mark_unread":"` + model.CHANNEL_MARK_UNREAD_ALL + `"}'
-			WHERE
-				NotifyLevel = '` + model.CHANNEL_NOTIFY_ALL + `'`)
-		if err != nil {
-			l4g.Error("Unable to set values for ChannelMembers.NotifyProps when members previously had notifyLevel=all")
-			l4g.Error(err.Error())
-		}
-
-		// set quiet mode channels to have no notifications and only mark the channel unread on mentions
-		_, err = s.GetMaster().Exec(
-			`UPDATE
-				ChannelMembers
-			SET
-				NotifyProps = '{"desktop":"` + model.CHANNEL_NOTIFY_NONE + `","mark_unread":"` + model.CHANNEL_MARK_UNREAD_MENTION + `"}'
-			WHERE
-				NotifyLevel = 'quiet'`)
-		if err != nil {
-			l4g.Error("Unable to set values for ChannelMembers.NotifyProps when members previously had notifyLevel=quiet")
-			l4g.Error(err.Error())
-		}
-
-		s.RemoveColumnIfExists("ChannelMembers", "NotifyLevel")
-	}
-
-	// BEGIN REMOVE AFTER 1.2.0
-	s.RenameColumnIfExists("Channels", "Description", "Header", "varchar(1024)")
-	s.CreateColumnIfNotExists("Channels", "Purpose", "varchar(1024)", "varchar(1024)", "")
-	// END REMOVE AFTER 1.2.0
 }
 
 func (s SqlChannelStore) CreateIndexesIfNotExists() {

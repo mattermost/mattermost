@@ -41,8 +41,6 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 }
 
 func (us SqlUserStore) UpgradeSchemaIfNeeded() {
-	// REMOVE AFTER 1.2 SHIP see PLT-828
-	us.CreateColumnIfNotExists("Users", "ThemeProps", "varchar(2000)", "character varying(2000)", "{}")
 }
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
