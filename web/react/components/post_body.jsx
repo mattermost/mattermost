@@ -9,7 +9,7 @@ const TextFormatting = require('../utils/text_formatting.jsx');
 const twemoji = require('twemoji');
 const PostBodyAdditionalContent = require('./post_body_additional_content.jsx');
 
-const providers = require('../providers.json');
+const providers = require('./providers.json');
 
 export default class PostBody extends React.Component {
     constructor(props) {
