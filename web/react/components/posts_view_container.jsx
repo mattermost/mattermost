@@ -109,7 +109,7 @@ export default class PostsViewContainer extends React.Component {
         this.setState({
             currentChannelIndex: newIndex,
             currentLastViewed: lastViewed,
-            scrollType: PostsView.SCROLL_TYPE_BOTTOM,
+            scrollType: PostsView.SCROLL_TYPE_NEW_MESSAGE,
             channels,
             postLists});
     }

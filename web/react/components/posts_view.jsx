@@ -30,6 +30,9 @@ export default class PostsView extends React.Component {
     static get SIDEBAR_OPEN() {
         return 3;
     }
+    static get SCROLL_TYPE_NEW_MESSAGE() {
+        return 4;
+    }
     isAtBottom() {
         return ((this.refs.postlist.scrollHeight - this.refs.postlist.scrollTop) === this.refs.postlist.clientHeight);
     }
@@ -145,6 +148,7 @@ export default class PostsView extends React.Component {
                     <div
                         id={newSeparatorId}
                         key='unviewed'
+                        ref='newMessageSeparator'
                         className='new-separator'
                     >
                         <hr
@@ -164,6 +168,15 @@ export default class PostsView extends React.Component {
         if (this.props.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
             window.requestAnimationFrame(() => {
                 this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+            });
+        } else if (this.props.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
+            window.requestAnimationFrame(() => {
+                // If separator exists scroll to it. Otherwise scroll to bottom.
+                if (this.refs.newMessageSeparator) {
+                    this.refs.newMessageSeparator.scrollIntoView();
+                } else {
+                    this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+                }
             });
         } else if (this.props.scrollType === PostsView.SCROLL_TYPE_POST && this.props.scrollPost) {
             window.requestAnimationFrame(() => {
