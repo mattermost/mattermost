@@ -49,7 +49,7 @@ Headings in markdown provide anchors that can be used to easily reference sub-se
 ##### Step 1: Add a heading
 This makes things easier to reference via hyperlinks
 ##### Step 2: Link to headings
-So things are eariser to find
+So things are easier to find
 
 ---- 
 ##### Incorrect: 
@@ -58,7 +58,7 @@ So things are eariser to find
 **Step 1: Add a heading**
 This makes things easier to reference via hyperlinks
 **Step 2: Link to headings**
-So things are eariser to find
+So things are easier to find
 ---- 
 
 ### Use appropriate heading case
