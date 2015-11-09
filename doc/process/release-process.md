@@ -48,7 +48,7 @@ This is a working document that will update as our process evolves.
 - (PM) Communicate to team the plan for next release
 - (Stand-up) Each team member discusses worst bug
 
-### - (5 weekdays before release date) Code Compete and Release Candidate Cut 
+### - (5 weekdays before release date) Code Complete and Release Candidate Cut 
 - (Team) Meets to discuss release at 10am PST 
   - (PM) Each area changed in latest release is assigned a PM owner to lead testing
   - (Ops) Walks through each item of the **Code Complete and Release Candidate Cut** checklist
