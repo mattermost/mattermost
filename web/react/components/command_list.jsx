@@ -67,7 +67,9 @@ export default class CommandList extends React.Component {
         var self = this;
         client.listOutgoingHooks(function success(webhooks) {
             webhooks.map((webhook) => {
-                self.setState({triggers: self.state.triggers.concat(webhook.trigger_words)});
+                if (webhook.enable_suggestions) {
+                    self.setState({triggers: self.state.triggers.concat(webhook.trigger_words)});
+                }
             });
         });
     }

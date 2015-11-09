@@ -17,6 +17,7 @@ export default class ManageOutgoingHooks extends React.Component {
         this.updateChannelId = this.updateChannelId.bind(this);
         this.updateTriggerWords = this.updateTriggerWords.bind(this);
         this.updateCallbackURLs = this.updateCallbackURLs.bind(this);
+        this.enableSuggestions = this.enableSuggestions.bind(this);
 
         this.state = {hooks: [], channelId: '', triggerWords: '', callbackURLs: '', getHooksComplete: false};
     }
@@ -37,6 +38,7 @@ export default class ManageOutgoingHooks extends React.Component {
             hook.trigger_words = this.state.triggerWords.trim().split(',');
         }
         hook.callback_urls = this.state.callbackURLs.split('\n');
+        hook.enable_suggestions = this.state.enableSuggestions;
 
         Client.addOutgoingHook(
             hook,
@@ -123,6 +125,9 @@ export default class ManageOutgoingHooks extends React.Component {
     updateCallbackURLs(e) {
         this.setState({callbackURLs: e.target.value});
     }
+    enableSuggestions(e) {
+        this.setState({enableSuggestions: e.target.checked});
+    }
     render() {
         let addError;
         if (this.state.addError) {
@@ -183,6 +188,15 @@ export default class ManageOutgoingHooks extends React.Component {
                 );
             }
 
+            let suggestionDiv;
+            if (hook.enable_suggestions) {
+                suggestionDiv = (
+                    <div className='padding-top'>
+                        <strong>{'Suggestions enabled'}</strong>
+                    </div>
+                );
+            }
+
             hooks.push(
                 <div
                     key={hook.id}
@@ -193,6 +207,7 @@ export default class ManageOutgoingHooks extends React.Component {
                     </div>
                     {channelDiv}
                     {triggerDiv}
+                    {suggestionDiv}
                     <div className='padding-top'>
                         <strong>{'Token: '}</strong>{hook.token}
                     </div>
@@ -286,6 +301,18 @@ export default class ManageOutgoingHooks extends React.Component {
                         </div>
                         <div className='padding-top'>{'New line separated URLs that will receive the HTTP POST event'}</div>
                         {addError}
+                    </div>
+                    <div className='padding-top x2'>
+                        <div className='checkbox'>
+                            <label>
+                                <input
+                                    type='checkbox'
+                                    checked={this.state.enableSuggestions}
+                                    onChange={this.enableSuggestions}
+                                />
+                                {'Enable suggestions'}
+                            </label>
+                        </div>
                     </div>
                     <div className='padding-top padding-bottom'>
                         <a
