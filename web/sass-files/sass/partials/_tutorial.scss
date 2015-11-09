@@ -162,7 +162,7 @@
         }
         .btn-primary {
             position: absolute;
-            bottom: 0;
+            bottom: 0px;
         }
     }
     h1 {
@@ -178,6 +178,11 @@
     .tutorial__circles {
         position: absolute;
         bottom: 40px;
+    }
+    .tutorial-skip {
+        position: absolute;
+        bottom: 7px;
+        left: 80px;
     }
 }
 
