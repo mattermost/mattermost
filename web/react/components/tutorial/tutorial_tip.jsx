@@ -71,7 +71,7 @@ export default class TutorialTip extends React.Component {
 
         var tipColor = '';
         if (this.props.overlayClass === 'tip-overlay--header') {
-            tipColor = 'white';
+            tipColor = 'White';
         }
 
         return (
