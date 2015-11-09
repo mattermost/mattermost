@@ -127,7 +127,11 @@
     right:0px;
 
     &.tip-overlay--header {
-        top: 20px;
+        top: 21px;
+        right: 2px;
+        .tip-button {
+            @include opacity(0.8);
+        }
     }
 
     &.tip-overlay--sidebar {
@@ -154,7 +158,7 @@
             margin-bottom: 50px;
             text-align: left;
             display: inline-block;
-                padding-bottom: 30px;
+            padding-bottom: 30px;
         }
         .btn-primary {
             position: absolute;

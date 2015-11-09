@@ -163,7 +163,7 @@ export default class ManageIncomingHooks extends React.Component {
         return (
             <div key='addIncomingHook'>
                 {'Create webhook URLs for use in external integrations. Please see '}<a href='http://mattermost.org/webhooks'>{'http://mattermost.org/webhooks'}</a> {' to learn more.'}
-                <label className='control-label padding-top x2'>{'Add a new incoming webhook'}</label>
+                <div><label className='control-label padding-top x2'>{'Add a new incoming webhook'}</label></div>
                 <div className='row padding-top'>
                     <div className='col-sm-10 padding-bottom'>
                         <select
