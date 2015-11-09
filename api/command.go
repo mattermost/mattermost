@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	l4g "code.google.com/p/log4go"
@@ -636,7 +637,8 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 		}
 
 		done := make(chan bool)
-		hooksToCall := len(relevantHooks)
+		var hooksCalled uint64 = 0
+		var hooksToCall uint64 = uint64(len(relevantHooks))
 		for _, hook := range relevantHooks {
 			go func(hook *model.OutgoingWebhook) {
 				p := url.Values{}
@@ -663,7 +665,10 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 						req.Header.Set("Accept", "application/json")
 						if resp, err := client.Do(req); err != nil {
-							hooksToCall -= 1
+							atomic.AddUint64(&hooksCalled, 1)
+							if hooksCalled == hooksToCall {
+								done <- true
+							}
 							l4g.Error("Event POST failed, err=%s", err.Error())
 						} else {
 							webhookSuggestions := model.WebhookSuggestionsFromJson(resp.Body)
@@ -676,8 +681,8 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 							} else {
 								l4g.Error("Invalid POST response, res=%s", resp.Body)
 							}
-							hooksToCall -= 1
-							if hooksToCall == 0 {
+							atomic.AddUint64(&hooksCalled, 1)
+							if hooksCalled == hooksToCall {
 								done <- true
 							}
 						}
