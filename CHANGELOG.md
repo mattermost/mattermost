@@ -108,7 +108,7 @@ The following is for informational purposes only, no action needed. Mattermost a
 - Editing a post so that it's text is blank (which should delete it) throws a 404
 - No scroll bar in centre channel
 - Theme color import from Slack fails to import the “Active Channel” selection color
-- Pasting images into text box fails to upload on [BROWSERS]
+- Pasting images into text box fails to upload on Firefox and Safari
 - Users cannot claim accounts imported from Slack via password reset
 - Slack import @mentions break
 
