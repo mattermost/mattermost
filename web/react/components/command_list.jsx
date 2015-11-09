@@ -73,7 +73,8 @@ export default class CommandList extends React.Component {
     }
 
     getSuggestedWebhooks(cmd) {
-        if (this.state.triggers.indexOf(cmd.charAt(0)) === -1) {
+        if (this.state.triggers.indexOf(cmd.charAt(0)) === -1 &&
+            this.state.triggers.indexOf(cmd.split(' ')[0])) {
             return;
         }
 

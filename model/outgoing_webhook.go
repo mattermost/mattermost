@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
+	"unicode/utf8"
 )
 
 type OutgoingWebhook struct {
@@ -138,4 +140,24 @@ func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
 	}
 
 	return false
+}
+
+func (o *OutgoingWebhook) FindTrigger(command string) string {
+	var longestTrigger = ""
+	if len(o.TriggerWords) == 0 || len(command) == 0 {
+		return ""
+	}
+
+	for _, trigger := range o.TriggerWords {
+		testTrigger := strings.Split(command, " ")[0]
+		if len(trigger) == 1 {
+			testTrigger = strings.Split(command, "")[0]
+		}
+		if trigger == testTrigger {
+			if utf8.RuneCountInString(longestTrigger) < utf8.RuneCountInString(trigger) {
+				longestTrigger = trigger
+			}
+		}
+	}
+	return longestTrigger
 }

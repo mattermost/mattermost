@@ -618,17 +618,19 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 			return false
 		}
 
-		firstWord := strings.Split(command.Command, " ")[0]
-
+		var trigger = ""
 		relevantHooks := []*model.OutgoingWebhook{}
 
 		for _, hook := range hooks {
+			matchingTrigger := hook.FindTrigger(command.Command)
 			if hook.ChannelId == command.ChannelId {
-				if len(hook.TriggerWords) == 0 || hook.HasTriggerWord(firstWord) {
+				if len(hook.TriggerWords) == 0 || matchingTrigger != "" {
 					relevantHooks = append(relevantHooks, hook)
+					trigger = matchingTrigger
 				}
-			} else if len(hook.ChannelId) == 0 && hook.HasTriggerWord(firstWord) {
+			} else if len(hook.ChannelId) == 0 && matchingTrigger != "" {
 				relevantHooks = append(relevantHooks, hook)
+				trigger = matchingTrigger
 			}
 		}
 
@@ -654,7 +656,7 @@ func suggestFromWebHooks(c *Context, command *model.Command) bool {
 				p.Set("user_name", user.Username)
 
 				p.Set("text", command.Command)
-				p.Set("trigger_word", firstWord)
+				p.Set("trigger_word", trigger)
 				p.Set("suggest", "true")
 
 				client := &http.Client{}
