@@ -24,6 +24,16 @@
   * ```postgre=# \q```
 1. You can exit the postgres account by typing:
   * ``` exit```
+1. Allow Postgres to listen on all assigned IP Addresses
+  * ```sudo vi /etc/postgresql/9.3/main/postgresql.conf```
+  * Uncomment 'listen_addresses' and change 'localhost' to '*'
+1. Alter pg_hba.conf to allow the mattermost server to talk to the postgres database
+  * ```sudo vi /etc/postgresql/9.3/main/pg_hba.conf```
+  * Add the following line to the 'IPv4 local connections'
+  * host    all             all             10.10.10.2/32         md5
+1. Reload Postgres database
+  * ```sudo /etc/init.d/postgresql reload```
+
 
 ## Set up Mattermost Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
