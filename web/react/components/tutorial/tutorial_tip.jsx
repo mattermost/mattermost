@@ -69,11 +69,16 @@ export default class TutorialTip extends React.Component {
             }
         }
 
+        var tipColor = '';
+        if (this.props.overlayClass === 'tip-overlay--header') {
+            tipColor = 'white';
+        }
+
         return (
             <div className={'tip-div ' + this.props.overlayClass}>
                 <img
                     className='tip-button'
-                    src='/static/images/tutorialTip.gif'
+                    src={'/static/images/tutorialTip' + tipColor + '.gif'}
                     width='35'
                     onClick={this.toggle}
                     ref='target'
