@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var Modal = require('./modal.jsx');
 var SettingItemMin = require('./setting_item_min.jsx');
 var SettingItemMax = require('./setting_item_max.jsx');
 
-var Utils = require('../utils/utils.jsx');
 var Client = require('../utils/client.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 
-export default class ChannelNotifications extends React.Component {
+export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -23,35 +23,17 @@ export default class ChannelNotifications extends React.Component {
         this.handleSubmitMarkUnreadLevel = this.handleSubmitMarkUnreadLevel.bind(this);
         this.handleUpdateMarkUnreadLevel = this.handleUpdateMarkUnreadLevel.bind(this);
         this.createMarkUnreadLevelSection = this.createMarkUnreadLevelSection.bind(this);
-        this.onShow = this.onShow.bind(this);
 
+        const member = ChannelStore.getMember(props.channel.id);
         this.state = {
-            notifyLevel: '',
-            markUnreadLevel: '',
-            title: '',
+            notifyLevel: member.notify_props.desktop,
+            markUnreadLevel: member.notify_props.mark_unread,
             channelId: '',
             activeSection: ''
         };
     }
-    onShow(e) {
-        var button = e.relatedTarget;
-        var channelId = button.getAttribute('data-channelid');
-
-        const member = ChannelStore.getMember(channelId);
-        var notifyLevel = member.notify_props.desktop;
-        var markUnreadLevel = member.notify_props.mark_unread;
-
-        this.setState({
-            notifyLevel,
-            markUnreadLevel,
-            title: button.getAttribute('data-title'),
-            channelId
-        });
-    }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onListenerChange);
-
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.onListenerChange);
@@ -62,15 +44,12 @@ export default class ChannelNotifications extends React.Component {
         }
 
         const member = ChannelStore.getMember(this.state.channelId);
-        var notifyLevel = member.notify_props.desktop;
-        var markUnreadLevel = member.notify_props.mark_unread;
 
-        var newState = this.state;
-        newState.notifyLevel = notifyLevel;
-        newState.markUnreadLevel = markUnreadLevel;
-
-        if (!Utils.areObjectsEqual(this.state, newState)) {
-            this.setState(newState);
+        if (member.notify_props.desktop !== this.state.notifyLevel || member.notify_props.mark_unread !== this.state.mark_unread) {
+            this.setState({
+                notifyLevel: member.notify_props.desktop,
+                markUnreadLevel: member.notify_props.mark_unread
+            });
         }
     }
     updateSection(section) {
@@ -104,7 +83,6 @@ export default class ChannelNotifications extends React.Component {
     }
     handleUpdateNotifyLevel(notifyLevel) {
         this.setState({notifyLevel});
-        ReactDOM.findDOMNode(this.refs.modal).focus();
     }
     createNotifyLevelSection(serverError) {
         var handleUpdateSection;
@@ -262,7 +240,6 @@ export default class ChannelNotifications extends React.Component {
 
     handleUpdateMarkUnreadLevel(markUnreadLevel) {
         this.setState({markUnreadLevel});
-        ReactDOM.findDOMNode(this.refs.modal).focus();
     }
 
     createMarkUnreadLevelSection(serverError) {
@@ -347,48 +324,39 @@ export default class ChannelNotifications extends React.Component {
         }
 
         return (
-            <div
-                className='modal fade'
-                id='channel_notifications'
-                ref='modal'
-                tabIndex='-1'
-                role='dialog'
-                aria-hidden='true'
+            <Modal
+                show={this.props.show}
+                dialogClassName='settings-modal'
+                onHide={this.props.onHide}
             >
-                <div className='modal-dialog settings-modal'>
-                    <div className='modal-content'>
-                        <div className='modal-header'>
-                            <button
-                                type='button'
-                                className='close'
-                                data-dismiss='modal'
+                <Modal.Header closeButton={true}>
+                    {'Notification Preferences for '}<span className='name'>{this.props.channel.display_name}</span>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className='settings-table'>
+                        <div className='settings-content'>
+                            <div
+                                ref='wrapper'
+                                className='user-settings'
                             >
-                                <span aria-hidden='true'>&times;</span>
-                                <span className='sr-only'>{'Close'}</span>
-                            </button>
-                            <h4 className='modal-title'>Notification Preferences for <span className='name'>{this.state.title}</span></h4>
-                        </div>
-                        <div className='modal-body'>
-                            <div className='settings-table'>
-                            <div className='settings-content'>
-                                <div
-                                    ref='wrapper'
-                                    className='user-settings'
-                                >
-                                    <br/>
-                                    <div className='divider-dark first'/>
-                                    {this.createNotifyLevelSection(serverError)}
-                                    <div className='divider-light'/>
-                                    {this.createMarkUnreadLevelSection(serverError)}
-                                    <div className='divider-dark'/>
-                                </div>
+                                <br/>
+                                <div className='divider-dark first'/>
+                                {this.createNotifyLevelSection(serverError)}
+                                <div className='divider-light'/>
+                                {this.createMarkUnreadLevelSection(serverError)}
+                                <div className='divider-dark'/>
                             </div>
-                            </div>
-                            {serverError}
                         </div>
                     </div>
-                </div>
-            </div>
+                    {serverError}
+                </Modal.Body>
+            </Modal>
         );
     }
 }
+
+ChannelNotificationsModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onHide: React.PropTypes.func.isRequired,
+    channel: React.PropTypes.object.isRequired
+};

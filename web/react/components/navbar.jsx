@@ -7,6 +7,7 @@ const NotifyCounts = require('./notify_counts.jsx');
 const ChannelMembersModal = require('./channel_members_modal.jsx');
 const ChannelInfoModal = require('./channel_info_modal.jsx');
 const ChannelInviteModal = require('./channel_invite_modal.jsx');
+const ChannelNotificationsModal = require('./channel_notifications_modal.jsx');
 const ToggleModalButton = require('./toggle_modal_button.jsx');
 
 const UserStore = require('../stores/user_store.jsx');
@@ -229,16 +230,13 @@ export default class Navbar extends React.Component {
             if (!isDirect) {
                 notificationPreferenceOption = (
                     <li role='presentation'>
-                        <a
+                        <ToggleModalButton
                             role='menuitem'
-                            href='#'
-                            data-toggle='modal'
-                            data-target='#channel_notifications'
-                            data-title={channel.display_name}
-                            data-channelid={channel.id}
+                            dialogType={ChannelNotificationsModal}
+                            dialogProps={{channel}}
                         >
-                            {'Notification Preferences'}
-                        </a>
+                        {'Notification Preferences'}
+                        </ToggleModalButton>
                     </li>
                 );
             }
