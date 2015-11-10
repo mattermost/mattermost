@@ -24,29 +24,29 @@ export default class ModalToggleButton extends React.Component {
     render() {
         const {children, dialogType, dialogProps, ...props} = this.props;
 
-        // this assumes that all modals will have a show property and an onModalDismissed event
+        // this assumes that all modals will have a show property and an onHide event
         const dialog = React.createElement(this.props.dialogType, Object.assign({}, dialogProps, {
             show: this.state.show,
-            onModalDismissed: () => {
+            onHide: () => {
                 this.hide();
 
-                if (dialogProps.onModalDismissed) {
-                    dialogProps.onModalDismissed();
+                if (dialogProps.onHide) {
+                    dialogProps.onHide();
                 }
             }
         }));
 
+        // nesting the dialog in the anchor tag looks like it shouldn't work, but it does due to how react-bootstrap
+        // renders modals at the top level of the DOM instead of where you specify in the virtual DOM
         return (
-            <div style={{display: 'inline'}}>
-                <a
-                    {...props}
-                    href='#'
-                    onClick={this.show}
-                >
-                    {children}
-                </a>
+            <a
+                {...props}
+                href='#'
+                onClick={this.show}
+            >
+                {children}
                 {dialog}
-            </div>
+            </a>
         );
     }
 }
