@@ -38,6 +38,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
+	s.RemoveColumnIfExists("Posts", "ImgCount") // remove after 1.3 release
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
