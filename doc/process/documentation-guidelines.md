@@ -102,20 +102,22 @@ A support person should be able to say "Did you complete step 7?" instead of "Di
 
 ---- 
 
-### Lists end without periods
+### End Lists Correctly
 
-Sentences within bullet points or numbered lists should end in normal punctuation. The sentence or fragment at the end of a bullet point should not have a period. 
+Punctuate bullet points and numbered lists if they end in a full sentence. If they end in a fragment, do not add punctuation.
 
 ##### Correct
 
 ----
-- This is a sentence within a bullet point. This is the end of a bullet point without a period
+- This bullet point ends with period.
+- This bullet point does not end with a period because it ends with a fragment. Unlike the previous point
 
 ----
 ##### Incorrect
 
 ----
-- This is an incorrect ending of a bullet point with a period. 
+- This bullet point does not end with a period. This is incorrect
+- This bullet point does not end correctly. Like the previous point.
 
 ----
 ### Avoid Passive Phrases
