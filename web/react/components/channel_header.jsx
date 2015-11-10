@@ -5,8 +5,10 @@ const NavbarSearchBox = require('./search_bar.jsx');
 const MessageWrapper = require('./message_wrapper.jsx');
 const PopoverListMembers = require('./popover_list_members.jsx');
 const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
+const ChannelInfoModal = require('./channel_info_modal.jsx');
 const ChannelInviteModal = require('./channel_invite_modal.jsx');
 const ChannelMembersModal = require('./channel_members_modal.jsx');
+const ToggleModalButton = require('./toggle_modal_button.jsx');
 
 const ChannelStore = require('../stores/channel_store.jsx');
 const UserStore = require('../stores/user_store.jsx');
@@ -180,15 +182,13 @@ export default class ChannelHeader extends React.Component {
                     key='view_info'
                     role='presentation'
                 >
-                    <a
+                    <ToggleModalButton
                         role='menuitem'
-                        data-toggle='modal'
-                        data-target='#channel_info'
-                        data-channelid={channel.id}
-                        href='#'
+                        dialogType={ChannelInfoModal}
+                        dialogProps={{channel}}
                     >
                         {'View Info'}
-                    </a>
+                    </ToggleModalButton>
                 </li>
             );
 
