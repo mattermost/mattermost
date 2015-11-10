@@ -115,7 +115,7 @@ export default class NewChannelModal extends React.Component {
                                         type='text'
                                         ref='display_name'
                                         className='form-control'
-                                        placeholder='Ex: "Bugs", "Marketing", "办公室恋情"'
+                                        placeholder='E.g.: "Bugs", "Marketing", "办公室恋情"'
                                         maxLength='22'
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
