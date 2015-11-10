@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 const ConfirmModal = require('../confirm_modal.jsx');
-const Modal = ReactBootstrap.Modal;
+const Modal = require('../modal.jsx');
 const SettingsSidebar = require('../settings_sidebar.jsx');
 const UserSettings = require('./user_settings.jsx');
 
@@ -10,6 +10,7 @@ export default class UserSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleShow = this.handleShow.bind(this);
         this.handleHide = this.handleHide.bind(this);
         this.handleHidden = this.handleHidden.bind(this);
         this.handleCollapse = this.handleCollapse.bind(this);
@@ -33,12 +34,10 @@ export default class UserSettingsModal extends React.Component {
         this.requireConfirm = false;
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
-            if ($(window).width() > 768) {
-                $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-            }
+    handleShow() {
+        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
+        if ($(window).width() > 768) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
         }
     }
 
@@ -176,6 +175,7 @@ export default class UserSettingsModal extends React.Component {
             <Modal
                 dialogClassName='settings-modal'
                 show={this.props.show}
+                onShow={this.handleShow}
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
                 enforceFocus={this.state.enforceFocus}

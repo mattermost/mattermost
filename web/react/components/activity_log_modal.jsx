@@ -63,11 +63,6 @@ export default class ActivityLogModal extends React.Component {
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
     }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
-    }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);
     }
@@ -161,6 +156,7 @@ export default class ActivityLogModal extends React.Component {
         return (
             <Modal
                 show={this.props.show}
+                onShow={this.onShow}
                 onHide={this.onHide}
                 bsSize='large'
             >

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Modal = ReactBootstrap.Modal;
+var Modal = require('./modal.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var ChannelStore = require('../stores/channel_store.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
@@ -15,7 +15,6 @@ export default class AccessHistoryModal extends React.Component {
         this.onAuditChange = this.onAuditChange.bind(this);
         this.handleMoreInfo = this.handleMoreInfo.bind(this);
         this.onHide = this.onHide.bind(this);
-        this.onShow = this.onShow.bind(this);
         this.formatAuditInfo = this.formatAuditInfo.bind(this);
         this.handleRevokedSession = this.handleRevokedSession.bind(this);
 
@@ -43,11 +42,6 @@ export default class AccessHistoryModal extends React.Component {
     }
     componentDidMount() {
         UserStore.addAuditsChangeListener(this.onAuditChange);
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
     }
     componentWillUnmount() {
         UserStore.removeAuditsChangeListener(this.onAuditChange);
@@ -391,6 +385,7 @@ export default class AccessHistoryModal extends React.Component {
             <Modal
                 show={this.props.show}
                 onHide={this.onHide}
+                onShow={this.onShow}
                 bsSize='large'
             >
                 <Modal.Header closeButton={true}>

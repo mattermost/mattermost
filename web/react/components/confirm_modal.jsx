@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Modal = ReactBootstrap.Modal;
+const Modal = require('./modal.jsx');
 
 export default class ConfirmModal extends React.Component {
     constructor(props) {
