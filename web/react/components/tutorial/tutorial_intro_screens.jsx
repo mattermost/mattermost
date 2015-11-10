@@ -41,6 +41,11 @@ export default class TutorialIntroScreens extends React.Component {
     componentDidMount() {
         $('.tutorials__scroll').perfectScrollbar();
     }
+    skipTutorial(e) {
+        e.preventDefault();
+        const preference = PreferenceStore.setPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), '999');
+        AsyncClient.savePreferences([preference]);
+    }
     createScreen() {
         switch (this.state.currentScreen) {
         case 0:
@@ -176,6 +181,13 @@ export default class TutorialIntroScreens extends React.Component {
                             >
                                 {'Next'}
                             </button>
+                            <a
+                                className='tutorial-skip'
+                                href='#'
+                                onClick={this.skipTutorial}
+                            >
+                                {'Skip tutorial'}
+                            </a>
                         </div>
                     </div>
                 </div>
