@@ -296,7 +296,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='feedbackName'
                                 ref='feedbackName'
-                                placeholder='Ex: "Mattermost Notification", "System", "No-Reply"'
+                                placeholder='E.g.: "Mattermost Notification", "System", "No-Reply"'
                                 defaultValue={this.props.config.EmailSettings.FeedbackName}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -318,7 +318,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='feedbackEmail'
                                 ref='feedbackEmail'
-                                placeholder='Ex: "mattermost@yourcompany.com", "admin@yourcompany.com"'
+                                placeholder='E.g.: "mattermost@yourcompany.com", "admin@yourcompany.com"'
                                 defaultValue={this.props.config.EmailSettings.FeedbackEmail}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -340,7 +340,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPUsername'
                                 ref='SMTPUsername'
-                                placeholder='Ex: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'
+                                placeholder='E.g.: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'
                                 defaultValue={this.props.config.EmailSettings.SMTPUsername}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -362,7 +362,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPPassword'
                                 ref='SMTPPassword'
-                                placeholder='Ex: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+                                placeholder='E.g.: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
                                 defaultValue={this.props.config.EmailSettings.SMTPPassword}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -384,7 +384,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPServer'
                                 ref='SMTPServer'
-                                placeholder='Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'
+                                placeholder='E.g.: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'
                                 defaultValue={this.props.config.EmailSettings.SMTPServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -406,7 +406,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='SMTPPort'
                                 ref='SMTPPort'
-                                placeholder='Ex: "25", "465"'
+                                placeholder='E.g.: "25", "465"'
                                 defaultValue={this.props.config.EmailSettings.SMTPPort}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -476,7 +476,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='InviteSalt'
                                 ref='InviteSalt'
-                                placeholder='Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+                                placeholder='E.g.: "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
                                 defaultValue={this.props.config.EmailSettings.InviteSalt}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
@@ -507,7 +507,7 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='PasswordResetSalt'
                                 ref='PasswordResetSalt'
-                                placeholder='Ex "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
+                                placeholder='E.g.: "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo"'
                                 defaultValue={this.props.config.EmailSettings.PasswordResetSalt}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendEmailNotifications}
