@@ -69,6 +69,15 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             usedLanguage = 'xml';
         }
 
+        if (usedLanguage && (usedLanguage === 'tex' || usedLanguage === 'latex')) {
+            try {
+                var html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
+                return '<div class="post-body--code tex">' + html + '</div>';
+            } catch (e) {
+                return '<div class="post-body--code">' + TextFormatting.sanitizeHtml(code) + '</div>';
+            }
+        }
+
         if (!usedLanguage || highlightJs.listLanguages().indexOf(usedLanguage) < 0) {
             let parsed = super.code(code, usedLanguage);
             return '<div class="post-body--code"><code class="hljs">' + TextFormatting.sanitizeHtml($(parsed).text()) + '</code></div>';

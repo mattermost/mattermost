@@ -6,7 +6,7 @@
             "modules": true,
             "classes": true,
             "arrowFunctions": true,
-            "defaultParams": true, 
+            "defaultParams": true
         },
         "parser": "babel-eslint",
         "plugins": [
@@ -22,7 +22,8 @@
             "React": false,
             "ReactDOM": false,
             "ReactBootstrap": false,
-            "Chart": false
+            "Chart": false,
+            "katex": false
         },
         "rules": {
             "comma-dangle": [2, "never"],
