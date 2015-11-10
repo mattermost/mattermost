@@ -64,7 +64,7 @@ If you use Docker, you can [install Mattermost in a single-container preview in 
 
 Prior to production installation, please review [Mattermost system requirements](http://docs.mattermost.org/install/Requirements/index.html). 
 
-- [Production Install on Ubuntu 14.04](https://github.com/mattermost/platform/blob/release-1.0.0/doc/install/prod-ubuntu.md) - Install Mattermost for production environments. 
+- [Production Install on Ubuntu 14.04](https://github.com/mattermost/platform/blob/master/doc/install/Production-Ubuntu.md) - Install Mattermost for production environments. 
 
 - [GitLab Mattermost Production Installation](https://gitlab.com/gitlab-org/gitlab-mattermost) - Install Mattermost for production environments bundled with GitLab, a leading open source Git repository, using an omnibus package for Ubuntu 12.04, Ubuntu 14.04, Debian 7, Debian 8, and CentOS 6 (and RedHat/Oracle/Scientific Linux 6), CentOS 7 (and RedHat/Oracle/Scientific Linux 7). 
 
