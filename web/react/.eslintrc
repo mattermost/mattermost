@@ -8,6 +8,7 @@
             "arrowFunctions": true,
             "defaultParams": true, 
         },
+        "parser": "babel-eslint",
         "plugins": [
             "react"
         ],

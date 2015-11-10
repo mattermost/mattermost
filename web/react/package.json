@@ -18,7 +18,8 @@
     "uglify-js": "2.4.24",
     "watchify": "3.4.0",
     "eslint": "1.6.0",
-    "eslint-plugin-react": "3.5.1"
+    "eslint-plugin-react": "3.5.1",
+    "babel-eslint": "4.1.4"
   },
   "scripts": {
     "check": "",
