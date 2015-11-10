@@ -81,6 +81,21 @@ Markdown | Less | Pretty
 
 `,
 
+	` **[4]** - **[More Markdown Tests]**
+# This is a heading
+
+I am a multiline
+text.
+
+#### I am a level four heading
+
+` + "```tex" + `
+f(x) = \int_{-\infty}^\infty
+    \hat f(\xi)\,e^{2 \pi i \xi x}
+    \,d\xi
+` + "```" + `
+* This was some tex code*
+`,
 	/*	`**[2] [Username Linking Test]**
 		I saw @alice--and I said "Hi @alice!" then "What's up @alice?" and then @alice, was totally @alice; she just "@alice"'d me and walked on by. That's @alice...
 		@alice‽‽
