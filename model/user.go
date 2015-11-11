@@ -233,7 +233,6 @@ func (u *User) ClearNonProfileFields() {
 	u.AuthData = ""
 	u.AuthService = ""
 	u.EmailVerified = false
-	u.LastActivityAt = 0
 	u.LastPingAt = 0
 	u.AllowMarketing = false
 	u.Props = StringMap{}
