@@ -9,15 +9,15 @@ const ChannelStore = require('../stores/channel_store.jsx');
 const Constants = require('../utils/constants.jsx');
 const TeamStore = require('../stores/team_store.jsx');
 
-export function createChannelIntroMessage(channel) {
+export function createChannelIntroMessage(channel, showInviteModal) {
     if (channel.type === 'D') {
         return createDMIntroMessage(channel);
     } else if (ChannelStore.isDefault(channel)) {
         return createDefaultIntroMessage(channel);
     } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-        return createOffTopicIntroMessage(channel);
+        return createOffTopicIntroMessage(channel, showInviteModal);
     } else if (channel.type === 'O' || channel.type === 'P') {
-        return createStandardIntroMessage(channel);
+        return createStandardIntroMessage(channel, showInviteModal);
     }
 }
 
@@ -71,7 +71,7 @@ export function createDMIntroMessage(channel) {
     );
 }
 
-export function createOffTopicIntroMessage(channel) {
+export function createOffTopicIntroMessage(channel, showInviteModal) {
     return (
         <div className='channel-intro'>
             <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
@@ -91,10 +91,8 @@ export function createOffTopicIntroMessage(channel) {
                 <i className='fa fa-pencil'></i>{'Set a header'}
             </a>
             <a
-                className='intro-links'
                 href='#'
-                data-toggle='modal'
-                data-target='#channel_invite'
+                onClick={showInviteModal}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this channel'}
             </a>
@@ -155,7 +153,7 @@ export function createDefaultIntroMessage(channel) {
     );
 }
 
-export function createStandardIntroMessage(channel) {
+export function createStandardIntroMessage(channel, showInviteModal) {
     var uiName = channel.display_name;
     var creatorName = '';
 
@@ -206,14 +204,11 @@ export function createStandardIntroMessage(channel) {
                 <i className='fa fa-pencil'></i>{'Set a header'}
             </a>
             <a
-                className='intro-links'
                 href='#'
-                data-toggle='modal'
-                data-target='#channel_invite'
+                onClick={showInviteModal}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
             </a>
-
         </div>
     );
 }

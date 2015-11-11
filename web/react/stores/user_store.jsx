@@ -193,13 +193,13 @@ class UserStoreClass extends EventEmitter {
         return BrowserStore.getItem('profiles', {});
     }
 
-    getActiveOnlyProfiles() {
+    getActiveOnlyProfiles(skipCurrent) {
         const active = {};
         const profiles = this.getProfiles();
         const currentId = this.getCurrentId();
 
         for (var key in profiles) {
-            if (profiles[key].delete_at === 0 && profiles[key].id !== currentId) {
+            if (!(profiles[key].id === currentId && skipCurrent) && profiles[key].delete_at === 0) {
                 active[key] = profiles[key];
             }
         }

@@ -16,6 +16,7 @@ export default class PostBody extends React.Component {
         this.receivedYoutubeData = false;
         this.isGifLoading = false;
 
+        this.handleUserChange = this.handleUserChange.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
         this.createEmbed = this.createEmbed.bind(this);
         this.createGifEmbed = this.createGifEmbed.bind(this);
@@ -23,7 +24,13 @@ export default class PostBody extends React.Component {
         this.createYoutubeEmbed = this.createYoutubeEmbed.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
-        this.state = {links: linkData.links, message: linkData.text};
+        const profiles = UserStore.getProfiles();
+
+        this.state = {
+            links: linkData.links,
+            message: linkData.text,
+            hasUserProfiles: profiles && Object.keys(profiles).length > 1
+        };
     }
 
     getAllChildNodes(nodeIn) {
@@ -47,10 +54,24 @@ export default class PostBody extends React.Component {
 
     componentDidMount() {
         this.parseEmojis();
+
+        UserStore.addChangeListener(this.handleUserChange);
     }
 
     componentDidUpdate() {
         this.parseEmojis();
+    }
+
+    componentWillUnmount() {
+        UserStore.removeChangeListener(this.handleUserChange);
+    }
+
+    handleUserChange() {
+        if (!this.state.hasProfiles) {
+            const profiles = UserStore.getProfiles();
+
+            this.setState({hasProfiles: profiles && Object.keys(profiles).length > 1});
+        }
     }
 
     componentWillReceiveProps(nextProps) {

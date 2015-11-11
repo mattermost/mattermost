@@ -140,7 +140,9 @@ export default class Navbar extends React.Component {
                             role='menuitem'
                             href='#'
                             onClick={() => this.setState({showEditChannelPurposeModal: true})}
-                        />
+                        >
+                            {'Set Channel Purpose...'}
+                        </a>
                     </li>
                 );
             }
