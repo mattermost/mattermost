@@ -295,6 +295,13 @@ export default class Textbox extends React.Component {
         this.resize();
     }
 
+    showHelp(e) {
+        e.preventDefault();
+        e.target.blur();
+
+        global.window.open('/docs/Messaging');
+    }
+
     render() {
         const previewLinkVisible = this.props.messageText.length > 0;
 
@@ -336,11 +343,17 @@ export default class Textbox extends React.Component {
                 >
                 </div>
                 <a
+                    onClick={this.showHelp}
+                    className='textbox-help-link'
+                >
+                    {'Help'}
+                </a>
+                <a
                     style={{visibility: previewLinkVisible ? 'visible' : 'hidden'}}
                     onClick={this.showPreview}
                     className='textbox-preview-link'
                 >
-                    {this.state.preview ? 'Edit message' : 'Preview'}
+                    {this.state.preview ? 'Edit' : 'Preview'}
                 </a>
             </div>
         );

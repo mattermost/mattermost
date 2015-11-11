@@ -80,6 +80,8 @@ func InitWeb() {
 
 	mainrouter.Handle("/hooks/{id:[A-Za-z0-9]+}", api.ApiAppHandler(incomingWebhook)).Methods("POST")
 
+	mainrouter.Handle("/docs/{doc:[A-Za-z0-9]+}", api.AppHandlerIndependent(docs)).Methods("GET")
+
 	// ----------------------------------------------------------------------------------------------
 	// *ANYTHING* team specific should go below this line
 	// ----------------------------------------------------------------------------------------------
@@ -491,6 +493,15 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("find_team", "Find Team")
+	page.Render(c, w)
+}
+
+func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	doc := params["doc"]
+
+	page := NewHtmlTemplatePage("docs", "Documentation")
+	page.Props["Site"] = doc
 	page.Render(c, w)
 }
 
