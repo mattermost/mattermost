@@ -142,7 +142,7 @@ export default class Sidebar extends React.Component {
             }
         }
 
-        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList().length - visibleDirectChannels.length;
+        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList(true).length - visibleDirectChannels.length;
 
         visibleDirectChannels.sort(this.sortChannelsByDisplayName);
 

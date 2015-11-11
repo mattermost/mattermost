@@ -3,6 +3,7 @@
 
 const PostsView = require('./posts_view.jsx');
 const LoadingScreen = require('./loading_screen.jsx');
+const ChannelInviteModal = require('./channel_invite_modal.jsx');
 
 const ChannelStore = require('../stores/channel_store.jsx');
 const PostStore = require('../stores/post_store.jsx');
@@ -50,6 +51,7 @@ export default class PostsViewContainer extends React.Component {
             });
         }
 
+        state.showInviteModal = false;
         this.state = state;
     }
     componentDidMount() {
@@ -248,7 +250,7 @@ export default class PostsViewContainer extends React.Component {
                     postViewScrolled={this.handlePostsViewScroll}
                     loadMorePostsTopClicked={this.loadMorePostsTop}
                     numPostsToDisplay={this.state.numPostsToDisplay}
-                    introText={channel ? createChannelIntroMessage(channel) : null}
+                    introText={channel ? createChannelIntroMessage(channel, () => this.setState({showInviteModal: true})) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );
@@ -263,7 +265,13 @@ export default class PostsViewContainer extends React.Component {
         }
 
         return (
-            <div id='post-list'>{postListCtls}</div>
+            <div id='post-list'>
+                {postListCtls}
+                <ChannelInviteModal
+                    show={this.state.showInviteModal}
+                    onModalDismissed={() => this.setState({showInviteModal: false})}
+                />
+            </div>
         );
     }
 }
