@@ -81,18 +81,24 @@ Additional Notes:
 
 ### Slack Compatibility
 
-As mentioned above, Mattermost makes it easy to take integrations written for Slack's proprietary JSON payload format and repurpose them to become Mattermost integrations. The following automatic translations are supported:
+Mattermost makes it easy to take integrations written for Slack's proprietary JSON payload format and repurpose them to become Mattermost integrations. 
+
+#### Example: Connecting Mattermost to GitLab using Slack UI 
+
+GitLab is the leading open-source alternative to GitHub and offers built-in integrations with Slack. Rather than having to change code to support Mattermost, users can add Mattermost webhooks directly into the interface for Slack. 
+
+1. In GitLab, go to **Settings** > **Services** and select **Slack**.
+2. Paste in the incoming webhook URL provided by Mattermost under **Account Settings** > **Integration** > **Incoming Webhooks**, for the channel in which you'd like GitLab notifications to appear.
+3. Optionally set the **Username** you'd like displayed when the notification is made. Leave the **Channel** field blank
+4. Click **Save** then test the settings to confirm posts will be made to Mattermost
+
+#### Translating Slack's proprietary data format to Mattermost 
+
+The following describes the automatic translations Mattermost performance to process data coming from Slack: 
 
 1. Payloads designed for Slack using `<>` to note the need to hyperlink a URL, such as ```payload={"text": "<http://www.mattermost.com/>"}```, are translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack
 2. Similiarly, payloads designed for Slack using `|` within a `<>` to define linked text, such as ```payload={"text": "Click <http://www.mattermost.com/|here> for a link."}```, are also translated to the equivalent markdown in Mattermost and rendered the same as you would see in Slack
-3. Like Slack, by overriding the channel name with an @username, such as payload={"text": "Hi", channel: "@jim"}, you can send the message to a user through your direct message chat
-4. Channel names can be prepended with a #, like they are in Slack incoming webhooks, and the message will still be sent to the correct channel
+3. Like Slack, by overriding the channel name with a `@username`, such as `payload={"text": "Hi", channel: "@jim"}`, you can send the message to a user through your direct message chat
+4. Channel names can be prepended with a `#`, like they are in Slack incoming webhooks, and the message will still be sent to the correct channel
 
 To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
-
-#### Known Issues in v1.1
-
-- The `attachments` payload used in Slack is not yet supported
-- Overriding of usernames does not yet apply to notifications (fixed on master) 
-- Cannot supply `icon_emoji` to override the message icon
-- Webhook UI fails when connected to deleted channel (fixed on master)
