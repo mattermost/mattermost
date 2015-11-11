@@ -35,7 +35,7 @@ type User struct {
 	Username           string    `json:"username"`
 	Password           string    `json:"password,omitempty"`
 	AuthData           string    `json:"auth_data,omitempty"`
-	AuthService        string    `json:"auth_service,omitempty"`
+	AuthService        string    `json:"auth_service"`
 	Email              string    `json:"email"`
 	EmailVerified      bool      `json:"email_verified,omitempty"`
 	Nickname           string    `json:"nickname"`
