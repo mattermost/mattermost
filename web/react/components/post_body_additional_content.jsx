@@ -2,12 +2,14 @@
 // See License.txt for license information.
 
 const PostAttachmentList = require('./post_attachment_list.jsx');
+const PostAttachmentOEmbed = require('./post_attachment_oembed.jsx');
 
 export default class PostBodyAdditionalContent extends React.Component {
     constructor(props) {
         super(props);
 
         this.getSlackAttachment = this.getSlackAttachment.bind(this);
+        this.getOembedAttachment = this.getOembedAttachment.bind(this);
         this.getComponent = this.getComponent.bind(this);
     }
 
@@ -25,17 +27,31 @@ export default class PostBodyAdditionalContent extends React.Component {
         );
     }
 
+    getOembedAttachment() {
+        const link = this.props.post.props && this.props.post.props.oEmbedLink || '';
+        return (
+            <PostAttachmentOEmbed
+                key={'post_body_additional_content' + this.props.post.id}
+                link={link}
+            />
+        );
+    }
+
     getComponent() {
-        switch (this.state.type) {
+        switch (this.props.post.type) {
         case 'slack_attachment':
             return this.getSlackAttachment();
+        case 'oEmbed':
+            return this.getOembedAttachment();
+        default:
+            return '';
         }
     }
 
     render() {
         let content = [];
 
-        if (this.state.shouldRender) {
+        if (Boolean(this.props.post.type)) {
             const component = this.getComponent();
 
             if (component) {

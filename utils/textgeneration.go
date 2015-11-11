@@ -96,6 +96,36 @@ f(x) = \int_{-\infty}^\infty
 ` + "```" + `
 * This was some tex code*
 `,
+
+	`**[5]** - **[Markdown and automatic preview of content test]**
+
+## This should display a preview for the given vine url
+
+Some text *before* the link
+And a smiley :)
+https://vine.co/v/eDeVgbFrt9L
+
+Some more text here
+and here
+and even more here
+`,
+
+	`**[6]** - **[More markdown and automatic preview of content test]**
+
+## Only the first given url should render an "attachment"
+
+Lets also add a table here, because why not
+| Left-Aligned  | Center Aligned  | Right Aligned |
+| :------------ |:---------------:| -----:|
+| Left column 1 | this text       |  $100 |
+| Left column 2 | is              |   $10 |
+| Left column 3 | centered        |    $1 |
+
+Wiki should render:
+http://en.wikipedia.org/wiki/Foo
+https://vine.co/v/eDeVgbFrt9L
+`,
+
 	/*	`**[2] [Username Linking Test]**
 		I saw @alice--and I said "Hi @alice!" then "What's up @alice?" and then @alice, was totally @alice; she just "@alice"'d me and walked on by. That's @alice...
 		@alice‽‽
