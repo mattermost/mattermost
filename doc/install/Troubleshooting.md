@@ -12,7 +12,7 @@
   - If the System Administrator account becomes unavailable, a person leaving the organization for example, you can set a new system admin from the commandline using `./platform -assign_role -team_name="yourteam" -email="you@example.com" -role="system_admin"`. 
   - After assigning the role the user needs to log out and log back in before the System Administrator role is applied.
 
-#### Error Messages
+#### Mattermost Error Messages
 
 The following is a list of common error messages and solutions: 
 
@@ -35,6 +35,20 @@ The following is a list of common error messages and solutions:
    1. Check that your SSL settings for the SSO provider match the `http://` or `https://` choice selected in `config.json` under `GitLabSettings`
    2. Follow steps 1 to 3 of the manual [GitLab SSO configuration procedure](https://github.com/mattermost/platform/blob/master/doc/integrations/Single-Sign-On/Gitlab.md) to confirm your `Secret` and `Id` settings in `config.json` match your GitLab settings, and if they don't, manually update `config.json` to the correct settings and see if this clears the issue. 
 
-#### Troubleshooting GitLab Mattermost
+### Troubleshooting GitLab Mattermost
 
 - If you're having issues installing GitLab Mattermost with GitLab Omnibus, as a first step please turn on logging by updating the [log settings](https://github.com/mattermost/platform/blob/master/doc/install/Configuration-Settings.md#log-file-settings) section in your `config.json` file installed by omnibus, and they try a general web search for the error message you receive. 
+
+#### GitLab Mattermost Error Messages
+
+###### `We received an unexpected status code from the server (200)`
+
+- If you have upgraded from a pre-released version of GitLab Mattermost or if an unforseen issue has arrisen during the [upgrade procedure](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md), you may be able to restore Mattermost using the following procedure: 
+  - Stop Mattermost, so DB can be dropped 
+  - `sudo gitlab-ctl reconfigure`
+  - `sudo -u gitlab-psql /opt/gitlab/embedded/bin/dropdb -h /var/opt/gitlab/postgresql mattermost_production`
+  - Start Mattermost
+  - `sudo gitlab-ctl reconfigure`
+  - [Manually set up GitLab SSO](https://github.com/mattermost/platform/blob/master/doc/integrations/Single-Sign-On/Gitlab.md) by copying Secret and ID into `/var/opt/gitlab/mattermost/config.json` 
+  - `sudo gitlab-ctl restart`
+
