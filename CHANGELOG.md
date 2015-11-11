@@ -1,11 +1,31 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT Release v1.2.0
+## Release v1.2.0
 
-The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
-
-- **Release candidate anticipated:** 2015-11-10
 - **Final release anticipated:** 2015-11-16
+
+### Release Highlights
+
+#### Outgoing webhooks
+
+- Mattermost users can now interact with external applications using [outgoing webhooks](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Outgoing-Webhooks.md)
+- An [application template](https://github.com/mattermost/mattermost-integration-giphy) demonstrating user queries sent to the Giphy search engine via Mattermost webhooks now available
+- A community application, [Matterbrige](https://github.com/42wim/matterbridge?files=1), shows how to use webhooks to connect Mattermost with IRC 
+
+#### Search Scope Modifiers 
+
+- Adding search term `in:[channel_url_name]` now limits searches within a specific channel
+- Adding search term `from:[username]` now limits searches to messages from a specific user
+
+#### Syntax Highlighting 
+
+- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`
+
+#### Usability Improvements 
+
+- Added tutorial to teach new users how to use Mattermost 
+- Various performance improvements to support teams with hundreds of users 
+- Direct Messages "More" menu now lets you search for users by username and real name
 
 ### Improvements 
 
@@ -18,7 +38,7 @@ Messaging and Notifications
 - Users can now search for teammates to add to **Direct Message** list via **More** menu
 - Users can now personalize Direct Messages list by removing users listed
 - Link previews - Adding URL with .gif file adds image below message
-- Added new browser tab alerts to indicate unread messages and mentions
+- Added new browser tab alerts to indicate unread messages and mentions 
 
 Search 
 
@@ -34,8 +54,8 @@ Integrations
 User Interface
 
 - Member list in Channel display now scrollable, and includes Message button to message channel members directly
-- Added ability to edit previous message by hitting UP arrow
-- Syntax highlighting added for code blocks
+- Added ability to edit previous message by hitting UP arrow 
+- Syntax highlighting added for code blocks 
    - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`. 
    - Use by adding the name of the language on the first link of the code block, for example: ```python
    - Syntax color theme can be defined under **Account Settings** > **Appearance Settings** > **Custom Theme**
@@ -65,7 +85,7 @@ System Console
 - Fixed issue with the centre channel scroll position jumping when right hand side was opened and closed
 - Added support for simultaneous login to different teams in different browser tabs
 - Incoming webhooks no longer disrupted when channel is deleted
-
+- You can now paste a Mattermost incoming webhook URL into the same field designed for a Slack URL and integrations will work 
 ### Compatibility  
 
 - IE 11 new minimum version for IE, since IE 10 share fell below 5% on desktop 
@@ -108,7 +128,7 @@ The following is for informational purposes only, no action needed. Mattermost a
 - Editing a post so that it's text is blank (which should delete it) throws a 404
 - No scroll bar in centre channel
 - Theme color import from Slack fails to import the “Active Channel” selection color
-- Pasting images into text box fails to upload on [BROWSERS]
+- Pasting images into text box fails to upload on Firefox and Safari
 - Users cannot claim accounts imported from Slack via password reset
 - Slack import @mentions break
 
