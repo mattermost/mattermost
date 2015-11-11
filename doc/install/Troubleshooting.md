@@ -38,10 +38,10 @@ The following is a list of common error messages and solutions:
 ###### `We received an unexpected status code from the server (200)`
 
 - If you have upgraded from a pre-released version of GitLab Mattermost or if an unforseen issue has arrisen during the [upgrade procedure](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md), you may be able to restore Mattermost using the following procedure: 
-  - Stop Mattermost, so DB can be dropped 
+  - `sudo stop mattermost`, so DB can be dropped 
   - `sudo gitlab-ctl reconfigure`
   - `sudo -u gitlab-psql /opt/gitlab/embedded/bin/dropdb -h /var/opt/gitlab/postgresql mattermost_production`
-  - Start Mattermost
+  - `sudo start mattermost`
   - `sudo gitlab-ctl reconfigure`
   - [Manually set up GitLab SSO](https://github.com/mattermost/platform/blob/master/doc/integrations/Single-Sign-On/Gitlab.md) by copying Secret and ID into `/var/opt/gitlab/mattermost/config.json` 
   - `sudo gitlab-ctl restart`
