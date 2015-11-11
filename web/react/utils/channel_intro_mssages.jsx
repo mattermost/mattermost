@@ -91,7 +91,6 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
                 <i className='fa fa-pencil'></i>{'Set a header'}
             </a>
             <a
-                role='menuitem'
                 href='#'
                 onClick={showInviteModal}
             >
@@ -205,7 +204,6 @@ export function createStandardIntroMessage(channel, showInviteModal) {
                 <i className='fa fa-pencil'></i>{'Set a header'}
             </a>
             <a
-                role='menuitem'
                 href='#'
                 onClick={showInviteModal}
             >
