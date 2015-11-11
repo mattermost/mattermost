@@ -102,3 +102,6 @@ The following describes the automatic translations Mattermost performance to pro
 4. Channel names can be prepended with a `#`, like they are in Slack incoming webhooks, and the message will still be sent to the correct channel
 
 To see samples and community contributions, please visit <http://mattermost.org/webhooks>.
+
+#### Known Issues
+- Mattermost does not yet support Slack's feature of using _icon_emoji_ to override the message icon.
