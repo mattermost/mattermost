@@ -11,7 +11,7 @@ const TeamStore = require('../stores/team_store.jsx');
 
 export function createChannelIntroMessage(channel, showInviteModal) {
     if (channel.type === 'D') {
-        return createDMIntroMessage(channel, showInviteModal);
+        return createDMIntroMessage(channel);
     } else if (ChannelStore.isDefault(channel)) {
         return createDefaultIntroMessage(channel);
     } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
