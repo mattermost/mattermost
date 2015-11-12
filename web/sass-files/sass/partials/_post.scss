@@ -659,6 +659,7 @@ body.ios {
 		float: left;
 		width: 80%;
 		padding-right: 5px;
+		overflow-x: auto;
 		&.attachment__body--no_thumb {
 			width: 100%;
 		}
