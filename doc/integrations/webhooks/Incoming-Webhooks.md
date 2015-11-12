@@ -88,7 +88,7 @@ Mattermost makes it easy to take integrations written for Slack's proprietary JS
 GitLab is the leading open-source alternative to GitHub and offers built-in integrations with Slack. Rather than having to change code to support Mattermost, users can add Mattermost webhooks directly into the interface for Slack. 
 
 1. In GitLab, go to **Settings** > **Services** and select **Slack**.
-2. Paste in the incoming webhook URL provided by Mattermost under **Account Settings** > **Integration** > **Incoming Webhooks**, for the channel in which you'd like GitLab notifications to appear.
+2. Paste in the incoming webhook URL provided by Mattermost from under **Account Settings** > **Integration** > **Incoming Webhooks**.
 3. Optionally set the **Username** you'd like displayed when the notification is made. Leave the **Channel** field blank
 4. Click **Save** then test the settings to confirm posts will be made to Mattermost
 
