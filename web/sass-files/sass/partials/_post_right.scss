@@ -13,6 +13,7 @@
 		&.post--root {
 			padding: 1em 1em 0;
 			margin: 0 0 1em;
+			width: 100%;
 			hr {
 				border-color: #DDD;
 				margin: 1em 0 0 0;
@@ -21,9 +22,10 @@
 	}
 
 	.post-create__container {
+		width: 100%;
 		margin-top: 10px;
 		.textarea-wrapper {
-			min-height: 120px;
+			min-height: 100px;
 		}
 		.custom-textarea {
 			min-height: 100px;
@@ -31,10 +33,18 @@
 		.msg-typing {
 			@include opacity(0.7);
 			float: left;
-			padding-top: 17px;
+			margin-top: 3px;
+			font-size: 13px;
+			line-height: 20px;
+			min-width: 1px;
+			display: block;
+			height: 20px;
+			max-width: 200px;
+			@include clearfix;
 		}
 		.post-create-footer {
-			padding-top: 10px;
+			width: 100%;
+			padding-top: 5px;
 		}
 		.post-right-comments-upload-in-progress {
 			padding: 6px 0;
