@@ -339,9 +339,9 @@ body.ios {
 			}
 		}
 		.msg-typing {
-			min-height: 20px;
+			min-height: 25px;
 			line-height: 25px;
-			display: inline-block;
+			display: block;
 			font-size: 13px;
 			@include opacity(0.7);
 		}
