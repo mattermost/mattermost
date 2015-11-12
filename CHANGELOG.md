@@ -90,6 +90,7 @@ System Console
 
 - IE 11 new minimum version for IE, since IE 10 share fell below 5% on desktop 
 - Safari 8 new minimum version for Safari, since Safari 7 fell below 1% on desktop 
+  - Note: Safari 8 is temporarily disabled in v1.2 due to a CSS issue and support should return in v1.3. Safari 9 is working.
 
 #### Config.json Changes from v1.1 to v1.2
 
@@ -119,6 +120,7 @@ The following is for informational purposes only, no action needed. Mattermost a
 
 #### Known Issues
 
+- Safari 8 is temporarily disabled in v1.2 due to a CSS issue and support should return in v1.3
 - When navigating to a page with new messages as well as message containing inline images added via markdown, the channel may move up and down while loading the inline images
 - Microsoft Edge does not yet support drag and drop 
 - After upgrading to v1.2 existing users will see the newly added tutorial tips upon login (this is a special case for v1.2 and will not happen in future upgrades)
