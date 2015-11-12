@@ -17,3 +17,61 @@ This document provides instructions for common administrator tasks
 
   - Team Admin or System Admin can go to **Main Menu** > **Manage Members** > **Make Inactive** to deactivate a user, which removes them from the team. 
   - To preserve audit history, users are never deleted from the system. It is highly recommended that System Administrators do not attempt to delete users manually from the database, as this may compromise system integrity and ability to upgrade in future. 
+
+## GitLab Mattermost Administration 
+
+GitLab Mattermost is a special version of Mattermost bundled with GitLab omnibus. Here we consolidate administrative instructions, guides and troubleshooting guidance.
+
+### Installing GitLab Mattermost
+
+Please follow the [GitLab Omnibus documentation for installing GitLab Mattermost](http://doc.gitlab.com/omnibus/gitlab-mattermost/).
+
+### Setting up realtime notifications from GitLab to GitLab Mattermost 
+
+To set up standard notification from GitLab to Mattermost [follow these steps](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md#connecting-mattermost-to-gitlab-using-slack-ui).
+
+To set up a set of fully customizable realtime notifications from GitLab to Mattermost you can run the [GitLab Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-gitlab).
+
+### Upgrading GitLab Mattermost manually
+
+If you choose to upgrade Mattermost outside of GitLab's omnibus automation, please [follow this guide](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md#upgrading-mattermost-to-next-major-release).
+
+### Upgrading GitLab Mattermost from GitLab 8.0 (containing Mattermost 0.7.1-beta)
+
+To upgrade GitLab Mattermost from the 0.7.1-beta release of Mattermost in GitLab 8.0, please [follow this guide](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md#upgrading-mattermost-in-gitlab-80-to-gitlab-81-with-omnibus).
+
+### Troubleshooting GitLab Mattermost
+
+- If you're having issues installing GitLab Mattermost with GitLab Omnibus, as a first step please turn on logging by updating the [log settings](https://github.com/mattermost/platform/blob/master/doc/install/Configuration-Settings.md#log-file-settings) section in your `config.json` file installed by omnibus, and they try a general web search for the error message you receive. 
+
+#### GitLab Mattermost Error Messages
+
+###### `We received an unexpected status code from the server (200)`
+
+- If you have upgraded from a pre-released version of GitLab Mattermost or if an unforseen issue has arrisen during the [upgrade procedure](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md), you may be able to restore Mattermost using the following procedure: 
+  - `sudo stop mattermost`, so DB can be dropped 
+  - `sudo gitlab-ctl reconfigure`
+  - `sudo -u gitlab-psql /opt/gitlab/embedded/bin/dropdb -h /var/opt/gitlab/postgresql mattermost_production`
+  - `sudo start mattermost`
+  - `sudo gitlab-ctl reconfigure`
+  - [Manually set up GitLab SSO](https://github.com/mattermost/platform/blob/master/doc/integrations/Single-Sign-On/Gitlab.md) by copying Secret and ID into `/var/opt/gitlab/mattermost/config.json` 
+  - `sudo gitlab-ctl restart`
+
+###### `Token request failed`
+ - This error can appear in the web browser after attempting to create a new team with GitLab SSO enabled
+ - **Solutions:** 
+   1. Check that your SSL settings for the SSO provider match the `http://` or `https://` choice selected in `config.json` under `GitLabSettings`
+   2. Follow steps 1 to 3 of the manual [GitLab SSO configuration procedure](https://github.com/mattermost/platform/blob/master/doc/integrations/Single-Sign-On/Gitlab.md) to confirm your `Secret` and `Id` settings in `config.json` match your GitLab settings, and if they don't, manually update `config.json` to the correct settings and see if this clears the issue. 
+
+###### `We couldn't find the existing account`
+  - This error appears when a user attempts to sign in using a single-sign-on option with an account that was not created using that single-sign-on option. For example, if a user creates Account A using email sign-up, then attempts to sign-in using GitLab SSO, the error appears since Account A was not created using GitLab SSO. 
+  - **Solution:** 
+    - If you're switching from email auth to GitLab SSO, and you're getting this issue on an admin account, consider deactivating your email-based account, then creating a new account with System Admin privileges using GitLab SSO. Specifically: 
+       1. Deactivate your email-based System Admin account (note: this process is [scheduled to improve](https://mattermost.atlassian.net/browse/PLT-975))
+         1. Temporarily turn off email verification (**System Console** > **Email Settings** > **Require Email Verification** > **false**, or set `"RequireEmailVerification": false` in `config.json`).
+         2. Change email for account to random address so you can create a new GitLab SSO account using your regular address.
+       2. Create a new Mattermost account using GitLab SSO
+         1. With GitLab SSO enabled, go to `https://domain.com/teamname` and sign-up for a new Mattermost account using your GitLab SSO account with preferred email address.
+         2. [Upgrade the new account to System Admin privileges](https://github.com/mattermost/platform/blob/master/doc/install/Troubleshooting.md#lost-system-administrator-account).
+       3. Deactivate the previous System Admin account that used email authentication.
+         1. Using the new GitLab SSO System Admin account go to **System Console** > **[TEAMNAME]** > **Users**, find the previous account and set it to "Inactive"
