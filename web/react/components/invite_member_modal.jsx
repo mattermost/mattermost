@@ -31,7 +31,8 @@ export default class InviteMemberModal extends React.Component {
             firstNameErrors: {},
             lastNameErrors: {},
             emailEnabled: global.window.mm_config.SendEmailNotifications === 'true',
-            showConfirmModal: false
+            showConfirmModal: false,
+            isSendingEmails: false
         };
     }
 
@@ -89,10 +90,13 @@ export default class InviteMemberModal extends React.Component {
         var data = {};
         data.invites = invites;
 
+        this.setState({isSendingEmails: true});
+
         Client.inviteMembers(
             data,
             () => {
                 this.handleHide(false);
+                this.setState({isSendingEmails: false});
             },
             (err) => {
                 if (err.message === 'This person is already on your team') {
@@ -101,6 +105,8 @@ export default class InviteMemberModal extends React.Component {
                 } else {
                     this.setState({serverError: err.message});
                 }
+
+                this.setState({isSendingEmails: false});
             }
         );
     }
@@ -289,11 +295,6 @@ export default class InviteMemberModal extends React.Component {
             var content = null;
             var sendButton = null;
 
-            var sendButtonLabel = 'Send Invitation';
-            if (this.state.inviteIds.length > 1) {
-                sendButtonLabel = 'Send Invitations';
-            }
-
             if (this.state.emailEnabled) {
                 content = (
                     <div>
@@ -309,14 +310,25 @@ export default class InviteMemberModal extends React.Component {
                     </div>
                 );
 
-                sendButton =
-                    (
-                        <button
-                            onClick={this.handleSubmit}
-                            type='button'
-                            className='btn btn-primary'
-                        >{sendButtonLabel}</button>
+                var sendButtonLabel = 'Send Invitation';
+                if (this.state.isSendingEmails) {
+                    sendButtonLabel = (
+                        <span><i className='fa fa-spinner fa-spin' />{' Sending'}</span>
                     );
+                } else if (this.state.inviteIds.length > 1) {
+                    sendButtonLabel = 'Send Invitations';
+                }
+
+                sendButton = (
+                    <button
+                        onClick={this.handleSubmit}
+                        type='button'
+                        className='btn btn-primary'
+                        disabled={this.state.isSendingEmails}
+                    >
+                        {sendButtonLabel}
+                    </button>
+                );
             } else {
                 var teamInviteLink = null;
                 if (currentUser && TeamStore.getCurrent().type === 'O') {
@@ -351,12 +363,13 @@ export default class InviteMemberModal extends React.Component {
             return (
                 <div>
                     <Modal
-                        className='modal-invite-member'
+                        dialogClassName='modal-invite-member'
                         show={this.state.show}
                         onHide={this.handleHide.bind(this, true)}
                         enforceFocus={!this.state.showConfirmModal}
+                        backdrop={this.state.isSendingEmails ? 'static' : true}
                     >
-                        <Modal.Header closeButton={true}>
+                        <Modal.Header closeButton={!this.state.isSendingEmails}>
                             <Modal.Title>{'Invite New Member'}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body ref='modalBody'>
@@ -370,6 +383,7 @@ export default class InviteMemberModal extends React.Component {
                                 type='button'
                                 className='btn btn-default'
                                 onClick={this.handleHide.bind(this, true)}
+                                disabled={this.state.isSendingEmails}
                             >
                                 {'Cancel'}
                             </button>
