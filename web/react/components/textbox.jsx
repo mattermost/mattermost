@@ -243,7 +243,6 @@ export default class Textbox extends React.Component {
 
         const lht = parseInt($(e).css('lineHeight'), 10);
         const lines = e.scrollHeight / lht;
-        const previewLinkHeightMod = 20;
         let mod = 15;
 
         if (lines < 2.5 || this.props.messageText === '') {
@@ -259,10 +258,10 @@ export default class Textbox extends React.Component {
             }
         } else {
             $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
-            $(w).css({height: 'auto'}).height(167 + previewLinkHeightMod);
+            $(w).css({height: 'auto'}).height(163);
             $(w).closest('.post-body__cell').addClass('scroll');
             if (this.state.preview) {
-                $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
+                $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'scroll'}).height(163);
             }
         }
 
