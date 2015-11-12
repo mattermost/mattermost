@@ -129,7 +129,6 @@ export default class CustomThemeChooser extends React.Component {
                     {'Copy and paste to share theme colors:'}
                 </label>
                 <input
-                    readOnly='true'
                     type='text'
                     className='form-control'
                     value={colors}
