@@ -95,7 +95,7 @@ System Console
 
 Multiple settings were added to [`config.json`](./config/config.json). These options can be modified in the System Console, or manually updated in the existing config.json file. This is a list of changes and their new default values in a fresh install: 
 - Under `TeamSettings` in `config.json`:
-  - Added: `"RestrictTeamNames": true` to control whether team names are restricted
+  - Added: `"RestrictTeamNames": true` to control whether team names can contain reserved words like www, admin, support, test, etc.
   - Added: `"EnableTeamListing": false` to control whether teams can be listed on the root page of the site
 - Under `ServiceSettings` in `config.json`
   - Added: `EnableOutgoingWebhooks": true` to turn on outgoing webhooks
