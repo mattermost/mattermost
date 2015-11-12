@@ -677,6 +677,10 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	data := rget.Data.(*model.ChannelExtra)
 	if data.Id != channel1.Id {
 		t.Fatal("couldnt't get extra info")
+	} else if len(data.Members) != 1 {
+		t.Fatal("got incorrect members")
+	} else if data.MemberCount != 1 {
+		t.Fatal("got incorrect member count")
 	}
 
 	//

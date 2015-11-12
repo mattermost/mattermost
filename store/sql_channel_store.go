@@ -542,6 +542,26 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetMemberCount(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		count, err := s.GetReplica().SelectInt("SELECT count(*) FROM ChannelMembers WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetMemberCount", "We couldn't get the channel member count", "channel_id="+channelId+", "+err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 
