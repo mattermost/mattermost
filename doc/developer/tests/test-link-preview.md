@@ -11,5 +11,13 @@ Post location variation:
 5. View comment in center channel with RHS open (link preview should render under message) 
 6. Search for post in RHS with link
 
-Twitter Link Preview:
+Post the following links one per message in the above variations: 
+
+Twitter Link Preview: 
 https://twitter.com/mattermosthq/status/664928489078820865
+
+Vine: 
+https://vine.co/v/eDeVgbFrt9L
+
+Wikipedia
+https://en.wikipedia.org/wiki/Princess_Bubblegum
