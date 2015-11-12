@@ -119,6 +119,7 @@ The following is for informational purposes only, no action needed. Mattermost a
 
 #### Known Issues
 
+- When navigating to a page with new messages as well as message containing inline images added via markdown, the channel may move up and down while loading the inline images
 - Microsoft Edge does not yet support drag and drop 
 - After upgrading to v1.2 existing users will see the newly added tutorial tips upon login (this is a special case for v1.2 and will not happen in future upgrades)
 - Channel list becomes reordered when there are lowercase channel names in a Postgres database
