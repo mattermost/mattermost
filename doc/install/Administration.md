@@ -26,7 +26,14 @@ GitLab Mattermost is a special version of Mattermost bundled with GitLab omnibus
 
 Please follow the [GitLab Omnibus documentation for installing GitLab Mattermost](http://doc.gitlab.com/omnibus/gitlab-mattermost/).
 
-### Setting up realtime notifications from GitLab to GitLab Mattermost 
+### Community Support Resources
+
+For help and support around your GitLab Mattermost deployment please see:
+
+- [GitLab Mattermost discussion forum](https://forum.mattermost.org/c/general/gitlab)
+- [GitLab Mattermost issue tracker on GitLab.com](https://gitlab.com/gitlab-org/gitlab-mattermost/issues)
+
+### Setting up realtime notifications from GitLab to Mattermost 
 
 To set up standard notification from GitLab to Mattermost [follow these steps](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md#connecting-mattermost-to-gitlab-using-slack-ui).
 
