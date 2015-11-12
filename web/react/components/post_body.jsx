@@ -31,7 +31,7 @@ export default class PostBody extends React.Component {
         this.state = {
             links: linkData.links,
             message: linkData.text,
-            post: this.props.post
+            post: this.props.post,
             hasUserProfiles: profiles && Object.keys(profiles).length > 1
         };
     }
