@@ -66,13 +66,13 @@ export default class SidebarRight extends React.Component {
     onSelectedChange(fromSearch) {
         var newState = getStateFromStores(fromSearch);
         newState.from_search = fromSearch;
-        if (!Utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
     onSearchChange() {
         var newState = getStateFromStores();
-        if (!Utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }

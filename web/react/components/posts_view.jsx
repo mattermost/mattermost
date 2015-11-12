@@ -242,7 +242,7 @@ export default class PostsView extends React.Component {
         if (this.props.messageSeparatorTime !== nextProps.messageSeparatorTime) {
             return true;
         }
-        if (!Utils.areStatesEqual(this.props.postList, nextProps.postList)) {
+        if (!Utils.areObjectsEqual(this.props.postList, nextProps.postList)) {
             return true;
         }
 

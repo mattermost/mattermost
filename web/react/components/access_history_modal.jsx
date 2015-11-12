@@ -54,7 +54,7 @@ export default class AccessHistoryModal extends React.Component {
     }
     onAuditChange() {
         var newState = this.getStateFromStoresForAudits();
-        if (!Utils.areStatesEqual(newState.audits, this.state.audits)) {
+        if (!Utils.areObjectsEqual(newState.audits, this.state.audits)) {
             this.setState(newState);
         }
     }

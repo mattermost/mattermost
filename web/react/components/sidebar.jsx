@@ -175,7 +175,7 @@ export default class Sidebar extends React.Component {
         window.addEventListener('resize', this.handleResize);
     }
     shouldComponentUpdate(nextProps, nextState) {
-        if (!Utils.areStatesEqual(nextState, this.state)) {
+        if (!Utils.areObjectsEqual(nextState, this.state)) {
             return true;
         }
         return false;
@@ -207,10 +207,7 @@ export default class Sidebar extends React.Component {
         }
     }
     onChange() {
-        var newState = this.getStateFromStores();
-        if (!Utils.areStatesEqual(newState, this.state)) {
-            this.setState(newState);
-        }
+        this.setState(this.getStateFromStores());
     }
     updateTitle() {
         const channel = ChannelStore.getCurrent();

@@ -61,7 +61,7 @@ export default class RhsComment extends React.Component {
         this.parseEmojis();
     }
     shouldComponentUpdate(nextProps) {
-        if (!Utils.areStatesEqual(nextProps.post, this.props.post)) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
 

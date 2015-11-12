@@ -39,7 +39,7 @@ export default class NotifyCounts extends React.Component {
     }
     onListenerChange() {
         var newState = getCountsStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+        if (!utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }

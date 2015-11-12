@@ -82,7 +82,7 @@ export default class RhsThread extends React.Component {
     }
     onChange() {
         var newState = this.getStateFromStores();
-        if (!Utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
@@ -112,7 +112,7 @@ export default class RhsThread extends React.Component {
         }
 
         var newState = this.getStateFromStores();
-        if (!Utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }

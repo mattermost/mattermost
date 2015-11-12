@@ -46,7 +46,7 @@ export default class MoreChannels extends React.Component {
     }
     onListenerChange() {
         var newState = getStateFromStores();
-        if (!utils.areStatesEqual(newState.channels, this.state.channels)) {
+        if (!utils.areObjectsEqual(newState.channels, this.state.channels)) {
             this.setState(newState);
         }
     }

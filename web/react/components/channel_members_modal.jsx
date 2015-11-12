@@ -91,7 +91,7 @@ export default class ChannelMembersModal extends React.Component {
     }
     onChange() {
         const newState = this.getStateFromStores();
-        if (!Utils.areStatesEqual(this.state, newState)) {
+        if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
         }
     }

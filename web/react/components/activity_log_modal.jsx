@@ -73,7 +73,7 @@ export default class ActivityLogModal extends React.Component {
     }
     onListenerChange() {
         const newState = this.getStateFromStores();
-        if (!Utils.areStatesEqual(newState.sessions, this.state.sessions)) {
+        if (!Utils.areObjectsEqual(newState.sessions, this.state.sessions)) {
             this.setState(newState);
         }
     }

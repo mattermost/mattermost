@@ -43,7 +43,7 @@ export default class UserProfile extends React.Component {
     onChange(userId) {
         if (!userId || userId === this.props.userId) {
             var newState = this.getStateFromStores(this.props.userId);
-            if (!Utils.areStatesEqual(newState, this.state)) {
+            if (!Utils.areObjectsEqual(newState, this.state)) {
                 this.setState(newState);
             }
         }

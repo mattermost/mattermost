@@ -70,7 +70,7 @@ export default class NavbarDropdown extends React.Component {
     }
     onListenerChange() {
         var newState = getStateFromStores();
-        if (!Utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }

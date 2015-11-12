@@ -69,7 +69,7 @@ export default class ChannelNotifications extends React.Component {
         newState.notifyLevel = notifyLevel;
         newState.markUnreadLevel = markUnreadLevel;
 
-        if (!Utils.areStatesEqual(this.state, newState)) {
+        if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
         }
     }

@@ -1,16 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../../stores/user_store.jsx');
-var SettingItemMin = require('../setting_item_min.jsx');
-var SettingItemMax = require('../setting_item_max.jsx');
-var client = require('../../utils/client.jsx');
-var AsyncClient = require('../../utils/async_client.jsx');
-var utils = require('../../utils/utils.jsx');
+const SettingItemMin = require('../setting_item_min.jsx');
+const SettingItemMax = require('../setting_item_max.jsx');
+
+const UserStore = require('../../stores/user_store.jsx');
+
+const Client = require('../../utils/client.jsx');
+const AsyncClient = require('../../utils/async_client.jsx');
+const Utils = require('../../utils/utils.jsx');
 
 function getNotificationsStateFromStores() {
     var user = UserStore.getCurrentUser();
-    var soundNeeded = !utils.isBrowserFirefox();
+    var soundNeeded = !Utils.isBrowserFirefox();
 
     var sound = 'true';
     if (user.notify_props && user.notify_props.desktop_sound) {
@@ -116,7 +118,7 @@ export default class NotificationsTab extends React.Component {
         data.all = this.state.allKey.toString();
         data.channel = this.state.channelKey.toString();
 
-        client.updateUserNotifyProps(data,
+        Client.updateUserNotifyProps(data,
             function success() {
                 this.props.updateSection('');
                 AsyncClient.getMe();
@@ -138,7 +140,7 @@ export default class NotificationsTab extends React.Component {
     }
     onListenerChange() {
         var newState = getNotificationsStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+        if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }

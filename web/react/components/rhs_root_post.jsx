@@ -26,7 +26,7 @@ export default class RhsRootPost extends React.Component {
         this.parseEmojis();
     }
     shouldComponentUpdate(nextProps) {
-        if (!utils.areStatesEqual(nextProps.post, this.props.post)) {
+        if (!utils.areObjectsEqual(nextProps.post, this.props.post)) {
             return true;
         }
 

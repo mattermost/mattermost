@@ -81,7 +81,7 @@ export default class DeletePostModal extends React.Component {
     }
     onListenerChange() {
         var newList = PostStore.getSelectedPost();
-        if (!Utils.areStatesEqual(this.state.selectedList, newList)) {
+        if (!Utils.areObjectsEqual(this.state.selectedList, newList)) {
             this.setState({selectedList: newList});
         }
     }
