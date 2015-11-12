@@ -104,7 +104,7 @@ A support person should be able to say "Did you complete step 7?" instead of "Di
 
 ### End Lists Consistently
 
-If one point in a bulleted list or numbered list ends with a period, end all points in the list with a period. If all points in the list are fragments, use no end punctuation.
+Full sentences in lists should end with proper punctuation. If one point in a bulleted list or numbered list ends with a period, end all points in the list with a period. If all points in the list are fragments, use no end punctuation.
 
 ##### Correct
 
