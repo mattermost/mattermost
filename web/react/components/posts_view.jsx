@@ -104,11 +104,13 @@ export default class PostsView extends React.Component {
 
             // check if it's the last comment in a consecutive string of comments on the same post
             // it is the last comment if it is last post in the channel or the next post has a different root post
-            var isLastComment = Utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
+            const isLastComment = Utils.isComment(post) && (i === 0 || posts[order[i - 1]].root_id !== post.root_id);
 
-            var postCtl = (
+            const keyPrefix = post.id ? post.id : i;
+
+            const postCtl = (
                 <Post
-                    key={post.id + 'postKey'}
+                    key={keyPrefix + 'postKey'}
                     ref={post.id}
                     sameUser={sameUser}
                     sameRoot={sameRoot}
