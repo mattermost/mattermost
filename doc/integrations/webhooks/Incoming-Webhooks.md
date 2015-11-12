@@ -81,9 +81,9 @@ Additional Notes:
 
 ### Slack Compatibility
 
-Mattermost makes it easy to take integrations written for Slack's proprietary JSON payload format and repurpose them to become Mattermost integrations. 
+Mattermost makes it easy to take integrations written for Slack's proprietary JSON payload format and repurpose them to become Mattermost integrations. For example:
 
-#### Example: Connecting Mattermost to GitLab using Slack UI 
+#### Connecting Mattermost to GitLab using Slack UI 
 
 GitLab is the leading open-source alternative to GitHub and offers built-in integrations with Slack. Rather than having to change code to support Mattermost, users can add Mattermost webhooks directly into the interface for Slack. 
 
