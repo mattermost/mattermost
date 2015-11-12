@@ -106,6 +106,8 @@ export default class Sidebar extends React.Component {
         const currentChannelId = ChannelStore.getCurrentId();
 
         const channels = Object.assign([], ChannelStore.getAll());
+        channels.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
         const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
         const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
         const directChannels = channels.filter((channel) => channel.type === Constants.DM_CHANNEL);
