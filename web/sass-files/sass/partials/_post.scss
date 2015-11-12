@@ -46,21 +46,22 @@ body.ios {
 
 .textarea-wrapper {
 	position:relative;
-	min-height:57px;
-    .textbox-preview-area {
-        position: absolute;
-        z-index: 2;
-        top: 0;
-        left: 0;
-        box-shadow: none;
-    }
-    .textbox-preview-link {
-        position: absolute;
-        z-index: 3;
-        bottom: 0;
-        right: 10px;
-        cursor: pointer;
-    }
+	min-height: 36px;
+	.textbox-preview-area {
+		position: absolute;
+		z-index: 2;
+		top: 0;
+		left: 0;
+		box-shadow: none;
+	}
+	.textbox-preview-link {
+		position: absolute;
+		z-index: 3;
+		bottom: -23px;
+		right: 0;
+		font-size: 13px;
+		cursor: pointer;
+	}
 }
 
 .date-separator, .new-separator {
@@ -339,7 +340,7 @@ body.ios {
 		}
 		.msg-typing {
 			min-height: 20px;
-			line-height: 18px;
+			line-height: 25px;
 			display: inline-block;
 			font-size: 13px;
 			@include opacity(0.7);

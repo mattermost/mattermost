@@ -507,8 +507,16 @@
         form {
             padding: 0;
         }
+        .post-create-footer {
+            .msg-typing {
+                margin-left: 45px;
+                width: 55%;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+        }
         .post-create-body {
-            padding-bottom: 10px;
             display: table;
             width: 100%;
             .post-body__cell {
@@ -532,11 +540,10 @@
                 display: table-cell;
             }
         }
-        .post-create-footer .msg-typing {
-            display: none;
-        }
     }
     .preview-container {
+        padding: 0px 10px;
+        margin-top: 20px;
         .preview-div {
             margin-top: 0;
         }
