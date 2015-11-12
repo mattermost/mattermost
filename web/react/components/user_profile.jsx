@@ -29,7 +29,7 @@ export default class UserProfile extends React.Component {
             return {profile: {id: '0', username: '...'}};
         }
 
-        return {profile: profile};
+        return {profile};
     }
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);

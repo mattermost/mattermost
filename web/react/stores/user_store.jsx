@@ -164,6 +164,10 @@ class UserStoreClass extends EventEmitter {
     }
 
     getProfile(userId) {
+        if (userId === this.getCurrentId()) {
+            return this.getCurrentUser();
+        }
+
         return this.getProfiles()[userId];
     }
 
