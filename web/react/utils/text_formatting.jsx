@@ -259,30 +259,73 @@ function autolinkHashtags(text, tokens) {
     return output.replace(/(^|\W)(#[a-zA-Z][a-zA-Z0-9.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
+const puncStart = /^[.,()&$!\[\]{}':;\\]+/;
+const puncEnd = /[.,()&$#!\[\]{}':;\\]+$/;
+
+function parseSearchTerms(searchTerm) {
+    let terms = [];
+
+    let termString = searchTerm;
+
+    while (termString) {
+        let captured;
+
+        // check for a quoted string
+        captured = (/^"(.*?)"/).exec(termString);
+        if (captured) {
+            termString = termString.substring(captured[0].length);
+            terms.push(captured[1]);
+            continue;
+        }
+
+        // check for a search flag (and don't add it to terms)
+        captured = (/^(?:in|from|channel): ?\S+/).exec(termString);
+        if (captured) {
+            termString = termString.substring(captured[0].length);
+            continue;
+        }
+
+        // capture any plain text up until the next quote or search flag
+        captured = (/^.+?(?=\bin|\bfrom|\bchannel|"|$)/).exec(termString);
+        if (captured) {
+            termString = termString.substring(captured[0].length);
+
+            // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
+            terms.push(...captured[0].split(/[ <>+\-\(\)\~\@]/).filter((term) => !!term));
+            continue;
+        }
+
+        // we should never reach this point since at least one of the regexes should match something in the remaining text
+        throw new Error('Infinite loop in search term parsing: ' + termString);
+    }
+
+    // remove punctuation from each term
+    terms = terms.map((term) => term.replace(puncStart, '').replace(puncEnd, ''));
+
+    return terms;
+}
+
+function convertSearchTermToRegex(term) {
+    let pattern;
+    if (term.endsWith('*')) {
+        pattern = '\\b' + escapeRegex(term.substring(0, term.length - 1));
+    } else {
+        pattern = '\\b' + escapeRegex(term) + '\\b';
+    }
+
+    return new RegExp(pattern, 'gi');
+}
+
 function highlightSearchTerm(text, tokens, searchTerm) {
+    const terms = parseSearchTerms(searchTerm);
+
+    if (terms.length === 0) {
+        return text;
+    }
+
     let output = text;
 
-    var newTokens = new Map();
-    for (const [alias, token] of tokens) {
-        if (token.originalText.indexOf(searchTerm.replace(/\*$/, '')) > -1) {
-            const index = tokens.size + newTokens.size;
-            const newAlias = `MM_SEARCHTERM${index}`;
-
-            newTokens.set(newAlias, {
-                value: `<span class='search-highlight'>${alias}</span>`,
-                originalText: token.originalText
-            });
-
-            output = output.replace(alias, newAlias);
-        }
-    }
-
-    // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
-    for (const newToken of newTokens) {
-        tokens.set(newToken[0], newToken[1]);
-    }
-
-    function replaceSearchTermWithToken(fullMatch, prefix, word) {
+    function replaceSearchTermWithToken(word) {
         const index = tokens.size;
         const alias = `MM_SEARCHTERM${index}`;
 
@@ -291,10 +334,35 @@ function highlightSearchTerm(text, tokens, searchTerm) {
             originalText: word
         });
 
-        return prefix + alias;
+        return alias;
     }
 
-    return output.replace(new RegExp(`()(${escapeRegex(searchTerm)})`, 'gi'), replaceSearchTermWithToken);
+    for (const term of terms) {
+        // highlight existing tokens matching search terms
+        var newTokens = new Map();
+        for (const [alias, token] of tokens) {
+            if (token.originalText === term.replace(/\*$/, '')) {
+                const index = tokens.size + newTokens.size;
+                const newAlias = `MM_SEARCHTERM${index}`;
+
+                newTokens.set(newAlias, {
+                    value: `<span class='search-highlight'>${alias}</span>`,
+                    originalText: token.originalText
+                });
+
+                output = output.replace(alias, newAlias);
+            }
+        }
+
+        // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
+        for (const newToken of newTokens) {
+            tokens.set(newToken[0], newToken[1]);
+        }
+
+        output = output.replace(convertSearchTermToRegex(term), replaceSearchTermWithToken);
+    }
+
+    return output;
 }
 
 function replaceTokens(text, tokens) {
