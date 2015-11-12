@@ -69,7 +69,6 @@ export default class PopoverListMembers extends React.Component {
 
     render() {
         let popoverHtml = [];
-        let count = 0;
         let countText = '-';
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
@@ -147,10 +146,10 @@ export default class PopoverListMembers extends React.Component {
                             </div>
                         </div>
                     );
-                    count++;
                 }
             });
 
+            const count = this.props.memberCount;
             if (count > 20) {
                 countText = '20+';
             } else if (count > 0) {
@@ -195,5 +194,6 @@ export default class PopoverListMembers extends React.Component {
 
 PopoverListMembers.propTypes = {
     members: React.PropTypes.array.isRequired,
+    memberCount: React.PropTypes.number.isRequired,
     channelId: React.PropTypes.string.isRequired
 };

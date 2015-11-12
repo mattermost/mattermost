@@ -339,15 +339,15 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("Member update time incorrect")
 	}
 
-	members := (<-store.Channel().GetMembers(o1.ChannelId)).Data.([]model.ChannelMember)
-	if len(members) != 2 {
+	count := (<-store.Channel().GetMemberCount(o1.ChannelId)).Data.(int64)
+	if count != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
 	Must(store.Channel().RemoveMember(o2.ChannelId, o2.UserId))
 
-	members = (<-store.Channel().GetMembers(o1.ChannelId)).Data.([]model.ChannelMember)
-	if len(members) != 1 {
+	count = (<-store.Channel().GetMemberCount(o1.ChannelId)).Data.(int64)
+	if count != 1 {
 		t.Fatal("should have removed 1 member")
 	}
 

@@ -70,6 +70,7 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	GetExtraMembers(channelId string, limit int) StoreChannel
 	CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel

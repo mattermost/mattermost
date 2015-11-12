@@ -39,11 +39,14 @@ export default class ChannelHeader extends React.Component {
         this.state = state;
     }
     getStateFromStores() {
+        const extraInfo = ChannelStore.getCurrentExtraInfo();
+
         return {
             channel: ChannelStore.getCurrent(),
             memberChannel: ChannelStore.getCurrentMember(),
             memberTeam: UserStore.getCurrentUser(),
-            users: ChannelStore.getCurrentExtraInfo().members,
+            users: extraInfo.members,
+            userCount: extraInfo.member_count,
             searchVisible: SearchStore.getSearchResults() !== null
         };
     }
@@ -373,6 +376,7 @@ export default class ChannelHeader extends React.Component {
                             <th>
                                 <PopoverListMembers
                                     members={this.state.users}
+                                    memberCount={this.state.userCount}
                                     channelId={channel.id}
                                 />
                             </th>
