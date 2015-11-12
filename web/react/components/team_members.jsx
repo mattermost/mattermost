@@ -59,7 +59,7 @@ export default class TeamMembers extends React.Component {
 
     onChange() {
         var newState = getStateFromStores();
-        if (!utils.areStatesEqual(newState, this.state)) {
+        if (!utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }

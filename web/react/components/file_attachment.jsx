@@ -67,7 +67,7 @@ export default class FileAttachment extends React.Component {
         this.canSetState = false;
     }
     shouldComponentUpdate(nextProps, nextState) {
-        if (!utils.areStatesEqual(nextProps, this.props)) {
+        if (!utils.areObjectsEqual(nextProps, this.props)) {
             return true;
         }
 

@@ -78,7 +78,7 @@ export default class ChannelInviteModal extends React.Component {
     }
     onListenerChange() {
         var newState = this.getStateFromStores();
-        if (!Utils.areStatesEqual(this.state, newState)) {
+        if (!Utils.areObjectsEqual(this.state, newState)) {
             this.setState(newState);
         }
     }

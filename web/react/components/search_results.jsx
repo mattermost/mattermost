@@ -55,7 +55,7 @@ export default class SearchResults extends React.Component {
     onChange() {
         if (this.mounted) {
             var newState = getStateFromStores();
-            if (!Utils.areStatesEqual(newState, this.state)) {
+            if (!Utils.areObjectsEqual(newState, this.state)) {
                 this.setState(newState);
             }
         }
