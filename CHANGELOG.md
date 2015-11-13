@@ -89,7 +89,7 @@ System Console
 ### Compatibility  
 
 - IE 11 new minimum version for IE, since IE 10 share fell below 5% on desktop 
-- Safari 8 new minimum version for Safari, since Safari 7 fell below 1% on desktop 
+- Safari 9 new minimum version for Safari, since Safari 7 and 8 fell below 1% each on desktop 
 
 #### Config.json Changes from v1.1 to v1.2
 

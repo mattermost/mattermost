@@ -50,7 +50,8 @@ export default class PostAttachment extends React.Component {
     }
 
     shouldCollapse() {
-        return (this.props.attachment.text.match(/\n/g) || []).length >= 5 || this.props.attachment.text.length > 700;
+        const text = this.props.attachment.text || '';
+        return (text.match(/\n/g) || []).length >= 5 || text.length > 700;
     }
 
     getCollapsedText() {
