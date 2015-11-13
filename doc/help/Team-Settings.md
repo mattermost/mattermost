@@ -28,6 +28,14 @@ Team Administrators would set this to **No** when they:
 
 Setting this option to **Yes** includes the Team Name on the Home Page and a link to this team's sign-in page. 
 
+Team Administrators would set this to **Yes** when they:  
+ 1. Operate on a closed network and want to make it easy to discover their team from the Home Page of the Mattermost server.
+ 2. Operate on the open internet with sign-up restricted to specific domains, and want to allow easy sign-up from users with email addresses. Note: System Administrators can restrict sign-up to specific domains via the System Console.  
+ 3. Operate on the open internet and want to allow anyone to sign-up to their team from the Home Page of the Mattermost server.
+
+Team Administrators would set this to **No** when they:  
+ 1. Operate on the open internet and want a small, private team that is email-invite-only 
+
 #### Invite Code 
 
 When allowing anyone to sign-up from the login page, the **Invite Code** is used as part of the sign-up process. Clicking **Re-Generate** will invalidate the previous invitations and invitation URLs. 
