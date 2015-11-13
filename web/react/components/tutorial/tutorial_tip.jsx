@@ -51,21 +51,22 @@ export default class TutorialTip extends React.Component {
         const dots = [];
         if (this.props.screens.length > 1) {
             for (let i = 0; i < this.props.screens.length; i++) {
+                let className = 'circle';
                 if (i === this.state.currentScreen) {
-                    dots.push(
-                        <div
-                            className='circle active'
-                            key={'dotactive' + i}
-                        />
-                    );
-                } else {
-                    dots.push(
-                        <div
-                            className='circle'
-                            key={'dotinactive' + i}
-                        />
-                    );
+                    className += ' active';
                 }
+
+                dots.push(
+                    <a
+                        href='#'
+                        key={'dotactive' + i}
+                        className={className}
+                        onClick={(e) => { //eslint-disable-line no-loop-func
+                            e.preventDefault();
+                            this.setState({currentScreen: i});
+                        }}
+                    />
+                );
             }
         }
 
