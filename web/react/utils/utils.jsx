@@ -1221,3 +1221,7 @@ export function getPostTerm(post) {
 
     return postTerm;
 }
+
+export function featureToggle(feature) {
+    return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'feature_enabled_' + feature, {value: 'false'}).value === 'true';
+}

@@ -13,21 +13,38 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         this.updateSection = this.updateSection.bind(this);
         this.updateSetting = this.updateSetting.bind(this);
+        this.toggleFeature = this.toggleFeature.bind(this);
+        this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
-        this.state = this.setupInitialState();
+        this.state = {settings: {}, preReleaseFeatures: []};
+        this.setupInitialState();
     }
 
     setupInitialState() {
-        const sendOnCtrlEnter = PreferenceStore.getPreference(
-            Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
-            'send_on_ctrl_enter',
-            {value: 'false'}
-        ).value;
-
-        return {
-            settings: {send_on_ctrl_enter: sendOnCtrlEnter}
+        const settings = {
+            send_on_ctrl_enter: PreferenceStore.getPreference(
+                Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
+                'send_on_ctrl_enter',
+                {value: 'false'}
+            ).value
         };
+
+        let enabledFeatures = 0;
+        PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS).forEach((setting) => {
+            if (setting.name.lastIndexOf('feature_enabled_') === 0) {
+                settings[setting.name] = setting.value;
+                if (setting.value === 'true') {
+                    enabledFeatures++;
+                }
+            }
+        });
+
+        Client.getAvailablePreReleaseFeatures((data) => {
+            this.setState({settings, preReleaseFeatures: data || [], enabledFeatures});
+        }, () => {
+            this.setState({settings, preReleaseFeatures: [], enabledFeatures});
+        });
     }
 
     updateSetting(setting, value) {
@@ -36,14 +53,45 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.setState(settings);
     }
 
-    handleSubmit(setting) {
-        const preference = PreferenceStore.setPreference(
-            Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
-            setting,
-            this.state.settings[setting]
-        );
+    toggleFeature(feature, checked) {
+        const settings = this.state.settings;
+        settings['feature_enabled_' + feature] = String(checked);
 
-        Client.savePreferences([preference],
+        let enabledFeatures = 0;
+        Object.keys(this.state.settings).forEach((setting) => {
+            if (setting.lastIndexOf('feature_enabled_') === 0 && this.state.settings[setting] === 'true') {
+                enabledFeatures++;
+            }
+        });
+
+        this.setState({settings, enabledFeatures});
+    }
+
+    saveEnabledFeatures() {
+        const features = [];
+        Object.keys(this.state.settings).forEach((setting) => {
+            if (setting.lastIndexOf('feature_enabled_') === 0) {
+                features.push(setting);
+            }
+        });
+
+        this.handleSubmit(features);
+    }
+
+    handleSubmit(settings) {
+        const preferences = [];
+
+        (Array.isArray(settings) ? settings : [settings]).forEach((setting) => {
+            preferences.push(
+                PreferenceStore.setPreference(
+                    Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
+                    setting,
+                    String(this.state.settings[setting])
+                )
+            );
+        });
+
+        Client.savePreferences(preferences,
             () => {
                 PreferenceStore.emitChange();
                 this.updateSection('');
@@ -118,6 +166,58 @@ export default class AdvancedSettingsDisplay extends React.Component {
             );
         }
 
+        let previewFeaturesSection;
+        if (this.props.activeSection === 'advancedPreviewFeatures') {
+            const inputs = [];
+
+            this.state.preReleaseFeatures.forEach((feature) => {
+                inputs.push(
+                    <div key={'advancedPreviewFeatures_' + feature.label}>
+                        <div className='checkbox'>
+                            <label>
+                                <input
+                                    type='checkbox'
+                                    checked={this.state.settings['feature_enabled_' + feature.label] === 'true'}
+                                    onChange={(e) => {
+                                        this.toggleFeature(feature.label, e.target.checked);
+                                    }}
+                                />
+                                {feature.description}
+                            </label>
+                        </div>
+                    </div>
+                );
+            });
+
+            inputs.push(
+                <div key='advancedPreviewFeatures_helptext'>
+                    <br/>
+                    {'Check any pre-released features you\'d like to preview.'}
+                </div>
+            );
+
+            previewFeaturesSection = (
+                <SettingItemMax
+                    title='Preview pre-release features'
+                    inputs={inputs}
+                    submit={this.saveEnabledFeatures}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            previewFeaturesSection = (
+                <SettingItemMin
+                    title='Preview pre-release features'
+                    describe={this.state.enabledFeatures + (this.state.enabledFeatures === 1 ? ' Feature ' : ' Features ') + 'enabled'}
+                    updateSection={() => this.props.updateSection('advancedPreviewFeatures')}
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -145,6 +245,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     <h3 className='tab-header'>{'Advanced Settings'}</h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
+                    <div className='divider-light'/>
+                    {previewFeaturesSection}
                     <div className='divider-dark'/>
                 </div>
             </div>
