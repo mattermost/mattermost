@@ -57,9 +57,11 @@ _Note: End user help documentation is a new feature being completed for the v1.2
    - [Sign-in](help/Sign-in.md)
 
 - User Interface
-   - Team Settings 
+   - Main Menu
+     - Team Settings 
+        - [General Settings](help/team-settings/General-Settings.md) 
+        - [Slack Import](help/team-settings/Slack-Import.md)
      - [Manage Members](help/Manage-Members.md)
-     - [Slack Import](help/team-settings/Slack-Import.md)
    - Messaging
      - [Mattermost Markdown Formatting](usage/Markdown.md)
    - [Search](help/Search.md)
