@@ -1,12 +1,12 @@
 # Team Statistics
 
-Statistics on users, posts and channels are tracked for each team and viewable in the System Console. System Administrators can access statistics for your Mattermost teams by clicking the **three-dot menu**, then click **System Console**. Under the *Teams* section on the left side you’ll see a list of the teams that belong to your domain. Click **Statistics** under the team of interest to open the stats page. Here is some helpful terminology:  
+Statistics on users, posts and channels are tracked for each team are viewable under **System Console** > **Teams** > **Statistics**. 
 
 ## Total Users
-The total number of accounts created, regardless of if the accounts are active or inactive. 
+The total number of accounts created, including both active and inactive accounts. 
 
 ## Total Posts
-The total number of posts made by your team, including deleted posts or those made by incoming and outgoing webhook integrations.
+The total number of posts made in a team, including deleted posts and posts made using automation. 
 
 ## Public Groups
 The number of public channels created by your team, including channels that may have been archived.
@@ -21,4 +21,4 @@ Users who logged in and made a post on a certain day.
 Users that have logged in and had recent browser activity in Mattermost.
 
 ## Newly Created Users
-Users that have recently completed the signup process to create a Mattermost account on the team.
+Users that have recently completed the sign-up process to create a Mattermost account on the team.
