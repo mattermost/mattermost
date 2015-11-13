@@ -16,6 +16,14 @@ Your **Team Name** is displayed on the sign-in page, and in the top of the left-
 
 Setting this option to **Yes** a link to the account creation page is included on the sign-in page of this team. 
 
+Team Administrators would set this to **Yes** when they:  
+ 1. Operate on a closed network and want to make sign-up easy.  
+ 2. Operate on the open internet with sign-up restricted to specific domains, and want to allow easy sign-up from users with email addresses. Note: System Administrators can restrict sign-up to specific domains via the System Console.  
+ 3. Operate on the open internet and want to allow anyone to sign-up.
+
+Team Administrators would set this to **No** when they:  
+ 1. Operate on the open internet and want a small, private team that is email-invite-only 
+
 #### Include this team in the Team Directory
 
 Setting this option to **Yes** includes the Team Name on the Home Page and a link to this team's sign-in page. 
