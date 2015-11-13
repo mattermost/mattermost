@@ -1,6 +1,5 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
-var utils = require('../utils/utils.jsx');
 
 export default class SettingsSidebar extends React.Component {
     componentDidUpdate() {
