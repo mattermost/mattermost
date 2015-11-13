@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+var DeletePostModal = require('./delete_post_modal.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var utils = require('../utils/utils.jsx');
 var TimeSince = require('./time_since.jsx');
@@ -50,7 +51,7 @@ export default class PostInfo extends React.Component {
                         data-channelid={post.channel_id}
                         data-comments={dataComments}
                     >
-                        Edit
+                        {'Edit'}
                     </a>
                 </li>
             );
@@ -65,14 +66,9 @@ export default class PostInfo extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        data-toggle='modal'
-                        data-target='#delete_post'
-                        data-title={type}
-                        data-postid={post.id}
-                        data-channelid={post.channel_id}
-                        data-comments={dataComments}
+                        onClick={() => DeletePostModal.show(post, dataComments)}
                     >
-                        Delete
+                        {'Delete'}
                     </a>
                 </li>
             );
@@ -89,7 +85,7 @@ export default class PostInfo extends React.Component {
                         href='#'
                         onClick={this.props.handleCommentClick}
                     >
-                        Reply
+                        {'Reply'}
                     </a>
                 </li>
             );

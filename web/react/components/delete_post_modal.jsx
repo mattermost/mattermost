@@ -3,7 +3,8 @@
 
 var Client = require('../utils/client.jsx');
 var PostStore = require('../stores/post_store.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
+var ModalStore = require('../stores/modal_store.jsx');
+var Modal = ReactBootstrap.Modal;
 var Utils = require('../utils/utils.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
@@ -15,18 +16,40 @@ export default class DeletePostModal extends React.Component {
         super(props);
 
         this.handleDelete = this.handleDelete.bind(this);
+        this.handleToggle = this.handleToggle.bind(this);
+        this.handleHide = this.handleHide.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.onShow = this.onShow.bind(this);
 
-        this.state = {title: '', postId: '', channelId: '', selectedList: PostStore.getSelectedPost(), comments: 0};
+        this.selectedList = null;
+
+        this.state = {
+            show: true,
+            post: null,
+            commentCount: 0,
+            error: ''
+        };
     }
+
+    componentDidMount() {
+        ModalStore.addModalListener(ActionTypes.TOGGLE_DELETE_POST_MODAL, this.handleToggle);
+        PostStore.addSelectedPostChangeListener(this.onListenerChange);
+    }
+
+    componentWillUnmount() {
+        PostStore.removeSelectedPostChangeListener(this.onListenerChange);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_DELETE_POST_MODAL, this.handleToggle);
+    }
+
     handleDelete() {
-        Client.deletePost(this.state.channelId, this.state.postId,
-            function deleteSuccess() {
-                var selectedList = this.state.selectedList;
+        Client.deletePost(
+            this.state.post.channel_id,
+            this.state.post.id,
+            () => {
+                var selectedList = this.selectedList;
+
                 if (selectedList && selectedList.order && selectedList.order.length > 0) {
                     var selectedPost = selectedList.posts[selectedList.order[0]];
-                    if ((selectedPost.id === this.state.postId && this.state.title === 'Post') || selectedPost.root_id === this.state.postId) {
+                    if ((selectedPost.id === this.state.post.id && !this.state.root_id) || selectedPost.root_id === this.state.post.id) {
                         AppDispatcher.handleServerAction({
                             type: ActionTypes.RECIEVED_SEARCH,
                             results: null
@@ -36,7 +59,7 @@ export default class DeletePostModal extends React.Component {
                             type: ActionTypes.RECIEVED_POST_SELECTED,
                             results: null
                         });
-                    } else if (selectedPost.id === this.state.postId && this.state.title === 'Comment') {
+                    } else if (selectedPost.id === this.state.post.id && this.state.root_id) {
                         if (selectedPost.root_id && selectedPost.root_id.length > 0 && selectedList.posts[selectedPost.root_id]) {
                             selectedList.order = [selectedPost.root_id];
                             delete selectedList.posts[selectedPost.id];
@@ -53,98 +76,96 @@ export default class DeletePostModal extends React.Component {
                         }
                     }
                 }
-                PostStore.removePost(this.state.postId, this.state.channelId);
-                AsyncClient.getPosts(this.state.channelId);
-            }.bind(this),
-            function deleteFailed(err) {
+
+                PostStore.removePost(this.state.post.id, this.state.post.channel_id);
+                AsyncClient.getPosts(this.state.post.channel_id);
+            },
+            (err) => {
                 AsyncClient.dispatchError(err, 'deletePost');
             }
         );
+
+        this.handleHide();
     }
-    onShow(e) {
-        var newState = {};
-        if (BrowserStore.getItem('edit_state_transfer')) {
-            newState = BrowserStore.getItem('edit_state_transfer');
-            BrowserStore.removeItem('edit_state_transfer');
-        } else {
-            var button = e.relatedTarget;
-            newState = {title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), postId: $(button).attr('data-postid'), comments: $(button).attr('data-comments')};
-        }
-        this.setState(newState);
+
+    handleToggle(value, args) {
+        this.setState({
+            show: value,
+            post: args.post,
+            commentCount: args.commentCount,
+            error: ''
+        });
     }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
-        PostStore.addSelectedPostChangeListener(this.onListenerChange);
+
+    handleHide() {
+        this.setState({show: false});
     }
-    componentWillUnmount() {
-        PostStore.removeSelectedPostChangeListener(this.onListenerChange);
-    }
+
     onListenerChange() {
         var newList = PostStore.getSelectedPost();
-        if (!Utils.areObjectsEqual(this.state.selectedList, newList)) {
-            this.setState({selectedList: newList});
+        if (!Utils.areObjectsEqual(this.selectedList, newList)) {
+            this.selectedList = newList;
         }
     }
+
     render() {
+        if (!this.state.post) {
+            return null;
+        }
+
         var error = null;
         if (this.state.error) {
             error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
         }
 
         var commentWarning = '';
-        if (this.state.comments > 0) {
-            commentWarning = 'This post has ' + this.state.comments + ' comment(s) on it.';
+        if (this.state.commentCount > 0) {
+            commentWarning = 'This post has ' + this.state.commentCount + ' comment(s) on it.';
         }
 
+        const postTerm = Utils.getPostTerm(this.state.post);
+
         return (
-            <div
-                className='modal fade'
-                id='delete_post'
-                ref='modal'
-                role='dialog'
-                tabIndex='-1'
-                aria-hidden='true'
+            <Modal
+                show={this.state.show}
+                onHide={this.handleHide}
             >
-              <div className='modal-dialog modal-push-down'>
-                <div className='modal-content'>
-                  <div className='modal-header'>
-                    <button
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                    >
-                        <span aria-hidden='true'>&times;</span>
-                    </button>
-                    <h4 className='modal-title'>Confirm {this.state.title} Delete</h4>
-                  </div>
-                  <div className='modal-body'>
-                    Are you sure you want to delete the {this.state.title.toLowerCase()}?
-                    <br/>
-                    <br/>
+                <Modal.Header closeButton={true}>
+                    {`Confirm ${postTerm} Delete`}
+                </Modal.Header>
+                <Modal.Body>
+                    {`Are you sure you want to delete this ${postTerm.toLowerCase()}?`}
+                    <br />
+                    <br />
                     {commentWarning}
-                  </div>
-                  {error}
-                  <div className='modal-footer'>
+                    {error}
+                </Modal.Body>
+                <Modal.Footer>
                     <button
                         type='button'
                         className='btn btn-default'
-                        data-dismiss='modal'
+                        onClick={this.handleHide}
                     >
-                        Cancel
+                        {'Cancel'}
                     </button>
                     <button
                         type='button'
                         className='btn btn-danger'
-                        data-dismiss='modal'
                         onClick={this.handleDelete}
                     >
-                        Delete
+                        {'Delete'}
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+                </Modal.Footer>
+            </Modal>
         );
+    }
+
+    static show(post, commentCount) {
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.TOGGLE_DELETE_POST_MODAL,
+            value: true,
+            post,
+            commentCount: commentCount || 0
+        });
     }
 }

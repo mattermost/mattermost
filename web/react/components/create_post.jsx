@@ -372,7 +372,8 @@ export default class CreatePost extends React.Component {
                 title: type,
                 message: lastPost.message,
                 postId: lastPost.id,
-                channelId: lastPost.channel_id
+                channelId: lastPost.channel_id,
+                comments: PostStore.getCommentCount(lastPost)
             });
         }
     }

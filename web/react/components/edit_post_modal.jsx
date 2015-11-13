@@ -3,6 +3,7 @@
 
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
+var DeletePostModal = require('./delete_post_modal.jsx');
 var Textbox = require('./textbox.jsx');
 var BrowserStore = require('../stores/browser_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
@@ -34,7 +35,7 @@ export default class EditPostModal extends React.Component {
             delete tempState.editText;
             BrowserStore.setItem('edit_state_transfer', tempState);
             $('#edit_post').modal('hide');
-            $('#delete_post').modal('show');
+            DeletePostModal.show(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
             return;
         }
 

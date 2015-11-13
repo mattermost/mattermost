@@ -40,6 +40,7 @@ class PostStoreClass extends EventEmitter {
         this.storePosts = this.storePosts.bind(this);
         this.pStorePosts = this.pStorePosts.bind(this);
         this.getPosts = this.getPosts.bind(this);
+        this.getPost = this.getPost.bind(this);
         this.storePost = this.storePost.bind(this);
         this.pStorePost = this.pStorePost.bind(this);
         this.removePost = this.removePost.bind(this);
@@ -68,6 +69,7 @@ class PostStoreClass extends EventEmitter {
         this.storeLatestUpdate = this.storeLatestUpdate.bind(this);
         this.getLatestUpdate = this.getLatestUpdate.bind(this);
         this.getCurrentUsersLatestPost = this.getCurrentUsersLatestPost.bind(this);
+        this.getCommentCount = this.getCommentCount.bind(this);
     }
     emitChange() {
         this.emit(CHANGE_EVENT);
@@ -192,6 +194,9 @@ class PostStoreClass extends EventEmitter {
     }
     getPosts(channelId) {
         return BrowserStore.getItem('posts_' + channelId);
+    }
+    getPost(channelId, postId) {
+        return this.getPosts(channelId).posts[postId];
     }
     getCurrentUsersLatestPost(channelId, rootId) {
         const userId = UserStore.getCurrentId();
@@ -401,6 +406,20 @@ class PostStoreClass extends EventEmitter {
     }
     getLatestUpdate(channelId) {
         return BrowserStore.getItem('latest_post_' + channelId, 0);
+    }
+    getCommentCount(post) {
+        const posts = this.getPosts(post.channel_id).posts;
+
+        let commentCount = 0;
+        for (let id in posts) {
+            if (posts.hasOwnProperty(id)) {
+                if (posts[id].root_id === post.id) {
+                    commentCount += 1;
+                }
+            }
+        }
+
+        return commentCount;
     }
 }
 

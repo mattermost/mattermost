@@ -40,7 +40,8 @@ module.exports = {
         RECIEVED_ALL_TEAMS: null,
 
         TOGGLE_IMPORT_THEME_MODAL: null,
-        TOGGLE_INVITE_MEMBER_MODAL: null
+        TOGGLE_INVITE_MEMBER_MODAL: null,
+        TOGGLE_DELETE_POST_MODAL: null
     }),
 
     PayloadSources: keyMirror({
