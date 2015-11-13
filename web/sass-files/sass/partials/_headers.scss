@@ -2,6 +2,7 @@
     padding: 3px 0;
     height: 58px;
     flex: 0 0 58px;
+    @include flex(0 0 50px);
 }
 .row {
 	&.header {

@@ -125,7 +125,7 @@ export default class Login extends React.Component {
         let emailSignup;
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             emailSignup = (
-                <div>
+                <div className='signup__email-container'>
                     <div className={'form-group' + errorClass}>
                         <input
                             autoFocus={focusEmail}
@@ -206,7 +206,7 @@ export default class Login extends React.Component {
                             href='/'
                             className='signup-team-login'
                         >
-                            {'Sign up now'}
+                            {'Create one now'}
                         </a>
                     </span>
                 </div>
@@ -215,11 +215,11 @@ export default class Login extends React.Component {
 
         return (
             <div className='signup-team__container'>
-                {verifiedBox}
                 <h5 className='margin--less'>{'Sign in to:'}</h5>
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
                 <h2 className='signup-team__subdomain'>{'on '}{global.window.mm_config.SiteName}</h2>
                 <form onSubmit={this.handleSubmit}>
+                    {verifiedBox}
                     <div className={'form-group' + errorClass}>
                         {serverError}
                     </div>
