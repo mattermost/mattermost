@@ -16,13 +16,13 @@ export default class PostBody extends React.Component {
         super(props);
 
         this.receivedYoutubeData = false;
-        this.isGifLoading = false;
+        this.isImgLoading = false;
 
         this.handleUserChange = this.handleUserChange.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
         this.createEmbed = this.createEmbed.bind(this);
-        this.createGifEmbed = this.createGifEmbed.bind(this);
-        this.loadGif = this.loadGif.bind(this);
+        this.createImageEmbed = this.createImageEmbed.bind(this);
+        this.loadImg = this.loadImg.bind(this);
         this.createYoutubeEmbed = this.createYoutubeEmbed.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
@@ -117,8 +117,12 @@ export default class PostBody extends React.Component {
             return embed;
         }
 
-        if (link.substring(link.length - 4) === '.gif') {
-            return this.createGifEmbed(link, this.state.gifLoaded);
+        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
+            const imageType = Constants.IMAGE_TYPES[i];
+            const suffix = link.substring(link.length - (imageType.length + 1));
+            if (suffix === '.' + imageType || suffix === '=' + imageType) {
+                return this.createImageEmbed(link, this.state.imgLoaded);
+            }
         }
 
         return null;
@@ -135,29 +139,29 @@ export default class PostBody extends React.Component {
         return false;
     }
 
-    loadGif(src) {
-        if (this.isGifLoading) {
+    loadImg(src) {
+        if (this.isImgLoading) {
             return;
         }
 
-        this.isGifLoading = true;
+        this.isImgLoading = true;
 
-        const gif = new Image();
-        gif.onload = (
+        const img = new Image();
+        img.onload = (
             () => {
-                this.embed = this.createGifEmbed(src, true);
-                this.setState({gifLoaded: true});
+                this.embed = this.createImageEmbed(src, true);
+                this.setState({imgLoaded: true});
             }
         );
-        gif.src = src;
+        img.src = src;
     }
 
-    createGifEmbed(link, isLoaded) {
+    createImageEmbed(link, isLoaded) {
         if (!isLoaded) {
-            this.loadGif(link);
+            this.loadImg(link);
             return (
                 <img
-                    className='gif-div placeholder'
+                    className='img-div placeholder'
                     height='500px'
                 />
             );
@@ -165,7 +169,7 @@ export default class PostBody extends React.Component {
 
         return (
             <img
-                className='gif-div'
+                className='img-div'
                 src={link}
             />
         );
