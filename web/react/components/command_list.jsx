@@ -12,7 +12,7 @@ export default class CommandList extends React.Component {
         this.addFirstCommand = this.addFirstCommand.bind(this);
         this.isEmpty = this.isEmpty.bind(this);
         this.getSuggestedCommands = this.getSuggestedCommands.bind(this);
-        this.getSuggestedWebhooks = utils.debounce(this.getSuggestedWebhooks.bind(this), 500);
+        this.getSuggestedWebhooks = utils.debounce(this.getSuggestedWebhooks.bind(this), 200);
         this.getSuggestedWebhooksTriggers.bind(this)();
 
         this.state = {
