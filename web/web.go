@@ -989,7 +989,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	text := parsedRequest.Text
-	if len(text) == 0 {
+	if len(text) == 0 && parsedRequest.Attachments == nil {
 		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
 		return
 	}
