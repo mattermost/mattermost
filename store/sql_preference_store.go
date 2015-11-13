@@ -4,6 +4,7 @@
 package store
 
 import (
+	l4g "code.google.com/p/log4go"
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -12,6 +13,10 @@ import (
 type SqlPreferenceStore struct {
 	*SqlStore
 }
+
+const (
+	FEATURE_TOGGLE_PREFIX = "feature_enabled_"
+)
 
 func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
 	s := &SqlPreferenceStore{sqlStore}
@@ -34,6 +39,23 @@ func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_preferences_user_id", "Preferences", "UserId")
 	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category")
 	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name")
+}
+
+func (s SqlPreferenceStore) DeleteUnusedFeatures() {
+	l4g.Debug("Deleting any unused pre-release features")
+
+	sql := `DELETE
+		FROM Preferences
+	WHERE
+	Category = :Category
+	AND Value = :Value
+	AND Name LIKE '` + FEATURE_TOGGLE_PREFIX + `%'`
+
+	queryParams := map[string]string{
+		"Category": "advanced_settings",
+		"Value":    "false",
+	}
+	s.GetMaster().Exec(sql, queryParams)
 }
 
 func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
@@ -249,6 +271,31 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 		if _, err := s.GetMaster().Exec(
 			`DELETE FROM Preferences WHERE UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "We encountered an error while deleteing preferences", err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPreferenceStore) FeatureToggle(feature, userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+		if value, err := s.GetReplica().SelectStr(`SELECT
+				value
+			FROM
+				Preferences
+			WHERE
+				UserId = :UserId
+				AND Category = :Category
+				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": "advanced_settings", "Name": FEATURE_TOGGLE_PREFIX + feature}); err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.featureToggle", "We encountered an error while finding a pre release feature preference", err.Error())
+		} else {
+			result.Data = value == "true"
 		}
 
 		storeChannel <- result

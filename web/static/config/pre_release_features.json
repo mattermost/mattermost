@@ -1,1 +1,6 @@
-../../../config/pre_release_features.json
+[
+    {
+        "label": "#1389",
+        "description": "Show markdown preview option in message input box"
+    }
+]
