@@ -544,9 +544,13 @@ body.ios {
 		}
 		&.post-info {
 			.post-profile-time {
-				width: 150px;
-				display: inline-block;
-				margin-left: 50px;
+				color: #a8adb7;
+				vertical-align: top;
+				max-width: 220px;
+				overflow: hidden;
+				display: block;
+				white-space: nowrap;
+				text-overflow: ellipsis;
 			}
 		}
 		.post-header-col {
@@ -554,6 +558,8 @@ body.ios {
 			display: inline-block;
 			margin-right: 10px;
 			&.post-header__reply {
+				position: relative;
+				top: -1px;
 				min-width: 70px;
 				.dropdown-menu {
 					right: 0;
