@@ -46,7 +46,7 @@ export default class SearchAutocomplete extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         const content = $(ReactDOM.findDOMNode(this.refs.searchPopover)).find('.popover-content');
 
-        if (this.state.show) {
+        if (this.state.show && this.state.suggestions.length > 0) {
             if (!prevState.show) {
                 content.perfectScrollbar();
                 content.css('max-height', $(window).height() - 200);
@@ -143,10 +143,12 @@ export default class SearchAutocomplete extends React.Component {
     }
 
     getSelection() {
-        if (this.state.mode === 'channels') {
-            return this.state.suggestions[this.state.selection].name;
-        } else if (this.state.mode === 'users') {
-            return this.state.suggestions[this.state.selection].username;
+        if (this.state.suggestions.length > 0) {
+            if (this.state.mode === 'channels') {
+                return this.state.suggestions[this.state.selection].name;
+            } else if (this.state.mode === 'users') {
+                return this.state.suggestions[this.state.selection].username;
+            }
         }
 
         return '';
