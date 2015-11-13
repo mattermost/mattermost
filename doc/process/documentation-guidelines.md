@@ -41,7 +41,7 @@ This procedure works on Linux servers running Python 2.6 and higher.
 
 ### Use headings  
 
-Headings in markdown provide anchors that can be used to easily reference sub-sections of long pieces of documentation. This is preferrable to just numbering sections without headings. 
+Headings in markdown provide anchors that can be used to easily reference sub-sections of long pieces of documentation. This is preferable to just numbering sections without headings. 
 
 ##### Correct: 
 
@@ -77,7 +77,24 @@ H3, H4, H5 headings should be "Sentence case" and can be any length.
 
 These headers are smaller and used to summarize sections. H3 can be considered either a large or small heading. 
 
-These conventions are new, so there's flexibility around them, when you're not sure, consider the convention here as default. 
+These conventions are new, so there's flexibility around them, when you're not sure, consider the convention here as default.
+
+### Sub-section headings should end with a colon
+
+For readability and clear layout, end a sub-section heading with a colon
+
+##### Correct: 
+
+---- 
+Service Based: 
+- [AWS Elastic Beanstalk Setup](https://github.com/mattermost/platform/blob/master/doc/install/Amazon-Elastic-Beanstalk.md)
+---- 
+##### Incorrect: 
+
+---- 
+Optional
+- [Community Guide for Production Debian Setup](https://github.com/mattermost/platform/blob/master/doc/install/Production-Debian.md)
+---- 
 
 ### One instruction per line
 
