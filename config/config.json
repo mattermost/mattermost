@@ -9,7 +9,7 @@
         "EnableOutgoingWebhooks": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
-        "EnableTesting": true,
+        "EnableTesting": false,
         "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
