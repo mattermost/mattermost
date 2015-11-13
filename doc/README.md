@@ -58,9 +58,9 @@ _Note: End user help documentation is a new feature being completed for the v1.2
 
 - User Interface
    - Main Menu
-     - Team Settings 
-        - [General Settings](help/team-settings/General-Settings.md) 
-        - [Slack Import](help/team-settings/Slack-Import.md)
+     - [Team Settings ](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md)
+        - [General Settings](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md#general) 
+        - [Slack Import](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md#import-from-slack-beta)
      - [Manage Members](help/Manage-Members.md)
    - Messaging
      - [Mattermost Markdown Formatting](usage/Markdown.md)
