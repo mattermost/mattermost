@@ -126,6 +126,13 @@ http://en.wikipedia.org/wiki/Foo
 https://vine.co/v/eDeVgbFrt9L
 `,
 
+	`**[7] [Image Test]**
+
+## this *should* display an image
+
+http://37.media.tumblr.com/tumblr_mavsumGGAd1qboaw8o1_500.jpg
+`,
+
 	/*	`**[2] [Username Linking Test]**
 		I saw @alice--and I said "Hi @alice!" then "What's up @alice?" and then @alice, was totally @alice; she just "@alice"'d me and walked on by. That's @alice...
 		@alice‽‽
@@ -134,7 +141,7 @@ https://vine.co/v/eDeVgbFrt9L
 			`**[3] [Mention Highlighting Test]**
 		`,*/
 
-	`**[4] [Emoji Display Test 1]**
+	`**[8] [Emoji Display Test 1]**
 :+1: :-1: :100: :1234: :8ball: :a: :ab: :abc: :abcd: :accept: 
 :aerial_tramway: :airplane: :alarm_clock: :ambulance: :anchor: :angel: :anger: :angry: :anguished: :ant: 
 :apple: :aquarius: :aries: :arrow_backward: :arrow_double_down: :arrow_double_up: :arrow_down: :arrow_down_small: :arrow_forward: :arrow_heading_down:
@@ -169,7 +176,7 @@ https://vine.co/v/eDeVgbFrt9L
 :fork_and_knife: :fountain: :four: :four_leaf_clover: :fr: :free: :fried_shrimp: :fries: :frog: :frowning:
 :fu: :fuelpump: :full_moon: :full_moon_with_face: :game_die: :gb: :gem: :gemini: :ghost: :gift:`,
 
-	`**[5] [Emoji Display Test 2]**
+	`**[9] [Emoji Display Test 2]**
 :gift_heart: :girl: :globe_with_meridians: :goat: :goberserk: :godmode: :golf: :grapes: :green_apple: :green_book:
 :green_heart: :grey_exclamation: :grey_question: :grimacing: :grin: :grinning: :guardsman: :guitar: :gun: :haircut: 
 :hamburger: :hammer: :hamster: :hand: :handbag: :hankey: :hash: :hatched_chick: :hatching_chick: :headphones:
@@ -198,7 +205,7 @@ https://vine.co/v/eDeVgbFrt9L
 :person_with_blond_hair: :person_with_pouting_face: :phone: :pig: :pig2: :pig_nose: :pill: :pineapple: :pisces: :pizza:
 `,
 
-	`**[6] [Emoji Display Test 3]**
+	`**[10] [Emoji Display Test 3]**
 :plus1: :point_down: :point_left: :point_right: :point_up: :point_up_2: :police_car: :poodle: :poop: :post_office:
 :postal_horn: :postbox: :potable_water: :pouch: :poultry_leg: :pound: :pouting_cat: :pray: :princess: :punch: 
 :purple_heart: :purse: :pushpin: :put_litter_in_its_place: :question: :rabbit: :rabbit2: :racehorse: :radio: :radio_button:
@@ -231,7 +238,7 @@ https://vine.co/v/eDeVgbFrt9L
 Unnamed: :u5272: :u5408: :u55b6: :u6307: :u6708: :u6709: :u6e80: :u7121: :u7533: :u7981: :u7a7a:
 `,
 
-	`**[7] [Auto Linking]**
+	`**[11] [Auto Linking]**
 #### should be turned into links:
 http://example.com
 https://example.com
