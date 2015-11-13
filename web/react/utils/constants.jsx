@@ -398,5 +398,6 @@ export default {
     },
     NotificationPrefs: {
         MENTION: 'mention'
-    }
+    },
+    FeatureTogglePrefix: 'feature_enabled_'
 };

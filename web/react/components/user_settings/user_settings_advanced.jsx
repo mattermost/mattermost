@@ -32,7 +32,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         let enabledFeatures = 0;
         PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS).forEach((setting) => {
-            if (setting.name.lastIndexOf('feature_enabled_') === 0) {
+            if (setting.name.lastIndexOf(Constants.FeatureTogglePrefix) === 0) {
                 settings[setting.name] = setting.value;
                 if (setting.value === 'true') {
                     enabledFeatures++;
@@ -55,11 +55,11 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
     toggleFeature(feature, checked) {
         const settings = this.state.settings;
-        settings['feature_enabled_' + feature] = String(checked);
+        settings[Constants.FeatureTogglePrefix + feature] = String(checked);
 
         let enabledFeatures = 0;
         Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf('feature_enabled_') === 0 && this.state.settings[setting] === 'true') {
+            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0 && this.state.settings[setting] === 'true') {
                 enabledFeatures++;
             }
         });
@@ -70,7 +70,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
     saveEnabledFeatures() {
         const features = [];
         Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf('feature_enabled_') === 0) {
+            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0) {
                 features.push(setting);
             }
         });
@@ -167,55 +167,62 @@ export default class AdvancedSettingsDisplay extends React.Component {
         }
 
         let previewFeaturesSection;
-        if (this.props.activeSection === 'advancedPreviewFeatures') {
-            const inputs = [];
+        let previewFeaturesSectionDivider;
+        if (this.state.preReleaseFeatures.length > 0) {
+            previewFeaturesSectionDivider = (
+                <div className='divider-light'/>
+            );
 
-            this.state.preReleaseFeatures.forEach((feature) => {
-                inputs.push(
-                    <div key={'advancedPreviewFeatures_' + feature.label}>
-                        <div className='checkbox'>
-                            <label>
-                                <input
-                                    type='checkbox'
-                                    checked={this.state.settings['feature_enabled_' + feature.label] === 'true'}
-                                    onChange={(e) => {
-                                        this.toggleFeature(feature.label, e.target.checked);
-                                    }}
-                                />
-                                {feature.description}
-                            </label>
+            if (this.props.activeSection === 'advancedPreviewFeatures') {
+                const inputs = [];
+
+                this.state.preReleaseFeatures.forEach((feature) => {
+                    inputs.push(
+                        <div key={'advancedPreviewFeatures_' + feature.label}>
+                            <div className='checkbox'>
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.settings[Constants.FeatureTogglePrefix + feature.label] === 'true'}
+                                        onChange={(e) => {
+                                            this.toggleFeature(feature.label, e.target.checked);
+                                        }}
+                                    />
+                                    {feature.description}
+                                </label>
+                            </div>
                         </div>
+                    );
+                });
+
+                inputs.push(
+                    <div key='advancedPreviewFeatures_helptext'>
+                        <br/>
+                        {'Check any pre-released features you\'d like to preview.'}
                     </div>
                 );
-            });
 
-            inputs.push(
-                <div key='advancedPreviewFeatures_helptext'>
-                    <br/>
-                    {'Check any pre-released features you\'d like to preview.'}
-                </div>
-            );
-
-            previewFeaturesSection = (
-                <SettingItemMax
-                    title='Preview pre-release features'
-                    inputs={inputs}
-                    submit={this.saveEnabledFeatures}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            previewFeaturesSection = (
-                <SettingItemMin
-                    title='Preview pre-release features'
-                    describe={this.state.enabledFeatures + (this.state.enabledFeatures === 1 ? ' Feature ' : ' Features ') + 'enabled'}
-                    updateSection={() => this.props.updateSection('advancedPreviewFeatures')}
-                />
-            );
+                previewFeaturesSection = (
+                    <SettingItemMax
+                        title='Preview pre-release features'
+                        inputs={inputs}
+                        submit={this.saveEnabledFeatures}
+                        server_error={serverError}
+                        updateSection={(e) => {
+                            this.updateSection('');
+                            e.preventDefault();
+                        }}
+                    />
+                );
+            } else {
+                previewFeaturesSection = (
+                    <SettingItemMin
+                        title='Preview pre-release features'
+                        describe={this.state.enabledFeatures + (this.state.enabledFeatures === 1 ? ' Feature ' : ' Features ') + 'enabled'}
+                        updateSection={() => this.props.updateSection('advancedPreviewFeatures')}
+                    />
+                );
+            }
         }
 
         return (
@@ -245,7 +252,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     <h3 className='tab-header'>{'Advanced Settings'}</h3>
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
-                    <div className='divider-light'/>
+                    {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
                     <div className='divider-dark'/>
                 </div>
