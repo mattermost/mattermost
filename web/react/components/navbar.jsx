@@ -178,18 +178,35 @@ export default class Navbar extends React.Component {
             var manageMembersOption;
             var renameChannelOption;
             var deleteChannelOption;
-            if (!isDirect && isAdmin && !ChannelStore.isDefault(channel)) {
-                manageMembersOption = (
-                    <li role='presentation'>
-                        <a
-                            role='menuitem'
-                            href='#'
-                            onClick={() => this.setState({showMembersModal: true})}
-                        >
-                            {'Manage Members'}
-                        </a>
-                    </li>
-                );
+            if (!isDirect && isAdmin) {
+                if (!ChannelStore.isDefault(channel)) {
+                    manageMembersOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={() => this.setState({showMembersModal: true})}
+                            >
+                                {'Manage Members'}
+                            </a>
+                        </li>
+                    );
+
+                    deleteChannelOption = (
+                        <li role='presentation'>
+                            <a
+                                role='menuitem'
+                                href='#'
+                                data-toggle='modal'
+                                data-target='#delete_channel'
+                                data-title={channel.display_name}
+                                data-channelid={channel.id}
+                            >
+                                {'Delete Channel...'}
+                            </a>
+                        </li>
+                    );
+                }
 
                 renameChannelOption = (
                     <li role='presentation'>
@@ -203,21 +220,6 @@ export default class Navbar extends React.Component {
                             data-channelid={channel.id}
                         >
                             {'Rename Channel...'}
-                        </a>
-                    </li>
-                );
-
-                deleteChannelOption = (
-                    <li role='presentation'>
-                        <a
-                            role='menuitem'
-                            href='#'
-                            data-toggle='modal'
-                            data-target='#delete_channel'
-                            data-title={channel.display_name}
-                            data-channelid={channel.id}
-                        >
-                            {'Delete Channel...'}
                         </a>
                     </li>
                 );

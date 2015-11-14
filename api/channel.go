@@ -205,9 +205,11 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if oldChannel.Name == model.DEFAULT_CHANNEL {
-			c.Err = model.NewAppError("updateChannel", "Cannot update the default channel "+model.DEFAULT_CHANNEL, "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
+			if (len(channel.Name) > 0 && channel.Name != oldChannel.Name) || (len(channel.Type) > 0 && channel.Type != oldChannel.Type) {
+				c.Err = model.NewAppError("updateChannel", "Tried to perform an invalid update of the default channel "+model.DEFAULT_CHANNEL, "")
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
 		}
 
 		oldChannel.Header = channel.Header

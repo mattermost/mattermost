@@ -5,6 +5,7 @@ const Utils = require('../utils/utils.jsx');
 const Client = require('../utils/client.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
 const ChannelStore = require('../stores/channel_store.jsx');
+const Constants = require('../utils/constants.jsx');
 
 export default class RenameChannelModal extends React.Component {
     constructor(props) {
@@ -36,10 +37,10 @@ export default class RenameChannelModal extends React.Component {
             return;
         }
 
-        let channel = ChannelStore.get(this.state.channelId);
+        const channel = ChannelStore.get(this.state.channelId);
         const oldName = channel.name;
         const oldDisplayName = channel.displayName;
-        let state = {serverError: ''};
+        const state = {serverError: ''};
 
         channel.display_name = this.state.displayName.trim();
         if (!channel.display_name) {
@@ -60,7 +61,7 @@ export default class RenameChannelModal extends React.Component {
             state.nameError = 'This field must be less than 22 characters';
             state.invalid = true;
         } else {
-            let cleanedName = Utils.cleanUpUrlable(channel.name);
+            const cleanedName = Utils.cleanUpUrlable(channel.name);
             if (cleanedName === channel.name) {
                 state.nameError = '';
             } else {
@@ -76,7 +77,7 @@ export default class RenameChannelModal extends React.Component {
         }
 
         Client.updateChannel(channel,
-            function handleUpdateSuccess() {
+            () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
 
                 AsyncClient.getChannel(channel.id);
@@ -84,12 +85,12 @@ export default class RenameChannelModal extends React.Component {
 
                 ReactDOM.findDOMNode(this.refs.displayName).value = '';
                 ReactDOM.findDOMNode(this.refs.channelName).value = '';
-            }.bind(this),
-            function handleUpdateError(err) {
+            },
+            (err) => {
                 state.serverError = err.message;
                 state.invalid = true;
                 this.setState(state);
-            }.bind(this)
+            }
         );
     }
     onNameChange() {
@@ -99,10 +100,12 @@ export default class RenameChannelModal extends React.Component {
         this.setState({displayName: ReactDOM.findDOMNode(this.refs.displayName).value});
     }
     displayNameKeyUp() {
-        const displayName = ReactDOM.findDOMNode(this.refs.displayName).value.trim();
-        const channelName = Utils.cleanUpUrlable(displayName);
-        ReactDOM.findDOMNode(this.refs.channelName).value = channelName;
-        this.setState({channelName: channelName});
+        if (this.state.channelName !== Constants.DEFAULT_CHANNEL) {
+            const displayName = ReactDOM.findDOMNode(this.refs.displayName).value.trim();
+            const channelName = Utils.cleanUpUrlable(displayName);
+            ReactDOM.findDOMNode(this.refs.channelName).value = channelName;
+            this.setState({channelName: channelName});
+        }
     }
     handleClose() {
         this.setState({
@@ -150,6 +153,15 @@ export default class RenameChannelModal extends React.Component {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
+        let handleInputLabel = 'Handle';
+        let handleInputClass = 'form-control';
+        let readOnlyHandleInput = false;
+        if (this.state.channelName === Constants.DEFAULT_CHANNEL) {
+            handleInputLabel += ' - Cannot be changed for the default channel';
+            handleInputClass += ' disabled-input';
+            readOnlyHandleInput = true;
+        }
+
         return (
             <div
                 className='modal fade'
@@ -167,15 +179,15 @@ export default class RenameChannelModal extends React.Component {
                                 className='close'
                                 data-dismiss='modal'
                             >
-                                <span aria-hidden='true'>&times;</span>
-                                <span className='sr-only'>Close</span>
+                                <span aria-hidden='true'>{'×'}</span>
+                                <span className='sr-only'>{'Close'}</span>
                             </button>
-                        <h4 className='modal-title'>Rename Channel</h4>
+                        <h4 className='modal-title'>{'Rename Channel'}</h4>
                         </div>
                         <form role='form'>
                             <div className='modal-body'>
                                 <div className={displayNameClass}>
-                                    <label className='control-label'>Display Name</label>
+                                    <label className='control-label'>{'Display Name'}</label>
                                     <input
                                         onKeyUp={this.displayNameKeyUp}
                                         onChange={this.onDisplayNameChange}
@@ -190,15 +202,16 @@ export default class RenameChannelModal extends React.Component {
                                     {displayNameError}
                                 </div>
                                 <div className={nameClass}>
-                                    <label className='control-label'>Handle</label>
+                                    <label className='control-label'>{handleInputLabel}</label>
                                     <input
                                         onChange={this.onNameChange}
                                         type='text'
-                                        className='form-control'
+                                        className={handleInputClass}
                                         ref='channelName'
                                         placeholder='lowercase alphanumeric&#39;s only'
                                         value={this.state.channelName}
                                         maxLength='64'
+                                        readOnly={readOnlyHandleInput}
                                     />
                                     {nameError}
                                 </div>
@@ -210,14 +223,14 @@ export default class RenameChannelModal extends React.Component {
                                     className='btn btn-default'
                                     data-dismiss='modal'
                                 >
-                                    Cancel
+                                    {'Cancel'}
                                 </button>
                                 <button
                                     onClick={this.handleSubmit}
                                     type='submit'
                                     className='btn btn-primary'
                                 >
-                                    Save
+                                    {'Save'}
                                 </button>
                             </div>
                         </form>
