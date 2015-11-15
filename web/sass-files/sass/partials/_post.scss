@@ -392,6 +392,15 @@ body.ios {
 			.post-body {
 				@include border-radius(0 4px 4px 0);
 			}
+			.post-body {
+				border-left: 4px solid #EEE;
+				width: 570px;
+				margin-left: 30px;
+				padding-left: 10px;
+				.post-link {
+					display: none;
+				}
+			}
 		}
 	}
 	&.same--root {
@@ -407,13 +416,12 @@ body.ios {
 		.post__content {
 			padding: 0;
 		}
-		.post-body {
-			border-left: 4px solid #EEE;
-			width: 570px;
-			margin-left: 30px;
-			padding-left: 10px;
-			.post-link {
-				display: none;
+		&.same--user {
+			.post__content {
+				padding-left: 46px;
+			}
+			.post-header-post {
+				visibility: hidden;
 			}
 		}
 	}
