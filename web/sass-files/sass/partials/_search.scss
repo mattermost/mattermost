@@ -1,8 +1,9 @@
 #channel-header .search-bar__container {
-    padding: 8px 8px 8px 0;
+    padding: 0 8px 0 0;
 }
 .search-bar__container {
-	padding: 12px 8px 12px 0;
+	padding: 12px 8px 0 0;
+    @include flex(0 0 56px);
 }
 .search__clear {
 	display: none;
@@ -71,8 +72,10 @@
 
 .search-items-container {
 	position: relative;
-	overflow: scroll;
+	overflow: auto;
 	-webkit-overflow-scrolling: touch;
+	@include flex(1 1 auto);
+	height: calc(100% - 56px);
 }
 
 .search-results-header {
@@ -92,9 +95,11 @@
 	padding: 10px 1em;
 	margin: 0;
 	cursor: pointer;
+
 	&:first-child {
 		border: none;
 	}
+
 	.search-channel__name {
 		font-weight: 600;
 		margin: 0 0 10px 0;

@@ -1,8 +1,5 @@
 #channel-header {
-    padding: 3px 0;
-    height: 58px;
-    flex: 0 0 58px;
-    @include flex(0 0 50px);
+	@include flex(0 0 56px);
 }
 .row {
 	&.header {
@@ -45,9 +42,9 @@
 			text-overflow: ellipsis;
 			margin-top: 2px;
 			max-height: 45px;
-            .markdown-inline-img {
-                max-height: 45px
-            }
+			.markdown-inline-img {
+				max-height: 45px
+			}
 		}
 		&.popover {
 			white-space: normal;
@@ -97,7 +94,7 @@
 .sidebar--left, .sidebar--menu {
 	.team__header {
 		position: relative;
-		padding: 10px;
+		padding: 9px 10px;
 		@include legacy-pie-clearfix;
 		&:before {
 			@include single-transition(all, 0.05s, linear);
@@ -125,7 +122,7 @@
 		.navbar-right {
 			font-size: 0.85em;
 			position: absolute;
-			top: 11px;
+			top: 10px;
 			right: 22px;
 			z-index: 5;
 			.dropdown-toggle {
@@ -217,7 +214,7 @@
 	width:100%;
 	border-left: none;
 	font-size: 14px;
-	line-height: 50px;
+	line-height: 56px;
 	#member_popover {
 		margin-right: 5px;
 		width: 45px;
@@ -296,17 +293,19 @@
 
 .channel-header__links {
 	height: 32px;
-	vertical-align: top;
-	display: inline-block;
-	width: 15px;
-	margin: 9px 6px 3px 0;
-	a {
+	width: 32px;
+	@include border-radius(50px);
+	border: 1px solid #ccc;
+	margin-right: 10px;
+	> a {
+		@include border-radius(50px);
 		height: 100%;
 		display: block;
+		@include single-transition(all, 0.1s, ease-in);
 	}
 	svg {
 		vertical-align: top;
-		margin-top: 8px;
+	    margin: 7px 0 0 0px;
 		fill: inherit;
 	}
 }

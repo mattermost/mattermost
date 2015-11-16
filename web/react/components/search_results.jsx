@@ -62,8 +62,6 @@ export default class SearchResults extends React.Component {
     }
 
     resize() {
-        var height = this.state.windowHeight - $('#error_bar').outerHeight() - 100;
-        $('#search-items-container').css('height', height + 'px');
         $('#search-items-container').scrollTop(0);
         if (this.state.windowWidth > 768) {
             $('#search-items-container').perfectScrollbar();

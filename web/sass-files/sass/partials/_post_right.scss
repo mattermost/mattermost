@@ -1,4 +1,7 @@
 .post-right__container {
+    @include display-flex;
+    @include flex-direction(column);
+    height: 100%;
 
 	.post-right-root-message {
 		padding: 1em 1em 0;
@@ -44,7 +47,7 @@
 		}
 		.post-create-footer {
 			width: 100%;
-			padding-top: 5px;
+			padding: 5px 0 10px;
 		}
 		.post-right-comments-upload-in-progress {
 			padding: 6px 0;
@@ -103,8 +106,9 @@
 
 .post-right__scroll {
 	position: relative;
-	overflow: scroll;
+	overflow: auto;
 	-webkit-overflow-scrolling: touch;
+	@include flex(1 1 auto);
 }
 
 .post-right-comment-time {

@@ -48,7 +48,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={InviteMemberModal.show}
                     >
-                        <i className='glyphicon glyphicon-user'></i>Invite New Member
+                        <i className='fa fa-user'></i>Invite New Member
                     </a>
                 </li>
             );
@@ -61,7 +61,7 @@ export default class SidebarRightMenu extends React.Component {
                             data-target='#get_link'
                             data-title='Team Invite'
                             data-value={utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id}
-                        ><i className='glyphicon glyphicon-link'></i>Get Team Invite Link</a>
+                        ><i className='fa fa-link'></i>Get Team Invite Link</a>
                     </li>
                 );
             }
@@ -74,7 +74,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
-                    ><i className='glyphicon glyphicon-globe'></i>Team Settings</a>
+                    ><i className='fa fa-globe'></i>Team Settings</a>
                 </li>
             );
             manageLink = (
@@ -84,7 +84,7 @@ export default class SidebarRightMenu extends React.Component {
                         data-toggle='modal'
                         data-target='#team_members'
                     >
-                    <i className='glyphicon glyphicon-wrench'></i>Manage Members</a>
+                    <i className='fa fa-users'></i>Manage Members</a>
                 </li>
             );
         }
@@ -95,7 +95,7 @@ export default class SidebarRightMenu extends React.Component {
                     <a
                         href={'/admin_console?' + utils.getSessionIndex()}
                     >
-                    <i className='glyphicon glyphicon-wrench'></i>System Console</a>
+                    <i className='fa fa-wrench'></i>System Console</a>
                 </li>
             );
         }
@@ -125,7 +125,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                <i className='glyphicon glyphicon-cog'></i>Account Settings
+                                <i className='fa fa-cog'></i>Account Settings
                             </a>
                         </li>
                         {teamSettingsLink}
@@ -137,18 +137,18 @@ export default class SidebarRightMenu extends React.Component {
                             <a
                                 href='#'
                                 onClick={this.handleLogoutClick}
-                            ><i className='glyphicon glyphicon-log-out'></i>Logout</a></li>
+                            ><i className='fa fa-sign-out'></i>Logout</a></li>
                         <li className='divider'></li>
                         <li>
                             <a
                                 target='_blank'
                                 href='/static/help/configure_links.html'
-                            ><i className='glyphicon glyphicon-question-sign'></i>Help</a></li>
+                            ><i className='fa fa-question'></i>Help</a></li>
                         <li>
                             <a
                                 target='_blank'
                                 href='/static/help/configure_links.html'
-                            ><i className='glyphicon glyphicon-earphone'></i>Report a Problem</a></li>
+                            ><i className='fa fa-phone'></i>Report a Problem</a></li>
                     </ul>
                 </div>
                 <UserSettingsModal

@@ -47,7 +47,7 @@
     .nav-pills__container {
         height: 100%;
         position: relative;
-        overflow: scroll;
+        overflow: auto;
         -webkit-overflow-scrolling: touch;
     }
 
