@@ -1,7 +1,7 @@
 .post-right__container {
-    @include display-flex;
-    @include flex-direction(column);
-    height: 100%;
+	@include display-flex;
+	@include flex-direction(column);
+	height: 100%;
 
 	.post-right-root-message {
 		padding: 1em 1em 0;
@@ -20,6 +20,15 @@
 			hr {
 				border-color: #DDD;
 				margin: 1em 0 0 0;
+			}
+		}
+		.post-header {
+			.post-profile-time {
+				width: 200px;
+				display: inline-block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
 			}
 		}
 	}

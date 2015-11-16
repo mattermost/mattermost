@@ -543,14 +543,14 @@ body.ios {
 		}
 		&.post-info {
 			.post-profile-time {
-				color: #a8adb7;
 				vertical-align: top;
+				width: 150px;
 				max-width: 220px;
 				overflow: hidden;
 				display: block;
 				white-space: nowrap;
 				text-overflow: ellipsis;
-				margin: 0 20px 0 50px;
+				margin: 0 0 0 50px;
 			}
 		}
 		.post-header-col {
@@ -576,7 +576,7 @@ body.ios {
 			}
 		}
 		.post-profile-time {
-			color: #a8adb7;
+			@include opacity(0.5);
 		}
 	}
 	.post-comment {
