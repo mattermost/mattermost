@@ -98,7 +98,7 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
   - Added: `"RestrictTeamNames": true` to control whether team names can contain reserved words like www, admin, support, test, etc.
   - Added: `"EnableTeamListing": false` to control whether teams can be listed on the root page of the site
 - Under `ServiceSettings` in `config.json`
-  - Added: `EnableOutgoingWebhooks": true` to turn on outgoing webhooks
+  - Added: `EnableOutgoingWebhooks": false` to control whether outgoing webhooks are enabled
 
 #### Database Changes from v1.1 to v1.2
 
