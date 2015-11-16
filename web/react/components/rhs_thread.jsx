@@ -117,7 +117,6 @@ export default class RhsThread extends React.Component {
         }
     }
     resize() {
-        var height = this.state.windowHeight - $('#error_bar').outerHeight() - 100;
         $('.post-right__scroll').scrollTop(100000);
         if (this.state.windowWidth > 768) {
             $('.post-right__scroll').perfectScrollbar();
