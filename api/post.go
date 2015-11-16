@@ -229,6 +229,14 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 
 func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) {
 	go func() {
+		if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
+			return
+		}
+
+		if channel.Type != model.CHANNEL_OPEN {
+			return
+		}
+
 		hchan := Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId)
 
 		hooks := []*model.OutgoingWebhook{}
