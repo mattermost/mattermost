@@ -4,7 +4,7 @@
 import NavbarSearchBox from './search_bar.jsx';
 import MessageWrapper from './message_wrapper.jsx';
 import PopoverListMembers from './popover_list_members.jsx';
-import EditChannelModal from './edit_channel_modal.jsx';
+import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
@@ -170,7 +170,7 @@ export default class ChannelHeader extends React.Component {
                 >
                     <ToggleModalButton
                         role='menuitem'
-                        dialogType={EditChannelModal}
+                        dialogType={EditChannelHeaderModal}
                         dialogProps={{channel}}
                     >
                         {'Set Channel Header...'}
@@ -234,7 +234,7 @@ export default class ChannelHeader extends React.Component {
                 >
                     <ToggleModalButton
                         role='menuitem'
-                        dialogType={EditChannelModal}
+                        dialogType={EditChannelHeaderModal}
                         dialogProps={{channel}}
                     >
                         {`Set ${channelTerm} Header...`}

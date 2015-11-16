@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from './utils.jsx';
-import EditChannelModal from '../components/edit_channel_modal.jsx';
+import EditChannelHeaderModal from '../components/edit_channel_header_modal.jsx';
 import InviteMemberModal from '../components/invite_member_modal.jsx';
 import ToggleModalButton from '../components/toggle_modal_button.jsx';
 import UserProfile from '../components/user_profile.jsx';
@@ -52,7 +52,7 @@ export function createDMIntroMessage(channel) {
                 </p>
                 <ToggleModalButton
                     className='intro-links'
-                    dialogType={EditChannelModal}
+                    dialogType={EditChannelHeaderModal}
                     dialogProps={{channel}}
                 >
                     <i className='fa fa-pencil'></i>{'Set a header'}
@@ -78,7 +78,7 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
             </p>
             <ToggleModalButton
                 className='intro-links'
-                dialogType={EditChannelModal}
+                dialogType={EditChannelHeaderModal}
                 dialogProps={{channel}}
             >
                 <i className='fa fa-pencil'></i>{'Set a header'}
@@ -133,7 +133,7 @@ export function createDefaultIntroMessage(channel) {
             {inviteModalLink}
             <ToggleModalButton
                 className='intro-links'
-                dialogType={EditChannelModal}
+                dialogType={EditChannelHeaderModal}
                 dialogProps={{channel}}
             >
                 <i className='fa fa-pencil'></i>{'Set a header'}
@@ -184,7 +184,7 @@ export function createStandardIntroMessage(channel, showInviteModal) {
             </p>
             <ToggleModalButton
                 className='intro-links'
-                dialogType={EditChannelModal}
+                dialogType={EditChannelHeaderModal}
                 dialogProps={{channel}}
             >
                 <i className='fa fa-pencil'></i>{'Set a header'}

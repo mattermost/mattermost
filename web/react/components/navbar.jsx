@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import EditChannelModal from './edit_channel_modal.jsx';
+import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
 import MessageWrapper from './message_wrapper.jsx';
 import NotifyCounts from './notify_counts.jsx';
@@ -426,7 +426,7 @@ export default class Navbar extends React.Component {
             }
 
             editChannelHeaderModal = (
-                <EditChannelModal
+                <EditChannelHeaderModal
                     show={this.state.showEditChannelHeaderModal}
                     onHide={() => this.setState({showEditChannelHeaderModal: false})}
                     channel={channel}

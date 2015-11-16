@@ -7,7 +7,7 @@ import * as Utils from '../utils/utils.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
-export default class EditChannelModal extends React.Component {
+export default class EditChannelHeaderModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -119,7 +119,7 @@ export default class EditChannelModal extends React.Component {
     }
 }
 
-EditChannelModal.propTypes = {
+EditChannelHeaderModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
