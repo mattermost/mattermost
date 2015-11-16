@@ -228,6 +228,24 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlPostStore) PermanentDelete(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "ParentId": postId, "RootId": postId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel)
 

@@ -52,6 +52,7 @@ type TeamStore interface {
 	GetAll() StoreChannel
 	GetAllTeamListing() StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
+	Delete(teamId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -72,6 +73,7 @@ type ChannelStore interface {
 	GetMember(channelId string, userId string) StoreChannel
 	GetMemberCount(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
+	DeleteMember(userId string) StoreChannel
 	GetExtraMembers(channelId string, limit int) StoreChannel
 	CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel
 	CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel
@@ -118,6 +120,7 @@ type UserStore interface {
 	GetTotalUsersCount() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
 	GetSystemAdminProfiles() StoreChannel
+	Delete(userId string) StoreChannel
 }
 
 type SessionStore interface {
@@ -126,6 +129,7 @@ type SessionStore interface {
 	GetSessions(userId string) StoreChannel
 	Remove(sessionIdOrToken string) StoreChannel
 	RemoveAllSessionsForTeam(teamId string) StoreChannel
+	RemoveAllSessionsForUser(teamId string) StoreChannel
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 }
@@ -133,6 +137,7 @@ type SessionStore interface {
 type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
 	Get(user_id string, limit int) StoreChannel
+	Delete(userId string) StoreChannel
 }
 
 type OAuthStore interface {
@@ -143,6 +148,7 @@ type OAuthStore interface {
 	SaveAuthData(authData *model.AuthData) StoreChannel
 	GetAuthData(code string) StoreChannel
 	RemoveAuthData(code string) StoreChannel
+	RemoveAuthDataByUserId(userId string) StoreChannel
 	SaveAccessData(accessData *model.AccessData) StoreChannel
 	GetAccessData(token string) StoreChannel
 	GetAccessDataByAuthCode(authCode string) StoreChannel
@@ -161,12 +167,14 @@ type WebhookStore interface {
 	GetIncomingByUser(userId string) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
+	DeleteIncomingByUser(userId string) StoreChannel
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
 	GetOutgoing(id string) StoreChannel
 	GetOutgoingByCreator(userId string) StoreChannel
 	GetOutgoingByChannel(channelId string) StoreChannel
 	GetOutgoingByTeam(teamId string) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
+	DeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 }
 
@@ -175,4 +183,5 @@ type PreferenceStore interface {
 	Get(userId string, category string, name string) StoreChannel
 	GetCategory(userId string, category string) StoreChannel
 	GetAll(userId string) StoreChannel
+	Delete(userId string) StoreChannel
 }

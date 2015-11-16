@@ -300,3 +300,20 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlTeamStore) Delete(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.Delete", "We couldn't delete the existing team", "teamId="+teamId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

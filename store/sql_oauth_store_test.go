@@ -180,3 +180,17 @@ func TestOAuthStoreRemoveAuthData(t *testing.T) {
 		t.Fatal("should have errored - auth code removed")
 	}
 }
+
+func TestOAuthStoreRemoveAuthDataByUserId(t *testing.T) {
+	Setup()
+
+	a1 := model.AuthData{}
+	a1.ClientId = model.NewId()
+	a1.UserId = model.NewId()
+	a1.Code = model.NewId()
+	Must(store.OAuth().SaveAuthData(&a1))
+
+	if err := (<-store.OAuth().RemoveAuthDataByUserId(a1.UserId)).Err; err != nil {
+		t.Fatal(err)
+	}
+}

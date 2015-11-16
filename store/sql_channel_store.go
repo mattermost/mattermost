@@ -616,6 +616,23 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 	return storeChannel
 }
 
+func (s SqlChannelStore) DeleteMember(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "user_id="+userId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
