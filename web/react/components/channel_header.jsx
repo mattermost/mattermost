@@ -276,26 +276,27 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
-            if (!ChannelStore.isDefault(channel)) {
-                if (isAdmin) {
-                    dropdownContents.push(
-                        <li
-                            key='rename_channel'
-                            role='presentation'
+            if (isAdmin) {
+                dropdownContents.push(
+                    <li
+                        key='rename_channel'
+                        role='presentation'
+                    >
+                        <a
+                            role='menuitem'
+                            href='#'
+                            data-toggle='modal'
+                            data-target='#rename_channel'
+                            data-display={channel.display_name}
+                            data-name={channel.name}
+                            data-channelid={channel.id}
                         >
-                            <a
-                                role='menuitem'
-                                href='#'
-                                data-toggle='modal'
-                                data-target='#rename_channel'
-                                data-display={channel.display_name}
-                                data-name={channel.name}
-                                data-channelid={channel.id}
-                            >
-                                {'Rename '}{channelTerm}{'...'}
-                            </a>
-                        </li>
-                    );
+                            {'Rename '}{channelTerm}{'...'}
+                        </a>
+                    </li>
+                );
+
+                if (!ChannelStore.isDefault(channel)) {
                     dropdownContents.push(
                         <li
                             key='delete_channel'
@@ -314,7 +315,9 @@ export default class ChannelHeader extends React.Component {
                         </li>
                     );
                 }
+            }
 
+            if (!ChannelStore.isDefault(channel)) {
                 dropdownContents.push(
                     <li
                         key='leave_channel'

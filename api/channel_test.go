@@ -215,8 +215,9 @@ func TestUpdateChannel(t *testing.T) {
 	for _, c := range data.Channels {
 		if c.Name == model.DEFAULT_CHANNEL {
 			c.Header = "new header"
+			c.Name = "pseudo-square"
 			if _, err := Client.UpdateChannel(c); err == nil {
-				t.Fatal("should have errored on updating default channel")
+				t.Fatal("should have errored on updating default channel name")
 			}
 			break
 		}
