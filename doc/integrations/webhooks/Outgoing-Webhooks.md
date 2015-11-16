@@ -1,7 +1,5 @@
 # Outgoing Webhooks
 
-#### [To be released in Mattermost v1.2, available now on master]
-
 Outgoing webhooks allow external applications, written in the programming language of your choice--to receive HTTP POST requests whenever a user posts to a certain channel, with a trigger word at the beginning of the message, or a combination of both. If the external application responds appropriately to the HTTP request, as response post can be made in the channel where the original post occurred.
 
 A couple key points:
@@ -36,7 +34,7 @@ Which would render in a Mattermost message as follows:
 ---
 
 ### Enabling Outgoing Webhooks
-Outgoing webhooks should be enabled on your Mattermost instance by default, but if they are not you'll need to get your system administrator to enable them. If you are the system administrator you can enable them by doing the following:
+Outgoing webhooks are off by default, and can be enabled by the system administrator. If you are the system administrator you can enable them by doing the following:
 
 1. Login to your Mattermost team account that has the system administrator role.
 1. Enable outgoing webhooks from **System Console -> Service Settings**.
