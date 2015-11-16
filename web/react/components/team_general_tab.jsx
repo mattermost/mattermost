@@ -393,7 +393,7 @@ export default class GeneralTab extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <div className='setting-list__hint'>{'When allowing open invites this code is used as part of the signup process.  Changing this code will invalidate the previous open signup link.'}</div>
+                    <div className='setting-list__hint'>{'Your Invite Code is used in the URL sent to people to join your team. Regenerating your Invite Code will invalidate the URLs in previous invitations, unless "Allow anyone to sign-up from login page" is enabled.'}</div>
                 </div>
             );
 
@@ -452,6 +452,7 @@ export default class GeneralTab extends React.Component {
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={this.onUpdateNameSection}
+                    extraInfo='Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
                 />
             );
         } else {
