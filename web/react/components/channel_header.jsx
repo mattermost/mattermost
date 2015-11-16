@@ -4,6 +4,7 @@
 import NavbarSearchBox from './search_bar.jsx';
 import MessageWrapper from './message_wrapper.jsx';
 import PopoverListMembers from './popover_list_members.jsx';
+import EditChannelModal from './edit_channel_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
@@ -167,17 +168,13 @@ export default class ChannelHeader extends React.Component {
                     key='edit_header_direct'
                     role='presentation'
                 >
-                    <a
+                    <ToggleModalButton
                         role='menuitem'
-                        href='#'
-                        data-toggle='modal'
-                        data-target='#edit_channel'
-                        data-header={channel.header}
-                        data-title={channel.display_name}
-                        data-channelid={channel.id}
+                        dialogType={EditChannelModal}
+                        dialogProps={{channel}}
                     >
                         {'Set Channel Header...'}
-                    </a>
+                    </ToggleModalButton>
                 </li>
             );
         } else {
@@ -235,17 +232,13 @@ export default class ChannelHeader extends React.Component {
                     key='set_channel_header'
                     role='presentation'
                 >
-                    <a
+                    <ToggleModalButton
                         role='menuitem'
-                        href='#'
-                        data-toggle='modal'
-                        data-target='#edit_channel'
-                        data-header={channel.header}
-                        data-title={channel.display_name}
-                        data-channelid={channel.id}
+                        dialogType={EditChannelModal}
+                        dialogProps={{channel}}
                     >
-                        {'Set '}{channelTerm}{' Header...'}
-                    </a>
+                        {`Set ${channelTerm} Header...`}
+                    </ToggleModalButton>
                 </li>
             );
             dropdownContents.push(

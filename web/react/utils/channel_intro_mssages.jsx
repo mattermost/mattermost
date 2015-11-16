@@ -1,9 +1,10 @@
-
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import * as Utils from './utils.jsx';
+import EditChannelModal from '../components/edit_channel_modal.jsx';
 import InviteMemberModal from '../components/invite_member_modal.jsx';
+import ToggleModalButton from '../components/toggle_modal_button.jsx';
 import UserProfile from '../components/user_profile.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import Constants from '../utils/constants.jsx';
@@ -49,17 +50,13 @@ export function createDMIntroMessage(channel) {
                     {'This is the start of your direct message history with ' + teammateName + '.'}<br/>
                     {'Direct messages and files shared here are not shown to people outside this area.'}
                 </p>
-                <a
+                <ToggleModalButton
                     className='intro-links'
-                    href='#'
-                    data-toggle='modal'
-                    data-target='#edit_channel'
-                    data-header={channel.header}
-                    data-title={channel.display_name}
-                    data-channelid={channel.id}
+                    dialogType={EditChannelModal}
+                    dialogProps={{channel}}
                 >
                     <i className='fa fa-pencil'></i>{'Set a header'}
-                </a>
+                </ToggleModalButton>
             </div>
         );
     }
@@ -79,17 +76,13 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
                 {'This is the start of ' + channel.display_name + ', a channel for non-work-related conversations.'}
                 <br/>
             </p>
-            <a
+            <ToggleModalButton
                 className='intro-links'
-                href='#'
-                data-toggle='modal'
-                data-target='#edit_channel'
-                data-header={channel.header}
-                data-title={channel.display_name}
-                data-channelid={channel.id}
+                dialogType={EditChannelModal}
+                dialogProps={{channel}}
             >
                 <i className='fa fa-pencil'></i>{'Set a header'}
-            </a>
+            </ToggleModalButton>
             <a
                 href='#'
                 className='intro-links'
@@ -138,17 +131,13 @@ export function createDefaultIntroMessage(channel) {
                 {'This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
             </p>
             {inviteModalLink}
-            <a
+            <ToggleModalButton
                 className='intro-links'
-                href='#'
-                data-toggle='modal'
-                data-target='#edit_channel'
-                data-header={channel.header}
-                data-title={channel.display_name}
-                data-channelid={channel.id}
+                dialogType={EditChannelModal}
+                dialogProps={{channel}}
             >
                 <i className='fa fa-pencil'></i>{'Set a header'}
-            </a>
+            </ToggleModalButton>
             <br/>
         </div>
     );
@@ -193,17 +182,13 @@ export function createStandardIntroMessage(channel, showInviteModal) {
                 {memberMessage}
                 <br/>
             </p>
-            <a
+            <ToggleModalButton
                 className='intro-links'
-                href='#'
-                data-toggle='modal'
-                data-target='#edit_channel'
-                data-header={channel.header}
-                data-title={channel.display_name}
-                data-channelid={channel.id}
+                dialogType={EditChannelModal}
+                dialogProps={{channel}}
             >
                 <i className='fa fa-pencil'></i>{'Set a header'}
-            </a>
+            </ToggleModalButton>
             <a
                 className='intro-links'
                 href='#'

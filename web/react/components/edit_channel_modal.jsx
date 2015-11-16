@@ -3,39 +3,51 @@
 
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
+import * as Utils from '../utils/utils.jsx';
+
+const Modal = ReactBootstrap.Modal;
 
 export default class EditChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleEdit = this.handleEdit.bind(this);
-        this.handleUserInput = this.handleUserInput.bind(this);
-        this.handleClose = this.handleClose.bind(this);
+
         this.onShow = this.onShow.bind(this);
-        this.handleShown = this.handleShown.bind(this);
+        this.onHide = this.onHide.bind(this);
 
         this.state = {
-            header: '',
-            title: '',
-            channelId: '',
             serverError: ''
         };
     }
+
+    componentDidMount() {
+        if (this.props.show) {
+            this.onShow();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.show && !prevProps.show) {
+            this.onShow();
+        }
+    }
+
     handleEdit() {
         var data = {};
-        data.channel_id = this.state.channelId;
+        data.channel_id = this.props.channel.id;
 
         if (data.channel_id.length !== 26) {
             return;
         }
 
-        data.channel_header = this.state.header.trim();
+        data.channel_header = ReactDOM.findDOMNode(this.refs.textarea).value;
 
         Client.updateChannelHeader(data,
             () => {
                 this.setState({serverError: ''});
-                AsyncClient.getChannel(this.state.channelId);
-                $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
+                AsyncClient.getChannel(this.props.channel.id);
+                this.onHide();
             },
             (err) => {
                 if (err.message === 'Invalid channel_header parameter') {
@@ -46,105 +58,69 @@ export default class EditChannelModal extends React.Component {
             }
         );
     }
-    handleUserInput(e) {
-        this.setState({header: e.target.value});
+
+    onShow() {
+        const textarea = ReactDOM.findDOMNode(this.refs.textarea);
+        Utils.placeCaretAtEnd(textarea);
     }
-    handleClose() {
-        this.setState({header: '', serverError: ''});
+
+    onHide() {
+        this.setState({
+            serverError: ''
+        });
+
+        this.props.onHide();
     }
-    onShow(e) {
-        const button = e.relatedTarget;
-        this.setState({header: $(button).attr('data-header'), title: $(button).attr('data-title'), channelId: $(button).attr('data-channelid'), serverError: ''});
-    }
-    handleShown() {
-        $('#edit_channel #edit_header').focus();
-    }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('hidden.bs.modal', this.handleClose);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', this.handleShown);
-    }
-    componentWillUnmount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
-    }
+
     render() {
         var serverError = null;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><br/><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        var editTitle = (
-            <h4
-                className='modal-title'
-                ref='title'
-            >
-            {'Edit Header'}
-            </h4>
-        );
-        if (this.state.title) {
-            editTitle = (
-                <h4
-                    className='modal-title'
-                    ref='title'
-                >
-                    {'Edit Header for '}<span className='name'>{this.state.title}</span>
-                </h4>
-            );
-        }
-
         return (
-            <div
-                className='modal fade'
-                ref='modal'
-                id='edit_channel'
-                role='dialog'
-                tabIndex='-1'
-                aria-hidden='true'
+            <Modal
+                show={this.props.show}
+                onHide={this.onHide}
             >
-                <div className='modal-dialog'>
-                    <div className='modal-content'>
-                        <div className='modal-header'>
-                            <button
-                                type='button'
-                                className='close'
-                                data-dismiss='modal'
-                                aria-label='Close'
-                            >
-                                <span aria-hidden='true'>{'×'}</span>
-                            </button>
-                            {editTitle}
-                        </div>
-                        <div className='modal-body'>
-                            <p>{'Edit the text appearing next to the channel name in the channel header.'}</p>
-                            <textarea
-                                className='form-control no-resize'
-                                rows='6'
-                                id='edit_header'
-                                maxLength='1024'
-                                value={this.state.header}
-                                onChange={this.handleUserInput}
-                            />
-                            {serverError}
-                        </div>
-                        <div className='modal-footer'>
-                            <button
-                                type='button'
-                                className='btn btn-default'
-                                data-dismiss='modal'
-                            >
-                                {'Cancel'}
-                            </button>
-                            <button
-                                type='button'
-                                className='btn btn-primary'
-                                onClick={this.handleEdit}
-                            >
-                                {'Save'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <Modal.Header closeButton={true}>
+                    {'Edit Header for ' + this.props.channel.display_name}
+                </Modal.Header>
+                <Modal.Body>
+                    <p>{'Edit the text appearing next to the channel name in the channel header.'}</p>
+                    <textarea
+                        ref='textarea'
+                        className='form-control no-resize'
+                        rows='6'
+                        id='edit_header'
+                        maxLength='1024'
+                        defaultValue={this.props.channel.header}
+                    />
+                    {serverError}
+                </Modal.Body>
+                <Modal.Footer>
+                    <button
+                        type='button'
+                        className='btn btn-default'
+                        onClick={this.props.onHide}
+                    >
+                        {'Cancel'}
+                    </button>
+                    <button
+                        type='button'
+                        className='btn btn-primary'
+                        onClick={this.handleEdit}
+                    >
+                        {'Save'}
+                    </button>
+                </Modal.Footer>
+            </Modal>
         );
     }
 }
+
+EditChannelModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onHide: React.PropTypes.func.isRequired,
+    channel: React.PropTypes.object.isRequired
+};
