@@ -7,10 +7,6 @@ var SearchStore = require('../stores/search_store.jsx');
 var PostStore = require('../stores/post_store.jsx');
 var Utils = require('../utils/utils.jsx');
 
-function getStateFromStores() {
-    return {search_visible: SearchStore.getSearchResults() != null, post_right_visible: PostStore.getSelectedPost() != null, is_mention_search: SearchStore.getIsMentionSearch()};
-}
-
 export default class SidebarRight extends React.Component {
     constructor(props) {
         super(props);
@@ -19,19 +15,29 @@ export default class SidebarRight extends React.Component {
 
         this.onSelectedChange = this.onSelectedChange.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
+        this.onShowSearch = this.onShowSearch.bind(this);
 
         this.doStrangeThings = this.doStrangeThings.bind(this);
 
-        this.state = getStateFromStores();
+        this.state = this.getStateFromStores();
+    }
+    getStateFromStores() {
+        return {
+            search_visible: SearchStore.getSearchResults() != null,
+            post_right_visible: PostStore.getSelectedPost() != null,
+            is_mention_search: SearchStore.getIsMentionSearch()
+        };
     }
     componentDidMount() {
         SearchStore.addSearchChangeListener(this.onSearchChange);
         PostStore.addSelectedPostChangeListener(this.onSelectedChange);
+        SearchStore.addShowSearchListener(this.onShowSearch);
         this.doStrangeThings();
     }
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onSearchChange);
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
+        SearchStore.removeShowSearchListener(this.onShowSearch);
     }
     componentWillUpdate() {
         PostStore.jumpPostsViewSidebarOpen();
@@ -64,16 +70,23 @@ export default class SidebarRight extends React.Component {
         this.doStrangeThings();
     }
     onSelectedChange(fromSearch) {
-        var newState = getStateFromStores(fromSearch);
+        var newState = this.getStateFromStores(fromSearch);
         newState.from_search = fromSearch;
         if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
     onSearchChange() {
-        var newState = getStateFromStores();
+        var newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
+        }
+    }
+    onShowSearch() {
+        if (!this.state.search_visible) {
+            this.setState({
+                search_visible: true
+            });
         }
     }
     render() {

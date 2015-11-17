@@ -39,6 +39,8 @@ module.exports = {
         RECIEVED_LOGS: null,
         RECIEVED_ALL_TEAMS: null,
 
+        SHOW_SEARCH: null,
+
         TOGGLE_IMPORT_THEME_MODAL: null,
         TOGGLE_INVITE_MEMBER_MODAL: null
     }),
