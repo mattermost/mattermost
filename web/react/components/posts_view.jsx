@@ -83,9 +83,14 @@ export default class PostsView extends React.Component {
             let hideProfilePic = false;
 
             if (prevPost) {
-                sameUser = prevPost.user_id === post.user_id && post.create_at - prevPost.create_at <= 1000 * 60 * 5;
+                const postIsComment = Utils.isComment(post);
+                const prevPostIsComment = Utils.isComment(prevPost);
+                const postFromWebhook = Boolean(post.props && post.props.from_webhook);
+                const prevPostFromWebhook = Boolean(prevPost.props && prevPost.props.from_webhook);
 
-                sameRoot = Utils.isComment(post) && (prevPost.id === post.root_id || prevPost.root_id === post.root_id);
+                sameUser = prevPost.user_id === post.user_id && postFromWebhook === prevPostFromWebhook &&
+                    post.create_at - prevPost.create_at <= 1000 * 60 * 5;
+                sameRoot = (postIsComment && (prevPost.id === post.root_id || prevPost.root_id === post.root_id)) || (!postIsComment && !prevPostIsComment && sameUser);
 
                 // hide the profile pic if:
                 //     the previous post was made by the same user as the current post,
@@ -94,10 +99,10 @@ export default class PostsView extends React.Component {
                 //     the current post is not from a webhook
                 //     and the previous post is not from a webhook
                 if ((prevPost.user_id === post.user_id) &&
-                        !Utils.isComment(prevPost) &&
-                        !Utils.isComment(post) &&
-                        (!post.props || !post.props.from_webhook) &&
-                        (!prevPost.props || !prevPost.props.from_webhook)) {
+                        !prevPostIsComment &&
+                        !postIsComment &&
+                        !postFromWebhook &&
+                        !prevPostFromWebhook) {
                     hideProfilePic = true;
                 }
             }
