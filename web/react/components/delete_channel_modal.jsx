@@ -3,7 +3,7 @@
 
 const AsyncClient = require('../utils/async_client.jsx');
 const Client = require('../utils/client.jsx');
-const Modal = require('./modal.jsx');
+const Modal = ReactBootstrap.Modal;
 const TeamStore = require('../stores/team_store.jsx');
 const Utils = require('../utils/utils.jsx');
 

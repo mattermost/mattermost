@@ -4,7 +4,7 @@
 const UserStore = require('../stores/user_store.jsx');
 const Client = require('../utils/client.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
-const Modal = require('./modal.jsx');
+const Modal = ReactBootstrap.Modal;
 const LoadingScreen = require('./loading_screen.jsx');
 const Utils = require('../utils/utils.jsx');
 
@@ -62,6 +62,15 @@ export default class ActivityLogModal extends React.Component {
     }
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
+
+        if (this.props.show) {
+            this.onShow();
+        }
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.show && !prevProps.show) {
+            this.onShow();
+        }
     }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);
@@ -156,7 +165,6 @@ export default class ActivityLogModal extends React.Component {
         return (
             <Modal
                 show={this.props.show}
-                onShow={this.onShow}
                 onHide={this.onHide}
                 bsSize='large'
             >

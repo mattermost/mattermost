@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Modal = require('./modal.jsx');
+const Modal = ReactBootstrap.Modal;
 
 export default class ChannelInfoModal extends React.Component {
     render() {
@@ -18,7 +18,6 @@ export default class ChannelInfoModal extends React.Component {
             <Modal
                 show={this.props.show}
                 onHide={this.props.onHide}
-                onShow={this.onShow}
             >
                 <Modal.Header closeButtton={true}>
                     {channel.display_name}

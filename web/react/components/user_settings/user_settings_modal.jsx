@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 const ConfirmModal = require('../confirm_modal.jsx');
-const Modal = require('../modal.jsx');
+const Modal = ReactBootstrap.Modal;
 const SettingsSidebar = require('../settings_sidebar.jsx');
 const UserSettings = require('./user_settings.jsx');
 
@@ -32,6 +32,18 @@ export default class UserSettingsModal extends React.Component {
         };
 
         this.requireConfirm = false;
+    }
+
+    componentDidMount() {
+        if (this.props.show) {
+            this.handleShow();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.show && !prevProps.show) {
+            this.handleShow();
+        }
     }
 
     handleShow() {
@@ -175,7 +187,6 @@ export default class UserSettingsModal extends React.Component {
             <Modal
                 dialogClassName='settings-modal'
                 show={this.props.show}
-                onShow={this.handleShow}
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
                 enforceFocus={this.state.enforceFocus}
