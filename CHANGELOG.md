@@ -1,8 +1,14 @@
 # Mattermost Changelog
 
-## Release v1.2.0
+## Release v1.2.1
 
-- **Final release anticipated:** 2015-11-16
+- **Released:** 2015-11-16
+
+### Security Notice
+
+Mattermost v1.2.1 is a bug fix release addressing a security issue in v1.2.0 affecting a newly introduced outgoing webhooks feature. Specifically, in v1.2.0 there was a check missing from outgoing webhooks, so a team member creating outgoing webhooks could in theory find a way to listen to messages in private channels containing popular words like "a", "the", "at", etc. For added security, Mattermost v1.2.1 now installs with incoming and outgoing webhooks disabled by default. 
+
+To limit the impact of this security issue, Mattermost v1.2.0 has been removed from the source repo. It is recommended that anyone who's installed v1.2.0 upgrade to v1.2.1 via [the procedure described in the Mattermost Upgrade Guide](https://github.com/mattermost/platform/blob/master/doc/install/Upgrade-Guide.md). 
 
 ### Release Highlights
 
@@ -10,7 +16,7 @@
 
 - Mattermost users can now interact with external applications using [outgoing webhooks](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Outgoing-Webhooks.md)
 - An [application template](https://github.com/mattermost/mattermost-integration-giphy) demonstrating user queries sent to the Giphy search engine via Mattermost webhooks now available
-- A community application, [Matterbrige](https://github.com/42wim/matterbridge?files=1), shows how to use webhooks to connect Mattermost with IRC 
+- A community application, [Matterbridge](https://github.com/42wim/matterbridge?files=1), shows how to use webhooks to connect Mattermost with IRC 
 
 #### Search Scope Modifiers 
 
@@ -79,13 +85,14 @@ System Console
 - New statistics page
 - Configurable option to create an account directly from team page
 
-#### Bug Fixes
+#### Bug Fixes  
 
 - Various fixes to theme colors
 - Fixed issue with the centre channel scroll position jumping when right hand side was opened and closed
 - Added support for simultaneous login to different teams in different browser tabs
 - Incoming webhooks no longer disrupted when channel is deleted
 - You can now paste a Mattermost incoming webhook URL into the same field designed for a Slack URL and integrations will work 
+
 ### Compatibility  
 
 - IE 11 new minimum version for IE, since IE 10 share fell below 5% on desktop 
@@ -98,7 +105,8 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
   - Added: `"RestrictTeamNames": true` to control whether team names can contain reserved words like www, admin, support, test, etc.
   - Added: `"EnableTeamListing": false` to control whether teams can be listed on the root page of the site
 - Under `ServiceSettings` in `config.json`
-  - Added: `EnableOutgoingWebhooks": false` to control whether outgoing webhooks are enabled
+  - Added: `"EnableOutgoingWebhooks": false` to control whether outgoing webhooks are enabled
+  - Changed: `"EnableIncomingWebhooks": true` to `"EnableIncomingWebhooks": false` to turn incoming webhooks off by default, to increase security of default install. Documentation updated to enable webhooks before use. 
 
 #### Database Changes from v1.1 to v1.2
 
@@ -152,6 +160,10 @@ Many thanks to our external contributors. In no particular order:
 - [vinnymac](https://github.com/vinnymac)
 - [yuvipanda](https://github.com/yuvipanda)
 - [toyorg](https://github.com/toyorg)
+
+## Release v1.2.0 (Redacted Release)
+
+- **Final release:** 2015-11-16 (**Note:** This release was removed from public availability and replaced by v1.2.1 owing to a security issue with the new outgoing webhooks feature. See v1.2.1 Release Notes for details).
 
 ## Release v1.1.1 (Bug Fix Release) 
 
