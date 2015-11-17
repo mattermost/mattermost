@@ -57,8 +57,11 @@
                 color: inherit;
                 line-height: 40px;
                 padding: 0 15px;
-                .glyphicon {
+                .fa ,.glyphicon {
                     width: 25px;
+                    text-align: center;
+                    left: -5px;
+                    position: relative;
                 }
             }
         }

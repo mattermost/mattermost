@@ -20,7 +20,6 @@
 	background: #fff;
     @include display-flex;
     @include flex-direction(column);
-    flex-direction: column;
 	.channel__wrap & {
 		padding-top: 0;
 	}

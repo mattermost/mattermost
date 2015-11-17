@@ -332,18 +332,19 @@ body.ios {
 	}
 	.post-create-footer {
 		@include clearfix;
-		padding: 0;
+		padding: 3px 0 0 0;
+		font-size: 13px;
 		.has-error {
 			.control-label {
+				height: 0;
+				display: block;
 				font-weight: normal;
 				margin-bottom: 0;
 			}
 		}
 		.msg-typing {
 			min-height: 25px;
-			line-height: 25px;
 			display: block;
-			font-size: 13px;
 			@include opacity(0.7);
 		}
 	}
@@ -416,9 +417,6 @@ body.ios {
 				display: none;
 			}
 		}
-	}
-	.post-create-footer {
-		padding: 0;
 	}
 	p {
 		margin: 0 0 1em;
@@ -545,13 +543,14 @@ body.ios {
 		}
 		&.post-info {
 			.post-profile-time {
-				color: #a8adb7;
 				vertical-align: top;
+				width: 150px;
 				max-width: 220px;
 				overflow: hidden;
 				display: block;
 				white-space: nowrap;
 				text-overflow: ellipsis;
+				margin: 0 0 0 50px;
 			}
 		}
 		.post-header-col {
@@ -577,7 +576,7 @@ body.ios {
 			}
 		}
 		.post-profile-time {
-			color: #a8adb7;
+			@include opacity(0.5);
 		}
 	}
 	.post-comment {

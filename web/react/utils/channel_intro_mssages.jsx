@@ -92,6 +92,7 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
             </a>
             <a
                 href='#'
+                className='intro-links'
                 onClick={showInviteModal}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this channel'}
