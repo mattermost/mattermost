@@ -30,7 +30,7 @@ If you're upgrading across multiple major releases, from 1.0.x to 1.2.x for exam
   1. Run `sudo start mattermost`
   2. Go to the **System Console** to update any settings that have been added or modified based on the **Compatibility** section in the release notes of the version you are installing (Release notes across versions are available from the [CHANGELOG](https://github.com/mattermost/platform/blob/master/CHANGELOG.md)). 
     1. Opening the System Console and saving a change will upgrade your `config.json` schema to the latest version using default values for new settings added
-7. Test the system is working by going to the URL of an existing team
+7. Test the system is working by going to the URL of an existing team. You may need to refresh your Mattermost browser page in order to get the latest updates from the upgrade
 
 ### Upgrading from Mattermost Beta (Version 0.7)
 
