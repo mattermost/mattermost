@@ -569,13 +569,15 @@ Usage:
 
     -permanent_delete_user            Permanently deletes a user and all related information
                                       include posts from the database.  It requires the 
-                                      -team_name, and -email flag.
+                                      -team_name, and -email flag.  You may need to restart the
+                                      server to invlidate the cache
         Example:
             platform -permanent_delete_user -team_name="name" -email="user@example.com"
 
     -permanent_delete_team            Permanently deletes a team and all users along with
                                        all related information including posts from the database.
-                                      It requires the -team_name flag.
+                                      It requires the -team_name flag.  You may need to restart
+                                      the server to invalidate the cache.
         Example:
             platform -permanent_delete_team -team_name="name"
 
