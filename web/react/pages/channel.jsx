@@ -10,7 +10,6 @@ var ErrorStore = require('../stores/error_store.jsx');
 var MentionList = require('../components/mention_list.jsx');
 var GetLinkModal = require('../components/get_link_modal.jsx');
 var EditChannelModal = require('../components/edit_channel_modal.jsx');
-var DeleteChannelModal = require('../components/delete_channel_modal.jsx');
 var RenameChannelModal = require('../components/rename_channel_modal.jsx');
 var EditPostModal = require('../components/edit_post_modal.jsx');
 var DeletePostModal = require('../components/delete_post_modal.jsx');
@@ -98,11 +97,6 @@ function setupChannelPage(props) {
     ReactDOM.render(
         <EditChannelModal />,
         document.getElementById('edit_channel_modal')
-    );
-
-    ReactDOM.render(
-        <DeleteChannelModal />,
-        document.getElementById('delete_channel_modal')
     );
 
     ReactDOM.render(

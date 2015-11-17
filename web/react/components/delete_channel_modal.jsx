@@ -1,102 +1,72 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Client = require('../utils/client.jsx');
 const AsyncClient = require('../utils/async_client.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
+const Client = require('../utils/client.jsx');
+const Modal = require('./modal.jsx');
+const TeamStore = require('../stores/team_store.jsx');
+const Utils = require('../utils/utils.jsx');
 
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleDelete = this.handleDelete.bind(this);
-        this.onShow = this.onShow.bind(this);
-
-        this.state = {
-            title: '',
-            channelId: ''
-        };
     }
+
     handleDelete() {
-        if (this.state.channelId.length !== 26) {
+        if (this.props.channel.id.length !== 26) {
             return;
         }
 
-        Client.deleteChannel(this.state.channelId,
-            function handleDeleteSuccess() {
+        Client.deleteChannel(
+            this.props.channel.id,
+            () => {
                 AsyncClient.getChannels(true);
                 window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
             },
-            function handleDeleteError(err) {
+            (err) => {
                 AsyncClient.dispatchError(err, 'handleDelete');
             }
         );
     }
-    onShow(e) {
-        var button = $(e.relatedTarget);
-        this.setState({
-            title: button.attr('data-title'),
-            channelId: button.attr('data-channelid')
-        });
-    }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', this.onShow);
-    }
+
     render() {
-        const channel = ChannelStore.getCurrent();
-        let channelType = 'channel';
-        if (channel && channel.type === 'P') {
-            channelType = 'private group';
-        }
+        const channelTerm = Utils.getChannelTerm(this.props.channel.type).toLowerCase();
 
         return (
-            <div
-                className='modal fade'
-                ref='modal'
-                id='delete_channel'
-                role='dialog'
-                tabIndex='-1'
-                aria-hidden='true'
+            <Modal
+                show={this.props.show}
+                onHide={this.props.onHide}
             >
-                <div className='modal-dialog'>
-                    <div className='modal-content'>
-                        <div className='modal-header'>
-                            <button
-                                type='button'
-                                className='close'
-                                data-dismiss='modal'
-                                aria-label='Close'
-                            >
-                                <span aria-hidden='true'>&times;</span>
-                            </button>
-                            <h4 className='modal-title'>Confirm DELETE Channel</h4>
-                        </div>
-                        <div className='modal-body'>
-                            <p>
-                                Are you sure you wish to delete the {this.state.title} {channelType}?
-                            </p>
-                        </div>
-                        <div className='modal-footer'>
-                            <button
-                                type='button'
-                                className='btn btn-default'
-                                data-dismiss='modal'
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type='button'
-                                className='btn btn-danger'
-                                data-dismiss='modal'
-                                onClick={this.handleDelete}
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <Modal.Header closeButton={true}>{'Confirm DELETE Channel'}</Modal.Header>
+                <Modal.Body>
+                    {`Are you sure you wish to delete the ${this.props.channel.display_name} ${channelTerm}?`}
+                </Modal.Body>
+                <Modal.Footer>
+                    <button
+                        type='button'
+                        className='btn btn-default'
+                        onClick={this.props.onHide}
+                    >
+                        {'Cancel'}
+                    </button>
+                    <button
+                        type='button'
+                        className='btn btn-danger'
+                        data-dismiss='modal'
+                        onClick={this.handleDelete}
+                    >
+                        {'Delete'}
+                    </button>
+                </Modal.Footer>
+            </Modal>
         );
     }
 }
+
+DeleteChannelModal.propTypes = {
+    show: React.PropTypes.bool.isRequired,
+    onHide: React.PropTypes.func.isRequired,
+    channel: React.PropTypes.object.isRequired
+};

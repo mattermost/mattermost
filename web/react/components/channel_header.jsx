@@ -9,6 +9,7 @@ const ChannelInfoModal = require('./channel_info_modal.jsx');
 const ChannelInviteModal = require('./channel_invite_modal.jsx');
 const ChannelMembersModal = require('./channel_members_modal.jsx');
 const ChannelNotificationsModal = require('./channel_notifications_modal.jsx');
+const DeleteChannelModal = require('./delete_channel_modal.jsx');
 const ToggleModalButton = require('./toggle_modal_button.jsx');
 
 const ChannelStore = require('../stores/channel_store.jsx');
@@ -300,16 +301,13 @@ export default class ChannelHeader extends React.Component {
                             key='delete_channel'
                             role='presentation'
                         >
-                            <a
+                            <ToggleModalButton
                                 role='menuitem'
-                                href='#'
-                                data-toggle='modal'
-                                data-target='#delete_channel'
-                                data-title={channel.display_name}
-                                data-channelid={channel.id}
+                                dialogType={DeleteChannelModal}
+                                dialogProps={{channel}}
                             >
                                 {'Delete '}{channelTerm}{'...'}
-                            </a>
+                            </ToggleModalButton>
                         </li>
                     );
                 }
