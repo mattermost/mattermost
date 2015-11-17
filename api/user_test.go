@@ -767,6 +767,43 @@ func TestUserUpdateActive(t *testing.T) {
 	}
 }
 
+func TestUserPermDelete(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "search for post1"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "search for post2"}
+	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
+
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag search for post3"}
+	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
+
+	post4 := &model.Post{ChannelId: channel1.Id, Message: "hashtag for post4"}
+	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "test"
+
+	err := PermanentDeleteUser(c, user1)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSendPasswordReset(t *testing.T) {
 	Setup()
 

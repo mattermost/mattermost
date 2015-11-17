@@ -616,7 +616,7 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 	return storeChannel
 }
 
-func (s SqlChannelStore) DeleteMember(userId string) StoreChannel {
+func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

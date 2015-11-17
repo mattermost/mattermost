@@ -158,7 +158,7 @@ func (me SqlSessionStore) RemoveAllSessionsForTeam(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (me SqlSessionStore) RemoveAllSessionsForUser(userId string) StoreChannel {
+func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

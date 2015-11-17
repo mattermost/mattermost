@@ -582,6 +582,32 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(oldTeam.ToJson()))
 }
 
+func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
+	l4g.Warn("Attempting to permanently delete team %v id=%v", team.Name, team.Id)
+
+	team.DeleteAt = model.GetMillis()
+	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.User().GetForExport(team.Id); result.Err != nil {
+		return result.Err
+	} else {
+		users := result.Data.([]*model.User)
+		for _, user := range users {
+			PermanentDeleteUser(c, user)
+		}
+	}
+
+	if result := <-Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
+		return result.Err
+	}
+
+	l4g.Warn("Permanently deleted team %v id=%v", team.Name, team.Id)
+
+	return nil
+}
+
 func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(c.Session.TeamId) == 0 {

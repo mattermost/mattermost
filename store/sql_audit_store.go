@@ -87,7 +87,7 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlAuditStore) Delete(userId string) StoreChannel {
+func (s SqlAuditStore) PermanentDeleteByUser(userId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 

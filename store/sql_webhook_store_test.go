@@ -121,7 +121,7 @@ func TestWebhookStoreDeleteIncomingByUser(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.Webhook().DeleteIncomingByUser(o1.UserId); r2.Err != nil {
+	if r2 := <-store.Webhook().PermanentDeleteIncomingByUser(o1.UserId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 
@@ -305,7 +305,7 @@ func TestWebhookStoreDeleteOutgoingByUser(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.Webhook().DeleteOutgoingByUser(o1.CreatorId); r2.Err != nil {
+	if r2 := <-store.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 

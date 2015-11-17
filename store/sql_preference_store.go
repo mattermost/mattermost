@@ -240,7 +240,7 @@ func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) Delete(userId string) StoreChannel {
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

@@ -333,7 +333,7 @@ func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) RemoveAuthDataByUserId(userId string) StoreChannel {
+func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

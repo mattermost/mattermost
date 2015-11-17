@@ -119,7 +119,7 @@ func TestSessionRemoveByUser(t *testing.T) {
 		}
 	}
 
-	Must(store.Session().RemoveAllSessionsForUser(s1.UserId))
+	Must(store.Session().PermanentDeleteSessionsByUser(s1.UserId))
 
 	if rs2 := (<-store.Session().Get(s1.Id)); rs2.Err == nil {
 		t.Fatal("should have been removed")

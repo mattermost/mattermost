@@ -228,15 +228,90 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) PermanentDelete(userId string) StoreChannel {
+func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "ParentId": postId, "RootId": postId})
+		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"Id": postId, "ParentId": postId, "RootId": postId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", "We couldn't delete the comments for user", "userId="+userId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		// First attempt to delete all the comments for a user
+		if r := <-s.permanentDeleteAllCommentByUser(userId); r.Err != nil {
+			result.Err = r.Err
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		// Now attempt to delete all the root posts for a user.  This will also
+		// delete all the comments for each post.
+		found := true
+		count := 0
+
+		for found {
+			var ids []string
+			_, err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = :UserId LIMIT 1000", map[string]interface{}{"UserId": userId})
+			if err != nil {
+				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", "We couldn't select the posts to delete for the user", "userId="+userId+", err="+err.Error())
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				found = false
+				for _, id := range ids {
+					found = true
+					if r := <-s.permanentDelete(id); r.Err != nil {
+						result.Err = r.Err
+						storeChannel <- result
+						close(storeChannel)
+						return
+					}
+				}
+			}
+
+			// This is a fail safe, give up if more than 10K messages
+			count = count + 1
+			if count >= 10 {
+				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "We couldn't select the posts to delete for the user (too many), please re-run", "userId="+userId)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
 		}
 
 		storeChannel <- result

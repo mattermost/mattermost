@@ -555,7 +555,7 @@ func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) Delete(userId string) StoreChannel {
+func (us SqlUserStore) PermanentDelete(userId string) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 

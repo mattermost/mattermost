@@ -181,7 +181,7 @@ func TestOAuthStoreRemoveAuthData(t *testing.T) {
 	}
 }
 
-func TestOAuthStoreRemoveAuthDataByUserId(t *testing.T) {
+func TestOAuthStoreRemoveAuthDataByUser(t *testing.T) {
 	Setup()
 
 	a1 := model.AuthData{}
@@ -190,7 +190,7 @@ func TestOAuthStoreRemoveAuthDataByUserId(t *testing.T) {
 	a1.Code = model.NewId()
 	Must(store.OAuth().SaveAuthData(&a1))
 
-	if err := (<-store.OAuth().RemoveAuthDataByUserId(a1.UserId)).Err; err != nil {
+	if err := (<-store.OAuth().PermanentDeleteAuthDataByUser(a1.UserId)).Err; err != nil {
 		t.Fatal(err)
 	}
 }

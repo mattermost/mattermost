@@ -1196,6 +1196,14 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	ruser := UpdateActive(c, user, active)
+
+	if c.Err == nil {
+		w.Write([]byte(ruser.ToJson()))
+	}
+}
+
+func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 	if active {
 		user.DeleteAt = 0
 	} else {
@@ -1204,7 +1212,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
 		c.Err = result.Err
-		return
+		return nil
 	} else {
 		c.LogAuditWithUserId(user.Id, fmt.Sprintf("active=%v", active))
 
@@ -1216,8 +1224,59 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		options := utils.SanitizeOptions
 		options["passwordupdate"] = false
 		ruser.Sanitize(options)
-		w.Write([]byte(ruser.ToJson()))
+		return ruser
 	}
+}
+
+func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
+	l4g.Warn("Attempting to permanently delete account %v id=%v", user.Email, user.Id)
+	c.Path = "/user/permanent_delete"
+	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt"))
+	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) {
+		l4g.Warn("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", user.Email)
+	}
+
+	UpdateActive(c, user, false)
+
+	if result := <-Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	l4g.Warn("Permanently deleted account %v id=%v", user.Email, user.Id)
+
+	return nil
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {

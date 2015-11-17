@@ -301,7 +301,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) Delete(teamId string) StoreChannel {
+func (s SqlTeamStore) PermanentDelete(teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

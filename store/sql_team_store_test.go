@@ -257,7 +257,7 @@ func TestDelete(t *testing.T) {
 	o2.Type = model.TEAM_OPEN
 	Must(store.Team().Save(&o2))
 
-	if r1 := <-store.Team().Delete(o1.Id); r1.Err != nil {
+	if r1 := <-store.Team().PermanentDelete(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 }

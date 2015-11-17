@@ -116,7 +116,7 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) DeleteIncomingByUser(userId string) StoreChannel {
+func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -312,7 +312,7 @@ func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) DeleteOutgoingByUser(userId string) StoreChannel {
+func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
