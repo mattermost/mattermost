@@ -201,14 +201,12 @@ export default class Login extends React.Component {
         if (global.window.mm_config.EnableTeamCreation === 'true') {
             teamSignUp = (
                 <div className='margin--extra'>
-                    <span>{'Want to create your own team? '}
-                        <a
-                            href='/'
-                            className='signup-team-login'
-                        >
-                            {'Create one now'}
-                        </a>
-                    </span>
+                    <a
+                        href='/'
+                        className='signup-team-login'
+                    >
+                        {'Create a new team'}
+                    </a>
                 </div>
             );
         }
@@ -227,7 +225,7 @@ export default class Login extends React.Component {
                     {emailSignup}
                     {userSignUp}
                     <div className='form-group margin--extra form-group--small'>
-                        <span><a href='/find_team'>{'Find other teams'}</a></span>
+                        <span><a href='/find_team'>{'Find your other teams'}</a></span>
                     </div>
                     {forgotPassword}
                     {teamSignUp}
