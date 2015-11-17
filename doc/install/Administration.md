@@ -43,7 +43,7 @@ To enable this:
 
 1. In Mattermost, from a team site where you have System Administration privileges, from the main menu go to **System Console** > **Serice Settings** > **Enable Incoming Webhooks** and select **true** then click **Save**
 
-2. Follow the step-by-step example of [connecting Mattermost incoming webhooks to GitLab's Slack webhooks UI]((https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md#connecting-mattermost-to-gitlab-using-slack-ui)). 
+2. Follow the step-by-step example of [connecting Mattermost incoming webhooks to GitLab's Slack webhooks UI](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md#connecting-mattermost-to-gitlab-using-slack-ui). 
 
 #### Connecting Mattermost to GitLab for functionality exceeding Slack integration. 
 
