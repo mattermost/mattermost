@@ -3,6 +3,7 @@
 
 import * as Utils from './utils.jsx';
 import EditChannelHeaderModal from '../components/edit_channel_header_modal.jsx';
+import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
 import InviteMemberModal from '../components/invite_member_modal.jsx';
 import ToggleModalButton from '../components/toggle_modal_button.jsx';
 import UserProfile from '../components/user_profile.jsx';
@@ -50,13 +51,7 @@ export function createDMIntroMessage(channel) {
                     {'This is the start of your direct message history with ' + teammateName + '.'}<br/>
                     {'Direct messages and files shared here are not shown to people outside this area.'}
                 </p>
-                <ToggleModalButton
-                    className='intro-links'
-                    dialogType={EditChannelHeaderModal}
-                    dialogProps={{channel}}
-                >
-                    <i className='fa fa-pencil'></i>{'Set a header'}
-                </ToggleModalButton>
+                {createSetHeaderButton(channel)}
             </div>
         );
     }
@@ -76,13 +71,7 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
                 {'This is the start of ' + channel.display_name + ', a channel for non-work-related conversations.'}
                 <br/>
             </p>
-            <ToggleModalButton
-                className='intro-links'
-                dialogType={EditChannelHeaderModal}
-                dialogProps={{channel}}
-            >
-                <i className='fa fa-pencil'></i>{'Set a header'}
-            </ToggleModalButton>
+            {createSetHeaderButton(channel)}
             <a
                 href='#'
                 className='intro-links'
@@ -131,13 +120,7 @@ export function createDefaultIntroMessage(channel) {
                 {'This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'}
             </p>
             {inviteModalLink}
-            <ToggleModalButton
-                className='intro-links'
-                dialogType={EditChannelHeaderModal}
-                dialogProps={{channel}}
-            >
-                <i className='fa fa-pencil'></i>{'Set a header'}
-            </ToggleModalButton>
+            {createSetHeaderButton(channel)}
             <br/>
         </div>
     );
@@ -182,13 +165,7 @@ export function createStandardIntroMessage(channel, showInviteModal) {
                 {memberMessage}
                 <br/>
             </p>
-            <ToggleModalButton
-                className='intro-links'
-                dialogType={EditChannelHeaderModal}
-                dialogProps={{channel}}
-            >
-                <i className='fa fa-pencil'></i>{'Set a header'}
-            </ToggleModalButton>
+            {createSetHeaderButton(channel)}
             <a
                 className='intro-links'
                 href='#'
@@ -197,5 +174,17 @@ export function createStandardIntroMessage(channel, showInviteModal) {
                 <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
             </a>
         </div>
+    );
+}
+
+function createSetHeaderButton(channel) {
+    return (
+        <ToggleModalButton
+            className='intro-links'
+            dialogType={EditChannelHeaderModal}
+            dialogProps={{channel}}
+        >
+            <i className='fa fa-pencil'></i>{'Set a header'}
+        </ToggleModalButton>
     );
 }
