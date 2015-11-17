@@ -72,7 +72,7 @@ class BrowserStoreClass {
             console.log('An error occurred while setting local storage, clearing all props'); //eslint-disable-line no-console
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = window.location.href;
+            window.location.reload(true);
         }
     }
 
