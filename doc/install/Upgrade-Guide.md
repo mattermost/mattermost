@@ -4,6 +4,8 @@
 
 Each release of Mattermost contains logic to upgrade it from the previously major build version. For example, version 1.2 upgrades the database and configuration data schema for a Mattermost version 1.1 server. The following procedure outlines how to upgrade Mattermost to the next major release version. 
 
+If you're upgrading across multiple major releases, from 1.0.x to 1.2.x for example, please run the following procedure once for each incremental upgrade, in sequential order. 
+
 1. Download the **next major build release** of your server
   1.  Determine the current version of your Mattermost server 
     1. Go to any team site, opening the main menu at the top right of the left-hand sidebar and selecting **About Mattermost**
@@ -11,7 +13,7 @@ Each release of Mattermost contains logic to upgrade it from the previously majo
     1. For example, if your current version is 1.1.0, you want to select version 1.2.0. 
       1. In some cases there will be **minor build releases**, such as 1.2.1 and 1.2.2. The minor build number indicates a bug fix or security issue release. Testing on minor build versions is less extensive than on major build versions and it is recommended that you use the minor build only if you need the specific additions included. 
   3. Review Release Notes 
-    1. Check the release notes for the version of Mattermost you are able to install, and note any setting changes in the **Compatibility** section that apply to your deployment
+    1. Check the release notes for the version of Mattermost you are able to install, and note any setting changes in the **Compatibility** section that apply to your deployment (Release notes across versions are available from the [CHANGELOG](https://github.com/mattermost/platform/blob/master/CHANGELOG.md)). 
   4. Download the `mattermost.tar.gz` file with the correct version for your upgrade
     1. You can use `wget` to retrieve a specific version. For example, to download v1.1.0 run `wget https://github.com/mattermost/platform/releases/download/v1.1.0/mattermost.tar.gz`
 2. Stop the Mattermost Server
@@ -26,8 +28,8 @@ Each release of Mattermost contains logic to upgrade it from the previously majo
 5. Restore the state of your server by copying the backed up version of `config.json` in place of the default `config.json` 
 6. Start your server and address any setting changes relevant in the latest version of Mattermost
   1. Run `sudo start mattermost`
-  2. The server will upgrade your database schema to be compatibile with the new release, as well as upgrade your `config.json` file to the latest format, using default values for new settings added
-  3. Go to the System Console to update any settings that have been added or modified based on the **Compatibility** documentation in the release notes
+  2. Go to the **System Console** to update any settings that have been added or modified based on the **Compatibility** section in the release notes of the version you are installing (Release notes across versions are available from the [CHANGELOG](https://github.com/mattermost/platform/blob/master/CHANGELOG.md)). 
+    1. Opening the System Console and saving a change will upgrade your `config.json` schema to the latest version using default values for new settings added
 7. Test the system is working by going to the URL of an existing team
 
 ### Upgrading from Mattermost Beta (Version 0.7)
