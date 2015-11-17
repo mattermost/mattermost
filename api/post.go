@@ -544,11 +544,10 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 							alreadySeen := make(map[string]string)
 
 							for _, session := range sessions {
-								if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" {
-
+								if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" && strings.HasPrefix(session.DeviceId, "apple:") {
 									alreadySeen[session.DeviceId] = session.DeviceId
 
-									utils.SendAppleNotifyAndForget(session.DeviceId, subjectPage.Render(), 1)
+									utils.SendAppleNotifyAndForget(strings.TrimPrefix(session.DeviceId, "apple:"), subjectPage.Render(), 1)
 								}
 							}
 						}
