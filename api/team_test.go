@@ -203,6 +203,8 @@ func TestTeamPermDelete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	Client.ClearOAuthToken()
 }
 
 /*
@@ -258,6 +260,7 @@ func TestFindTeamByEmailSend(t *testing.T) {
 	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	if _, err := Client.FindTeamsSendEmail(user.Email); err != nil {
 		t.Fatal(err)

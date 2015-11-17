@@ -802,6 +802,8 @@ func TestUserPermDelete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	Client.ClearOAuthToken()
 }
 
 func TestSendPasswordReset(t *testing.T) {
