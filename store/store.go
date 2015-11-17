@@ -61,6 +61,7 @@ type ChannelStore interface {
 	Update(channel *model.Channel) StoreChannel
 	Get(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
+	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, domain string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string) StoreChannel
