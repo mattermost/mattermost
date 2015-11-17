@@ -33,11 +33,35 @@ For help and support around your GitLab Mattermost deployment please see:
 - [GitLab Mattermost discussion forum](https://forum.mattermost.org/c/general/gitlab)
 - [GitLab Mattermost issue tracker on GitLab.com](https://gitlab.com/gitlab-org/gitlab-mattermost/issues)
 
-### Setting up realtime notifications from GitLab to Mattermost 
+### Connecting Mattermost to integrations with incoming webhooks
 
-To set up standard notification from GitLab to Mattermost [follow these steps](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md#connecting-mattermost-to-gitlab-using-slack-ui).
+#### Connecting Mattermost to GitLab for Slack-equivalent functionality. 
 
-To set up a set of fully customizable realtime notifications from GitLab to Mattermost you can run the [GitLab Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-gitlab).
+Mattermost is designed to be _Slack-compatible, not Slack-limited_ and supports integration via the Slack UI in GitLab, as well as fully customizable integrations. 
+
+To enable this: 
+
+1. In Mattermost, from a team site where you have System Administration privileges, from the main menu go to **System Console** > **Serice Settings** > **Enable Incoming Webhooks** and select **true** then click **Save**
+
+2. Follow the step-by-step example of [connecting Mattermost incoming webhooks to GitLab's Slack webhooks UI](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Incoming-Webhooks.md#connecting-mattermost-to-gitlab-using-slack-ui). 
+
+#### Connecting Mattermost to GitLab for functionality exceeding Slack integration. 
+
+To enable this: 
+
+1. In Mattermost, from a team site where you have System Administration privileges, from the main menu go to **System Console** > **Serice Settings** > **Enable Incoming Webhooks** and select **true** then click **Save**
+
+2. Set up the [GitLab Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-gitlab).
+
+### Connecting Mattermost to integrations with outgoing webhooks
+
+Mattermost offers Slack-compatible outgoing webhooks, that can connect to applications created by the Mattermost community, such as [Hubot](https://www.npmjs.com/package/hubot-mattermost) and [IRC](https://github.com/42wim/matterbridge) support. 
+
+To enable this: 
+
+1. In Mattermost, from a team site where you have System Administration privileges, from the main menu go to **System Console** > **Serice Settings** > **Enable Outgoing Webhooks** and select **true** then click **Save**
+
+2. Select a [Mattermost community application](http://www.mattermost.org/community-applications/) using outgoing webhooks--or adapt a Slack application using the same outgoing webhook standard--and follow the setup instructions provided. 
 
 ### Upgrading GitLab Mattermost manually
 
