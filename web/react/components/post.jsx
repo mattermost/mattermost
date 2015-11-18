@@ -13,8 +13,6 @@ var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
 var utils = require('../utils/utils.jsx');
 
-var PostInfo = require('./post_info.jsx');
-
 export default class Post extends React.Component {
     constructor(props) {
         super(props);
