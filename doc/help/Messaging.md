@@ -4,7 +4,7 @@
 
 You can write messages using the input box with the text "Write a message..." at the bottom of Mattermost. 
 
-Press **ENTER** to send a message. Use **Ctrl+ENTER** to create a new line without sending a message. 
+Press **ENTER** to send a message. Use **Shift+ENTER** to create a new line without sending a message. 
 
 ## Formatting Messages
 
