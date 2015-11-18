@@ -304,7 +304,7 @@
 }
 @media screen and (max-width: 768px) {
     .textarea-wrapper {
-        .textbox-preview-link {
+        .textbox-preview-link, .textbox-help-link {
             display: none;
         }
     }
