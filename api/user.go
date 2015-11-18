@@ -1230,8 +1230,9 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 
 func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	l4g.Warn("Attempting to permanently delete account %v id=%v", user.Email, user.Id)
-	c.Path = "/user/permanent_delete"
-	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt"))
+	c.Path = "/users/permanent_delete"
+	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id))
+	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id))
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) {
 		l4g.Warn("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", user.Email)
 	}
@@ -1275,6 +1276,7 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 	}
 
 	l4g.Warn("Permanently deleted account %v id=%v", user.Email, user.Id)
+	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
 
 	return nil
 }

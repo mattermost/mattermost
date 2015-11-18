@@ -30,8 +30,8 @@ var flagCmdCreateUser bool
 var flagCmdAssignRole bool
 var flagCmdVersion bool
 var flagCmdResetPassword bool
-var flagCmdResetPermanentDeleteUser bool
-var flagCmdResetPermanentDeleteTeam bool
+var flagCmdPermanentDeleteUser bool
+var flagCmdPermanentDeleteTeam bool
 var flagConfigFile string
 var flagEmail string
 var flagPassword string
@@ -193,12 +193,18 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
-	flag.BoolVar(&flagCmdResetPermanentDeleteUser, "permanent_delete_user", false, "")
-	flag.BoolVar(&flagCmdResetPermanentDeleteTeam, "permanent_delete_team", false, "")
+	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
+	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
 
 	flag.Parse()
 
-	flagRunCmds = flagCmdCreateTeam || flagCmdCreateUser || flagCmdAssignRole || flagCmdResetPassword || flagCmdVersion || flagCmdResetPermanentDeleteUser || flagCmdResetPermanentDeleteTeam
+	flagRunCmds = (flagCmdCreateTeam ||
+		flagCmdCreateUser ||
+		flagCmdAssignRole ||
+		flagCmdResetPassword ||
+		flagCmdVersion ||
+		flagCmdPermanentDeleteUser ||
+		flagCmdPermanentDeleteTeam)
 }
 
 func runCmds() {
@@ -413,7 +419,7 @@ func cmdResetPassword() {
 }
 
 func cmdPermDeleteUser() {
-	if flagCmdResetPermanentDeleteUser {
+	if flagCmdPermanentDeleteUser {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
 			flag.Usage()
@@ -470,7 +476,7 @@ func cmdPermDeleteUser() {
 }
 
 func cmdPermDeleteTeam() {
-	if flagCmdResetPermanentDeleteTeam {
+	if flagCmdPermanentDeleteTeam {
 		if len(flagTeamName) == 0 {
 			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
 			flag.Usage()

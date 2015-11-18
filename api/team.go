@@ -584,6 +584,8 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 	l4g.Warn("Attempting to permanently delete team %v id=%v", team.Name, team.Id)
+	c.Path = "/teams/permanent_delete"
+	c.LogAuditWithUserId("", fmt.Sprintf("attempt teamId=%v", team.Id))
 
 	team.DeleteAt = model.GetMillis()
 	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
@@ -608,6 +610,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team) *model.AppError {
 	}
 
 	l4g.Warn("Permanently deleted team %v id=%v", team.Name, team.Id)
+	c.LogAuditWithUserId("", fmt.Sprintf("success teamId=%v", team.Id))
 
 	return nil
 }
