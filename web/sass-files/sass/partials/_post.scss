@@ -395,6 +395,9 @@ body.ios {
 			}
 		}
 		&.same--root {
+			&.same--user .post__content {
+				padding-left: 0;
+			}
 			.post-body {
 				@include border-radius(0 4px 4px 0);
 			}
