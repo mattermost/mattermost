@@ -59,8 +59,7 @@ func FindDir(dir string) string {
 func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
 	ls.EnableConsole = true
-	ls.ConsoleLevel = "ERROR"
-	ls.EnableFile = false
+	ls.ConsoleLevel = "WARN"
 	configureLog(&ls)
 }
 
@@ -72,6 +71,8 @@ func configureLog(s *model.LogSettings) {
 		level := l4g.DEBUG
 		if s.ConsoleLevel == "INFO" {
 			level = l4g.INFO
+		} else if s.ConsoleLevel == "WARN" {
+			level = l4g.WARNING
 		} else if s.ConsoleLevel == "ERROR" {
 			level = l4g.ERROR
 		}
@@ -90,6 +91,8 @@ func configureLog(s *model.LogSettings) {
 		level := l4g.DEBUG
 		if s.FileLevel == "INFO" {
 			level = l4g.INFO
+		} else if s.FileLevel == "WARN" {
+			level = l4g.WARNING
 		} else if s.FileLevel == "ERROR" {
 			level = l4g.ERROR
 		}

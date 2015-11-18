@@ -103,6 +103,34 @@ func TestWebhookStoreDeleteIncoming(t *testing.T) {
 	}
 }
 
+func TestWebhookStoreDeleteIncomingByUser(t *testing.T) {
+	Setup()
+
+	o1 := &model.IncomingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.TeamId = model.NewId()
+
+	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+
+	if r1 := <-store.Webhook().GetIncoming(o1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
+			t.Fatal("invalid returned webhook")
+		}
+	}
+
+	if r2 := <-store.Webhook().PermanentDeleteIncomingByUser(o1.UserId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	}
+
+	if r3 := (<-store.Webhook().GetIncoming(o1.Id)); r3.Err == nil {
+		t.Log(r3.Data)
+		t.Fatal("Missing id should have failed")
+	}
+}
+
 func TestWebhookStoreSaveOutgoing(t *testing.T) {
 	Setup()
 
@@ -249,6 +277,35 @@ func TestWebhookStoreDeleteOutgoing(t *testing.T) {
 	}
 
 	if r2 := <-store.Webhook().DeleteOutgoing(o1.Id, model.GetMillis()); r2.Err != nil {
+		t.Fatal(r2.Err)
+	}
+
+	if r3 := (<-store.Webhook().GetOutgoing(o1.Id)); r3.Err == nil {
+		t.Log(r3.Data)
+		t.Fatal("Missing id should have failed")
+	}
+}
+
+func TestWebhookStoreDeleteOutgoingByUser(t *testing.T) {
+	Setup()
+
+	o1 := &model.OutgoingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.CreatorId = model.NewId()
+	o1.TeamId = model.NewId()
+	o1.CallbackURLs = []string{"http://nowhere.com/"}
+
+	o1 = (<-store.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+
+	if r1 := <-store.Webhook().GetOutgoing(o1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.OutgoingWebhook).CreateAt != o1.CreateAt {
+			t.Fatal("invalid returned webhook")
+		}
+	}
+
+	if r2 := <-store.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 

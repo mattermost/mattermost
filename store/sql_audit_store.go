@@ -86,3 +86,22 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlAuditStore) PermanentDeleteByUser(userId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
+			map[string]interface{}{"userId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlAuditStore.Delete", "We encountered an error deleting the audits", "user_id="+userId)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

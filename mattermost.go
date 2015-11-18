@@ -30,6 +30,8 @@ var flagCmdCreateUser bool
 var flagCmdAssignRole bool
 var flagCmdVersion bool
 var flagCmdResetPassword bool
+var flagCmdPermanentDeleteUser bool
+var flagCmdPermanentDeleteTeam bool
 var flagConfigFile string
 var flagEmail string
 var flagPassword string
@@ -191,10 +193,18 @@ func parseCmds() {
 	flag.BoolVar(&flagCmdAssignRole, "assign_role", false, "")
 	flag.BoolVar(&flagCmdVersion, "version", false, "")
 	flag.BoolVar(&flagCmdResetPassword, "reset_password", false, "")
+	flag.BoolVar(&flagCmdPermanentDeleteUser, "permanent_delete_user", false, "")
+	flag.BoolVar(&flagCmdPermanentDeleteTeam, "permanent_delete_team", false, "")
 
 	flag.Parse()
 
-	flagRunCmds = flagCmdCreateTeam || flagCmdCreateUser || flagCmdAssignRole || flagCmdResetPassword || flagCmdVersion
+	flagRunCmds = (flagCmdCreateTeam ||
+		flagCmdCreateUser ||
+		flagCmdAssignRole ||
+		flagCmdResetPassword ||
+		flagCmdVersion ||
+		flagCmdPermanentDeleteUser ||
+		flagCmdPermanentDeleteTeam)
 }
 
 func runCmds() {
@@ -203,6 +213,8 @@ func runCmds() {
 	cmdCreateUser()
 	cmdAssignRole()
 	cmdResetPassword()
+	cmdPermDeleteUser()
+	cmdPermDeleteTeam()
 }
 
 func cmdCreateTeam() {
@@ -406,6 +418,106 @@ func cmdResetPassword() {
 	}
 }
 
+func cmdPermDeleteUser() {
+	if flagCmdPermanentDeleteUser {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		if len(flagEmail) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		c := &api.Context{}
+		c.RequestId = model.NewId()
+		c.IpAddress = "cmd_line"
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var user *model.User
+		if result := <-api.Srv.Store.User().GetByEmail(team.Id, flagEmail); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			user = result.Data.(*model.User)
+		}
+
+		var confirmBackup string
+		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirmBackup)
+		if confirmBackup != "YES" {
+			flushLogAndExit(1)
+		}
+
+		var confirm string
+		fmt.Printf("Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ", user.Email)
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			flushLogAndExit(1)
+		}
+
+		if err := api.PermanentDeleteUser(c, user); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+	}
+}
+
+func cmdPermDeleteTeam() {
+	if flagCmdPermanentDeleteTeam {
+		if len(flagTeamName) == 0 {
+			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		c := &api.Context{}
+		c.RequestId = model.NewId()
+		c.IpAddress = "cmd_line"
+
+		var team *model.Team
+		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			l4g.Error("%v", result.Err)
+			flushLogAndExit(1)
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		var confirmBackup string
+		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirmBackup)
+		if confirmBackup != "YES" {
+			flushLogAndExit(1)
+		}
+
+		var confirm string
+		fmt.Printf("Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ", team.Name)
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			flushLogAndExit(1)
+		}
+
+		if err := api.PermanentDeleteTeam(c, team); err != nil {
+			l4g.Error("%v", err)
+			flushLogAndExit(1)
+		} else {
+			flushLogAndExit(0)
+		}
+	}
+}
+
 func flushLogAndExit(code int) {
 	l4g.Close()
 	time.Sleep(time.Second)
@@ -460,6 +572,20 @@ Usage:
                                       -team_name, -email and -password flag.
         Example:
             platform -reset_password -team_name="name" -email="user@example.com" -password="newpassword"
+
+    -permanent_delete_user            Permanently deletes a user and all related information
+                                      include posts from the database.  It requires the 
+                                      -team_name, and -email flag.  You may need to restart the
+                                      server to invlidate the cache
+        Example:
+            platform -permanent_delete_user -team_name="name" -email="user@example.com"
+
+    -permanent_delete_team            Permanently deletes a team and all users along with
+                                       all related information including posts from the database.
+                                      It requires the -team_name flag.  You may need to restart
+                                      the server to invalidate the cache.
+        Example:
+            platform -permanent_delete_team -team_name="name"
 
 
 `

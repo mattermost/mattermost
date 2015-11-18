@@ -332,3 +332,21 @@ func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
 
 	return storeChannel
 }
+
+func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := as.GetMaster().Exec("DELETE FROM OAuthAuthData WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthDataByUserId", "We couldn't remove the authorization code", "err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

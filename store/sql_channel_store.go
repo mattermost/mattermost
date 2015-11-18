@@ -279,6 +279,23 @@ func (s SqlChannelStore) Delete(channelId string, time int64) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("DELETE FROM Channels WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "We couldn't delete the channels", "teamId="+teamId+", "+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 type channelWithMember struct {
 	model.Channel
 	model.ChannelMember
@@ -607,6 +624,23 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) StoreChan
 					result.Err = mu.Err
 				}
 			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result

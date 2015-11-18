@@ -377,3 +377,16 @@ func TestUserStoreUpdatePassword(t *testing.T) {
 		}
 	}
 }
+
+func TestUserStoreDelete(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	if err := (<-store.User().PermanentDelete(u1.Id)).Err; err != nil {
+		t.Fatal(err)
+	}
+}

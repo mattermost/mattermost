@@ -239,3 +239,21 @@ func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec(
+			`DELETE FROM Preferences WHERE UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "We encountered an error while deleteing preferences", err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

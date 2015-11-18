@@ -238,3 +238,26 @@ func TestAllTeamListing(t *testing.T) {
 		}
 	}
 }
+
+func TestDelete(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.AllowTeamListing = true
+	Must(store.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Email = model.NewId() + "@nowhere.com"
+	o2.Type = model.TEAM_OPEN
+	Must(store.Team().Save(&o2))
+
+	if r1 := <-store.Team().PermanentDelete(o1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+}

@@ -116,6 +116,24 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChann
 	return storeChannel
 }
 
+func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "We couldn't delete the webhook", "id="+userId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -285,6 +303,24 @@ func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChann
 		_, err := s.GetMaster().Exec("Update OutgoingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoing", "We couldn't delete the webhook", "id="+webhookId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByUser", "We couldn't delete the webhook", "id="+userId+", err="+err.Error())
 		}
 
 		storeChannel <- result

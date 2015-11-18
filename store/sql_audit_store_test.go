@@ -44,4 +44,8 @@ func TestSqlAuditStore(t *testing.T) {
 	if len(audits) != 0 {
 		t.Fatal("Should have returned empty because user_id is missing")
 	}
+
+	if r2 := <-store.Audit().PermanentDeleteByUser(audit.UserId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	}
 }
