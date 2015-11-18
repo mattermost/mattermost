@@ -26,14 +26,14 @@ export default class PostHeader extends React.Component {
                 );
             }
 
-            botIndicator = <li className='post-header-col post-header__name bot-indicator'>{'BOT'}</li>;
+            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
         }
 
         return (
-            <ul className='post-header post-header-post'>
-                <li className='post-header-col post-header__name'><strong>{userProfile}</strong></li>
+            <ul className='post__header'>
+                <li className='col col__name'>{userProfile}</li>
                 {botIndicator}
-                <li className='post-info--hidden'>
+                <li className='col'>
                     <PostInfo
                         post={post}
                         commentCount={this.props.commentCount}

@@ -36,20 +36,6 @@
         height: calc(100% - 56px);
         @include border-radius(2px 0 0 0);
     }
-    .post {
-        .post-header {
-            .post-header-col {
-                &.post-header__reply {
-                    min-width: 30px;
-                    text-align: right;
-                    float: right;
-                }
-            }
-        }
-        .post-body {
-            margin: 3px 0 0;
-        }
-    }
     .sidebar__overlay {
         width: 100%;
         height: 100%;

@@ -9,28 +9,31 @@
 
 	.post-right-comments-container {
 		position: relative;
-		padding: 0;
+		padding: 0.7em 0 0;
 	}
 
 	.post {
+
 		&.post--root {
-			padding: 1em 1em 0;
-			margin: 0 0 1em;
+			padding-bottom: 0;
+		}
+
+		.post__header {
+
+			.col__reply  {
+				top: 0;
+			}
+
+		}
+
+		.post__body {
 			width: 100%;
-			hr {
-				border-color: #DDD;
-				margin: 1em 0 0 0;
-			}
 		}
-		.post-header {
-			.post-profile-time {
-				width: 200px;
-				display: inline-block;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-			}
-		}
+
+	}
+
+	hr {
+		margin-bottom: 0;
 	}
 
 	.post-create__container {

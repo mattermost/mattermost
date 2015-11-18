@@ -34,7 +34,7 @@ export default class TimeSince extends React.Component {
                 placement='top'
                 overlay={tooltip}
             >
-                <time className='post-profile-time'>
+                <time className='post__time'>
                     {Utils.displayDateTime(this.props.eventTime)}
                 </time>
             </OverlayTrigger>
