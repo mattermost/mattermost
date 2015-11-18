@@ -201,10 +201,6 @@ export default class Sidebar extends React.Component {
         });
     }
     updateScrollbar() {
-        if (this.state.windowWidth > 768) {
-            $('.nav-pills__container').perfectScrollbar();
-            $('.nav-pills__container').perfectScrollbar('update');
-        }
     }
     onChange() {
         this.setState(this.getStateFromStores());

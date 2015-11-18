@@ -820,7 +820,37 @@ export function getPosts(channelId, since, success, error, complete) {
     });
 }
 
-export function getPost(channelId, postId, success, error) {
+export function getPostsBefore(channelId, post, offset, numPost, success, error, complete) {
+    $.ajax({
+        url: '/api/v1/channels/' + channelId + '/post/' + post + '/before/' + offset + '/' + numPost,
+        dataType: 'json',
+        type: 'GET',
+        ifModified: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getPostsBefore', xhr, status, err);
+            error(e);
+        },
+        complete: complete
+    });
+}
+
+export function getPostsAfter(channelId, post, offset, numPost, success, error, complete) {
+    $.ajax({
+        url: '/api/v1/channels/' + channelId + '/post/' + post + '/after/' + offset + '/' + numPost,
+        dataType: 'json',
+        type: 'GET',
+        ifModified: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getPostsAfter', xhr, status, err);
+            error(e);
+        },
+        complete: complete
+    });
+}
+
+export function getPost(channelId, postId, success, error, complete) {
     $.ajax({
         cache: false,
         url: '/api/v1/channels/' + channelId + '/post/' + postId,
@@ -831,7 +861,24 @@ export function getPost(channelId, postId, success, error) {
         error: function onError(xhr, status, err) {
             var e = handleError('getPost', xhr, status, err);
             error(e);
-        }
+        },
+        complete
+    });
+}
+
+export function getPostById(postId, success, error, complete) {
+    $.ajax({
+        cache: false,
+        url: '/api/v1/posts/' + postId,
+        dataType: 'json',
+        type: 'GET',
+        ifModified: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('getPostById', xhr, status, err);
+            error(e);
+        },
+        complete
     });
 }
 

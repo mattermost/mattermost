@@ -94,7 +94,7 @@ export default class RhsThread extends React.Component {
             return;
         }
 
-        var currentPosts = PostStore.getPosts(currentSelected.posts[currentSelected.order[0]].channel_id);
+        var currentPosts = PostStore.getVisiblePosts(currentSelected.posts[currentSelected.order[0]].channel_id);
 
         if (!currentPosts || currentPosts.order.length === 0) {
             return;

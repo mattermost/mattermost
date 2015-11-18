@@ -33,7 +33,7 @@
   <div id="removed_from_channel_modal"></div>
   <div id="register_app_modal"></div>
 <script>
-  window.setup_channel_page({{ .Props }});
+window.setup_channel_page({{ .Props }}, {{ .Team }}, {{ .Channel }}, {{ .User }});
   $('body').tooltip( {selector: '[data-toggle=tooltip]'} );
   if($(window).height() > 1200){
     $('.modal-body').css('max-height', 1000);

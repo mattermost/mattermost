@@ -1,17 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SearchStore from '../stores/search_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as utils from '../utils/utils.jsx';
-import * as client from '../utils/client.jsx';
-import * as AsyncClient from '../utils/async_client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from '../utils/constants.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
-var ActionTypes = Constants.ActionTypes;
 
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
@@ -23,32 +18,7 @@ export default class SearchResultsItem extends React.Component {
     handleClick(e) {
         e.preventDefault();
 
-        var self = this;
-
-        client.getPost(
-            this.props.post.channel_id,
-            this.props.post.id,
-            function success(data) {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POST_SELECTED,
-                    post_list: data,
-                    from_search: SearchStore.getSearchTerm()
-                });
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_SEARCH,
-                    results: null,
-                    is_mention_search: self.props.isMentionSearch
-                });
-            },
-            function success(err) {
-                AsyncClient.dispatchError(err, 'getPost');
-            }
-        );
-
-        var postChannel = ChannelStore.get(this.props.post.channel_id);
-
-        utils.switchChannel(postChannel);
+        EventHelpers.emitPostFocusEvent(this.props.post.id);
     }
 
     render() {

@@ -22,6 +22,17 @@ export default class ChannelInviteModal extends React.Component {
 
         this.state = this.getStateFromStores();
     }
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!Utils.areObjectsEqual(this.props, nextProps)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(this.state, nextState)) {
+            return true;
+        }
+
+        return false;
+    }
     getStateFromStores() {
         function getId(user) {
             return user.id;
@@ -105,7 +116,7 @@ export default class ChannelInviteModal extends React.Component {
                 }
 
                 this.setState({inviteError: null, memberIds, nonmembers});
-                AsyncClient.getChannelExtraInfo(true);
+                AsyncClient.getChannelExtraInfo();
             },
             (err) => {
                 this.setState({inviteError: err.message});

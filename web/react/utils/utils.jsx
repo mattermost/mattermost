@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
@@ -839,22 +840,14 @@ export function isValidUsername(name) {
 }
 
 export function updateAddressBar(channelName) {
-    var teamURL = window.location.href.split('/channels')[0];
+    const teamURL = TeamStore.getCurrentTeamUrl();
     history.replaceState('data', '', teamURL + '/channels/' + channelName);
 }
 
 export function switchChannel(channel) {
-    AppDispatcher.handleViewAction({
-        type: ActionTypes.CLICK_CHANNEL,
-        name: channel.name,
-        id: channel.id
-    });
+    EventHelpers.emitChannelClickEvent(channel);
 
     updateAddressBar(channel.name);
-
-    AsyncClient.getChannels(true, true, true);
-    AsyncClient.getChannelExtraInfo(true);
-    AsyncClient.getPosts(channel.id);
 
     $('.inner__wrap').removeClass('move--right');
     $('.sidebar--left').removeClass('move--right');

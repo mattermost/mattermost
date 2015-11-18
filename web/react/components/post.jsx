@@ -105,7 +105,7 @@ export default class Post extends React.Component {
         } else {
             commentRootId = post.id;
         }
-        for (let postId in posts) {
+        for (const postId in posts) {
             if (posts[postId].root_id === commentRootId) {
                 commentCount += 1;
             }
@@ -114,53 +114,58 @@ export default class Post extends React.Component {
         return commentCount;
     }
     render() {
-        var post = this.props.post;
-        var parentPost = this.props.parentPost;
-        var posts = this.props.posts;
+        const post = this.props.post;
+        const parentPost = this.props.parentPost;
+        const posts = this.props.posts;
 
         if (!post.props) {
             post.props = {};
         }
 
-        var type = 'Post';
+        let type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
             type = 'Comment';
         }
 
         const commentCount = this.getCommentCount(this.props);
 
-        var rootUser;
+        let rootUser;
         if (this.props.sameRoot) {
             rootUser = 'same--root';
         } else {
             rootUser = 'other--root';
         }
 
-        var postType = '';
+        let postType = '';
         if (type !== 'Post') {
             postType = 'post--comment';
         } else if (commentCount > 0) {
             postType = 'post--root';
         }
 
-        var currentUserCss = '';
+        let currentUserCss = '';
         if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook) {
             currentUserCss = 'current--user';
         }
 
-        var userProfile = UserStore.getProfile(post.user_id);
+        const userProfile = UserStore.getProfile(post.user_id);
 
-        var timestamp = UserStore.getCurrentUser().update_at;
+        let timestamp = UserStore.getCurrentUser().update_at;
         if (userProfile) {
             timestamp = userProfile.update_at;
         }
 
-        var sameUserClass = '';
+        let sameUserClass = '';
         if (this.props.sameUser) {
             sameUserClass = 'same--user';
         }
 
-        var profilePic = null;
+        let shouldHighlightClass = '';
+        if (this.props.shouldHighlight) {
+            shouldHighlightClass = 'post--highlight';
+        }
+
+        let profilePic = null;
         if (!this.props.hideProfilePic) {
             let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
             if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
@@ -182,7 +187,7 @@ export default class Post extends React.Component {
             <div>
                 <div
                     id={'post_' + post.id}
-                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}
+                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass}
                 >
                     <div className='post__content'>
                         <div className='post__img'>{profilePic}</div>
@@ -218,5 +223,6 @@ Post.propTypes = {
     sameUser: React.PropTypes.bool,
     sameRoot: React.PropTypes.bool,
     hideProfilePic: React.PropTypes.bool,
-    isLastComment: React.PropTypes.bool
+    isLastComment: React.PropTypes.bool,
+    shouldHighlight: React.PropTypes.bool
 };

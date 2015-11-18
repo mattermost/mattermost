@@ -361,6 +361,19 @@ body.ios {
 		.dropdown, .comment-icon__container {
 			visibility: visible;
 		}
+		.permalink-icon {
+			visibility: visible;
+		}
+	}
+
+    &.post--highlight {
+        background-color: beige;
+    }
+
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
 
 	p {
@@ -618,6 +631,12 @@ body.ios {
 		color: #999;
 	}
 
+    .permalink-icon {
+		display: inline-block;
+		color: $primary-color;
+		visibility: hidden;
+    }
+
 	.comment-icon__container {
 		fill: $primary-color;
 		display: inline-block;
@@ -756,4 +775,12 @@ body.ios {
 			margin: 0;
 		}
 	}
+}
+
+.permalink-text {
+    overflow: hidden;
+}
+
+.permalink-popover {
+    min-width: 320px;
 }

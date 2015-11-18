@@ -91,6 +91,7 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
+	mainrouter.Handle("/{team}/pl/{postid}", api.AppHandler(postPermalink)).Methods("GET")         // Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")    // Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/channels/{channelname}", api.AppHandler(getChannel)).Methods("GET") // Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")  // Bug in gorilla.mux prevents us from using regex here.
@@ -342,15 +343,142 @@ func logout(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, c.GetTeamURL(), http.StatusTemporaryRedirect)
 }
 
+func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	teamName := params["team"]
+	postId := params["postid"]
+
+	if len(postId) != 26 {
+		c.Err = model.NewAppError("postPermalink", "Invalid Post ID", "id="+postId)
+		return
+	}
+
+	team := checkSessionSwitch(c, w, r, teamName)
+	if team == nil {
+		// Error already set by getTeam
+		return
+	}
+
+	var post *model.Post
+	if result := <-api.Srv.Store.Post().Get(postId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		postlist := result.Data.(*model.PostList)
+		post = postlist.Posts[postlist.Order[0]]
+	}
+
+	var channel *model.Channel
+	if result := <-api.Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		if result.Data.(int64) == 0 {
+			if channel = autoJoinChannelId(c, w, r, post.ChannelId); channel == nil {
+				http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+				return
+			}
+		} else {
+			if result := <-api.Srv.Store.Channel().Get(post.ChannelId); result.Err != nil {
+				c.Err = result.Err
+				return
+			} else {
+				channel = result.Data.(*model.Channel)
+			}
+		}
+	}
+
+	doLoadChannel(c, w, r, team, channel, post.Id)
+}
+
 func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	name := params["channelname"]
 	teamName := params["team"]
 
+	team := checkSessionSwitch(c, w, r, teamName)
+	if team == nil {
+		// Error already set by getTeam
+		return
+	}
+
+	var channel *model.Channel
+	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		channelId := result.Data.(string)
+		if len(channelId) == 0 {
+			if channel = autoJoinChannelName(c, w, r, name); channel == nil {
+				http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+				return
+			}
+		} else {
+			if result := <-api.Srv.Store.Channel().Get(channelId); result.Err != nil {
+				c.Err = result.Err
+				return
+			} else {
+				channel = result.Data.(*model.Channel)
+			}
+		}
+	}
+
+	doLoadChannel(c, w, r, team, channel, "")
+}
+
+func autoJoinChannelName(c *api.Context, w http.ResponseWriter, r *http.Request, channelName string) *model.Channel {
+	if strings.Index(channelName, "__") > 0 {
+		// It's a direct message channel that doesn't exist yet so let's create it
+		ids := strings.Split(channelName, "__")
+		otherUserId := ""
+		if ids[0] == c.Session.UserId {
+			otherUserId = ids[1]
+		} else {
+			otherUserId = ids[0]
+		}
+
+		if sc, err := api.CreateDirectChannel(c, otherUserId); err != nil {
+			api.Handle404(w, r)
+			return nil
+		} else {
+			return sc
+		}
+	} else {
+		// We will attempt to auto-join open channels
+		return joinOpenChannel(c, w, r, api.Srv.Store.Channel().GetByName(c.Session.TeamId, channelName))
+	}
+
+	return nil
+}
+
+func autoJoinChannelId(c *api.Context, w http.ResponseWriter, r *http.Request, channelId string) *model.Channel {
+	return joinOpenChannel(c, w, r, api.Srv.Store.Channel().Get(channelId))
+}
+
+func joinOpenChannel(c *api.Context, w http.ResponseWriter, r *http.Request, channel store.StoreChannel) *model.Channel {
+	if cr := <-channel; cr.Err != nil {
+		http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+		return nil
+	} else {
+		channel := cr.Data.(*model.Channel)
+		if channel.Type == model.CHANNEL_OPEN {
+			api.JoinChannel(c, channel.Id, "")
+			if c.Err != nil {
+				return nil
+			}
+		} else {
+			http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
+			return nil
+		}
+		return channel
+	}
+}
+
+func checkSessionSwitch(c *api.Context, w http.ResponseWriter, r *http.Request, teamName string) *model.Team {
 	var team *model.Team
 	if result := <-api.Srv.Store.Team().GetByName(teamName); result.Err != nil {
 		c.Err = result.Err
-		return
+		return nil
 	} else {
 		team = result.Data.(*model.Team)
 	}
@@ -368,15 +496,11 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	userChan := api.Srv.Store.User().Get(c.Session.UserId)
+	return team
+}
 
-	var channelId string
-	if result := <-api.Srv.Store.Channel().CheckPermissionsToByName(c.Session.TeamId, name, c.Session.UserId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		channelId = result.Data.(string)
-	}
+func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, channel *model.Channel, postid string) {
+	userChan := api.Srv.Store.User().Get(c.Session.UserId)
 
 	var user *model.User
 	if ur := <-userChan; ur.Err != nil {
@@ -388,54 +512,15 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		user = ur.Data.(*model.User)
 	}
 
-	if len(channelId) == 0 {
-		if strings.Index(name, "__") > 0 {
-			// It's a direct message channel that doesn't exist yet so let's create it
-			ids := strings.Split(name, "__")
-			otherUserId := ""
-			if ids[0] == c.Session.UserId {
-				otherUserId = ids[1]
-			} else {
-				otherUserId = ids[0]
-			}
-
-			if sc, err := api.CreateDirectChannel(c, otherUserId); err != nil {
-				api.Handle404(w, r)
-				return
-			} else {
-				channelId = sc.Id
-			}
-		} else {
-			// We will attempt to auto-join open channels
-			if cr := <-api.Srv.Store.Channel().GetByName(c.Session.TeamId, name); cr.Err != nil {
-				http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
-			} else {
-				channel := cr.Data.(*model.Channel)
-				if channel.Type == model.CHANNEL_OPEN {
-					api.JoinChannel(c, channel.Id, "")
-					if c.Err != nil {
-						return
-					}
-
-					channelId = channel.Id
-				} else {
-					http.Redirect(w, r, c.GetTeamURL()+"/channels/town-square", http.StatusFound)
-				}
-			}
-		}
-	}
-
 	page := NewHtmlTemplatePage("channel", "")
-	page.Props["Title"] = name + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
+	page.Props["Title"] = channel.DisplayName + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
-	page.Props["TeamName"] = team.Name
-	page.Props["TeamType"] = team.Type
-	page.Props["TeamId"] = team.Id
-	page.Props["ChannelName"] = name
-	page.Props["ChannelId"] = channelId
-	page.Props["UserId"] = c.Session.UserId
+	page.Props["ChannelName"] = channel.Name
+	page.Props["ChannelId"] = channel.Id
+	page.Props["PostId"] = postid
 	page.Team = team
 	page.User = user
+	page.Channel = channel
 	page.Render(c, w)
 }
 
