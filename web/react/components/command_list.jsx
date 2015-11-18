@@ -65,7 +65,7 @@ export default class CommandList extends React.Component {
         //     to prevent need for reloading page if webhook is added
 
         var self = this;
-        client.listOutgoingHooks(function success(webhooks) {
+        client.listTeamOutgoingHooks(function success(webhooks) {
             webhooks.map((webhook) => {
                 if (webhook.enable_suggestions) {
                     self.setState({triggers: self.state.triggers.concat(webhook.trigger_words)});

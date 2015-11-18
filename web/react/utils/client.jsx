@@ -1259,6 +1259,19 @@ export function listOutgoingHooks(success, error) {
     });
 }
 
+export function listTeamOutgoingHooks(success, error) {
+    $.ajax({
+        url: '/api/v1/hooks/outgoing/team-list',
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('listTeamOutgoingHooks', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
 export function regenOutgoingHookToken(data, success, error) {
     $.ajax({
         url: '/api/v1/hooks/outgoing/regen_token',
