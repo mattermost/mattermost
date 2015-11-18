@@ -6,6 +6,7 @@ var UserProfile = require('./user_profile.jsx');
 var UserStore = require('../stores/user_store.jsx');
 var TextFormatting = require('../utils/text_formatting.jsx');
 var utils = require('../utils/utils.jsx');
+var DeletePostModal = require('./delete_post_modal.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var twemoji = require('twemoji');
 var Constants = require('../utils/constants.jsx');
@@ -86,21 +87,16 @@ export default class RhsRootPost extends React.Component {
                                 data-postid={post.id}
                                 data-channelid={post.channel_id}
                             >
-                                Edit
+                                {'Edit'}
                             </a>
                         </li>
                         <li role='presentation'>
                             <a
                                 href='#'
                                 role='menuitem'
-                                data-toggle='modal'
-                                data-target='#delete_post'
-                                data-title={type}
-                                data-postid={post.id}
-                                data-channelid={post.channel_id}
-                                data-comments={this.props.commentCount}
+                                onClick={() => DeletePostModal.show(post, this.props.commentCount)}
                             >
-                                Delete
+                                {'Delete'}
                             </a>
                         </li>
                     </ul>

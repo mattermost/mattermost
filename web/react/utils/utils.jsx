@@ -1232,3 +1232,12 @@ export function getChannelTerm(channelType) {
 
     return channelTerm;
 }
+
+export function getPostTerm(post) {
+    let postTerm = 'Post';
+    if (post.root_id) {
+        postTerm = 'Comment';
+    }
+
+    return postTerm;
+}

@@ -27,12 +27,14 @@ class ModalStoreClass extends EventEmitter {
     }
 
     handleEventPayload(payload) {
-        const action = payload.action;
+        // toggle event handlers should accept a boolean show/hide value and can accept a map of arguments
+        const {type, value, ...args} = payload.action;
 
-        switch (action.type) {
+        switch (type) {
         case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:
         case ActionTypes.TOGGLE_INVITE_MEMBER_MODAL:
-            this.emit(action.type, action.value);
+        case ActionTypes.TOGGLE_DELETE_POST_MODAL:
+            this.emit(type, value, args);
             break;
         }
     }

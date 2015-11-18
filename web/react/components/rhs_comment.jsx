@@ -8,6 +8,7 @@ var UserStore = require('../stores/user_store.jsx');
 var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
 var Utils = require('../utils/utils.jsx');
 var Constants = require('../utils/constants.jsx');
+var DeletePostModal = require('./delete_post_modal.jsx');
 var FileAttachmentList = require('./file_attachment_list.jsx');
 var Client = require('../utils/client.jsx');
 var AsyncClient = require('../utils/async_client.jsx');
@@ -114,12 +115,7 @@ export default class RhsComment extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        data-toggle='modal'
-                        data-target='#delete_post'
-                        data-title='Comment'
-                        data-postid={post.id}
-                        data-channelid={post.channel_id}
-                        data-comments={0}
+                        onClick={() => DeletePostModal.show(post, 0)}
                     >
                         {'Delete'}
                     </a>

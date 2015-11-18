@@ -194,7 +194,8 @@ export default class CreateComment extends React.Component {
                 title: 'Comment',
                 message: lastPost.message,
                 postId: lastPost.id,
-                channelId: lastPost.channel_id
+                channelId: lastPost.channel_id,
+                comments: PostStore.getCommentCount(lastPost)
             });
         }
     }
