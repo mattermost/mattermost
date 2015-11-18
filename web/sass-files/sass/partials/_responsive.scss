@@ -9,6 +9,24 @@
                 }
             }
             .post {
+	            &.same--root.same--user {
+		            .post-header-post {
+			            visibility: hidden;
+			            width: 100%;
+			            position: relative;
+			            top: -5px;
+			            .post-header-col.post-header__name {
+				            display: none;
+			            }
+		            }
+		            .post-body {
+			            top: -15px;
+			            margin-bottom: -10px;
+		            }
+		            &:hover .post-header-post {
+			            visibility: visible;
+		            }
+	            }
                 &.post--comment {
 		            &.same--root {
 		                margin-left: 104px;
