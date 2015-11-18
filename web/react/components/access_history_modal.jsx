@@ -14,8 +14,8 @@ export default class AccessHistoryModal extends React.Component {
 
         this.onAuditChange = this.onAuditChange.bind(this);
         this.handleMoreInfo = this.handleMoreInfo.bind(this);
-        this.onHide = this.onHide.bind(this);
         this.onShow = this.onShow.bind(this);
+        this.onHide = this.onHide.bind(this);
         this.formatAuditInfo = this.formatAuditInfo.bind(this);
         this.handleRevokedSession = this.handleRevokedSession.bind(this);
 
@@ -39,10 +39,14 @@ export default class AccessHistoryModal extends React.Component {
     }
     onHide() {
         this.setState({moreInfo: []});
-        this.props.onModalDismissed();
+        this.props.onHide();
     }
     componentDidMount() {
         UserStore.addAuditsChangeListener(this.onAuditChange);
+
+        if (this.props.show) {
+            this.onShow();
+        }
     }
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
@@ -406,5 +410,5 @@ export default class AccessHistoryModal extends React.Component {
 
 AccessHistoryModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired
 };

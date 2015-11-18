@@ -10,6 +10,7 @@ export default class UserSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleShow = this.handleShow.bind(this);
         this.handleHide = this.handleHide.bind(this);
         this.handleHidden = this.handleHidden.bind(this);
         this.handleCollapse = this.handleCollapse.bind(this);
@@ -33,12 +34,22 @@ export default class UserSettingsModal extends React.Component {
         this.requireConfirm = false;
     }
 
+    componentDidMount() {
+        if (this.props.show) {
+            this.handleShow();
+        }
+    }
+
     componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
-            if ($(window).width() > 768) {
-                $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
-            }
+        if (this.props.show && !prevProps.show) {
+            this.handleShow();
+        }
+    }
+
+    handleShow() {
+        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
+        if ($(window).width() > 768) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
         }
     }
 

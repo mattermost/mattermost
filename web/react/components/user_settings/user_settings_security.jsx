@@ -5,6 +5,7 @@ var SettingItemMin = require('../setting_item_min.jsx');
 var SettingItemMax = require('../setting_item_max.jsx');
 var AccessHistoryModal = require('../access_history_modal.jsx');
 var ActivityLogModal = require('../activity_log_modal.jsx');
+var ToggleModalButton = require('../toggle_modal_button.jsx');
 var Client = require('../../utils/client.jsx');
 var AsyncClient = require('../../utils/async_client.jsx');
 var Constants = require('../../utils/constants.jsx');
@@ -13,34 +14,13 @@ export default class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
-        this.showAccessHistoryModal = this.showAccessHistoryModal.bind(this);
-        this.showActivityLogModal = this.showActivityLogModal.bind(this);
-        this.hideModals = this.hideModals.bind(this);
         this.submitPassword = this.submitPassword.bind(this);
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
         this.setupInitialState = this.setupInitialState.bind(this);
 
-        const state = this.setupInitialState();
-        state.showAccessHistoryModal = false;
-        state.showActivityLogModal = false;
-        this.state = state;
-    }
-    showAccessHistoryModal() {
-        this.props.setEnforceFocus(false);
-        this.setState({showAccessHistoryModal: true});
-    }
-    showActivityLogModal() {
-        this.props.setEnforceFocus(false);
-        this.setState({showActivityLogModal: true});
-    }
-    hideModals() {
-        this.props.setEnforceFocus(true);
-        this.setState({
-            showAccessHistoryModal: false,
-            showActivityLogModal: false
-        });
+        this.state = this.setupInitialState();
     }
     submitPassword(e) {
         e.preventDefault();
@@ -258,30 +238,20 @@ export default class SecurityTab extends React.Component {
                     {passwordSection}
                     <div className='divider-dark'/>
                     <br></br>
-                    <a
+                    <ToggleModalButton
                         className='security-links theme'
-                        href='#'
-                        onClick={this.showAccessHistoryModal}
+                        dialogType={AccessHistoryModal}
                     >
                         <i className='fa fa-clock-o'></i>View Access History
-                    </a>
+                    </ToggleModalButton>
                     <b> </b>
-                    <a
+                    <ToggleModalButton
                         className='security-links theme'
-                        href='#'
-                        onClick={this.showActivityLogModal}
+                        dialogType={ActivityLogModal}
                     >
-                        <i className='fa fa-globe'></i>View and Logout of Active Sessions
-                    </a>
+                        <i className='fa fa-clock-o'></i>{'View and Logout of Active Sessions'}
+                    </ToggleModalButton>
                 </div>
-                <AccessHistoryModal
-                    show={this.state.showAccessHistoryModal}
-                    onModalDismissed={this.hideModals}
-                />
-                <ActivityLogModal
-                    show={this.state.showActivityLogModal}
-                    onModalDismissed={this.hideModals}
-                />
             </div>
         );
     }

@@ -58,10 +58,14 @@ export default class ActivityLogModal extends React.Component {
     }
     onHide() {
         this.setState({moreInfo: []});
-        this.props.onModalDismissed();
+        this.props.onHide();
     }
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
+
+        if (this.props.show) {
+            this.onShow();
+        }
     }
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
@@ -178,5 +182,5 @@ export default class ActivityLogModal extends React.Component {
 
 ActivityLogModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired
 };
