@@ -80,14 +80,27 @@ export default class SearchResults extends React.Component {
 
         var ctls = null;
 
-        if (noResults) {
+        if (!searchTerm && noResults) {
+            ctls = (
+                <div className='sidebar--right__subheader'>
+                    <ul>
+                        <li>
+                            {'Use '}<b>{'"quotation marks"'}</b>{' to search for phrases'}
+                        </li>
+                        <li>
+                            {'Use '}<b>{'from:'}</b>{' to find posts from specific users and '}<b>{'in:'}</b>{' to find posts in specific channels'}
+                        </li>
+                    </ul>
+                </div>
+            );
+        } else if (noResults) {
             ctls =
             (
                 <div className='sidebar--right__subheader'>
                     <h4>{'NO RESULTS'}</h4>
                     <ul>
-                        <li>If you're searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term</li>
-                        <li>Due to the volume of results, two letter searches and common words like "this", "a" and "is" won't appear in search results</li>
+                        <li>{'If you\'re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term'}</li>
+                        <li>{'Due to the volume of results, two letter searches and common words like "this", "a" and "is" won\'t appear in search results'}</li>
                     </ul>
                 </div>
             );
