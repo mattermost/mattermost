@@ -47,20 +47,25 @@ body.ios {
 
 .textarea-wrapper {
 	position:relative;
-	.textbox-preview-area {
-		position: absolute;
-		z-index: 2;
-		top: 0;
-		left: 0;
-		box-shadow: none;
-	}
-	.textbox-preview-link {
-		position: absolute;
-		z-index: 3;
-		bottom: -23px;
-		right: 0;
+    .textbox-preview-area {
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        left: 0;
+        box-shadow: none;
+    }
+	.textbox-preview-link, .textbox-help-link {
+        position: absolute;
+        z-index: 3;
+        bottom: -23px;
 		font-size: 13px;
-		cursor: pointer;
+        cursor: pointer;
+    }
+    .textbox-preview-link {
+        right: 45px;
+    }
+	.textbox-help-link {
+		right: 0;
 	}
 	min-height:36px;
 }

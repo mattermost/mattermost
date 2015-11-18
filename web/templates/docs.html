@@ -1,0 +1,24 @@
+{{define "docs"}}
+<!DOCTYPE html>
+<html>
+{{template "head" . }}
+<body class="white">
+<div class="container-fluid">
+    <div class="inner__wrap">
+        <div class="row content">
+            <div class="col-sm-12">
+                <div id="docs"></div>
+            </div>
+            <div class="footer-push"></div>
+        </div>
+        <div class="row footer">
+            {{template "footer" . }}
+        </div>
+    </div>
+</div>
+<script>
+    window.setup_documentation_page({{ .Props }});
+</script>
+</body>
+</html>
+{{end}}
