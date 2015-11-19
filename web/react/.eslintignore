@@ -1,1 +1,3 @@
 **/*.json
+components/toggle_modal_button.jsx
+stores/modal_store.jsx
