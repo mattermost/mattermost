@@ -190,3 +190,11 @@ export default class AdminController extends React.Component {
         );
     }
 }
+
+AdminController.defaultProps = {
+};
+
+AdminController.propTypes = {
+    tab: React.PropTypes.string,
+    teamId: React.PropTypes.string
+};

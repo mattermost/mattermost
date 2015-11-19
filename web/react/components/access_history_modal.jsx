@@ -106,7 +106,7 @@ export default class AccessHistoryModal extends React.Component {
             case '/channels/update_header':
                 currentAuditDesc = 'Updated the ' + channelName + ' channel/group header';
                 break;
-            default:
+            default: {
                 let userIdField = [];
                 let userId = '';
                 let username = '';
@@ -130,11 +130,12 @@ export default class AccessHistoryModal extends React.Component {
 
                 break;
             }
+            }
         } else if (currentActionURL.indexOf('/oauth') === 0) {
             const oauthInfo = currentAudit.extra_info.split(' ');
 
             switch (currentActionURL) {
-            case '/oauth/register':
+            case '/oauth/register': {
                 const clientIdField = oauthInfo[0].split('=');
 
                 if (clientIdField[0] === 'client_id') {
@@ -142,6 +143,7 @@ export default class AccessHistoryModal extends React.Component {
                 }
 
                 break;
+            }
             case '/oauth/allow':
                 if (oauthInfo[0] === 'attempt') {
                     currentAuditDesc = 'Attempted to allow a new OAuth service access';
@@ -202,7 +204,7 @@ export default class AccessHistoryModal extends React.Component {
                 }
 
                 break;
-            case '/users/update_roles':
+            case '/users/update_roles': {
                 const userRoles = userInfo[0].split('=')[1];
 
                 currentAuditDesc = 'Updated user role(s) to ';
@@ -213,7 +215,8 @@ export default class AccessHistoryModal extends React.Component {
                 }
 
                 break;
-            case '/users/update_active':
+            }
+            case '/users/update_active': {
                 const updateType = userInfo[0].split('=')[0];
                 const updateField = userInfo[0].split('=')[1];
 
@@ -240,6 +243,7 @@ export default class AccessHistoryModal extends React.Component {
                 }
 
                 break;
+            }
             case '/users/send_password_reset':
                 currentAuditDesc = 'Sent an email to ' + userInfo[0].split('=')[1] + ' to reset your password';
                 break;

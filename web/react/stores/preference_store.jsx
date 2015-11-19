@@ -105,7 +105,7 @@ class PreferenceStoreClass extends EventEmitter {
         const action = payload.action;
 
         switch (action.type) {
-        case ActionTypes.RECIEVED_PREFERENCES:
+        case ActionTypes.RECIEVED_PREFERENCES: {
             const preferences = this.getAllPreferences();
 
             for (const preference of action.preferences) {
@@ -114,6 +114,8 @@ class PreferenceStoreClass extends EventEmitter {
 
             this.setAllPreferences(preferences);
             this.emitChange(preferences);
+            break;
+        }
         }
     }
 }

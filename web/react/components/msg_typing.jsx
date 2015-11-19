@@ -74,10 +74,11 @@ export default class MsgTyping extends React.Component {
         case 1:
             text = users[0] + ' is typing...';
             break;
-        default:
+        default: {
             const last = users.pop();
             text = users.join(', ') + ' and ' + last + ' are typing...';
             break;
+        }
         }
 
         this.setState({text});

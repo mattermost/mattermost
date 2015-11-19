@@ -13,14 +13,14 @@ export default class CommandList extends React.Component {
         this.getSuggestedCommands = this.getSuggestedCommands.bind(this);
 
         this.state = {
-            suggestions: [ ],
+            suggestions: [],
             cmd: ''
         };
     }
 
     handleClick(i) {
         this.props.addCommand(this.state.suggestions[i].suggestion);
-        this.setState({suggestions: [ ], cmd: ''});
+        this.setState({suggestions: [], cmd: ''});
     }
 
     addFirstCommand() {
@@ -36,7 +36,7 @@ export default class CommandList extends React.Component {
 
     getSuggestedCommands(cmd) {
         if (!cmd || cmd.charAt(0) !== '/') {
-            this.setState({suggestions: [ ], cmd: ''});
+            this.setState({suggestions: [], cmd: ''});
             return;
         }
 
