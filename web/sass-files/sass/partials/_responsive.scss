@@ -91,6 +91,21 @@
             visibility: visible;
         }
 
+        .post__dropdown {
+            line-height: 9px;
+            text-decoration: none;
+            width: 20px;
+            display: inline-block;
+            text-align: center;
+            height: 20px;
+
+            &:after {
+                font-size: 20px;
+                content: '...'
+            }
+
+        }
+
         .post__img {
             width: 40px;
 
