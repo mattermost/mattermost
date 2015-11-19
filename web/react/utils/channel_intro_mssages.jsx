@@ -205,6 +205,7 @@ export function createStandardIntroMessage(channel, showInviteModal) {
                 <i className='fa fa-pencil'></i>{'Set a header'}
             </a>
             <a
+                className='intro-links'
                 href='#'
                 onClick={showInviteModal}
             >

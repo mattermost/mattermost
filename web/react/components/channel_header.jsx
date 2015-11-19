@@ -27,6 +27,7 @@ const ActionTypes = Constants.ActionTypes;
 
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Tooltip = ReactBootstrap.Tooltip;
 
 export default class ChannelHeader extends React.Component {
     constructor(props) {
@@ -121,6 +122,7 @@ export default class ChannelHeader extends React.Component {
         }
 
         const channel = this.state.channel;
+        const recentMentionsTooltip = <Tooltip id='recentMentionsTooltip'>{'Recent Mentions'}</Tooltip>;
         const popoverContent = (
             <Popover
                 id='hader-popover'
@@ -382,31 +384,19 @@ export default class ChannelHeader extends React.Component {
                             <th className='search-bar__container'><NavbarSearchBox /></th>
                             <th>
                                 <div className='dropdown channel-header__links'>
-                                    <a
-                                        href='#'
-                                        className='dropdown-toggle theme'
-                                        type='button'
-                                        id='channel_header_right_dropdown'
-                                        data-toggle='dropdown'
-                                        aria-expanded='true'
+                                    <OverlayTrigger
+                                        delayShow={400}
+                                        placement='bottom'
+                                        overlay={recentMentionsTooltip}
                                     >
-                                        <span dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}} />
-                                    </a>
-                                    <ul
-                                        className='dropdown-menu dropdown-menu-right'
-                                        role='menu'
-                                        aria-labelledby='channel_header_right_dropdown'
-                                    >
-                                        <li role='presentation'>
-                                            <a
-                                                role='menuitem'
-                                                href='#'
-                                                onClick={this.searchMentions}
-                                            >
-                                                {'Recent Mentions'}
-                                            </a>
-                                        </li>
-                                    </ul>
+                                        <a
+                                            href='#'
+                                            type='button'
+                                            onClick={this.searchMentions}
+                                        >
+                                            {'@'}
+                                        </a>
+                                    </OverlayTrigger>
                                 </div>
                             </th>
                         </tr>

@@ -74,23 +74,6 @@ export default class PostInfo extends React.Component {
             );
         }
 
-        if (this.props.allowReply === 'true') {
-            dropdownContents.push(
-                <li
-                    key='replyLink'
-                    role='presentation'
-                >
-                    <a
-                        className='reply-link theme'
-                        href='#'
-                        onClick={this.props.handleCommentClick}
-                    >
-                        {'Reply'}
-                    </a>
-                </li>
-            );
-        }
-
         if (dropdownContents.length === 0) {
             return '';
         }
@@ -99,7 +82,7 @@ export default class PostInfo extends React.Component {
             <div>
                 <a
                     href='#'
-                    className='dropdown-toggle theme'
+                    className='dropdown-toggle post__dropdown theme'
                     type='button'
                     data-toggle='dropdown'
                     aria-expanded='false'
@@ -116,23 +99,27 @@ export default class PostInfo extends React.Component {
     render() {
         var post = this.props.post;
         var comments = '';
-        var lastCommentClass = ' comment-icon__container__hide';
-        if (this.props.isLastComment) {
-            lastCommentClass = ' comment-icon__container__show';
+        var showCommentClass = '';
+        var commentCountText = this.props.commentCount;
+
+        if (this.props.commentCount >= 1) {
+            showCommentClass = ' icon--show';
+        } else {
+            commentCountText = '';
         }
 
-        if (this.props.commentCount >= 1 && post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && post.state !== Constants.POST_DELETED) {
+        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && post.state !== Constants.POST_DELETED) {
             comments = (
                 <a
                     href='#'
-                    className={'comment-icon__container theme' + lastCommentClass}
+                    className={'comment-icon__container' + showCommentClass}
                     onClick={this.props.handleCommentClick}
                 >
                     <span
                         className='comment-icon'
                         dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON}}
                     />
-                    {this.props.commentCount}
+                    {commentCountText}
                 </a>
             );
         }
@@ -140,17 +127,17 @@ export default class PostInfo extends React.Component {
         var dropdown = this.createDropdown();
 
         return (
-            <ul className='post-header post-info'>
-                <li className='post-header-col'>
+            <ul className='post__header post__header--info'>
+                <li className='col'>
                     <TimeSince
                         eventTime={post.create_at}
                     />
                 </li>
-                <li className='post-header-col post-header__reply'>
+                <li className='col col__reply'>
+                    {comments}
                     <div className='dropdown'>
                         {dropdown}
                     </div>
-                    {comments}
                 </li>
             </ul>
         );

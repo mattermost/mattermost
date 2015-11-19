@@ -8,200 +8,15 @@
                     }
                 }
             }
-            .post {
-                &.post--comment {
-		            &.same--root {
-		                margin-left: 104px;
-		                padding-left: 10px;
-		                border-left: 4px solid #EEE;
-		                div.post-profile-img__container {
-		                    .post-profile-img {
-		                        display: none;
-		                    }
-		                }
-		                .post__content {
-		                    width: 825px;
-		                    margin-left: 0;
-		                }
-		                .post-body {
-		                    width: 736px;
-		                    border: none;
-		                    margin: 3px 0 0;
-		                }
-		            }
-                    &.other--root {
-                        .post-comment {
-                            margin-left: 0;
-                        }
-                    }
-                    &.same--root {
-                        margin-top: 10px;
-                        margin-bottom: 10px;
-                    }
-                }
-                .post-body {
-                    float: none;
-                    width: 750px;
-                    margin: 3px 0 0;
-                }
-                .post__content {
-                    width: 920px;
-                }
-                .post-header {
-                    &.post-header-post {
-                        z-index: inherit;
-                        width: auto;
-                        float: none;
-                        text-align: left;
-                        padding-right: 0;
-                    }
-                    &.post-info {
-                        display: none;
-                        float: none;
-                    }
-                    .post-header-col {
-                        &.post-header__reply {
-                            float: right;
-                            text-align: right;
-                            .reply-link {
-                                margin-right: 0;
-                            }
-                            .dropdown {
-                                margin-left: 10px;
-                            }
-                        }
-                    }
-                    .post-info--hidden {
-                        display: inline;
-                        .post-info {
-                            display: inline;
-                            .tooltip {
-                                margin-top: -25px;
-                                margin-left: 40px;
-                            }
-                            .post-profile-time {
-                                margin: 0;
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }
 @media screen and (max-width: 1440px) {
-    .post-create__container {
-        .post-create-body {
-            max-width: 810px;
-        }
-    }
-    .channel-intro {
-        max-width: 810px;
-    }
     .date-separator, .new-separator {
         &.hovered--comment {
             &:before, &:after {
                 background: none !important;
             }
-        }
-    }
-    .post {
-		&.same--root.same--user {
-			.post-header-post {
-				visibility: hidden;
-				width: 100%;
-				position: relative;
-				top: -5px;
-				.post-header-col.post-header__name {
-					display: none;
-				}
-			}
-			.post-body {
-				top: -15px;
-				margin-bottom: -10px;
-			}
-			&:hover .post-header-post {
-				visibility: visible;
-			}
-		}
-
-        &.post--comment {
-            &.other--root {
-                .post-comment {
-                    margin-left: 0;
-                }
-            }
-			&.same--root {
-				margin-top: 5px;
-				margin-bottom: 5px;
-				margin-left: 104px;
-				padding-left: 10px;
-				border-left: 4px solid #EEE;
-				div.post-profile-img__container {
-					.post-profile-img {
-						display: none;
-					}
-				}
-				.post-body {
-					margin-left: 0;
-					border-left: 0;
-				}
-				&.same--user {
-					.post__content {
-						margin-left: 0;
-						padding-left: 0;
-					}
-				}
-			}
-			.post__content {
-				width: 810px;
-			}
-			.post-body {
-				width: 736px;
-				border: none;
-				margin: 3px 0 0;
-			}
-        }
-        .post__content {
-            width: 880px;
-        }
-        .post-header {
-            &.post-header-post {
-                z-index: inherit;
-                width: auto;
-                float: none;
-                text-align: left;
-                padding-right: 0;
-            }
-            &.post-info {
-                display: none;
-                float: none;
-            }
-            .post-header-col {
-                &.post-header__reply {
-                    float: right;
-                    margin: 0;
-                }
-            }
-            .post-info--hidden {
-                display: inline;
-                .post-info {
-                    display: inline;
-                    .tooltip {
-                        margin-top: -25px;
-                        margin-left: 40px;
-                    }
-                    .post-profile-time {
-                        width: auto;
-                        margin: 0;
-                    }
-                }
-            }
-        }
-        .post-body {
-            margin: 3px 0 0;
-            float: none;
-            width: 750px;
         }
     }
 }
@@ -232,77 +47,36 @@
             }
         }
     }
-    .post {
-        .post__content {
-            width: 100%;
-        }
-        .post-header {
-            .post-header-col {
-                &.post-header__reply {
-                    .reply-link {
-                        margin-right: 0;
-                    }
-                    .dropdown {
-                        margin-left: 10px;
-                    }
-                }
-            }
-        }
-    }
 }
 
 @media screen and (max-width: 960px) {
-    .post {
-        .post-header .post-header-col.post-header__reply {
-            .comment-icon__container__hide {
-                display: none;
-            }
-            .dropdown {
-                @include opacity(1);
-            }
-            .comment-icon__container__show {
-                @include opacity(1);
-            }
-        }
-    }
+
     .signup-team__container {
         font-size: 1em;
     }
+
     .post {
-        .post-header {
-            .post-header-col {
-                &.post-header__reply {
-                    text-align: right;
-                    display: inline-block;
-                }
+
+        .dropdown, .comment-icon__container {
+            visibility: visible;
+        }
+
+        .post__img {
+            width: 40px;
+
+            img {
+                width: 32px;
+                height: 32px;
             }
         }
-    }
-}
 
-@media (min-width: 992px){
-    .modal-lg {
-        width: 700px;
     }
-}
 
-@media screen and (min-width: 768px) {
-    .second-bar {
-        display: none;
+    .post-image__column {
+        width: 200px;
+        height: 95px;
     }
-}
 
-@media screen and (max-height: 640px) {
-    .signup-team__container {
-        padding: 30px 0;
-        margin-bottom: 30px;
-        font-size: 0.9em;
-        .signup-team__name {
-            font-size: 2em;
-        }
-    }
-}
-@media screen and (max-width: 768px) {
     .textarea-wrapper {
         .textbox-preview-link {
             display: none;
@@ -384,35 +158,6 @@
                 background: none;
             }
         }
-    }
-    .post {
-        &:hover {
-            background: none;
-            .post-header .post-header-col.post-header__reply {
-                .dropdown-toggle:after {
-                    content: '...';
-                }
-            }
-        }
-        &.post--comment {
-            &.same--root {
-                margin-left: 25px;
-            }
-            &.other--root {
-               margin-left: 0;
-                &:hover {
-                    background: none;
-                }
-            }
-        }
-        .post-header .post-header-col.post-header__reply {
-            .dropdown-toggle:after {
-                content: '...';
-            }
-        }
-		&.same--root.same--user .post__content{
-			padding-left: 0;
-		}
     }
     .signup-team__container {
         padding: 30px 0;
@@ -860,24 +605,6 @@
         }
     }
 
-    .post {
-        .post-profile-img__container {
-            display: none;
-        }
-        &.post--comment {
-            &.other--root {
-                .post-comment {
-                    margin-left: 11px;
-                }
-            }
-        }
-        > div {
-            &.post__content {
-                padding: 0;
-            }
-        }
-    }
-
     .post-comments {
         padding: 9px 21px 10px 10px !important;
     }
@@ -955,6 +682,30 @@
                 line-height: 30px;
                 padding: 5px;
             }
+        }
+    }
+}
+
+
+@media (min-width: 992px){
+    .modal-lg {
+        width: 700px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .second-bar {
+        display: none;
+    }
+}
+
+@media screen and (max-height: 640px) {
+    .signup-team__container {
+        padding: 30px 0;
+        margin-bottom: 30px;
+        font-size: 0.9em;
+        .signup-team__name {
+            font-size: 2em;
         }
     }
 }

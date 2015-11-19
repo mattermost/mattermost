@@ -13,8 +13,6 @@ var AsyncClient = require('../utils/async_client.jsx');
 var ActionTypes = Constants.ActionTypes;
 var utils = require('../utils/utils.jsx');
 
-var PostInfo = require('./post_info.jsx');
-
 export default class Post extends React.Component {
     constructor(props) {
         super(props);
@@ -141,6 +139,8 @@ export default class Post extends React.Component {
         var postType = '';
         if (type !== 'Post') {
             postType = 'post--comment';
+        } else if (commentCount > 0) {
+            postType = 'post--root';
         }
 
         var currentUserCss = '';
@@ -170,14 +170,11 @@ export default class Post extends React.Component {
             }
 
             profilePic = (
-                <div className='post-profile-img__container'>
-                    <img
-                        className='post-profile-img'
-                        src={src}
-                        height='36'
-                        width='36'
-                    />
-                </div>
+                <img
+                    src={src}
+                    height='36'
+                    width='36'
+                />
             );
         }
 
@@ -187,32 +184,26 @@ export default class Post extends React.Component {
                     id={'post_' + post.id}
                     className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss}
                 >
-                    {profilePic}
                     <div className='post__content'>
-                        <PostHeader
-                            ref='header'
-                            post={post}
-                            sameRoot={this.props.sameRoot}
-                            commentCount={commentCount}
-                            handleCommentClick={this.handleCommentClick}
-                            isLastComment={this.props.isLastComment}
-                        />
-                        <PostBody
-                            post={post}
-                            sameRoot={this.props.sameRoot}
-                            parentPost={parentPost}
-                            posts={posts}
-                            handleCommentClick={this.handleCommentClick}
-                            retryPost={this.retryPost}
-                        />
-                        <PostInfo
-                            ref='info'
-                            post={post}
-                            sameRoot={this.props.sameRoot}
-                            commentCount={commentCount}
-                            handleCommentClick={this.handleCommentClick}
-                            allowReply='true'
-                        />
+                        <div className='post__img'>{profilePic}</div>
+                        <div>
+                            <PostHeader
+                                ref='header'
+                                post={post}
+                                sameRoot={this.props.sameRoot}
+                                commentCount={commentCount}
+                                handleCommentClick={this.handleCommentClick}
+                                isLastComment={this.props.isLastComment}
+                            />
+                            <PostBody
+                                post={post}
+                                sameRoot={this.props.sameRoot}
+                                parentPost={parentPost}
+                                posts={posts}
+                                handleCommentClick={this.handleCommentClick}
+                                retryPost={this.retryPost}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

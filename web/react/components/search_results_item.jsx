@@ -74,28 +74,29 @@ export default class SearchResultsItem extends React.Component {
                 onClick={this.handleClick}
             >
                 <div className='search-channel__name'>{channelName}</div>
-                <div className='post-profile-img__container'>
-                    <img
-                        className='post-profile-img'
-                        src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex()}
-                        height='36'
-                        width='36'
-                    />
-                </div>
                 <div className='post__content'>
-                    <ul className='post-header'>
-                        <li className='post-header-col'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
-                        <li className='post-header-col'>
-                            <time className='search-item-time'>
-                                {utils.displayDate(this.props.post.create_at) + ' ' + utils.displayTime(this.props.post.create_at)}
-                            </time>
-                        </li>
-                    </ul>
-                    <div className='search-item-snippet'>
-                        <span
-                            onClick={this.handleClick}
-                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
+                    <div className='post__img'>
+                        <img
+                            src={'/api/v1/users/' + this.props.post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex()}
+                            height='36'
+                            width='36'
                         />
+                    </div>
+                    <div>
+                        <ul className='post__header'>
+                            <li className='col__name'><strong><UserProfile userId={this.props.post.user_id} /></strong></li>
+                            <li className='col'>
+                                <time className='search-item-time'>
+                                    {utils.displayDate(this.props.post.create_at) + ' ' + utils.displayTime(this.props.post.create_at)}
+                                </time>
+                            </li>
+                        </ul>
+                        <div className='search-item-snippet'>
+                            <span
+                                onClick={this.handleClick}
+                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

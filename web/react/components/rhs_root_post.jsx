@@ -66,7 +66,7 @@ export default class RhsRootPost extends React.Component {
             ownerOptions = (
                 <div>
                     <a href='#'
-                        className='dropdown-toggle theme'
+                        className='post__dropdown dropdown-toggle'
                         type='button'
                         data-toggle='dropdown'
                         aria-expanded='false'
@@ -129,7 +129,7 @@ export default class RhsRootPost extends React.Component {
                 );
             }
 
-            botIndicator = <li className='post-header-col post-header__name bot-indicator'>{'BOT'}</li>;
+            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
         }
 
         let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
@@ -140,47 +140,47 @@ export default class RhsRootPost extends React.Component {
         }
 
         const profilePic = (
-            <div className='post-profile-img__container'>
-                <img
-                    className='post-profile-img'
-                    src={src}
-                    height='36'
-                    width='36'
-                />
-            </div>
+            <img
+                className='post-profile-img'
+                src={src}
+                height='36'
+                width='36'
+            />
         );
 
         return (
             <div className={'post post--root ' + currentUserCss}>
                 <div className='post-right-channel__name'>{channelName}</div>
-                <div className='post-profile-img__container'>
-                    {profilePic}
-                </div>
                 <div className='post__content'>
-                    <ul className='post-header'>
-                        <li className='post-header-col'><strong>{userProfile}</strong></li>
-                        {botIndicator}
-                        <li className='post-header-col'>
-                            <time className='post-profile-time'>
-                                {utils.displayCommentDateTime(post.create_at)}
-                            </time>
-                        </li>
-                        <li className='post-header-col post-header__reply'>
-                            <div className='dropdown'>
-                                {ownerOptions}
-                            </div>
-                        </li>
-                    </ul>
-                    <div className='post-body'>
-                        <div
-                            ref='message_holder'
-                            onClick={TextFormatting.handleClick}
-                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
-                        />
-                        <PostBodyAdditionalContent
-                            post={post}
-                        />
-                        {fileAttachment}
+                    <div className='post__img'>
+                        {profilePic}
+                    </div>
+                    <div>
+                        <ul className='post__header'>
+                            <li className='col__name'>{userProfile}</li>
+                            {botIndicator}
+                            <li className='col'>
+                                <time className='post__time'>
+                                    {utils.displayCommentDateTime(post.create_at)}
+                                </time>
+                            </li>
+                            <li className='col col__reply'>
+                                <div className='dropdown'>
+                                    {ownerOptions}
+                                </div>
+                            </li>
+                        </ul>
+                        <div className='post__body'>
+                            <div
+                                ref='message_holder'
+                                onClick={TextFormatting.handleClick}
+                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+                            />
+                            <PostBodyAdditionalContent
+                                post={post}
+                            />
+                            {fileAttachment}
+                        </div>
                     </div>
                 </div>
                 <hr />

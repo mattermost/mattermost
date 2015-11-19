@@ -85,6 +85,7 @@ img {
 a {
   word-break: break-word;
   color: $primary-color;
+  cursor: pointer;
 }
 
 a:focus, a:hover {

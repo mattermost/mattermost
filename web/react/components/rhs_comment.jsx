@@ -131,7 +131,7 @@ export default class RhsComment extends React.Component {
             <div className='dropdown'>
                 <a
                     href='#'
-                    className='dropdown-toggle theme'
+                    className='post__dropdown dropdown-toggle'
                     type='button'
                     data-toggle='dropdown'
                     aria-expanded='false'
@@ -193,38 +193,39 @@ export default class RhsComment extends React.Component {
 
         return (
             <div className={'post ' + currentUserCss}>
-                <div className='post-profile-img__container'>
-                    <img
-                        className='post-profile-img'
-                        src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
-                        height='36'
-                        width='36'
-                    />
-                </div>
                 <div className='post__content'>
-                    <ul className='post-header'>
-                        <li className='post-header-col'>
-                            <strong><UserProfile userId={post.user_id} /></strong>
-                        </li>
-                        <li className='post-header-col'>
-                            <time className='post-profile-time'>
-                                {Utils.displayCommentDateTime(post.create_at)}
-                            </time>
-                        </li>
-                        <li className='post-header-col post-header__reply'>
-                            {dropdown}
-                        </li>
-                    </ul>
-                    <div className='post-body'>
-                        <div className={postClass}>
-                            {loading}
-                            <div
-                                ref='message_holder'
-                                onClick={TextFormatting.handleClick}
-                                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
-                            />
+                    <div className='post__img'>
+                        <img
+                            src={'/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + Utils.getSessionIndex()}
+                            height='36'
+                            width='36'
+                        />
+                    </div>
+                    <div>
+                        <ul className='post__header'>
+                            <li className='col__name'>
+                                <strong><UserProfile userId={post.user_id} /></strong>
+                            </li>
+                            <li className='col'>
+                                <time className='post__time'>
+                                    {Utils.displayCommentDateTime(post.create_at)}
+                                </time>
+                            </li>
+                            <li className='col col__reply'>
+                                {dropdown}
+                            </li>
+                        </ul>
+                        <div className='post__body'>
+                            <div className={postClass}>
+                                {loading}
+                                <div
+                                    ref='message_holder'
+                                    onClick={TextFormatting.handleClick}
+                                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(post.message)}}
+                                />
+                            </div>
+                            {fileAttachment}
                         </div>
-                        {fileAttachment}
                     </div>
                 </div>
             </div>

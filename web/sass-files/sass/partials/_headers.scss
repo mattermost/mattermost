@@ -54,9 +54,9 @@
 }
 
 .channel-intro {
-	padding-bottom:5px;
-	margin: 0 1em 35px;
-	max-width: 850px;
+	margin: 0 auto 35px;
+	padding: 0 1em 5px;
+	max-width: 1000px;
 	border-bottom: 1px solid lightgrey;
 	.intro-links {
 		margin: 0 1.5em 10px 0;
@@ -216,7 +216,6 @@
 	font-size: 14px;
 	line-height: 56px;
 	#member_popover {
-		margin-right: 5px;
 		width: 45px;
 		color: #999;
 		cursor: pointer;
@@ -292,20 +291,21 @@
 }
 
 .channel-header__links {
-	height: 32px;
-	width: 32px;
-	@include border-radius(50px);
-	border: 1px solid #ccc;
+	height: 30px;
+	width: 24px;
+	line-height: 26px;
 	margin-right: 10px;
+	font-size: 22px;
 	> a {
-		@include border-radius(50px);
-		height: 100%;
-		display: block;
+		color: inherit;
+		text-decoration: none;
+		@include opacity(0.6);
 		@include single-transition(all, 0.1s, ease-in);
-	}
-	svg {
-		vertical-align: top;
-	    margin: 7px 0 0 0px;
-		fill: inherit;
+		&:hover {
+			@include opacity(1);
+		}
+		&:focus {
+			color: inherit;
+		}
 	}
 }

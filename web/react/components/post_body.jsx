@@ -257,7 +257,7 @@ export default class PostBody extends React.Component {
         }
 
         return (
-            <div className='post-comment'>
+            <div>
                 <h4>
                     <span className='video-type'>{header}</span>
                     <span className='video-title'><a href={link}>{this.state.youtubeTitle}</a></span>
@@ -329,7 +329,7 @@ export default class PostBody extends React.Component {
             }
 
             comment = (
-                <p className='post-link'>
+                <div className='post__link'>
                     <span>
                         {'Commented on '}{name}{apostrophe}{' message: '}
                         <a
@@ -339,15 +339,13 @@ export default class PostBody extends React.Component {
                             {message}
                         </a>
                     </span>
-                </p>
+                </div>
             );
-
-            postClass += ' post-comment';
         }
 
         let loading;
         if (post.state === Constants.POST_FAILED) {
-            postClass += ' post-fail';
+            postClass += ' post--fail';
             loading = (
                 <a
                     className='theme post-retry pull-right'
@@ -379,25 +377,27 @@ export default class PostBody extends React.Component {
         }
 
         return (
-            <div className='post-body'>
+            <div>
                 {comment}
-                <div
-                    key={`${post.id}_message`}
-                    id={`${post.id}_message`}
-                    className={postClass}
-                >
-                    {loading}
-                    <span
-                        ref='message_span'
-                        onClick={TextFormatting.handleClick}
-                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
+                <div className='post__body'>
+                    <div
+                        key={`${post.id}_message`}
+                        id={`${post.id}_message`}
+                        className={postClass}
+                    >
+                        {loading}
+                        <span
+                            ref='message_span'
+                            onClick={TextFormatting.handleClick}
+                            dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.state.message)}}
+                        />
+                    </div>
+                    <PostBodyAdditionalContent
+                        post={this.state.post}
                     />
+                    {fileAttachmentHolder}
+                    {this.embed}
                 </div>
-                <PostBodyAdditionalContent
-                    post={this.state.post}
-                />
-                {fileAttachmentHolder}
-                {this.embed}
             </div>
         );
     }

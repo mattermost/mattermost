@@ -14,7 +14,10 @@ export default class CustomThemeChooser extends React.Component {
         this.state = {};
     }
     componentDidMount() {
-        $('.color-picker').colorpicker().on('changeColor', this.onPickerChange);
+        $('.color-picker').colorpicker({
+            format: 'hex'
+        });
+        $('.color-picker').on('changeColor', this.onPickerChange);
     }
     onPickerChange(e) {
         const theme = this.props.theme;
