@@ -382,9 +382,11 @@ body.ios {
 	}
 
 	span {
+
 		p:last-child {
 			margin-bottom: 0.5em;
 		}
+
 	}
 
 	&.post--root {
@@ -508,6 +510,7 @@ body.ios {
 		max-width: 1000px;
 		display: table;
 		width: 100%;
+		table-layout: fixed;
 
 		> div {
 			display: table-cell;
@@ -532,7 +535,7 @@ body.ios {
 			position: absolute;
 			right: 0;
 			top: 30px;
-			width: 70px;
+			width: 60px;
 		}
 
 	}
@@ -584,12 +587,15 @@ body.ios {
 		word-wrap: break-word;
 		padding: 0.2em 0.5em 0em;
 		@include legacy-pie-clearfix;
-		width: calc(100% - 80px);
+		width: calc(100% - 70px);
 	}
 
 	.post__link {
 		margin: 2px 0 5px;
 		font-size: 13px;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 
 	.post__time {
@@ -612,7 +618,6 @@ body.ios {
 	}
 
 	.comment-icon__container {
-		margin-right: 7px;
 		fill: $primary-color;
 		display: inline-block;
 		visibility: hidden;

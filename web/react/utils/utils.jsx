@@ -561,8 +561,6 @@ export function applyTheme(theme) {
     if (theme.sidebarTextActiveColor) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .settings-modal .nav-pills>li.active a, .settings-modal .nav-pills>li.active a:hover, .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor, 2);
         changeCss('.sidebar--left .nav li.active a, .sidebar--left .nav li.active a:hover, .sidebar--left .nav li.active a:focus', 'background:' + changeOpacity(theme.sidebarTextActiveColor, 0.1), 1);
-        changeCss('.search-help-popover .search-autocomplete__item:hover', 'background:' + changeOpacity(theme.sidebarTextActiveColor, 0.05), 1);
-        changeCss('.search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.sidebarTextActiveColor, 0.15), 1);
     }
 
     if (theme.sidebarHeaderBg) {
@@ -656,8 +654,10 @@ export function applyTheme(theme) {
         changeCss('.date-separator.hovered--before:after, .date-separator.hovered--after:before, .new-separator.hovered--after:before, .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.command-name:hover, .mentions-name:hover, .mentions-focus, .dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover, .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('code', 'background:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
-        changeCss('.post.current--user:hover .post__body ', 'background: none;', 1);
+        changeCss('@media(min-width: 960px){.post.current--user:hover .post__body ', 'background: none;', 1);
         changeCss('.sidebar--right', 'color:' + theme.centerChannelColor, 2);
+        changeCss('.search-help-popover .search-autocomplete__item:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
+        changeCss('.search-help-popover .search-autocomplete__item.selected', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
     }
 
     if (theme.newMessageSeparator) {
