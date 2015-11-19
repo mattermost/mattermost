@@ -122,6 +122,10 @@ a:focus, a:hover {
   }
 }
 
+select {
+  -webkit-appearance: none;
+}
+
 .form-control {
   @include border-radius(2px);
   &:focus {

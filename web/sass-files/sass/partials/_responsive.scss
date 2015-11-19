@@ -57,7 +57,37 @@
 
     .post {
 
-        .dropdown, .comment-icon__container {
+        &.same--root {
+
+            &.same--user {
+
+                .post__time {
+                    display: none;
+                }
+
+            }
+
+        }
+
+        .post-list__content & {
+
+            &:hover {
+                background: transparent;
+
+                .comment-icon__container {
+                    visibility: hidden;
+
+                    &.icon--show {
+                        visibility: visible;
+                    }
+
+                }
+
+            }
+
+        }
+
+        .dropdown {
             visibility: visible;
         }
 
@@ -232,7 +262,8 @@
                 }
                 .modal-header {
                     display: block;
-                    position: fixed;
+                    position: absolute;
+                    top: 0;
                     width: 100%;
                     z-index: 5;
                 }
@@ -358,6 +389,7 @@
     #navbar {
         .navbar-default {
             .navbar-header {
+                float: none;
                 margin: 0 -15px;
                 .dropdown__icon {
                     background: url("../images/dropdown-icon.png");

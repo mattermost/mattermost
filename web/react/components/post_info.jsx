@@ -74,6 +74,23 @@ export default class PostInfo extends React.Component {
             );
         }
 
+        if (this.props.allowReply === 'true') {
+            dropdownContents.push(
+                <li
+                    key='replyLink'
+                    role='presentation'
+                >
+                    <a
+                        className='reply-link visible-xs theme'
+                        href='#'
+                        onClick={this.props.handleCommentClick}
+                    >
+                        {'Reply'}
+                    </a>
+                </li>
+            );
+        }
+
         if (dropdownContents.length === 0) {
             return '';
         }
