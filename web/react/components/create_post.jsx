@@ -383,8 +383,8 @@ export default class CreatePost extends React.Component {
         screens.push(
             <div>
                 <h4>{'Sending Messages'}</h4>
-                <p>{'Type here to write a message.'}</p>
-                <p>{'Click the attachment button to upload an image or a file.'}</p>
+                <p>{'Type here to write a message and press '}<strong>{'Enter'}</strong>{' to post it.'}</p>
+                <p>{'Click the '}<strong>{'Attachment'}</strong>{' button to upload an image or a file.'}</p>
             </div>
         );
 
