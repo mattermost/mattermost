@@ -38,7 +38,9 @@ export default class RhsRootPost extends React.Component {
     }
     render() {
         var post = this.props.post;
-        var isOwner = UserStore.getCurrentId() === post.user_id;
+        var currentUser = UserStore.getCurrentUser();
+        var isOwner = currentUser.id === post.user_id;
+        var isAdmin = utils.isAdmin(currentUser.roles);
         var timestamp = UserStore.getProfile(post.user_id).update_at;
         var channel = ChannelStore.get(post.channel_id);
 
@@ -61,11 +63,54 @@ export default class RhsRootPost extends React.Component {
             }
         }
 
-        var ownerOptions;
+        var dropdownContents = [];
+
         if (isOwner) {
-            ownerOptions = (
-                <div>
-                    <a href='#'
+            dropdownContents.push(
+                <li
+                    key='rhs-root-edit'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        data-toggle='modal'
+                        data-target='#edit_post'
+                        data-refocusid='#reply_textbox'
+                        data-title={type}
+                        data-message={post.message}
+                        data-postid={post.id}
+                        data-channelid={post.channel_id}
+                    >
+                        {'Edit'}
+                    </a>
+                </li>
+            );
+        }
+
+        if (isOwner || isAdmin) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-delete'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        onClick={() => EventHelpers.showDeletePostModal(post, this.props.commentCount)}
+                    >
+                        {'Delete'}
+                    </a>
+                </li>
+            );
+        }
+
+        var rootOptions = '';
+        if (dropdownContents.length > 0) {
+            rootOptions = (
+                <div className='dropdown'>
+                    <a
+                        href='#'
                         className='post__dropdown dropdown-toggle'
                         type='button'
                         data-toggle='dropdown'
@@ -75,30 +120,7 @@ export default class RhsRootPost extends React.Component {
                         className='dropdown-menu'
                         role='menu'
                     >
-                        <li role='presentation'>
-                            <a
-                                href='#'
-                                role='menuitem'
-                                data-toggle='modal'
-                                data-target='#edit_post'
-                                data-refocusid='#reply_textbox'
-                                data-title={type}
-                                data-message={post.message}
-                                data-postid={post.id}
-                                data-channelid={post.channel_id}
-                            >
-                                {'Edit'}
-                            </a>
-                        </li>
-                        <li role='presentation'>
-                            <a
-                                href='#'
-                                role='menuitem'
-                                onClick={() => EventHelpers.showDeletePostModal(post, this.props.commentCount)}
-                            >
-                                {'Delete'}
-                            </a>
-                        </li>
+                        {dropdownContents}
                     </ul>
                 </div>
             );
@@ -166,7 +188,7 @@ export default class RhsRootPost extends React.Component {
                             </li>
                             <li className='col col__reply'>
                                 <div className='dropdown'>
-                                    {ownerOptions}
+                                    {rootOptions}
                                 </div>
                             </li>
                         </ul>
