@@ -101,10 +101,7 @@ export function createDefaultIntroMessage(channel) {
             <a
                 className='intro-links'
                 href='#'
-                data-toggle='modal'
-                data-target='#get_link'
-                data-title='Team Invite'
-                data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + team.id}
+                onClick={GetTeamInviteLinkModal.show}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this team'}
             </a>

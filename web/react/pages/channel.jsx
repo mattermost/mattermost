@@ -7,7 +7,7 @@ import ErrorBar from '../components/error_bar.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
 import MentionList from '../components/mention_list.jsx';
-import GetLinkModal from '../components/get_link_modal.jsx';
+import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
 import RenameChannelModal from '../components/rename_channel_modal.jsx';
 import EditPostModal from '../components/edit_post_modal.jsx';
 import DeletePostModal from '../components/delete_post_modal.jsx';
@@ -67,8 +67,8 @@ function setupChannelPage(props, team, channel) {
     // Modals
     //
     ReactDOM.render(
-        <GetLinkModal />,
-        document.getElementById('get_link_modal')
+        <GetTeamInviteLinkModal />,
+        document.getElementById('get_team_invite_link_modal')
     );
 
     ReactDOM.render(

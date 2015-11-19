@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import GetTeamInviteLinkModal from './get_team_invite_link_modal.jsx';
 import InviteMemberModal from './invite_member_modal.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import UserStore from '../stores/user_store.jsx';
-import TeamStore from '../stores/team_store.jsx';
 import * as client from '../utils/client.jsx';
 import * as utils from '../utils/utils.jsx';
 
@@ -56,12 +56,12 @@ export default class SidebarRightMenu extends React.Component {
             if (this.props.teamType === 'O') {
                 teamLink = (
                     <li>
-                        <a href='#'
-                            data-toggle='modal'
-                            data-target='#get_link'
-                            data-title='Team Invite'
-                            data-value={utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id}
-                        ><i className='fa fa-link'></i>Get Team Invite Link</a>
+                        <a
+                            href='#'
+                            onClick={GetTeamInviteLinkModal.show}
+                        >
+                            <i className='glyphicon glyphicon-link'></i>{'Get Team Invite Link'}
+                        </a>
                     </li>
                 );
             }

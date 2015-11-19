@@ -7,6 +7,7 @@ import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 
 import AboutBuildModal from './about_build_modal.jsx';
+import GetTeamInviteLinkModal from './get_team_invite_link_modal.jsx';
 import InviteMemberModal from './invite_member_modal.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
@@ -105,10 +106,7 @@ export default class NavbarDropdown extends React.Component {
                     <li>
                         <a
                             href='#'
-                            data-toggle='modal'
-                            data-target='#get_link'
-                            data-title='Team Invite'
-                            data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id}
+                            onClick={GetTeamInviteLinkModal.show}
                         >
                             {'Get Team Invite Link'}
                         </a>

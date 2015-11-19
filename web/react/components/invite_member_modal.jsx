@@ -10,6 +10,7 @@ import ModalStore from '../stores/modal_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
+import GetTeamInviteLinkModal from './get_team_invite_link_modal.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
@@ -23,6 +24,7 @@ export default class InviteMemberModal extends React.Component {
         this.addInviteFields = this.addInviteFields.bind(this);
         this.clearFields = this.clearFields.bind(this);
         this.removeInviteFields = this.removeInviteFields.bind(this);
+        this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
 
         this.state = {
             show: false,
@@ -188,6 +190,12 @@ export default class InviteMemberModal extends React.Component {
         this.setState({inviteIds: inviteIds, idCount: count});
     }
 
+    showGetTeamInviteLinkModal() {
+        this.handleHide(false);
+
+        GetTeamInviteLinkModal.show();
+    }
+
     render() {
         var currentUser = UserStore.getCurrentUser();
 
@@ -333,22 +341,18 @@ export default class InviteMemberModal extends React.Component {
             } else {
                 var teamInviteLink = null;
                 if (currentUser && TeamStore.getCurrent().type === 'O') {
-                    var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id;
-                    var link =
-                        (
-                            <a
-                                href='#'
-                                data-toggle='modal'
-                                data-target='#get_link'
-                                data-title='Team Invite'
-                                data-value={linkUrl}
-                                onClick={() => this.handleHide(this, false)}
-                            >Team Invite Link</a>
+                    var link = (
+                        <a
+                            href='#'
+                            onClick={this.showGetTeamInviteLinkModal}
+                        >
+                            {'Team Invite Link'}
+                        </a>
                     );
 
                     teamInviteLink = (
                         <p>
-                            You can also invite people using the {link}.
+                            {'You can also invite people using the '}{link}{'.'}
                         </p>
                     );
                 }
