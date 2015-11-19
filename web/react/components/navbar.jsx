@@ -32,6 +32,7 @@ export default class Navbar extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.handleLeave = this.handleLeave.bind(this);
+        this.showSearch = this.showSearch.bind(this);
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
         this.createDropdown = this.createDropdown.bind(this);
 
@@ -99,6 +100,11 @@ export default class Navbar extends React.Component {
     toggleRightSidebar() {
         $('.inner__wrap').toggleClass('move--left-small');
         $('.sidebar--menu').toggleClass('move--left');
+    }
+    showSearch() {
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.SHOW_SEARCH
+        });
     }
     onChange() {
         this.setState(this.getStateFromStores());
@@ -411,6 +417,16 @@ export default class Navbar extends React.Component {
 
         var collapseButtons = this.createCollapseButtons(currentId);
 
+        const searchButton = (
+            <button
+                type='button'
+                className='navbar-toggle pull-right'
+                onClick={this.showSearch}
+            >
+                <span className='glyphicon glyphicon-search icon--white' />
+            </button>
+        );
+
         var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent);
 
         return (
@@ -422,6 +438,7 @@ export default class Navbar extends React.Component {
                     <div className='container-fluid theme'>
                         <div className='navbar-header'>
                             {collapseButtons}
+                            {searchButton}
                             {channelMenuDropdown}
                         </div>
                     </div>
