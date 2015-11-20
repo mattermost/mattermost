@@ -363,12 +363,6 @@ body.ios {
 		}
 	}
 
-	ul {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
 	p {
 		margin: 0 0 1em;
 		line-height: 1.6em;
@@ -520,6 +514,8 @@ body.ios {
 	}
 
 	.post__header {
+		padding: 0;
+		list-style: none;
 		margin-bottom: 2px;
 
 		li {
@@ -588,6 +584,11 @@ body.ios {
 		padding: 0.2em 0.5em 0em;
 		@include legacy-pie-clearfix;
 		width: calc(100% - 70px);
+
+		ul {
+			padding: 5px 0 0 20px;
+		}
+
 	}
 
 	.post__link {

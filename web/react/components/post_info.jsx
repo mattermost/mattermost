@@ -81,7 +81,7 @@ export default class PostInfo extends React.Component {
                     role='presentation'
                 >
                     <a
-                        className='reply-link visible-xs theme'
+                        className='link__reply theme'
                         href='#'
                         onClick={this.props.handleCommentClick}
                     >
