@@ -19,6 +19,7 @@ type Command struct {
 	GotoLocation string            `json:"goto_location"`
 	ChannelId    string            `json:"channel_id"`
 	Suggest      bool              `json:"-"`
+	FromWebhook  bool              `json:"-"`
 	Suggestions  []*SuggestCommand `json:"suggestions"`
 }
 

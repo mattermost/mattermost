@@ -23,6 +23,7 @@ func InitWebhook(r *mux.Router) {
 	sr.Handle("/outgoing/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
 	sr.Handle("/outgoing/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
 	sr.Handle("/outgoing/list", ApiUserRequired(getOutgoingHooks)).Methods("GET")
+	sr.Handle("/outgoing/team-list", ApiUserRequired(getTeamOutgoingHooks)).Methods("GET")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -189,6 +190,22 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := <-Srv.Store.Webhook().GetOutgoingByCreator(c.Session.UserId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		hooks := result.Data.([]*model.OutgoingWebhook)
+		w.Write([]byte(model.OutgoingWebhookListToJson(hooks)))
+	}
+}
+
+func getTeamOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
+		c.Err = model.NewAppError("getOutgoingHooks", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

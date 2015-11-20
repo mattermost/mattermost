@@ -35,6 +35,7 @@ func NewSqlWebhookStore(sqlStore *SqlStore) WebhookStore {
 }
 
 func (s SqlWebhookStore) UpgradeSchemaIfNeeded() {
+	s.CreateColumnIfNotExists("OutgoingWebhooks", "EnableSuggestions", "tinyint(1)", "boolean", "0")
 }
 
 func (s SqlWebhookStore) CreateIndexesIfNotExists() {

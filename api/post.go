@@ -252,17 +252,19 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 			return
 		}
 
-		firstWord := strings.Split(post.Message, " ")[0]
-
+		var trigger = ""
 		relevantHooks := []*model.OutgoingWebhook{}
 
 		for _, hook := range hooks {
+			matchingTrigger := hook.FindTrigger(post.Message)
 			if hook.ChannelId == post.ChannelId {
-				if len(hook.TriggerWords) == 0 || hook.HasTriggerWord(firstWord) {
+				if len(hook.TriggerWords) == 0 || matchingTrigger != "" {
 					relevantHooks = append(relevantHooks, hook)
+					trigger = matchingTrigger
 				}
-			} else if len(hook.ChannelId) == 0 && hook.HasTriggerWord(firstWord) {
+			} else if len(hook.ChannelId) == 0 && matchingTrigger != "" {
 				relevantHooks = append(relevantHooks, hook)
+				trigger = matchingTrigger
 			}
 		}
 
@@ -283,7 +285,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 				p.Set("user_name", user.Username)
 
 				p.Set("text", post.Message)
-				p.Set("trigger_word", firstWord)
+				p.Set("trigger_word", trigger)
 
 				client := &http.Client{}
 
