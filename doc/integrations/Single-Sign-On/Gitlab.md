@@ -9,7 +9,7 @@ Follow these steps to configure Mattermost to use GitLab as a single-sign-on (SS
   
   (Note: If your GitLab instance is set up to use SSL, your URIs must begin with https://. Otherwise, use http://).
 
-3. Submit the application and copy the given _Id_ and _Secret_ into the appropriate _SSOSettings_ fields in config/config.json
+3. Submit the application and copy the given _Id_ and _Secret_ into the appropriate _GitLabSettings_ fields in config/config.json
 
 4. Also in config/config.json, set _Enable_ to `true` for the _gitlab_ section, leave _Scope_ blank and use the following for the endpoints:
   * _AuthEndpoint_: `https://<your-gitlab-url>/oauth/authorize` (example https://example.com/oauth/authorize)  
