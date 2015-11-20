@@ -22,7 +22,7 @@ export default class ModalToggleButton extends React.Component {
     }
 
     render() {
-        const {children, dialogType, dialogProps, ...props} = this.props;
+        const {children, dialogType, dialogProps, ...props} = this.props; //eslint-disable-line no-redeclare
 
         // this assumes that all modals will have a show property and an onHide event
         const dialog = React.createElement(this.props.dialogType, Object.assign({}, dialogProps, {
