@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as client from '../utils/client.jsx';
+import UserStore from '../stores/user_store.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
 
 export default class SignupUserComplete extends React.Component {
     constructor(props) {

@@ -1,17 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import EventEmitter from 'events';
 
-var BrowserStore = require('../stores/browser_store.jsx');
+import BrowserStore from '../stores/browser_store.jsx';
 
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
-var LOG_CHANGE_EVENT = 'log_change';
-var CONFIG_CHANGE_EVENT = 'config_change';
-var ALL_TEAMS_EVENT = 'all_team_change';
+const LOG_CHANGE_EVENT = 'log_change';
+const CONFIG_CHANGE_EVENT = 'config_change';
+const ALL_TEAMS_EVENT = 'all_team_change';
 
 class AdminStoreClass extends EventEmitter {
     constructor() {

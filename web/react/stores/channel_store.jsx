@@ -1,19 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import EventEmitter from 'events';
 
 var Utils;
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
-var BrowserStore = require('../stores/browser_store.jsx');
+import BrowserStore from '../stores/browser_store.jsx';
 
-var CHANGE_EVENT = 'change';
-var LEAVE_EVENT = 'leave';
-var MORE_CHANGE_EVENT = 'change';
-var EXTRA_INFO_EVENT = 'extra_info';
+const CHANGE_EVENT = 'change';
+const LEAVE_EVENT = 'leave';
+const MORE_CHANGE_EVENT = 'change';
+const EXTRA_INFO_EVENT = 'extra_info';
 
 class ChannelStoreClass extends EventEmitter {
     constructor(props) {

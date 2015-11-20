@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../../utils/client.jsx');
-var Utils = require('../../utils/utils.jsx');
-var LineChart = require('./line_chart.jsx');
+import * as Client from '../../utils/client.jsx';
+import * as Utils from '../../utils/utils.jsx';
+import LineChart from './line_chart.jsx';
 
 export default class TeamAnalytics extends React.Component {
     constructor(props) {

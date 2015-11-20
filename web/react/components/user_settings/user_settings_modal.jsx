@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const ConfirmModal = require('../confirm_modal.jsx');
+import ConfirmModal from '../confirm_modal.jsx';
 const Modal = ReactBootstrap.Modal;
-const SettingsSidebar = require('../settings_sidebar.jsx');
-const UserSettings = require('./user_settings.jsx');
+import SettingsSidebar from '../settings_sidebar.jsx';
+import UserSettings from './user_settings.jsx';
 
 export default class UserSettingsModal extends React.Component {
     constructor(props) {

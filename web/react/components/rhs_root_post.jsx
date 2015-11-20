@@ -1,16 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ChannelStore = require('../stores/channel_store.jsx');
-var UserProfile = require('./user_profile.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var TextFormatting = require('../utils/text_formatting.jsx');
-var utils = require('../utils/utils.jsx');
-var DeletePostModal = require('./delete_post_modal.jsx');
-var FileAttachmentList = require('./file_attachment_list.jsx');
-var twemoji = require('twemoji');
-var Constants = require('../utils/constants.jsx');
-const PostBodyAdditionalContent = require('./post_body_additional_content.jsx');
+import ChannelStore from '../stores/channel_store.jsx';
+import UserProfile from './user_profile.jsx';
+import UserStore from '../stores/user_store.jsx';
+import * as TextFormatting from '../utils/text_formatting.jsx';
+import * as utils from '../utils/utils.jsx';
+import DeletePostModal from './delete_post_modal.jsx';
+import FileAttachmentList from './file_attachment_list.jsx';
+import twemoji from 'twemoji';
+import Constants from '../utils/constants.jsx';
+import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 
 export default class RhsRootPost extends React.Component {
     constructor(props) {

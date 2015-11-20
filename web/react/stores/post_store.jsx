@@ -1,20 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import EventEmitter from 'events';
 
-var ChannelStore = require('../stores/channel_store.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
+import ChannelStore from '../stores/channel_store.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
+import UserStore from '../stores/user_store.jsx';
 
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
-var CHANGE_EVENT = 'change';
-var SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
-var EDIT_POST_EVENT = 'edit_post';
-var POSTS_VIEW_JUMP_EVENT = 'post_list_jump';
+const CHANGE_EVENT = 'change';
+const SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
+const EDIT_POST_EVENT = 'edit_post';
+const POSTS_VIEW_JUMP_EVENT = 'post_list_jump';
 
 class PostStoreClass extends EventEmitter {
     constructor() {

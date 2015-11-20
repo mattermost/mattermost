@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var client = require('../utils/client.jsx');
+import * as client from '../utils/client.jsx';
 
 export default class CommandList extends React.Component {
     constructor(props) {

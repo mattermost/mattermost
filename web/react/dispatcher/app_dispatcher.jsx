@@ -1,17 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Dispatcher = require('flux').Dispatcher;
-var assign = require('object-assign');
+import * as Flux from 'flux';
 
-var Constants = require('../utils/constants.jsx');
-var PayloadSources = Constants.PayloadSources;
+import Constants from '../utils/constants.jsx';
+const PayloadSources = Constants.PayloadSources;
 
-var AppDispatcher = assign(new Dispatcher(), {
+const AppDispatcher = Object.assign(new Flux.Dispatcher(), {
     handleServerAction: function performServerAction(action) {
         var payload = {
             source: PayloadSources.SERVER_ACTION,
-            action: action
+            action
         };
         this.dispatch(payload);
     },
@@ -19,7 +18,7 @@ var AppDispatcher = assign(new Dispatcher(), {
     handleViewAction: function performViewAction(action) {
         var payload = {
             source: PayloadSources.VIEW_ACTION,
-            action: action
+            action
         };
         this.dispatch(payload);
     }

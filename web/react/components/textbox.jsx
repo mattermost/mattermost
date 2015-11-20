@@ -1,14 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const SearchStore = require('../stores/search_store.jsx');
-const CommandList = require('./command_list.jsx');
-const ErrorStore = require('../stores/error_store.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import SearchStore from '../stores/search_store.jsx';
+import CommandList from './command_list.jsx';
+import ErrorStore from '../stores/error_store.jsx';
 
-const TextFormatting = require('../utils/text_formatting.jsx');
-const Utils = require('../utils/utils.jsx');
-const Constants = require('../utils/constants.jsx');
+import * as TextFormatting from '../utils/text_formatting.jsx';
+import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 

@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var client = require('./client.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var utils = require('./utils.jsx');
+import * as client from './client.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import PostStore from '../stores/post_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import * as utils from './utils.jsx';
 
-var Constants = require('./constants.jsx');
+import Constants from './constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 
 // Used to track in progress async calls

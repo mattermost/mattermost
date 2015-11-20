@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
-var Client = require('../utils/client.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as Client from '../utils/client.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
 
 export default class TeamSignupWelcomePage extends React.Component {
     constructor(props) {

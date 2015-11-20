@@ -1,17 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PostStore = require('../stores/post_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var PreferenceStore = require('../stores/preference_store.jsx');
-var Utils = require('../utils/utils.jsx');
-var SearchBox = require('./search_bar.jsx');
-var CreateComment = require('./create_comment.jsx');
-var RhsHeaderPost = require('./rhs_header_post.jsx');
-var RootPost = require('./rhs_root_post.jsx');
-var Comment = require('./rhs_comment.jsx');
-var Constants = require('../utils/constants.jsx');
-var FileUploadOverlay = require('./file_upload_overlay.jsx');
+import PostStore from '../stores/post_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
+import * as Utils from '../utils/utils.jsx';
+import SearchBox from './search_bar.jsx';
+import CreateComment from './create_comment.jsx';
+import RhsHeaderPost from './rhs_header_post.jsx';
+import RootPost from './rhs_root_post.jsx';
+import Comment from './rhs_comment.jsx';
+import Constants from '../utils/constants.jsx';
+import FileUploadOverlay from './file_upload_overlay.jsx';
 
 export default class RhsThread extends React.Component {
     constructor(props) {

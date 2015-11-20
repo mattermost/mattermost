@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const ChoosePage = require('./team_signup_choose_auth.jsx');
-const EmailSignUpPage = require('./team_signup_with_email.jsx');
-const SSOSignupPage = require('./team_signup_with_sso.jsx');
-const Constants = require('../utils/constants.jsx');
+import ChoosePage from './team_signup_choose_auth.jsx';
+import EmailSignUpPage from './team_signup_with_email.jsx';
+import SSOSignupPage from './team_signup_with_sso.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class TeamSignUp extends React.Component {
     constructor(props) {

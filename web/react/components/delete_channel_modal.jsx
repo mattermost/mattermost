@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AsyncClient = require('../utils/async_client.jsx');
-const Client = require('../utils/client.jsx');
+import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
 const Modal = ReactBootstrap.Modal;
-const TeamStore = require('../stores/team_store.jsx');
-const Utils = require('../utils/utils.jsx');
+import TeamStore from '../stores/team_store.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {

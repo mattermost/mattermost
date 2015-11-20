@@ -2,8 +2,8 @@
 // See License.txt for license information.
 
 const Modal = ReactBootstrap.Modal;
-const UserStore = require('../stores/user_store.jsx');
-const Utils = require('../utils/utils.jsx');
+import UserStore from '../stores/user_store.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class MoreDirectChannels extends React.Component {
     constructor(props) {

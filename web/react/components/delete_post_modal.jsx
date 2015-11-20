@@ -1,14 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../utils/client.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var ModalStore = require('../stores/modal_store.jsx');
+import * as Client from '../utils/client.jsx';
+import PostStore from '../stores/post_store.jsx';
+import ModalStore from '../stores/modal_store.jsx';
 var Modal = ReactBootstrap.Modal;
-var Utils = require('../utils/utils.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Constants = require('../utils/constants.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 
 export default class DeletePostModal extends React.Component {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SignupTeamComplete = require('../components/signup_team_complete.jsx');
+import SignupTeamComplete from '../components/signup_team_complete.jsx';
 
 function setupSignupTeamCompletePage(props) {
     ReactDOM.render(

@@ -1,8 +1,8 @@
 // See License.txt for license information.
 
-var BrowserStore = require('../stores/browser_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var ErrorStore = require('../stores/error_store.jsx');
+import BrowserStore from '../stores/browser_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
+import ErrorStore from '../stores/error_store.jsx';
 
 export function track(category, action, label, property, value) {
     global.window.analytics.track(action, {category, label, property, value});

@@ -1,23 +1,23 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const NewChannelFlow = require('./new_channel_flow.jsx');
-const MoreDirectChannels = require('./more_direct_channels.jsx');
-const SearchBox = require('./search_bar.jsx');
-const SidebarHeader = require('./sidebar_header.jsx');
-const UnreadChannelIndicator = require('./unread_channel_indicator.jsx');
-const TutorialTip = require('./tutorial/tutorial_tip.jsx');
+import NewChannelFlow from './new_channel_flow.jsx';
+import MoreDirectChannels from './more_direct_channels.jsx';
+import SearchBox from './search_bar.jsx';
+import SidebarHeader from './sidebar_header.jsx';
+import UnreadChannelIndicator from './unread_channel_indicator.jsx';
+import TutorialTip from './tutorial/tutorial_tip.jsx';
 
-const ChannelStore = require('../stores/channel_store.jsx');
-const UserStore = require('../stores/user_store.jsx');
-const TeamStore = require('../stores/team_store.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
+import ChannelStore from '../stores/channel_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 
-const AsyncClient = require('../utils/async_client.jsx');
-const Client = require('../utils/client.jsx');
-const Utils = require('../utils/utils.jsx');
+import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 const NotificationPrefs = Constants.NotificationPrefs;

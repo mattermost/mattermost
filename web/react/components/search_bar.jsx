@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var SearchStore = require('../stores/search_store.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var utils = require('../utils/utils.jsx');
-var Constants = require('../utils/constants.jsx');
+import * as client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import SearchStore from '../stores/search_store.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 var Popover = ReactBootstrap.Popover;
-var SearchAutocomplete = require('./search_autocomplete.jsx');
+import SearchAutocomplete from './search_autocomplete.jsx';
 
 export default class SearchBar extends React.Component {
     constructor() {

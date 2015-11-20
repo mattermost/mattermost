@@ -2,12 +2,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Utils = require('./utils.jsx');
-const InviteMemberModal = require('../components/invite_member_modal.jsx');
-const UserProfile = require('../components/user_profile.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const Constants = require('../utils/constants.jsx');
-const TeamStore = require('../stores/team_store.jsx');
+import * as Utils from './utils.jsx';
+import InviteMemberModal from '../components/invite_member_modal.jsx';
+import UserProfile from '../components/user_profile.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import Constants from '../utils/constants.jsx';
+import TeamStore from '../stores/team_store.jsx';
 
 export function createChannelIntroMessage(channel, showInviteModal) {
     if (channel.type === 'D') {

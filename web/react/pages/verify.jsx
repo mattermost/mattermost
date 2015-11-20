@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var EmailVerify = require('../components/email_verify.jsx');
+import EmailVerify from '../components/email_verify.jsx';
 
 global.window.setupVerifyPage = function setupVerifyPage(props) {
     ReactDOM.render(

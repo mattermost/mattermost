@@ -1,14 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const ModalStore = require('../../stores/modal_store.jsx');
-const UserStore = require('../../stores/user_store.jsx');
-const Utils = require('../../utils/utils.jsx');
-const Client = require('../../utils/client.jsx');
+import ModalStore from '../../stores/modal_store.jsx';
+import UserStore from '../../stores/user_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
+import * as Client from '../../utils/client.jsx';
 const Modal = ReactBootstrap.Modal;
 
-const AppDispatcher = require('../../dispatcher/app_dispatcher.jsx');
-const Constants = require('../../utils/constants.jsx');
+import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
+import Constants from '../../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 export default class ImportThemeModal extends React.Component {

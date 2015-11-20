@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SearchStore = require('../stores/search_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var SearchBox = require('./search_bar.jsx');
-var Utils = require('../utils/utils.jsx');
-var SearchResultsHeader = require('./search_results_header.jsx');
-var SearchResultsItem = require('./search_results_item.jsx');
+import SearchStore from '../stores/search_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import SearchBox from './search_bar.jsx';
+import * as Utils from '../utils/utils.jsx';
+import SearchResultsHeader from './search_results_header.jsx';
+import SearchResultsItem from './search_results_item.jsx';
 
 function getStateFromStores() {
     return {results: SearchStore.getSearchResults()};

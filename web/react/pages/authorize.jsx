@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Authorize = require('../components/authorize.jsx');
+import Authorize from '../components/authorize.jsx';
 
 function setupAuthorizePage(props) {
     ReactDOM.render(

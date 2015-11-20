@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const UserStore = require('../stores/user_store.jsx');
-const Utils = require('../utils/utils.jsx');
-const Post = require('./post.jsx');
-const Constants = require('../utils/constants.jsx');
+import UserStore from '../stores/user_store.jsx';
+import * as Utils from '../utils/utils.jsx';
+import Post from './post.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class PostsView extends React.Component {
     constructor(props) {

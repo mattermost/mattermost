@@ -1,17 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var PreferenceStore = require('../stores/preference_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var Constants = require('../utils/constants.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
+import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
-var Client = require('./client.jsx');
-var AsyncClient = require('./async_client.jsx');
-var client = require('./client.jsx');
-var Autolinker = require('autolinker');
+import * as Client from './client.jsx';
+import * as AsyncClient from './async_client.jsx';
+import * as client from './client.jsx';
+import Autolinker from 'autolinker';
 
 export function isEmail(email) {
     //var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;

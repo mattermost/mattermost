@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var EmailItem = require('./team_signup_email_item.jsx');
-var Client = require('../utils/client.jsx');
+import EmailItem from './team_signup_email_item.jsx';
+import * as Client from '../utils/client.jsx';
 
 export default class TeamSignupSendInvitesPage extends React.Component {
     constructor(props) {

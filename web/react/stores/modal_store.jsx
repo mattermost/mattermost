@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import EventEmitter from 'events';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 class ModalStoreClass extends EventEmitter {

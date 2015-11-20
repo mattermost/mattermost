@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Constants = require('../../utils/constants.jsx');
+import Constants from '../../utils/constants.jsx';
 
 export default class CustomThemeChooser extends React.Component {
     constructor(props) {

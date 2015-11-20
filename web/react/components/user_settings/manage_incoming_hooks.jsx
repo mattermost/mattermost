@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../../utils/client.jsx');
-var Utils = require('../../utils/utils.jsx');
-var Constants = require('../../utils/constants.jsx');
-var ChannelStore = require('../../stores/channel_store.jsx');
-var LoadingScreen = require('../loading_screen.jsx');
+import * as Client from '../../utils/client.jsx';
+import * as Utils from '../../utils/utils.jsx';
+import Constants from '../../utils/constants.jsx';
+import ChannelStore from '../../stores/channel_store.jsx';
+import LoadingScreen from '../loading_screen.jsx';
 
 export default class ManageIncomingHooks extends React.Component {
     constructor() {

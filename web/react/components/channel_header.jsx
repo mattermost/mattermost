@@ -1,28 +1,28 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const NavbarSearchBox = require('./search_bar.jsx');
-const MessageWrapper = require('./message_wrapper.jsx');
-const PopoverListMembers = require('./popover_list_members.jsx');
-const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
-const ChannelInfoModal = require('./channel_info_modal.jsx');
-const ChannelInviteModal = require('./channel_invite_modal.jsx');
-const ChannelMembersModal = require('./channel_members_modal.jsx');
-const ChannelNotificationsModal = require('./channel_notifications_modal.jsx');
-const DeleteChannelModal = require('./delete_channel_modal.jsx');
-const ToggleModalButton = require('./toggle_modal_button.jsx');
+import NavbarSearchBox from './search_bar.jsx';
+import MessageWrapper from './message_wrapper.jsx';
+import PopoverListMembers from './popover_list_members.jsx';
+import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
+import ChannelInfoModal from './channel_info_modal.jsx';
+import ChannelInviteModal from './channel_invite_modal.jsx';
+import ChannelMembersModal from './channel_members_modal.jsx';
+import ChannelNotificationsModal from './channel_notifications_modal.jsx';
+import DeleteChannelModal from './delete_channel_modal.jsx';
+import ToggleModalButton from './toggle_modal_button.jsx';
 
-const ChannelStore = require('../stores/channel_store.jsx');
-const UserStore = require('../stores/user_store.jsx');
-const SearchStore = require('../stores/search_store.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
+import ChannelStore from '../stores/channel_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import SearchStore from '../stores/search_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const Utils = require('../utils/utils.jsx');
-const TextFormatting = require('../utils/text_formatting.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
-const Client = require('../utils/client.jsx');
-const Constants = require('../utils/constants.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as Utils from '../utils/utils.jsx';
+import * as TextFormatting from '../utils/text_formatting.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const Popover = ReactBootstrap.Popover;

@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
+import UserStore from '../stores/user_store.jsx';
 var Popover = ReactBootstrap.Popover;
 var Overlay = ReactBootstrap.Overlay;
-const Utils = require('../utils/utils.jsx');
+import * as Utils from '../utils/utils.jsx';
 
-const ChannelStore = require('../stores/channel_store.jsx');
+import ChannelStore from '../stores/channel_store.jsx';
 
 export default class PopoverListMembers extends React.Component {
     constructor(props) {

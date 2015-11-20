@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AdminNavbarDropdown = require('./admin_navbar_dropdown.jsx');
-var UserStore = require('../../stores/user_store.jsx');
-var Utils = require('../../utils/utils.jsx');
+import AdminNavbarDropdown from './admin_navbar_dropdown.jsx';
+import UserStore from '../../stores/user_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {

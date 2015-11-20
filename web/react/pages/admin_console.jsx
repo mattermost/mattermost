@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ErrorBar = require('../components/error_bar.jsx');
-var SelectTeamModal = require('../components/admin_console/select_team_modal.jsx');
-var AdminController = require('../components/admin_console/admin_controller.jsx');
+import ErrorBar from '../components/error_bar.jsx';
+import SelectTeamModal from '../components/admin_console/select_team_modal.jsx';
+import AdminController from '../components/admin_console/admin_controller.jsx';
 
 export function setupAdminConsolePage(props) {
     ReactDOM.render(

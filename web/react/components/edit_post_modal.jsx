@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var DeletePostModal = require('./delete_post_modal.jsx');
-var Textbox = require('./textbox.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var PreferenceStore = require('../stores/preference_store.jsx');
+import * as Client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import DeletePostModal from './delete_post_modal.jsx';
+import Textbox from './textbox.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
+import PostStore from '../stores/post_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 
-var Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 var KeyCodes = Constants.KeyCodes;
 
 export default class EditPostModal extends React.Component {

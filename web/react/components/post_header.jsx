@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserProfile = require('./user_profile.jsx');
-var PostInfo = require('./post_info.jsx');
+import UserProfile from './user_profile.jsx';
+import PostInfo from './post_info.jsx';
 
 export default class PostHeader extends React.Component {
     constructor(props) {

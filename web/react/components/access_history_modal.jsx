@@ -2,11 +2,11 @@
 // See License.txt for license information.
 
 var Modal = ReactBootstrap.Modal;
-var UserStore = require('../stores/user_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var LoadingScreen = require('./loading_screen.jsx');
-var Utils = require('../utils/utils.jsx');
+import UserStore from '../stores/user_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import LoadingScreen from './loading_screen.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class AccessHistoryModal extends React.Component {
     constructor(props) {

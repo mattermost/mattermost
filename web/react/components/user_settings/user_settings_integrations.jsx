@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SettingItemMin = require('../setting_item_min.jsx');
-var SettingItemMax = require('../setting_item_max.jsx');
-var ManageIncomingHooks = require('./manage_incoming_hooks.jsx');
-var ManageOutgoingHooks = require('./manage_outgoing_hooks.jsx');
+import SettingItemMin from '../setting_item_min.jsx';
+import SettingItemMax from '../setting_item_max.jsx';
+import ManageIncomingHooks from './manage_incoming_hooks.jsx';
+import ManageOutgoingHooks from './manage_outgoing_hooks.jsx';
 
 export default class UserSettingsIntegrationsTab extends React.Component {
     constructor(props) {

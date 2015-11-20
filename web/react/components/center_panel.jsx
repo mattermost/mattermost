@@ -1,17 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const TutorialIntroScreens = require('./tutorial/tutorial_intro_screens.jsx');
-const CreatePost = require('./create_post.jsx');
-const PostsViewContainer = require('./posts_view_container.jsx');
-const ChannelHeader = require('./channel_header.jsx');
-const Navbar = require('./navbar.jsx');
-const FileUploadOverlay = require('./file_upload_overlay.jsx');
+import TutorialIntroScreens from './tutorial/tutorial_intro_screens.jsx';
+import CreatePost from './create_post.jsx';
+import PostsViewContainer from './posts_view_container.jsx';
+import ChannelHeader from './channel_header.jsx';
+import Navbar from './navbar.jsx';
+import FileUploadOverlay from './file_upload_overlay.jsx';
 
-const PreferenceStore = require('../stores/preference_store.jsx');
-const UserStore = require('../stores/user_store.jsx');
+import PreferenceStore from '../stores/preference_store.jsx';
+import UserStore from '../stores/user_store.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 

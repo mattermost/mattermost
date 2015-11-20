@@ -1,17 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PostHeader = require('./post_header.jsx');
-var PostBody = require('./post_body.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Constants = require('../utils/constants.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
+import PostHeader from './post_header.jsx';
+import PostBody from './post_body.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Constants from '../utils/constants.jsx';
+import UserStore from '../stores/user_store.jsx';
+import PostStore from '../stores/post_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import * as client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
 var ActionTypes = Constants.ActionTypes;
-var utils = require('../utils/utils.jsx');
+import * as utils from '../utils/utils.jsx';
 
 export default class Post extends React.Component {
     constructor(props) {

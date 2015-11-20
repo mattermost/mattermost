@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const SettingItemMin = require('./setting_item_min.jsx');
-const SettingItemMax = require('./setting_item_max.jsx');
+import SettingItemMin from './setting_item_min.jsx';
+import SettingItemMax from './setting_item_max.jsx';
 
-const Client = require('../utils/client.jsx');
-const Utils = require('../utils/utils.jsx');
-const TeamStore = require('../stores/team_store.jsx');
+import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
+import TeamStore from '../stores/team_store.jsx';
 
 export default class GeneralTab extends React.Component {
     constructor(props) {

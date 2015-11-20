@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
-var Client = require('../utils/client.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as Client from '../utils/client.jsx';
 
 export default class TeamSignupUsernamePage extends React.Component {
     constructor(props) {

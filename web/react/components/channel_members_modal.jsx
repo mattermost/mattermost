@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const MemberList = require('./member_list.jsx');
-const ChannelInviteModal = require('./channel_invite_modal.jsx');
+import MemberList from './member_list.jsx';
+import ChannelInviteModal from './channel_invite_modal.jsx';
 
-const UserStore = require('../stores/user_store.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
+import UserStore from '../stores/user_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
 
-const AsyncClient = require('../utils/async_client.jsx');
-const Client = require('../utils/client.jsx');
-const Utils = require('../utils/utils.jsx');
+import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 const Modal = ReactBootstrap.Modal;
 

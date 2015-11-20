@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
-var asyncClient = require('../utils/async_client.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var LoadingScreen = require('./loading_screen.jsx');
-var NewChannelFlow = require('./new_channel_flow.jsx');
+import * as utils from '../utils/utils.jsx';
+import * as client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import LoadingScreen from './loading_screen.jsx';
+import NewChannelFlow from './new_channel_flow.jsx';
 
 function getStateFromStores() {
     return {
@@ -31,12 +31,12 @@ export default class MoreChannels extends React.Component {
     }
     componentDidMount() {
         ChannelStore.addMoreChangeListener(this.onListenerChange);
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', function shown() {
-            asyncClient.getMoreChannels(true);
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('shown.bs.modal', () => {
+            AsyncClient.getMoreChannels(true);
         });
 
         var self = this;
-        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', function show(e) {
+        $(ReactDOM.findDOMNode(this.refs.modal)).on('show.bs.modal', (e) => {
             var button = e.relatedTarget;
             self.setState({channelType: $(button).attr('data-channeltype')});
         });
@@ -53,15 +53,15 @@ export default class MoreChannels extends React.Component {
     handleJoin(channel, channelIndex) {
         this.setState({joiningChannel: channelIndex});
         client.joinChannel(channel.id,
-            function joinSuccess() {
+            () => {
                 $(ReactDOM.findDOMNode(this.refs.modal)).modal('hide');
-                asyncClient.getChannel(channel.id);
+                AsyncClient.getChannel(channel.id);
                 utils.switchChannel(channel);
                 this.setState({joiningChannel: -1});
-            }.bind(this),
-            function joinFail(err) {
+            },
+            (err) => {
                 this.setState({joiningChannel: -1, serverError: err.message});
-            }.bind(this)
+            }
         );
     }
     handleNewChannel() {

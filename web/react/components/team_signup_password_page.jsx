@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../utils/client.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
+import * as Client from '../utils/client.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
+import UserStore from '../stores/user_store.jsx';
 
 export default class TeamSignupPasswordPage extends React.Component {
     constructor(props) {

@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Client = require('../utils/client.jsx');
-const Utils = require('../utils/utils.jsx');
-const Constants = require('../utils/constants.jsx');
-const ViewImagePopoverBar = require('./view_image_popover_bar.jsx');
+import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
+import ViewImagePopoverBar from './view_image_popover_bar.jsx';
 const Modal = ReactBootstrap.Modal;
 const KeyCodes = Constants.KeyCodes;
 

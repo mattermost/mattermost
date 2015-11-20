@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var TeamStore = require('../stores/team_store.jsx');
-var ImportTab = require('./team_import_tab.jsx');
-var ExportTab = require('./team_export_tab.jsx');
-var GeneralTab = require('./team_general_tab.jsx');
-var Utils = require('../utils/utils.jsx');
+import TeamStore from '../stores/team_store.jsx';
+import ImportTab from './team_import_tab.jsx';
+import ExportTab from './team_export_tab.jsx';
+import GeneralTab from './team_general_tab.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class TeamSettings extends React.Component {
     constructor(props) {

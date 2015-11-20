@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
+import UserStore from '../stores/user_store.jsx';
 
 export default class GetLinkModal extends React.Component {
     constructor(props) {

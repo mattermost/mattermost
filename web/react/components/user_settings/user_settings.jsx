@@ -1,16 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../../stores/user_store.jsx');
-var utils = require('../../utils/utils.jsx');
-var NotificationsTab = require('./user_settings_notifications.jsx');
-var SecurityTab = require('./user_settings_security.jsx');
-var GeneralTab = require('./user_settings_general.jsx');
-var AppearanceTab = require('./user_settings_appearance.jsx');
-var DeveloperTab = require('./user_settings_developer.jsx');
-var IntegrationsTab = require('./user_settings_integrations.jsx');
-var DisplayTab = require('./user_settings_display.jsx');
-var AdvancedTab = require('./user_settings_advanced.jsx');
+import UserStore from '../../stores/user_store.jsx';
+import * as utils from '../../utils/utils.jsx';
+import NotificationsTab from './user_settings_notifications.jsx';
+import SecurityTab from './user_settings_security.jsx';
+import GeneralTab from './user_settings_general.jsx';
+import AppearanceTab from './user_settings_appearance.jsx';
+import DeveloperTab from './user_settings_developer.jsx';
+import IntegrationsTab from './user_settings_integrations.jsx';
+import DisplayTab from './user_settings_display.jsx';
+import AdvancedTab from './user_settings_advanced.jsx';
 
 export default class UserSettings extends React.Component {
     constructor(props) {

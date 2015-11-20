@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const TextFormatting = require('../utils/text_formatting.jsx');
+import * as TextFormatting from '../utils/text_formatting.jsx';
 
 export default class PostAttachment extends React.Component {
     constructor(props) {

@@ -2,12 +2,12 @@
 // See License.txt for license information.
 
 var Modal = ReactBootstrap.Modal;
-var SettingItemMin = require('./setting_item_min.jsx');
-var SettingItemMax = require('./setting_item_max.jsx');
+import SettingItemMin from './setting_item_min.jsx';
+import SettingItemMax from './setting_item_max.jsx';
 
-var Client = require('../utils/client.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
+import * as Client from '../utils/client.jsx';
+import UserStore from '../stores/user_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
 
 export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {

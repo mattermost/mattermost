@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 var Modal = ReactBootstrap.Modal;
-var Utils = require('../utils/utils.jsx');
+import * as Utils from '../utils/utils.jsx';
 
 export default class ChangeUrlModal extends React.Component {
     constructor(props) {

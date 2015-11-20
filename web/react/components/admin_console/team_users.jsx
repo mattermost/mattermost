@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Client = require('../../utils/client.jsx');
-var LoadingScreen = require('../loading_screen.jsx');
-var UserItem = require('./user_item.jsx');
-var ResetPasswordModal = require('./reset_password_modal.jsx');
+import * as Client from '../../utils/client.jsx';
+import LoadingScreen from '../loading_screen.jsx';
+import UserItem from './user_item.jsx';
+import ResetPasswordModal from './reset_password_modal.jsx';
 
 export default class UserList extends React.Component {
     constructor(props) {
