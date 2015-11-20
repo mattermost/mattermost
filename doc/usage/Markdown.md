@@ -11,9 +11,9 @@ You can use either `_` or `*` around a word to make it italic. Use two to make i
 * `**_bold-italic_**` renders as **_bold-italics_**
 * `~~strikethrough~~` renders as ~~strikethrough~~
 
-## Code: 
+## Code Block: 
 
-Create a code block by indenting four spaces, or by placing ``` on the line above and below your code. 
+Create a code block by indenting each line by four spaces, or by placing ``` on the line above and below your code. 
 
 Example:
 
@@ -25,6 +25,34 @@ Renders as:
 ```
 code block
 ```
+
+### Syntax Highlighting
+
+To add syntax highlighting, type the language to be highlighted after the ``` at the beginning of the code block. 
+
+Supported languages are:
+`diff, apache, makefile, http, json, markdown, javascript, css, nginx, objectivec, python, xml, perl, bash, php, coffee (CoffeeScript), cs (C#), cpp (C++), sql, go, ruby, java, ini, latex`
+
+Example:
+
+    ``` go
+    package main
+    import "fmt"
+    func main() {
+	    fmt.Println("Hello, 世界")
+    }
+    ```
+
+Renders as: 
+``` go
+package main
+import "fmt"
+func main() {
+	fmt.Println("Hello, 世界")
+}
+```
+
+## In-line Code:
 
 Create in-line monospaced font by surrounding it with backticks. 
 ```
