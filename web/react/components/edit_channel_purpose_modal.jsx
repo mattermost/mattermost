@@ -90,7 +90,7 @@ export default class EditChannelPurposeModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>{`Describe how this ${Utils.getChannelTerm(this.props.channel.channelType)} should be used.`}</p>
+                    <p>{`Describe how this ${Utils.getChannelTerm(this.props.channel.channelType)} should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.`}</p>
                     <textarea
                         ref='purpose'
                         className='form-control no-resize'
