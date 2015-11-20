@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const TextFormatting = require('../utils/text_formatting.jsx');
-const UserStore = require('../stores/user_store.jsx');
+import * as TextFormatting from '../utils/text_formatting.jsx';
+import UserStore from '../stores/user_store.jsx';
 
 export default class Docs extends React.Component {
     constructor(props) {

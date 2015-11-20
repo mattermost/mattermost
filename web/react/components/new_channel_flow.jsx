@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var Client = require('../utils/client.jsx');
-var UserStore = require('../stores/user_store.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import * as Client from '../utils/client.jsx';
+import UserStore from '../stores/user_store.jsx';
 
-var NewChannelModal = require('./new_channel_modal.jsx');
-var ChangeURLModal = require('./change_url_modal.jsx');
+import NewChannelModal from './new_channel_modal.jsx';
+import ChangeURLModal from './change_url_modal.jsx';
 
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;

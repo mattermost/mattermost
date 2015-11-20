@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../../utils/utils.jsx');
-var Constants = require('../../utils/constants.jsx');
+import * as Utils from '../../utils/utils.jsx';
+import Constants from '../../utils/constants.jsx';
 
 export default class PremadeThemeChooser extends React.Component {
     constructor(props) {

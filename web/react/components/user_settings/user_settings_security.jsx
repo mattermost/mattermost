@@ -1,14 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SettingItemMin = require('../setting_item_min.jsx');
-var SettingItemMax = require('../setting_item_max.jsx');
-var AccessHistoryModal = require('../access_history_modal.jsx');
-var ActivityLogModal = require('../activity_log_modal.jsx');
-var ToggleModalButton = require('../toggle_modal_button.jsx');
-var Client = require('../../utils/client.jsx');
-var AsyncClient = require('../../utils/async_client.jsx');
-var Constants = require('../../utils/constants.jsx');
+import SettingItemMin from '../setting_item_min.jsx';
+import SettingItemMax from '../setting_item_max.jsx';
+import AccessHistoryModal from '../access_history_modal.jsx';
+import ActivityLogModal from '../activity_log_modal.jsx';
+import ToggleModalButton from '../toggle_modal_button.jsx';
+import * as Client from '../../utils/client.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
+import Constants from '../../utils/constants.jsx';
 
 export default class SecurityTab extends React.Component {
     constructor(props) {

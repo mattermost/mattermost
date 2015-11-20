@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const PostAttachmentList = require('./post_attachment_list.jsx');
-const PostAttachmentOEmbed = require('./post_attachment_oembed.jsx');
+import PostAttachmentList from './post_attachment_list.jsx';
+import PostAttachmentOEmbed from './post_attachment_oembed.jsx';
 
 export default class PostBodyAdditionalContent extends React.Component {
     constructor(props) {

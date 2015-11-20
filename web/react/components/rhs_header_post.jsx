@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const Constants = require('../utils/constants.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 export default class RhsHeaderPost extends React.Component {

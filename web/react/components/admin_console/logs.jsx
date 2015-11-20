@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AdminStore = require('../../stores/admin_store.jsx');
-var LoadingScreen = require('../loading_screen.jsx');
-var AsyncClient = require('../../utils/async_client.jsx');
+import AdminStore from '../../stores/admin_store.jsx';
+import LoadingScreen from '../loading_screen.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
 
 export default class Logs extends React.Component {
     constructor(props) {

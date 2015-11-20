@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ErrorStore = require('../stores/error_store.jsx');
+import ErrorStore from '../stores/error_store.jsx';
 
 export default class ErrorBar extends React.Component {
     constructor() {

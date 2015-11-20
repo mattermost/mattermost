@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const SettingsSidebar = require('./settings_sidebar.jsx');
-const TeamSettings = require('./team_settings.jsx');
+import SettingsSidebar from './settings_sidebar.jsx';
+import TeamSettings from './team_settings.jsx';
 
 export default class TeamSettingsModal extends React.Component {
     constructor(props) {

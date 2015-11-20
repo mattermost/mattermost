@@ -1,11 +1,12 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const ActionTypes = require('../utils/constants.jsx').ActionTypes;
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const BrowserStore = require('./browser_store.jsx');
-const EventEmitter = require('events').EventEmitter;
-const UserStore = require('../stores/user_store.jsx');
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import BrowserStore from './browser_store.jsx';
+import EventEmitter from 'events';
+import UserStore from '../stores/user_store.jsx';
 
 const CHANGE_EVENT = 'change';
 
@@ -105,7 +106,7 @@ class PreferenceStoreClass extends EventEmitter {
         const action = payload.action;
 
         switch (action.type) {
-        case ActionTypes.RECIEVED_PREFERENCES:
+        case ActionTypes.RECIEVED_PREFERENCES: {
             const preferences = this.getAllPreferences();
 
             for (const preference of action.preferences) {
@@ -114,6 +115,8 @@ class PreferenceStoreClass extends EventEmitter {
 
             this.setAllPreferences(preferences);
             this.emitChange(preferences);
+            break;
+        }
         }
     }
 }

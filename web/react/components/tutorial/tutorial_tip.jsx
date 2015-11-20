@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const UserStore = require('../../stores/user_store.jsx');
-const PreferenceStore = require('../../stores/preference_store.jsx');
-const AsyncClient = require('../../utils/async_client.jsx');
+import UserStore from '../../stores/user_store.jsx';
+import PreferenceStore from '../../stores/preference_store.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
 
-const Constants = require('../../utils/constants.jsx');
+import Constants from '../../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
 const Overlay = ReactBootstrap.Overlay;

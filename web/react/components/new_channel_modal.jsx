@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Utils = require('../utils/utils.jsx');
+import * as Utils from '../utils/utils.jsx';
 var Modal = ReactBootstrap.Modal;
 
 export default class NewChannelModal extends React.Component {

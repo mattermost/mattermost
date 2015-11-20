@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var ViewImageModal = require('./view_image.jsx');
-var FileAttachment = require('./file_attachment.jsx');
-var Constants = require('../utils/constants.jsx');
+import ViewImageModal from './view_image.jsx';
+import FileAttachment from './file_attachment.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class FileAttachmentList extends React.Component {
     constructor(props) {

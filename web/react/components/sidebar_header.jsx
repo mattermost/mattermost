@@ -1,14 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const NavbarDropdown = require('./navbar_dropdown.jsx');
-const TutorialTip = require('./tutorial/tutorial_tip.jsx');
+import NavbarDropdown from './navbar_dropdown.jsx';
+import TutorialTip from './tutorial/tutorial_tip.jsx';
 
-const UserStore = require('../stores/user_store.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
+import UserStore from '../stores/user_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 
-const Utils = require('../utils/utils.jsx');
-const Constants = require('../utils/constants.jsx');
+import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 

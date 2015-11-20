@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var SearchStore = require('../stores/search_store.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Mention = require('./mention.jsx');
+import UserStore from '../stores/user_store.jsx';
+import SearchStore from '../stores/search_store.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Mention from './mention.jsx';
 
-var Constants = require('../utils/constants.jsx');
-var Utils = require('../utils/utils.jsx');
+import Constants from '../utils/constants.jsx';
+import * as Utils from '../utils/utils.jsx';
 var ActionTypes = Constants.ActionTypes;
 
 var MAX_HEIGHT_LIST = 292;

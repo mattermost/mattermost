@@ -1,19 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const PostsView = require('./posts_view.jsx');
-const LoadingScreen = require('./loading_screen.jsx');
-const ChannelInviteModal = require('./channel_invite_modal.jsx');
+import PostsView from './posts_view.jsx';
+import LoadingScreen from './loading_screen.jsx';
+import ChannelInviteModal from './channel_invite_modal.jsx';
 
-const ChannelStore = require('../stores/channel_store.jsx');
-const PostStore = require('../stores/post_store.jsx');
+import ChannelStore from '../stores/channel_store.jsx';
+import PostStore from '../stores/post_store.jsx';
 
-const Utils = require('../utils/utils.jsx');
-const Client = require('../utils/client.jsx');
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as Client from '../utils/client.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 import {createChannelIntroMessage} from '../utils/channel_intro_mssages.jsx';

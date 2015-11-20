@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var TextFormatting = require('../utils/text_formatting.jsx');
+import * as TextFormatting from '../utils/text_formatting.jsx';
 
 export default class MessageWrapper extends React.Component {
     constructor(props) {

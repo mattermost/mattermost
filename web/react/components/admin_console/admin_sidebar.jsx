@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AdminSidebarHeader = require('./admin_sidebar_header.jsx');
-var SelectTeamModal = require('./select_team_modal.jsx');
-var Utils = require('../../utils/utils.jsx');
+import AdminSidebarHeader from './admin_sidebar_header.jsx';
+import SelectTeamModal from './select_team_modal.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
 export default class AdminSidebar extends React.Component {
     constructor(props) {

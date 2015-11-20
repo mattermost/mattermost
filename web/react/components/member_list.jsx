@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var MemberListItem = require('./member_list_item.jsx');
+import MemberListItem from './member_list_item.jsx';
 
 export default class MemberList extends React.Component {
     constructor(props) {

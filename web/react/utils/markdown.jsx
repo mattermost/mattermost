@@ -1,14 +1,62 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-require('./highlight.jsx');
-const TextFormatting = require('./text_formatting.jsx');
-const Utils = require('./utils.jsx');
+import highlightJs from 'highlight.js/lib/highlight.js';
+import highlightJsDiff from 'highlight.js/lib/languages/diff.js';
+import highlightJsApache from 'highlight.js/lib/languages/apache.js';
+import highlightJsMakefile from 'highlight.js/lib/languages/makefile.js';
+import highlightJsHttp from 'highlight.js/lib/languages/http.js';
+import highlightJsJson from 'highlight.js/lib/languages/json.js';
+import highlightJsMarkdown from 'highlight.js/lib/languages/markdown.js';
+import highlightJsJavascript from 'highlight.js/lib/languages/javascript.js';
+import highlightJsCss from 'highlight.js/lib/languages/css.js';
+import highlightJsNginx from 'highlight.js/lib/languages/nginx.js';
+import highlightJsObjectivec from 'highlight.js/lib/languages/objectivec.js';
+import highlightJsPython from 'highlight.js/lib/languages/python.js';
+import highlightJsXml from 'highlight.js/lib/languages/xml.js';
+import highlightJsPerl from 'highlight.js/lib/languages/perl.js';
+import highlightJsBash from 'highlight.js/lib/languages/bash.js';
+import highlightJsPhp from 'highlight.js/lib/languages/php.js';
+import highlightJsCoffeescript from 'highlight.js/lib/languages/coffeescript.js';
+import highlightJsCs from 'highlight.js/lib/languages/cs.js';
+import highlightJsCpp from 'highlight.js/lib/languages/cpp.js';
+import highlightJsSql from 'highlight.js/lib/languages/sql.js';
+import highlightJsGo from 'highlight.js/lib/languages/go.js';
+import highlightJsRuby from 'highlight.js/lib/languages/ruby.js';
+import highlightJsJava from 'highlight.js/lib/languages/java.js';
+import highlightJsIni from 'highlight.js/lib/languages/ini.js';
 
-const highlightJs = require('highlight.js/lib/highlight.js');
-const marked = require('marked');
+highlightJs.registerLanguage('diff', highlightJsDiff);
+highlightJs.registerLanguage('apache', highlightJsApache);
+highlightJs.registerLanguage('makefile', highlightJsMakefile);
+highlightJs.registerLanguage('http', highlightJsHttp);
+highlightJs.registerLanguage('json', highlightJsJson);
+highlightJs.registerLanguage('markdown', highlightJsMarkdown);
+highlightJs.registerLanguage('javascript', highlightJsJavascript);
+highlightJs.registerLanguage('css', highlightJsCss);
+highlightJs.registerLanguage('nginx', highlightJsNginx);
+highlightJs.registerLanguage('objectivec', highlightJsObjectivec);
+highlightJs.registerLanguage('python', highlightJsPython);
+highlightJs.registerLanguage('xml', highlightJsXml);
+highlightJs.registerLanguage('perl', highlightJsPerl);
+highlightJs.registerLanguage('bash', highlightJsBash);
+highlightJs.registerLanguage('php', highlightJsPhp);
+highlightJs.registerLanguage('coffeescript', highlightJsCoffeescript);
+highlightJs.registerLanguage('cs', highlightJsCs);
+highlightJs.registerLanguage('cpp', highlightJsCpp);
+highlightJs.registerLanguage('sql', highlightJsSql);
+highlightJs.registerLanguage('go', highlightJsGo);
+highlightJs.registerLanguage('ruby', highlightJsRuby);
+highlightJs.registerLanguage('java', highlightJsJava);
+highlightJs.registerLanguage('ini', highlightJsIni);
 
-const HighlightedLanguages = require('../utils/constants.jsx').HighlightedLanguages;
+import * as TextFormatting from './text_formatting.jsx';
+import * as Utils from './utils.jsx';
+
+import marked from 'marked';
+
+import Constants from '../utils/constants.jsx';
+const HighlightedLanguages = Constants.HighlightedLanguages;
 
 function markdownImageLoaded(image) {
     image.style.height = 'auto';

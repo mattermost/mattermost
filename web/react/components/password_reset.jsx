@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PasswordResetSendLink = require('./password_reset_send_link.jsx');
-var PasswordResetForm = require('./password_reset_form.jsx');
+import PasswordResetSendLink from './password_reset_send_link.jsx';
+import PasswordResetForm from './password_reset_form.jsx';
 
 export default class PasswordReset extends React.Component {
     constructor(props) {

@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
-var UserStore = require('../stores/user_store.jsx');
+import * as Utils from '../utils/utils.jsx';
+import UserStore from '../stores/user_store.jsx';
 var Popover = ReactBootstrap.Popover;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 

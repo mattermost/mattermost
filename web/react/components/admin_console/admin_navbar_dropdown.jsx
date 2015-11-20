@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../../utils/utils.jsx');
-var Client = require('../../utils/client.jsx');
-var TeamStore = require('../../stores/team_store.jsx');
+import * as Utils from '../../utils/utils.jsx';
+import * as Client from '../../utils/client.jsx';
+import TeamStore from '../../stores/team_store.jsx';
 
-var Constants = require('../../utils/constants.jsx');
+import Constants from '../../utils/constants.jsx';
 
 function getStateFromStores() {
     return {currentTeam: TeamStore.getCurrent()};

@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const ChannelStore = require('../stores/channel_store.jsx');
-const KeyCodes = require('../utils/constants.jsx').KeyCodes;
+import ChannelStore from '../stores/channel_store.jsx';
+import Constants from '../utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
 const Popover = ReactBootstrap.Popover;
-const UserStore = require('../stores/user_store.jsx');
-const Utils = require('../utils/utils.jsx');
-const Constants = require('../utils/constants.jsx');
+import UserStore from '../stores/user_store.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 const patterns = new Map([
     ['channels', /\b(?:in|channel):\s*(\S*)$/i],

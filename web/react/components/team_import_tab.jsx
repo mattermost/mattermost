@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
-var SettingUpload = require('./setting_upload.jsx');
+import * as utils from '../utils/utils.jsx';
+import SettingUpload from './setting_upload.jsx';
 
 export default class TeamImportTab extends React.Component {
     constructor(props) {

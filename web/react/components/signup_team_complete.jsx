@@ -1,13 +1,13 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var WelcomePage = require('./team_signup_welcome_page.jsx');
-var TeamDisplayNamePage = require('./team_signup_display_name_page.jsx');
-var TeamURLPage = require('./team_signup_url_page.jsx');
-var SendInivtesPage = require('./team_signup_send_invites_page.jsx');
-var UsernamePage = require('./team_signup_username_page.jsx');
-var PasswordPage = require('./team_signup_password_page.jsx');
-var BrowserStore = require('../stores/browser_store.jsx');
+import WelcomePage from './team_signup_welcome_page.jsx';
+import TeamDisplayNamePage from './team_signup_display_name_page.jsx';
+import TeamURLPage from './team_signup_url_page.jsx';
+import SendInivtesPage from './team_signup_send_invites_page.jsx';
+import UsernamePage from './team_signup_username_page.jsx';
+import PasswordPage from './team_signup_password_page.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
 
 export default class SignupTeamComplete extends React.Component {
     constructor(props) {

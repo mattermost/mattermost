@@ -1,27 +1,27 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const EditChannelPurposeModal = require('./edit_channel_purpose_modal.jsx');
-const MessageWrapper = require('./message_wrapper.jsx');
-const NotifyCounts = require('./notify_counts.jsx');
-const ChannelMembersModal = require('./channel_members_modal.jsx');
-const ChannelInfoModal = require('./channel_info_modal.jsx');
-const ChannelInviteModal = require('./channel_invite_modal.jsx');
-const ChannelNotificationsModal = require('./channel_notifications_modal.jsx');
-const DeleteChannelModal = require('./delete_channel_modal.jsx');
-const ToggleModalButton = require('./toggle_modal_button.jsx');
+import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
+import MessageWrapper from './message_wrapper.jsx';
+import NotifyCounts from './notify_counts.jsx';
+import ChannelMembersModal from './channel_members_modal.jsx';
+import ChannelInfoModal from './channel_info_modal.jsx';
+import ChannelInviteModal from './channel_invite_modal.jsx';
+import ChannelNotificationsModal from './channel_notifications_modal.jsx';
+import DeleteChannelModal from './delete_channel_modal.jsx';
+import ToggleModalButton from './toggle_modal_button.jsx';
 
-const UserStore = require('../stores/user_store.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const TeamStore = require('../stores/team_store.jsx');
+import UserStore from '../stores/user_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
 
-const Client = require('../utils/client.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
-const Utils = require('../utils/utils.jsx');
+import * as Client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import * as Utils from '../utils/utils.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;

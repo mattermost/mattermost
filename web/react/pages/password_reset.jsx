@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PasswordReset = require('../components/password_reset.jsx');
+import PasswordReset from '../components/password_reset.jsx';
 
 function setupPasswordResetPage(props) {
     ReactDOM.render(

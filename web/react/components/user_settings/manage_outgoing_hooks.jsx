@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const LoadingScreen = require('../loading_screen.jsx');
+import LoadingScreen from '../loading_screen.jsx';
 
-const ChannelStore = require('../../stores/channel_store.jsx');
+import ChannelStore from '../../stores/channel_store.jsx';
 
-const Client = require('../../utils/client.jsx');
-const Constants = require('../../utils/constants.jsx');
+import * as Client from '../../utils/client.jsx';
+import Constants from '../../utils/constants.jsx';
 
 export default class ManageOutgoingHooks extends React.Component {
     constructor() {

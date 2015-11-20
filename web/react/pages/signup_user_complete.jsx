@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SignupUserComplete = require('../components/signup_user_complete.jsx');
+import SignupUserComplete from '../components/signup_user_complete.jsx';
 
 function setupSignupUserCompletePage(props) {
     ReactDOM.render(

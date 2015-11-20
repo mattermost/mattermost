@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import EventEmitter from 'events';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 class ModalStoreClass extends EventEmitter {
@@ -28,7 +28,7 @@ class ModalStoreClass extends EventEmitter {
 
     handleEventPayload(payload) {
         // toggle event handlers should accept a boolean show/hide value and can accept a map of arguments
-        const {type, value, ...args} = payload.action;
+        const {type, value, ...args} = payload.action; //eslint-disable-line no-redeclare
 
         switch (type) {
         case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:

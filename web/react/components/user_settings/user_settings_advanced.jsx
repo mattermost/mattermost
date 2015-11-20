@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Client = require('../../utils/client.jsx');
-const SettingItemMin = require('../setting_item_min.jsx');
-const SettingItemMax = require('../setting_item_max.jsx');
-const Constants = require('../../utils/constants.jsx');
-const PreferenceStore = require('../../stores/preference_store.jsx');
+import * as Client from '../../utils/client.jsx';
+import SettingItemMin from '../setting_item_min.jsx';
+import SettingItemMax from '../setting_item_max.jsx';
+import Constants from '../../utils/constants.jsx';
+import PreferenceStore from '../../stores/preference_store.jsx';
 
 export default class AdvancedSettingsDisplay extends React.Component {
     constructor(props) {

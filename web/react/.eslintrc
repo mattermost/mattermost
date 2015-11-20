@@ -27,6 +27,8 @@
         },
         "rules": {
             "comma-dangle": [2, "never"],
+            "no-arrow-condition": 2,
+            "no-case-declarations": 2,
             "no-cond-assign": [2, "except-parens"],
             "no-console": 2,
             "no-constant-condition": 2,
@@ -35,14 +37,17 @@
             "no-dupe-keys": 2,
             "no-duplicate-case": 2,
             "no-empty": 2,
+            "no-empty-pattern": 2,
             "no-ex-assign": 2,
             "no-extra-semi": 2,
+            "no-fallthrough": 2,
             "no-func-assign": 2,
             "no-inner-declarations": 0,
             "no-invalid-regexp": 2,
             "no-irregular-whitespace": 2,
             "no-unexpected-multiline": 2,
             "no-unreachable": 2,
+            "no-magic-numbers": [0, { "enforceConst": true, "detectObjects": true } ],
             "valid-typeof": 2,
 
             "block-scoped-var": 2,
@@ -150,6 +155,7 @@
 
             // ES6 stuff
             "arrow-parens": [2, "always"],
+            "arrow-body-style": 0,
             "arrow-spacing": [2, { "before": true, "after": true }],
             "constructor-super": 2,
             "generator-star-spacing": [2, {"before": false, "after": true}],
@@ -172,7 +178,9 @@
             "react/jsx-closing-bracket-location": [2, { "location": "tag-aligned" }],
             "react/jsx-curly-spacing": [2, "never"],
             "react/jsx-indent-props": [2, 4],
+            "react/jsx-key": 2,
             "react/jsx-max-props-per-line": [2, { "maximum": 1 }],
+            "react/jsx-no-bind": 1,
             "react/jsx-no-duplicate-props": [2, { "ignoreCase": false }],
             "react/jsx-no-literals": 1,
             "react/jsx-no-undef": 2,
@@ -181,13 +189,14 @@
             "react/no-danger": 0,
             "react/no-did-mount-set-state": 2,
             "react/no-did-update-set-state": 2,
+            "react/no-direct-mutation-state": 2,
             "react/no-multi-comp": 2,
             "react/no-set-state": 0,
             "react/no-unknown-property": 2,
+            "react/prefer-es6-class": 2,
             "react/prop-types": 2,
             "react/self-closing-comp": 2,
             "react/sort-comp": 0,
-            "react/wrap-multilines": 2,
-            "react/no-direct-mutation-state": 2
+            "react/wrap-multilines": 2
         }
 }

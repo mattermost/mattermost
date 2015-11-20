@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Docs = require('../components/docs.jsx');
+import Docs from '../components/docs.jsx';
 
 function setupDocumentationPage(props) {
     ReactDOM.render(

@@ -1,21 +1,21 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const Client = require('../utils/client.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
-const SocketStore = require('../stores/socket_store.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const UserStore = require('../stores/user_store.jsx');
-const PostStore = require('../stores/post_store.jsx');
-const PreferenceStore = require('../stores/preference_store.jsx');
-const Textbox = require('./textbox.jsx');
-const MsgTyping = require('./msg_typing.jsx');
-const FileUpload = require('./file_upload.jsx');
-const FilePreview = require('./file_preview.jsx');
-const Utils = require('../utils/utils.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as Client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import SocketStore from '../stores/socket_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import PostStore from '../stores/post_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
+import Textbox from './textbox.jsx';
+import MsgTyping from './msg_typing.jsx';
+import FileUpload from './file_upload.jsx';
+import FilePreview from './file_preview.jsx';
+import * as Utils from '../utils/utils.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 

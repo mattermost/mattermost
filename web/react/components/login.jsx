@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Utils = require('../utils/utils.jsx');
-const Client = require('../utils/client.jsx');
-const UserStore = require('../stores/user_store.jsx');
-const BrowserStore = require('../stores/browser_store.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as Client from '../utils/client.jsx';
+import UserStore from '../stores/user_store.jsx';
+import BrowserStore from '../stores/browser_store.jsx';
 
 export default class Login extends React.Component {
     constructor(props) {

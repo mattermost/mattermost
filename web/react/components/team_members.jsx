@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var UserStore = require('../stores/user_store.jsx');
-var MemberListTeam = require('./member_list_team.jsx');
-var utils = require('../utils/utils.jsx');
+import UserStore from '../stores/user_store.jsx';
+import MemberListTeam from './member_list_team.jsx';
+import * as utils from '../utils/utils.jsx';
 
 function getStateFromStores() {
     var users = UserStore.getProfiles();

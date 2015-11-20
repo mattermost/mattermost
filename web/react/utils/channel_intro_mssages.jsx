@@ -2,12 +2,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const Utils = require('./utils.jsx');
-const InviteMemberModal = require('../components/invite_member_modal.jsx');
-const UserProfile = require('../components/user_profile.jsx');
-const ChannelStore = require('../stores/channel_store.jsx');
-const Constants = require('../utils/constants.jsx');
-const TeamStore = require('../stores/team_store.jsx');
+import * as Utils from './utils.jsx';
+import InviteMemberModal from '../components/invite_member_modal.jsx';
+import UserProfile from '../components/user_profile.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import Constants from '../utils/constants.jsx';
+import TeamStore from '../stores/team_store.jsx';
 
 export function createChannelIntroMessage(channel, showInviteModal) {
     if (channel.type === 'D') {
@@ -71,7 +71,7 @@ export function createDMIntroMessage(channel) {
     );
 }
 
-export function createOffTopicIntroMessage(channel, showInviteModal) {
+export function createOffTopicIntroMessage(channel, showInviteModal) { //eslint-disable-line react/no-multi-comp
     return (
         <div className='channel-intro'>
             <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
@@ -101,7 +101,7 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
     );
 }
 
-export function createDefaultIntroMessage(channel) {
+export function createDefaultIntroMessage(channel) { //eslint-disable-line react/no-multi-comp
     const team = TeamStore.getCurrent();
     let inviteModalLink;
     if (team.type === Constants.INVITE_TEAM) {
@@ -154,7 +154,7 @@ export function createDefaultIntroMessage(channel) {
     );
 }
 
-export function createStandardIntroMessage(channel, showInviteModal) {
+export function createStandardIntroMessage(channel, showInviteModal) { //eslint-disable-line react/no-multi-comp
     var uiName = channel.display_name;
     var creatorName = '';
 

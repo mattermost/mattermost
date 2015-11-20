@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const SocketStore = require('../stores/socket_store.jsx');
-const UserStore = require('../stores/user_store.jsx');
+import SocketStore from '../stores/socket_store.jsx';
+import UserStore from '../stores/user_store.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
 
 export default class MsgTyping extends React.Component {
@@ -74,10 +74,11 @@ export default class MsgTyping extends React.Component {
         case 1:
             text = users[0] + ' is typing...';
             break;
-        default:
+        default: {
             const last = users.pop();
             text = users.join(', ') + ' and ' + last + ' are typing...';
             break;
+        }
         }
 
         this.setState({text});

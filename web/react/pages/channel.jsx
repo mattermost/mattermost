@@ -1,29 +1,29 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var ChannelView = require('../components/channel_view.jsx');
-var ChannelLoader = require('../components/channel_loader.jsx');
-var ErrorBar = require('../components/error_bar.jsx');
-var ErrorStore = require('../stores/error_store.jsx');
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import ChannelView from '../components/channel_view.jsx';
+import ChannelLoader from '../components/channel_loader.jsx';
+import ErrorBar from '../components/error_bar.jsx';
+import ErrorStore from '../stores/error_store.jsx';
 
-var MentionList = require('../components/mention_list.jsx');
-var GetLinkModal = require('../components/get_link_modal.jsx');
-var EditChannelModal = require('../components/edit_channel_modal.jsx');
-var RenameChannelModal = require('../components/rename_channel_modal.jsx');
-var EditPostModal = require('../components/edit_post_modal.jsx');
-var DeletePostModal = require('../components/delete_post_modal.jsx');
-var MoreChannelsModal = require('../components/more_channels.jsx');
-var PostDeletedModal = require('../components/post_deleted_modal.jsx');
-var TeamSettingsModal = require('../components/team_settings_modal.jsx');
-var TeamMembersModal = require('../components/team_members.jsx');
-var RemovedFromChannelModal = require('../components/removed_from_channel_modal.jsx');
-var RegisterAppModal = require('../components/register_app_modal.jsx');
-var ImportThemeModal = require('../components/user_settings/import_theme_modal.jsx');
-var InviteMemberModal = require('../components/invite_member_modal.jsx');
+import MentionList from '../components/mention_list.jsx';
+import GetLinkModal from '../components/get_link_modal.jsx';
+import EditChannelModal from '../components/edit_channel_modal.jsx';
+import RenameChannelModal from '../components/rename_channel_modal.jsx';
+import EditPostModal from '../components/edit_post_modal.jsx';
+import DeletePostModal from '../components/delete_post_modal.jsx';
+import MoreChannelsModal from '../components/more_channels.jsx';
+import PostDeletedModal from '../components/post_deleted_modal.jsx';
+import TeamSettingsModal from '../components/team_settings_modal.jsx';
+import TeamMembersModal from '../components/team_members.jsx';
+import RemovedFromChannelModal from '../components/removed_from_channel_modal.jsx';
+import RegisterAppModal from '../components/register_app_modal.jsx';
+import ImportThemeModal from '../components/user_settings/import_theme_modal.jsx';
+import InviteMemberModal from '../components/invite_member_modal.jsx';
 
-var AsyncClient = require('../utils/async_client.jsx');
-var Constants = require('../utils/constants.jsx');
+import * as AsyncClient from '../utils/async_client.jsx';
+import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 
 function setupChannelPage(props) {

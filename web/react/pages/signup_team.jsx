@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SignupTeam = require('../components/signup_team.jsx');
+import SignupTeam from '../components/signup_team.jsx';
 
 function setupSignupTeamPage(props) {
     var teams = [];

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var FindTeam = require('../components/find_team.jsx');
+import FindTeam from '../components/find_team.jsx';
 
 function setupFindTeamPage() {
     ReactDOM.render(

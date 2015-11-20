@@ -1,16 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SearchStore = require('../stores/search_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var UserProfile = require('./user_profile.jsx');
-var utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Constants = require('../utils/constants.jsx');
-var TextFormatting = require('../utils/text_formatting.jsx');
+import SearchStore from '../stores/search_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import UserProfile from './user_profile.jsx';
+import * as utils from '../utils/utils.jsx';
+import * as client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import Constants from '../utils/constants.jsx';
+import * as TextFormatting from '../utils/text_formatting.jsx';
 var ActionTypes = Constants.ActionTypes;
 
 export default class SearchResultsItem extends React.Component {

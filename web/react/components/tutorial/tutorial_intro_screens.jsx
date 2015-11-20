@@ -1,14 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const UserStore = require('../../stores/user_store.jsx');
-const ChannelStore = require('../../stores/channel_store.jsx');
-const TeamStore = require('../../stores/team_store.jsx');
-const PreferenceStore = require('../../stores/preference_store.jsx');
-const Utils = require('../../utils/utils.jsx');
-const AsyncClient = require('../../utils/async_client.jsx');
+import UserStore from '../../stores/user_store.jsx';
+import ChannelStore from '../../stores/channel_store.jsx';
+import TeamStore from '../../stores/team_store.jsx';
+import PreferenceStore from '../../stores/preference_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
 
-const Constants = require('../../utils/constants.jsx');
+import Constants from '../../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
 const NUM_SCREENS = 3;

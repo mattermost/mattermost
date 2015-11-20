@@ -1,16 +1,16 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
-var client = require('../utils/client.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as client from '../utils/client.jsx';
+import UserStore from '../stores/user_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
 
-var AboutBuildModal = require('./about_build_modal.jsx');
-var InviteMemberModal = require('./invite_member_modal.jsx');
-var UserSettingsModal = require('./user_settings/user_settings_modal.jsx');
+import AboutBuildModal from './about_build_modal.jsx';
+import InviteMemberModal from './invite_member_modal.jsx';
+import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
-var Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 
 function getStateFromStores() {
     const teams = [];

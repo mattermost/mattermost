@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var SearchResults = require('./search_results.jsx');
-var RhsThread = require('./rhs_thread.jsx');
-var SearchStore = require('../stores/search_store.jsx');
-var PostStore = require('../stores/post_store.jsx');
-var Utils = require('../utils/utils.jsx');
+import SearchResults from './search_results.jsx';
+import RhsThread from './rhs_thread.jsx';
+import SearchStore from '../stores/search_store.jsx';
+import PostStore from '../stores/post_store.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class SidebarRight extends React.Component {
     constructor(props) {

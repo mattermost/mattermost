@@ -1,15 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const FileAttachmentList = require('./file_attachment_list.jsx');
-const UserStore = require('../stores/user_store.jsx');
-const Utils = require('../utils/utils.jsx');
-const Constants = require('../utils/constants.jsx');
-const TextFormatting = require('../utils/text_formatting.jsx');
-const twemoji = require('twemoji');
-const PostBodyAdditionalContent = require('./post_body_additional_content.jsx');
+import FileAttachmentList from './file_attachment_list.jsx';
+import UserStore from '../stores/user_store.jsx';
+import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
+import * as TextFormatting from '../utils/text_formatting.jsx';
+import twemoji from 'twemoji';
+import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 
-const providers = require('./providers.json');
+import providers from './providers.json';
 
 export default class PostBody extends React.Component {
     constructor(props) {

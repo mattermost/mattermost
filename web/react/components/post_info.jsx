@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var DeletePostModal = require('./delete_post_modal.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var utils = require('../utils/utils.jsx');
-var TimeSince = require('./time_since.jsx');
+import DeletePostModal from './delete_post_modal.jsx';
+import UserStore from '../stores/user_store.jsx';
+import * as utils from '../utils/utils.jsx';
+import TimeSince from './time_since.jsx';
 
-var Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 
 export default class PostInfo extends React.Component {
     constructor(props) {

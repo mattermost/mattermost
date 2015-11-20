@@ -1,18 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-const UserStore = require('./user_store.jsx');
-const PostStore = require('./post_store.jsx');
-const ChannelStore = require('./channel_store.jsx');
-const BrowserStore = require('./browser_store.jsx');
-const ErrorStore = require('./error_store.jsx');
-const EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import UserStore from './user_store.jsx';
+import PostStore from './post_store.jsx';
+import ChannelStore from './channel_store.jsx';
+import BrowserStore from './browser_store.jsx';
+import ErrorStore from './error_store.jsx';
+import EventEmitter from 'events';
 
-const Utils = require('../utils/utils.jsx');
-const AsyncClient = require('../utils/async_client.jsx');
+import * as Utils from '../utils/utils.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
 
-const Constants = require('../utils/constants.jsx');
+import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const SocketEvents = Constants.SocketEvents;
 

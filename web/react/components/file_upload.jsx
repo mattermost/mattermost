@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var client = require('../utils/client.jsx');
-var Constants = require('../utils/constants.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var utils = require('../utils/utils.jsx');
+import * as client from '../utils/client.jsx';
+import Constants from '../utils/constants.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import * as utils from '../utils/utils.jsx';
 
 export default class FileUpload extends React.Component {
     constructor(props) {

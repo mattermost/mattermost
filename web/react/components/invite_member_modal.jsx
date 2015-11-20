@@ -1,14 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var utils = require('../utils/utils.jsx');
-var ActionTypes = require('../utils/constants.jsx').ActionTypes;
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Client = require('../utils/client.jsx');
-var ModalStore = require('../stores/modal_store.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var ConfirmModal = require('./confirm_modal.jsx');
+import * as utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as Client from '../utils/client.jsx';
+import ModalStore from '../stores/modal_store.jsx';
+import UserStore from '../stores/user_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
+import ConfirmModal from './confirm_modal.jsx';
 
 const Modal = ReactBootstrap.Modal;
 

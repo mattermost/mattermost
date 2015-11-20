@@ -1,20 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var PostStore = require('../stores/post_store.jsx');
-var ChannelStore = require('../stores/channel_store.jsx');
-var UserProfile = require('./user_profile.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var Utils = require('../utils/utils.jsx');
-var Constants = require('../utils/constants.jsx');
-var DeletePostModal = require('./delete_post_modal.jsx');
-var FileAttachmentList = require('./file_attachment_list.jsx');
-var Client = require('../utils/client.jsx');
-var AsyncClient = require('../utils/async_client.jsx');
+import PostStore from '../stores/post_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
+import UserProfile from './user_profile.jsx';
+import UserStore from '../stores/user_store.jsx';
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
+import DeletePostModal from './delete_post_modal.jsx';
+import FileAttachmentList from './file_attachment_list.jsx';
+import * as Client from '../utils/client.jsx';
+import * as AsyncClient from '../utils/async_client.jsx';
 var ActionTypes = Constants.ActionTypes;
-var TextFormatting = require('../utils/text_formatting.jsx');
-var twemoji = require('twemoji');
+import * as TextFormatting from '../utils/text_formatting.jsx';
+import twemoji from 'twemoji';
 
 export default class RhsComment extends React.Component {
     constructor(props) {

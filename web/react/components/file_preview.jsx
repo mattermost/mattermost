@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var Utils = require('../utils/utils.jsx');
+import * as Utils from '../utils/utils.jsx';
 
 export default class FilePreview extends React.Component {
     constructor(props) {

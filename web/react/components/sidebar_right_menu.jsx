@@ -1,12 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var InviteMemberModal = require('./invite_member_modal.jsx');
-var UserSettingsModal = require('./user_settings/user_settings_modal.jsx');
-var UserStore = require('../stores/user_store.jsx');
-var TeamStore = require('../stores/team_store.jsx');
-var client = require('../utils/client.jsx');
-var utils = require('../utils/utils.jsx');
+import InviteMemberModal from './invite_member_modal.jsx';
+import UserSettingsModal from './user_settings/user_settings_modal.jsx';
+import UserStore from '../stores/user_store.jsx';
+import TeamStore from '../stores/team_store.jsx';
+import * as client from '../utils/client.jsx';
+import * as utils from '../utils/utils.jsx';
 
 export default class SidebarRightMenu extends React.Component {
     componentDidMount() {

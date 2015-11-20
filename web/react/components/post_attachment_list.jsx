@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-const PostAttachment = require('./post_attachment.jsx');
+import PostAttachment from './post_attachment.jsx';
 
 export default class PostAttachmentList extends React.Component {
     constructor(props) {

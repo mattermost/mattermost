@@ -1,18 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var AppDispatcher = require('../dispatcher/app_dispatcher.jsx');
-var EventEmitter = require('events').EventEmitter;
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import EventEmitter from 'events';
 
-var Constants = require('../utils/constants.jsx');
-var ActionTypes = Constants.ActionTypes;
-var BrowserStore = require('./browser_store.jsx');
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
+import BrowserStore from './browser_store.jsx';
 
-var CHANGE_EVENT = 'change';
-var CHANGE_EVENT_SESSIONS = 'change_sessions';
-var CHANGE_EVENT_AUDITS = 'change_audits';
-var CHANGE_EVENT_TEAMS = 'change_teams';
-var CHANGE_EVENT_STATUSES = 'change_statuses';
+const CHANGE_EVENT = 'change';
+const CHANGE_EVENT_SESSIONS = 'change_sessions';
+const CHANGE_EVENT_AUDITS = 'change_audits';
+const CHANGE_EVENT_TEAMS = 'change_teams';
+const CHANGE_EVENT_STATUSES = 'change_statuses';
 
 class UserStoreClass extends EventEmitter {
     constructor() {
@@ -354,5 +354,4 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
     }
 });
 
-global.window.UserStore = UserStore;
-export default UserStore;
+export {UserStore as default};
