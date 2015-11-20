@@ -1,5 +1,49 @@
 # Mattermost Changelog
 
+## UNDER DEVELOPMENT Release v1.3.0
+
+The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
+
+- **Release candidate anticipated:** 2015-12-10
+- **Final release anticipated:** 2015-12-16
+
+### Improvements 
+
+Performance
+- Updated getProfiles service to return less data
+
+Messaging & Comments
+- Added in-line previews for links from select websites and for URLs pointing to an image
+- Added a "Help" link for messaging
+
+Onboarding
+- Added various small improvements to the tutorial
+
+User Interface
+- Visually combined sequential messages from the same user 
+- Added ability to rename "Town Square"
+
+#### Bug Fixes  
+
+- Fixed bug where the member list only showed "20" members for channels with more than 20 members
+- Fixed bug where the channel sidebar didn't order correctly on Postgres databases
+- Fixed bug where search results did not highlight when searching with quotation marks, wildcard, or in: and from: modifiers
+- Fixed bug with the cancel button not properly resetting the text in some account settings fields
+- Fixed a bug where editing a post to be empty caused a 404 error
+- Fixed issue where refreshing the page with the right hand sidebar open caused "..." to show up in place of usernames
+
+#### Contributors 
+
+Many thanks to our external contributors. In no particular order:
+
+- [florianorben](https://github.com/florianorben)
+- [42wim](https://github.com/42wim)
+- [cifvts](https://github.com/cifvts)
+- [rompic](https://github.com/rompic)
+- [jdhoek](https://github.com/jdhoek)
+- [Tsynapse](https://github.com/Tsynapse)
+- [alexgaribay](https://github.com/alexgaribay)
+
 ## Release v1.2.1
 
 - **Released:** 2015-11-16
