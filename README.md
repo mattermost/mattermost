@@ -106,6 +106,8 @@ Joining the Mattermost community is a great way to build relationships with othe
 - [Matterbridge](https://github.com/42wim/matterbridge) - an IRC bridge connecting to Mattermost 
 - [GitLab Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-gitlab) - connecting GitLab to Mattermost via incoming webhooks
 - [Giphy Integration Service for Mattermost](https://github.com/mattermost/mattermost-integration-giphy) - connecting Mattermost to Giphy via outgoing webhooks
+- [node-mattermost](https://github.com/jonathanwiesel/node-mattermost) - a node.js module for sending and receiving messages from Mattermost webhooks
+- [matterqus](https://github.com/jonathanwiesel/matterqus) - Disqus comment notifier for Mattermost
 
 #### Have other ideas or suggestions?
 
