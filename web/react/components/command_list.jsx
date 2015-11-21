@@ -81,7 +81,7 @@ export default class CommandList extends React.Component {
             <div
                 ref='mentionlist'
                 className='command-box'
-                style={{height: (this.state.suggestions.length * 56) + 2}}
+                style={{height: (suggestions.length * 56) + 2}}
             >
                 {suggestions}
             </div>
