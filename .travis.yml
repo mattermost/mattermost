@@ -68,18 +68,18 @@ deploy:
      condition: $TRAVIS_DB = mysql
 
 # S3 deploy for documentation
- - provider: s3
-   access_key_id: AKIAJCO3KJYEGWJIKDIQ
-   secret_access_key:
-     secure: p66X2tJBmKgtcVyPtGgkAwW29IiRojqGA39RjCJkIWNTJ0e/9JvBOiMS2c4a7I4aOads38rsthwdaigBWagDWNH7bGsEZN7B0TszZuFAuU+XGjU5A66MIOfFfzbUg8AnByysr+XG5/bknFIrP/XhM2fbRr6gbYrFUK7TNkpgjFs5u3BzUrz2iTAV8uOpSJqKSnaf0pTZk1EywOK/X8W8ViIjc7Di3FzQcqIW9K3D27N+3rVsv8SRT1hWASVlnG6aThqqebiM8FCGCzAYVgQb3h3Wu8JT5fIz7Qo7A6siVRwNBwWwzP8HkGoinEK32Wsj/fDXk27vjpFQO/+9sV0xfcTbIZA6MnuYWF4rHOT59KcshCWCD3V0FopX57p/dtOzM9+6lxIctAT++izxWoZit/5c5A4633iY1d+RMeTko1POix6MSlxPMRHZUFwSXROgFuWWRpyD6TlUTCST9/wTTd0WDPklAAiYcnuEPW3qCnw0r0xkrA4AwWUXqXdAIwDt5bA27KcjRyY4Fofv9NxH09BNuBTXNPrvnYPZMmaKrv+HOX3NFTreuV6+5LJdhYUxYSBvSWo1jeWIQ5Q9RUdTU0PqmKpMhJKbKey/S4gxCXHg2HR8DwLCcbIZcvneF9yPEAT71YA6zpLKoPVSwWwH97huKSzjpic/RUfFXQOcgCQ=
-   bucket: docs.mattermost.org
-   local_dir: documentation-html
-   acl: public_read
-   region: us-east-1
-   skip_cleanup: true
-   detect_encoding: true
-   on:
-     repo: mattermost/platform
-     branch: master
-     go: 1.4.2
-     condition: $TRAVIS_DB = mysql
+# - provider: s3
+#   access_key_id: AKIAJCO3KJYEGWJIKDIQ
+#   secret_access_key:
+#     secure: p66X2tJBmKgtcVyPtGgkAwW29IiRojqGA39RjCJkIWNTJ0e/9JvBOiMS2c4a7I4aOads38rsthwdaigBWagDWNH7bGsEZN7B0TszZuFAuU+XGjU5A66MIOfFfzbUg8AnByysr+XG5/bknFIrP/XhM2fbRr6gbYrFUK7TNkpgjFs5u3BzUrz2iTAV8uOpSJqKSnaf0pTZk1EywOK/X8W8ViIjc7Di3FzQcqIW9K3D27N+3rVsv8SRT1hWASVlnG6aThqqebiM8FCGCzAYVgQb3h3Wu8JT5fIz7Qo7A6siVRwNBwWwzP8HkGoinEK32Wsj/fDXk27vjpFQO/+9sV0xfcTbIZA6MnuYWF4rHOT59KcshCWCD3V0FopX57p/dtOzM9+6lxIctAT++izxWoZit/5c5A4633iY1d+RMeTko1POix6MSlxPMRHZUFwSXROgFuWWRpyD6TlUTCST9/wTTd0WDPklAAiYcnuEPW3qCnw0r0xkrA4AwWUXqXdAIwDt5bA27KcjRyY4Fofv9NxH09BNuBTXNPrvnYPZMmaKrv+HOX3NFTreuV6+5LJdhYUxYSBvSWo1jeWIQ5Q9RUdTU0PqmKpMhJKbKey/S4gxCXHg2HR8DwLCcbIZcvneF9yPEAT71YA6zpLKoPVSwWwH97huKSzjpic/RUfFXQOcgCQ=
+#   bucket: docs.mattermost.org
+#   local_dir: documentation-html
+#   acl: public_read
+#   region: us-east-1
+#   skip_cleanup: true
+#   detect_encoding: true
+#   on:
+#     repo: mattermost/platform
+#     branch: master
+#     go: 1.4.2
+#     condition: $TRAVIS_DB = mysql
