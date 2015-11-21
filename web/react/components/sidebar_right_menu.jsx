@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import TeamMembersModal from './team_members_modal.jsx';
+import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as client from '../utils/client.jsx';
@@ -78,12 +80,9 @@ export default class SidebarRightMenu extends React.Component {
             );
             manageLink = (
                 <li>
-                    <a
-                        href='#'
-                        data-toggle='modal'
-                        data-target='#team_members'
-                    >
-                    <i className='fa fa-users'></i>Manage Members</a>
+                    <ToggleModalButton dialogType={TeamMembersModal}>
+                        <i className='fa fa-users'></i>{'Manage Members'}
+                    </ToggleModalButton>
                 </li>
             );
         }
