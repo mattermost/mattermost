@@ -36,7 +36,7 @@ Mattermost drivers offer access to the Mattermost web service API in different l
 
 ## Building API Integration 
 
-If you're building deep integration with Mattermost, for example a mobile native client, and there is a driver available to support the programming language you are using, it's best to use the driver available to access the [Mattermost Web Service APIs](API-Web-Service.md).
+If you're building a deep integration with Mattermost, for example a mobile native client, and there is a driver available to support the programming language you are using, it's best to use the driver available to access the [Mattermost Web Service APIs](API-Web-Service.md).
 
 If no driver is available for the programming language of your choice, you can view the [Golang Driver](https://github.com/mattermost/platform/blob/master/model/client.go) source code to understand how it exercises the Web Service API. You can also learn more by reviewing open source projects that use the Web Service API, like [matterircd](https://github.com/42wim/matterircd).
 
