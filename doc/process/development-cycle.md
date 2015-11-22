@@ -40,9 +40,9 @@ A system for submitting merge requests for changes to Mattermost. See Merge Requ
 
 ### GitLab Issues
 
-A system for reporting bugs from [GitLab Mattermost](https://gitlab.com/gitlab-org/gitlab-mattermost) with clear statements on repro steps and expected behavior. 
+GitLab is an open source alternative to GitHub that includes Mattermost in its installer. GitLab Issues is a system for reporting bugs from [GitLab Mattermost](https://gitlab.com/gitlab-org/gitlab-mattermost) with clear statements on repro steps and expected behavior. 
 
-Read more about [GitLab Mattermost](https://gitlab.com/gitlab-org/gitlab-mattermost). 
+For examples of issues, please see [GitLab Issues for the GitLab Mattermost project](https://gitlab.com/gitlab-org/gitlab-mattermost). 
 
 ### Primary Research 
 
