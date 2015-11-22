@@ -14,7 +14,7 @@ See [Mattermost scope statement](http://www.mattermost.org/vision/#mattermost-te
 
 ## Community Systems 
 
-The process for managing bugs, feature ideas, troubleshooting, and general discussions are different, so different systems are used to best support each process. Each system ties into Mattermost through notifications to internal channels, so the core team and key contributors can keep up-to-date with community feedback throughout the day.
+The process for managing bugs, feature ideas, troubleshooting, and general discussions are different, so different systems are used to best support each process. Each system ties into Mattermost through notifications to internal channels, so the core team and key contributors can keep up-to-date with community feedback across all systems throughout the day.
 
 Systems include: 
 
