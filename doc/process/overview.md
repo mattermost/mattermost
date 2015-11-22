@@ -14,7 +14,9 @@ See [Mattermost scope statement](http://www.mattermost.org/vision/#mattermost-te
 
 ## Community Systems 
 
-Feedback from the Mattermost community comes from a range of systems, which are monitored using automation by the core team and key contributors in their Mattermost team site. Systems include: 
+The process for managing bugs, feature ideas, troubleshooting, and general discussions are different, so different systems are used to best support each process. Each system ties into Mattermost through notifications to internal channels, so the core team and key contributors can keep up-to-date with community feedback throughout the day.
+
+Systems include: 
 
 ###  Feature Idea Forum 
 
