@@ -88,7 +88,7 @@ Community members following the Contribution Guidelines might also submit pull r
 
 #### Bug Fixes 
 
-If you see an obvious bug and want to submit a fix, pull requests following the contribution guidelines are gladly accepted. 
+If you see an obvious bug and want to submit a fix, pull requests following the [contribution guidelines](https://github.com/mattermost/platform/blob/master/CONTRIBUTING.md) are gladly accepted. 
 
 Examples: 
 - [Fix: Unable to change password #1390](https://github.com/mattermost/platform/pull/1390)
