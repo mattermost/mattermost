@@ -30,7 +30,7 @@ See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how
 
 ### GitHub Pull Requests 
 
-A system for submitting merge requests for changes to Mattermost. See Merge Requests section below. 
+A system for submitting merge requests for changes to Mattermost. See [Merge Requests](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#merge-requests) section below. 
 
 ### General Forum 
 
