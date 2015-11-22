@@ -36,6 +36,9 @@ git checkout -b <branch name>
 
    Please review the ["Fast, Obvious, Forgiving" experience design principles](http://www.mattermost.org/design-principles/) for Mattermost and check that your feature meets the criteria. Also, for any changes to user interface or help text, please read the changes out loud, as a quick and easy way to catch any inconsitencies
 
+3. For new server-side funcitonality, please include test cases that verify the code performs as you have intended
+
+   
 
 ## Submitting a Pull Request 
 
