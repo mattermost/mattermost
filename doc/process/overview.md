@@ -24,6 +24,9 @@ A forum for filing, upvoting and discussing feature ideas. Reviewed monthly by t
 
 See [Contributing Feature Ideas](http://www.mattermost.org/feature-requests/) for more details on how to use this system. 
 
+_Note: If you want to promote an idea filed in the feature idea forum, or if you are out of votes and want to find like-minded colleagues to vote for you, consider posting to the [Feature Idea Discussion ](https://forum.mattermost.org/t/how-to-use-feature-idea-discussion/63/1) category in the General Forum._
+
+
 ###  Troubleshooting Forum 
 
 A system for peer-to-peer support of installation and configuration questions. 
