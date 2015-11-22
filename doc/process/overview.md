@@ -22,6 +22,13 @@ A forum for filing, upvoting and discussing feature ideas. Reviewed monthly by t
 
 See [Contributing Feature Ideas](http://www.mattermost.org/feature-requests/) for more details on how to use this system. 
 
+###  Troubleshooting Forum 
+
+A system for peer-to-peer support of installation and configuration questions. 
+
+See [Troubleshooting Forum](https://forum.mattermost.org/t/about-the-trouble-shooting-category/150/1).
+
+
 ### GitHub Issues 
 
 A system for reporting bugs with clear statements on repro steps and expected behavior. 
