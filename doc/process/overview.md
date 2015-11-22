@@ -16,12 +16,6 @@ See [Mattermost scope statement](http://www.mattermost.org/vision/#mattermost-te
 
 Feedback from the Mattermost community comes from a range of systems, which are monitored using automation by the core team and key contributors in their Mattermost team site. Systems include: 
 
-### General Forum 
-
-A general, peer-to-peer discussion forum with topics organized by category for general questions, trouble shooting, design feedback requests, and FAQs. Monitored and moderated by core team, which is also active on the forum.
-
-Read more about the [General Forum](https://forum.mattermost.org/t/welcome-to-mattermost-community-discussion/8). 
-
 ###  Feature Idea Forum 
 
 A forum for filing, upvoting and discussing feature ideas. Reviewed monthly by the core team as part of the planning process for new releases. 
@@ -38,11 +32,11 @@ See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how
 
 A system for submitting merge requests for changes to Mattermost. See Merge Requests section below. 
 
-### GitLab Issues
+### General Forum 
 
-GitLab is an open source alternative to GitHub that includes Mattermost in its installer. GitLab Issues is a system for reporting bugs from [GitLab Mattermost](https://gitlab.com/gitlab-org/gitlab-mattermost) with clear statements on repro steps and expected behavior. 
+A general, peer-to-peer discussion forum with topics organized by category for general questions, trouble shooting, design feedback requests, and FAQs. Monitored and moderated by core team, which is also active on the forum.
 
-For examples of issues, please see [GitLab Issues for the GitLab Mattermost project](https://gitlab.com/gitlab-org/gitlab-mattermost). 
+Read more about the [General Forum](https://forum.mattermost.org/t/welcome-to-mattermost-community-discussion/8). 
 
 ### Primary Research 
 
