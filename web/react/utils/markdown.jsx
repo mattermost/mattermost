@@ -110,32 +110,47 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         this.formattingOptions = formattingOptions;
     }
 
-    code(code, language) {
-        let usedLanguage = language;
+    code(code, language, escaped) {
+        let usedLanguage = language || '';
+        usedLanguage = usedLanguage.toLowerCase();
 
-        if (String(usedLanguage).toLocaleLowerCase() === 'html') {
+        // treat html as xml to prevent injection attacks
+        if (usedLanguage === 'html') {
             usedLanguage = 'xml';
         }
 
-        if (usedLanguage && (usedLanguage === 'tex' || usedLanguage === 'latex')) {
+        if (HighlightedLanguages[usedLanguage]) {
+            const parsed = highlightJs.highlight(usedLanguage, code);
+
+            return (
+                '<div class="post-body--code">' +
+                    '<span class="post-body--code__language">' +
+                        HighlightedLanguages[usedLanguage] +
+                    '</span>' +
+                    '<pre>' +
+                        '<code class="hljs">' +
+                            parsed.value +
+                        '</code>' +
+                    '</pre>' +
+                '</div>'
+            );
+        } else if (usedLanguage === 'tex' || usedLanguage === 'latex') {
             try {
-                var html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
+                const html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
+
                 return '<div class="post-body--code tex">' + html + '</div>';
             } catch (e) {
-                return '<div class="post-body--code">' + TextFormatting.sanitizeHtml(code) + '</div>';
+                // fall through if latex parsing fails and handle below
             }
         }
 
-        if (!usedLanguage || highlightJs.listLanguages().indexOf(usedLanguage) < 0) {
-            let parsed = super.code(code, usedLanguage);
-            return '<div class="post-body--code"><code class="hljs">' + TextFormatting.sanitizeHtml($(parsed).text()) + '</code></div>';
-        }
-
-        let parsed = highlightJs.highlight(usedLanguage, code);
-        return '<div class="post-body--code">' +
-            '<span class="post-body--code__language">' + HighlightedLanguages[usedLanguage] + '</span>' +
-            '<code class="hljs">' + parsed.value + '</code>' +
-            '</div>';
+        return (
+            '<pre>' +
+                '<code class="hljs">' +
+                    (escaped ? code : TextFormatting.sanitizeHtml(code)) + '\n' +
+                '</code>' +
+            '</pre>'
+        );
     }
 
     br() {
