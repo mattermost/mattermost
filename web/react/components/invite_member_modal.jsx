@@ -4,8 +4,8 @@
 import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Client from '../utils/client.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
@@ -23,6 +23,7 @@ export default class InviteMemberModal extends React.Component {
         this.addInviteFields = this.addInviteFields.bind(this);
         this.clearFields = this.clearFields.bind(this);
         this.removeInviteFields = this.removeInviteFields.bind(this);
+        this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
 
         this.state = {
             show: false,
@@ -188,6 +189,12 @@ export default class InviteMemberModal extends React.Component {
         this.setState({inviteIds: inviteIds, idCount: count});
     }
 
+    showGetTeamInviteLinkModal() {
+        this.handleHide(false);
+
+        EventHelpers.showGetTeamInviteLinkModal();
+    }
+
     render() {
         var currentUser = UserStore.getCurrentUser();
 
@@ -333,22 +340,18 @@ export default class InviteMemberModal extends React.Component {
             } else {
                 var teamInviteLink = null;
                 if (currentUser && TeamStore.getCurrent().type === 'O') {
-                    var linkUrl = utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + TeamStore.getCurrent().invite_id;
-                    var link =
-                        (
-                            <a
-                                href='#'
-                                data-toggle='modal'
-                                data-target='#get_link'
-                                data-title='Team Invite'
-                                data-value={linkUrl}
-                                onClick={() => this.handleHide(this, false)}
-                            >Team Invite Link</a>
+                    var link = (
+                        <a
+                            href='#'
+                            onClick={this.showGetTeamInviteLinkModal}
+                        >
+                            {'Team Invite Link'}
+                        </a>
                     );
 
                     teamInviteLink = (
                         <p>
-                            You can also invite people using the {link}.
+                            {'You can also invite people using the '}{link}{'.'}
                         </p>
                     );
                 }
@@ -404,13 +407,6 @@ export default class InviteMemberModal extends React.Component {
         }
 
         return null;
-    }
-
-    static show() {
-        AppDispatcher.handleViewAction({
-            type: ActionTypes.TOGGLE_INVITE_MEMBER_MODAL,
-            value: true
-        });
     }
 }
 

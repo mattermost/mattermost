@@ -81,3 +81,26 @@ export function emitPostDeletedEvent(post) {
         post
     });
 }
+
+export function showDeletePostModal(post, commentCount = 0) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_DELETE_POST_MODAL,
+        value: true,
+        post,
+        commentCount
+    });
+}
+
+export function showGetTeamInviteLinkModal() {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.TOGGLE_GET_TEAM_INVITE_LINK_MODAL,
+        value: true
+    });
+}
+
+export function showInviteMemberModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_INVITE_MEMBER_MODAL,
+        value: true
+    });
+}

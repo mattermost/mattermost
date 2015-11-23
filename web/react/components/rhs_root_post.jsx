@@ -6,11 +6,11 @@ import UserProfile from './user_profile.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as utils from '../utils/utils.jsx';
-import DeletePostModal from './delete_post_modal.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import twemoji from 'twemoji';
 import Constants from '../utils/constants.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 export default class RhsRootPost extends React.Component {
     constructor(props) {
@@ -94,7 +94,7 @@ export default class RhsRootPost extends React.Component {
                             <a
                                 href='#'
                                 role='menuitem'
-                                onClick={() => DeletePostModal.show(post, this.props.commentCount)}
+                                onClick={() => EventHelpers.showDeletePostModal(post, this.props.commentCount)}
                             >
                                 {'Delete'}
                             </a>

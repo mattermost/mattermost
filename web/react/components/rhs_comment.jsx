@@ -8,13 +8,13 @@ import UserStore from '../stores/user_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
-import DeletePostModal from './delete_post_modal.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 var ActionTypes = Constants.ActionTypes;
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 export default class RhsComment extends React.Component {
     constructor(props) {
@@ -115,7 +115,7 @@ export default class RhsComment extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => DeletePostModal.show(post, 0)}
+                        onClick={() => EventHelpers.showDeletePostModal(post, 0)}
                     >
                         {'Delete'}
                     </a>

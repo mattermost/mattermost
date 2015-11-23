@@ -34,6 +34,7 @@ class ModalStoreClass extends EventEmitter {
         case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:
         case ActionTypes.TOGGLE_INVITE_MEMBER_MODAL:
         case ActionTypes.TOGGLE_DELETE_POST_MODAL:
+        case ActionTypes.TOGGLE_GET_TEAM_INVITE_LINK_MODAL:
             this.emit(type, value, args);
             break;
         }

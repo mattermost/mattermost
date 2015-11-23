@@ -31,6 +31,7 @@ class TeamStoreClass extends EventEmitter {
         this.getCurrentId = this.getCurrentId.bind(this);
         this.getCurrent = this.getCurrent.bind(this);
         this.getCurrentTeamUrl = this.getCurrentTeamUrl.bind(this);
+        this.getCurrentInviteLink = this.getCurrentInviteLink.bind(this);
         this.saveTeam = this.saveTeam.bind(this);
     }
 
@@ -90,6 +91,16 @@ class TeamStoreClass extends EventEmitter {
             return getWindowLocationOrigin() + '/' + this.getCurrent().name;
         }
         return null;
+    }
+
+    getCurrentInviteLink() {
+        const current = this.getCurrent();
+
+        if (current) {
+            return getWindowLocationOrigin() + '/signup_user_complete/?id=' + current.invite_id;
+        }
+
+        return '';
     }
 
     saveTeam(team) {
