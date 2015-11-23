@@ -71,7 +71,7 @@ export function createDMIntroMessage(channel) {
     );
 }
 
-export function createOffTopicIntroMessage(channel, showInviteModal) { //eslint-disable-line react/no-multi-comp
+export function createOffTopicIntroMessage(channel, showInviteModal) {
     return (
         <div className='channel-intro'>
             <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
@@ -101,7 +101,7 @@ export function createOffTopicIntroMessage(channel, showInviteModal) { //eslint-
     );
 }
 
-export function createDefaultIntroMessage(channel) { //eslint-disable-line react/no-multi-comp
+export function createDefaultIntroMessage(channel) {
     const team = TeamStore.getCurrent();
     let inviteModalLink;
     if (team.type === Constants.INVITE_TEAM) {
@@ -154,7 +154,7 @@ export function createDefaultIntroMessage(channel) { //eslint-disable-line react
     );
 }
 
-export function createStandardIntroMessage(channel, showInviteModal) { //eslint-disable-line react/no-multi-comp
+export function createStandardIntroMessage(channel, showInviteModal) {
     var uiName = channel.display_name;
     var creatorName = '';
 
