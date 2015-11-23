@@ -177,7 +177,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps["desktop_sound"] = "true"
 	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
 	u.NotifyProps["first_name"] = "false"
-	u.NotifyProps["all"] = "all"
+	u.NotifyProps["all"] = "false"
 	u.NotifyProps["channel"] = "true"
 	splitName := strings.Split(u.Nickname, " ")
 	if len(splitName) > 0 && splitName[0] != "" {
