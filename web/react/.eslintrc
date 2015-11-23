@@ -47,7 +47,7 @@
             "no-irregular-whitespace": 2,
             "no-unexpected-multiline": 2,
             "no-unreachable": 2,
-            "no-magic-numbers": [0, { "enforceConst": true, "detectObjects": true } ],
+            "no-magic-numbers": [1, { "enforceConst": true, "detectObjects": true } ],
             "valid-typeof": 2,
 
             "block-scoped-var": 2,
@@ -190,7 +190,7 @@
             "react/no-did-mount-set-state": 2,
             "react/no-did-update-set-state": 2,
             "react/no-direct-mutation-state": 2,
-            "react/no-multi-comp": 2,
+            "react/no-multi-comp": [2, { "ignoreStateless": true }],
             "react/no-set-state": 0,
             "react/no-unknown-property": 2,
             "react/prefer-es6-class": 2,
