@@ -40,6 +40,8 @@ A system used by Mattermost for reporting bugs with clear statements on repro st
 
 See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how to use this system. 
 
+For feature ideas, troubleshooting, or general questions, we ask your help to use the appropriate [Community System](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#community-systems).
+
 ### GitHub Pull Requests 
 
 A system for submitting merge requests for changes to Mattermost. See [Merge Requests](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#merge-requests) section below. 
