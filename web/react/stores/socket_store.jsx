@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import UserStore from './user_store.jsx';
 import PostStore from './post_store.jsx';
 import ChannelStore from './channel_store.jsx';
@@ -11,9 +10,9 @@ import EventEmitter from 'events';
 
 import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 const SocketEvents = Constants.SocketEvents;
 
 const CHANGE_EVENT = 'change';
@@ -91,10 +90,9 @@ class SocketStoreClass extends EventEmitter {
             };
 
             conn.onmessage = (evt) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_MSG,
-                    msg: JSON.parse(evt.data)
-                });
+                const msg = JSON.parse(evt.data);
+                this.handleMessage(msg);
+                this.emitChange(msg);
             };
         }
     }
@@ -153,12 +151,12 @@ class SocketStoreClass extends EventEmitter {
 function handleNewPostEvent(msg) {
     // Store post
     const post = JSON.parse(msg.props.post);
-    PostStore.storePost(post);
+    EventHelpers.emitPostRecievedEvent(post);
 
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.channel_id) {
         if (window.isActive) {
-            AsyncClient.updateLastViewedAt(true);
+            AsyncClient.updateLastViewedAt();
         }
     } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
         AsyncClient.getChannel(msg.channel_id);
@@ -237,20 +235,17 @@ function handlePostEditEvent(msg) {
 
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.props.post);
-
-    PostStore.storeUnseenDeletedPost(post);
-    PostStore.removePost(post, true);
-    PostStore.emitChange();
+    EventHelpers.emitPostDeletedEvent(post);
 }
 
 function handleNewUserEvent() {
     AsyncClient.getProfiles();
-    AsyncClient.getChannelExtraInfo(true);
+    AsyncClient.getChannelExtraInfo();
 }
 
 function handleUserAddedEvent(msg) {
     if (ChannelStore.getCurrentId() === msg.channel_id) {
-        AsyncClient.getChannelExtraInfo(true);
+        AsyncClient.getChannelExtraInfo();
     }
 
     if (UserStore.getCurrentId() === msg.user_id) {
@@ -273,7 +268,7 @@ function handleUserRemovedEvent(msg) {
             $('#removed_from_channel').modal('show');
         }
     } else if (ChannelStore.getCurrentId() === msg.channel_id) {
-        AsyncClient.getChannelExtraInfo(true);
+        AsyncClient.getChannelExtraInfo();
     }
 }
 
@@ -286,17 +281,12 @@ function handleChannelViewedEvent(msg) {
 
 var SocketStore = new SocketStoreClass();
 
-SocketStore.dispatchToken = AppDispatcher.register((payload) => {
+/*SocketStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECIEVED_MSG:
-        SocketStore.handleMessage(action.msg);
-        SocketStore.emitChange(action.msg);
-        break;
-
     default:
     }
-});
+    });*/
 
 export default SocketStore;

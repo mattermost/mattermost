@@ -25,6 +25,17 @@ export default class ChannelMembersModal extends React.Component {
         state.showInviteModal = false;
         this.state = state;
     }
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!Utils.areObjectsEqual(this.props, nextProps)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(this.state, nextState)) {
+            return true;
+        }
+
+        return false;
+    }
     getStateFromStores() {
         const users = UserStore.getActiveOnlyProfiles();
         const memberList = ChannelStore.getCurrentExtraInfo().members;
@@ -74,6 +85,7 @@ export default class ChannelMembersModal extends React.Component {
         if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
         }
+        this.onChange();
     }
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
@@ -130,7 +142,7 @@ export default class ChannelMembersModal extends React.Component {
                 }
 
                 this.setState({memberList, nonmemberList});
-                AsyncClient.getChannelExtraInfo(true);
+                AsyncClient.getChannelExtraInfo();
             },
             (err) => {
                 this.setState({inviteError: err.message});

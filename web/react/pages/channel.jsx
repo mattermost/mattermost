@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import ChannelView from '../components/channel_view.jsx';
 import ChannelLoader from '../components/channel_loader.jsx';
 import ErrorBar from '../components/error_bar.jsx';
@@ -23,15 +22,14 @@ import ImportThemeModal from '../components/user_settings/import_theme_modal.jsx
 import InviteMemberModal from '../components/invite_member_modal.jsx';
 
 import * as AsyncClient from '../utils/async_client.jsx';
-import Constants from '../utils/constants.jsx';
-var ActionTypes = Constants.ActionTypes;
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
-function setupChannelPage(props) {
-    AppDispatcher.handleViewAction({
-        type: ActionTypes.CLICK_CHANNEL,
-        name: props.ChannelName,
-        id: props.ChannelId
-    });
+function setupChannelPage(props, team, channel) {
+    if (props.PostId === '') {
+        EventHelpers.emitChannelClickEvent(channel);
+    } else {
+        EventHelpers.emitPostFocusEvent(props.PostId);
+    }
 
     AsyncClient.getAllPreferences();
 

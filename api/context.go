@@ -37,6 +37,8 @@ type Page struct {
 	ClientCfg         map[string]string
 	User              *model.User
 	Team              *model.Team
+	Channel           *model.Channel
+	PostID            string
 	SessionTokenIndex int64
 }
 

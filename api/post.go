@@ -23,6 +23,7 @@ func InitPost(r *mux.Router) {
 	l4g.Debug("Initializing post api routes")
 
 	r.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("GET")
+	r.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 
 	sr := r.PathPrefix("/channels/{id:[A-Za-z0-9]+}").Subrouter()
 	sr.Handle("/create", ApiUserRequired(createPost)).Methods("POST")
@@ -759,6 +760,41 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !list.IsChannelId(channelId) {
 			c.Err = model.NewAppError("getPost", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+
+		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
+		w.Write([]byte(list.ToJson()))
+	}
+}
+
+func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	postId := params["post_id"]
+	if len(postId) != 26 {
+		c.SetInvalidParam("getPostById", "postId")
+		return
+	}
+
+	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		list := result.Data.(*model.PostList)
+
+		if len(list.Order) != 1 {
+			c.Err = model.NewAppError("getPostById", "Unable to get post", "")
+			return
+		}
+		post := list.Posts[list.Order[0]]
+
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, post.ChannelId, c.Session.UserId)
+		if !c.HasPermissionsToChannel(cchan, "getPostById") {
+			return
+		}
+
+		if HandleEtag(list.Etag(), w, r) {
 			return
 		}
 

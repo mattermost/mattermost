@@ -40,88 +40,42 @@ function isCallInProgress(callName) {
     return true;
 }
 
-export function getChannels(force, updateLastViewed, checkVersion) {
-    var channels = ChannelStore.getAll();
-
-    if (channels.length === 0 || force) {
-        if (isCallInProgress('getChannels')) {
-            return;
-        }
-
-        callTracker.getChannels = utils.getTimestamp();
-
-        client.getChannels(
-            (data, textStatus, xhr) => {
-                callTracker.getChannels = 0;
-
-                if (checkVersion) {
-                    var serverVersion = xhr.getResponseHeader('X-Version-ID');
-
-                    if (!BrowserStore.getLastServerVersion()) {
-                        BrowserStore.setLastServerVersion(serverVersion);
-                    }
-
-                    if (serverVersion !== BrowserStore.getLastServerVersion()) {
-                        BrowserStore.setLastServerVersion(serverVersion);
-                        window.location.reload(true);
-                        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
-                    }
-                }
-
-                if (xhr.status === 304 || !data) {
-                    return;
-                }
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_CHANNELS,
-                    channels: data.channels,
-                    members: data.members
-                });
-            },
-            (err) => {
-                callTracker.getChannels = 0;
-                dispatchError(err, 'getChannels');
-            }
-        );
-    } else {
-        if (isCallInProgress('getChannelCounts')) {
-            return;
-        }
-
-        callTracker.getChannelCounts = utils.getTimestamp();
-
-        client.getChannelCounts(
-            function getChannelCountsSuccess(data, textStatus, xhr) {
-                callTracker.getChannelCounts = 0;
-
-                if (xhr.status === 304 || !data) {
-                    return;
-                }
-
-                var countMap = data.counts;
-                var updateAtMap = data.update_times;
-
-                for (var id in countMap) {
-                    if ({}.hasOwnProperty.call(countMap, id)) {
-                        var c = ChannelStore.get(id);
-                        var count = countMap[id];
-                        var updateAt = updateAtMap[id];
-                        if (!c || c.total_msg_count !== count || updateAt > c.update_at) {
-                            getChannel(id);
-                        }
-                    }
-                }
-            },
-            function getChannelCountsFailure(err) {
-                callTracker.getChannelCounts = 0;
-                dispatchError(err, 'getChannelCounts');
-            }
-        );
+export function getChannels(checkVersion) {
+    if (isCallInProgress('getChannels')) {
+        return;
     }
 
-    if (updateLastViewed && ChannelStore.getCurrentId() != null) {
-        updateLastViewedAt();
-    }
+    callTracker.getChannels = utils.getTimestamp();
+
+    client.getChannels(
+        (data, textStatus, xhr) => {
+            callTracker.getChannels = 0;
+
+            if (checkVersion) {
+                var serverVersion = xhr.getResponseHeader('X-Version-ID');
+
+                if (serverVersion !== BrowserStore.getLastServerVersion()) {
+                    BrowserStore.setLastServerVersion(serverVersion);
+                    window.location.reload(true);
+                    console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+                }
+            }
+
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_CHANNELS,
+                channels: data.channels,
+                members: data.members
+            });
+        },
+        (err) => {
+            callTracker.getChannels = 0;
+            dispatchError(err, 'getChannels');
+        }
+    );
 }
 
 export function getChannel(id) {
@@ -152,14 +106,14 @@ export function getChannel(id) {
     );
 }
 
-export function updateLastViewedAt(force) {
+export function updateLastViewedAt() {
     const channelId = ChannelStore.getCurrentId();
 
     if (channelId === null) {
         return;
     }
 
-    if (isCallInProgress(`updateLastViewed${channelId}`) && !force) {
+    if (isCallInProgress(`updateLastViewed${channelId}`)) {
         return;
     }
 
@@ -205,40 +159,35 @@ export function getMoreChannels(force) {
     }
 }
 
-export function getChannelExtraInfo(force) {
-    var channelId = ChannelStore.getCurrentId();
+export function getChannelExtraInfo() {
+    const channelId = ChannelStore.getCurrentId();
 
     if (channelId != null) {
         if (isCallInProgress('getChannelExtraInfo_' + channelId)) {
             return;
         }
-        var minMembers = 0;
-        if (ChannelStore.getCurrent() && ChannelStore.getCurrent().type === 'D') {
-            minMembers = 1;
-        }
 
-        if (ChannelStore.getCurrentExtraInfo().members.length <= minMembers || force) {
-            callTracker['getChannelExtraInfo_' + channelId] = utils.getTimestamp();
-            client.getChannelExtraInfo(
-                channelId,
-                function getChannelExtraInfoSuccess(data, textStatus, xhr) {
-                    callTracker['getChannelExtraInfo_' + channelId] = 0;
+        callTracker['getChannelExtraInfo_' + channelId] = utils.getTimestamp();
 
-                    if (xhr.status === 304 || !data) {
-                        return;
-                    }
+        client.getChannelExtraInfo(
+            channelId,
+            (data, textStatus, xhr) => {
+                callTracker['getChannelExtraInfo_' + channelId] = 0;
 
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO,
-                        extra_info: data
-                    });
-                },
-                function getChannelExtraInfoFailure(err) {
-                    callTracker['getChannelExtraInfo_' + channelId] = 0;
-                    dispatchError(err, 'getChannelExtraInfo');
+                if (xhr.status === 304 || !data) {
+                    return;
                 }
-            );
-        }
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_CHANNEL_EXTRA_INFO,
+                    extra_info: data
+                });
+            },
+            (err) => {
+                callTracker['getChannelExtraInfo_' + channelId] = 0;
+                dispatchError(err, 'getChannelExtraInfo');
+            }
+        );
     }
 }
 
@@ -457,89 +406,92 @@ export function search(terms) {
     );
 }
 
-export function getPostsPage(force, id, maxPosts) {
-    if (PostStore.getCurrentPosts() == null || force) {
-        var channelId = id;
+export function getPostsPage(id, maxPosts) {
+    let channelId = id;
+    if (channelId == null) {
+        channelId = ChannelStore.getCurrentId();
         if (channelId == null) {
-            channelId = ChannelStore.getCurrentId();
-        }
-
-        if (isCallInProgress('getPostsPage_' + channelId)) {
             return;
         }
+    }
 
-        var postList = PostStore.getCurrentPosts();
+    if (isCallInProgress('getPostsPage_' + channelId)) {
+        return;
+    }
 
-        var max = maxPosts;
-        if (max == null) {
-            max = Constants.POST_CHUNK_SIZE * Constants.MAX_POST_CHUNKS;
-        }
+    var postList = PostStore.getAllPosts(id);
 
-        // if we already have more than POST_CHUNK_SIZE posts,
-        //   let's get the amount we have but rounded up to next multiple of POST_CHUNK_SIZE,
-        //   with a max at maxPosts
-        var numPosts = Math.min(max, Constants.POST_CHUNK_SIZE);
-        if (postList && postList.order.length > 0) {
-            numPosts = Math.min(max, Constants.POST_CHUNK_SIZE * Math.ceil(postList.order.length / Constants.POST_CHUNK_SIZE));
-        }
+    var max = maxPosts;
+    if (max == null) {
+        max = Constants.POST_CHUNK_SIZE * Constants.MAX_POST_CHUNKS;
+    }
 
-        if (channelId != null) {
-            callTracker['getPostsPage_' + channelId] = utils.getTimestamp();
+    // if we already have more than POST_CHUNK_SIZE posts,
+    //   let's get the amount we have but rounded up to next multiple of POST_CHUNK_SIZE,
+    //   with a max at maxPosts
+    var numPosts = Math.min(max, Constants.POST_CHUNK_SIZE);
+    if (postList && postList.order.length > 0) {
+        numPosts = Math.min(max, Constants.POST_CHUNK_SIZE * Math.ceil(postList.order.length / Constants.POST_CHUNK_SIZE));
+    }
 
-            client.getPostsPage(
-                channelId,
-                0,
-                numPosts,
-                function getPostsPageSuccess(data, textStatus, xhr) {
-                    if (xhr.status === 304 || !data) {
-                        return;
-                    }
+    if (channelId != null) {
+        callTracker['getPostsPage_' + channelId] = utils.getTimestamp();
 
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECIEVED_POSTS,
-                        id: channelId,
-                        post_list: data
-                    });
-
-                    getProfiles();
-                },
-                function getPostsPageFailure(err) {
-                    dispatchError(err, 'getPostsPage');
-                },
-                function getPostsPageComplete() {
-                    callTracker['getPostsPage_' + channelId] = 0;
+        client.getPostsPage(
+            channelId,
+            0,
+            numPosts,
+            (data, textStatus, xhr) => {
+                if (xhr.status === 304 || !data) {
+                    return;
                 }
-            );
-        }
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECIEVED_POSTS,
+                    id: channelId,
+                    before: true,
+                    numRequested: numPosts,
+                    post_list: data
+                });
+
+                getProfiles();
+            },
+            (err) => {
+                dispatchError(err, 'getPostsPage');
+            },
+            () => {
+                callTracker['getPostsPage_' + channelId] = 0;
+            }
+        );
     }
 }
 
 export function getPosts(id) {
-    var channelId = id;
+    let channelId = id;
     if (channelId == null) {
-        if (ChannelStore.getCurrentId() == null) {
+        channelId = ChannelStore.getCurrentId();
+        if (channelId == null) {
             return;
         }
-        channelId = ChannelStore.getCurrentId();
     }
 
     if (isCallInProgress('getPosts_' + channelId)) {
         return;
     }
 
-    if (PostStore.getCurrentPosts() == null) {
-        getPostsPage(true, id, Constants.POST_CHUNK_SIZE);
+    if (PostStore.getAllPosts(channelId) == null) {
+        getPostsPage(channelId, Constants.POST_CHUNK_SIZE);
         return;
     }
 
-    var latestUpdate = PostStore.getLatestUpdate(channelId);
+    const latestUpdate = PostStore.getLatestUpdate(channelId);
 
     callTracker['getPosts_' + channelId] = utils.getTimestamp();
 
     client.getPosts(
         channelId,
         latestUpdate,
-        function success(data, textStatus, xhr) {
+        (data, textStatus, xhr) => {
             if (xhr.status === 304 || !data) {
                 return;
             }
@@ -547,16 +499,96 @@ export function getPosts(id) {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_POSTS,
                 id: channelId,
+                before: true,
+                numRequested: Constants.POST_CHUNK_SIZE,
                 post_list: data
             });
 
             getProfiles();
         },
-        function fail(err) {
+        (err) => {
             dispatchError(err, 'getPosts');
         },
-        function complete() {
+        () => {
             callTracker['getPosts_' + channelId] = 0;
+        }
+    );
+}
+
+export function getPostsBefore(postId, offset, numPost) {
+    const channelId = ChannelStore.getCurrentId();
+    if (channelId == null) {
+        return;
+    }
+
+    if (isCallInProgress('getPostsBefore_' + channelId)) {
+        return;
+    }
+
+    client.getPostsBefore(
+        channelId,
+        postId,
+        offset,
+        numPost,
+        (data, textStatus, xhr) => {
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_POSTS,
+                id: channelId,
+                before: true,
+                numRequested: numPost,
+                post_list: data
+            });
+
+            getProfiles();
+        },
+        (err) => {
+            dispatchError(err, 'getPostsBefore');
+        },
+        () => {
+            callTracker['getPostsBefore_' + channelId] = 0;
+        }
+    );
+}
+
+export function getPostsAfter(postId, offset, numPost) {
+    const channelId = ChannelStore.getCurrentId();
+    if (channelId == null) {
+        return;
+    }
+
+    if (isCallInProgress('getPostsAfter_' + channelId)) {
+        return;
+    }
+
+    client.getPostsAfter(
+        channelId,
+        postId,
+        offset,
+        numPost,
+        (data, textStatus, xhr) => {
+            if (xhr.status === 304 || !data) {
+                return;
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_POSTS,
+                id: channelId,
+                before: false,
+                numRequested: numPost,
+                post_list: data
+            });
+
+            getProfiles();
+        },
+        (err) => {
+            dispatchError(err, 'getPostsAfter');
+        },
+        () => {
+            callTracker['getPostsAfter_' + channelId] = 0;
         }
     );
 }

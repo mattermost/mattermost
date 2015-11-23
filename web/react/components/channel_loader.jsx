@@ -27,8 +27,8 @@ export default class ChannelLoader extends React.Component {
     componentDidMount() {
         /* Initial aysnc loads */
         AsyncClient.getPosts(ChannelStore.getCurrentId());
-        AsyncClient.getChannels(true, true);
-        AsyncClient.getChannelExtraInfo(true);
+        AsyncClient.getChannels();
+        AsyncClient.getChannelExtraInfo();
         AsyncClient.findTeams();
         AsyncClient.getMyTeam();
         setTimeout(() => AsyncClient.getStatuses(), 3000); // temporary until statuses are reworked a bit

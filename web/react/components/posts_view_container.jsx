@@ -9,12 +9,9 @@ import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
-import * as Client from '../utils/client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as AsyncClient from '../utils/async_client.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
 import {createChannelIntroMessage} from '../utils/channel_intro_mssages.jsx';
 
@@ -27,27 +24,26 @@ export default class PostsViewContainer extends React.Component {
         this.onPostsChange = this.onPostsChange.bind(this);
         this.handlePostsViewScroll = this.handlePostsViewScroll.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
-        this.postsLoaded = this.postsLoaded.bind(this);
-        this.postsLoadedFailure = this.postsLoadedFailure.bind(this);
         this.handlePostsViewJumpRequest = this.handlePostsViewJumpRequest.bind(this);
 
         const currentChannelId = ChannelStore.getCurrentId();
         const state = {
             scrollType: PostsView.SCROLL_TYPE_BOTTOM,
-            scrollPost: null,
-            numPostsToDisplay: Constants.POST_CHUNK_SIZE
+            scrollPost: null
         };
         if (currentChannelId) {
             Object.assign(state, {
                 currentChannelIndex: 0,
                 channels: [currentChannelId],
-                postLists: [this.getChannelPosts(currentChannelId)]
+                postLists: [this.getChannelPosts(currentChannelId)],
+                atTop: [PostStore.getVisibilityAtTop(currentChannelId)]
             });
         } else {
             Object.assign(state, {
                 currentChannelIndex: null,
                 channels: [],
-                postLists: []
+                postLists: [],
+                atTop: []
             });
         }
 
@@ -78,23 +74,20 @@ export default class PostsViewContainer extends React.Component {
             });
             break;
         case Constants.PostsViewJumpTypes.SIDEBAR_OPEN:
-            this.setState({scrollType: PostsView.SIDEBAR_OPEN});
+            this.setState({scrollType: PostsView.SCROLL_TYPE_SIDEBAR_OPEN});
             break;
         }
     }
     onChannelChange() {
         const postLists = this.state.postLists.slice();
+        const atTop = this.state.atTop.slice();
         const channels = this.state.channels.slice();
         const channelId = ChannelStore.getCurrentId();
 
         // Has the channel really changed?
         if (channelId === channels[this.state.currentChannelIndex]) {
-            // Dirty hack
-            this.forceUpdate();
             return;
         }
-
-        PostStore.clearUnseenDeletedPosts(channelId);
 
         let lastViewed = Number.MAX_VALUE;
         const member = ChannelStore.getMember(channelId);
@@ -107,115 +100,45 @@ export default class PostsViewContainer extends React.Component {
             newIndex = channels.length;
             channels.push(channelId);
             postLists[newIndex] = this.getChannelPosts(channelId);
+            atTop[newIndex] = PostStore.getVisibilityAtTop(channelId);
         }
+
         this.setState({
             currentChannelIndex: newIndex,
             currentLastViewed: lastViewed,
             scrollType: PostsView.SCROLL_TYPE_NEW_MESSAGE,
             channels,
-            postLists});
+            postLists,
+            atTop});
     }
     onChannelLeave(id) {
         const postLists = this.state.postLists.slice();
         const channels = this.state.channels.slice();
+        const atTop = this.state.atTop.slice();
         const index = channels.indexOf(id);
         if (index !== -1) {
             postLists.splice(index, 1);
             channels.splice(index, 1);
+            atTop.splice(index, 1);
         }
-        this.setState({channels, postLists});
+        this.setState({channels, postLists, atTop});
     }
     onPostsChange() {
         const channels = this.state.channels;
         const postLists = this.state.postLists.slice();
-        const newPostsView = this.getChannelPosts(channels[this.state.currentChannelIndex]);
+        const atTop = this.state.atTop.slice();
+        const currentChannelId = channels[this.state.currentChannelIndex];
+        const newPostsView = this.getChannelPosts(currentChannelId);
 
         postLists[this.state.currentChannelIndex] = newPostsView;
-        this.setState({postLists});
+        atTop[this.state.currentChannelIndex] = PostStore.getVisibilityAtTop(currentChannelId);
+        this.setState({postLists, atTop});
     }
     getChannelPosts(id) {
-        const postList = PostStore.getPosts(id);
-
-        if (postList != null) {
-            const deletedPosts = PostStore.getUnseenDeletedPosts(id);
-
-            if (deletedPosts && Object.keys(deletedPosts).length > 0) {
-                for (const pid in deletedPosts) {
-                    if (deletedPosts.hasOwnProperty(pid)) {
-                        postList.posts[pid] = deletedPosts[pid];
-                        postList.order.unshift(pid);
-                    }
-                }
-
-                postList.order.sort((a, b) => {
-                    if (postList.posts[a].create_at > postList.posts[b].create_at) {
-                        return -1;
-                    }
-                    if (postList.posts[a].create_at < postList.posts[b].create_at) {
-                        return 1;
-                    }
-                    return 0;
-                });
-            }
-
-            const pendingPostList = PostStore.getPendingPosts(id);
-
-            if (pendingPostList) {
-                postList.order = pendingPostList.order.concat(postList.order);
-                for (const ppid in pendingPostList.posts) {
-                    if (pendingPostList.posts.hasOwnProperty(ppid)) {
-                        postList.posts[ppid] = pendingPostList.posts[ppid];
-                    }
-                }
-            }
-        }
-
-        return postList;
+        return PostStore.getVisiblePosts(id);
     }
     loadMorePostsTop() {
-        const postLists = this.state.postLists;
-        const channels = this.state.channels;
-        const currentChannelId = channels[this.state.currentChannelIndex];
-        const currentPostList = postLists[this.state.currentChannelIndex];
-
-        this.setState({numPostsToDisplay: this.state.numPostsToDisplay + Constants.POST_CHUNK_SIZE});
-
-        Client.getPostsPage(
-            currentChannelId,
-            currentPostList.order.length,
-            Constants.POST_CHUNK_SIZE,
-            this.postsLoaded,
-            this.postsLoadedFailure
-        );
-    }
-    postsLoaded(data) {
-        if (!data) {
-            return;
-        }
-
-        if (data.order.length === 0) {
-            return;
-        }
-
-        const postLists = this.state.postLists;
-        const currentPostList = postLists[this.state.currentChannelIndex];
-        const channels = this.state.channels;
-        const currentChannelId = channels[this.state.currentChannelIndex];
-
-        var newPostList = {};
-        newPostList.posts = Object.assign(currentPostList.posts, data.posts);
-        newPostList.order = currentPostList.order.concat(data.order);
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECIEVED_POSTS,
-            id: currentChannelId,
-            post_list: newPostList
-        });
-
-        Client.getProfiles();
-    }
-    postsLoadedFailure(err) {
-        AsyncClient.dispatchError(err, 'getPosts');
+        EventHelpers.emitLoadMorePostsEvent();
     }
     handlePostsViewScroll(atBottom) {
         if (atBottom) {
@@ -246,15 +169,17 @@ export default class PostsViewContainer extends React.Component {
                     isActive={isActive}
                     postList={postLists[i]}
                     scrollType={this.state.scrollType}
-                    scrollPost={this.state.scrollPost}
+                    scrollPostId={this.state.scrollPost}
                     postViewScrolled={this.handlePostsViewScroll}
                     loadMorePostsTopClicked={this.loadMorePostsTop}
-                    numPostsToDisplay={this.state.numPostsToDisplay}
+                    loadMorePostsBottomClicked={() => {}}
+                    showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
+                    showMoreMessagesBottom={false}
                     introText={channel ? createChannelIntroMessage(channel, () => this.setState({showInviteModal: true})) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );
-            if ((!postLists[i] || !channel) && isActive) {
+            if (!postLists[i] && isActive) {
                 postListCtls.push(
                     <LoadingScreen
                         position='absolute'

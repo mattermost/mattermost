@@ -8,6 +8,7 @@ import FilePreview from './file_preview.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Utils from '../utils/utils.jsx';
@@ -19,6 +20,7 @@ import PreferenceStore from '../stores/preference_store.jsx';
 import SocketStore from '../stores/socket_store.jsx';
 
 import Constants from '../utils/constants.jsx';
+
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
@@ -176,9 +178,7 @@ export default class CreatePost extends React.Component {
 
         const channel = ChannelStore.get(this.state.channelId);
 
-        PostStore.storePendingPost(post);
-        PostStore.storeDraft(channel.id, null);
-        PostStore.jumpPostsViewToBottom();
+        EventHelpers.emitUserPostedEvent(post);
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
         Client.createPost(post, channel,
@@ -190,10 +190,7 @@ export default class CreatePost extends React.Component {
                 member.last_viewed_at = Date.now();
                 ChannelStore.setChannelMember(member);
 
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIEVED_POST,
-                    post: data
-                });
+                EventHelpers.emitPostRecievedEvent(data);
             },
             (err) => {
                 const state = {};
