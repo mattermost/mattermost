@@ -590,9 +590,11 @@ export default class NotificationsTab extends React.Component {
             if (this.state.mentionKey) {
                 keys.push('@' + user.username);
             }
+
             // if (this.state.allKey) {
             //     keys.push('@all');
             // }
+
             if (this.state.channelKey) {
                 keys.push('@channel');
             }
