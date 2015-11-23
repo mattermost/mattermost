@@ -9,11 +9,26 @@
 	}
 }
 #post-list {
-    .markdown-inline-img {
-        -moz-force-broken-image-icon: 1;
-        max-height: 500px;
-        height: 500px;
-    }
+	.markdown-inline-img {
+		-moz-force-broken-image-icon: 1;
+		max-height: 500px;
+		height: 500px;
+	}
+}
+
+.post-body--code {
+	position: relative;
+}
+
+.post-body--code__language {
+	position: absolute;
+	top: 0;
+	right: 0;
+	color: #fff;
+	background: #21586D;
+	padding: 4px 10px 5px 10px;
+	font-size: 13px;
+	opacity: 0.7;
 }
 
 .post__body {
@@ -24,6 +39,9 @@
 		background-color: #e7e7e7;
 		border: 0 none;
 		@include opacity(0.2);
+	}
+	code {
+		white-space: pre;
 	}
 }
 .markdown__table {
