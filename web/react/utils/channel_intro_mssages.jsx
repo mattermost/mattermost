@@ -3,13 +3,12 @@
 
 import * as Utils from './utils.jsx';
 import EditChannelHeaderModal from '../components/edit_channel_header_modal.jsx';
-import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
-import InviteMemberModal from '../components/invite_member_modal.jsx';
 import ToggleModalButton from '../components/toggle_modal_button.jsx';
 import UserProfile from '../components/user_profile.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import Constants from '../utils/constants.jsx';
 import TeamStore from '../stores/team_store.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 export function createChannelIntroMessage(channel, showInviteModal) {
     if (channel.type === 'D') {
@@ -91,7 +90,7 @@ export function createDefaultIntroMessage(channel) {
             <a
                 className='intro-links'
                 href='#'
-                onClick={InviteMemberModal.show}
+                onClick={EventHelpers.showInviteMemberModal}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this team'}
             </a>
@@ -101,7 +100,7 @@ export function createDefaultIntroMessage(channel) {
             <a
                 className='intro-links'
                 href='#'
-                onClick={GetTeamInviteLinkModal.show}
+                onClick={EventHelpers.showGetTeamInviteLinkModal}
             >
                 <i className='fa fa-user-plus'></i>{'Invite others to this team'}
             </a>

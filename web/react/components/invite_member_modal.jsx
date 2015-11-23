@@ -4,13 +4,12 @@
 import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Client from '../utils/client.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
-import GetTeamInviteLinkModal from './get_team_invite_link_modal.jsx';
 
 const Modal = ReactBootstrap.Modal;
 
@@ -193,7 +192,7 @@ export default class InviteMemberModal extends React.Component {
     showGetTeamInviteLinkModal() {
         this.handleHide(false);
 
-        GetTeamInviteLinkModal.show();
+        EventHelpers.showGetTeamInviteLinkModal();
     }
 
     render() {
@@ -408,13 +407,6 @@ export default class InviteMemberModal extends React.Component {
         }
 
         return null;
-    }
-
-    static show() {
-        AppDispatcher.handleViewAction({
-            type: ActionTypes.TOGGLE_INVITE_MEMBER_MODAL,
-            value: true
-        });
     }
 }
 

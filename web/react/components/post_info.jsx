@@ -1,11 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import DeletePostModal from './delete_post_modal.jsx';
 import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import TimeSince from './time_since.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
@@ -74,7 +74,7 @@ export default class PostInfo extends React.Component {
                     <a
                         href='#'
                         role='menuitem'
-                        onClick={() => DeletePostModal.show(post, dataComments)}
+                        onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
                     >
                         {'Delete'}
                     </a>

@@ -1,11 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import GetTeamInviteLinkModal from './get_team_invite_link_modal.jsx';
-import InviteMemberModal from './invite_member_modal.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as client from '../utils/client.jsx';
+import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as utils from '../utils/utils.jsx';
 
 export default class SidebarRightMenu extends React.Component {
@@ -46,7 +45,7 @@ export default class SidebarRightMenu extends React.Component {
                 <li>
                     <a
                         href='#'
-                        onClick={InviteMemberModal.show}
+                        onClick={EventHelpers.showInviteMemberModal}
                     >
                         <i className='fa fa-user'></i>Invite New Member
                     </a>
@@ -58,7 +57,7 @@ export default class SidebarRightMenu extends React.Component {
                     <li>
                         <a
                             href='#'
-                            onClick={GetTeamInviteLinkModal.show}
+                            onClick={EventHelpers.showGetTeamInviteLinkModal}
                         >
                             <i className='glyphicon glyphicon-link'></i>{'Get Team Invite Link'}
                         </a>

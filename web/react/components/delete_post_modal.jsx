@@ -159,13 +159,4 @@ export default class DeletePostModal extends React.Component {
             </Modal>
         );
     }
-
-    static show(post, commentCount) {
-        AppDispatcher.handleViewAction({
-            type: ActionTypes.TOGGLE_DELETE_POST_MODAL,
-            value: true,
-            post,
-            commentCount: commentCount || 0
-        });
-    }
 }

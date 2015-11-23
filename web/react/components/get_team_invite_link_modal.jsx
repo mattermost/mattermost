@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
 import GetLinkModal from './get_link_modal.jsx';
 import ModalStore from '../stores/modal_store.jsx';
@@ -42,12 +41,5 @@ export default class GetTeamInviteLinkModal extends React.Component {
                 link={TeamStore.getCurrentInviteLink()}
             />
         );
-    }
-
-    static show() {
-        AppDispatcher.handleViewAction({
-            type: Constants.ActionTypes.TOGGLE_GET_TEAM_INVITE_LINK_MODAL,
-            value: true
-        });
     }
 }
