@@ -9,15 +9,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/throttled/throttled"
-	throttledStore "github.com/throttled/throttled/store"
+	"gopkg.in/throttled/throttled.v1"
+	throttledStore "gopkg.in/throttled/throttled.v1/store"
 	"net/http"
 	"strings"
 	"time"
 )
 
 type Server struct {
-	Server *manners.GracefulServer
 	Store  store.Store
 	Router *mux.Router
 }
@@ -29,7 +28,6 @@ func NewServer() {
 	l4g.Info("Server is initializing...")
 
 	Srv = &Server{}
-	Srv.Server = manners.NewServer()
 	Srv.Store = store.NewSqlStore()
 
 	Srv.Router = mux.NewRouter()
@@ -71,7 +69,7 @@ func StartServer() {
 	}
 
 	go func() {
-		err := Srv.Server.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handler)
+		err := manners.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handler)
 		if err != nil {
 			l4g.Critical("Error starting server, err:%v", err)
 			time.Sleep(time.Second)
@@ -84,7 +82,7 @@ func StopServer() {
 
 	l4g.Info("Stopping Server...")
 
-	Srv.Server.Shutdown <- true
+	manners.Close()
 	Srv.Store.Close()
 	hub.Stop()
 
