@@ -29,7 +29,7 @@ DOCKER_CONTAINER_NAME ?= mm-test
 
 all: dist-local
 
-dist: | build-server build-client test package
+dist: | build-server build-client go-test package
 	mv ./model/version.go.bak ./model/version.go
 
 dist-local: | start-docker dist
@@ -143,12 +143,14 @@ build-client:
 
 	cd web/sass-files && compass compile -e production --force
 
-test:
+go-test:
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+
+test: | start-docker go-test
 
 travis-init:
 	@echo Setting up enviroment for travis
@@ -205,7 +207,6 @@ clean: stop-docker
 	rm -f web/static/js/libs*.js
 	rm -f web/static/css/styles.css
 
-	rm -rf data
 	rm -rf api/data
 	rm -rf logs
 	rm -rf web/sass-files/.sass-cache
@@ -216,6 +217,7 @@ clean: stop-docker
 	rm -f .prepare
 
 nuke: | clean clean-docker
+	rm -rf data
 
 .prepare:
 	@echo Preparation for run step
