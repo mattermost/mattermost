@@ -22,13 +22,14 @@
     "watchify": "3.6.1",
     "eslint": "1.9.0",
     "eslint-plugin-react": "3.9.0",
+    "exorcist": "0.4.0",
     "babel-eslint": "4.1.5"
   },
   "scripts": {
     "check": "",
     "build-libs": "browserify -r crypto -r autolinker -r flux -r keymirror -r marked -r object-assign -r twemoji | uglifyjs -c -m --screw-ie8 > ../static/js/libs.min.js",
     "start": "watchify --fast -x crypto -x node -x autolinker -x flux -x keymirror -x marked -x object-assign -x twemoji -o ../static/js/bundle.js -v -d ./**/*.jsx",
-    "build": "browserify -x crypto -x autolinker -x flux -x keymirror -x marked -x object-assign -x twemoji ./**/*.jsx | uglifyjs -c -m --screw-ie8 > ../static/js/bundle.min.js"
+    "build": "browserify -x crypto -x autolinker -x flux -x keymirror -x marked -x object-assign -x twemoji -d ./**/*.jsx | exorcist ../static/js/inter.js.map > ../static/js/tmp.js && uglifyjs ../static/js/tmp.js --in-source-map \"../static/js/inter.js.map\" --source-map \"../static/js/bundle.min.js.map\" --source-map-url \"/static/js/bundle.min.js.map\" -c -m --screw-ie8 > ../static/js/bundle.min.js && rm ../static/js/tmp.js && rm ../static/js/inter.js.map"
   },
   "browserify": {
     "transform": [
