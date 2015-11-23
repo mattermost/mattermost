@@ -509,3 +509,103 @@ func TestRegexpWrapper(t *testing.T) {
 		True(t, assert.NotRegexp(regexp.MustCompile(tc.rx), tc.str))
 	}
 }
+
+func TestZeroWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	for _, test := range zeros {
+		assert.True(mockAssert.Zero(test), "Zero should return true for %v", test)
+	}
+
+	for _, test := range nonZeros {
+		assert.False(mockAssert.Zero(test), "Zero should return false for %v", test)
+	}
+}
+
+func TestNotZeroWrapper(t *testing.T) {
+	assert := New(t)
+	mockAssert := New(new(testing.T))
+
+	for _, test := range zeros {
+		assert.False(mockAssert.NotZero(test), "Zero should return true for %v", test)
+	}
+
+	for _, test := range nonZeros {
+		assert.True(mockAssert.NotZero(test), "Zero should return false for %v", test)
+	}
+}
+
+func TestJSONEqWrapper_EqualSONString(t *testing.T) {
+	assert := New(new(testing.T))
+	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"hello": "world", "foo": "bar"}`) {
+		t.Error("JSONEq should return true")
+	}
+
+}
+
+func TestJSONEqWrapper_EquivalentButNotEqual(t *testing.T) {
+	assert := New(new(testing.T))
+	if !assert.JSONEq(`{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
+		t.Error("JSONEq should return true")
+	}
+
+}
+
+func TestJSONEqWrapper_HashOfArraysAndHashes(t *testing.T) {
+	assert := New(new(testing.T))
+	if !assert.JSONEq("{\r\n\t\"numeric\": 1.5,\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]],\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\"\r\n}",
+		"{\r\n\t\"numeric\": 1.5,\r\n\t\"hash\": {\"nested\": \"hash\", \"nested_slice\": [\"this\", \"is\", \"nested\"]},\r\n\t\"string\": \"foo\",\r\n\t\"array\": [{\"foo\": \"bar\"}, 1, \"string\", [\"nested\", \"array\", 5.5]]\r\n}") {
+		t.Error("JSONEq should return true")
+	}
+}
+
+func TestJSONEqWrapper_Array(t *testing.T) {
+	assert := New(new(testing.T))
+	if !assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `["foo", {"nested": "hash", "hello": "world"}]`) {
+		t.Error("JSONEq should return true")
+	}
+
+}
+
+func TestJSONEqWrapper_HashAndArrayNotEquivalent(t *testing.T) {
+	assert := New(new(testing.T))
+	if assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `{"foo": "bar", {"nested": "hash", "hello": "world"}}`) {
+		t.Error("JSONEq should return false")
+	}
+}
+
+func TestJSONEqWrapper_HashesNotEquivalent(t *testing.T) {
+	assert := New(new(testing.T))
+	if assert.JSONEq(`{"foo": "bar"}`, `{"foo": "bar", "hello": "world"}`) {
+		t.Error("JSONEq should return false")
+	}
+}
+
+func TestJSONEqWrapper_ActualIsNotJSON(t *testing.T) {
+	assert := New(new(testing.T))
+	if assert.JSONEq(`{"foo": "bar"}`, "Not JSON") {
+		t.Error("JSONEq should return false")
+	}
+}
+
+func TestJSONEqWrapper_ExpectedIsNotJSON(t *testing.T) {
+	assert := New(new(testing.T))
+	if assert.JSONEq("Not JSON", `{"foo": "bar", "hello": "world"}`) {
+		t.Error("JSONEq should return false")
+	}
+}
+
+func TestJSONEqWrapper_ExpectedAndActualNotJSON(t *testing.T) {
+	assert := New(new(testing.T))
+	if assert.JSONEq("Not JSON", "Not JSON") {
+		t.Error("JSONEq should return false")
+	}
+}
+
+func TestJSONEqWrapper_ArraysOfDifferentOrder(t *testing.T) {
+	assert := New(new(testing.T))
+	if assert.JSONEq(`["foo", {"hello": "world", "nested": "hash"}]`, `[{ "hello": "world", "nested": "hash"}, "foo"]`) {
+		t.Error("JSONEq should return false")
+	}
+}

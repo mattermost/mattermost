@@ -13,10 +13,10 @@ import (
 	"image"
 	"image/draw"
 
-	"github.com/golang/freetype/raster"
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/golang/freetype/raster"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/golang/freetype/truetype"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/font"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
 )
 
 // These constants determine the size of the glyph cache. The cache is keyed

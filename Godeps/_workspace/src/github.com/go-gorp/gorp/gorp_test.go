@@ -1,31 +1,56 @@
+// Copyright 2012 James Cooper. All rights reserved.
+// Use of this source code is governed by a MIT-style
+// license that can be found in the LICENSE file.
+
+// Package gorp provides a simple way to marshal Go structs to and from
+// SQL databases.  It uses the database/sql package, and should work with any
+// compliant database/sql driver.
+//
+// Source code and project home:
+// https://github.com/go-gorp/gorp
+
 package gorp
 
 import (
 	"bytes"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
+	_ "github.com/mattermost/platform/Godeps/_workspace/src/github.com/go-sql-driver/mysql"
+	_ "github.com/mattermost/platform/Godeps/_workspace/src/github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	_ "github.com/ziutek/mymysql/godrv"
 )
 
-// verify interface compliance
-var _ Dialect = SqliteDialect{}
-var _ Dialect = PostgresDialect{}
-var _ Dialect = MySQLDialect{}
-var _ Dialect = SqlServerDialect{}
-var _ Dialect = OracleDialect{}
+var (
+	// verify interface compliance
+	_ = []Dialect{
+		SqliteDialect{},
+		PostgresDialect{},
+		MySQLDialect{},
+		SqlServerDialect{},
+		OracleDialect{},
+	}
+
+	debug bool
+)
+
+func init() {
+	flag.BoolVar(&debug, "trace", true, "Turn on or off database tracing (DbMap.TraceOn)")
+	flag.Parse()
+}
 
 type testable interface {
 	GetId() int64
@@ -41,6 +66,15 @@ type Invoice struct {
 	IsPaid   bool
 }
 
+type InvoiceWithValuer struct {
+	Id      int64
+	Created int64
+	Updated int64
+	Memo    string
+	Person  PersonValuerScanner `db:"personid"`
+	IsPaid  bool
+}
+
 func (me *Invoice) GetId() int64 { return me.Id }
 func (me *Invoice) Rand() {
 	me.Memo = fmt.Sprintf("random %d", rand.Int63())
@@ -49,7 +83,7 @@ func (me *Invoice) Rand() {
 }
 
 type InvoiceTag struct {
-	Id       int64 `db:"myid"`
+	Id       int64 `db:"myid, primarykey, autoincrement"`
 	Created  int64 `db:"myCreated"`
 	Updated  int64 `db:"date_updated"`
 	Memo     string
@@ -88,6 +122,34 @@ type Person struct {
 	FName   string
 	LName   string
 	Version int64
+}
+
+type PersonValuerScanner struct {
+	Person
+}
+
+func (p PersonValuerScanner) Value() (driver.Value, error) {
+	return p.Id, nil
+}
+
+// FIXME: this Scan is never actually used in the tests?
+// Also: if the comments below on the mysql driver are true, then that should be fixed by the dialect when scanning values into structs.
+func (p *PersonValuerScanner) Scan(value interface{}) (err error) {
+	switch src := value.(type) {
+	case []byte:
+		// The mysql driver seems to return a []byte, even though the
+		// type in the database is bigint.  Note that this case is
+		// *only* used by the mysql driver.
+		p.Id, err = strconv.ParseInt(string(src), 10, 64)
+	case int64:
+		// postgres, gomysql, and sqlite drivers all return an int64,
+		// as you'd expect.
+		p.Id = src
+	default:
+		typ := reflect.TypeOf(value)
+		return fmt.Errorf("Expected person value to be convertible to int64, got %v (type %s)", value, typ)
+	}
+	return
 }
 
 type FNameOnly struct {
@@ -160,6 +222,17 @@ type WithEmbeddedStruct struct {
 	Names
 }
 
+type WithEmbeddedStructConflictingEmbeddedMemberNames struct {
+	Id int64
+	Names
+	NamesConflict
+}
+
+type WithEmbeddedStructSameMemberName struct {
+	Id int64
+	SameName
+}
+
 type WithEmbeddedStructBeforeAutoincrField struct {
 	Names
 	Id int64
@@ -173,6 +246,15 @@ type WithEmbeddedAutoincr struct {
 type Names struct {
 	FirstName string
 	LastName  string
+}
+
+type NamesConflict struct {
+	FirstName string
+	Surname   string
+}
+
+type SameName struct {
+	SameName string
 }
 
 type UniqueColumns struct {
@@ -353,7 +435,6 @@ func TestTruncateTables(t *testing.T) {
 func TestCustomDateType(t *testing.T) {
 	dbmap := newDbMap()
 	dbmap.TypeConverter = testTypeConverter{}
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	dbmap.AddTable(WithCustomDate{}).SetKeys(true, "Id")
 	err := dbmap.CreateTables()
 	if err != nil {
@@ -389,7 +470,6 @@ func TestCustomDateType(t *testing.T) {
 
 func TestUIntPrimaryKey(t *testing.T) {
 	dbmap := newDbMap()
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	dbmap.AddTable(PersonUInt64{}).SetKeys(true, "Id")
 	dbmap.AddTable(PersonUInt32{}).SetKeys(true, "Id")
 	dbmap.AddTable(PersonUInt16{}).SetKeys(true, "Id")
@@ -419,7 +499,6 @@ func TestUIntPrimaryKey(t *testing.T) {
 
 func TestSetUniqueTogether(t *testing.T) {
 	dbmap := newDbMap()
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	dbmap.AddTable(UniqueColumns{}).SetUniqueTogether("FirstName", "LastName").SetUniqueTogether("City", "ZipCode")
 	err := dbmap.CreateTablesIfNotExists()
 	if err != nil {
@@ -468,7 +547,6 @@ func TestSetUniqueTogether(t *testing.T) {
 func TestPersistentUser(t *testing.T) {
 	dbmap := newDbMap()
 	dbmap.Exec("drop table if exists PersistentUser")
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	table := dbmap.AddTable(PersistentUser{}).SetKeys(false, "Key")
 	table.ColMap("Key").Rename("mykey")
 	err := dbmap.CreateTablesIfNotExists()
@@ -581,7 +659,6 @@ func TestPersistentUser(t *testing.T) {
 func TestNamedQueryMap(t *testing.T) {
 	dbmap := newDbMap()
 	dbmap.Exec("drop table if exists PersistentUser")
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	table := dbmap.AddTable(PersistentUser{}).SetKeys(false, "Key")
 	table.ColMap("Key").Rename("mykey")
 	err := dbmap.CreateTablesIfNotExists()
@@ -679,7 +756,6 @@ select * from PersistentUser
 func TestNamedQueryStruct(t *testing.T) {
 	dbmap := newDbMap()
 	dbmap.Exec("drop table if exists PersistentUser")
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	table := dbmap.AddTable(PersistentUser{}).SetKeys(false, "Key")
 	table.ColMap("Key").Rename("mykey")
 	err := dbmap.CreateTablesIfNotExists()
@@ -859,9 +935,48 @@ func TestNullValues(t *testing.T) {
 	}
 }
 
+func TestScannerValuer(t *testing.T) {
+	dbmap := newDbMap()
+	dbmap.AddTableWithName(PersonValuerScanner{}, "person_test").SetKeys(true, "Id")
+	dbmap.AddTableWithName(InvoiceWithValuer{}, "invoice_test").SetKeys(true, "Id")
+	err := dbmap.CreateTables()
+	if err != nil {
+		panic(err)
+	}
+	defer dropAndClose(dbmap)
+
+	pv := PersonValuerScanner{}
+	pv.FName = "foo"
+	pv.LName = "bar"
+	err = dbmap.Insert(&pv)
+	if err != nil {
+		t.Errorf("Could not insert PersonValuerScanner using Person table: %v", err)
+		t.FailNow()
+	}
+
+	inv := InvoiceWithValuer{}
+	inv.Memo = "foo"
+	inv.Person = pv
+	err = dbmap.Insert(&inv)
+	if err != nil {
+		t.Errorf("Could not insert InvoiceWithValuer using Invoice table: %v", err)
+		t.FailNow()
+	}
+
+	res, err := dbmap.Get(InvoiceWithValuer{}, inv.Id)
+	if err != nil {
+		t.Errorf("Could not get InvoiceWithValuer: %v", err)
+		t.FailNow()
+	}
+	dbInv := res.(*InvoiceWithValuer)
+
+	if dbInv.Person.Id != pv.Id {
+		t.Errorf("InvoiceWithValuer got wrong person ID: %d (expected) != %d (actual)", pv.Id, dbInv.Person.Id)
+	}
+}
+
 func TestColumnProps(t *testing.T) {
 	dbmap := newDbMap()
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	t1 := dbmap.AddTable(Invoice{}).SetKeys(true, "Id")
 	t1.ColMap("Created").Rename("date_created")
 	t1.ColMap("Updated").SetTransient(true)
@@ -1161,6 +1276,29 @@ func TestWithIgnoredColumn(t *testing.T) {
 	}
 }
 
+func TestColumnFilter(t *testing.T) {
+	dbmap := initDbMap()
+	defer dropAndClose(dbmap)
+
+	inv1 := &Invoice{0, 100, 200, "a", 0, false}
+	_insert(dbmap, inv1)
+
+	inv1.Memo = "c"
+	inv1.IsPaid = true
+	_updateColumns(dbmap, func(col *ColumnMap) bool {
+		return col.ColumnName == "Memo"
+	}, inv1)
+
+	inv2 := &Invoice{}
+	inv2 = _get(dbmap, inv2, inv1.Id).(*Invoice)
+	if inv2.Memo != "c" {
+		t.Errorf("Expected column to be updated (%#v)", inv2)
+	}
+	if inv2.IsPaid {
+		t.Error("IsPaid shouldn't have been updated")
+	}
+}
+
 func TestTypeConversionExample(t *testing.T) {
 	dbmap := initDbMap()
 	defer dropAndClose(dbmap)
@@ -1216,6 +1354,60 @@ func TestWithEmbeddedStruct(t *testing.T) {
 		t.Errorf("%v != %v", es2, ess[0])
 	}
 }
+
+/*
+func TestWithEmbeddedStructConflictingEmbeddedMemberNames(t *testing.T) {
+	dbmap := initDbMap()
+	defer dropAndClose(dbmap)
+
+	es := &WithEmbeddedStructConflictingEmbeddedMemberNames{-1, Names{FirstName: "Alice", LastName: "Smith"}, NamesConflict{FirstName: "Andrew", Surname: "Wiggin"}}
+	_insert(dbmap, es)
+	expected := &WithEmbeddedStructConflictingEmbeddedMemberNames{-1, Names{FirstName: "Alice", LastName: "Smith"}, NamesConflict{FirstName: "Andrew", Surname: "Wiggin"}}
+	es2 := _get(dbmap, WithEmbeddedStructConflictingEmbeddedMemberNames{}, es.Id).(*WithEmbeddedStructConflictingEmbeddedMemberNames)
+	if !reflect.DeepEqual(expected, es2) {
+		t.Errorf("%v != %v", expected, es2)
+	}
+
+	es2.Names.FirstName = "Bob"
+	expected.Names.FirstName = "Bob"
+	_update(dbmap, es2)
+	es2 = _get(dbmap, WithEmbeddedStructConflictingEmbeddedMemberNames{}, es.Id).(*WithEmbeddedStructConflictingEmbeddedMemberNames)
+	if !reflect.DeepEqual(expected, es2) {
+		t.Errorf("%v != %v", expected, es2)
+	}
+
+	ess := _rawselect(dbmap, WithEmbeddedStructConflictingEmbeddedMemberNames{}, "select * from embedded_struct_conflict_name_test")
+	if !reflect.DeepEqual(es2, ess[0]) {
+		t.Errorf("%v != %v", es2, ess[0])
+	}
+}
+
+func TestWithEmbeddedStructSameMemberName(t *testing.T) {
+	dbmap := initDbMap()
+	defer dropAndClose(dbmap)
+
+	es := &WithEmbeddedStructSameMemberName{-1, SameName{SameName: "Alice"}}
+	_insert(dbmap, es)
+	expected := &WithEmbeddedStructSameMemberName{-1, SameName{SameName: "Alice"}}
+	es2 := _get(dbmap, WithEmbeddedStructSameMemberName{}, es.Id).(*WithEmbeddedStructSameMemberName)
+	if !reflect.DeepEqual(expected, es2) {
+		t.Errorf("%v != %v", expected, es2)
+	}
+
+	es2.SameName = SameName{"Bob"}
+	expected.SameName = SameName{"Bob"}
+	_update(dbmap, es2)
+	es2 = _get(dbmap, WithEmbeddedStructSameMemberName{}, es.Id).(*WithEmbeddedStructSameMemberName)
+	if !reflect.DeepEqual(expected, es2) {
+		t.Errorf("%v != %v", expected, es2)
+	}
+
+	ess := _rawselect(dbmap, WithEmbeddedStructSameMemberName{}, "select * from embedded_struct_same_member_name_test")
+	if !reflect.DeepEqual(es2, ess[0]) {
+		t.Errorf("%v != %v", es2, ess[0])
+	}
+}
+//*/
 
 func TestWithEmbeddedStructBeforeAutoincr(t *testing.T) {
 	dbmap := initDbMap()
@@ -1359,7 +1551,6 @@ func TestVersionMultipleRows(t *testing.T) {
 
 func TestWithStringPk(t *testing.T) {
 	dbmap := newDbMap()
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	dbmap.AddTableWithName(WithStringPk{}, "string_pk_test").SetKeys(true, "Id")
 	_, err := dbmap.Exec("create table string_pk_test (Id varchar(255), Name varchar(255));")
 	if err != nil {
@@ -1491,7 +1682,6 @@ func testWithTime(t *testing.T) {
 // See: https://github.com/go-gorp/gorp/issues/86
 func testEmbeddedTime(t *testing.T) {
 	dbmap := newDbMap()
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	dbmap.AddTable(EmbeddedTime{}).SetKeys(false, "Id")
 	defer dropAndClose(dbmap)
 	err := dbmap.CreateTables()
@@ -1987,7 +2177,7 @@ func initDbMapBench() *DbMap {
 func initDbMap() *DbMap {
 	dbmap := newDbMap()
 	dbmap.AddTableWithName(Invoice{}, "invoice_test").SetKeys(true, "Id")
-	dbmap.AddTableWithName(InvoiceTag{}, "invoice_tag_test").SetKeys(true, "myid")
+	dbmap.AddTableWithName(InvoiceTag{}, "invoice_tag_test") //key is set via primarykey attribute
 	dbmap.AddTableWithName(AliasTransientField{}, "alias_trans_field_test").SetKeys(true, "id")
 	dbmap.AddTableWithName(OverriddenInvoice{}, "invoice_override_test").SetKeys(false, "Id")
 	dbmap.AddTableWithName(Person{}, "person_test").SetKeys(true, "Id").SetVersionCol("Version")
@@ -1995,6 +2185,8 @@ func initDbMap() *DbMap {
 	dbmap.AddTableWithName(IdCreated{}, "id_created_test").SetKeys(true, "Id")
 	dbmap.AddTableWithName(TypeConversionExample{}, "type_conv_test").SetKeys(true, "Id")
 	dbmap.AddTableWithName(WithEmbeddedStruct{}, "embedded_struct_test").SetKeys(true, "Id")
+	//dbmap.AddTableWithName(WithEmbeddedStructConflictingEmbeddedMemberNames{}, "embedded_struct_conflict_name_test").SetKeys(true, "Id")
+	//dbmap.AddTableWithName(WithEmbeddedStructSameMemberName{}, "embedded_struct_same_member_name_test").SetKeys(true, "Id")
 	dbmap.AddTableWithName(WithEmbeddedStructBeforeAutoincrField{}, "embedded_struct_before_autoincr_test").SetKeys(true, "Id")
 	dbmap.AddTableWithName(WithEmbeddedAutoincr{}, "embedded_autoincr_test").SetKeys(true, "Id")
 	dbmap.AddTableWithName(WithTime{}, "time_test").SetKeys(true, "Id")
@@ -2018,7 +2210,6 @@ func initDbMap() *DbMap {
 
 func initDbMapNulls() *DbMap {
 	dbmap := newDbMap()
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
 	dbmap.AddTable(TableWithNull{}).SetKeys(false, "Id")
 	err := dbmap.CreateTables()
 	if err != nil {
@@ -2030,7 +2221,9 @@ func initDbMapNulls() *DbMap {
 func newDbMap() *DbMap {
 	dialect, driver := dialectAndDriver()
 	dbmap := &DbMap{Db: connect(driver), Dialect: dialect}
-	dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
+	if debug {
+		dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
+	}
 	return dbmap
 }
 
@@ -2075,6 +2268,14 @@ func _insert(dbmap *DbMap, list ...interface{}) {
 
 func _update(dbmap *DbMap, list ...interface{}) int64 {
 	count, err := dbmap.Update(list...)
+	if err != nil {
+		panic(err)
+	}
+	return count
+}
+
+func _updateColumns(dbmap *DbMap, filter ColumnFilter, list ...interface{}) int64 {
+	count, err := dbmap.UpdateColumns(filter, list...)
 	if err != nil {
 		panic(err)
 	}

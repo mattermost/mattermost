@@ -20,11 +20,48 @@ package truetype
 import (
 	"fmt"
 
-	"golang.org/x/image/math/fixed"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
 )
 
 // An Index is a Font's index of a rune.
 type Index uint16
+
+// A NameID identifies a name table entry.
+//
+// See https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6name.html
+type NameID uint16
+
+const (
+	NameIDCopyright          NameID = 0
+	NameIDFontFamily                = 1
+	NameIDFontSubfamily             = 2
+	NameIDUniqueSubfamilyID         = 3
+	NameIDFontFullName              = 4
+	NameIDNameTableVersion          = 5
+	NameIDPostscriptName            = 6
+	NameIDTrademarkNotice           = 7
+	NameIDManufacturerName          = 8
+	NameIDDesignerName              = 9
+	NameIDFontDescription           = 10
+	NameIDFontVendorURL             = 11
+	NameIDFontDesignerURL           = 12
+	NameIDFontLicense               = 13
+	NameIDFontLicenseURL            = 14
+	NameIDPreferredFamily           = 16
+	NameIDPreferredSubfamily        = 17
+	NameIDCompatibleName            = 18
+	NameIDSampleText                = 19
+)
+
+const (
+	// A 32-bit encoding consists of a most-significant 16-bit Platform ID and a
+	// least-significant 16-bit Platform Specific ID. The magic numbers are
+	// specified at https://www.microsoft.com/typography/otspec/name.htm
+	unicodeEncoding         = 0x00000003 // PID = 0 (Unicode), PSID = 3 (Unicode 2.0)
+	microsoftSymbolEncoding = 0x00030000 // PID = 3 (Microsoft), PSID = 0 (Symbol)
+	microsoftUCS2Encoding   = 0x00030001 // PID = 3 (Microsoft), PSID = 1 (UCS-2)
+	microsoftUCS4Encoding   = 0x0003000a // PID = 3 (Microsoft), PSID = 10 (UCS-4)
+)
 
 // An HMetric holds the horizontal metrics of a single glyph.
 type HMetric struct {
@@ -78,6 +115,51 @@ func readTable(ttf []byte, offsetLength []byte) ([]byte, error) {
 	return ttf[offset:end], nil
 }
 
+// parseSubtables returns the offset and platformID of the best subtable in
+// table, where best favors a Unicode cmap encoding, and failing that, a
+// Microsoft cmap encoding. offset is the offset of the first subtable in
+// table, and size is the size of each subtable.
+//
+// If pred is non-nil, then only subtables that satisfy that predicate will be
+// considered.
+func parseSubtables(table []byte, name string, offset, size int, pred func([]byte) bool) (
+	bestOffset int, bestPID uint32, retErr error) {
+
+	if len(table) < 4 {
+		return 0, 0, FormatError(name + " too short")
+	}
+	nSubtables := int(u16(table, 2))
+	if len(table) < size*nSubtables+offset {
+		return 0, 0, FormatError(name + " too short")
+	}
+	ok := false
+	for i := 0; i < nSubtables; i, offset = i+1, offset+size {
+		if pred != nil && !pred(table[offset:]) {
+			continue
+		}
+		// We read the 16-bit Platform ID and 16-bit Platform Specific ID as a single uint32.
+		// All values are big-endian.
+		pidPsid := u32(table, offset)
+		// We prefer the Unicode cmap encoding. Failing to find that, we fall
+		// back onto the Microsoft cmap encoding.
+		if pidPsid == unicodeEncoding {
+			bestOffset, bestPID, ok = offset, pidPsid>>16, true
+			break
+
+		} else if pidPsid == microsoftSymbolEncoding ||
+			pidPsid == microsoftUCS2Encoding ||
+			pidPsid == microsoftUCS4Encoding {
+
+			bestOffset, bestPID, ok = offset, pidPsid>>16, true
+			// We don't break out of the for loop, so that Unicode can override Microsoft.
+		}
+	}
+	if !ok {
+		return 0, 0, UnsupportedError(name + " encoding")
+	}
+	return bestOffset, bestPID, nil
+}
+
 const (
 	locaOffsetFormatUnknown int = iota
 	locaOffsetFormatShort
@@ -93,7 +175,7 @@ type cm struct {
 type Font struct {
 	// Tables sliced from the TTF data. The different tables are documented
 	// at http://developer.apple.com/fonts/TTRefMan/RM06/Chap6.html
-	cmap, cvt, fpgm, glyf, hdmx, head, hhea, hmtx, kern, loca, maxp, os2, prep, vmtx []byte
+	cmap, cvt, fpgm, glyf, hdmx, head, hhea, hmtx, kern, loca, maxp, name, os2, prep, vmtx []byte
 
 	cmapIndexes []byte
 
@@ -112,46 +194,13 @@ func (f *Font) parseCmap() error {
 		cmapFormat4         = 4
 		cmapFormat12        = 12
 		languageIndependent = 0
-
-		// A 32-bit encoding consists of a most-significant 16-bit Platform ID and a
-		// least-significant 16-bit Platform Specific ID. The magic numbers are
-		// specified at https://www.microsoft.com/typography/otspec/name.htm
-		unicodeEncoding         = 0x00000003 // PID = 0 (Unicode), PSID = 3 (Unicode 2.0)
-		microsoftSymbolEncoding = 0x00030000 // PID = 3 (Microsoft), PSID = 0 (Symbol)
-		microsoftUCS2Encoding   = 0x00030001 // PID = 3 (Microsoft), PSID = 1 (UCS-2)
-		microsoftUCS4Encoding   = 0x0003000a // PID = 3 (Microsoft), PSID = 10 (UCS-4)
 	)
 
-	if len(f.cmap) < 4 {
-		return FormatError("cmap too short")
+	offset, _, err := parseSubtables(f.cmap, "cmap", 4, 8, nil)
+	if err != nil {
+		return err
 	}
-	nsubtab := int(u16(f.cmap, 2))
-	if len(f.cmap) < 8*nsubtab+4 {
-		return FormatError("cmap too short")
-	}
-	offset, found, x := 0, false, 4
-	for i := 0; i < nsubtab; i++ {
-		// We read the 16-bit Platform ID and 16-bit Platform Specific ID as a single uint32.
-		// All values are big-endian.
-		pidPsid, o := u32(f.cmap, x), u32(f.cmap, x+4)
-		x += 8
-		// We prefer the Unicode cmap encoding. Failing to find that, we fall
-		// back onto the Microsoft cmap encoding.
-		if pidPsid == unicodeEncoding {
-			offset, found = int(o), true
-			break
-
-		} else if pidPsid == microsoftSymbolEncoding ||
-			pidPsid == microsoftUCS2Encoding ||
-			pidPsid == microsoftUCS4Encoding {
-
-			offset, found = int(o), true
-			// We don't break out of the for loop, so that Unicode can override Microsoft.
-		}
-	}
-	if !found {
-		return UnsupportedError("cmap encoding")
-	}
+	offset = int(u32(f.cmap, offset+4))
 	if offset <= 0 || offset > len(f.cmap) {
 		return FormatError("bad cmap offset")
 	}
@@ -345,6 +394,44 @@ func (f *Font) Index(x rune) Index {
 	return 0
 }
 
+// Name returns the Font's name value for the given NameID. It returns "" if
+// there was an error, or if that name was not found.
+func (f *Font) Name(id NameID) string {
+	x, platformID, err := parseSubtables(f.name, "name", 6, 12, func(b []byte) bool {
+		return NameID(u16(b, 6)) == id
+	})
+	if err != nil {
+		return ""
+	}
+	offset, length := u16(f.name, 4)+u16(f.name, x+10), u16(f.name, x+8)
+	// Return the ASCII value of the encoded string.
+	// The string is encoded as UTF-16 on non-Apple platformIDs; Apple is platformID 1.
+	src := f.name[offset : offset+length]
+	var dst []byte
+	if platformID != 1 { // UTF-16.
+		if len(src)&1 != 0 {
+			return ""
+		}
+		dst = make([]byte, len(src)/2)
+		for i := range dst {
+			dst[i] = printable(u16(src, 2*i))
+		}
+	} else { // ASCII.
+		dst = make([]byte, len(src))
+		for i, c := range src {
+			dst[i] = printable(uint16(c))
+		}
+	}
+	return string(dst)
+}
+
+func printable(r uint16) byte {
+	if 0x20 <= r && r < 0x7f {
+		return byte(r)
+	}
+	return '?'
+}
+
 // unscaledHMetric returns the unscaled horizontal metrics for the glyph with
 // the given index.
 func (f *Font) unscaledHMetric(i Index) (h HMetric) {
@@ -518,6 +605,8 @@ func parse(ttf []byte, offset int) (font *Font, err error) {
 			f.loca, err = readTable(ttf, ttf[x+8:x+16])
 		case "maxp":
 			f.maxp, err = readTable(ttf, ttf[x+8:x+16])
+		case "name":
+			f.name, err = readTable(ttf, ttf[x+8:x+16])
 		case "OS/2":
 			f.os2, err = readTable(ttf, ttf[x+8:x+16])
 		case "prep":

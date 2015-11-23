@@ -215,9 +215,7 @@ func (ci *copyin) Exec(v []driver.Value) (r driver.Result, err error) {
 	}
 
 	if len(v) == 0 {
-		err = ci.Close()
-		ci.closed = true
-		return nil, err
+		return nil, ci.Close()
 	}
 
 	numValues := len(v)
@@ -240,9 +238,10 @@ func (ci *copyin) Exec(v []driver.Value) (r driver.Result, err error) {
 }
 
 func (ci *copyin) Close() (err error) {
-	if ci.closed {
-		return errCopyInClosed
+	if ci.closed { // Don't do anything, we're already closed
+		return nil
 	}
+	ci.closed = true
 
 	if ci.cn.bad {
 		return driver.ErrBadConn

@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/xml"
 	"fmt"
-	"github.com/goamz/goamz/s3"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/goamz/goamz/s3"
 	"io"
 	"io/ioutil"
 	"log"
@@ -594,6 +594,10 @@ func (objr objectResource) put(a *action) interface{} {
 	obj.checksum = gotHash
 	obj.mtime = time.Now()
 	objr.bucket.objects[objr.name] = obj
+
+	h := a.w.Header()
+	h.Set("ETag", fmt.Sprintf(`"%s"`, hex.EncodeToString(obj.checksum)))
+
 	return nil
 }
 

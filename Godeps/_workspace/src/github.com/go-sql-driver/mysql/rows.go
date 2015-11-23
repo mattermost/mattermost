@@ -40,7 +40,11 @@ func (rows *mysqlRows) Columns() []string {
 	columns := make([]string, len(rows.columns))
 	if rows.mc.cfg.columnsWithAlias {
 		for i := range columns {
-			columns[i] = rows.columns[i].tableName + "." + rows.columns[i].name
+			if tableName := rows.columns[i].tableName; len(tableName) > 0 {
+				columns[i] = tableName + "." + rows.columns[i].name
+			} else {
+				columns[i] = rows.columns[i].name
+			}
 		}
 	} else {
 		for i := range columns {

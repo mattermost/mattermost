@@ -19,7 +19,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
 )
 
 type testConn struct {
@@ -49,15 +49,18 @@ func Dial() (redis.Conn, error) {
 
 	_, err = c.Do("SELECT", "9")
 	if err != nil {
+		c.Close()
 		return nil, err
 	}
 
 	n, err := redis.Int(c.Do("DBSIZE"))
 	if err != nil {
+		c.Close()
 		return nil, err
 	}
 
 	if n != 0 {
+		c.Close()
 		return nil, errors.New("database #9 is not empty, test can not continue")
 	}
 

@@ -22,7 +22,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/lib/pq/oid"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/lib/pq/oid"
 )
 
 // Common error types
@@ -1369,6 +1369,10 @@ func (rs *rows) Next(dest []driver.Value) (err error) {
 			return io.EOF
 		case 'D':
 			n := rs.rb.int16()
+			if err != nil {
+				conn.bad = true
+				errorf("unexpected DataRow after error %s", err)
+			}
 			if n < len(dest) {
 				dest = dest[:n]
 			}
@@ -1622,6 +1626,10 @@ func (cn *conn) readExecuteResponse(protocolState string) (res driver.Result, co
 		t, r := cn.recv1()
 		switch t {
 		case 'C':
+			if err != nil {
+				cn.bad = true
+				errorf("unexpected CommandComplete after error %s", err)
+			}
 			res, commandTag = cn.parseComplete(r.string())
 		case 'Z':
 			cn.processReadyForQuery(r)
@@ -1629,6 +1637,10 @@ func (cn *conn) readExecuteResponse(protocolState string) (res driver.Result, co
 		case 'E':
 			err = parseError(r)
 		case 'T', 'D', 'I':
+			if err != nil {
+				cn.bad = true
+				errorf("unexpected %q after error %s", t, err)
+			}
 			// ignore any results
 		default:
 			cn.bad = true

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/lib/pq"
+	_ "github.com/mattermost/platform/Godeps/_workspace/src/github.com/lib/pq"
 )
 
 type Fatalistic interface {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/stretchr/testify/assert"
 )
 
 func TestMockClientConnectAndWrite(t *testing.T) {

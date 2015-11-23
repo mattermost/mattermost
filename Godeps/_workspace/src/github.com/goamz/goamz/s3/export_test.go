@@ -1,7 +1,7 @@
 package s3
 
 import (
-	"github.com/goamz/goamz/aws"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/goamz/goamz/aws"
 )
 
 func Sign(auth aws.Auth, method, path string, params, headers map[string][]string) {

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"math"
 
-	"golang.org/x/image/math/fixed"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
 )
 
 // maxAbs returns the maximum of abs(a) and abs(b).

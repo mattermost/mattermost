@@ -18,7 +18,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	"github.com/goamz/goamz/aws"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/goamz/goamz/aws"
 	"io"
 	"io/ioutil"
 	"log"
@@ -1101,10 +1101,14 @@ func shouldRetry(err error) bool {
 		}
 	case *Error:
 		switch e.Code {
-		case "InternalError", "NoSuchUpload", "NoSuchBucket":
+		case "InternalError", "NoSuchUpload", "NoSuchBucket", "RequestTimeout":
 			return true
 		}
+	// let's handle tls handshake timeout issues and similar temporary errors
+	case net.Error:
+		return e.Temporary()
 	}
+
 	return false
 }
 

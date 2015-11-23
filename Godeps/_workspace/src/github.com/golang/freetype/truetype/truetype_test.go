@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/font"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
 )
 
 func parseTestdataFont(name string) (f *Font, testdataIsOptional bool, err error) {
@@ -207,6 +207,29 @@ func TestIndex(t *testing.T) {
 			if got := f.Index(r); got != want {
 				t.Errorf("%s: Index of %q, aka %U: got %d, want %d", name, r, r, got, want)
 			}
+		}
+	}
+}
+
+func TestName(t *testing.T) {
+	testCases := map[string]string{
+		"luximr": "Luxi Mono",
+		"luxirr": "Luxi Serif",
+		"luxisr": "Luxi Sans",
+	}
+
+	for name, want := range testCases {
+		f, testdataIsOptional, err := parseTestdataFont(name)
+		if err != nil {
+			if testdataIsOptional {
+				t.Log(err)
+			} else {
+				t.Fatal(err)
+			}
+			continue
+		}
+		if got := f.Name(NameIDFontFamily); got != want {
+			t.Errorf("%s: got %q, want %q", name, got, want)
 		}
 	}
 }

@@ -20,8 +20,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/golang/freetype/raster"
-	"golang.org/x/image/math/fixed"
+	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/golang/freetype/raster"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
 )
 
 type node struct {

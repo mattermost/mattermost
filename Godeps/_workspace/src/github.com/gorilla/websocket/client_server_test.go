@@ -56,11 +56,6 @@ func newTLSServer(t *testing.T) *cstServer {
 }
 
 func (t cstHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		t.Logf("method %s not allowed", r.Method)
-		http.Error(w, "method not allowed", 405)
-		return
-	}
 	subprotos := Subprotocols(r)
 	if !reflect.DeepEqual(subprotos, cstDialer.Subprotocols) {
 		t.Logf("subprotols=%v, want %v", subprotos, cstDialer.Subprotocols)
@@ -121,6 +116,45 @@ func sendRecv(t *testing.T, ws *Conn) {
 	if string(p) != message {
 		t.Fatalf("message=%s, want %s", p, message)
 	}
+}
+
+func TestProxyDial(t *testing.T) {
+
+	s := newServer(t)
+	defer s.Close()
+
+	surl, _ := url.Parse(s.URL)
+
+	cstDialer.Proxy = http.ProxyURL(surl)
+
+	connect := false
+	origHandler := s.Server.Config.Handler
+
+	// Capture the request Host header.
+	s.Server.Config.Handler = http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == "CONNECT" {
+				connect = true
+				w.WriteHeader(200)
+				return
+			}
+
+			if !connect {
+				t.Log("connect not recieved")
+				http.Error(w, "connect not recieved", 405)
+				return
+			}
+			origHandler.ServeHTTP(w, r)
+		})
+
+	ws, _, err := cstDialer.Dial(s.URL, nil)
+	if err != nil {
+		t.Fatalf("Dial: %v", err)
+	}
+	defer ws.Close()
+	sendRecv(t, ws)
+
+	cstDialer.Proxy = http.ProxyFromEnvironment
 }
 
 func TestDial(t *testing.T) {
@@ -229,6 +263,45 @@ func TestDialBadOrigin(t *testing.T) {
 	}
 }
 
+func TestDialBadHeader(t *testing.T) {
+	s := newServer(t)
+	defer s.Close()
+
+	for _, k := range []string{"Upgrade",
+		"Connection",
+		"Sec-Websocket-Key",
+		"Sec-Websocket-Version",
+		"Sec-Websocket-Protocol"} {
+		h := http.Header{}
+		h.Set(k, "bad")
+		ws, _, err := cstDialer.Dial(s.URL, http.Header{"Origin": {"bad"}})
+		if err == nil {
+			ws.Close()
+			t.Errorf("Dial with header %s returned nil", k)
+		}
+	}
+}
+
+func TestBadMethod(t *testing.T) {
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ws, err := cstUpgrader.Upgrade(w, r, nil)
+		if err == nil {
+			t.Errorf("handshake succeeded, expect fail")
+			ws.Close()
+		}
+	}))
+	defer s.Close()
+
+	resp, err := http.PostForm(s.URL, url.Values{})
+	if err != nil {
+		t.Fatalf("PostForm returned error %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("Status = %d, want %d", resp.StatusCode, http.StatusMethodNotAllowed)
+	}
+}
+
 func TestHandshake(t *testing.T) {
 	s := newServer(t)
 	defer s.Close()
@@ -289,8 +362,8 @@ func TestRespOnBadHandshake(t *testing.T) {
 	}
 }
 
-// If the Host header is specified in `Dial()`, the server must receive it as
-// the `Host:` header.
+// TestHostHeader confirms that the host header provided in the call to Dial is
+// sent to the server.
 func TestHostHeader(t *testing.T) {
 	s := newServer(t)
 	defer s.Close()
@@ -305,15 +378,11 @@ func TestHostHeader(t *testing.T) {
 			origHandler.ServeHTTP(w, r)
 		})
 
-	ws, resp, err := cstDialer.Dial(s.URL, http.Header{"Host": {"testhost"}})
+	ws, _, err := cstDialer.Dial(s.URL, http.Header{"Host": {"testhost"}})
 	if err != nil {
 		t.Fatalf("Dial: %v", err)
 	}
 	defer ws.Close()
-
-	if resp.StatusCode != http.StatusSwitchingProtocols {
-		t.Fatalf("resp.StatusCode = %v, want http.StatusSwitchingProtocols", resp.StatusCode)
-	}
 
 	if gotHost := <-specifiedHost; gotHost != "testhost" {
 		t.Fatalf("gotHost = %q, want \"testhost\"", gotHost)

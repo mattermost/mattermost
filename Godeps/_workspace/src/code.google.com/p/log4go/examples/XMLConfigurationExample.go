@@ -1,6 +1,6 @@
 package main
 
-import l4g "code.google.com/p/log4go"
+import l4g "github.com/mattermost/platform/Godeps/_workspace/src/code.google.com/p/log4go"
 
 func main() {
 	// Load the configuration (isn't this easy?)

@@ -6,8 +6,8 @@
 package truetype
 
 import (
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/font"
+	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
 )
 
 // TODO: implement VerticalHinting.
