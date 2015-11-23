@@ -52,9 +52,11 @@ start-docker:
 		echo starting mattermost-postgres; \
 		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest \
 		-d postgres:9.4 > /dev/null; \
+		sleep 10; \
 	elif [ $(shell docker ps | grep -ci mattermost-postgres) -eq 0 ]; then \
 		echo restarting mattermost-postgres; \
 		docker start mattermost-postgres > /dev/null; \
+		sleep 10; \
 	fi
 
 build-server:
@@ -74,9 +76,10 @@ build-server:
 	fi
 
 	cp ./model/version.go ./model/version.go.bak
-	sed -i 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
-	sed -i 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
-	sed -i 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
+	sed -i'.make_mac_work' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	sed -i'.make_mac_work' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	sed -i'.make_mac_work' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
+	rm ./model/version.go.make_mac_work
 
 	$(GO) build $(GOFLAGS) ./...
 	$(GO) install $(GOFLAGS) ./...
