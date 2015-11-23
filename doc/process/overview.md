@@ -36,7 +36,7 @@ See [Troubleshooting Forum](https://forum.mattermost.org/t/about-the-trouble-sho
 
 ### GitHub Issues 
 
-A system for reporting bugs with clear statements on repro steps and expected behavior. 
+A system used by Mattermost for reporting bugs with clear statements on repro steps and expected behavior. 
 
 See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how to use this system. 
 
