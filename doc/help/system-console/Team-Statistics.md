@@ -1,6 +1,6 @@
 # Team Statistics
 
-Statistics on users, posts and channels are tracked for each team are viewable under **System Console** > **Teams** > **Statistics**. 
+Statistics on users, posts and channels are tracked for each team and are viewable under **System Console** > **Teams** > **Statistics**. 
 
 ## Total Users
 The total number of accounts created, including both active and inactive accounts. 
