@@ -1,4 +1,4 @@
-.PHONY: all test clean build install run stop cover dist cleandb travis docker
+.PHONY: all dist dist-local dist-travis start-docker build-server package build-client test travis-init build-container stop-docker clean-docker clean nuke run stop setup-mac cleandb docker-build docker-run
 
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
@@ -21,33 +21,49 @@ endif
 
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
-DIST_RESULTS=$(DIST_ROOT)/results
 
-BENCH=.
 TESTS=.
 
 DOCKERNAME ?= mm-dev
 DOCKER_CONTAINER_NAME ?= mm-test
 
-all: travis
+all: dist-local
 
-travis:
-	@echo building for travis
+dist: | build-server build-client test package
+	mv ./model/version.go.bak ./model/version.go
 
-	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
-		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
-		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
+dist-local: | start-docker dist
+	
+dist-travis: | travis-init build-container
+
+start-docker:
+	@echo Starting docker containers
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 0 ]; then \
+		echo starting mattermost-mysql; \
+		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
+		-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql:5.7 > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
+		echo restarting mattermost-mysql; \
+		docker start mattermost-mysql > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 0 ]; then \
+		echo starting mattermost-postgres; \
+		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest \
+		-d postgres:9.4 > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-postgres) -eq 0 ]; then \
+		echo restarting mattermost-postgres; \
+		docker start mattermost-postgres > /dev/null; \
+	fi
+
+build-server:
+	@echo Building mattermost server
+
 	rm -Rf $(DIST_ROOT)
-	@$(GO) clean $(GOFLAGS) -i ./...
+	$(GO) clean $(GOFLAGS) -i ./...
 
-	@cd web/react/ && npm install
-	cd web/react/ && npm run build-libs
-
-	@echo Checking for style guide compliance
-	cd web/react && $(ESLINT) --ext ".jsx" --ignore-pattern node_modules --quiet .
-	@echo Running gofmt
+	@echo GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ mattermost.go 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
@@ -57,20 +73,16 @@ travis:
 		exit 1; \
 	fi
 
-	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
-	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
-	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
+	cp ./model/version.go ./model/version.go.bak
+	sed -i 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	sed -i 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	sed -i 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
 
-	@$(GO) build $(GOFLAGS) ./...
-	@$(GO) install $(GOFLAGS) ./...
+	$(GO) build $(GOFLAGS) ./...
+	$(GO) install $(GOFLAGS) ./...
 
-	@mkdir -p logs
-
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+package:
+	@ echo Packaging mattermost
 
 	mkdir -p $(DIST_PATH)/bin
 	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
@@ -81,13 +93,9 @@ travis:
 
 	mkdir -p $(DIST_PATH)/logs
 
-	mkdir -p web/static/js
-	cd web/react && npm run build
-
-	cd web/sass-files && compass compile -e production --force
-
 	mkdir -p $(DIST_PATH)/web/static/js
 	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
+	cp -L web/static/js/*.min.js.map $(DIST_PATH)/web/static/js/
 	cp -RL web/static/config $(DIST_PATH)/web/static
 	cp -RL web/static/css $(DIST_PATH)/web/static
 	cp -RL web/static/fonts $(DIST_PATH)/web/static
@@ -106,87 +114,74 @@ travis:
 	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
 	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
 
-	@sed -i'.bak' 's|react-0.14.0.js|react-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|react-dom-0.14.0.js|react-dom-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|react-bootstrap-0.27.1.js|react-bootstrap-0.27.1.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|react-0.14.0.js|react-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|react-dom-0.14.0.js|react-dom-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|react-bootstrap-0.27.1.js|react-bootstrap-0.27.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery.min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
+	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
 
-	mv doc/README.md doc/index.md
-	mkdocs build --strict
-	cp -r documentation-html $(DIST_PATH)/documentation-html
-
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
-	rm -r $(DIST_PATH)
 
-build:
-	@$(GO) build $(GOFLAGS) ./...
+build-client:
+	@echo Building mattermost web client
 
-install:
-	@go get $(GOFLAGS) github.com/tools/godep
+	cd web/react/ && npm install
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 0 ]; then \
-		echo starting mattermost-mysql; \
-		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
-    	-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
-		echo restarting mattermost-mysql; \
-		docker start mattermost-mysql > /dev/null; \
+	@echo Checking for style guide compliance
+
+	@echo ESLint...
+	cd web/react && $(ESLINT) --ext ".jsx" --ignore-pattern node_modules --quiet .
+
+	cd web/react/ && npm run build-libs
+
+	mkdir -p web/static/js
+	cd web/react && npm run build
+
+	cd web/sass-files && compass compile -e production --force
+
+test:
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=12s ./model || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./store || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
+
+travis-init:
+	@echo Setting up enviroment for travis
+
+	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
+		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
+		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
 	fi
 
-	@cd web/react/ && npm install
-	@cd web/react/ && npm run build-libs
-
-check: install
-	@echo Running ESLint...
-	-cd web/react && $(ESLINT) --ext ".jsx" --ignore-pattern node_modules .
-	@echo Running gofmt
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ mattermost.go 2>&1))
-	@echo "$(GOFMT_OUTPUT)"
-	@if [[ ! "$(GOFMT_OUTPUT)" ]]; then \
-		echo "gofmt sucess"; \
-	else \
-		echo "gofmt failure"; \
-		exit 1; \
+	if [ "$(TRAVIS_DB)" = "mysql" ]; then \
+		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8|g' config/config.json; \
 	fi
 
-test: install
-	@mkdir -p logs
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./api || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s ./model || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./store || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./utils || exit 1
-	@$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=600s ./web || exit 1
+build-container:
+	@echo Building in container
 
-benchmark: install
-	@mkdir -p logs
-	@$(GO) test $(GOFLAGS) -test.v -run=NO_TESTS -bench=$(BENCH) ./api || exit 1
+	docker run --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost/platform mattermost/builder:latest
 
-cover: install
-	rm -Rf $(DIST_RESULTS)
-	mkdir -p $(DIST_RESULTS)
+stop-docker:
+	@echo Stopping docker containers
 
-	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/api.cover.out github.com/mattermost/platform/api
-	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/model.cover.out github.com/mattermost/platform/model
-	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/store.cover.out github.com/mattermost/platform/store
-	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/utils.cover.out github.com/mattermost/platform/utils
-	@$(GO) test $(GOFLAGS) -coverprofile=$(DIST_RESULTS)/web.cover.out github.com/mattermost/platform/web
+	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
+		echo stopping mattermost-mysql; \
+		docker stop mattermost-mysql > /dev/null; \
+	fi
 
-	cd $(DIST_RESULTS) && \
-	echo "mode: set" > coverage.out && cat *.cover.out | grep -v mode: | sort -r | \
-	awk '{if($$1 != last) {print $$0;last=$$1}}' >> coverage.out
+	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
+		echo stopping mattermost-postgres; \
+		docker stop mattermost-postgres > /dev/null; \
+	fi
 
-	cd $(DIST_RESULTS) && $(GO) tool cover -html=coverage.out -o=coverage.html
-
-	rm -f $(DIST_RESULTS)/*.cover.out
-	
-clean:
-	rm -Rf $(DIST_ROOT)
-	@$(GO) clean $(GOFLAGS) -i ./...
+clean-docker:
+	@echo Removing docker containers
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
 		echo stopping mattermost-mysql; \
@@ -194,29 +189,55 @@ clean:
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
+		echo stopping mattermost-postgres; \
+		docker stop mattermost-postgres > /dev/null; \
+		docker rm -v mattermost-postgres > /dev/null; \
+	fi
+
+clean: stop-docker
+	rm -Rf $(DIST_ROOT)
+	go clean $(GOFLAGS) -i ./...
+
 	rm -rf web/react/node_modules
 	rm -f web/static/js/bundle*.js
+	rm -f web/static/js/bundle*.js.map
 	rm -f web/static/js/libs*.js
 	rm -f web/static/css/styles.css
 
-	rm -rf data/*
-	rm -rf api/data/*
-	rm -rf logs/*
+	rm -rf data
+	rm -rf api/data
+	rm -rf logs
+	rm -rf web/sass-files/.sass-cache
 
 	rm -rf Godeps/_workspace/pkg/
 
+	rm -f mattermost.log
+	rm -f .prepare
 
-run: install
+nuke: | clean clean-docker
+
+.prepare:
+	@echo Preparation for run step
+
+	go get $(GOFLAGS) github.com/tools/godep
+
+	cd web/react/ && npm install
+	cd web/react/ && npm run build-libs
+
+	touch $@
+
+run: start-docker .prepare
 	mkdir -p web/static/js
 
-	@echo starting react processor	
-	@cd web/react && npm start &
+	@echo Starting react processor	
+	cd web/react && npm start &
 
-	@echo starting go web server
-	@$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
+	@echo Starting go web server
+	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
-	@echo starting compass watch
-	@cd web/sass-files && compass watch &
+	@echo Starting compass watch
+	cd web/sass-files && compass watch &
 
 stop:
 	@for PID in $$(ps -ef | grep [c]ompass | awk '{ print $$2 }'); do \
@@ -248,60 +269,6 @@ cleandb:
 		docker stop mattermost-mysql > /dev/null; \
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
-dist: install
-
-	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
-	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
-	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
-
-	@$(GO) build $(GOFLAGS) -i ./...
-	@$(GO) install $(GOFLAGS) ./...
-
-	mkdir -p $(DIST_PATH)/bin
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
-
-	cp -RL config $(DIST_PATH)/config
-	touch $(DIST_PATH)/config/build.txt
-	echo $(BUILD_NUMBER) | tee -a $(DIST_PATH)/config/build.txt
-
-	mkdir -p $(DIST_PATH)/logs
-
-	mkdir -p web/static/js
-	cd web/react && npm run build
-
-	cd web/sass-files && compass compile -e production --force
-
-	mkdir -p $(DIST_PATH)/web/static/js
-	cp -L web/static/js/*.min.js $(DIST_PATH)/web/static/js/
-	cp -RL web/static/config $(DIST_PATH)/web/static
-	cp -RL web/static/css $(DIST_PATH)/web/static
-	cp -RL web/static/fonts $(DIST_PATH)/web/static
-	cp -RL web/static/help $(DIST_PATH)/web/static
-	cp -RL web/static/images $(DIST_PATH)/web/static
-	cp -RL web/static/js/jquery-dragster $(DIST_PATH)/web/static/js/
-	cp -RL web/templates $(DIST_PATH)/web
-
-	mkdir -p $(DIST_PATH)/api
-	cp -RL api/templates $(DIST_PATH)/api
-
-	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
-	cp NOTICE.txt $(DIST_PATH)
-	cp README.md $(DIST_PATH)
-
-	mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
-	mv $(DIST_PATH)/web/static/js/libs.min.js $(DIST_PATH)/web/static/js/libs-$(BUILD_NUMBER).min.js
-
-	@sed -i'.bak' 's|react-0.14.0.js|react-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|react-dom-0.14.0.js|react-dom-0.14.0.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|jquery-2.1.4.js|jquery-2.1.4.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|react-bootstrap-0.27.1.js|react-bootstrap-0.27.1.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery.min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
-	@sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
-	rm $(DIST_PATH)/web/templates/*.bak
-
-	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
 docker-build: stop
 	docker build -t ${DOCKERNAME} -f docker/local/Dockerfile .
