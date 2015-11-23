@@ -183,12 +183,12 @@ export default class MentionList extends React.Component {
             }
         }
 
-        var all = {};
-        all.username = 'all';
-        all.nickname = '';
-        all.secondary_text = 'Notifies everyone in the team';
-        all.id = 'allmention';
-        users.push(all);
+        // var all = {};
+        // all.username = 'all';
+        // all.nickname = '';
+        // all.secondary_text = 'Notifies everyone in the team';
+        // all.id = 'allmention';
+        // users.push(all);
 
         var channel = {};
         channel.username = 'channel';
