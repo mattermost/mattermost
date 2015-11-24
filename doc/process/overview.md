@@ -136,8 +136,6 @@ Examples:
 - [Do not clear LastActivityAt for GetProfiles #1396](https://github.com/mattermost/platform/pull/1396/files)
 - [Update to proxy_pass #1331](https://github.com/mattermost/platform/pull/1331)
 
-In general, it's
-
 ## Release
 
 Mattermost ships stable releases on the 16th of the month. Releases begin with a planning process reviewing internal designs and community feedback in the context of the product purpose. Feature development is done in weekly sprints, and releases end with feature complete, stablization, code complete and release candidate milestones prior to final release. 
