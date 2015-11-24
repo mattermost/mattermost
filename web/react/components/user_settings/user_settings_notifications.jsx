@@ -512,7 +512,7 @@ export default class NotificationsTab extends React.Component {
             }.bind(this);
             inputs.push(
                 <div key='userNotificationAllOption'>
-                    <div className='checkbox'>
+                    <div className='checkbox hidden'>
                         <label>
                             <input
                                 type='checkbox'
@@ -590,9 +590,11 @@ export default class NotificationsTab extends React.Component {
             if (this.state.mentionKey) {
                 keys.push('@' + user.username);
             }
-            if (this.state.allKey) {
-                keys.push('@all');
-            }
+
+            // if (this.state.allKey) {
+            //     keys.push('@all');
+            // }
+
             if (this.state.channelKey) {
                 keys.push('@channel');
             }

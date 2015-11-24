@@ -407,9 +407,9 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 					}
 
 					// Add @all to keywords if user has them turned on
-					if profile.NotifyProps["all"] == "true" {
-						keywordMap["@all"] = append(keywordMap["@all"], profile.Id)
-					}
+					// if profile.NotifyProps["all"] == "true" {
+					// 	keywordMap["@all"] = append(keywordMap["@all"], profile.Id)
+					// }
 
 					// Add @channel to keywords if user has them turned on
 					if profile.NotifyProps["channel"] == "true" {
