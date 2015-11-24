@@ -94,6 +94,8 @@
     }
 
     .popover-content {
+        max-height: 500px;
+        overflow: auto;
         padding: 3px 13px;
     }
 

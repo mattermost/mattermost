@@ -24,6 +24,7 @@ export default {
         RECIEVED_POST: null,
         RECIEVED_EDIT_POST: null,
         RECIEVED_SEARCH: null,
+        RECIEVED_SEARCH_TERM: null,
         RECIEVED_POST_SELECTED: null,
         RECIEVED_MENTION_DATA: null,
         RECIEVED_ADD_MENTION: null,
@@ -50,7 +51,13 @@ export default {
         TOGGLE_INVITE_MEMBER_MODAL: null,
         TOGGLE_DELETE_POST_MODAL: null,
         TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
-        TOGGLE_REGISTER_APP_MODAL: null
+        TOGGLE_REGISTER_APP_MODAL: null,
+
+        SUGGESTION_PRETEXT_CHANGED: null,
+        SUGGESTION_RECEIVED_SUGGESTIONS: null,
+        SUGGESTION_COMPLETE_WORD: null,
+        SUGGESTION_SELECT_NEXT: null,
+        SUGGESTION_SELECT_PREVIOUS: null
     }),
 
     PayloadSources: keyMirror({
