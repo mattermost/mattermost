@@ -8,6 +8,8 @@ import TeamStore from '../stores/team_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import AboutBuildModal from './about_build_modal.jsx';
+import TeamMembersModal from './team_members_modal.jsx';
+import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
 import Constants from '../utils/constants.jsx';
@@ -117,13 +119,9 @@ export default class NavbarDropdown extends React.Component {
         if (isAdmin) {
             manageLink = (
                 <li>
-                    <a
-                        href='#'
-                        data-toggle='modal'
-                        data-target='#team_members'
-                    >
+                    <ToggleModalButton dialogType={TeamMembersModal}>
                         {'Manage Members'}
-                    </a>
+                    </ToggleModalButton>
                 </li>
             );
 

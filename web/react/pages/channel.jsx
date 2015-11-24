@@ -14,7 +14,6 @@ import DeletePostModal from '../components/delete_post_modal.jsx';
 import MoreChannelsModal from '../components/more_channels.jsx';
 import PostDeletedModal from '../components/post_deleted_modal.jsx';
 import TeamSettingsModal from '../components/team_settings_modal.jsx';
-import TeamMembersModal from '../components/team_members.jsx';
 import RemovedFromChannelModal from '../components/removed_from_channel_modal.jsx';
 import RegisterAppModal from '../components/register_app_modal.jsx';
 import ImportThemeModal from '../components/user_settings/import_theme_modal.jsx';
@@ -84,11 +83,6 @@ function setupChannelPage(props, team, channel) {
     ReactDOM.render(
         <TeamSettingsModal />,
         document.getElementById('team_settings_modal')
-    );
-
-    ReactDOM.render(
-        <TeamMembersModal teamDisplayName={props.TeamDisplayName} />,
-        document.getElementById('team_members_modal')
     );
 
     ReactDOM.render(
