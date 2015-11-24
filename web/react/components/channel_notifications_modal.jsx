@@ -28,7 +28,7 @@ export default class ChannelNotificationsModal extends React.Component {
         this.state = {
             notifyLevel: member.notify_props.desktop,
             markUnreadLevel: member.notify_props.mark_unread,
-            channelId: '',
+            channelId: ChannelStore.getCurrentId(),
             activeSection: ''
         };
     }
@@ -39,18 +39,21 @@ export default class ChannelNotificationsModal extends React.Component {
         ChannelStore.removeChangeListener(this.onListenerChange);
     }
     onListenerChange() {
-        if (!this.state.channelId) {
+        const curChannelId = ChannelStore.getCurrentId();
+
+        if (!curChannelId) {
             return;
         }
 
-        const member = ChannelStore.getMember(this.state.channelId);
+        const newState = {channelId: curChannelId};
+        const member = ChannelStore.getMember(curChannelId);
 
         if (member.notify_props.desktop !== this.state.notifyLevel || member.notify_props.mark_unread !== this.state.mark_unread) {
-            this.setState({
-                notifyLevel: member.notify_props.desktop,
-                markUnreadLevel: member.notify_props.mark_unread
-            });
+            newState.notifyLevel = member.notify_props.desktop;
+            newState.markUnreadLevel = member.notify_props.mark_unread;
         }
+
+        this.setState(newState);
     }
     updateSection(section) {
         this.setState({activeSection: section});
