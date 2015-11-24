@@ -438,12 +438,12 @@ export default class UserSettingsGeneralTab extends React.Component {
         if (this.props.activeSection === 'email') {
             const emailEnabled = global.window.mm_config.SendEmailNotifications === 'true';
             const emailVerificationEnabled = global.window.mm_config.RequireEmailVerification === 'true';
-            let helpText = 'Email is used for notifications, and requires verification if changed.';
+            let helpText = 'Email is used for sign-in, notifications, and password reset. Email requires verification if changed.';
 
             if (!emailEnabled) {
                 helpText = <div className='setting-list__hint text-danger'>{'Email has been disabled by your system administrator. No notification emails will be sent until it is enabled.'}</div>;
             } else if (!emailVerificationEnabled) {
-                helpText = 'Email is used for notifications.';
+                helpText = 'Email is used for sign-in, notifications, and password reset.';
             } else if (this.state.emailChangeInProgress) {
                 const newEmail = UserStore.getCurrentUser().email;
                 if (newEmail) {
