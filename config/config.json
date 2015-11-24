@@ -82,6 +82,14 @@
         "ShowEmailAddress": true,
         "ShowFullName": true
     },
+    "LegalAndSupportSettings": {
+        "TermsOfServiceLink": "https://github.com/mattermost/platform/blob/master/README.md",
+        "PrivacyPolicyLink": "https://github.com/mattermost/platform/blob/master/README.md",
+        "AboutLink": "http://www.mattermost.org/features/",
+        "HelpLink": "https://github.com/mattermost/platform/blob/master/README.md",
+        "ReportAProblemLink": "https://forum.mattermost.org/c/general/trouble-shoot",
+        "SupportEmail": "feedback@mattermost.com"
+    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",
