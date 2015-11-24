@@ -4,7 +4,9 @@
 package api
 
 import (
+	"io"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -325,6 +327,9 @@ func loadTestCommand(c *Context, command *model.Command) bool {
 		if loadTestPostsCommand(c, command) {
 			return true
 		}
+		if loadTestUrlCommand(c, command) {
+			return true
+		}
 	} else if strings.Index(cmd, command.Command) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Debug Load Testing"})
 	}
@@ -567,6 +572,74 @@ func loadTestPostsCommand(c *Context, command *model.Command) bool {
 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
 	} else if strings.Index(cmd2, command.Command) == 0 {
 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd2, Description: "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>"})
+	}
+
+	return false
+}
+
+func loadTestUrlCommand(c *Context, command *model.Command) bool {
+	cmd := cmds["loadTestCommand"] + " url"
+
+	if strings.Index(command.Command, cmd) == 0 && !command.Suggest {
+		url := ""
+
+		parameters := strings.SplitN(command.Command, " ", 3)
+		if len(parameters) != 3 {
+			c.Err = model.NewAppError("loadTestUrlCommand", "Command must contain a url", "")
+			return true
+		} else {
+			url = parameters[2]
+		}
+
+		// provide a shortcut to easily access tests stored in doc/developer/tests
+		if !strings.HasPrefix(url, "http") {
+			url = "https://raw.githubusercontent.com/mattermost/platform/master/doc/developer/tests/" + url
+
+			if path.Ext(url) == "" {
+				url += ".md"
+			}
+		}
+
+		var contents io.ReadCloser
+		if r, err := http.Get(url); err != nil {
+			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", err.Error())
+			return false
+		} else if r.StatusCode > 400 {
+			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", r.Status)
+			return false
+		} else {
+			contents = r.Body
+		}
+
+		bytes := make([]byte, 4000)
+
+		// break contents into 4000 byte posts
+		for {
+			length, err := contents.Read(bytes)
+			if err != nil && err != io.EOF {
+				c.Err = model.NewAppError("loadTestUrlCommand", "Encountered error reading file", err.Error())
+				return false
+			}
+
+			if length == 0 {
+				break
+			}
+
+			post := &model.Post{}
+			post.Message = string(bytes[:length])
+			post.ChannelId = command.ChannelId
+
+			if _, err := CreatePost(c, post, false); err != nil {
+				l4g.Error("Unable to create post, err=%v", err)
+				return false
+			}
+		}
+
+		command.Response = model.RESP_EXECUTED
+
+		return true
+	} else if strings.Index(cmd, command.Command) == 0 && strings.Index(command.Command, "/loadtest posts") != 0 {
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Add a post containing the text from a given url to current channel <Url>"})
 	}
 
 	return false
