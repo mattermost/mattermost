@@ -54,9 +54,11 @@ export default class UserProfile extends React.Component {
         }
     }
     render() {
-        var name = this.state.profile.username;
+        var name = Utils.displayUsername(this.state.profile.id);
         if (this.props.overwriteName) {
             name = this.props.overwriteName;
+        } else if (!name) {
+            name = '...';
         }
 
         if (this.props.disablePopover) {
@@ -107,7 +109,7 @@ export default class UserProfile extends React.Component {
                 rootClose={true}
                 overlay={
                     <Popover
-                        title={this.state.profile.username}
+                        title={name}
                         id='user-profile-popover'
                     >
                         {dataContent}

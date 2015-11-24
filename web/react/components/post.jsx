@@ -87,6 +87,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.displayNameType !== this.props.displayNameType) {
+            return true;
+        }
+
         if (this.getCommentCount(nextProps) !== this.getCommentCount(this.props)) {
             return true;
         }
@@ -224,5 +228,6 @@ Post.propTypes = {
     sameRoot: React.PropTypes.bool,
     hideProfilePic: React.PropTypes.bool,
     isLastComment: React.PropTypes.bool,
-    shouldHighlight: React.PropTypes.bool
+    shouldHighlight: React.PropTypes.bool,
+    displayNameType: React.PropTypes.string
 };
