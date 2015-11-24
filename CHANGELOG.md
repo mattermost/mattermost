@@ -43,6 +43,8 @@ Many thanks to our external contributors. In no particular order:
 - [jdhoek](https://github.com/jdhoek)
 - [Tsynapse](https://github.com/Tsynapse)
 - [alexgaribay](https://github.com/alexgaribay)
+- [vladikoff](https://github.com/vladikoff)
+- [jonathanwiesel](https://github.com/jonathanwiesel)
 
 ## Release v1.2.1
 
@@ -69,7 +71,7 @@ To limit the impact of this security issue, Mattermost v1.2.0 has been removed f
 
 #### Syntax Highlighting 
 
-- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`
+- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, JavaScript, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`
 
 #### Usability Improvements 
 
