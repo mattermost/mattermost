@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/lib/pq/oid"
+	"github.com/lib/pq/oid"
 )
 
 func TestScanTimestamp(t *testing.T) {
@@ -468,11 +468,11 @@ func TestBinaryByteSlicetoUUID(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()
 
-	b := []byte{'\xa0', '\xee', '\xbc', '\x99',
-		'\x9c', '\x0b',
-		'\x4e', '\xf8',
-		'\xbb', '\x00', '\x6b',
-		'\xb9', '\xbd', '\x38', '\x0a', '\x11'}
+	b := []byte{'\xa0','\xee','\xbc','\x99',
+				'\x9c', '\x0b',
+				'\x4e', '\xf8',
+				'\xbb', '\x00', '\x6b',
+				'\xb9', '\xbd', '\x38', '\x0a', '\x11'}
 	row := db.QueryRow("SELECT $1::uuid", b)
 
 	var result string

@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/gorilla/websocket"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"time"

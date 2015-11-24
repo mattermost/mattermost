@@ -22,8 +22,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/golang/freetype"
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/font"
+	"github.com/golang/freetype"
+	"golang.org/x/image/font"
 )
 
 var (

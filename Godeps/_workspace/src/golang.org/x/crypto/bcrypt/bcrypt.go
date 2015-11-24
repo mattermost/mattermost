@@ -12,7 +12,7 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/crypto/blowfish"
+	"golang.org/x/crypto/blowfish"
 	"io"
 	"strconv"
 )

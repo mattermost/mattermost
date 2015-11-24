@@ -17,7 +17,7 @@ import (
 	"io/ioutil"
 	"math"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/tiff/lzw"
+	"golang.org/x/image/tiff/lzw"
 )
 
 // A FormatError reports that the input is not a valid TIFF image.

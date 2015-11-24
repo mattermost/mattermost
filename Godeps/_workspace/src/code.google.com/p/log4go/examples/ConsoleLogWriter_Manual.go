@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-import l4g "github.com/mattermost/platform/Godeps/_workspace/src/code.google.com/p/log4go"
+import l4g "code.google.com/p/log4go"
 
 func main() {
 	log := l4g.NewLogger()

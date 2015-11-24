@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/rwcarlsen/goexif/exif"
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/rwcarlsen/goexif/tiff"
+	"github.com/rwcarlsen/goexif/exif"
+	"github.com/rwcarlsen/goexif/tiff"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package objx
 
 import (
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 

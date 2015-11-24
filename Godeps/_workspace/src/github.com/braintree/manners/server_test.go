@@ -1,7 +1,7 @@
 package manners
 
 import (
-	helpers "github.com/mattermost/platform/Godeps/_workspace/src/github.com/braintree/manners/test_helpers"
+	helpers "github.com/braintree/manners/test_helpers"
 	"net"
 	"net/http"
 	"testing"

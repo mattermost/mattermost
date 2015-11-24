@@ -14,8 +14,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/davecgh/go-spew/spew"
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/pmezard/go-difflib/difflib"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 // TestingT is an interface wrapper around *testing.T

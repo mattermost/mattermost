@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/bmp"
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/tiff"
+	"golang.org/x/image/bmp"
+	"golang.org/x/image/tiff"
 )
 
 type Format int

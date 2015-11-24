@@ -18,7 +18,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/aws"
 	"io"
 	"io/ioutil"
 	"log"

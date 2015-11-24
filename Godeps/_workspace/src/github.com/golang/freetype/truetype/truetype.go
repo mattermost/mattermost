@@ -20,7 +20,7 @@ package truetype
 import (
 	"fmt"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
+	"golang.org/x/image/math/fixed"
 )
 
 // An Index is a Font's index of a rune.

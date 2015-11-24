@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/rwcarlsen/goexif/tiff"
+	"github.com/rwcarlsen/goexif/tiff"
 )
 
 const (
@@ -574,7 +574,7 @@ func newAppSec(marker byte, r io.Reader) (*appSec, error) {
 		}
 
 		dataLenBytes := make([]byte, 2)
-		for k, _ := range dataLenBytes {
+		for k,_ := range dataLenBytes {
 			c, err := br.ReadByte()
 			if err != nil {
 				return nil, err

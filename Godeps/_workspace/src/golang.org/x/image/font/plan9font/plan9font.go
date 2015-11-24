@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/font"
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
+	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
 
 // fontchar describes one character glyph in a subfont.

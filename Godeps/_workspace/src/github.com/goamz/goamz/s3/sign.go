@@ -4,7 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/aws"
 	"log"
 	"sort"
 	"strings"

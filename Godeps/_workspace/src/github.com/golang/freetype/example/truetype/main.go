@@ -16,9 +16,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/golang/freetype/truetype"
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/font"
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
 
 var fontfile = flag.String("fontfile", "../../testdata/luxisr.ttf", "filename of the ttf font")

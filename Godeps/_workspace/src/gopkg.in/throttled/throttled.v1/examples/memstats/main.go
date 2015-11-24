@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/gopkg.in/throttled/throttled.v1"
+	"gopkg.in/throttled/throttled.v1"
 )
 
 var (

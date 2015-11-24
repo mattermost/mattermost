@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
+	"golang.org/x/image/math/fixed"
 )
 
 func TestBytecode(t *testing.T) {

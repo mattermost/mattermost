@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/aws"
 	. "gopkg.in/check.v1"
 )
 

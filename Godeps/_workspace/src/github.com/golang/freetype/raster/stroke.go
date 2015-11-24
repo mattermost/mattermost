@@ -6,7 +6,7 @@
 package raster
 
 import (
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
+	"golang.org/x/image/math/fixed"
 )
 
 // Two points are considered practically equal if the square of the distance

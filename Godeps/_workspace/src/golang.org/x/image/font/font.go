@@ -14,7 +14,7 @@ import (
 	"image/draw"
 	"io"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/golang.org/x/image/math/fixed"
+	"golang.org/x/image/math/fixed"
 )
 
 // TODO: who is responsible for caches (glyph images, glyph indices, kerns)?

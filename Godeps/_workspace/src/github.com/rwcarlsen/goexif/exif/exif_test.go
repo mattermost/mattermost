@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/rwcarlsen/goexif/tiff"
+	"github.com/rwcarlsen/goexif/tiff"
 )
 
 var dataDir = flag.String("test_data_dir", ".", "Directory where the data files for testing are located")

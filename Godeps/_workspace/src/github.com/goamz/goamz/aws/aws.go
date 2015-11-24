@@ -20,7 +20,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/platform/Godeps/_workspace/src/github.com/vaughan0/go-ini"
+	"github.com/vaughan0/go-ini"
 )
 
 // Defines the valid signers
