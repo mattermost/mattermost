@@ -30,7 +30,7 @@ Please follow the [GitLab Omnibus documentation for installing GitLab Mattermost
 
 For help and support around your GitLab Mattermost deployment please see:
 
-- [GitLab Mattermost discussion forum](https://forum.mattermost.org/c/general/gitlab)
+- [Troubleshooting Forum](https://forum.mattermost.org/t/about-the-trouble-shooting-category/150/1)
 - [GitLab Mattermost issue tracker on GitLab.com](https://gitlab.com/gitlab-org/gitlab-mattermost/issues)
 
 ### Connecting Mattermost to integrations with incoming webhooks
