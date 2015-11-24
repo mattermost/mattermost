@@ -51,22 +51,4 @@ Procedures for upgrading the Mattermost server
 
 ## Help
 
-_Note: End user help documentation is a new feature being completed for the v1.2 release. The materials below are work in progress._
-
-- Getting Started
-   - [Sign-in](help/Sign-in.md)
-
-- User Interface
-   - Main Menu
-     - [Team Settings ](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md)
-        - [General Settings](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md#general) 
-        - [Slack Import](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md#import-from-slack-beta)
-     - [Manage Members](help/Manage-Members.md)
-   - Messaging
-     - [Mattermost Markdown Formatting](usage/Markdown.md)
-   - [Search](help/Search.md)
-     
-- System Console
-  - Team
-    - [Team Statistics](help/system-console/Team-Statistics.md)
-
+See [End User Help](help/README.md).
