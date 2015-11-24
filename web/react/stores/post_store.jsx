@@ -399,9 +399,11 @@ class PostStoreClass extends EventEmitter {
 
         Reflect.deleteProperty(postList.posts, pendingPostId);
         const index = postList.order.indexOf(pendingPostId);
-        if (index !== -1) {
-            postList.order.splice(index, 1);
+        if (index === -1) {
+            return;
         }
+
+        postList.order.splice(index, 1);
 
         this.postsInfo[channelId].pendingPosts = postList;
         this.emitChange();
