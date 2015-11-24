@@ -141,12 +141,12 @@ export default class SidebarRightMenu extends React.Component {
                         <li>
                             <a
                                 target='_blank'
-                                href='/static/help/configure_links.html'
+                                href='/static/help/help.html'
                             ><i className='fa fa-question'></i>Help</a></li>
                         <li>
                             <a
                                 target='_blank'
-                                href='/static/help/configure_links.html'
+                                href='/static/help/report_problem.html'
                             ><i className='fa fa-phone'></i>Report a Problem</a></li>
                     </ul>
                 </div>
