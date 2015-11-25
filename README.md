@@ -36,9 +36,10 @@ Please see the [features pages of the Mattermost website](http://www.mattermost.
 
 - [Product Vision and Target Audiences](http://www.mattermost.org/vision/) - What we're solving and for whom are we building
 - [Mattermost Forum](http://forum.mattermost.org/) - For technical questions and answers
+- [Troubleshooting Forum](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150) - For reporting bugs
 - [Issue Tracker](http://www.mattermost.org/filing-issues/) - For reporting bugs
 - [Feature Ideas Forum](http://www.mattermost.org/feature-requests/) - For sharing ideas for future versions 
-- [Contribution Guidelines](http://www.mattermost.org/contribute-to-mattermost/) - For contributing code or feedback to the project
+- [Contribution Guidelines](https://github.com/mattermost/platform/blob/master/CONTRIBUTING.md) - For contributing code or feedback to the project
 
 Follow us on Twitter at [@MattermostHQ](https://twitter.com/mattermosthq), or talk to the core team on our [daily builds server](https://pre-release.mattermost.com/core) via [this invite link](https://pre-release.mattermost.com/signup_user_complete/?id=rcgiyftm7jyrxnma1osd8zswby). 
 
@@ -62,13 +63,13 @@ If you use Docker, you can [install Mattermost in a single-container preview in 
 
 #### Production Deployment
 
-Prior to production installation, please review [Mattermost system requirements](http://docs.mattermost.org/install/Requirements/index.html). 
+Prior to production installation, please review [Mattermost system requirements](https://github.com/mattermost/platform/blob/master/doc/install/Requirements.md). 
 
 - [Production Install on Ubuntu 14.04](https://github.com/mattermost/platform/blob/master/doc/install/Production-Ubuntu.md) - Install Mattermost for production environments. 
 
 - [GitLab Mattermost Production Installation](https://gitlab.com/gitlab-org/gitlab-mattermost) - Install Mattermost for production environments bundled with GitLab, a leading open source Git repository, using an omnibus package for Ubuntu 12.04, Ubuntu 14.04, Debian 7, Debian 8, and CentOS 6 (and RedHat/Oracle/Scientific Linux 6), CentOS 7 (and RedHat/Oracle/Scientific Linux 7). 
 
-For technical questions and answers, please visit the [Mattermost forum](http://forum.mattermost.org).
+For technical questions and answers, please visit the [Troubleshooting Forum](https://forum.mattermost.org/c/general/trouble-shoot).
 
 ## Get Involved with Mattermost 
 
@@ -77,8 +78,6 @@ Joining the Mattermost community is a great way to build relationships with othe
 #### Discuss
 
 - Visit the [Mattermost Forum](http://forum.mattermost.org/) for technical questions and answers. 
-- [Join](https://groups.google.com/a/mattermost.com/forum/#!forum/general/join) the [Mattermost User Mailing List](https://groups.google.com/a/mattermost.com/forum/#!forum/general) for general, open-ended questions and software announcements. 
-- [Join](https://groups.google.com/a/mattermost.com/forum/#!forum/developer/join) the [Mattermost Developers Mailing List](https://groups.google.com/a/mattermost.com/forum/#!forum/developer) for discussing contributing code to Mattermost. 
 
 #### Review
 
@@ -99,7 +98,9 @@ Joining the Mattermost community is a great way to build relationships with othe
 
 - Share [feature ideas](http://www.mattermost.org/feature-requests/) with the Mattermost community
 - Review the [Mattermost Code Contribution Guidelines](http://docs.mattermost.org/developer/Code-Contribution-Guidelines/index.html) to submit patches for the core product
-- Consider building tools that help developers and IT professionals manage Mattermost more effectively (API documentation coming in Beta2)
+- Build [community applications](http://www.mattermost.org/community-applications/) using Mattermost [webhooks, drivers and APIs](https://github.com/mattermost/platform/blob/master/doc/developer/API.md)
+- Create new [community installers and guides](http://www.mattermost.org/installation/#community-install-guide)for Mattermost 
+
 
 ##### Check out some projects for connecting to Mattermost: 
 
