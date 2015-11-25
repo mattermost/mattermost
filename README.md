@@ -57,7 +57,7 @@ If you use Docker, you can [install Mattermost in a single-container preview in 
 
 #### Development Install 
 
-- [Developer Machine Setup](http://docs.mattermost.org/developer/Setup/index.html) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. Pull the latest stable release or pull the latest code from our development build. 
+- [Developer Machine Setup](https://github.com/mattermost/platform/blob/master/doc/developer/Setup.md) - Setup your local machine development environment using Docker on Mac OSX or Ubuntu. Pull the latest stable release or pull the latest code from our development build.
 
 [![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)
 
