@@ -51,9 +51,9 @@ If you use Docker, you can [install Mattermost in a single-container preview in 
 
 #### Quick Start Install for Product Evaluation 
 
-- [Local Machine Install with Docker](http://docs.mattermost.org/install/Docker-Single-Container/index.html) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
+- [Local Machine Install with Docker](https://github.com/mattermost/platform/blob/master/doc/install/Docker-Single-Container.md) - Explore product functionality using a single-container Docker install on a local machine, including Mac OSX, Ubuntu, or Arch Linux). Optionally set up email and upgrade your instance using DockerHub. 
 
-- [AWS EBS Install with Docker](http://docs.mattermost.org/install/Amazon-Elastic-Beanstalk/index.html) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
+- [AWS EBS Install with Docker](https://github.com/mattermost/platform/blob/master/doc/install/Amazon-Elastic-Beanstalk.md) - Explore product functionality using a single-container Docker install for Amazon Web Services Elastic Beanstalk. Optionally set up email and upgrade your instance using DockerHub. 
 
 #### Development Install 
 
@@ -97,7 +97,7 @@ Joining the Mattermost community is a great way to build relationships with othe
 #### Contribute
 
 - Share [feature ideas](http://www.mattermost.org/feature-requests/) with the Mattermost community
-- Review the [Mattermost Code Contribution Guidelines](http://docs.mattermost.org/developer/Code-Contribution-Guidelines/index.html) to submit patches for the core product
+- Review the [Mattermost Code Contribution Guidelines](https://github.com/mattermost/platform/blob/master/CONTRIBUTING.md) to submit patches for the core product
 - Build [community applications](http://www.mattermost.org/community-applications/) using Mattermost [webhooks, drivers and APIs](https://github.com/mattermost/platform/blob/master/doc/developer/API.md)
 - Create new [community installers and guides](http://www.mattermost.org/installation/#community-install-guide) for Mattermost 
 
