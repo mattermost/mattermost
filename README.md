@@ -99,7 +99,7 @@ Joining the Mattermost community is a great way to build relationships with othe
 - Share [feature ideas](http://www.mattermost.org/feature-requests/) with the Mattermost community
 - Review the [Mattermost Code Contribution Guidelines](http://docs.mattermost.org/developer/Code-Contribution-Guidelines/index.html) to submit patches for the core product
 - Build [community applications](http://www.mattermost.org/community-applications/) using Mattermost [webhooks, drivers and APIs](https://github.com/mattermost/platform/blob/master/doc/developer/API.md)
-- Create new [community installers and guides](http://www.mattermost.org/installation/#community-install-guide)for Mattermost 
+- Create new [community installers and guides](http://www.mattermost.org/installation/#community-install-guide) for Mattermost 
 
 
 ##### Check out some projects for connecting to Mattermost: 
