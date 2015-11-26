@@ -174,7 +174,7 @@ export default class Navbar extends React.Component {
                         <a
                             role='menuitem'
                             href='#'
-                            onClick={() => this.setState({showInviteModal: false})}
+                            onClick={() => this.setState({showInviteModal: true})}
                         >
                             {'Add Members'}
                         </a>
