@@ -47,7 +47,7 @@
             "no-irregular-whitespace": 2,
             "no-unexpected-multiline": 2,
             "no-unreachable": 2,
-            "no-magic-numbers": [1, { "enforceConst": true, "detectObjects": true } ],
+            "no-magic-numbers": [1, { "ignore": [-1, 0, 1, 2], "enforceConst": true, "detectObjects": true } ],
             "valid-typeof": 2,
 
             "block-scoped-var": 2,
