@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.5 / 2015-10-17
+
+* inotify: use epoll_create1 for arm64 support (requires Linux 2.6.27 or later) [#100](https://github.com/go-fsnotify/fsnotify/pull/100) (thanks @suihkulokki)
+* inotify: fix path leaks [#73](https://github.com/go-fsnotify/fsnotify/pull/73) (thanks @chamaken)
+* kqueue: watch for rename events on subdirectories [#83](https://github.com/go-fsnotify/fsnotify/pull/83) (thanks @guotie)
+* kqueue: avoid infinite loops from symlinks cycles [#101](https://github.com/go-fsnotify/fsnotify/pull/101) (thanks @illicitonion)
+
+## v1.2.1 / 2015-10-14
+
+* kqueue: don't watch named pipes [#98](https://github.com/go-fsnotify/fsnotify/pull/98) (thanks @evanphx)
+
 ## v1.2.0 / 2015-02-08
 
 * inotify: use epoll to wake up readEvents [#66](https://github.com/go-fsnotify/fsnotify/pull/66) (thanks @PieterD)

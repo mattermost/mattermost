@@ -7,22 +7,25 @@ Manners allows you to shut your Go webserver down gracefully, without dropping a
 ```go
 func main() {
   handler := MyHTTPHandler()
-  server := manners.NewServer()
-  server.ListenAndServe(":7000", handler)
+  manners.ListenAndServe(":7000", handler)
 }
 ```
 
 Then, when you want to shut the server down:
 
 ```go
-server.Shutdown <- true
+manners.Close()
 ```
 
-(Note that this does not block until all the requests are finished. Rather, the call to server.ListenAndServe will stop blocking when all the requests are finished.)
+(Note that this does not block until all the requests are finished. Rather, the call to manners.ListenAndServe will stop blocking when all the requests are finished.)
 
 Manners ensures that all requests are served by incrementing a WaitGroup when a request comes in and decrementing it when the request finishes.
 
 If your request handler spawns Goroutines that are not guaranteed to finish with the request, you can ensure they are also completed with the `StartRoutine` and `FinishRoutine` functions on the server.
+
+### Known Issues
+
+Manners does not correctly shut down long-lived keepalive connections when issued a shutdown command. Clients on an idle keepalive connection may see a connection reset error rather than a close. See https://github.com/braintree/manners/issues/13 for details.
 
 ### Compatability
 

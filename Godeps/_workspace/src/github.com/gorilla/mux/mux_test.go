@@ -7,10 +7,23 @@ package mux
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/context"
 )
+
+func (r *Route) GoString() string {
+	matchers := make([]string, len(r.matchers))
+	for i, m := range r.matchers {
+		matchers[i] = fmt.Sprintf("%#v", m)
+	}
+	return fmt.Sprintf("&Route{matchers:[]matcher{%s}}", strings.Join(matchers, ", "))
+}
+
+func (r *routeRegexp) GoString() string {
+	return fmt.Sprintf("&routeRegexp{template: %q, matchHost: %t, matchQuery: %t, strictSlash: %t, regexp: regexp.MustCompile(%q), reverse: %q, varsN: %v, varsR: %v", r.template, r.matchHost, r.matchQuery, r.strictSlash, r.regexp.String(), r.reverse, r.varsN, r.varsR)
+}
 
 type routeTest struct {
 	title          string            // title of the test
@@ -109,6 +122,15 @@ func TestHost(t *testing.T) {
 			shouldMatch: true,
 		},
 		{
+			title:       "Host route with pattern, additional capturing group, match",
+			route:       new(Route).Host("aaa.{v1:[a-z]{2}(b|c)}.ccc"),
+			request:     newRequest("GET", "http://aaa.bbb.ccc/111/222/333"),
+			vars:        map[string]string{"v1": "bbb"},
+			host:        "aaa.bbb.ccc",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
 			title:       "Host route with pattern, wrong host in request URL",
 			route:       new(Route).Host("aaa.{v1:[a-z]{3}}.ccc"),
 			request:     newRequest("GET", "http://aaa.222.ccc/111/222/333"),
@@ -134,6 +156,33 @@ func TestHost(t *testing.T) {
 			host:        "aaa.bbb.ccc",
 			path:        "",
 			shouldMatch: false,
+		},
+		{
+			title:       "Host route with hyphenated name and pattern, match",
+			route:       new(Route).Host("aaa.{v-1:[a-z]{3}}.ccc"),
+			request:     newRequest("GET", "http://aaa.bbb.ccc/111/222/333"),
+			vars:        map[string]string{"v-1": "bbb"},
+			host:        "aaa.bbb.ccc",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Host route with hyphenated name and pattern, additional capturing group, match",
+			route:       new(Route).Host("aaa.{v-1:[a-z]{2}(b|c)}.ccc"),
+			request:     newRequest("GET", "http://aaa.bbb.ccc/111/222/333"),
+			vars:        map[string]string{"v-1": "bbb"},
+			host:        "aaa.bbb.ccc",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Host route with multiple hyphenated names and patterns, match",
+			route:       new(Route).Host("{v-1:[a-z]{3}}.{v-2:[a-z]{3}}.{v-3:[a-z]{3}}"),
+			request:     newRequest("GET", "http://aaa.bbb.ccc/111/222/333"),
+			vars:        map[string]string{"v-1": "aaa", "v-2": "bbb", "v-3": "ccc"},
+			host:        "aaa.bbb.ccc",
+			path:        "",
+			shouldMatch: true,
 		},
 		{
 			title:       "Path route with single pattern with pipe, match",
@@ -259,6 +308,42 @@ func TestPath(t *testing.T) {
 			host:        "",
 			path:        "/111/222/333",
 			shouldMatch: false,
+		},
+		{
+			title:       "Path route with multiple patterns with pipe, match",
+			route:       new(Route).Path("/{category:a|(b/c)}/{product}/{id:[0-9]+}"),
+			request:     newRequest("GET", "http://localhost/a/product_name/1"),
+			vars:        map[string]string{"category": "a", "product": "product_name", "id": "1"},
+			host:        "",
+			path:        "/a/product_name/1",
+			shouldMatch: true,
+		},
+		{
+			title:       "Path route with hyphenated name and pattern, match",
+			route:       new(Route).Path("/111/{v-1:[0-9]{3}}/333"),
+			request:     newRequest("GET", "http://localhost/111/222/333"),
+			vars:        map[string]string{"v-1": "222"},
+			host:        "",
+			path:        "/111/222/333",
+			shouldMatch: true,
+		},
+		{
+			title:       "Path route with multiple hyphenated names and patterns, match",
+			route:       new(Route).Path("/{v-1:[0-9]{3}}/{v-2:[0-9]{3}}/{v-3:[0-9]{3}}"),
+			request:     newRequest("GET", "http://localhost/111/222/333"),
+			vars:        map[string]string{"v-1": "111", "v-2": "222", "v-3": "333"},
+			host:        "",
+			path:        "/111/222/333",
+			shouldMatch: true,
+		},
+		{
+			title:       "Path route with multiple hyphenated names and patterns with pipe, match",
+			route:       new(Route).Path("/{product-category:a|(b/c)}/{product-name}/{product-id:[0-9]+}"),
+			request:     newRequest("GET", "http://localhost/a/product_name/1"),
+			vars:        map[string]string{"product-category": "a", "product-name": "product_name", "product-id": "1"},
+			host:        "",
+			path:        "/a/product_name/1",
+			shouldMatch: true,
 		},
 	}
 
@@ -434,6 +519,24 @@ func TestHeaders(t *testing.T) {
 			path:        "",
 			shouldMatch: false,
 		},
+		{
+			title:       "Headers route, regex header values to match",
+			route:       new(Route).Headers("foo", "ba[zr]"),
+			request:     newRequestHeaders("GET", "http://localhost", map[string]string{"foo": "bar"}),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Headers route, regex header values to match",
+			route:       new(Route).HeadersRegexp("foo", "ba[zr]"),
+			request:     newRequestHeaders("GET", "http://localhost", map[string]string{"foo": "baz"}),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
 	}
 
 	for _, test := range tests {
@@ -547,6 +650,150 @@ func TestQueries(t *testing.T) {
 			title:       "Queries route with regexp pattern, regexp does not match",
 			route:       new(Route).Queries("foo", "{v1:[0-9]+}"),
 			request:     newRequest("GET", "http://localhost?foo=a"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Queries route with regexp pattern with quantifier, match",
+			route:       new(Route).Queries("foo", "{v1:[0-9]{1}}"),
+			request:     newRequest("GET", "http://localhost?foo=1"),
+			vars:        map[string]string{"v1": "1"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with regexp pattern with quantifier, additional variable in query string, match",
+			route:       new(Route).Queries("foo", "{v1:[0-9]{1}}"),
+			request:     newRequest("GET", "http://localhost?bar=2&foo=1"),
+			vars:        map[string]string{"v1": "1"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with regexp pattern with quantifier, regexp does not match",
+			route:       new(Route).Queries("foo", "{v1:[0-9]{1}}"),
+			request:     newRequest("GET", "http://localhost?foo=12"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Queries route with regexp pattern with quantifier, additional capturing group",
+			route:       new(Route).Queries("foo", "{v1:[0-9]{1}(a|b)}"),
+			request:     newRequest("GET", "http://localhost?foo=1a"),
+			vars:        map[string]string{"v1": "1a"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with regexp pattern with quantifier, additional variable in query string, regexp does not match",
+			route:       new(Route).Queries("foo", "{v1:[0-9]{1}}"),
+			request:     newRequest("GET", "http://localhost?foo=12"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Queries route with hyphenated name, match",
+			route:       new(Route).Queries("foo", "{v-1}"),
+			request:     newRequest("GET", "http://localhost?foo=bar"),
+			vars:        map[string]string{"v-1": "bar"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with multiple hyphenated names, match",
+			route:       new(Route).Queries("foo", "{v-1}", "baz", "{v-2}"),
+			request:     newRequest("GET", "http://localhost?foo=bar&baz=ding"),
+			vars:        map[string]string{"v-1": "bar", "v-2": "ding"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with hyphenate name and pattern, match",
+			route:       new(Route).Queries("foo", "{v-1:[0-9]+}"),
+			request:     newRequest("GET", "http://localhost?foo=10"),
+			vars:        map[string]string{"v-1": "10"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with hyphenated name and pattern with quantifier, additional capturing group",
+			route:       new(Route).Queries("foo", "{v-1:[0-9]{1}(a|b)}"),
+			request:     newRequest("GET", "http://localhost?foo=1a"),
+			vars:        map[string]string{"v-1": "1a"},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with empty value, should match",
+			route:       new(Route).Queries("foo", ""),
+			request:     newRequest("GET", "http://localhost?foo=bar"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with empty value and no parameter in request, should not match",
+			route:       new(Route).Queries("foo", ""),
+			request:     newRequest("GET", "http://localhost"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Queries route with empty value and empty parameter in request, should match",
+			route:       new(Route).Queries("foo", ""),
+			request:     newRequest("GET", "http://localhost?foo="),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route with overlapping value, should not match",
+			route:       new(Route).Queries("foo", "bar"),
+			request:     newRequest("GET", "http://localhost?foo=barfoo"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Queries route with no parameter in request, should not match",
+			route:       new(Route).Queries("foo", "{bar}"),
+			request:     newRequest("GET", "http://localhost"),
+			vars:        map[string]string{},
+			host:        "",
+			path:        "",
+			shouldMatch: false,
+		},
+		{
+			title:       "Queries route with empty parameter in request, should match",
+			route:       new(Route).Queries("foo", "{bar}"),
+			request:     newRequest("GET", "http://localhost?foo="),
+			vars:        map[string]string{"foo": ""},
+			host:        "",
+			path:        "",
+			shouldMatch: true,
+		},
+		{
+			title:       "Queries route, bad submatch",
+			route:       new(Route).Queries("foo", "bar", "baz", "ding"),
+			request:     newRequest("GET", "http://localhost?fffoo=bar&baz=dingggg"),
 			vars:        map[string]string{},
 			host:        "",
 			path:        "",
@@ -798,6 +1045,81 @@ func TestStrictSlash(t *testing.T) {
 
 	for _, test := range tests {
 		testRoute(t, test)
+	}
+}
+
+func TestWalkSingleDepth(t *testing.T) {
+	r0 := NewRouter()
+	r1 := NewRouter()
+	r2 := NewRouter()
+
+	r0.Path("/g")
+	r0.Path("/o")
+	r0.Path("/d").Handler(r1)
+	r0.Path("/r").Handler(r2)
+	r0.Path("/a")
+
+	r1.Path("/z")
+	r1.Path("/i")
+	r1.Path("/l")
+	r1.Path("/l")
+
+	r2.Path("/i")
+	r2.Path("/l")
+	r2.Path("/l")
+
+	paths := []string{"g", "o", "r", "i", "l", "l", "a"}
+	depths := []int{0, 0, 0, 1, 1, 1, 0}
+	i := 0
+	err := r0.Walk(func(route *Route, router *Router, ancestors []*Route) error {
+		matcher := route.matchers[0].(*routeRegexp)
+		if matcher.template == "/d" {
+			return SkipRouter
+		}
+		if len(ancestors) != depths[i] {
+			t.Errorf(`Expected depth of %d at i = %d; got "%d"`, depths[i], i, len(ancestors))
+		}
+		if matcher.template != "/"+paths[i] {
+			t.Errorf(`Expected "/%s" at i = %d; got "%s"`, paths[i], i, matcher.template)
+		}
+		i++
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	if i != len(paths) {
+		t.Errorf("Expected %d routes, found %d", len(paths), i)
+	}
+}
+
+func TestWalkNested(t *testing.T) {
+	router := NewRouter()
+
+	g := router.Path("/g").Subrouter()
+	o := g.PathPrefix("/o").Subrouter()
+	r := o.PathPrefix("/r").Subrouter()
+	i := r.PathPrefix("/i").Subrouter()
+	l1 := i.PathPrefix("/l").Subrouter()
+	l2 := l1.PathPrefix("/l").Subrouter()
+	l2.Path("/a")
+
+	paths := []string{"/g", "/g/o", "/g/o/r", "/g/o/r/i", "/g/o/r/i/l", "/g/o/r/i/l/l", "/g/o/r/i/l/l/a"}
+	idx := 0
+	err := router.Walk(func(route *Route, router *Router, ancestors []*Route) error {
+		path := paths[idx]
+		tpl := route.regexp.path.template
+		if tpl != path {
+			t.Errorf(`Expected %s got %s`, path, tpl)
+		}
+		idx++
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	if idx != len(paths) {
+		t.Errorf("Expected %d routes, found %d", len(paths), idx)
 	}
 }
 

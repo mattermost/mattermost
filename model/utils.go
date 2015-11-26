@@ -5,10 +5,10 @@ package model
 
 import (
 	"bytes"
-	"code.google.com/p/go-uuid/uuid"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"github.com/pborman/uuid"
 	"io"
 	"net/mail"
 	"net/url"

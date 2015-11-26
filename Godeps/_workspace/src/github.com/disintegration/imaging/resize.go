@@ -267,20 +267,21 @@ func Fit(img image.Image, width, height int, filter ResampleFilter) *image.NRGBA
 	return Resize(img, newW, newH, filter)
 }
 
-// Thumbnail scales the image up or down using the specified resample filter, crops it
-// to the specified width and hight and returns the transformed image.
+// Fill scales the image to the smallest possible size that will cover the specified dimensions,
+// crops the resized image to the specified dimensions using the given anchor point and returns
+// the transformed image.
 //
 // Supported resample filters: NearestNeighbor, Box, Linear, Hermite, MitchellNetravali,
 // CatmullRom, BSpline, Gaussian, Lanczos, Hann, Hamming, Blackman, Bartlett, Welch, Cosine.
 //
 // Usage example:
 //
-//		dstImage := imaging.Thumbnail(srcImage, 100, 100, imaging.Lanczos)
+//		dstImage := imaging.Fill(srcImage, 800, 600, imaging.Center, imaging.Lanczos)
 //
-func Thumbnail(img image.Image, width, height int, filter ResampleFilter) *image.NRGBA {
-	thumbW, thumbH := width, height
+func Fill(img image.Image, width, height int, anchor Anchor, filter ResampleFilter) *image.NRGBA {
+	minW, minH := width, height
 
-	if thumbW <= 0 || thumbH <= 0 {
+	if minW <= 0 || minH <= 0 {
 		return &image.NRGBA{}
 	}
 
@@ -292,17 +293,35 @@ func Thumbnail(img image.Image, width, height int, filter ResampleFilter) *image
 		return &image.NRGBA{}
 	}
 
-	srcAspectRatio := float64(srcW) / float64(srcH)
-	thumbAspectRatio := float64(thumbW) / float64(thumbH)
-
-	var tmp image.Image
-	if srcAspectRatio > thumbAspectRatio {
-		tmp = Resize(img, 0, thumbH, filter)
-	} else {
-		tmp = Resize(img, thumbW, 0, filter)
+	if srcW == minW && srcH == minH {
+		return Clone(img)
 	}
 
-	return CropCenter(tmp, thumbW, thumbH)
+	srcAspectRatio := float64(srcW) / float64(srcH)
+	minAspectRatio := float64(minW) / float64(minH)
+
+	var tmp *image.NRGBA
+	if srcAspectRatio < minAspectRatio {
+		tmp = Resize(img, minW, 0, filter)
+	} else {
+		tmp = Resize(img, 0, minH, filter)
+	}
+
+	return CropAnchor(tmp, minW, minH, anchor)
+}
+
+// Thumbnail scales the image up or down using the specified resample filter, crops it
+// to the specified width and hight and returns the transformed image.
+//
+// Supported resample filters: NearestNeighbor, Box, Linear, Hermite, MitchellNetravali,
+// CatmullRom, BSpline, Gaussian, Lanczos, Hann, Hamming, Blackman, Bartlett, Welch, Cosine.
+//
+// Usage example:
+//
+//		dstImage := imaging.Thumbnail(srcImage, 100, 100, imaging.Lanczos)
+//
+func Thumbnail(img image.Image, width, height int, filter ResampleFilter) *image.NRGBA {
+	return Fill(img, width, height, Center, filter)
 }
 
 // Resample filter struct. It can be used to make custom filters.

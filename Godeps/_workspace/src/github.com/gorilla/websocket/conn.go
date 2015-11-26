@@ -88,19 +88,23 @@ func (e *netError) Error() string   { return e.msg }
 func (e *netError) Temporary() bool { return e.temporary }
 func (e *netError) Timeout() bool   { return e.timeout }
 
-// closeError represents close frame.
-type closeError struct {
-	code int
-	text string
+// CloseError represents close frame.
+type CloseError struct {
+
+	// Code is defined in RFC 6455, section 11.7.
+	Code int
+
+	// Text is the optional text payload.
+	Text string
 }
 
-func (e *closeError) Error() string {
-	return "websocket: close " + strconv.Itoa(e.code) + " " + e.text
+func (e *CloseError) Error() string {
+	return "websocket: close " + strconv.Itoa(e.Code) + " " + e.Text
 }
 
 var (
-	errWriteTimeout        = &netError{msg: "websocket: write timeout", timeout: true}
-	errUnexpectedEOF       = &closeError{code: CloseAbnormalClosure, text: io.ErrUnexpectedEOF.Error()}
+	errWriteTimeout        = &netError{msg: "websocket: write timeout", timeout: true, temporary: true}
+	errUnexpectedEOF       = &CloseError{Code: CloseAbnormalClosure, Text: io.ErrUnexpectedEOF.Error()}
 	errBadWriteOpCode      = errors.New("websocket: bad write message type")
 	errWriteClosed         = errors.New("websocket: write closed")
 	errInvalidControlFrame = errors.New("websocket: invalid control frame")
@@ -296,7 +300,7 @@ func (c *Conn) WriteControl(messageType int, data []byte, deadline time.Time) er
 	if n != 0 && n != len(buf) {
 		c.conn.Close()
 	}
-	return err
+	return hideTempErr(err)
 }
 
 // NextWriter returns a writer for the next message to send.  The writer's
@@ -673,12 +677,7 @@ func (c *Conn) advanceFrame() (int, error) {
 			closeCode = int(binary.BigEndian.Uint16(payload))
 			closeText = string(payload[2:])
 		}
-		switch closeCode {
-		case CloseNormalClosure, CloseGoingAway:
-			return noFrame, io.EOF
-		default:
-			return noFrame, &closeError{code: closeCode, text: closeText}
-		}
+		return noFrame, &CloseError{Code: closeCode, Text: closeText}
 	}
 
 	return frameType, nil
@@ -790,20 +789,27 @@ func (c *Conn) SetReadLimit(limit int64) {
 }
 
 // SetPingHandler sets the handler for ping messages received from the peer.
-// The default ping handler sends a pong to the peer.
-func (c *Conn) SetPingHandler(h func(string) error) {
+// The appData argument to h is the PING frame application data. The default
+// ping handler sends a pong to the peer.
+func (c *Conn) SetPingHandler(h func(appData string) error) {
 	if h == nil {
 		h = func(message string) error {
-			c.WriteControl(PongMessage, []byte(message), time.Now().Add(writeWait))
-			return nil
+			err := c.WriteControl(PongMessage, []byte(message), time.Now().Add(writeWait))
+			if err == ErrCloseSent {
+				return nil
+			} else if e, ok := err.(net.Error); ok && e.Temporary() {
+				return nil
+			}
+			return err
 		}
 	}
 	c.handlePing = h
 }
 
 // SetPongHandler sets the handler for pong messages received from the peer.
-// The default pong handler does nothing.
-func (c *Conn) SetPongHandler(h func(string) error) {
+// The appData argument to h is the PONG frame application data. The default
+// pong handler does nothing.
+func (c *Conn) SetPongHandler(h func(appData string) error) {
 	if h == nil {
 		h = func(string) error { return nil }
 	}

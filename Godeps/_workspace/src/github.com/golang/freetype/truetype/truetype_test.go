@@ -211,6 +211,29 @@ func TestIndex(t *testing.T) {
 	}
 }
 
+func TestName(t *testing.T) {
+	testCases := map[string]string{
+		"luximr": "Luxi Mono",
+		"luxirr": "Luxi Serif",
+		"luxisr": "Luxi Sans",
+	}
+
+	for name, want := range testCases {
+		f, testdataIsOptional, err := parseTestdataFont(name)
+		if err != nil {
+			if testdataIsOptional {
+				t.Log(err)
+			} else {
+				t.Fatal(err)
+			}
+			continue
+		}
+		if got := f.Name(NameIDFontFamily); got != want {
+			t.Errorf("%s: got %q, want %q", name, got, want)
+		}
+	}
+}
+
 type scalingTestData struct {
 	advanceWidth fixed.Int26_6
 	bounds       fixed.Rectangle26_6

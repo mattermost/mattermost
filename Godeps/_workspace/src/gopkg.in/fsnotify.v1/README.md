@@ -1,6 +1,6 @@
 # File system notifications for Go
 
-[![Coverage](http://gocover.io/_badge/github.com/go-fsnotify/fsnotify)](http://gocover.io/github.com/go-fsnotify/fsnotify) [![GoDoc](https://godoc.org/gopkg.in/fsnotify.v1?status.svg)](https://godoc.org/gopkg.in/fsnotify.v1)
+[![GoDoc](https://godoc.org/gopkg.in/fsnotify.v1?status.svg)](https://godoc.org/gopkg.in/fsnotify.v1) [![Coverage](http://gocover.io/_badge/github.com/go-fsnotify/fsnotify)](http://gocover.io/github.com/go-fsnotify/fsnotify) 
 
 Go 1.3+ required.
 
@@ -8,8 +8,8 @@ Cross platform: Windows, Linux, BSD and OS X.
 
 |Adapter   |OS        |Status    |
 |----------|----------|----------|
-|inotify   |Linux, Android\*|Supported [![Build Status](https://travis-ci.org/go-fsnotify/fsnotify.svg?branch=master)](https://travis-ci.org/go-fsnotify/fsnotify)|
-|kqueue    |BSD, OS X, iOS\*|Supported [![Circle CI](https://circleci.com/gh/go-fsnotify/fsnotify.svg?style=svg)](https://circleci.com/gh/go-fsnotify/fsnotify)|
+|inotify   |Linux 2.6.27 or later, Android\*|Supported [![Build Status](https://travis-ci.org/go-fsnotify/fsnotify.svg?branch=master)](https://travis-ci.org/go-fsnotify/fsnotify)|
+|kqueue    |BSD, OS X, iOS\*|Supported [![Build Status](https://travis-ci.org/go-fsnotify/fsnotify.svg?branch=master)](https://travis-ci.org/go-fsnotify/fsnotify)|
 |ReadDirectoryChangesW|Windows|Supported [![Build status](https://ci.appveyor.com/api/projects/status/ivwjubaih4r0udeh/branch/master?svg=true)](https://ci.appveyor.com/project/NathanYoungman/fsnotify/branch/master)|
 |FSEvents  |OS X          |[Planned](https://github.com/go-fsnotify/fsnotify/issues/11)|
 |FEN       |Solaris 11    |[Planned](https://github.com/go-fsnotify/fsnotify/issues/12)|
@@ -55,5 +55,10 @@ Please refer to [CONTRIBUTING][] before opening an issue or pull request.
 
 See [example_test.go](https://github.com/go-fsnotify/fsnotify/blob/master/example_test.go).
 
-
 [contributing]: https://github.com/go-fsnotify/fsnotify/blob/master/CONTRIBUTING.md
+
+## Related Projects
+
+* [notify](https://github.com/rjeczalik/notify)
+* [fsevents](https://github.com/go-fsnotify/fsevents)
+

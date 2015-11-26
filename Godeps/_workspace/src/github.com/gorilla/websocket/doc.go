@@ -24,7 +24,7 @@
 //      ... Use conn to send and receive messages.
 //  }
 //
-// Call the connection WriteMessage and ReadMessages methods to send and
+// Call the connection's WriteMessage and ReadMessage methods to send and
 // receive messages as a slice of bytes. This snippet of code shows how to echo
 // messages using these methods:
 //
@@ -97,10 +97,13 @@
 //
 // Concurrency
 //
-// Connections do not support concurrent calls to the write methods
-// (NextWriter, SetWriteDeadline, WriteMessage) or concurrent calls to the read
-// methods methods (NextReader, SetReadDeadline, ReadMessage).  Connections do
-// support a concurrent reader and writer.
+// Connections support one concurrent reader and one concurrent writer.
+//
+// Applications are responsible for ensuring that no more than one goroutine
+// calls the write methods (NextWriter, SetWriteDeadline, WriteMessage,
+// WriteJSON) concurrently and that no more than one goroutine calls the read
+// methods (NextReader, SetReadDeadline, ReadMessage, ReadJSON, SetPongHandler,
+// SetPingHandler) concurrently.
 //
 // The Close and WriteControl methods can be called concurrently with all other
 // methods.

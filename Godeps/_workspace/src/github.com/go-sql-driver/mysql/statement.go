@@ -12,6 +12,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 type mysqlStmt struct {
@@ -119,7 +120,7 @@ func (stmt *mysqlStmt) Query(args []driver.Value) (driver.Rows, error) {
 
 type converter struct{}
 
-func (converter) ConvertValue(v interface{}) (driver.Value, error) {
+func (c converter) ConvertValue(v interface{}) (driver.Value, error) {
 	if driver.IsValue(v) {
 		return v, nil
 	}
@@ -131,7 +132,7 @@ func (converter) ConvertValue(v interface{}) (driver.Value, error) {
 		if rv.IsNil() {
 			return nil, nil
 		}
-		return driver.DefaultParameterConverter.ConvertValue(rv.Elem().Interface())
+		return c.ConvertValue(rv.Elem().Interface())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return rv.Int(), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32:
@@ -139,7 +140,7 @@ func (converter) ConvertValue(v interface{}) (driver.Value, error) {
 	case reflect.Uint64:
 		u64 := rv.Uint()
 		if u64 >= 1<<63 {
-			return fmt.Sprintf("%d", u64), nil
+			return strconv.FormatUint(u64, 10), nil
 		}
 		return int64(u64), nil
 	case reflect.Float32, reflect.Float64:

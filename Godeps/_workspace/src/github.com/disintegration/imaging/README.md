@@ -32,8 +32,8 @@ dstImage800 := imaging.Resize(srcImage, 800, 0, imaging.Lanczos)
 // scale down srcImage to fit the 800x600px bounding box
 dstImageFit := imaging.Fit(srcImage, 800, 600, imaging.Lanczos)
 
-// resize and crop the srcImage to make a 100x100px thumbnail
-dstImageThumb := imaging.Thumbnail(srcImage, 100, 100, imaging.Lanczos)
+// resize and crop the srcImage to fill the 100x100px area
+dstImageFill := imaging.Fill(srcImage, 100, 100, imaging.Center, imaging.Lanczos)
 ```
 
 Imaging supports image resizing using various resampling filters. The most notable ones:
@@ -62,6 +62,40 @@ Filter | Resize result
 `imaging.CatmullRom` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_catrom.png)
 `imaging.Gaussian` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_gaussian.png)
 `imaging.Lanczos` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_lanczos.png)
+
+**Resize functions comparison**
+
+Original image:
+
+![srcImage](http://disintegration.github.io/imaging/in.jpg)
+
+Resize the image to width=100px and height=100px:
+
+```go
+dstImage := imaging.Resize(srcImage, 100, 100, imaging.Lanczos)
+```
+![dstImage](http://disintegration.github.io/imaging/out-comp-resize.jpg) 
+
+Resize the image to width=100px preserving the aspect ratio:
+
+```go
+dstImage := imaging.Resize(srcImage, 100, 0, imaging.Lanczos)
+```
+![dstImage](http://disintegration.github.io/imaging/out-comp-fit.jpg) 
+
+Resize the image to fit the 100x100px boundng box preserving the aspect ratio:
+
+```go
+dstImage := imaging.Fit(srcImage, 100, 100, imaging.Lanczos)
+```
+![dstImage](http://disintegration.github.io/imaging/out-comp-fit.jpg) 
+
+Resize and crop the image with a center anchor point to fill the 100x100px area:
+
+```go
+dstImage := imaging.Fill(srcImage, 100, 100, imaging.Center, imaging.Lanczos)
+```
+![dstImage](http://disintegration.github.io/imaging/out-comp-fill.jpg) 
 
 ### Gaussian Blur
 ```go

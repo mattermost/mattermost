@@ -1,71 +1,254 @@
 package manners
 
 import (
+	helpers "github.com/braintree/manners/test_helpers"
+	"net"
 	"net/http"
 	"testing"
+	"time"
 )
 
-// Tests that the server allows in-flight requests to complete before shutting
-// down.
+type httpInterface interface {
+	ListenAndServe() error
+	ListenAndServeTLS(certFile, keyFile string) error
+	Serve(listener net.Listener) error
+}
+
+// Test that the method signatures of the methods we override from net/http/Server match those of the original.
+func TestInterface(t *testing.T) {
+	var original, ours interface{}
+	original = &http.Server{}
+	ours = &GracefulServer{}
+	if _, ok := original.(httpInterface); !ok {
+		t.Errorf("httpInterface definition does not match the canonical server!")
+	}
+	if _, ok := ours.(httpInterface); !ok {
+		t.Errorf("GracefulServer does not implement httpInterface")
+	}
+}
+
+// Tests that the server allows in-flight requests to complete
+// before shutting down.
 func TestGracefulness(t *testing.T) {
-	ready := make(chan bool)
-	done := make(chan bool)
+	server := newServer()
+	wg := helpers.NewWaitGroup()
+	server.wg = wg
+	statechanged := make(chan http.ConnState)
+	listener, exitchan := startServer(t, server, statechanged)
 
-	exited := false
+	client := newClient(listener.Addr(), false)
+	client.Run()
 
-	handler := newBlockingHandler(ready, done)
-	server := NewServer()
+	// wait for client to connect, but don't let it send the request yet
+	if err := <-client.connected; err != nil {
+		t.Fatal("Client failed to connect to server", err)
+	}
+	// Even though the client is connected, the server ConnState handler may
+	// not know about that yet. So wait until it is called.
+	waitForState(t, statechanged, http.StateNew, "Request not received")
 
-	go func() {
-		err := server.ListenAndServe(":7000", handler)
-		if err != nil {
-			t.Error(err)
-		}
+	server.Close()
 
-		exited = true
-	}()
+	waiting := <-wg.WaitCalled
+	if waiting < 1 {
+		t.Errorf("Expected the waitgroup to equal 1 at shutdown; actually %d", waiting)
+	}
 
-	go func() {
-		_, err := http.Get("http://localhost:7000")
-		if err != nil {
-			t.Error(err)
-		}
-	}()
-
-	// This will block until the server is inside the handler function.
-	<-ready
-
-	server.Shutdown <- true
-	<-done
-
-	if exited {
-		t.Fatal("The request did not complete before server exited")
-	} else {
-		// The handler is being allowed to run to completion; test passes.
+	// allow the client to finish sending the request and make sure the server exits after
+	// (client will be in connected but idle state at that point)
+	client.sendrequest <- true
+	close(client.sendrequest)
+	if err := <-exitchan; err != nil {
+		t.Error("Unexpected error during shutdown", err)
 	}
 }
 
 // Tests that the server begins to shut down when told to and does not accept
-// new requests
+// new requests once shutdown has begun
 func TestShutdown(t *testing.T) {
-	handler := newTestHandler()
-	server := NewServer()
-	exited := make(chan bool)
+	server := newServer()
+	wg := helpers.NewWaitGroup()
+	server.wg = wg
+	statechanged := make(chan http.ConnState)
+	listener, exitchan := startServer(t, server, statechanged)
 
-	go func() {
-		err := server.ListenAndServe(":7100", handler)
-		if err != nil {
-			t.Error(err)
+	client1 := newClient(listener.Addr(), false)
+	client1.Run()
+
+	// wait for client1 to connect
+	if err := <-client1.connected; err != nil {
+		t.Fatal("Client failed to connect to server", err)
+	}
+	// Even though the client is connected, the server ConnState handler may
+	// not know about that yet. So wait until it is called.
+	waitForState(t, statechanged, http.StateNew, "Request not received")
+
+	// start the shutdown; once it hits waitgroup.Wait()
+	// the listener should of been closed, though client1 is still connected
+	if server.Close() != true {
+		t.Fatal("first call to Close returned false")
+	}
+	if server.Close() != false {
+		t.Fatal("second call to Close returned true")
+	}
+
+	waiting := <-wg.WaitCalled
+	if waiting != 1 {
+		t.Errorf("Waitcount should be one, got %d", waiting)
+	}
+
+	// should get connection refused at this point
+	client2 := newClient(listener.Addr(), false)
+	client2.Run()
+
+	if err := <-client2.connected; err == nil {
+		t.Fatal("client2 connected when it should of received connection refused")
+	}
+
+	// let client1 finish so the server can exit
+	close(client1.sendrequest) // don't bother sending an actual request
+
+	<-exitchan
+}
+
+// If a request is sent to a closed server via a kept alive connection then
+// the server closes the connection upon receiving the request.
+func TestRequestAfterClose(t *testing.T) {
+	// Given
+	server := newServer()
+	srvStateChangedCh := make(chan http.ConnState, 100)
+	listener, srvClosedCh := startServer(t, server, srvStateChangedCh)
+
+	client := newClient(listener.Addr(), false)
+	client.Run()
+	<-client.connected
+	client.sendrequest <- true
+	<-client.response
+
+	server.Close()
+	if err := <-srvClosedCh; err != nil {
+		t.Error("Unexpected error during shutdown", err)
+	}
+
+	// When
+	client.sendrequest <- true
+	rr := <-client.response
+
+	// Then
+	if rr.body != nil || rr.err != nil {
+		t.Errorf("Request should be rejected, body=%v, err=%v", rr.body, rr.err)
+	}
+}
+
+func waitForState(t *testing.T, waiter chan http.ConnState, state http.ConnState, errmsg string) {
+	for {
+		select {
+		case ns := <-waiter:
+			if ns == state {
+				return
+			}
+		case <-time.After(time.Second):
+			t.Fatal(errmsg)
 		}
-		exited <- true
-	}()
+	}
+}
 
-	server.Shutdown <- true
+// Test that a request moving from active->idle->active using an actual
+// network connection still results in a corect shutdown
+func TestStateTransitionActiveIdleActive(t *testing.T) {
+	server := newServer()
+	wg := helpers.NewWaitGroup()
+	statechanged := make(chan http.ConnState)
+	server.wg = wg
+	listener, exitchan := startServer(t, server, statechanged)
 
-	<-exited
-	_, err := http.Get("http://localhost:7100")
+	client := newClient(listener.Addr(), false)
+	client.Run()
 
-	if err == nil {
-		t.Fatal("Did not receive an error when trying to connect to server.")
+	// wait for client to connect, but don't let it send the request
+	if err := <-client.connected; err != nil {
+		t.Fatal("Client failed to connect to server", err)
+	}
+
+	for i := 0; i < 2; i++ {
+		client.sendrequest <- true
+		waitForState(t, statechanged, http.StateActive, "Client failed to reach active state")
+		<-client.response
+		waitForState(t, statechanged, http.StateIdle, "Client failed to reach idle state")
+	}
+
+	// client is now in an idle state
+
+	server.Close()
+	waiting := <-wg.WaitCalled
+	if waiting != 0 {
+		t.Errorf("Waitcount should be zero, got %d", waiting)
+	}
+
+	if err := <-exitchan; err != nil {
+		t.Error("Unexpected error during shutdown", err)
+	}
+}
+
+// Test state transitions from new->active->-idle->closed using an actual
+// network connection and make sure the waitgroup count is correct at the end.
+func TestStateTransitionActiveIdleClosed(t *testing.T) {
+	var (
+		listener net.Listener
+		exitchan chan error
+	)
+
+	keyFile, err1 := helpers.NewTempFile(helpers.Key)
+	certFile, err2 := helpers.NewTempFile(helpers.Cert)
+	defer keyFile.Unlink()
+	defer certFile.Unlink()
+
+	if err1 != nil || err2 != nil {
+		t.Fatal("Failed to create temporary files", err1, err2)
+	}
+
+	for _, withTLS := range []bool{false, true} {
+		server := newServer()
+		wg := helpers.NewWaitGroup()
+		statechanged := make(chan http.ConnState)
+		server.wg = wg
+		if withTLS {
+			listener, exitchan = startTLSServer(t, server, certFile.Name(), keyFile.Name(), statechanged)
+		} else {
+			listener, exitchan = startServer(t, server, statechanged)
+		}
+
+		client := newClient(listener.Addr(), withTLS)
+		client.Run()
+
+		// wait for client to connect, but don't let it send the request
+		if err := <-client.connected; err != nil {
+			t.Fatal("Client failed to connect to server", err)
+		}
+
+		client.sendrequest <- true
+		waitForState(t, statechanged, http.StateActive, "Client failed to reach active state")
+
+		rr := <-client.response
+		if rr.err != nil {
+			t.Fatalf("tls=%t unexpected error from client %s", withTLS, rr.err)
+		}
+
+		waitForState(t, statechanged, http.StateIdle, "Client failed to reach idle state")
+
+		// client is now in an idle state
+		close(client.sendrequest)
+		<-client.closed
+		waitForState(t, statechanged, http.StateClosed, "Client failed to reach closed state")
+
+		server.Close()
+		waiting := <-wg.WaitCalled
+		if waiting != 0 {
+			t.Errorf("Waitcount should be zero, got %d", waiting)
+		}
+
+		if err := <-exitchan; err != nil {
+			t.Error("Unexpected error during shutdown", err)
+		}
 	}
 }
