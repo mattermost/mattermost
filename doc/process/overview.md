@@ -36,9 +36,9 @@ See [Troubleshooting Forum](https://forum.mattermost.org/t/about-the-trouble-sho
 
 ### GitHub Issues 
 
-A system used by Mattermost for reporting bugs with clear statements on repro steps and expected behavior. 
+A system primarily used by Mattermost for reporting bugs with clear statements on repro steps and expected behavior. While it's okay to add feature requests and questions here to start conversations, moderators may ask a submitter's help to move discussions to one of the other channels. 
 
-See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how to use this system. 
+See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how to file issues for Mattermost in GitHub.
 
 For feature ideas, troubleshooting, or general questions, we ask your help to use the appropriate [Community System](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#community-systems).
 
