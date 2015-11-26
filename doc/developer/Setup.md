@@ -11,7 +11,10 @@ Developer Machine Setup
 		`docker-machine ip dev`
 	3. Add a line to your /etc/hosts that goes `<Docker IP> dockerhost`
 	4. Run `docker-machine env dev` and copy the export statements to your ~/.bash_profile
-2. Download Go 1.5.1 from http://golang.org/dl/
+2. Download Go 1.5.1 and Node.js using Homebrew
+	1. Download Homebrew from http://brew.sh/
+	2. `brew install go`
+	3. `brew install node`
 3. Set up your Go workspace
 	1. `mkdir ~/go`
 	2. Add the following to your ~/.bash_profile  
@@ -21,9 +24,9 @@ Developer Machine Setup
 		If you don't increase the file handle limit you may see some weird build issues with browserify or npm.  
 	3. Reload your bash profile  
 		`source ~/.bash_profile`
-4. Install Node.js using Homebrew
-	1. Download Homebrew from http://brew.sh/
-	2. `brew install node`
+4. Install Godep
+	1. `cd ~/go`
+	2. `go get github.com/tools/godep`
 5. Install Compass
 	1. Run `ruby -v` and check the ruby version is 1.8.7 or higher
 	2. `sudo gem install compass`
