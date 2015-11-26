@@ -48,7 +48,7 @@
   * ``` sudo mkdir -p /mattermost/data```
   * Set the ubuntu account as the directory owner by typing:
   * ``` sudo chown -R ubuntu /mattermost```
-1. Configure Mattermost Server by editing the config.json file at /home/ubuntu/mattermost/config`
+1. Configure Mattermost Server by editing the config.json file at `/home/ubuntu/mattermost/config`
   * ``` cd ~/mattermost/config```
   * Edit the file by typing:
   * ``` vi config.json```
