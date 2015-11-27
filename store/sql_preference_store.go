@@ -52,7 +52,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	AND Name LIKE '` + FEATURE_TOGGLE_PREFIX + `%'`
 
 	queryParams := map[string]string{
-		"Category": "advanced_settings",
+		"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
 		"Value":    "false",
 	}
 	s.GetMaster().Exec(sql, queryParams)
@@ -292,7 +292,7 @@ func (s SqlPreferenceStore) FeatureToggle(feature, userId string) StoreChannel {
 			WHERE
 				UserId = :UserId
 				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": "advanced_settings", "Name": FEATURE_TOGGLE_PREFIX + feature}); err != nil {
+				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": FEATURE_TOGGLE_PREFIX + feature}); err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.featureToggle", "We encountered an error while finding a pre release feature preference", err.Error())
 		} else {
 			result.Data = value == "true"

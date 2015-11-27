@@ -232,3 +232,66 @@ func TestPreferenceDelete(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 }
+
+func TestDeleteUnusedFeatures(t *testing.T) {
+	Setup()
+
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+	category := model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS
+	feature1 := "feature1"
+	feature2 := "feature2"
+
+	features := model.Preferences{
+		{
+			UserId:   userId1,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "true",
+		},
+		{
+			UserId:   userId2,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "false",
+		},
+		{
+			UserId:   userId1,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature2,
+			Value:    "false",
+		},
+		{
+			UserId:   userId2,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature2,
+			Value:    "true",
+		},
+	}
+
+	Must(store.Preference().Save(&features))
+
+	store.(*SqlStore).preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
+
+	//make sure features with value "false" have actually been deleted from the database
+	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+			FROM Preferences
+		WHERE Category = :Category
+		AND Value = :Val
+		AND Name LIKE '`+FEATURE_TOGGLE_PREFIX+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "false"}); err != nil {
+		t.Fatal(err)
+	} else if val != 0 {
+		t.Fatalf("Found %d features with value 'false', expected all to be deleted", val)
+	}
+	//
+	// make sure features with value "true" remain saved
+	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+			FROM Preferences
+		WHERE Category = :Category
+		AND Value = :Val
+		AND Name LIKE '`+FEATURE_TOGGLE_PREFIX+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "true"}); err != nil {
+		t.Fatal(err)
+	} else if val == 0 {
+		t.Fatalf("Found %d features with value 'true', expected to find at least %d features", val, 2)
+	}
+}
