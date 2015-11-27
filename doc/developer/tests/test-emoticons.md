@@ -1,9 +1,8 @@
 # Emoticon Testing
 
-The below text can be used to check for regressions in changes to text processing. Paste the below text into messages and check that emoticons continue to render after text processing changes. 
+Verify that all emoticons render. This test should render in three seperate messages since it's ~11000 characters.
 
-```
-# Emoticon - Punctuation 
+### Emoticon - Punctuation
 
 :) :-) 
 ;) ;-)
@@ -25,10 +24,9 @@ x-d x-D
 <3
 :+1:
 :-1:
-```
 
-```
-# Emoticons - People
+
+### Emoticons - People
 
 :bowtie:
 :smile:
@@ -223,10 +221,9 @@ x-d x-D
 :rage4:
 :suspect:
 :trollface:
-```
 
-```
-# Emoticons - Nature
+
+### Emoticons - Nature
 
 :sunny:
 :umbrella:
@@ -343,10 +340,9 @@ x-d x-D
 :partly_sunny:
 :octocat:
 :squirrel:
-```
 
-```
-# Emoticons - Objects
+
+### Emoticons - Objects         
 
 :bamboo:
 :gift_heart:
@@ -609,10 +605,9 @@ x-d x-D
 :eggplant:
 :tomato:
 :corn:
-```
 
-```
-# Emoticons - Places
+
+### Emoticons - Places               
 
 :house:
 :house_with_garden:
@@ -720,10 +715,9 @@ x-d x-D
 :gb:
 :uk:
 :de:
-```
 
-```
-# Emoticons - Symbols
+
+### Emoticons - Symbols
 
 :one:
 :two:
@@ -927,4 +921,3 @@ x-d x-D
 :small_red_triangle:
 :small_red_triangle_down:
 :shipit:
-```
