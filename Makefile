@@ -33,7 +33,7 @@ dist: | build-server build-client go-test package
 	mv ./model/version.go.bak ./model/version.go
 
 dist-local: | start-docker dist
-	
+
 dist-travis: | travis-init build-container
 
 start-docker:
@@ -153,7 +153,7 @@ go-test:
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 
-test: | start-docker go-test
+test: | start-docker .prepare go-test
 
 travis-init:
 	@echo Setting up enviroment for travis
