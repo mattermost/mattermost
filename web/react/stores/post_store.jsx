@@ -554,7 +554,7 @@ class PostStoreClass extends EventEmitter {
         return 0;
     }
     getCommentCount(post) {
-        const posts = this.getPosts(post.channel_id).posts;
+        const posts = this.getAllPosts(post.channel_id).posts;
 
         let commentCount = 0;
         for (const id in posts) {
