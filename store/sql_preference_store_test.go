@@ -233,6 +233,78 @@ func TestPreferenceDelete(t *testing.T) {
 	}
 }
 
+func TestIsFeatureEnabled(t *testing.T) {
+	Setup()
+
+	feature1 := "testFeat1"
+	feature2 := "testFeat2"
+	feature3 := "testFeat3"
+
+	userId := model.NewId()
+	category := model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS
+
+	features := model.Preferences{
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "true",
+		},
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     model.NewId(),
+			Value:    "false",
+		},
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "false",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature2,
+			Value:    "false",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature3,
+			Value:    "foobar",
+		},
+	}
+
+	Must(store.Preference().Save(&features))
+
+	if result := <-store.Preference().IsFeatureEnabled(feature1, userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != true {
+		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
+	}
+
+	if result := <-store.Preference().IsFeatureEnabled(feature2, userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != false {
+		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
+	}
+
+	// make sure we get false if something different than "true" or "false" has been saved to database
+	if result := <-store.Preference().IsFeatureEnabled(feature3, userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != false {
+		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
+	}
+
+	// make sure false is returned if a non-existent feature is queried
+	if result := <-store.Preference().IsFeatureEnabled("someOtherFeature", userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != false {
+		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
+	}
+}
+
 func TestDeleteUnusedFeatures(t *testing.T) {
 	Setup()
 
