@@ -93,6 +93,11 @@ class SuggestionStore extends EventEmitter {
         suggestion.terms = [];
         suggestion.items = [];
         suggestion.components = [];
+    }
+
+    clearSelection(id) {
+        const suggestion = this.suggestions.get(id);
+
         suggestion.selection = '';
     }
 
@@ -237,6 +242,7 @@ class SuggestionStore extends EventEmitter {
 
             this.setPretext(id, '');
             this.clearSuggestions(id);
+            this.clearSelection(id);
             this.emitSuggestionsChanged(id);
             break;
         }
