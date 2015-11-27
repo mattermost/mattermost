@@ -6,6 +6,7 @@ import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
 import PreferenceStore from '../../stores/preference_store.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class AdvancedSettingsDisplay extends React.Component {
     constructor(props) {
@@ -15,13 +16,9 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.updateSetting = this.updateSetting.bind(this);
         this.toggleFeature = this.toggleFeature.bind(this);
         this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
-        this.setupInitialState = this.setupInitialState.bind(this);
 
-        this.state = {settings: {}, preReleaseFeatures: []};
-        this.setupInitialState();
-    }
-
-    setupInitialState() {
+        const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
+        const advancedSettings = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
         const settings = {
             send_on_ctrl_enter: PreferenceStore.getPreference(
                 Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,
@@ -31,20 +28,19 @@ export default class AdvancedSettingsDisplay extends React.Component {
         };
 
         let enabledFeatures = 0;
-        PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS).forEach((setting) => {
-            if (setting.name.lastIndexOf(Constants.FeatureTogglePrefix) === 0) {
-                settings[setting.name] = setting.value;
-                if (setting.value === 'true') {
-                    enabledFeatures++;
+        advancedSettings.forEach((setting) => {
+            preReleaseFeaturesKeys.forEach((key) => {
+                const feature = PreReleaseFeatures[key];
+                if (setting.name === Constants.FeatureTogglePrefix + feature.label) {
+                    settings[setting.name] = setting.value;
+                    if (setting.value === 'true') {
+                        enabledFeatures++;
+                    }
                 }
-            }
+            });
         });
 
-        Client.getAvailablePreReleaseFeatures((data) => {
-            this.setState({settings, preReleaseFeatures: data || [], enabledFeatures});
-        }, () => {
-            this.setState({settings, preReleaseFeatures: [], enabledFeatures});
-        });
+        this.state = {preReleaseFeatures: PreReleaseFeatures, settings, preReleaseFeaturesKeys, enabledFeatures};
     }
 
     updateSetting(setting, value) {
@@ -168,7 +164,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
 
         let previewFeaturesSection;
         let previewFeaturesSectionDivider;
-        if (this.state.preReleaseFeatures.length > 0) {
+        if (this.state.preReleaseFeaturesKeys.length > 0) {
             previewFeaturesSectionDivider = (
                 <div className='divider-light'/>
             );
@@ -176,7 +172,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
             if (this.props.activeSection === 'advancedPreviewFeatures') {
                 const inputs = [];
 
-                this.state.preReleaseFeatures.forEach((feature) => {
+                this.state.preReleaseFeaturesKeys.forEach((key) => {
+                    const feature = this.state.preReleaseFeatures[key];
                     inputs.push(
                         <div key={'advancedPreviewFeatures_' + feature.label}>
                             <div className='checkbox'>

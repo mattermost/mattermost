@@ -11,6 +11,7 @@ import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class Textbox extends React.Component {
     constructor(props) {
@@ -304,7 +305,7 @@ export default class Textbox extends React.Component {
 
     render() {
         let previewLink = null;
-        if (Utils.featureToggle('#1389')) {
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
             const previewLinkVisible = this.props.messageText.length > 0;
             previewLink = (
                 <a

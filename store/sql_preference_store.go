@@ -280,7 +280,7 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) FeatureToggle(feature, userId string) StoreChannel {
+func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -293,7 +293,7 @@ func (s SqlPreferenceStore) FeatureToggle(feature, userId string) StoreChannel {
 				UserId = :UserId
 				AND Category = :Category
 				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": FEATURE_TOGGLE_PREFIX + feature}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.featureToggle", "We encountered an error while finding a pre release feature preference", err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "We encountered an error while finding a pre release feature preference", err.Error())
 		} else {
 			result.Data = value == "true"
 		}

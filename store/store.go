@@ -186,5 +186,5 @@ type PreferenceStore interface {
 	GetCategory(userId string, category string) StoreChannel
 	GetAll(userId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
-	FeatureToggle(feature, userId string) StoreChannel
+	IsFeatureEnabled(feature, userId string) StoreChannel
 }

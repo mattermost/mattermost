@@ -1222,6 +1222,6 @@ export function getPostTerm(post) {
     return postTerm;
 }
 
-export function featureToggle(feature) {
-    return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature, {value: 'false'}).value === 'true';
+export function isFeatureEnabled(feature) {
+    return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label, {value: 'false'}).value === 'true';
 }

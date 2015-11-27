@@ -1320,16 +1320,3 @@ export function regenOutgoingHookToken(data, success, error) {
         }
     });
 }
-
-export function getAvailablePreReleaseFeatures(success, error) {
-    $.ajax({
-        url: '/static/config/pre_release_features.json',
-        dataType: 'json',
-        type: 'GET',
-        success,
-        error: (xhr, status, err) => {
-            var e = handleError('getAvailablePreReleaseFeatures', xhr, status, err);
-            error(e);
-        }
-    });
-}
