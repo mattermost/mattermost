@@ -8,7 +8,6 @@ import SuggestionStore from '../stores/suggestion_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-const Overlay = ReactBootstrap.Overlay;
 const Popover = ReactBootstrap.Popover;
 
 export default class SearchSuggestionProvider extends React.Component {
