@@ -334,6 +334,7 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 
 	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
 		c.Err = result.Err
+		c.Err.StatusCode = http.StatusForbidden
 		return nil
 	} else {
 		user := result.Data.(*model.User)
