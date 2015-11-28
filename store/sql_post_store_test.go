@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestPostStoreSave(t *testing.T) {
@@ -776,7 +777,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
-	o1.CreateAt = model.GetMillis()
+	o1.CreateAt = utils.MillisFromTime(utils.Yesterday())
 	o1.Message = "a" + model.NewId() + "b"
 	o1 = Must(store.Post().Save(o1)).(*model.Post)
 
@@ -836,7 +837,7 @@ func TestPostCountsByDay(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
-	o1.CreateAt = model.GetMillis()
+	o1.CreateAt = utils.MillisFromTime(utils.Yesterday())
 	o1.Message = "a" + model.NewId() + "b"
 	o1 = Must(store.Post().Save(o1)).(*model.Post)
 

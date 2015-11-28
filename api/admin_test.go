@@ -235,6 +235,10 @@ func TestGetPostCount(t *testing.T) {
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
+	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
+	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
+		map[string]interface{}{"ChannelId": channel1.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
+
 	if _, err := Client.GetAnalytics(team.Id, "post_counts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
@@ -275,6 +279,10 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
+	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
+		map[string]interface{}{"ChannelId": channel1.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
 	if _, err := Client.GetAnalytics(team.Id, "user_counts_with_posts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
