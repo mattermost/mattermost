@@ -116,7 +116,7 @@ a:focus, a:hover {
 .btn {
   &.btn-danger {
     color: #fff;
-    &:hover, &:active {
+    &:hover, &:active, &:focus {
       color: #fff;
     }
   }

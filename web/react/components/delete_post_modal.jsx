@@ -152,6 +152,7 @@ export default class DeletePostModal extends React.Component {
                         type='button'
                         className='btn btn-danger'
                         onClick={this.handleDelete}
+                        autoFocus='autofocus'
                     >
                         {'Delete'}
                     </button>
