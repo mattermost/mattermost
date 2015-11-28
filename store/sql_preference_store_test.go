@@ -232,3 +232,138 @@ func TestPreferenceDelete(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 }
+
+func TestIsFeatureEnabled(t *testing.T) {
+	Setup()
+
+	feature1 := "testFeat1"
+	feature2 := "testFeat2"
+	feature3 := "testFeat3"
+
+	userId := model.NewId()
+	category := model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS
+
+	features := model.Preferences{
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "true",
+		},
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     model.NewId(),
+			Value:    "false",
+		},
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "false",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature2,
+			Value:    "false",
+		},
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature3,
+			Value:    "foobar",
+		},
+	}
+
+	Must(store.Preference().Save(&features))
+
+	if result := <-store.Preference().IsFeatureEnabled(feature1, userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != true {
+		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
+	}
+
+	if result := <-store.Preference().IsFeatureEnabled(feature2, userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != false {
+		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
+	}
+
+	// make sure we get false if something different than "true" or "false" has been saved to database
+	if result := <-store.Preference().IsFeatureEnabled(feature3, userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != false {
+		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
+	}
+
+	// make sure false is returned if a non-existent feature is queried
+	if result := <-store.Preference().IsFeatureEnabled("someOtherFeature", userId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if data := result.Data.(bool); data != false {
+		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
+	}
+}
+
+func TestDeleteUnusedFeatures(t *testing.T) {
+	Setup()
+
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+	category := model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS
+	feature1 := "feature1"
+	feature2 := "feature2"
+
+	features := model.Preferences{
+		{
+			UserId:   userId1,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "true",
+		},
+		{
+			UserId:   userId2,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature1,
+			Value:    "false",
+		},
+		{
+			UserId:   userId1,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature2,
+			Value:    "false",
+		},
+		{
+			UserId:   userId2,
+			Category: category,
+			Name:     FEATURE_TOGGLE_PREFIX + feature2,
+			Value:    "true",
+		},
+	}
+
+	Must(store.Preference().Save(&features))
+
+	store.(*SqlStore).preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
+
+	//make sure features with value "false" have actually been deleted from the database
+	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+			FROM Preferences
+		WHERE Category = :Category
+		AND Value = :Val
+		AND Name LIKE '`+FEATURE_TOGGLE_PREFIX+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "false"}); err != nil {
+		t.Fatal(err)
+	} else if val != 0 {
+		t.Fatalf("Found %d features with value 'false', expected all to be deleted", val)
+	}
+	//
+	// make sure features with value "true" remain saved
+	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+			FROM Preferences
+		WHERE Category = :Category
+		AND Value = :Val
+		AND Name LIKE '`+FEATURE_TOGGLE_PREFIX+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "true"}); err != nil {
+		t.Fatal(err)
+	} else if val == 0 {
+		t.Fatalf("Found %d features with value 'true', expected to find at least %d features", val, 2)
+	}
+}

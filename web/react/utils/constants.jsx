@@ -398,5 +398,12 @@ export default {
     },
     NotificationPrefs: {
         MENTION: 'mention'
+    },
+    FeatureTogglePrefix: 'feature_enabled_',
+    PRE_RELEASE_FEATURES: {
+        MARKDOWN_PREVIEW: {
+            label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389
+            description: 'Show markdown preview option in message input box'
+        }
     }
 };

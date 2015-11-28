@@ -11,6 +11,7 @@ import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class Textbox extends React.Component {
     constructor(props) {
@@ -303,7 +304,19 @@ export default class Textbox extends React.Component {
     }
 
     render() {
-        const previewLinkVisible = this.props.messageText.length > 0;
+        let previewLink = null;
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
+            const previewLinkVisible = this.props.messageText.length > 0;
+            previewLink = (
+                <a
+                    style={{visibility: previewLinkVisible ? 'visible' : 'hidden'}}
+                    onClick={this.showPreview}
+                    className='textbox-preview-link'
+                >
+                    {this.state.preview ? 'Edit message' : 'Preview'}
+                </a>
+            );
+        }
 
         return (
             <div
@@ -342,18 +355,12 @@ export default class Textbox extends React.Component {
                     dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
                 >
                 </div>
+                {previewLink}
                 <a
                     onClick={this.showHelp}
                     className='textbox-help-link'
                 >
                     {'Help'}
-                </a>
-                <a
-                    style={{visibility: previewLinkVisible ? 'visible' : 'hidden'}}
-                    onClick={this.showPreview}
-                    className='textbox-preview-link'
-                >
-                    {this.state.preview ? 'Edit' : 'Preview'}
                 </a>
             </div>
         );
