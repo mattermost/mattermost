@@ -10,6 +10,7 @@ import SocketStore from '../stores/socket_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
 import UserStore from '../stores/user_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
@@ -68,6 +69,9 @@ export default class ChannelLoader extends React.Component {
         } else {
             Utils.applyTheme(Constants.THEMES.default);
         }
+
+        const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT}).value;
+        Utils.applyFont(selectedFont);
 
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {
             if (ev.type === 'mouseenter') {

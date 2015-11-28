@@ -6,14 +6,17 @@ import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import Constants from '../../utils/constants.jsx';
 import PreferenceStore from '../../stores/preference_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
 function getDisplayStateFromStores() {
     const militaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'});
     const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'username'});
+    const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT});
 
     return {
         militaryTime: militaryTime.value,
-        nameFormat: nameFormat.value
+        nameFormat: nameFormat.value,
+        selectedFont: selectedFont.value
     };
 }
 
@@ -24,15 +27,20 @@ export default class UserSettingsDisplay extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleClockRadio = this.handleClockRadio.bind(this);
         this.handleNameRadio = this.handleNameRadio.bind(this);
+        this.handleFont = this.handleFont.bind(this);
         this.updateSection = this.updateSection.bind(this);
 
         this.state = getDisplayStateFromStores();
+        this.selectedFont = this.state.selectedFont;
     }
     handleSubmit() {
         const timePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', this.state.militaryTime);
         const namePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', this.state.nameFormat);
+        const fontPreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', this.state.selectedFont);
 
-        savePreferences([timePreference, namePreference],
+        this.selectedFont = this.state.selectedFont;
+
+        savePreferences([timePreference, namePreference, fontPreference],
             () => {
                 PreferenceStore.emitChange();
                 this.updateSection('');
@@ -48,6 +56,10 @@ export default class UserSettingsDisplay extends React.Component {
     handleNameRadio(nameFormat) {
         this.setState({nameFormat});
     }
+    handleFont(selectedFont) {
+        Utils.applyFont(selectedFont);
+        this.setState({selectedFont});
+    }
     updateSection(section) {
         this.setState(getDisplayStateFromStores());
         this.props.updateSection(section);
@@ -56,6 +68,8 @@ export default class UserSettingsDisplay extends React.Component {
         const serverError = this.state.serverError || null;
         let clockSection;
         let nameFormatSection;
+        let fontSection;
+
         if (this.props.activeSection === 'clock') {
             const clockFormat = [false, false];
             if (this.state.militaryTime === 'true') {
@@ -209,6 +223,69 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        if (this.props.activeSection === 'font') {
+            const options = [];
+            Object.keys(Constants.FONTS).forEach((fontName, idx) => {
+                const className = Constants.FONTS[fontName];
+                options.push(
+                    <option
+                        key={'font_' + idx}
+                        value={fontName}
+                        className={className}
+                    >
+                        {fontName}
+                    </option>
+                );
+            });
+
+            const inputs = [
+                <div key='userDisplayNameOptions'>
+                    <div
+                        className='input-group theme-group dropdown'
+                    >
+                        <select
+                            className='form-control'
+                            type='text'
+                            value={this.state.selectedFont}
+                            onChange={(e) => this.handleFont(e.target.value)}
+                        >
+                            {options}
+                        </select>
+                        <span className={'input-group-addon ' + Constants.FONTS[this.state.selectedFont]}>
+                            {this.state.selectedFont}
+                        </span>
+                    </div>
+                    <div><br/>{'Select the font displayed in the Mattermost user interface.'}</div>
+                </div>
+            ];
+
+            fontSection = (
+                <SettingItemMax
+                    title='Display Font'
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    server_error={serverError}
+                    updateSection={(e) => {
+                        if (this.selectedFont !== this.state.selectedFont) {
+                            this.handleFont(this.selectedFont);
+                        }
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
+                />
+            );
+        } else {
+            fontSection = (
+                <SettingItemMin
+                    title='Display Font'
+                    describe={this.state.selectedFont}
+                    updateSection={() => {
+                        this.props.updateSection('font');
+                    }}
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -238,6 +315,8 @@ export default class UserSettingsDisplay extends React.Component {
                     {clockSection}
                     <div className='divider-dark'/>
                     {nameFormatSection}
+                    <div className='divider-dark'/>
+                    {fontSection}
                     <div className='divider-dark'/>
                 </div>
             </div>

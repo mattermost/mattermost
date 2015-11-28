@@ -344,6 +344,21 @@ export default {
         }
     ],
     DEFAULT_CODE_THEME: 'github',
+    FONTS: {
+        'Droid Serif': 'font--droid_serif',
+        'Roboto Slab': 'font--roboto_slab',
+        Lora: 'font--lora',
+        Slabo: 'font--slabo',
+        Arvo: 'font--arvo',
+        'Open Sans': 'font--open_sans',
+        Roboto: 'font--roboto',
+        'PT Sans': 'font--pt_sans',
+        Lato: 'font--lato',
+        'Source Sans Pro': 'font--source_sans_pro',
+        'Exo 2': 'font--exo_2',
+        Ubuntu: 'font--ubuntu'
+    },
+    DEFAULT_FONT: 'Open Sans',
     Preferences: {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
