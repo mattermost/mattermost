@@ -52,7 +52,15 @@ export default class PostBody extends React.Component {
     }
 
     parseEmojis() {
-        twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        if (ReactDOM.findDOMNode(this).querySelector('.katex-display')) {
+            Array.prototype.slice.call(this.refs.message_span.children).forEach((node) => {
+                if (!node.classList.contains('tex')) {
+                    twemoji.parse(node, {size: Constants.EMOJI_SIZE});
+                }
+            });
+        } else {
+            twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        }
     }
 
     componentWillMount() {
