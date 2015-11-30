@@ -203,7 +203,6 @@ export default class Sidebar extends React.Component {
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
         });
-        console.log('sad');
     }
     updateScrollbar() {
     }

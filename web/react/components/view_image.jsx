@@ -424,11 +424,12 @@ export default class ViewImageModal extends React.Component {
                 >
                     <div
                         className={'image-wrapper ' + bgClass}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={this.props.onModalDismissed}
                     >
                         <div
                             onMouseEnter={this.onMouseEnterImage}
                             onMouseLeave={this.onMouseLeaveImage}
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <div
                                 className={closeButtonClass}
