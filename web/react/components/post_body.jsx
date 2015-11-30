@@ -3,6 +3,7 @@
 
 import FileAttachmentList from './file_attachment_list.jsx';
 import UserStore from '../stores/user_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
@@ -19,6 +20,7 @@ export default class PostBody extends React.Component {
         this.isImgLoading = false;
 
         this.handleUserChange = this.handleUserChange.bind(this);
+        this.handlePreferenceChange = this.handlePreferenceChange.bind(this);
         this.parseEmojis = this.parseEmojis.bind(this);
         this.createEmbed = this.createEmbed.bind(this);
         this.createImageEmbed = this.createImageEmbed.bind(this);
@@ -52,7 +54,11 @@ export default class PostBody extends React.Component {
     }
 
     parseEmojis() {
-        twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        twemoji.parse(ReactDOM.findDOMNode(this), {
+            className: 'emoji twemoji',
+            base: '',
+            folder: Utils.getImagePathForEmoticon()
+        });
     }
 
     componentWillMount() {
@@ -65,6 +71,7 @@ export default class PostBody extends React.Component {
         this.parseEmojis();
 
         UserStore.addChangeListener(this.handleUserChange);
+        PreferenceStore.addChangeListener(this.handlePreferenceChange);
     }
 
     componentDidUpdate() {
@@ -73,6 +80,7 @@ export default class PostBody extends React.Component {
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.handleUserChange);
+        PreferenceStore.removeChangeListener(this.handlePreferenceChange);
     }
 
     handleUserChange() {
@@ -81,6 +89,13 @@ export default class PostBody extends React.Component {
 
             this.setState({hasProfiles: profiles && Object.keys(profiles).length > 1});
         }
+    }
+
+    handlePreferenceChange() {
+        $('.twemoji').each((idx, elem) => {
+            elem.src = Utils.getImagePathForEmoticon(twemoji.convert.toCodePoint(elem.alt));
+        });
+        this.forceUpdate();
     }
 
     componentWillReceiveProps(nextProps) {

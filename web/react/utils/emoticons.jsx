@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import * as Utils from './utils.jsx';
+
 const emoticonPatterns = {
     smile: /(^|\s)(:-?\))(?=$|\s)/g, // :)
     wink: /(^|\s)(;-?\))(?=$|\s)/g, // ;)
@@ -133,7 +135,7 @@ export function handleEmoticons(text, tokens) {
             const alias = `MM_EMOTICON${index}`;
 
             tokens.set(alias, {
-                value: `<img align="absmiddle" alt="${matchText}" class="emoji" src="${getImagePathForEmoticon(name)}" title="${matchText}" />`,
+                value: `<img align="absmiddle" alt="${matchText}" class="emoji" src="${Utils.getImagePathForEmoticon(name)}" title="${matchText}" />`,
                 originalText: fullMatch
             });
 
@@ -154,6 +156,3 @@ export function handleEmoticons(text, tokens) {
     return output;
 }
 
-function getImagePathForEmoticon(name) {
-    return `/static/images/emoji/${name}.png`;
-}

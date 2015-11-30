@@ -36,8 +36,17 @@
     }
     label {
         font-weight: 600;
+	    .emoji {
+		    margin-left: 5px;
+		    margin-right: 5px;
+	    }
     }
-    .no-padding--left {
+
+	.emojiAffiliation {
+		font-weight: normal;
+	}
+
+	.no-padding--left {
         padding-left: 0;
     }
     .padding-top {
