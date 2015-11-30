@@ -109,24 +109,28 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleKeyDown(e) {
-        if (e.which === KeyCodes.UP) {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.SUGGESTION_SELECT_PREVIOUS,
-                id: this.suggestionId
-            });
-            e.preventDefault();
-        } else if (e.which === KeyCodes.DOWN) {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.SUGGESTION_SELECT_NEXT,
-                id: this.suggestionId
-            });
-            e.preventDefault();
-        } else if ((e.which === KeyCodes.SPACE || e.which === KeyCodes.ENTER) && SuggestionStore.hasSuggestions(this.suggestionId)) {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.SUGGESTION_COMPLETE_WORD,
-                id: this.suggestionId
-            });
-            e.preventDefault();
+        if (SuggestionStore.hasSuggestions(this.suggestionId)) {
+            if (e.which === KeyCodes.UP) {
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.SUGGESTION_SELECT_PREVIOUS,
+                    id: this.suggestionId
+                });
+                e.preventDefault();
+            } else if (e.which === KeyCodes.DOWN) {
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.SUGGESTION_SELECT_NEXT,
+                    id: this.suggestionId
+                });
+                e.preventDefault();
+            } else if (e.which === KeyCodes.SPACE || e.which === KeyCodes.ENTER) {
+                AppDispatcher.handleViewAction({
+                    type: ActionTypes.SUGGESTION_COMPLETE_WORD,
+                    id: this.suggestionId
+                });
+                e.preventDefault();
+            } else if (this.props.onKeyDown) {
+                this.props.onKeyDown(e);
+            }
         } else if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
         }
