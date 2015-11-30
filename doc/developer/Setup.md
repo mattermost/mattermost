@@ -64,8 +64,8 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 		If you don't increase the file handle limit you may see some weird build issues with browserify or npm.  
 	3. Reload your bashrc  
 		`source ~/.bashrc`
-6. Install Node.js
-	`curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -`
+6. Install Node.js  
+	`curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -`  
 	`sudo apt-get install -y nodejs`
 7. Install Ruby and Compass  
 	`apt-get install ruby`  
