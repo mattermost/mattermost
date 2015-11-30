@@ -35,7 +35,7 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     render() {
-        if (this.state.items.length === 0) {
+        if (this.state.items.length === 0 || !this.props.show) {
             return null;
         }
 
@@ -82,5 +82,5 @@ export default class SearchSuggestionList extends SuggestionList {
 }
 
 SearchSuggestionList.propTypes = {
-    suggestionId: React.PropTypes.string.isRequired
+    ...SuggestionList.propTypes
 };

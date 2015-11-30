@@ -87,7 +87,7 @@ export default class SuggestionList extends React.Component {
     }
 
     render() {
-        if (this.state.items.length === 0) {
+        if (this.state.items.length === 0 || !this.props.show) {
             return null;
         }
 
@@ -125,5 +125,6 @@ export default class SuggestionList extends React.Component {
 }
 
 SuggestionList.propTypes = {
-    suggestionId: React.PropTypes.string.isRequired
+    suggestionId: React.PropTypes.string.isRequired,
+    show: React.PropTypes.bool.isRequired
 };

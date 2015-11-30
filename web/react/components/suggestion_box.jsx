@@ -147,8 +147,6 @@ export default class SuggestionBox extends React.Component {
     }
 
     render() {
-        const SuggestionList = this.props.listComponent;
-
         const newProps = Object.assign({}, this.props, {
             onFocus: this.handleFocus,
             onChange: this.handleChange,
@@ -173,10 +171,15 @@ export default class SuggestionBox extends React.Component {
             );
         }
 
+        const SuggestionListComponent = this.props.listComponent;
+
         return (
             <div>
                 {textbox}
-                <SuggestionList suggestionId={this.suggestionId} />
+                <SuggestionListComponent
+                    suggestionId={this.suggestionId}
+                    show={this.state.focused}
+                />
             </div>
         );
     }
