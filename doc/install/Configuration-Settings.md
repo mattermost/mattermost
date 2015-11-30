@@ -29,7 +29,12 @@ Set this key to enable embedding of YouTube video previews based on hyperlinks a
 #### Webhooks
 
 ```"EnableIncomingWebhooks": true```  
-Developers building integrations can create webhook URLs for channels and private groups. Please see http://mattermost.org/webhooks to learn about creating webhooks, view samples, and to let the community know about integrations you have built. "true": Incoming webhooks will be allowed. To manage incoming webhooks, go to Account Settings -> Integrations. The webhook URLs created in Account Settings can be used by external applications to create posts in any channels or private groups that you have access to; “false”: The Integrations tab of Account Settings is hidden and incoming webhooks are disabled.
+Developers building integrations can create webhook URLs for channels and private groups. Please see http://mattermost.org/webhooks to learn about creating webhooks, view samples, and to let the community know about integrations you have built. "true": Incoming webhooks will be allowed. To manage incoming webhooks, go to **Account Settings -> Integrations**. The webhook URLs created in Account Settings can be used by external applications to create posts in any channels or private groups that you have access to; “false”: The Integrations > Incoming Webhooks section of Account Settings is hidden and all incoming webhooks are disabled.
+
+Security note: By enabling this feature, users may be able to perform [phishing attacks](https://en.wikipedia.org/wiki/Phishing) by attempting to impersonate other users. To combat these attacks, a BOT tag appears next to all posts from a webhook. Enable at your own risk.
+
+```"EnableOutgoingWebhooks": true```  
+Developers building integrations can create webhook tokens for public channels. Trigger words are used to fire new message events to external integrations. For security reasons, outgoing webhooks are only available in public channels. Please see our [documentation page](https://github.com/mattermost/platform/blob/master/doc/integrations/webhooks/Outgoing-Webhooks.md) to learn about creating webhooks and view samples. "true": Outgoing webhooks will be allowed. To manage outgoing webhooks, go to **Account Settings -> Integrations**; “false”: The Integrations > Outgoing Webhooks section of Account Settings is hidden and all outgoing webhooks are disabled.
 
 Security note: By enabling this feature, users may be able to perform [phishing attacks](https://en.wikipedia.org/wiki/Phishing) by attempting to impersonate other users. To combat these attacks, a BOT tag appears next to all posts from a webhook. Enable at your own risk.
 
@@ -57,6 +62,12 @@ Maximum number of users per team, including both active and inactive users.
 
 ```"RestrictCreationToDomains": ""```  
 Teams can only be created by a verified email from this list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").
+
+```"RestrictTeamNames": true```  
+"true": Newly created team names cannot contain the following restricted words: www, web, admin, support, notify, test, demo, mail, team, channel, internal, localhost, dockerhost, stag, post, cluster, api, oauth; “false”: Newly created team names are not restricted. 
+
+```"EnableTeamListing": false```  
+"true": Teams that are configured to appear in the team directory will appear on the system main page. Teams can configure this setting from **Team Settings -> Include this team in the Team Directory**; "true": Team directory on the system main page is disabled.
 
 
 ### SQL Settings
