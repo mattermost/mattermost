@@ -223,6 +223,14 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         return `<table class="markdown__table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
     }
 
+    listitem(text) {
+        const taskListReg = /^\[([ |xX])\] /;
+        const isTaskList = taskListReg.exec(text);
+        return isTaskList ?
+            `<li>${'<input type="checkbox" disabled="disabled" ' + (isTaskList[1] === ' ' ? '' : 'checked="checked" ') + '/> '}${text.replace(taskListReg, '')}</li>` :
+            `<li>${text}</li>`;
+    }
+
     text(txt) {
         return TextFormatting.doFormatText(txt, this.formattingOptions);
     }

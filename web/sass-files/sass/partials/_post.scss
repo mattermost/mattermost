@@ -607,6 +607,11 @@ body.ios {
 			li ul, li ol {
 				padding: 0 0 0 20px
 			}
+
+			li input[type="checkbox"]:disabled {
+				vertical-align: sub;
+				cursor: default;
+			}
 		}
 	}
 
