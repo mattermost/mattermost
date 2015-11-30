@@ -807,6 +807,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			    WHERE
 			        Posts.ChannelId = Channels.Id
 			            AND Channels.TeamId = :TeamId
+			            AND Posts.CreateAt <= :EndTime
 			    ORDER BY Name DESC) AS t1
 			GROUP BY Name
 			ORDER BY Name DESC
@@ -825,17 +826,20 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 				    WHERE
 				        Posts.ChannelId = Channels.Id
 				            AND Channels.TeamId = :TeamId
+				            AND Posts.CreateAt <= :EndTime
 				    ORDER BY Name DESC) AS t1
 				GROUP BY Name
 				ORDER BY Name DESC
 				LIMIT 30`
 		}
 
+		end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+
 		var rows model.AnalyticsRows
 		_, err := s.GetReplica().Select(
 			&rows,
 			query,
-			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
+			map[string]interface{}{"TeamId": teamId, "EndTime": end})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
 		} else {
@@ -867,7 +871,8 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			    WHERE
 			        Posts.ChannelId = Channels.Id
 			            AND Channels.TeamId = :TeamId
-			            AND Posts.CreateAt >:Time) AS t1
+			            AND Posts.CreateAt <= :EndTime
+			            AND Posts.CreateAt >= :StartTime) AS t1
 			GROUP BY Name
 			ORDER BY Name DESC
 			LIMIT 30`
@@ -885,17 +890,21 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 				    WHERE
 				        Posts.ChannelId = Channels.Id
 				            AND Channels.TeamId = :TeamId
-				            AND Posts.CreateAt > :Time) AS t1
+				            AND Posts.CreateAt <= :EndTime
+				            AND Posts.CreateAt >= :StartTime) AS t1
 				GROUP BY Name
 				ORDER BY Name DESC
 				LIMIT 30`
 		}
 
+		end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+		start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+
 		var rows model.AnalyticsRows
 		_, err := s.GetReplica().Select(
 			&rows,
 			query,
-			map[string]interface{}{"TeamId": teamId, "Time": model.GetMillis() - 1000*60*60*24*31})
+			map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
 		} else {
