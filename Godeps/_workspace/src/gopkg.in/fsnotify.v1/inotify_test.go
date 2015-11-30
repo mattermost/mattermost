@@ -7,6 +7,7 @@
 package fsnotify
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -281,12 +282,60 @@ func TestInotifyRemoveTwice(t *testing.T) {
 	}
 
 	err = w.Remove(testFile)
-	if err != syscall.EINVAL {
-		t.Fatalf("Expected EINVAL from Remove, got: %v", err)
+	if err == nil {
+		t.Fatalf("no error on removing invalid file")
 	}
+	s1 := fmt.Sprintf("%s", err)
 
 	err = w.Remove(testFile)
-	if err == syscall.EINVAL {
-		t.Fatalf("Got EINVAL again, watch was not removed")
+	if err == nil {
+		t.Fatalf("no error on removing invalid file")
+	}
+	s2 := fmt.Sprintf("%s", err)
+
+	if s1 != s2 {
+		t.Fatalf("receive different error - %s / %s", s1, s2)
+	}
+}
+
+func TestInotifyInnerMapLength(t *testing.T) {
+	testDir := tempMkdir(t)
+	defer os.RemoveAll(testDir)
+	testFile := filepath.Join(testDir, "testfile")
+
+	handle, err := os.Create(testFile)
+	if err != nil {
+		t.Fatalf("Create failed: %v", err)
+	}
+	handle.Close()
+
+	w, err := NewWatcher()
+	if err != nil {
+		t.Fatalf("Failed to create watcher: %v", err)
+	}
+	defer w.Close()
+
+	err = w.Add(testFile)
+	if err != nil {
+		t.Fatalf("Failed to add testFile: %v", err)
+	}
+	go func() {
+		for err := range w.Errors {
+			t.Fatalf("error received: %s", err)
+		}
+	}()
+
+	err = os.Remove(testFile)
+	if err != nil {
+		t.Fatalf("Failed to remove testFile: %v", err)
+	}
+	_ = <-w.Events                      // consume Remove event
+	<-time.After(50 * time.Millisecond) // wait IN_IGNORE propagated
+
+	if len(w.watches) != 0 {
+		t.Fatalf("Expected watches len is 0, but got: %d, %v", len(w.watches), w.watches)
+	}
+	if len(w.paths) != 0 {
+		t.Fatalf("Expected paths len is 0, but got: %d, %v", len(w.paths), w.paths)
 	}
 }

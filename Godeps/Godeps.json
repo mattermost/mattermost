@@ -1,17 +1,7 @@
 {
 	"ImportPath": "github.com/mattermost/platform",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.5.1",
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/go-uuid/uuid",
-			"Comment": "null-15",
-			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
-		},
-		{
-			"ImportPath": "code.google.com/p/go.crypto/bcrypt",
-			"Comment": "null-236",
-			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
-		},
 		{
 			"ImportPath": "code.google.com/p/log4go",
 			"Comment": "go.weekly.2012-02-22-1",
@@ -23,43 +13,47 @@
 		},
 		{
 			"ImportPath": "github.com/braintree/manners",
-			"Comment": "0.3.1-2-g5280e25",
-			"Rev": "5280e250f2795914acbeb2bf3b55dd5a2d1fba52"
+			"Comment": "0.4.0-9-g3fdfada",
+			"Rev": "3fdfadabc96863ceec055bd73ab1e80324e72706"
+		},
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
 		},
 		{
 			"ImportPath": "github.com/disintegration/imaging",
-			"Rev": "493653de80c32beeae336f3a3a3a125e7603459b"
+			"Rev": "546cb3c5137b3f1232e123a26aa033aade6b3066"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "a47585eaae68b1d14b02940d2af1b9194f3caa9c"
+			"Rev": "6ece6e0a09f28cc399b21550cbf37ab39ba63cce"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "a47585eaae68b1d14b02940d2af1b9194f3caa9c"
+			"Rev": "6ece6e0a09f28cc399b21550cbf37ab39ba63cce"
 		},
 		{
 			"ImportPath": "github.com/go-gorp/gorp",
-			"Comment": "v1.7-65-g3c15f67",
-			"Rev": "3c15f6739b94dc357e2797a7297a2853ec79f4fa"
+			"Comment": "v1.7-146-gc391a3d",
+			"Rev": "c391a3da75cf2003f4bf4763d0b5755c4500aef1"
 		},
 		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
-			"Comment": "v1.2-97-g0cc29e9",
-			"Rev": "0cc29e9fe8e25c2c58cf47bcab566e029bbaa88b"
+			"Comment": "v1.2-125-gd512f20",
+			"Rev": "d512f204a577a4ab037a1816604c48c9c13210be"
 		},
 		{
 			"ImportPath": "github.com/goamz/goamz/aws",
-			"Rev": "ad637a587dd8314770a1084481dd7b5d4fa1232f"
+			"Rev": "be371d06631a6ea076cccefc6654fa5c29be074d"
 		},
 		{
 			"ImportPath": "github.com/goamz/goamz/s3",
-			"Rev": "ad637a587dd8314770a1084481dd7b5d4fa1232f"
+			"Rev": "be371d06631a6ea076cccefc6654fa5c29be074d"
 		},
 		{
 			"ImportPath": "github.com/golang/freetype",
-			"Comment": "release-116-g41fa49a",
-			"Rev": "41fa49aa5b23cc7c4082c9aaaf2da41e195602d9"
+			"Comment": "release-120-gf29eb11",
+			"Rev": "f29eb116deb328d02ee5c573f02d442ca67d5532"
 		},
 		{
 			"ImportPath": "github.com/golang/groupcache/lru",
@@ -67,25 +61,33 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
-			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "6fd0f867fef40c540fa05c59f86396de10a632a6"
+			"Rev": "361d4c0ffd78338ebe0a9e6320cdbe115d7dc026"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-56-gdc50b6a",
-			"Rev": "dc50b6ad2d3ee836442cf3389009c7cd1e64bb43"
+			"Comment": "go1.0-cutoff-61-g83c4f41",
+			"Rev": "83c4f410d0aed80a0f44bac6a576a7f2435791f3"
 		},
 		{
 			"ImportPath": "github.com/mssola/user_agent",
-			"Comment": "v0.4.1-4-ga163d6a",
-			"Rev": "a163d6a569f1cd264d2f8b2bf3c5d04ace5995eb"
+			"Comment": "v0.4.1-5-g783ec61",
+			"Rev": "783ec61292aee3fc2f442ce740aa491e4849b794"
+		},
+		{
+			"ImportPath": "github.com/pborman/uuid",
+			"Rev": "cccd189d45f7ac3368a0d127efb7f4d08ae0b655"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Rev": "d8ed2627bdf02c080bf22230dbb337003b7aba2d"
 		},
 		{
 			"ImportPath": "github.com/rwcarlsen/goexif/exif",
@@ -97,27 +99,29 @@
 		},
 		{
 			"ImportPath": "github.com/stretchr/objx",
-			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
+			"Rev": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
+			"Comment": "v1.0-83-gd797d25",
+			"Rev": "d797d25e0fa6d53be3b1a216d24e868d6a1912ef"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/mock",
-			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
-		},
-		{
-			"ImportPath": "github.com/throttled/throttled",
-			"Rev": "fe4c91d601f05354c8a7feba917ab9d3b634f68d"
+			"Comment": "v1.0-83-gd797d25",
+			"Rev": "d797d25e0fa6d53be3b1a216d24e868d6a1912ef"
 		},
 		{
 			"ImportPath": "github.com/vaughan0/go-ini",
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+		},
+		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
-			"Rev": "74f810a0152f4c50a16195f6b9ff44afc35594e8"
+			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
 		},
 		{
 			"ImportPath": "golang.org/x/image/bmp",
@@ -137,8 +141,13 @@
 		},
 		{
 			"ImportPath": "gopkg.in/fsnotify.v1",
-			"Comment": "v1.2.0",
-			"Rev": "96c060f6a6b7e0d6f75fddd10efeaca3e5d1bcb0"
+			"Comment": "v1.2.5",
+			"Rev": "2cdd39bd6129c6a49c74fb07fb9d77ba1271c572"
+		},
+		{
+			"ImportPath": "gopkg.in/throttled/throttled.v1",
+			"Comment": "v1.0.0",
+			"Rev": "74e328a1af88a9b54f9eca1397d74ad98572a6df"
 		}
 	]
 }

@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var ie11Regexp = regexp.MustCompile("^rv:(.+)$")
+
 // A struct containing all the information that we might be
 // interested from the browser.
 type Browser struct {
@@ -75,9 +77,8 @@ func (p *UserAgent) detectBrowser(sections []section) {
 				// This is the new user agent from Internet Explorer 11.
 				p.browser.Engine = "Trident"
 				p.browser.Name = "Internet Explorer"
-				reg, _ := regexp.Compile("^rv:(.+)$")
 				for _, c := range sections[0].comment {
-					version := reg.FindStringSubmatch(c)
+					version := ie11Regexp.FindStringSubmatch(c)
 					if len(version) > 0 {
 						p.browser.Version = version[1]
 						return

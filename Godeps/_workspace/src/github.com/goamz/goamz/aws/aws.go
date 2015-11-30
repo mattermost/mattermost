@@ -41,25 +41,26 @@ type ServiceInfo struct {
 //
 // See http://goo.gl/d8BP1 for more details.
 type Region struct {
-	Name                   string // the canonical name of this region.
-	EC2Endpoint            string
-	S3Endpoint             string
-	S3BucketEndpoint       string // Not needed by AWS S3. Use ${bucket} for bucket name.
-	S3LocationConstraint   bool   // true if this region requires a LocationConstraint declaration.
-	S3LowercaseBucket      bool   // true if the region requires bucket names to be lower case.
-	SDBEndpoint            string
-	SESEndpoint            string
-	SNSEndpoint            string
-	SQSEndpoint            string
-	IAMEndpoint            string
-	ELBEndpoint            string
-	DynamoDBEndpoint       string
-	CloudWatchServicepoint ServiceInfo
-	AutoScalingEndpoint    string
-	RDSEndpoint            ServiceInfo
-	STSEndpoint            string
-	CloudFormationEndpoint string
-	ECSEndpoint            string
+	Name                    string // the canonical name of this region.
+	EC2Endpoint             string
+	S3Endpoint              string
+	S3BucketEndpoint        string // Not needed by AWS S3. Use ${bucket} for bucket name.
+	S3LocationConstraint    bool   // true if this region requires a LocationConstraint declaration.
+	S3LowercaseBucket       bool   // true if the region requires bucket names to be lower case.
+	SDBEndpoint             string
+	SESEndpoint             string
+	SNSEndpoint             string
+	SQSEndpoint             string
+	IAMEndpoint             string
+	ELBEndpoint             string
+	DynamoDBEndpoint        string
+	CloudWatchServicepoint  ServiceInfo
+	AutoScalingEndpoint     string
+	RDSEndpoint             ServiceInfo
+	STSEndpoint             string
+	CloudFormationEndpoint  string
+	ECSEndpoint             string
+	DynamoDBStreamsEndpoint string
 }
 
 var Regions = map[string]Region{

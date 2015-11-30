@@ -4,9 +4,9 @@
 package model
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"regexp"
 	"strings"

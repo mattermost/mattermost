@@ -226,9 +226,13 @@ func Clone(img image.Image) *image.NRGBA {
 						dst.Pix[di+1] = src.Pix[si+1]
 						dst.Pix[di+2] = src.Pix[si+2]
 					default:
-						dst.Pix[di+0] = uint8(uint16(src.Pix[si+0]) * 0xff / uint16(a))
-						dst.Pix[di+1] = uint8(uint16(src.Pix[si+1]) * 0xff / uint16(a))
-						dst.Pix[di+2] = uint8(uint16(src.Pix[si+2]) * 0xff / uint16(a))
+						var tmp uint16
+						tmp = uint16(src.Pix[si+0]) * 0xff / uint16(a)
+						dst.Pix[di+0] = uint8(tmp)
+						tmp = uint16(src.Pix[si+1]) * 0xff / uint16(a)
+						dst.Pix[di+1] = uint8(tmp)
+						tmp = uint16(src.Pix[si+2]) * 0xff / uint16(a)
+						dst.Pix[di+2] = uint8(tmp)
 					}
 
 					di += 4
@@ -257,9 +261,13 @@ func Clone(img image.Image) *image.NRGBA {
 						dst.Pix[di+1] = src.Pix[si+2]
 						dst.Pix[di+2] = src.Pix[si+4]
 					default:
-						dst.Pix[di+0] = uint8(uint16(src.Pix[si+0]) * 0xff / uint16(a))
-						dst.Pix[di+1] = uint8(uint16(src.Pix[si+2]) * 0xff / uint16(a))
-						dst.Pix[di+2] = uint8(uint16(src.Pix[si+4]) * 0xff / uint16(a))
+						var tmp uint16
+						tmp = uint16(src.Pix[si+0]) * 0xff / uint16(a)
+						dst.Pix[di+0] = uint8(tmp)
+						tmp = uint16(src.Pix[si+2]) * 0xff / uint16(a)
+						dst.Pix[di+1] = uint8(tmp)
+						tmp = uint16(src.Pix[si+4]) * 0xff / uint16(a)
+						dst.Pix[di+2] = uint8(tmp)
 					}
 
 					di += 4

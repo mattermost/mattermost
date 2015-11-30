@@ -48,9 +48,7 @@ func (c *Conn) ReadJSON(v interface{}) error {
 	}
 	err = json.NewDecoder(r).Decode(v)
 	if err == io.EOF {
-		// Decode returns io.EOF when the message is empty or all whitespace.
-		// Convert to io.ErrUnexpectedEOF so that application can distinguish
-		// between an error reading the JSON value and the connection closing.
+		// One value is expected in the message.
 		err = io.ErrUnexpectedEOF
 	}
 	return err

@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var botFromSiteRegexp = regexp.MustCompile("http://.+\\.\\w+")
+
 // Get the name of the bot from the website that may be in the given comment. If
 // there is no website in the comment, then an empty string is returned.
 func getFromSite(comment []string) string {
@@ -23,8 +25,7 @@ func getFromSite(comment []string) string {
 	}
 
 	// Pick the site.
-	re := regexp.MustCompile("http://.+\\.\\w+")
-	results := re.FindStringSubmatch(comment[idx])
+	results := botFromSiteRegexp.FindStringSubmatch(comment[idx])
 	if len(results) == 1 {
 		// If it's a simple comment, just return the name of the site.
 		if idx == 0 {

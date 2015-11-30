@@ -300,7 +300,9 @@ func (s *S) TestMultiComplete(c *C) {
 	c.Assert(err, IsNil)
 
 	err = multi.Complete([]s3.Part{{2, `"ETag2"`, 32}, {1, `"ETag1"`, 64}})
-	c.Assert(err, IsNil)
+	// returns InternalErrorDump in the payload, which should manifest as
+	// an error.
+	c.Assert(err, NotNil)
 
 	testServer.WaitRequest()
 	req := testServer.WaitRequest()
