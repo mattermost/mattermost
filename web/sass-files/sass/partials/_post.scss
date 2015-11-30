@@ -374,8 +374,8 @@ body.ios {
 	ul {
 		margin: 0;
 		padding: 0;
-		list-style: none;
 	}
+
 
 	p {
 		margin: 0 0 1em;
@@ -603,6 +603,11 @@ body.ios {
 			padding: 5px 0 0 20px;
 		}
 
+		ul, ol {
+			li ul, li ol {
+				padding: 0 0 0 20px
+			}
+		}
 	}
 
 	.post__link {
