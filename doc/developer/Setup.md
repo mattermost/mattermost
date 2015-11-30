@@ -24,20 +24,17 @@ Developer Machine Setup
 		If you don't increase the file handle limit you may see some weird build issues with browserify or npm.  
 	3. Reload your bash profile  
 		`source ~/.bash_profile`
-4. Install Godep
-	1. `cd ~/go`
-	2. `go get github.com/tools/godep`
-5. Install Compass
+4. Install Compass
 	1. Run `ruby -v` and check the ruby version is 1.8.7 or higher
 	2. `sudo gem install compass`
-6. Download Mattermost  
+5. Download Mattermost  
 	`cd ~/go`  
 	`mkdir -p src/github.com/mattermost`  
 	`cd src/github.com/mattermost`  
 	`git clone https://github.com/mattermost/platform.git`  
 	`cd platform`
-7. Run unit tests on Mattermost using `make test` to make sure the installation was successful
-8. If tests passed, you can now run Mattermost using `make run`
+6. Run unit tests on Mattermost using `make test` to make sure the installation was successful
+7. If tests passed, you can now run Mattermost using `make run`
 
 Any issues? Please let us know on our forums at: http://forum.mattermost.org
 
