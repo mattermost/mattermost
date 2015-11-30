@@ -28,6 +28,8 @@ export default class SearchBar extends React.Component {
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
         this.state = state;
+
+        this.suggestionProviders = [new SearchChannelProvider(), new SearchUserProvider()];
     }
     getSearchTermStateFromStores() {
         var term = SearchStore.getSearchTerm() || '';
@@ -162,7 +164,7 @@ export default class SearchBar extends React.Component {
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onUserInput={this.handleUserInput}
-                        providers={[SearchChannelProvider, SearchUserProvider]}
+                        providers={this.suggestionProviders}
                     />
                     {isSearching}
                     <Popover

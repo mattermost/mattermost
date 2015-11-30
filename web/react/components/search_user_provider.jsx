@@ -34,7 +34,7 @@ SearchUserSuggestion.propTypes = {
     onClick: React.PropTypes.func
 };
 
-class SearchUserProvider {
+export default class SearchUserProvider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext);
         if (captured) {
@@ -60,5 +60,3 @@ class SearchUserProvider {
         }
     }
 }
-
-export default new SearchUserProvider();

@@ -31,7 +31,7 @@ SearchChannelSuggestion.propTypes = {
     onClick: React.PropTypes.func
 };
 
-class SearchChannelProvider {
+export default class SearchChannelProvider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext);
         if (captured) {
@@ -67,5 +67,3 @@ class SearchChannelProvider {
         }
     }
 }
-
-export default new SearchChannelProvider();
