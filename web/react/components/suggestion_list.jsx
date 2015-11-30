@@ -4,11 +4,12 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
 import SuggestionStore from '../stores/suggestion_store.jsx';
-import * as Utils from '../utils/utils.jsx';
 
 export default class SuggestionList extends React.Component {
     constructor(props) {
         super(props);
+
+        this.getContent = this.getContent.bind(this);
 
         this.handleItemClick = this.handleItemClick.bind(this);
         this.handleSuggestionsChanged = this.handleSuggestionsChanged.bind(this);
@@ -27,15 +28,12 @@ export default class SuggestionList extends React.Component {
         SuggestionStore.addSuggestionsChangedListener(this.props.suggestionId, this.handleSuggestionsChanged);
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (this.state.items.length > 0 && prevState.items.length === 0) {
-            const content = $(ReactDOM.findDOMNode(this.refs.popover)).find('.popover-content');
-            content.perfectScrollbar();
-        }
-    }
-
     componentWillUnmount() {
         SuggestionStore.removeSuggestionsChangedListener(this.props.suggestionId, this.handleSuggestionsChanged);
+    }
+
+    getContent() {
+        return $(ReactDOM.findDOMNode(this.refs.content));
     }
 
     handleItemClick(term, e) {
@@ -64,7 +62,7 @@ export default class SuggestionList extends React.Component {
     }
 
     scrollToItem(term) {
-        const content = $(ReactDOM.findDOMNode(this.refs.popover)).find('.popover-content');
+        const content = this.getContent();
         const visibleContentHeight = content[0].clientHeight;
         const actualContentHeight = content[0].scrollHeight;
 
@@ -75,7 +73,8 @@ export default class SuggestionList extends React.Component {
 
             const item = $(ReactDOM.findDOMNode(this.refs[term]));
             const itemTop = item[0].offsetTop - parseInt(item.css('margin-top'), 10);
-            const itemBottom = item[0].offsetTop + item.height() + parseInt(item.css('margin-bottom'), 10);
+            const itemBottomMargin = parseInt(item.css('margin-bottom'), 10) + parseInt(item.css('padding-bottom'), 10);
+            const itemBottom = item[0].offsetTop + item.height() + itemBottomMargin;
 
             if (itemTop - contentTopPadding < contentTop) {
                 // the item is off the top of the visible space
@@ -85,24 +84,6 @@ export default class SuggestionList extends React.Component {
                 content.scrollTop(itemBottom - visibleContentHeight + contentTopPadding + contentBottomPadding);
             }
         }
-    }
-
-    renderChannelDivider(type) {
-        let text;
-        if (type === Constants.OPEN_CHANNEL) {
-            text = 'Public ' + Utils.getChannelTerm(type) + 's';
-        } else {
-            text = 'Private ' + Utils.getChannelTerm(type) + 's';
-        }
-
-        return (
-            <div
-                key={type + '-divider'}
-                className='search-autocomplete__divider'
-            >
-                <span>{text}</span>
-            </div>
-        );
     }
 
     render() {
@@ -119,15 +100,6 @@ export default class SuggestionList extends React.Component {
             // ReactComponent names need to be upper case when used in JSX
             const Component = this.state.components[i];
 
-            // temporary hack to add dividers between public and private channels in the search suggestion list
-            if (i === 0 || item.type !== this.state.items[i - 1].type) {
-                if (item.type === Constants.OPEN_CHANNEL) {
-                    items.push(this.renderChannelDivider(Constants.OPEN_CHANNEL));
-                } else if (item.type === Constants.PRIVATE_CHANNEL) {
-                    items.push(this.renderChannelDivider(Constants.PRIVATE_CHANNEL));
-                }
-            }
-
             items.push(
                 <Component
                     key={term}
@@ -140,14 +112,14 @@ export default class SuggestionList extends React.Component {
         }
 
         return (
-            <ReactBootstrap.Popover
-                ref='popover'
-                id='search-autocomplete__popover'
-                className='search-help-popover autocomplete visible'
-                placement='bottom'
-            >
-                {items}
-            </ReactBootstrap.Popover>
+            <div className='suggestion-list suggestion-list--top'>
+                <div
+                    ref='content'
+                    className='suggestion-content suggestion-content--top'
+                >
+                    {items}
+                </div>
+            </div>
         );
     }
 }

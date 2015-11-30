@@ -12,8 +12,6 @@ var ActionTypes = Constants.ActionTypes;
 var CHANGE_EVENT = 'change';
 var SEARCH_CHANGE_EVENT = 'search_change';
 var SEARCH_TERM_CHANGE_EVENT = 'search_term_change';
-var MENTION_DATA_CHANGE_EVENT = 'mention_data_change';
-var ADD_MENTION_EVENT = 'add_mention';
 var SHOW_SEARCH_EVENT = 'show_search';
 
 class SearchStoreClass extends EventEmitter {
@@ -31,10 +29,6 @@ class SearchStoreClass extends EventEmitter {
         this.emitSearchTermChange = this.emitSearchTermChange.bind(this);
         this.addSearchTermChangeListener = this.addSearchTermChangeListener.bind(this);
         this.removeSearchTermChangeListener = this.removeSearchTermChangeListener.bind(this);
-
-        this.emitMentionDataChange = this.emitMentionDataChange.bind(this);
-        this.addMentionDataChangeListener = this.addMentionDataChangeListener.bind(this);
-        this.removeMentionDataChangeListener = this.removeMentionDataChangeListener.bind(this);
 
         this.emitShowSearch = this.emitShowSearch.bind(this);
         this.addShowSearchListener = this.addShowSearchListener.bind(this);
@@ -113,30 +107,6 @@ class SearchStoreClass extends EventEmitter {
         return BrowserStore.getItem('search_term');
     }
 
-    emitMentionDataChange(id, mentionText) {
-        this.emit(MENTION_DATA_CHANGE_EVENT, id, mentionText);
-    }
-
-    addMentionDataChangeListener(callback) {
-        this.on(MENTION_DATA_CHANGE_EVENT, callback);
-    }
-
-    removeMentionDataChangeListener(callback) {
-        this.removeListener(MENTION_DATA_CHANGE_EVENT, callback);
-    }
-
-    emitAddMention(id, username) {
-        this.emit(ADD_MENTION_EVENT, id, username);
-    }
-
-    addAddMentionListener(callback) {
-        this.on(ADD_MENTION_EVENT, callback);
-    }
-
-    removeAddMentionListener(callback) {
-        this.removeListener(ADD_MENTION_EVENT, callback);
-    }
-
     storeSearchResults(results, isMentionSearch) {
         BrowserStore.setItem('search_results', results);
         BrowserStore.setItem('is_mention_search', Boolean(isMentionSearch));
@@ -156,12 +126,6 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECIEVED_SEARCH_TERM:
         SearchStore.storeSearchTerm(action.term);
         SearchStore.emitSearchTermChange(action.do_search, action.is_mention_search);
-        break;
-    case ActionTypes.RECIEVED_MENTION_DATA:
-        SearchStore.emitMentionDataChange(action.id, action.mention_text);
-        break;
-    case ActionTypes.RECIEVED_ADD_MENTION:
-        SearchStore.emitAddMention(action.id, action.username);
         break;
     case ActionTypes.SHOW_SEARCH:
         SearchStore.emitShowSearch();

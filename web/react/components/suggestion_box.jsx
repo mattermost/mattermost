@@ -3,7 +3,6 @@
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
-import SuggestionList from './suggestion_list.jsx';
 import SuggestionStore from '../stores/suggestion_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
@@ -43,6 +42,11 @@ export default class SuggestionBox extends React.Component {
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
         $(document).off('click', this.handleDocumentClick);
+    }
+
+    getTextbox() {
+        // this is to support old code that looks at the input/textarea DOM nodes
+        return ReactDOM.findDOMNode(this.refs.textbox);
     }
 
     handleDocumentClick(e) {
@@ -143,26 +147,48 @@ export default class SuggestionBox extends React.Component {
     }
 
     render() {
+        const SuggestionList = this.props.listComponent;
+
         const newProps = Object.assign({}, this.props, {
             onFocus: this.handleFocus,
             onChange: this.handleChange,
             onKeyDown: this.handleKeyDown
         });
 
-        return (
-            <div>
+        let textbox = null;
+        if (this.props.type === 'input') {
+            textbox = (
                 <input
                     ref='textbox'
                     type='text'
                     {...newProps}
                 />
+            );
+        } else if (this.props.type === 'textarea') {
+            textbox = (
+                <textarea
+                    ref='textbox'
+                    {...newProps}
+                />
+            );
+        }
+
+        return (
+            <div>
+                {textbox}
                 <SuggestionList suggestionId={this.suggestionId} />
             </div>
         );
     }
 }
 
+SuggestionBox.defaultProps = {
+    type: 'input'
+};
+
 SuggestionBox.propTypes = {
+    listComponent: React.PropTypes.func.isRequired,
+    type: React.PropTypes.oneOf(['input', 'textarea']).isRequired,
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),

@@ -7,6 +7,7 @@ import SearchStore from '../stores/search_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import SuggestionBox from '../components/suggestion_box.jsx';
 import SearchChannelProvider from '../components/search_channel_provider.jsx';
+import SearchSuggestionList from '../components/search_suggestion_list.jsx';
 import SearchUserProvider from '../components/search_user_provider.jsx';
 import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
@@ -164,6 +165,7 @@ export default class SearchBar extends React.Component {
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onUserInput={this.handleUserInput}
+                        listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                     />
                     {isSearching}
