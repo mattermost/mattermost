@@ -621,8 +621,10 @@
     .modal {
         .modal-image {
             .image-wrapper {
-                font-size: 12px;
-                min-width: 250px;
+                > div {
+                    font-size: 12px;
+                    min-width: 250px;
+                }
                 .modal-close {
                     @include opacity(1);
                 }

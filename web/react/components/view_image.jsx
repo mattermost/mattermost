@@ -424,23 +424,26 @@ export default class ViewImageModal extends React.Component {
                 >
                     <div
                         className={'image-wrapper ' + bgClass}
-                        onMouseEnter={this.onMouseEnterImage}
-                        onMouseLeave={this.onMouseLeaveImage}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div
-                            className={closeButtonClass}
-                            onClick={this.props.onModalDismissed}
-                        />
-                        {content}
-                        <ViewImagePopoverBar
-                            show={this.state.showFooter}
-                            fileId={this.state.imgId}
-                            totalFiles={this.props.filenames.length}
-                            filename={name}
-                            fileURL={fileUrl}
-                            getPublicLink={this.getPublicLink}
-                        />
+                            onMouseEnter={this.onMouseEnterImage}
+                            onMouseLeave={this.onMouseLeaveImage}
+                        >
+                            <div
+                                className={closeButtonClass}
+                                onClick={this.props.onModalDismissed}
+                            />
+                            {content}
+                            <ViewImagePopoverBar
+                                show={this.state.showFooter}
+                                fileId={this.state.imgId}
+                                totalFiles={this.props.filenames.length}
+                                filename={name}
+                                fileURL={fileUrl}
+                                getPublicLink={this.getPublicLink}
+                            />
+                        </div>
                     </div>
                     {leftArrow}
                     {rightArrow}

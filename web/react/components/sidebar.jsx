@@ -173,6 +173,10 @@ export default class Sidebar extends React.Component {
         this.updateScrollbar();
 
         window.addEventListener('resize', this.handleResize);
+
+        if ($(window).width() > 768) {
+            $('.nav-pills__container').perfectScrollbar();
+        }
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(nextState, this.state)) {
@@ -199,6 +203,7 @@ export default class Sidebar extends React.Component {
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
         });
+        console.log('sad');
     }
     updateScrollbar() {
     }
