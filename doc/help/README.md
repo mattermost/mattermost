@@ -5,13 +5,18 @@
 
 - User Interface
    - Main Menu
-     - [Team Settings ](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md)
-        - [General Settings](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md#general) 
-        - [Slack Import](https://github.com/mattermost/platform/blob/help-docs-update/doc/help/Team-Settings.md#import-from-slack-beta)
+     - [Team Settings ](Team-Settings.md)
+        - [General Settings](Team-Settings.md#general) 
+        - [Slack Import](Team-Settings.md#import-from-slack-beta)
      - [Manage Members](Manage-Members.md)
-   - Messaging
-     - [Mattermost Markdown Formatting](help/Markdown.md)
+     - [Account Settings](Account-Settings.md)
+   - [Messaging](Messaging.md)
+     - [Mattermost Markdown Formatting](Markdown.md)
    - [Search](Search.md)
+   - [Channels](Channels.md)
+     - [Channel Types](Channels.md#channel-types)
+     - [Managing Channels](Channels.md#managing-channels)
+     - [Channel Settings](Channels.md#channel-settings)
      
 - System Console
   - Team
