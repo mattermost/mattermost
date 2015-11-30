@@ -65,12 +65,8 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 	3. Reload your bashrc  
 		`source ~/.bashrc`
 6. Install Node.js
-	1. Download the newest version of the Node.js sources from https://nodejs.org/en/download/
-	2. Extract the contents of the package and cd into the extracted files
-	3. Compile and install Node.js  
-		`./configure`  
-		`make`  
-		`make install`
+	`curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -`
+	`sudo apt-get install -y nodejs`
 7. Install Ruby and Compass  
 	`apt-get install ruby`  
 	`apt-get install ruby-dev`  
