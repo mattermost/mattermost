@@ -39,6 +39,7 @@ class PostStoreClass extends EventEmitter {
 
         this.makePostsInfo = this.makePostsInfo.bind(this);
 
+        this.getPost = this.getPost.bind(this);
         this.getAllPosts = this.getAllPosts.bind(this);
         this.getEarliestPost = this.getEarliestPost.bind(this);
         this.getLatestPost = this.getLatestPost.bind(this);
@@ -158,6 +159,17 @@ class PostStoreClass extends EventEmitter {
         if (!this.postsInfo.hasOwnProperty(id)) {
             this.postsInfo[id] = {};
         }
+    }
+
+    getPost(channelId, postId) {
+        const posts = this.postsInfo[channelId].postList;
+        let post = null;
+
+        if (posts.posts.hasOwnProperty(postId)) {
+            post = Object.assign({}, posts.posts[postId]);
+        }
+
+        return post;
     }
 
     getAllPosts(id) {
@@ -554,7 +566,7 @@ class PostStoreClass extends EventEmitter {
         return 0;
     }
     getCommentCount(post) {
-        const posts = this.getPosts(post.channel_id).posts;
+        const posts = this.getAllPosts(post.channel_id).posts;
 
         let commentCount = 0;
         for (const id in posts) {
