@@ -99,9 +99,11 @@ export default class PostsViewContainer extends React.Component {
         if (newIndex === -1) {
             newIndex = channels.length;
             channels.push(channelId);
-            postLists[newIndex] = this.getChannelPosts(channelId);
             atTop[newIndex] = PostStore.getVisibilityAtTop(channelId);
         }
+
+        // make sure we have the latest posts from the store
+        postLists[newIndex] = this.getChannelPosts(channelId);
 
         this.setState({
             currentChannelIndex: newIndex,

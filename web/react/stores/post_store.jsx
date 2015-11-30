@@ -211,7 +211,7 @@ class PostStoreClass extends EventEmitter {
                 postList.order = this.postsInfo[id].pendingPosts.order.concat(postList.order);
             }
 
-            // Add delteted posts
+            // Add deleted posts
             if (this.postsInfo[id].hasOwnProperty('deletedPosts')) {
                 Object.assign(postList.posts, this.postsInfo[id].deletedPosts);
 
