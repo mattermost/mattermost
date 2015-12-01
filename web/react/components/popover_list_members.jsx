@@ -5,6 +5,7 @@ import UserStore from '../stores/user_store.jsx';
 var Popover = ReactBootstrap.Popover;
 var Overlay = ReactBootstrap.Overlay;
 import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 
@@ -68,7 +69,7 @@ export default class PopoverListMembers extends React.Component {
     }
 
     render() {
-        let popoverHtml = [];
+        const popoverHtml = [];
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
         const currentUserId = UserStore.getCurrentId();
@@ -76,35 +77,13 @@ export default class PopoverListMembers extends React.Component {
 
         if (members && teamMembers) {
             members.sort((a, b) => {
-                return a.username.localeCompare(b.username);
+                const aName = Utils.displayUsername(a.id);
+                const bName = Utils.displayUsername(b.id);
+
+                return aName.localeCompare(bName);
             });
 
             members.forEach((m, i) => {
-                const details = [];
-
-                const fullName = Utils.getFullName(m);
-                if (fullName) {
-                    details.push(
-                        <span
-                            key={`${m.id}__full-name`}
-                            className='full-name'
-                        >
-                            {fullName}
-                        </span>
-                    );
-                }
-
-                if (m.nickname) {
-                    const separator = fullName ? ' - ' : '';
-                    details.push(
-                        <span
-                            key={`${m.nickname}__nickname`}
-                        >
-                            {separator + m.nickname}
-                        </span>
-                    );
-                }
-
                 let button = '';
                 if (currentUserId !== m.id && ch.type !== 'D') {
                     button = (
@@ -118,7 +97,12 @@ export default class PopoverListMembers extends React.Component {
                     );
                 }
 
-                if (teamMembers[m.username] && teamMembers[m.username].delete_at <= 0) {
+                let name = '';
+                if (teamMembers[m.username]) {
+                    name = Utils.displayUsername(teamMembers[m.username].id);
+                }
+
+                if (name && teamMembers[m.username].delete_at <= 0) {
                     popoverHtml.push(
                         <div
                             className='text-nowrap'
@@ -135,7 +119,7 @@ export default class PopoverListMembers extends React.Component {
                                 <div
                                     className='more-name'
                                 >
-                                    {m.username}
+                                    {name}
                                 </div>
                             </div>
                             <div
@@ -157,8 +141,8 @@ export default class PopoverListMembers extends React.Component {
             count = members.length;
         }
 
-        if (count > 20) {
-            countText = '20+';
+        if (count > Constants.MAX_CHANNEL_POPOVER_COUNT) {
+            countText = Constants.MAX_CHANNEL_POPOVER_COUNT + '+';
         } else if (count > 0) {
             countText = count.toString();
         }

@@ -981,13 +981,15 @@ export function displayUsername(userId) {
     const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value;
 
     let username = '';
-    if (nameFormat === 'nickname_full_name') {
-        username = user.nickname || getFullName(user);
-    } else if (nameFormat === 'full_name') {
-        username = getFullName(user);
-    }
-    if (!username.trim().length) {
-        username = user.username;
+    if (user) {
+        if (nameFormat === 'nickname_full_name') {
+            username = user.nickname || getFullName(user);
+        } else if (nameFormat === 'full_name') {
+            username = getFullName(user);
+        }
+        if (!username.trim().length) {
+            username = user.username;
+        }
     }
 
     return username;

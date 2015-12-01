@@ -2,15 +2,18 @@
 // See License.txt for license information.
 
 import UserStore from '../stores/user_store.jsx';
+import PreferenceStore from '../stores/preference_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
+const Preferences = Constants.Preferences;
 
 export default class PostsView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.updateState = this.updateState.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
         this.isAtBottom = this.isAtBottom.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
@@ -22,6 +25,8 @@ export default class PostsView extends React.Component {
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
         this.scrollHeight = 0;
+
+        this.state = {displayNameType: PreferenceStore.getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value};
     }
     static get SCROLL_TYPE_FREE() {
         return 1;
@@ -37,6 +42,9 @@ export default class PostsView extends React.Component {
     }
     static get SCROLL_TYPE_POST() {
         return 5;
+    }
+    updateState() {
+        this.setState({displayNameType: PreferenceStore.getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value});
     }
     isAtBottom() {
         return ((this.refs.postlist.scrollHeight - this.refs.postlist.scrollTop) === this.refs.postlist.clientHeight);
@@ -166,6 +174,7 @@ export default class PostsView extends React.Component {
                     isLastComment={isLastComment}
                     shouldHighlight={shouldHighlight}
                     onClick={() => EventHelpers.emitPostFocusEvent(post.id)} //eslint-disable-line no-loop-func
+                    displayNameType={this.state.displayNameType}
                 />
             );
 
@@ -272,9 +281,11 @@ export default class PostsView extends React.Component {
         }
         window.addEventListener('resize', this.handleResize);
         $(this.refs.postlist).perfectScrollbar();
+        PreferenceStore.addChangeListener(this.updateState);
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
+        PreferenceStore.removeChangeListener(this.updateState);
     }
     componentDidUpdate() {
         if (this.props.postList != null) {
@@ -282,7 +293,7 @@ export default class PostsView extends React.Component {
         }
         $(this.refs.postlist).perfectScrollbar('update');
     }
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (this.props.isActive !== nextProps.isActive) {
             return true;
         }
@@ -299,6 +310,9 @@ export default class PostsView extends React.Component {
             return true;
         }
         if (!Utils.areObjectsEqual(this.props.postList, nextProps.postList)) {
+            return true;
+        }
+        if (nextState.displayNameType !== this.state.displayNameType) {
             return true;
         }
 
