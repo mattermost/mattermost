@@ -38,6 +38,7 @@
 	font-size: 14px;
 	@include opacity(0.5);
 	display: none;
+	color: #777;
 }
 .search__form {
 	.search-bar__container & {
