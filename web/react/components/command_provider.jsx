@@ -12,7 +12,7 @@ class CommandSuggestion extends React.Component {
 
         let className = 'command-name';
         if (isSelection) {
-            className += ' command--selected';
+            className += ' suggestion--selected';
         }
 
         return (

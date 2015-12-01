@@ -21,3 +21,27 @@
     position: absolute;
     bottom: 0;
 }
+
+.suggestion--selected {
+    // set by theme code
+}
+
+.command-name {
+    position: relative;
+    width: 100%;
+    line-height: 24px;
+    padding: 5px 10px 8px;
+    z-index: 101;
+    font-size: 0.95em;
+    border-bottom: 1px solid #ddd;
+
+    .command__desc {
+        margin-left: 5px;
+        @include opacity(0.5);
+        line-height: normal;
+    }
+}
+
+.command-desc {
+    color: #a7a8ab;
+}

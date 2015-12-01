@@ -33,7 +33,7 @@ class AtMentionSuggestion extends React.Component {
 
         let className = 'mentions-name';
         if (isSelection) {
-            className += ' mentions-focus';
+            className += ' suggestion--selected';
         }
 
         return (
