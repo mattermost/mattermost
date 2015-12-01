@@ -3,16 +3,19 @@
 
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
+import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
 
 export default class DeveloperTab extends React.Component {
     constructor(props) {
         super(props);
 
+        this.register = this.register.bind(this);
+
         this.state = {};
     }
     register() {
-        $('#user_settings1').modal('hide');
-        $('#register_app').modal('show');
+        this.props.closeModal();
+        EventHelpers.showRegisterAppModal();
     }
     render() {
         var appSection;
@@ -21,7 +24,10 @@ export default class DeveloperTab extends React.Component {
             var inputs = [];
 
             inputs.push(
-                <div className='form-group'>
+                <div
+                    key='registerbtn'
+                    className='form-group'
+                >
                     <div className='col-sm-7'>
                         <a
                             className='btn btn-sm btn-primary'
