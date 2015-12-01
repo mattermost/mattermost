@@ -96,11 +96,8 @@ type EmailSettings struct {
 	ConnectionSecurity       string
 	InviteSalt               string
 	PasswordResetSalt        string
-
-	// For Future Use
-	ApplePushServer      string
-	ApplePushCertPublic  string
-	ApplePushCertPrivate string
+	SendPushNotifications    *bool
+	PushNotificationServer   *string
 }
 
 type RateLimitSettings struct {
@@ -181,6 +178,17 @@ func (o *Config) SetDefaults() {
 		o.TeamSettings.EnableTeamListing = new(bool)
 		*o.TeamSettings.EnableTeamListing = false
 	}
+
+	if o.EmailSettings.SendPushNotifications == nil {
+		o.EmailSettings.SendPushNotifications = new(bool)
+		*o.EmailSettings.SendPushNotifications = true
+	}
+
+	if o.EmailSettings.PushNotificationServer == nil {
+		o.EmailSettings.PushNotificationServer = new(string)
+		*o.EmailSettings.PushNotificationServer = "https://push.mattermost.com"
+	}
+
 }
 
 func (o *Config) IsValid() *AppError {

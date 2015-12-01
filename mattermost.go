@@ -68,6 +68,7 @@ func main() {
 			manualtesting.InitManualTesting()
 		}
 
+		setDiagnosticId()
 		runSecurityAndDiagnosticsJobAndForget()
 
 		// wait for kill signal before attempting to gracefully shutdown
@@ -77,6 +78,21 @@ func main() {
 		<-c
 
 		api.StopServer()
+	}
+}
+
+func setDiagnosticId() {
+	if result := <-api.Srv.Store.System().Get(); result.Err == nil {
+		props := result.Data.(model.StringMap)
+
+		id := props[model.SYSTEM_DIAGNOSTIC_ID]
+		if len(id) == 0 {
+			id = model.NewId()
+			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+			<-api.Srv.Store.System().Save(systemId)
+		}
+
+		utils.CfgDiagnosticId = id
 	}
 }
 
@@ -92,15 +108,9 @@ func runSecurityAndDiagnosticsJobAndForget() {
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
 						l4g.Debug("Checking for security update from Mattermost")
 
-						id := props[model.SYSTEM_DIAGNOSTIC_ID]
-						if len(id) == 0 {
-							id = model.NewId()
-							systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-							<-api.Srv.Store.System().Save(systemId)
-						}
-
 						v := url.Values{}
-						v.Set(utils.PROP_DIAGNOSTIC_ID, id)
+
+						v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
 						v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
 						v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
 						v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
