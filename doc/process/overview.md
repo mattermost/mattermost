@@ -64,7 +64,7 @@ Mattermost priorities are managed in Jira tickets, which are created by the core
 
 On non-holiday weekdays new tickets are reviewed in a process called "triage", and assigned a Fix Version of "backlog", indicating the ticket has enough specificity that it can be assigned to a developer to be completed. 
 
-By default, all tickets are created as internal-only, and the triage process reviews them for sufficient specifity and abscense of sensitive information before switching their visibility to public as part of the triage process. 
+By default, all tickets are created as public unless they contain sensitive information. The triage process reviews them for sufficient specifity. If the ticket is unclear, triage may reassign the ticket back to the original reporter to add more details. 
 
 View [current issues scheduled for the next triage meeting](https://mattermost.atlassian.net/browse/PLT-1203?filter=10105). 
 
