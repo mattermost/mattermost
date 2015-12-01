@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import CommandList from './command_list.jsx';
 import AtMentionProvider from './at_mention_provider.jsx';
+import CommandProvider from './command_provider.jsx';
 import SuggestionList from './suggestion_list.jsx';
 import SuggestionBox from './suggestion_box.jsx';
 import ErrorStore from '../stores/error_store.jsx';
@@ -10,7 +10,6 @@ import ErrorStore from '../stores/error_store.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
-const KeyCodes = Constants.KeyCodes;
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class Textbox extends React.Component {
@@ -21,8 +20,6 @@ export default class Textbox extends React.Component {
         this.onRecievedError = this.onRecievedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleBackspace = this.handleBackspace.bind(this);
-        this.addCommand = this.addCommand.bind(this);
         this.resize = this.resize.bind(this);
         this.handleFocus = this.handleFocus.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
@@ -32,9 +29,7 @@ export default class Textbox extends React.Component {
             connection: ''
         };
 
-        this.caret = -1;
-
-        this.suggestionProviders = [new AtMentionProvider()];
+        this.suggestionProviders = [new AtMentionProvider(), new CommandProvider()];
     }
 
     getStateFromStores() {
@@ -68,46 +63,17 @@ export default class Textbox extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.caret >= 0) {
-            Utils.setCaretPosition(this.refs.message.getTextbox(), this.caret);
-            this.caret = -1;
-        }
         this.resize();
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.refs.commands.getSuggestedCommands(nextProps.messageText);
-    }
-
     handleKeyPress(e) {
-        const text = this.refs.message.getTextbox().value;
-
-        if (!this.refs.commands.isEmpty() && text.indexOf('/') === 0 && e.which === KeyCodes.ENTER) {
-            this.refs.commands.addFirstCommand();
-            e.preventDefault();
-            return;
-        }
-
         this.props.onKeyPress(e);
     }
 
     handleKeyDown(e) {
-        if (e.keyCode === KeyCodes.BACKSPACE) {
-            this.handleBackspace(e);
-        } else if (this.props.onKeyDown) {
+        if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
         }
-    }
-
-    handleBackspace() {
-        const text = this.refs.message.getTextbox().value;
-        if (text.indexOf('/') === 0) {
-            this.refs.commands.getSuggestedCommands(text.substring(0, text.length - 1));
-        }
-    }
-
-    addCommand(cmd) {
-        this.props.onUserInput(cmd);
     }
 
     resize() {
@@ -193,11 +159,6 @@ export default class Textbox extends React.Component {
                 ref='wrapper'
                 className='textarea-wrapper'
             >
-                <CommandList
-                    ref='commands'
-                    addCommand={this.addCommand}
-                    channelId={this.props.channelId}
-                />
                 <SuggestionBox
                     id={this.props.id}
                     ref='message'

@@ -223,11 +223,13 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS:
-            this.setMatchedPretext(id, other.matchedPretext);
-            this.addSuggestions(id, other.terms, other.items, other.componentType);
+            if (other.matchedPretext === this.getMatchedPretext(id)) {
+                // ensure the matched pretext hasn't changed so that we don't receive suggestions for outdated pretext
+                this.addSuggestions(id, other.terms, other.items, other.component);
 
-            this.ensureSelectionExists(id);
-            this.emitSuggestionsChanged(id);
+                this.ensureSelectionExists(id);
+                this.emitSuggestionsChanged(id);
+            }
             break;
         case ActionTypes.SUGGESTION_SELECT_NEXT:
             this.selectNext(id);
