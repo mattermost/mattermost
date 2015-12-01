@@ -94,22 +94,53 @@ export default class PostsView extends React.Component {
                 const prevPostIsComment = Utils.isComment(prevPost);
                 const postFromWebhook = Boolean(post.props && post.props.from_webhook);
                 const prevPostFromWebhook = Boolean(prevPost.props && prevPost.props.from_webhook);
+                let prevWebhookName = '';
+                if (prevPost.props && prevPost.props.override_username) {
+                    prevWebhookName = prevPost.props.override_username;
+                }
+                let curWebhookName = '';
+                if (post.props && post.props.override_username) {
+                    curWebhookName = post.props.override_username;
+                }
 
-                sameUser = prevPost.user_id === post.user_id && postFromWebhook === prevPostFromWebhook &&
-                    post.create_at - prevPost.create_at <= 1000 * 60 * 5;
-                sameRoot = (postIsComment && (prevPost.id === post.root_id || prevPost.root_id === post.root_id)) || (!postIsComment && !prevPostIsComment && sameUser);
+                // consider posts from the same user if:
+                //     the previous post was made by the same user as the current post,
+                //     the previous post was made within 5 minutes of the current post,
+                //     the previous post and current post are both from webhooks or both not,
+                //     the previous post and current post have the same webhook usernames
+                if (prevPost.user_id === post.user_id &&
+                        post.create_at - prevPost.create_at <= 1000 * 60 * 5 &&
+                        postFromWebhook === prevPostFromWebhook &&
+                        prevWebhookName === curWebhookName) {
+                    sameUser = true;
+                }
+
+                // consider posts from the same root if:
+                //     the current post is a comment,
+                //     the current post has the same root as the previous post
+                if (postIsComment && (prevPost.id === post.root_id || prevPost.root_id === post.root_id)) {
+                    sameRoot = true;
+                }
+
+                // consider posts from the same root if:
+                //     the current post is not a comment,
+                //     the previous post is not a comment,
+                //     the previous post is from the same user
+                if (!postIsComment && !prevPostIsComment && sameUser) {
+                    sameRoot = true;
+                }
 
                 // hide the profile pic if:
                 //     the previous post was made by the same user as the current post,
                 //     the previous post is not a comment,
                 //     the current post is not a comment,
-                //     the current post is not from a webhook
-                //     and the previous post is not from a webhook
-                if ((prevPost.user_id === post.user_id) &&
+                //     the previous post and current post are both from webhooks or both not,
+                //     the previous post and current post have the same webhook usernames
+                if (prevPost.user_id === post.user_id &&
                         !prevPostIsComment &&
                         !postIsComment &&
-                        !postFromWebhook &&
-                        !prevPostFromWebhook) {
+                        postFromWebhook === prevPostFromWebhook &&
+                        prevWebhookName === curWebhookName) {
                     hideProfilePic = true;
                 }
             }

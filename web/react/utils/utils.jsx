@@ -854,7 +854,7 @@ export function isMobile() {
 
 export function isComment(post) {
     if ('root_id' in post) {
-        return post.root_id !== '';
+        return post.root_id !== '' && post.root_id != null;
     }
     return false;
 }
