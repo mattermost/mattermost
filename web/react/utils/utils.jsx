@@ -1227,12 +1227,3 @@ export function getPostTerm(post) {
 export function isFeatureEnabled(feature) {
     return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label, {value: 'false'}).value === 'true';
 }
-
-export function getImagePathForEmoticon(name, style) {
-    const emojiStyle = style || PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'emoji_style', {value: 'default'}).value;
-
-    if (name) {
-        return `/static/images/emoji/${emojiStyle}/${name}.png`;
-    }
-    return `/static/images/emoji/${emojiStyle}`;
-}

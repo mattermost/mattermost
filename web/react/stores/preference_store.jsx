@@ -122,6 +122,5 @@ class PreferenceStoreClass extends EventEmitter {
 }
 
 const PreferenceStore = new PreferenceStoreClass();
-PreferenceStore.setMaxListeners(0);
 export default PreferenceStore;
 window.PreferenceStore = PreferenceStore;
