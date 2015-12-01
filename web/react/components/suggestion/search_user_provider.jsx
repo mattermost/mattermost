@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SuggestionStore from '../stores/suggestion_store.jsx';
-import UserStore from '../stores/user_store.jsx';
+import SuggestionStore from '../../stores/suggestion_store.jsx';
+import UserStore from '../../stores/user_store.jsx';
 
 class SearchUserSuggestion extends React.Component {
     render() {

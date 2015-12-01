@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SuggestionStore from '../stores/suggestion_store.jsx';
-import UserStore from '../stores/user_store.jsx';
-import * as Utils from '../utils/utils.jsx';
+import SuggestionStore from '../../stores/suggestion_store.jsx';
+import UserStore from '../../stores/user_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
 class AtMentionSuggestion extends React.Component {
     render() {

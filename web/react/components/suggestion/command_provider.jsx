@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import * as Client from '../utils/client.jsx';
-import Constants from '../utils/constants.jsx';
-import SuggestionStore from '../stores/suggestion_store.jsx';
+import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
+import * as Client from '../../utils/client.jsx';
+import Constants from '../../utils/constants.jsx';
+import SuggestionStore from '../../stores/suggestion_store.jsx';
 
 class CommandSuggestion extends React.Component {
     render() {

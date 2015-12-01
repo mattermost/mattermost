@@ -1,9 +1,9 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ChannelStore from '../stores/channel_store.jsx';
-import Constants from '../utils/constants.jsx';
-import SuggestionStore from '../stores/suggestion_store.jsx';
+import ChannelStore from '../../stores/channel_store.jsx';
+import Constants from '../../utils/constants.jsx';
+import SuggestionStore from '../../stores/suggestion_store.jsx';
 
 class SearchChannelSuggestion extends React.Component {
     render() {

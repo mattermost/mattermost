@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AtMentionProvider from './at_mention_provider.jsx';
-import CommandProvider from './command_provider.jsx';
-import SuggestionList from './suggestion_list.jsx';
-import SuggestionBox from './suggestion_box.jsx';
+import AtMentionProvider from './suggestion/at_mention_provider.jsx';
+import CommandProvider from './suggestion/command_provider.jsx';
+import SuggestionList from './suggestion/suggestion_list.jsx';
+import SuggestionBox from './suggestion/suggestion_box.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
 import * as TextFormatting from '../utils/text_formatting.jsx';

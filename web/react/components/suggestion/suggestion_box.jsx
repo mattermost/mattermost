@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from '../utils/constants.jsx';
-import SuggestionStore from '../stores/suggestion_store.jsx';
-import * as Utils from '../utils/utils.jsx';
+import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
+import Constants from '../../utils/constants.jsx';
+import SuggestionStore from '../../stores/suggestion_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
