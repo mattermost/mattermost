@@ -17,13 +17,18 @@ const (
 type GitLabUser struct {
 	Id       int64  `json:"id"`
 	Username string `json:"username"`
+	Login    string `json:"login"`
 	Email    string `json:"email"`
 	Name     string `json:"name"`
 }
 
 func UserFromGitLabUser(glu *GitLabUser) *User {
 	user := &User{}
-	user.Username = CleanUsername(glu.Username)
+	username := glu.Username
+	if username == "" {
+		username = glu.Login
+	}
+	user.Username = CleanUsername(username)
 	splitName := strings.Split(glu.Name, " ")
 	if len(splitName) == 2 {
 		user.FirstName = splitName[0]
