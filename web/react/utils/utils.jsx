@@ -607,7 +607,7 @@ export function applyTheme(theme) {
         changeCss('.popover.right>.arrow:after, .tip-overlay.tip-overlay--sidebar .arrow, .tip-overlay.tip-overlay--header .arrow', 'border-right-color:' + theme.centerChannelBg, 1);
         changeCss('.popover.left>.arrow:after', 'border-left-color:' + theme.centerChannelBg, 1);
         changeCss('.popover.top>.arrow:after, .tip-overlay.tip-overlay--chat .arrow', 'border-top-color:' + theme.centerChannelBg, 1);
-        changeCss('.search-bar__container .search__form .search-bar, .form-control', 'background:' + theme.centerChannelBg, 1);
+        changeCss('@media(min-width: 960px){.search-bar__container .search__form .search-bar, .form-control', 'background:' + theme.centerChannelBg, 1);
         changeCss('.attachment__content', 'background:' + theme.centerChannelBg, 1);
     }
 
@@ -638,8 +638,7 @@ export function applyTheme(theme) {
         changeCss('.post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 2);
         changeCss('.post-image__column .post-image__details', 'color:' + theme.centerChannelColor, 2);
         changeCss('.post-image__column a, .post-image__column a:hover, .post-image__column a:focus', 'color:' + theme.centerChannelColor, 1);
-        changeCss('.search-bar__container .search__form .search-bar, .form-control', 'color:' + theme.centerChannelColor, 2);
-        changeCss('@media(max-width: 960px){.search-bar__container .search__form .search-bar', 'background:' + changeOpacity(theme.centerChannelColor, 0.2) + '; color: inherit;', 1);
+        changeCss('@media(min-width: 960px){.search-bar__container .search__form .search-bar, .form-control', 'color:' + theme.centerChannelColor, 2);
         changeCss('.input-group-addon, .search-bar__container .search__form, .form-control', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.form-control:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.attachment .attachment__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);

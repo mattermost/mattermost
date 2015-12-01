@@ -484,7 +484,8 @@
                 padding: 0 10px 0 31px;
                 background: rgba(black, 0.2);
                 @include border-radius(3px);
-                color: inherit;
+                color: #444;
+                background: #fff;
             }
         }
     }
@@ -509,14 +510,14 @@
         &.move--right {
             @include translate3d(0, 0, 0);
         }
+        > div {
+            padding-bottom: 0;
+        }
         .nav-pills__unread-indicator-bottom {
             bottom: 10px;
         }
         .badge {
             top: 13px;
-        }
-        > div {
-            padding-bottom: 65px;
         }
         .team__header {
             display: none;

@@ -3,7 +3,6 @@
 
 import NewChannelFlow from './new_channel_flow.jsx';
 import MoreDirectChannels from './more_direct_channels.jsx';
-import SearchBox from './search_bar.jsx';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
@@ -586,7 +585,6 @@ export default class Sidebar extends React.Component {
                     teamName={TeamStore.getCurrent().name}
                     teamType={TeamStore.getCurrent().type}
                 />
-                <SearchBox />
 
                 <UnreadChannelIndicator
                     show={this.state.showTopUnread}

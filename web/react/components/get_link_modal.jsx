@@ -75,7 +75,7 @@ export default class GetLinkModal extends React.Component {
                 onHide={this.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    {this.props.title}
+                    <h4 className='modal-title'>{this.props.title}</h4>
                 </Modal.Header>
                 <Modal.Body>
                     {helpText}
