@@ -33,7 +33,7 @@ export default class ChannelNotificationsModal extends React.Component {
         };
     }
     componentWillReceiveProps(nextProps) {
-        if (nextProps.show) {
+        if (!this.props.show && nextProps.show) {
             this.onListenerChange();
             ChannelStore.addChangeListener(this.onListenerChange);
         } else {
