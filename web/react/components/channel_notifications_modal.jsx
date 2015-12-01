@@ -32,11 +32,13 @@ export default class ChannelNotificationsModal extends React.Component {
             activeSection: ''
         };
     }
-    componentDidMount() {
-        ChannelStore.addChangeListener(this.onListenerChange);
-    }
-    componentWillUnmount() {
-        ChannelStore.removeChangeListener(this.onListenerChange);
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.show) {
+            this.onListenerChange();
+            ChannelStore.addChangeListener(this.onListenerChange);
+        } else {
+            ChannelStore.removeChangeListener(this.onListenerChange);
+        }
     }
     onListenerChange() {
         const curChannelId = ChannelStore.getCurrentId();
