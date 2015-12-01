@@ -24,6 +24,7 @@ const (
 )
 
 var Cfg *model.Config = &model.Config{}
+var CfgDiagnosticId = ""
 var CfgLastModified int64 = 0
 var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}

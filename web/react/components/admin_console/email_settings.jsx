@@ -18,6 +18,7 @@ export default class EmailSettings extends React.Component {
 
         this.state = {
             sendEmailNotifications: this.props.config.EmailSettings.SendEmailNotifications,
+            sendPushNotifications: this.props.config.EmailSettings.SendPushNotifications,
             saveNeeded: false,
             serverError: null,
             emailSuccess: null,
@@ -36,6 +37,14 @@ export default class EmailSettings extends React.Component {
             s.sendEmailNotifications = false;
         }
 
+        if (action === 'sendPushNotifications_true') {
+            s.sendPushNotifications = true;
+        }
+
+        if (action === 'sendPushNotifications_false') {
+            s.sendPushNotifications = false;
+        }
+
         this.setState(s);
     }
 
@@ -43,11 +52,12 @@ export default class EmailSettings extends React.Component {
         var config = this.props.config;
         config.EmailSettings.EnableSignUpWithEmail = ReactDOM.findDOMNode(this.refs.allowSignUpWithEmail).checked;
         config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
+        config.EmailSettings.SendPushlNotifications = ReactDOM.findDOMNode(this.refs.sendPushNotifications).checked;
         config.EmailSettings.RequireEmailVerification = ReactDOM.findDOMNode(this.refs.requireEmailVerification).checked;
-        config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
         config.EmailSettings.FeedbackName = ReactDOM.findDOMNode(this.refs.feedbackName).value.trim();
         config.EmailSettings.FeedbackEmail = ReactDOM.findDOMNode(this.refs.feedbackEmail).value.trim();
         config.EmailSettings.SMTPServer = ReactDOM.findDOMNode(this.refs.SMTPServer).value.trim();
+        config.EmailSettings.PushNotificationServer = ReactDOM.findDOMNode(this.refs.PushNotificationServer).value.trim();
         config.EmailSettings.SMTPPort = ReactDOM.findDOMNode(this.refs.SMTPPort).value.trim();
         config.EmailSettings.SMTPUsername = ReactDOM.findDOMNode(this.refs.SMTPUsername).value.trim();
         config.EmailSettings.SMTPPassword = ReactDOM.findDOMNode(this.refs.SMTPPassword).value.trim();
@@ -522,6 +532,61 @@ export default class EmailSettings extends React.Component {
                                     {'Re-Generate'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='sendPushNotifications'
+                        >
+                            {'Send Push Notifications: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='sendPushNotifications'
+                                    value='true'
+                                    ref='sendPushNotifications'
+                                    defaultChecked={this.props.config.EmailSettings.SendPushNotifications}
+                                    onChange={this.handleChange.bind(this, 'sendPushNotifications_true')}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='sendPushNotifications'
+                                    value='false'
+                                    defaultChecked={!this.props.config.EmailSettings.SendPushNotifications}
+                                    onChange={this.handleChange.bind(this, 'sendPushNotifications_false')}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send iOS and Android push notifications through the push notification server.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='PushNotificationServer'
+                        >
+                            {'Push Notification Server:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='PushNotificationServer'
+                                ref='PushNotificationServer'
+                                placeholder='E.g.: "https://push.mattermost.com"'
+                                defaultValue={this.props.config.EmailSettings.PushNotificationServer}
+                                onChange={this.handleChange}
+                                disabled={!this.state.sendPushNotifications}
+                            />
+                            <p className='help-text'>{'Location of the push notification server.'}</p>
                         </div>
                     </div>
 

@@ -536,7 +536,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 						l4g.Error("Failed to send mention email successfully email=%v err=%v", profileMap[id].Email, err)
 					}
 
-					if len(utils.Cfg.EmailSettings.ApplePushServer) > 0 {
+					if *utils.Cfg.EmailSettings.SendPushNotifications {
 						sessionChan := Srv.Store.Session().GetSessions(id)
 						if result := <-sessionChan; result.Err != nil {
 							l4g.Error("Failed to retrieve sessions in notifications id=%v, err=%v", id, result.Err)
@@ -548,7 +548,19 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 								if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" && strings.HasPrefix(session.DeviceId, "apple:") {
 									alreadySeen[session.DeviceId] = session.DeviceId
 
-									utils.SendAppleNotifyAndForget(strings.TrimPrefix(session.DeviceId, "apple:"), subjectPage.Render(), 1)
+									msg := model.PushNotification{}
+									msg.Platform = model.PUSH_NOTIFY_APPLE
+									msg.Message = subjectPage.Render()
+									msg.Badge = 1
+									msg.DeviceId = strings.TrimPrefix(session.DeviceId, "apple:")
+									msg.ServerId = utils.CfgDiagnosticId
+
+									httpClient := http.Client{}
+									request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+"/api/v1/send_push", strings.NewReader(msg.ToJson()))
+
+									if _, err := httpClient.Do(request); err != nil {
+										l4g.Error("Failed to send push notificationid=%v, err=%v", id, err)
+									}
 								}
 							}
 						}

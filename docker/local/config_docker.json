@@ -68,9 +68,8 @@
         "ConnectionSecurity": "",
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
-        "ApplePushServer": "",
-        "ApplePushCertPublic": "",
-        "ApplePushCertPrivate": ""
+        "SendPushNotifications": true,
+        "PushNotificationServer": "https://push.mattermost.com"
     },
     "RateLimitSettings": {
         "EnableRateLimiter": true,
