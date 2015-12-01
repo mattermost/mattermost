@@ -3,6 +3,7 @@
 }
 .modal-body {
 	padding: 20px 15px;
+	overflow: auto;
 }
 .modal {
 	width: 100%;
@@ -46,9 +47,6 @@
 		max-width: 95%;
 		margin-left: auto;
 		margin-right: auto;
-	}
-	.modal-body {
-		overflow: auto;
 	}
 	.modal-push-down {
 		margin-top: 5%;
@@ -195,21 +193,35 @@
 		width:100%;
 		height: 100%;
 		margin: 0 auto;
+		max-width: 100%;
+
+		.modal-body {
+			@include clearfix;
+			height: 100%;
+			display: table;
+			table-layout: fixed;
+			width: 100%;
+			max-height: 100%;
+		}
+
 		.image-wrapper {
 			position: relative;
 			max-width: 90%;
-			min-height: 100px;
-			min-width: 320px;
 			@include border-radius(3px);
-			display: table;
-			margin: 0 auto;
+			display: table-cell;
+			vertical-align: middle;
+			text-align: center;
+			width: 100%;
+
 			&:hover {
 				@include border-radius(3px 3px 0 0);
 			}
+
 			&.default {
 				width: 100%;
 				height: 80%;
 			}
+
 			.modal-close {
 				background: url("../images/close.png") no-repeat;
 				@include background-size(100% 100%);
@@ -225,24 +237,31 @@
 				transition: opacity 0.6s;
 				cursor: pointer;
 				z-index: 9999;
+
 				&.modal-close--show {
 					@include opacity(1);
 				}
+
 			}
-			> a {
+
+			> div {
+				min-height: 100px;
+				min-width: 320px;
 				background: #FFF;
-				display: table-cell;
-				vertical-align: middle;
+				display: inline-block;
 				position: relative;
 
 				&:hover .file-playback-controls.stop {
 					@include opacity(1);
 				}
+
 			}
+
 			img {
 				max-width: 100%;
 				max-height: 100%;
 			}
+
 			.spinner.file__loading {
 				z-index: 2;
 				position: absolute;
@@ -259,7 +278,6 @@
 			height: 100%;
 			padding: 0;
 			border: none;
-			display: table;
 		}
 		.image-body {
 			vertical-align: middle;
