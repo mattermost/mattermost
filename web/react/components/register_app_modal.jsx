@@ -2,21 +2,57 @@
 // See License.txt for license information.
 
 import * as Client from '../utils/client.jsx';
+import ModalStore from '../stores/modal_store.jsx';
+
+const Modal = ReactBootstrap.Modal;
+
+import Constants from '../utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 
 export default class RegisterAppModal extends React.Component {
     constructor() {
         super();
 
-        this.register = this.register.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
         this.onHide = this.onHide.bind(this);
         this.save = this.save.bind(this);
+        this.updateShow = this.updateShow.bind(this);
 
-        this.state = {clientId: '', clientSecret: '', saved: false};
+        this.state = {
+            clientId: '',
+            clientSecret: '',
+            saved: false,
+            show: false
+        };
     }
     componentDidMount() {
-        $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', this.onHide);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_REGISTER_APP_MODAL, this.updateShow);
     }
-    register() {
+    componentWillUnmount() {
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_REGISTER_APP_MODAL, this.updateShow);
+    }
+    updateShow(show) {
+        if (!show) {
+            if (this.state.clientId !== '' && !this.state.saved) {
+                return;
+            }
+
+            this.setState({
+                clientId: '',
+                clientSecret: '',
+                saved: false,
+                homepageError: null,
+                callbackError: null,
+                serverError: null,
+                nameError: null
+            });
+        }
+
+        this.setState({show});
+    }
+    handleSubmit(e) {
+        e.preventDefault();
+
         var state = this.state;
         state.serverError = null;
 
@@ -94,6 +130,7 @@ export default class RegisterAppModal extends React.Component {
         }
 
         var body = '';
+        var footer = '';
         if (this.state.clientId === '') {
             body = (
                 <div className='settings-modal'>
@@ -148,22 +185,27 @@ export default class RegisterAppModal extends React.Component {
                             </div>
                         </div>
                         {serverError}
-                        <hr />
-                        <a
-                            className='btn btn-sm theme pull-right'
-                            href='#'
-                            data-dismiss='modal'
-                            aria-label='Close'
-                        >
-                            {'Cancel'}
-                        </a>
-                        <a
-                            className='btn btn-sm btn-primary pull-right'
-                            onClick={this.register}
-                        >
-                            {'Register'}
-                        </a>
                     </div>
+                </div>
+            );
+
+            footer = (
+                <div>
+                    <button
+                        type='button'
+                        className='btn btn-default'
+                        onClick={() => this.updateShow(false)}
+                    >
+                        {'Cancel'}
+                    </button>
+                    <button
+                        onClick={this.handleSubmit}
+                        type='submit'
+                        className='btn btn-primary'
+                        tabIndex='3'
+                    >
+                        {'Register'}
+                    </button>
                 </div>
             );
         } else {
@@ -173,17 +215,35 @@ export default class RegisterAppModal extends React.Component {
             }
 
             body = (
-                <div className='form-group user-settings'>
-                    <h3>{'Your Application Credentials'}</h3>
+                <div className='form-horizontal user-settings'>
+                    <h4 className='padding-bottom x3'>{'Your Application Credentials'}</h4>
+                    <br/>
+                    <div className='row'>
+                        <label className='col-sm-4 control-label'>{'Client ID'}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={this.state.clientId}
+                                readOnly='true'
+                            />
+                        </div>
+                    </div>
+                    <br/>
+                    <div className='row padding-top x2'>
+                        <label className='col-sm-4 control-label'>{'Client Secret'}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                type='text'
+                                value={this.state.clientSecret}
+                                readOnly='true'
+                            />
+                        </div>
+                    </div>
                     <br/>
                     <br/>
-                    <label className='col-sm-12 control-label'>{'Client ID: '}{this.state.clientId}</label>
-                    <label className='col-sm-12 control-label'>{'Client Secret: '}{this.state.clientSecret}</label>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <strong>{'Save these somewhere SAFE and SECURE. We can retrieve your Client Id if you lose it, but your Client Secret will be lost forever if you were to lose it.'}</strong>
+                    <strong>{'Save these somewhere SAFE and SECURE. Treat your Client ID as your app\'s username and your Client Secret as the app\'s password.'}</strong>
                     <br/>
                     <br/>
                     <div className='checkbox'>
@@ -192,56 +252,50 @@ export default class RegisterAppModal extends React.Component {
                                 ref='save'
                                 type='checkbox'
                                 checked={this.state.saved}
-                                onClick={this.save}
-                            >
-                                {'I have saved both my Client Id and Client Secret somewhere safe'}
-                            </input>
+                                onChange={this.save}
+                            />
+                            {'I have saved both my Client Id and Client Secret somewhere safe'}
                         </label>
                     </div>
-                    <a
-                        className={'btn btn-sm btn-primary pull-right' + btnClass}
-                        href='#'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                    >
-                        {'Close'}
-                    </a>
                 </div>
+            );
+
+            footer = (
+                <a
+                    className={'btn btn-sm btn-primary pull-right' + btnClass}
+                    href='#'
+                    onClick={(e) => {
+                        e.preventDefault();
+                        this.updateShow(false);
+                    }}
+                >
+                    {'Close'}
+                </a>
             );
         }
 
         return (
-        <div
-            className='modal fade'
-            ref='modal'
-            id='register_app'
-            role='dialog'
-            aria-hidden='true'
-        >
-            <div className='modal-dialog'>
-                <div className='modal-content'>
-                    <div className='modal-header'>
-                        <button
-                            type='button'
-                            className='close'
-                            data-dismiss='modal'
-                            aria-label='Close'
-                        >
-                            <span aria-hidden='true'>{'×'}</span>
-                        </button>
-                        <h4
-                            className='modal-title'
-                            ref='title'
-                        >
-                            {'Developer Applications'}
-                        </h4>
-                    </div>
-                    <div className='modal-body'>
-                        {body}
-                    </div>
-                </div>
-            </div>
-        </div>
+            <span>
+                <Modal
+                    show={this.state.show}
+                    onHide={() => this.updateShow(false)}
+                >
+                    <Modal.Header closeButton={true}>
+                        <Modal.Title>{'Developer Applications'}</Modal.Title>
+                    </Modal.Header>
+                    <form
+                        role='form'
+                        className='form-horizontal'
+                    >
+                        <Modal.Body>
+                            {body}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            {footer}
+                        </Modal.Footer>
+                    </form>
+                </Modal>
+            </span>
         );
     }
 }

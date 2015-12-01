@@ -104,3 +104,10 @@ export function showInviteMemberModal() {
         value: true
     });
 }
+
+export function showRegisterAppModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_REGISTER_APP_MODAL,
+        value: true
+    });
+}
