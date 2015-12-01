@@ -33,7 +33,7 @@ dist: | build-server build-client go-test package
 	mv ./model/version.go.bak ./model/version.go
 
 dist-local: | start-docker dist
-	
+
 dist-travis: | travis-init build-container
 
 start-docker:
@@ -153,7 +153,7 @@ go-test:
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s ./web || exit 1
 
-test: | start-docker go-test
+test: | start-docker .prepare-go go-test
 
 travis-init:
 	@echo Setting up enviroment for travis
@@ -217,25 +217,29 @@ clean: stop-docker
 	rm -rf Godeps/_workspace/pkg/
 
 	rm -f mattermost.log
-	rm -f .prepare
+	rm -f .prepare-go .prepare-jsx
 
 nuke: | clean clean-docker
 	rm -rf data
 
-.prepare:
-	@echo Preparation for run step
-
+.prepare-go:
+	@echo Preparation for running go code
 	go get $(GOFLAGS) github.com/tools/godep
+
+	touch $@
+
+.prepare-jsx:
+	@echo Preparation for compiling jsx code
 
 	cd web/react/ && npm install
 	cd web/react/ && npm run build-libs
 
 	touch $@
 
-run: start-docker .prepare
+run: start-docker .prepare-go .prepare-jsx
 	mkdir -p web/static/js
 
-	@echo Starting react processor	
+	@echo Starting react processo
 	cd web/react && npm start &
 
 	@echo Starting go web server
