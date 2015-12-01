@@ -113,6 +113,15 @@ type PrivacySettings struct {
 	ShowFullName     bool
 }
 
+type SupportSettings struct {
+	TermsOfServiceLink *string
+	PrivacyPolicyLink  *string
+	AboutLink          *string
+	HelpLink           *string
+	ReportAProblemLink *string
+	SupportEmail       *string
+}
+
 type TeamSettings struct {
 	SiteName                  string
 	MaxUsersPerTeam           int
@@ -132,6 +141,7 @@ type Config struct {
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
+	SupportSettings   SupportSettings
 	GitLabSettings    SSOSettings
 }
 
@@ -189,6 +199,35 @@ func (o *Config) SetDefaults() {
 		*o.EmailSettings.PushNotificationServer = "https://push.mattermost.com"
 	}
 
+	if o.SupportSettings.TermsOfServiceLink == nil {
+		o.SupportSettings.TermsOfServiceLink = new(string)
+		*o.SupportSettings.TermsOfServiceLink = "/static/help/terms.html"
+	}
+
+	if o.SupportSettings.PrivacyPolicyLink == nil {
+		o.SupportSettings.PrivacyPolicyLink = new(string)
+		*o.SupportSettings.PrivacyPolicyLink = "/static/help/privacy.html"
+	}
+
+	if o.SupportSettings.AboutLink == nil {
+		o.SupportSettings.AboutLink = new(string)
+		*o.SupportSettings.AboutLink = "/static/help/about.html"
+	}
+
+	if o.SupportSettings.HelpLink == nil {
+		o.SupportSettings.HelpLink = new(string)
+		*o.SupportSettings.HelpLink = "/static/help/help.html"
+	}
+
+	if o.SupportSettings.ReportAProblemLink == nil {
+		o.SupportSettings.ReportAProblemLink = new(string)
+		*o.SupportSettings.ReportAProblemLink = "/static/help/report_problem.html"
+	}
+
+	if o.SupportSettings.SupportEmail == nil {
+		o.SupportSettings.SupportEmail = new(string)
+		*o.SupportSettings.SupportEmail = "feedback@mattermost.com"
+	}
 }
 
 func (o *Config) IsValid() *AppError {

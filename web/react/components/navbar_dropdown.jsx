@@ -184,6 +184,34 @@ export default class NavbarDropdown extends React.Component {
             );
         }
 
+        let helpLink = null;
+        if (global.window.mm_config.HelpLink) {
+            helpLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.HelpLink}
+                    >
+                        {'Help'}
+                    </a>
+                </li>
+            );
+        }
+
+        let reportLink = null;
+        if (global.window.mm_config.ReportAProblemLink) {
+            reportLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.ReportAProblemLink}
+                    >
+                        {'Report a Problem'}
+                    </a>
+                </li>
+            );
+        }
+
         return (
             <ul className='nav navbar-nav navbar-right'>
                 <li
@@ -230,22 +258,8 @@ export default class NavbarDropdown extends React.Component {
                         {sysAdminLink}
                         {teams}
                         <li className='divider'></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='/static/help/help.html'
-                            >
-                                {'Help'}
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='/static/help/report_problem.html'
-                            >
-                                {'Report a Problem'}
-                            </a>
-                        </li>
+                        {helpLink}
+                        {reportLink}
                         <li>
                             <a
                                 href='#'

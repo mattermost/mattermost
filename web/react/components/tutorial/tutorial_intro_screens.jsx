@@ -112,6 +112,22 @@ export default class TutorialIntroScreens extends React.Component {
 
         const circles = this.createCircles();
 
+        let supportInfo = null;
+        if (global.window.mm_config.SupportEmail) {
+            supportInfo = (
+                <p>
+                    {'Need anything, just email us at '}
+                    <a
+                        href={'mailto:' + global.window.mm_config.SupportEmail}
+                        target='_blank'
+                    >
+                        {global.window.mm_config.SupportEmail}
+                    </a>
+                    {'.'}
+                </p>
+            );
+        }
+
         return (
             <div>
                 <h3>{'You’re all set'}</h3>
@@ -119,16 +135,7 @@ export default class TutorialIntroScreens extends React.Component {
                     {inviteModalLink}
                     {' when you’re ready.'}
                 </p>
-                <p>
-                    {'Need anything, just email us at '}
-                    <a
-                        href='mailto:feedback@mattermost.com'
-                        target='_blank'
-                    >
-                        {'feedback@mattermost.com'}
-                    </a>
-                    {'.'}
-                </p>
+                {supportInfo}
                 {'Click “Next” to enter Town Square. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'}
                 {circles}
             </div>
