@@ -335,6 +335,7 @@ export default class CreateComment extends React.Component {
                                 messageText={this.state.messageText}
                                 createMessage='Add a comment...'
                                 initialText=''
+                                supportsCommands={false}
                                 id='reply_textbox'
                                 ref='textbox'
                             />

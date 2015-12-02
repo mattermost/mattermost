@@ -29,7 +29,10 @@ export default class Textbox extends React.Component {
             connection: ''
         };
 
-        this.suggestionProviders = [new AtMentionProvider(), new CommandProvider()];
+        this.suggestionProviders = [new AtMentionProvider()];
+        if (props.supportsCommands) {
+            this.suggestionProviders.push(new CommandProvider());
+        }
     }
 
     getStateFromStores() {
@@ -200,6 +203,10 @@ export default class Textbox extends React.Component {
     }
 }
 
+Textbox.defaultProps = {
+    supportsCommands: true
+};
+
 Textbox.propTypes = {
     id: React.PropTypes.string.isRequired,
     channelId: React.PropTypes.string,
@@ -208,5 +215,6 @@ Textbox.propTypes = {
     onKeyPress: React.PropTypes.func.isRequired,
     onHeightChange: React.PropTypes.func,
     createMessage: React.PropTypes.string.isRequired,
-    onKeyDown: React.PropTypes.func
+    onKeyDown: React.PropTypes.func,
+    supportsCommands: React.PropTypes.bool.isRequired
 };
