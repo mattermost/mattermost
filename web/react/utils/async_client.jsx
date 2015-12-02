@@ -113,7 +113,6 @@ export function updateLastViewedAt(id) {
     } else {
         channelId = ChannelStore.getCurrentId();
     }
-    console.log('start ' + channelId);
 
     if (channelId == null) {
         return;
@@ -124,7 +123,6 @@ export function updateLastViewedAt(id) {
     }
 
     callTracker[`updateLastViewed${channelId}`] = utils.getTimestamp();
-    console.log('call ' + channelId);
     client.updateLastViewedAt(
         channelId,
         () => {
