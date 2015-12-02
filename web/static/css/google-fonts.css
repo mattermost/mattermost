@@ -128,3 +128,205 @@
        url('/static/fonts/open-sans-v13-latin-ext_latin_cyrillic-ext_greek-ext_greek_cyrillic_vietnamese-800italic.ttf') format('truetype'), /* Safari, Android, iOS */
        url('/static/fonts/open-sans-v13-latin-ext_latin_cyrillic-ext_greek-ext_greek_cyrillic_vietnamese-800italic.svg#OpenSans') format('svg'); /* Legacy iOS */
 }
+
+/* Lato */
+@font-face {
+	font-family: 'Lato';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Lato-regular.eot');
+	src: local('Lato Regular'), local('Lato-regular'),
+		url('/static/fonts/Lato-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Lato-regular.woff2') format('woff2'),
+		url('/static/fonts/Lato-regular.woff') format('woff'),
+		url('/static/fonts/Lato-regular.ttf') format('truetype'),
+		url('/static/fonts/Lato-regular.svg#Lato') format('svg');
+}
+
+/* Droid Serif */
+@font-face {
+	font-family: 'Droid Serif';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Droid-Serif-regular.eot');
+	src: local('Droid Serif'), local('Droid-Serif-regular'),
+		url('/static/fonts/Droid-Serif-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Droid-Serif-regular.woff2') format('woff2'),
+		url('/static/fonts/Droid-Serif-regular.woff') format('woff'),
+		url('/static/fonts/Droid-Serif-regular.ttf') format('truetype'),
+		url('/static/fonts/Droid-Serif-regular.svg#DroidSerif') format('svg');
+}
+
+/* Lora */
+@font-face {
+	font-family: 'Lora';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Lora-regular.eot');
+	src: local('Lora'), local('Lora-regular'),
+		url('/static/fonts/Lora-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Lora-regular.woff2') format('woff2'),
+		url('/static/fonts/Lora-regular.woff') format('woff'),
+		url('/static/fonts/Lora-regular.ttf') format('truetype'),
+		url('/static/fonts/Lora-regular.svg#Lora') format('svg');
+}
+
+/* Slabo */
+@font-face {
+	font-family: 'Slabo 13px';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Slabo-13px-regular.eot');
+	src: local('Slabo 13px'), local('Slabo-13px-regular'),
+		url('/static/fonts/Slabo-13px-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Slabo-13px-regular.woff2') format('woff2'),
+		url('/static/fonts/Slabo-13px-regular.woff') format('woff'),
+		url('/static/fonts/Slabo-13px-regular.ttf') format('truetype'),
+		url('/static/fonts/Slabo-13px-regular.svg#Slabo13px') format('svg');
+}
+
+/* Arvo */
+@font-face {
+	font-family: 'Arvo';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Arvo-regular.eot');
+	src: local('Arvo'), local('Arvo-regular'),
+		url('/static/fonts/Arvo-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Arvo-regular.woff2') format('woff2'),
+		url('/static/fonts/Arvo-regular.woff') format('woff'),
+		url('/static/fonts/Arvo-regular.ttf') format('truetype'),
+		url('/static/fonts/Arvo-regular.svg#Arvo') format('svg');
+}
+
+/* Roboto */
+@font-face {
+	font-family: 'Roboto';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Roboto-regular.eot');
+	src: local('Roboto'), local('Roboto-regular'),
+		url('/static/fonts/Roboto-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Roboto-regular.woff2') format('woff2'),
+		url('/static/fonts/Roboto-regular.woff') format('woff'),
+		url('/static/fonts/Roboto-regular.ttf') format('truetype'),
+		url('/static/fonts/Roboto-regular.svg#Roboto') format('svg');
+}
+
+/* PT Sans */
+@font-face {
+	font-family: 'PT Sans';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/PT-Sans-regular.eot');
+	src: local('PT Sans'), local('PT-Sans-regular'),
+		url('/static/fonts/PT-Sans-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/PT-Sans-regular.woff2') format('woff2'),
+		url('/static/fonts/PT-Sans-regular.woff') format('woff'),
+		url('/static/fonts/PT-Sans-regular.ttf') format('truetype'),
+		url('/static/fonts/PT-Sans-regular.svg#PTSans') format('svg');
+}
+
+/* Source Sans Pro */
+@font-face {
+	font-family: 'Source Sans Pro';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Source-Sans-Pro-regular.eot');
+	src: local('Source Sans Pro'), local('Source-Sans-Pro-regular'),
+		url('/static/fonts/Source-Sans-Pro-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Source-Sans-Pro-regular.woff2') format('woff2'),
+		url('/static/fonts/Source-Sans-Pro-regular.woff') format('woff'),
+		url('/static/fonts/Source-Sans-Pro-regular.ttf') format('truetype'),
+		url('/static/fonts/Source-Sans-Pro-regular.svg#SourceSansPro') format('svg');
+}
+
+/* Exo 2 */
+@font-face {
+	font-family: 'Exo 2';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Exo-2-regular.eot');
+	src: local('Exo 2'), local('Exo-2-regular'),
+		url('/static/fonts/Exo-2-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Exo-2-regular.woff2') format('woff2'),
+		url('/static/fonts/Exo-2-regular.woff') format('woff'),
+		url('/static/fonts/Exo-2-regular.ttf') format('truetype'),
+		url('/static/fonts/Exo-2-regular.svg#Exo2') format('svg');
+}
+
+/* Ubuntu */
+@font-face {
+	font-family: 'Ubuntu';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Ubuntu-regular.eot');
+	src: local('Ubuntu'), local('Ubuntu-regular'),
+		url('/static/fonts/Ubuntu-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Ubuntu-regular.woff2') format('woff2'),
+		url('/static/fonts/Ubuntu-regular.woff') format('woff'),
+		url('/static/fonts/Ubuntu-regular.ttf') format('truetype'),
+		url('/static/fonts/Ubuntu-regular.svg#Ubuntu') format('svg');
+}
+
+/* Roboto Slab */
+@font-face {
+	font-family: 'Roboto Slab';
+	font-weight: 400;
+	font-style: normal;
+	src: url('/static/fonts/Roboto-Slab-regular.eot');
+	src: local('Roboto Slab Regular'), local('Roboto-Slab-regular'),
+		url('/static/fonts/Roboto-Slab-regular.eot?#iefix') format('embedded-opentype'),
+		url('/static/fonts/Roboto-Slab-regular.woff2') format('woff2'),
+		url('/static/fonts/Roboto-Slab-regular.woff') format('woff'),
+		url('/static/fonts/Roboto-Slab-regular.ttf') format('truetype'),
+		url('/static/fonts/Roboto-Slab-regular.svg#RobotoSlab') format('svg');
+}
+
+.font--open_sans {
+	font-family: 'Open Sans', 'sans-serif';
+}
+
+.font--droid_serif {
+	font-family: 'Droid Serif', 'serif';
+}
+
+.font--roboto_slab {
+	font-family: 'Roboto Slab', 'serif';
+}
+
+.font--lora {
+	font-family: 'Lora', 'serif';
+}
+
+.font--slabo {
+	font-family: 'Slabo 13px', 'sans-serif';
+}
+
+.font--arvo {
+	font-family: 'Arvo', 'serif';
+}
+
+.font--roboto {
+	font-family: 'Roboto', 'sans-serif';
+}
+
+.font--pt_sans {
+	font-family: 'PT Sans', 'sans-serif';
+}
+
+.font--lato {
+	font-family: 'Lato', 'sans-serif';
+}
+
+.font--source_sans_pro {
+	font-family: 'Source Sans Pro', 'sans-serif';
+}
+
+.font--exo_2 {
+	font-family: 'Exo 2', 'sans-serif';
+}
+
+.font--ubuntu {
+	font-family: Ubuntu, 'sans-serif';
+}

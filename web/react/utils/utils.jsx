@@ -693,6 +693,17 @@ export function applyTheme(theme) {
     }
     updateCodeTheme(theme.codeTheme);
 }
+
+export function applyFont(fontName) {
+    const body = document.querySelector('body');
+    body.classList.forEach((className) => {
+        if (className.lastIndexOf('font') === 0) {
+            body.classList.remove(className);
+        }
+    });
+    body.classList.add(Constants.FONTS[fontName]);
+}
+
 export function changeCss(className, classValue, classRepeat) {
     // we need invisible container to store additional css definitions
     var cssMainContainer = $('#css-modifier-container');
