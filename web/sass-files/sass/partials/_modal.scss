@@ -405,3 +405,11 @@
 		@include opacity(0.7);
 	}
 }
+
+.modal-body.edit-modal-body {
+    overflow: visible;
+
+    .suggestion-content {
+        max-height: 150px;
+    }
+}
