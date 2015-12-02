@@ -1,8 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
-import * as Client from '../../utils/client.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
 import Constants from '../../utils/constants.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 
@@ -42,27 +41,7 @@ export default class CommandProvider {
         if (pretext.startsWith('/')) {
             SuggestionStore.setMatchedPretext(suggestionId, pretext);
 
-            Client.executeCommand(
-                '',
-                pretext,
-                true,
-                (data) => {
-                    this.handleCommandsReceived(suggestionId, pretext, data.suggestions);
-                }
-            );
+            AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion);
         }
-    }
-
-    handleCommandsReceived(suggestionId, matchedPretext, commandSuggestions) {
-        const terms = commandSuggestions.map(({suggestion}) => suggestion);
-
-        AppDispatcher.handleServerAction({
-            type: Constants.ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-            id: suggestionId,
-            matchedPretext,
-            terms,
-            items: commandSuggestions,
-            component: CommandSuggestion
-        });
     }
 }

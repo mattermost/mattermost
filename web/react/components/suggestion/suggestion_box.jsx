@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
 import Constants from '../../utils/constants.jsx';
+import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
@@ -79,11 +79,7 @@ export default class SuggestionBox extends React.Component {
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
-        AppDispatcher.handleViewAction({
-            type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,
-            id: this.suggestionId,
-            pretext
-        });
+        EventHelpers.emitSuggestionPretextChanged(this.suggestionId, pretext);
 
         if (this.props.onUserInput) {
             this.props.onUserInput(textbox.value);
@@ -115,22 +111,13 @@ export default class SuggestionBox extends React.Component {
     handleKeyDown(e) {
         if (SuggestionStore.hasSuggestions(this.suggestionId)) {
             if (e.which === KeyCodes.UP) {
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.SUGGESTION_SELECT_PREVIOUS,
-                    id: this.suggestionId
-                });
+                EventHelpers.emitSelectPreviousSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (e.which === KeyCodes.DOWN) {
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.SUGGESTION_SELECT_NEXT,
-                    id: this.suggestionId
-                });
+                EventHelpers.emitSelectNextSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (e.which === KeyCodes.SPACE || e.which === KeyCodes.ENTER) {
-                AppDispatcher.handleViewAction({
-                    type: ActionTypes.SUGGESTION_COMPLETE_WORD,
-                    id: this.suggestionId
-                });
+                EventHelpers.emitCompleteWordSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (this.props.onKeyDown) {
                 this.props.onKeyDown(e);

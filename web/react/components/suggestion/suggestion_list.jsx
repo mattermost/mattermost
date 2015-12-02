@@ -1,8 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../../dispatcher/app_dispatcher.jsx';
 import Constants from '../../utils/constants.jsx';
+import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 
 export default class SuggestionList extends React.Component {
@@ -37,11 +37,7 @@ export default class SuggestionList extends React.Component {
     }
 
     handleItemClick(term, e) {
-        AppDispatcher.handleViewAction({
-            type: Constants.ActionTypes.SUGGESTION_COMPLETE_WORD,
-            id: this.props.suggestionId,
-            term
-        });
+        EventHelpers.emitCompleteWordSuggestion(this.props.suggestionId, term);
 
         e.preventDefault();
     }
