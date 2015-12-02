@@ -9,14 +9,15 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
-const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Overlay = ReactBootstrap.Overlay;
 const Popover = ReactBootstrap.Popover;
 
 export default class PostInfo extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            copiedLink: false
+            copiedLink: false,
+            show: false
         };
 
         this.handlePermalinkCopy = this.handlePermalinkCopy.bind(this);
@@ -99,6 +100,20 @@ export default class PostInfo extends React.Component {
             );
         }
 
+        dropdownContents.push(
+            <li
+                key='copyLink'
+                role='presentation'
+            >
+                <a
+                    href='#'
+                    onClick={(e) => this.setState({target: e.target, show: !this.state.show})}
+                >
+                    {'Permalink'}
+                </a>
+            </li>
+        );
+
         if (dropdownContents.length === 0) {
             return '';
         }
@@ -121,6 +136,7 @@ export default class PostInfo extends React.Component {
             </div>
         );
     }
+
     handlePermalinkCopy() {
         const textBox = $(ReactDOM.findDOMNode(this.refs.permalinkbox));
         textBox.select();
@@ -128,7 +144,7 @@ export default class PostInfo extends React.Component {
         try {
             const successful = document.execCommand('copy');
             if (successful) {
-                this.setState({copiedLink: true});
+                this.setState({copiedLink: true, show: false});
             } else {
                 this.setState({copiedLink: false});
             }
@@ -167,7 +183,7 @@ export default class PostInfo extends React.Component {
         var dropdown = this.createDropdown();
 
         const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
-        const copyButtonText = this.state.copiedLink ? (<div>{'Copy '}<i className='fa fa-check'/></div>) : 'Copy';
+        const copyButtonText = this.state.copiedLink ? (<div>{'Copy X '}<i className='fa fa-check'/></div>) : 'Copy X';
         const permalinkOverlay = (
             <Popover
                 id='permalink-overlay'
@@ -197,6 +213,8 @@ export default class PostInfo extends React.Component {
             </Popover>
         );
 
+        const containerPadding = 20;
+
         return (
             <ul className='post__header post__header--info'>
                 <li className='col'>
@@ -206,18 +224,23 @@ export default class PostInfo extends React.Component {
                 </li>
                 <li className='col col__reply'>
                     {comments}
-                    <OverlayTrigger
-                        trigger='click'
-                        placement='left'
-                        rootClose={true}
-                        overlay={permalinkOverlay}
+                    <div
+                        className='dropdown'
+                        ref='dotMenu'
                     >
-                        <i className={'permalink-icon fa fa-link ' + showCommentClass}/>
-                    </OverlayTrigger>
-
-                    <div className='dropdown'>
                         {dropdown}
                     </div>
+                    <Overlay
+                        show={this.state.show}
+                        target={() => ReactDOM.findDOMNode(this.refs.dotMenu)}
+                        onHide={() => this.setState({show: false})}
+                        placement='left'
+                        container={this}
+                        containerPadding={containerPadding}
+                        rootClose={true}
+                    >
+                        {permalinkOverlay}
+                    </Overlay>
                 </li>
             </ul>
         );
