@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from '../../utils/constants.jsx';
 import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 

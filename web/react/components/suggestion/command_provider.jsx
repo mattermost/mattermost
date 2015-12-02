@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import * as AsyncClient from '../../utils/async_client.jsx';
-import Constants from '../../utils/constants.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 
 class CommandSuggestion extends React.Component {

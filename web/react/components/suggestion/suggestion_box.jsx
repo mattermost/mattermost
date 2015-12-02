@@ -6,7 +6,6 @@ import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
 import SuggestionStore from '../../stores/suggestion_store.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
 export default class SuggestionBox extends React.Component {
