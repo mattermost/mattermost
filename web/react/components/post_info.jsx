@@ -183,7 +183,7 @@ export default class PostInfo extends React.Component {
         var dropdown = this.createDropdown();
 
         const permalink = TeamStore.getCurrentTeamUrl() + '/pl/' + post.id;
-        const copyButtonText = this.state.copiedLink ? (<div>{'Copy X '}<i className='fa fa-check'/></div>) : 'Copy X';
+        const copyButtonText = this.state.copiedLink ? (<div>{'Copy '}<i className='fa fa-check'/></div>) : 'Copy';
         const permalinkOverlay = (
             <Popover
                 id='permalink-overlay'
