@@ -280,7 +280,6 @@ export default class PostsView extends React.Component {
             this.updateScrolling();
         }
         window.addEventListener('resize', this.handleResize);
-        $(this.refs.postlist).perfectScrollbar();
         PreferenceStore.addChangeListener(this.updateState);
     }
     componentWillUnmount() {
@@ -291,7 +290,6 @@ export default class PostsView extends React.Component {
         if (this.props.postList != null) {
             this.updateScrolling();
         }
-        $(this.refs.postlist).perfectScrollbar('update');
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (this.props.isActive !== nextProps.isActive) {
@@ -373,7 +371,7 @@ export default class PostsView extends React.Component {
         return (
             <div
                 ref='postlist'
-                className={'ps-container post-list-holder-by-time ' + activeClass}
+                className={'post-list-holder-by-time ' + activeClass}
                 onScroll={this.handleScroll}
             >
                 <div className='post-list__table'>
