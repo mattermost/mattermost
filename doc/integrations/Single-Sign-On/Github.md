@@ -1,6 +1,8 @@
-## Configuring GitHub Enterprise Single-Sign-On
+## Configuring GitHub Enterprise Single-Sign-On (unofficial)
 
-Follow these steps to configure Mattermost to use GitHub Enterprise as a single-sign-on (SSO) service for team creation, account creation and sign-in.
+Note: Because the authentication interface of GitHub Enterprise is similar to that of GitLab, the GitLab SSO feature can be used to unofficially also support GitHub Enterprise SSO.
+
+Follow these steps to configure Mattermost to use Github Enterprise as a single-sign-on (SSO) service for team creation, account creation and sign-in using the GitLab SSO interface.
 
 1. Login to your GitHub Enterprise account and go to the Applications section in Profile Settings.
 2. Add a new application called "Mattermost" with the following as Authorization callback URL:
