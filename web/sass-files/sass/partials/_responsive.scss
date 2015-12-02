@@ -52,7 +52,7 @@
 @media screen and (max-width: 960px) {
 
     .sidebar--right {
-        width: calc(100% - 219px);
+        width: 400px;
         z-index: 5;
         right: 0;
         @include translateX(100%);
@@ -69,10 +69,6 @@
             margin-right: 0;
         }
 
-    }
-
-    .search-bar__container {
-        padding-left: 10px;
     }
 
     .post {
