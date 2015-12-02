@@ -42,47 +42,6 @@ export default class PostInfo extends React.Component {
             dataComments = this.props.commentCount;
         }
 
-        if (isOwner) {
-            dropdownContents.push(
-                <li
-                    key='editPost'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        data-toggle='modal'
-                        data-target='#edit_post'
-                        data-refocusid='#post_textbox'
-                        data-title={type}
-                        data-message={post.message}
-                        data-postid={post.id}
-                        data-channelid={post.channel_id}
-                        data-comments={dataComments}
-                    >
-                        {'Edit'}
-                    </a>
-                </li>
-            );
-        }
-
-        if (isOwner || isAdmin) {
-            dropdownContents.push(
-                <li
-                    key='deletePost'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
-                    >
-                        {'Delete'}
-                    </a>
-                </li>
-            );
-        }
-
         if (this.props.allowReply === 'true') {
             dropdownContents.push(
                 <li
@@ -113,6 +72,47 @@ export default class PostInfo extends React.Component {
                 </a>
             </li>
         );
+
+        if (isOwner || isAdmin) {
+            dropdownContents.push(
+                <li
+                    key='deletePost'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        onClick={() => EventHelpers.showDeletePostModal(post, dataComments)}
+                    >
+                        {'Delete'}
+                    </a>
+                </li>
+            );
+        }
+
+        if (isOwner) {
+            dropdownContents.push(
+                <li
+                    key='editPost'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        role='menuitem'
+                        data-toggle='modal'
+                        data-target='#edit_post'
+                        data-refocusid='#post_textbox'
+                        data-title={type}
+                        data-message={post.message}
+                        data-postid={post.id}
+                        data-channelid={post.channel_id}
+                        data-comments={dataComments}
+                    >
+                        {'Edit'}
+                    </a>
+                </li>
+            );
+        }
 
         if (dropdownContents.length === 0) {
             return '';
