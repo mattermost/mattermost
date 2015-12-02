@@ -38,6 +38,7 @@ class SuggestionStore extends EventEmitter {
         // items: a list of objects backing the terms which may be used in rendering
         // components: a list of react components that can be used to render their corresponding item
         // selection: the term currently selected by the keyboard
+        // completeOnSpace: whether or not space will trigger the term to be autocompleted
         this.suggestions = new Map();
     }
 
@@ -78,7 +79,8 @@ class SuggestionStore extends EventEmitter {
             terms: [],
             items: [],
             components: [],
-            selection: ''
+            selection: '',
+            completeOnSpace: true
         });
     }
 
@@ -93,6 +95,7 @@ class SuggestionStore extends EventEmitter {
         suggestion.terms = [];
         suggestion.items = [];
         suggestion.components = [];
+        suggestion.completeOnSpace = true;
     }
 
     clearSelection(id) {
@@ -115,6 +118,12 @@ class SuggestionStore extends EventEmitter {
         const suggestion = this.suggestions.get(id);
 
         suggestion.matchedPretext = matchedPretext;
+    }
+
+    setCompleteOnSpace(id, completeOnSpace) {
+        const suggestion = this.suggestions.get(id);
+
+        suggestion.completeOnSpace = completeOnSpace;
     }
 
     addSuggestion(id, term, item, component) {
@@ -178,6 +187,10 @@ class SuggestionStore extends EventEmitter {
 
     getSelection(id) {
         return this.suggestions.get(id).selection;
+    }
+
+    shouldCompleteOnSpace(id) {
+        return this.suggestions.get(id).completeOnSpace;
     }
 
     selectNext(id) {

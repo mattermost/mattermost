@@ -116,7 +116,7 @@ export default class SuggestionBox extends React.Component {
             } else if (e.which === KeyCodes.DOWN) {
                 EventHelpers.emitSelectNextSuggestion(this.suggestionId);
                 e.preventDefault();
-            } else if (e.which === KeyCodes.SPACE || e.which === KeyCodes.ENTER) {
+            } else if (e.which === KeyCodes.ENTER || (e.which === KeyCodes.SPACE && SuggestionStore.shouldCompleteOnSpace(this.suggestionId))) {
                 EventHelpers.emitCompleteWordSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (this.props.onKeyDown) {

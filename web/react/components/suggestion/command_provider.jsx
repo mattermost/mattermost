@@ -40,6 +40,7 @@ export default class CommandProvider {
     handlePretextChanged(suggestionId, pretext) {
         if (pretext.startsWith('/')) {
             SuggestionStore.setMatchedPretext(suggestionId, pretext);
+            SuggestionStore.setCompleteOnSpace(suggestionId, false);
 
             AsyncClient.getSuggestedCommands(pretext, suggestionId, CommandSuggestion);
         }
