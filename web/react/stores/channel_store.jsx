@@ -38,6 +38,7 @@ class ChannelStoreClass extends EventEmitter {
         this.getByName = this.getByName.bind(this);
         this.pSetPostMode = this.pSetPostMode.bind(this);
         this.getPostMode = this.getPostMode.bind(this);
+        this.setUnreadCount = this.setUnreadCount.bind(this);
         this.setUnreadCounts = this.setUnreadCounts.bind(this);
         this.getUnreadCount = this.getUnreadCount.bind(this);
         this.getUnreadCounts = this.getUnreadCounts.bind(this);
