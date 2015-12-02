@@ -280,15 +280,21 @@ export default class PostsView extends React.Component {
             this.updateScrolling();
         }
         window.addEventListener('resize', this.handleResize);
-        PreferenceStore.addChangeListener(this.updateState);
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
-        PreferenceStore.removeChangeListener(this.updateState);
     }
     componentDidUpdate() {
         if (this.props.postList != null) {
             this.updateScrolling();
+        }
+    }
+    componentWillReceiveProps(nextProps) {
+        if (!this.props.isActive && nextProps.isActive) {
+            this.updateState();
+            PreferenceStore.addChangeListener(this.updateState);
+        } else if (this.props.isActive && !nextProps.isActive) {
+            PreferenceStore.removeChangeListener(this.updateState);
         }
     }
     shouldComponentUpdate(nextProps, nextState) {
