@@ -11,8 +11,8 @@ import * as Client from '../utils/client.jsx';
 
 export function emitChannelClickEvent(channel) {
     AsyncClient.getChannels();
-    AsyncClient.getChannelExtraInfo();
-    AsyncClient.updateLastViewedAt();
+    AsyncClient.getChannelExtraInfo(channel.id);
+    AsyncClient.updateLastViewedAt(channel.id);
     AsyncClient.getPosts(channel.id);
 
     AppDispatcher.handleViewAction({
