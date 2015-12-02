@@ -696,8 +696,10 @@ export function applyTheme(theme) {
 
 export function applyFont(fontName) {
     const body = document.querySelector('body');
-    body.classList.forEach((className) => {
-        if (className.lastIndexOf('font') === 0) {
+    const keys = Object.getOwnPropertyNames(body.classList);
+    keys.forEach((k) => {
+        const className = body.classList[k];
+        if (className && className.lastIndexOf('font') === 0) {
             body.classList.remove(className);
         }
     });
