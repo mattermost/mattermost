@@ -65,7 +65,7 @@ export default class CenterPanel extends React.Component {
 
             createPost = (
                 <div
-                    id='perma-link-home'
+                    id='archive-link-home'
                 >
                     <a
                         href=''
