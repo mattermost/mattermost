@@ -172,8 +172,7 @@ export default class Sidebar extends React.Component {
         });
     }
     onChange() {
-        const newState = this.getStateFromStores();
-        this.setState(newState);
+        this.setState(this.getStateFromStores());
     }
     updateTitle() {
         const channel = ChannelStore.getCurrent();
