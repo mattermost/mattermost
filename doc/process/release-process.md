@@ -1,3 +1,5 @@
+# Mattermost Release Process
+
 Mattermost core team works on a monthly release process, with a new version shipping on the 16th of each month. 
 
 This document outlines the development process for the Mattermost core team, which draws from what we find works best for us from Agile, Scrum and Software Development Lifecycle approaches.
@@ -5,9 +7,6 @@ This document outlines the development process for the Mattermost core team, whi
 Notes: 
 - All cut-off dates are based on 10am PST (UTC-07/08) on the day stated. 
 - T-minus counts are measured in "working days" (weekdays other than major holidays concurrent in US and Canada) prior to release day.
-
-### Beginning of release
-- (Ops) Queue an agenda item for first team meeting of the release to review Roadmap
 
 ### (T-minus 10 working days) Cut-off for major features
 - No pull requests for major features can be submitted to the current release after this date (except if release manager add "release-exception" label)
@@ -41,8 +40,9 @@ Notes:
 - (Marketing) Communicates checklist of items needed by specific dates to write the blog post announce (e.g. screenshots, GIFs, documentation) and begins to write the blog post, tweet, and email for the release announcement
 - (PM) Works with Ops to check the Quality Gate for feature complete
 - (Team) Feature Complete Meeting
-  - (PM) Communicate to team the plan for next release
   - (PM) Leads review of Changelog
+  - (PM) Share feature list for next release
+  - (Marketing) Share draft of marketing announce for next release
   - (Team) Each team member discusses worst bug (10-15s) 
 
   - (Dev + PM) Exceptions can be made by triage team consensus across PM and Dev. List of approved changes for release candidate 1 here: https://mattermost.atlassian.net/issues/?filter=10204
