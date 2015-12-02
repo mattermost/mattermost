@@ -23,7 +23,7 @@ Notes:
 - (PM) Prepare tickets for cutting RCs builds, filing issue in GitLab omnibus to take RC candidate, testing GitLab RC with Mattermost
 - (Stand-up) Each team member discusses worst bug (10-15s)
 
-### - (T-minus 8 working days) Feature Complete and Stabilization
+### (T-minus 8 working days) Feature Complete and Stabilization
 - No pull requests for features can be submitted to the current release after this date (except if release manager add "release-exception" label)
 - (Ops) Post this checklist in Release channel 
 - (Dev) Prioritize reviewing, updating, and merging of pull requests for current release until there are no more tickets in the [pull request queue](https://github.com/mattermost/platform/pulls) marked for the current release 
