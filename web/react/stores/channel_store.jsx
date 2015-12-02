@@ -7,6 +7,7 @@ import EventEmitter from 'events';
 var Utils;
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+const NotificationPrefs = Constants.NotificationPrefs;
 
 const CHANGE_EVENT = 'change';
 const LEAVE_EVENT = 'leave';
@@ -37,6 +38,10 @@ class ChannelStoreClass extends EventEmitter {
         this.getByName = this.getByName.bind(this);
         this.pSetPostMode = this.pSetPostMode.bind(this);
         this.getPostMode = this.getPostMode.bind(this);
+        this.setUnreadCount = this.setUnreadCount.bind(this);
+        this.setUnreadCounts = this.setUnreadCounts.bind(this);
+        this.getUnreadCount = this.getUnreadCount.bind(this);
+        this.getUnreadCounts = this.getUnreadCounts.bind(this);
 
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
@@ -45,6 +50,7 @@ class ChannelStoreClass extends EventEmitter {
         this.moreChannels = {};
         this.moreChannels.loading = true;
         this.extraInfos = {};
+        this.unreadCounts = {};
     }
     get POST_MODE_CHANNEL() {
         return 1;
@@ -120,18 +126,18 @@ class ChannelStoreClass extends EventEmitter {
         this.currentId = id;
     }
     resetCounts(id) {
-        var cm = this.pGetChannelMembers();
+        const cm = this.channelMembers;
         for (var cmid in cm) {
             if (cm[cmid].channel_id === id) {
                 var c = this.get(id);
                 if (c) {
                     cm[cmid].msg_count = this.get(id).total_msg_count;
                     cm[cmid].mention_count = 0;
+                    this.setUnreadCount(id);
                 }
                 break;
             }
         }
-        this.pStoreChannelMembers(cm);
     }
     getCurrentId() {
         return this.currentId;
@@ -250,6 +256,38 @@ class ChannelStoreClass extends EventEmitter {
     getPostMode() {
         return this.postMode;
     }
+
+    setUnreadCount(id) {
+        const ch = this.get(id);
+        const chMember = this.getMember(id);
+
+        let chMentionCount = chMember.mention_count;
+        let chUnreadCount = ch.total_msg_count - chMember.msg_count - chMentionCount;
+
+        if (ch.type === 'D') {
+            chMentionCount = chUnreadCount;
+            chUnreadCount = 0;
+        } else if (chMember.notify_props && chMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
+            chUnreadCount = 0;
+        }
+
+        this.unreadCounts[id] = {msgs: chUnreadCount, mentions: chMentionCount};
+    }
+
+    setUnreadCounts() {
+        const channels = this.getAll();
+        channels.forEach((ch) => {
+            this.setUnreadCount(ch.id);
+        });
+    }
+
+    getUnreadCount(id) {
+        return this.unreadCounts[id] || {msgs: 0, mentions: 0};
+    }
+
+    getUnreadCounts() {
+        return this.unreadCounts;
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
@@ -281,6 +319,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (currentId) {
             ChannelStore.resetCounts(currentId);
         }
+        ChannelStore.setUnreadCounts();
         ChannelStore.emitChange();
         break;
 
@@ -291,6 +330,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (currentId) {
             ChannelStore.resetCounts(currentId);
         }
+        ChannelStore.setUnreadCount(action.channel.id);
         ChannelStore.emitChange();
         break;
 

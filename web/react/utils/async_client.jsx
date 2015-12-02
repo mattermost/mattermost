@@ -106,10 +106,15 @@ export function getChannel(id) {
     );
 }
 
-export function updateLastViewedAt() {
-    const channelId = ChannelStore.getCurrentId();
+export function updateLastViewedAt(id) {
+    let channelId;
+    if (id) {
+        channelId = id;
+    } else {
+        channelId = ChannelStore.getCurrentId();
+    }
 
-    if (channelId === null) {
+    if (channelId == null) {
         return;
     }
 
@@ -159,8 +164,13 @@ export function getMoreChannels(force) {
     }
 }
 
-export function getChannelExtraInfo() {
-    const channelId = ChannelStore.getCurrentId();
+export function getChannelExtraInfo(id) {
+    let channelId;
+    if (id) {
+        channelId = id;
+    } else {
+        channelId = ChannelStore.getCurrentId();
+    }
 
     if (channelId != null) {
         if (isCallInProgress('getChannelExtraInfo_' + channelId)) {

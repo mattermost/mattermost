@@ -19,7 +19,6 @@ import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
-const NotificationPrefs = Constants.NotificationPrefs;
 
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
@@ -38,7 +37,6 @@ export default class Sidebar extends React.Component {
         this.onScroll = this.onScroll.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
-        this.updateScrollbar = this.updateScrollbar.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
         this.showNewChannelModal = this.showNewChannelModal.bind(this);
@@ -48,8 +46,6 @@ export default class Sidebar extends React.Component {
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
-        this.setUnreadCountPerChannel = this.setUnreadCountPerChannel.bind(this);
-        this.getUnreadCount = this.getUnreadCount.bind(this);
 
         this.isLeaving = new Map();
 
@@ -59,43 +55,15 @@ export default class Sidebar extends React.Component {
         state.loadingDMChannel = -1;
         state.windowWidth = Utils.windowWidth();
         this.state = state;
-
-        this.unreadCountPerChannel = {};
-        this.setUnreadCountPerChannel();
     }
-    setUnreadCountPerChannel() {
-        const channels = ChannelStore.getAll();
-        const members = ChannelStore.getAllMembers();
-        const channelUnreadCounts = {};
-
-        channels.forEach((ch) => {
-            const chMember = members[ch.id];
-            let chMentionCount = chMember.mention_count;
-            let chUnreadCount = ch.total_msg_count - chMember.msg_count - chMentionCount;
-
-            if (ch.type === 'D') {
-                chMentionCount = chUnreadCount;
-                chUnreadCount = 0;
-            } else if (chMember.notify_props && chMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
-                chUnreadCount = 0;
-            }
-
-            channelUnreadCounts[ch.id] = {msgs: chUnreadCount, mentions: chMentionCount};
-        });
-
-        this.unreadCountPerChannel = channelUnreadCounts;
-    }
-    getUnreadCount(channelId) {
-        let mentions = 0;
+    getTotalUnreadCount() {
         let msgs = 0;
+        let mentions = 0;
+        const unreadCounts = this.state.unreadCounts;
 
-        if (channelId) {
-            return this.unreadCountPerChannel[channelId] ? this.unreadCountPerChannel[channelId] : {msgs, mentions};
-        }
-
-        Object.keys(this.unreadCountPerChannel).forEach((chId) => {
-            msgs += this.unreadCountPerChannel[chId].msgs;
-            mentions += this.unreadCountPerChannel[chId].mentions;
+        Object.keys(unreadCounts).forEach((chId) => {
+            msgs += unreadCounts[chId].msgs;
+            mentions += unreadCounts[chId].mentions;
         });
 
         return {msgs, mentions};
@@ -156,6 +124,7 @@ export default class Sidebar extends React.Component {
             privateChannels,
             visibleDirectChannels,
             hiddenDirectChannelCount,
+            unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.CHANNEL_POPOVER
         };
     }
@@ -169,7 +138,6 @@ export default class Sidebar extends React.Component {
 
         this.updateTitle();
         this.updateUnreadIndicators();
-        this.updateScrollbar();
 
         window.addEventListener('resize', this.handleResize);
 
@@ -186,7 +154,6 @@ export default class Sidebar extends React.Component {
     componentDidUpdate() {
         this.updateTitle();
         this.updateUnreadIndicators();
-        this.updateScrollbar();
     }
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
@@ -202,8 +169,6 @@ export default class Sidebar extends React.Component {
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight()
         });
-    }
-    updateScrollbar() {
     }
     onChange() {
         this.setState(this.getStateFromStores());
@@ -221,7 +186,7 @@ export default class Sidebar extends React.Component {
                 currentChannelName = Utils.getDirectTeammate(channel.id).username;
             }
 
-            const unread = this.getUnreadCount();
+            const unread = this.getTotalUnreadCount();
             const mentionTitle = unread.mentions > 0 ? '(' + unread.mentions + ') ' : '';
             const unreadTitle = unread.msgs > 0 ? '* ' : '';
             document.title = mentionTitle + unreadTitle + currentChannelName + ' - ' + TeamStore.getCurrent().display_name + ' ' + currentSiteName;
@@ -347,13 +312,13 @@ export default class Sidebar extends React.Component {
     }
 
     createChannelElement(channel, index, arr, handleClose) {
-        var members = this.state.members;
-        var activeId = this.state.activeId;
-        var channelMember = members[channel.id];
-        var unreadCount = this.getUnreadCount(channel.id);
-        var msgCount;
+        const members = this.state.members;
+        const activeId = this.state.activeId;
+        const channelMember = members[channel.id];
+        const unreadCount = this.state.unreadCounts[channel.id] || {msgs: 0, mentions: 0};
+        let msgCount;
 
-        var linkClass = '';
+        let linkClass = '';
         if (channel.id === activeId) {
             linkClass = 'active';
         }
@@ -509,8 +474,6 @@ export default class Sidebar extends React.Component {
     }
     render() {
         this.badgesActive = false;
-
-        this.setUnreadCountPerChannel();
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
         this.firstUnreadChannel = null;
