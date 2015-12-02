@@ -13,6 +13,8 @@ import PreferenceStore from '../stores/preference_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 
+import * as Utils from '../utils/utils.jsx';
+
 import Constants from '../utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -46,6 +48,8 @@ export default class CenterPanel extends React.Component {
         this.setState({showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS});
     }
     render() {
+        const channel = ChannelStore.getCurrent();
+        var handleClick = null;
         let postsContainer;
         let createPost;
         if (this.state.showTutorialScreens) {
@@ -53,7 +57,24 @@ export default class CenterPanel extends React.Component {
             createPost = null;
         } else if (this.state.showPostFocus) {
             postsContainer = <PostFocusView />;
-            createPost = null;
+
+            handleClick = function clickHandler(e) {
+                e.preventDefault();
+                Utils.switchChannel(channel);
+            };
+
+            createPost = (
+                <div
+                    id='perma-link-home'
+                >
+                    <a
+                        href=''
+                        onClick={handleClick}
+                    >
+                        {'You are viewing the Archives. Click here to jump to recent messages.'}
+                    </a>
+                </div>
+            );
         } else {
             postsContainer = <PostsViewContainer />;
             createPost = (
