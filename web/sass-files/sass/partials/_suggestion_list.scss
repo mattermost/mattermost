@@ -45,3 +45,19 @@
 .command-desc {
     color: #a7a8ab;
 }
+
+.emoticon-suggestion {
+    width: 100%;
+    height: 36px;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 36px;
+}
+
+.emoticon-suggestion__image {
+    width: 32px;
+    height: 32px;
+    margin-right: 6px;
+    padding: 2px;
+    text-align: center;
+}
