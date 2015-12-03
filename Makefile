@@ -60,7 +60,7 @@ start-docker:
 	fi
 
 build-server:
-	@echo Building mattermost server
+	@echo Building mattermost server tbuild=$(TRAVIS_BUILD_NUMBER) build=$(BUILD_NUMBER)
 
 	rm -Rf $(DIST_ROOT)
 	$(GO) clean $(GOFLAGS) -i ./...
