@@ -34,7 +34,7 @@ Verify that all list types render as expected.
 2. Charlie
 3. Delta
     1. Echo
-    1. Foxtrot
+    2. Foxtrot
 ```
 
 **Actual:**  
@@ -175,3 +175,18 @@ Verify that all list types render as expected.
   
 1. One
 2. Two
+
+### Carriage Return and New Line After a List
+
+**Expected:**  
+```
+1. One
+ - Two
+This text should be on a new line.
+```
+
+**Actual:**  
+1. One
+ - Two
+This text should be on a new line.
+
