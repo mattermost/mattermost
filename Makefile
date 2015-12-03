@@ -156,7 +156,7 @@ go-test:
 test: | start-docker .prepare-go go-test
 
 travis-init:
-	@echo Setting up enviroment for travis
+	@echo Setting up enviroment for travis tbuild=$(TRAVIS_BUILD_NUMBER) build=$(BUILD_NUMBER)
 
 	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
 		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
