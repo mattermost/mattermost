@@ -177,7 +177,22 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 
 	if len(props) > 0 {
 		for key, val := range props {
-			if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
+			if key == "attachments" {
+				if list, success := val.([]interface{}); success {
+					// parse attachment links into Markdown format
+					for i, aInt := range list {
+						attachment := aInt.(map[string]interface{})
+						if _, ok := attachment["text"]; ok {
+							aText := attachment["text"].(string)
+							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
+							aText = linkRegex.ReplaceAllString(aText, "${1}")
+							attachment["text"] = aText
+							list[i] = attachment
+						}
+					}
+					post.AddProp(key, list)
+				}
+			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)
 			}
 		}
