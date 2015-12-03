@@ -41,7 +41,6 @@ export default class SearchResultsItem extends React.Component {
         return (
             <div
                 className='search-item-container post'
-                onClick={this.handleClick}
             >
                 <div className='search-channel__name'>{channelName}</div>
                 <div className='post__content'>
@@ -59,6 +58,15 @@ export default class SearchResultsItem extends React.Component {
                                 <time className='search-item-time'>
                                     {utils.displayDate(this.props.post.create_at) + ' ' + utils.displayTime(this.props.post.create_at)}
                                 </time>
+                            </li>
+                            <li>
+                                <a
+                                    href='#'
+                                    className='search-item__jump'
+                                    onClick={this.handleClick}
+                                >
+                                    {'[Jump]'}
+                                </a>
                             </li>
                         </ul>
                         <div className='search-item-snippet'>

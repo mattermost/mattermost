@@ -95,7 +95,6 @@
 	border-top: $border-gray;
 	padding: 10px 1em;
 	margin: 0;
-	cursor: pointer;
 
 	&:first-child {
 		border: none;
@@ -105,6 +104,10 @@
 		font-weight: 600;
 		margin: 0 0 10px 0;
 	}
+}
+
+.search-item__jump {
+	margin-left: 10px;
 }
 
 .search-item-time {
