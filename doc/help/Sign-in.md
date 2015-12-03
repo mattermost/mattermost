@@ -12,8 +12,12 @@ If you have forgotten your password, you should be able to reset it from the "I 
 
 #### GitLab Single-Sign-On (SSO) option 
 
-If available, you can sign in using your GitLab account using a one-click sign-in option. GitLab SSO lets you create teams, create accounts on teams, and sign-in to teams using one username, email address and password that works across everything on the server. 
+If available, you can sign in using your GitLab account using a one-click sign-in option. GitLab SSO lets you create teams, create accounts on teams, and sign-in to teams using one username, email address, and password that works across everything on the server. 
 
 #### Switching Teams
 
 You can switch among teams you've recently signed into using the main menu in any team site on the server. By default, devices remember which teams you have signed into for 30 days, and this duration is configurable by the System Administrator. 
+
+#### Logging Out
+
+You can log out from the main menu, which is accessed by clicking the three dots in the top header on the left side of the screen. Clicking "Logout" logs you out of all the teams you are signed into on the site.
