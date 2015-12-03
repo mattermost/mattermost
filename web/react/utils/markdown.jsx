@@ -25,6 +25,7 @@ import highlightJsGo from 'highlight.js/lib/languages/go.js';
 import highlightJsRuby from 'highlight.js/lib/languages/ruby.js';
 import highlightJsJava from 'highlight.js/lib/languages/java.js';
 import highlightJsIni from 'highlight.js/lib/languages/ini.js';
+import highlightJsTex from 'highlight.js/lib/languages/tex.js';
 
 highlightJs.registerLanguage('diff', highlightJsDiff);
 highlightJs.registerLanguage('apache', highlightJsApache);
@@ -49,6 +50,7 @@ highlightJs.registerLanguage('go', highlightJsGo);
 highlightJs.registerLanguage('ruby', highlightJsRuby);
 highlightJs.registerLanguage('java', highlightJsJava);
 highlightJs.registerLanguage('ini', highlightJsIni);
+highlightJs.registerLanguage('tex', highlightJsTex);
 
 import * as TextFormatting from './text_formatting.jsx';
 import * as Utils from './utils.jsx';
@@ -57,6 +59,7 @@ import marked from 'marked';
 
 import Constants from '../utils/constants.jsx';
 const HighlightedLanguages = Constants.HighlightedLanguages;
+const LatexBlockReg = /^ *(\${1,2})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/;
 
 function markdownImageLoaded(image) {
     image.style.height = 'auto';
@@ -128,16 +131,15 @@ class MattermostMarkdownRenderer extends marked.Renderer {
                         HighlightedLanguages[usedLanguage] +
                     '</span>' +
                     '<pre>' +
-                        '<code class="hljs">' +
+                        '<code class="hljs ' + usedLanguage + '">' +
                             parsed.value +
                         '</code>' +
                     '</pre>' +
                 '</div>'
             );
-        } else if (usedLanguage === 'tex' || usedLanguage === 'latex') {
+        } else if (usedLanguage === 'latex') {
             try {
-                const html = katex.renderToString(TextFormatting.sanitizeHtml(code), {throwOnError: false, displayMode: true});
-
+                var html = katex.renderToString(code, {throwOnError: false, displayMode: true});
                 return '<div class="post-body--code tex">' + html + '</div>';
             } catch (e) {
                 // fall through if latex parsing fails and handle below
@@ -273,6 +275,17 @@ class MattermostLexer extends marked.Lexer {
                 this.tokens.push({
                     type: 'code',
                     lang: cap[2],
+                    text: cap[3] || ''
+                });
+                continue;
+            }
+
+            cap = LatexBlockReg.exec(src);
+            if (cap) {
+                src = src.substring(cap[0].length);
+                this.tokens.push({
+                    type: 'code',
+                    lang: 'latex',
                     text: cap[3] || ''
                 });
                 continue;

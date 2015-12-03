@@ -406,7 +406,8 @@ export default {
         go: 'Go',
         ruby: 'Ruby',
         java: 'Java',
-        ini: 'ini'
+        ini: 'ini',
+        tex: 'tex'
     },
     PostsViewJumpTypes: {
         BOTTOM: 1,
