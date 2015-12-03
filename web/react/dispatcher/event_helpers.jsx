@@ -141,3 +141,10 @@ export function emitCompleteWordSuggestion(suggestionId, term = '') {
         term
     });
 }
+
+export function emitClearSuggestions(suggestionId) {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.SUGGESTION_CLEAR_SUGGESTIONS,
+        id: suggestionId
+    });
+}

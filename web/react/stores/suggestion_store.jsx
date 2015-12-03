@@ -244,6 +244,11 @@ class SuggestionStore extends EventEmitter {
                 this.emitSuggestionsChanged(id);
             }
             break;
+        case ActionTypes.SUGGESTION_CLEAR_SUGGESTIONS:
+            this.clearSuggestions(id);
+            this.clearSelection(id);
+            this.emitSuggestionsChanged(id);
+            break;
         case ActionTypes.SUGGESTION_SELECT_NEXT:
             this.selectNext(id);
             this.emitSuggestionsChanged(id);
