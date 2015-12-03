@@ -11,7 +11,7 @@ before_install:
     - sleep 10
     - docker exec mattermost-postgres psql -c 'create database mattermost_test ;' -U postgres
     - docker exec mattermost-postgres psql -c 'grant all privileges on database "mattermost_test" to mmuser ;' -U postgres
-script: make dist-travis
+install: make dist-travis
 addons:
   hosts:
   - 127.0.0.1 dockerhost
