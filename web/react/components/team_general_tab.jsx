@@ -437,6 +437,7 @@ export default class GeneralTab extends React.Component {
                         <input
                             className='form-control'
                             type='text'
+                            maxLength='22'
                             onChange={this.updateName}
                             value={this.state.name}
                         />
