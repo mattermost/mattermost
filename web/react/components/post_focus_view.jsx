@@ -73,7 +73,7 @@ export default class PostFocusView extends React.Component {
     getIntroMessage() {
         return (
             <div className='channel-intro'>
-                <h4 className='channel-intro__title'>{'Beginning of Channel'}</h4>
+                <h4 className='channel-intro__title'>{'Beginning of Channel Archives'}</h4>
             </div>
         );
     }

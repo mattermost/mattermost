@@ -30,6 +30,20 @@
 	width: 100%;
 	z-index: 3;
 }
+
+#archive-link-home {
+    @include flex(0 0 auto);
+	background: #fff;
+	width: 100%;
+	min-height: 50px;
+	z-index: 3;
+	background-color: beige;
+	text-align: center;
+	vertical-align: middle;
+	padding-top: 10px;
+	cursor: pointer;
+}
+
 .post-list {
 	.new-messages-hr {
 		margin-top: 5px;
