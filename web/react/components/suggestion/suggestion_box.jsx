@@ -1,13 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from '../utils/constants.jsx';
-import SuggestionList from './suggestion_list.jsx';
-import SuggestionStore from '../stores/suggestion_store.jsx';
-import * as Utils from '../utils/utils.jsx';
+import Constants from '../../utils/constants.jsx';
+import * as EventHelpers from '../../dispatcher/event_helpers.jsx';
+import SuggestionStore from '../../stores/suggestion_store.jsx';
+import * as Utils from '../../utils/utils.jsx';
 
-const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
 export default class SuggestionBox extends React.Component {
@@ -45,6 +43,11 @@ export default class SuggestionBox extends React.Component {
         $(document).off('click', this.handleDocumentClick);
     }
 
+    getTextbox() {
+        // this is to support old code that looks at the input/textarea DOM nodes
+        return ReactDOM.findDOMNode(this.refs.textbox);
+    }
+
     handleDocumentClick(e) {
         if (!this.state.focused) {
             return;
@@ -75,11 +78,7 @@ export default class SuggestionBox extends React.Component {
         const caret = Utils.getCaretPosition(textbox);
         const pretext = textbox.value.substring(0, caret);
 
-        AppDispatcher.handleViewAction({
-            type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,
-            id: this.suggestionId,
-            pretext
-        });
+        EventHelpers.emitSuggestionPretextChanged(this.suggestionId, pretext);
 
         if (this.props.onUserInput) {
             this.props.onUserInput(textbox.value);
@@ -109,24 +108,19 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleKeyDown(e) {
-        if (e.which === KeyCodes.UP) {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.SUGGESTION_SELECT_PREVIOUS,
-                id: this.suggestionId
-            });
-            e.preventDefault();
-        } else if (e.which === KeyCodes.DOWN) {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.SUGGESTION_SELECT_NEXT,
-                id: this.suggestionId
-            });
-            e.preventDefault();
-        } else if ((e.which === KeyCodes.SPACE || e.which === KeyCodes.ENTER) && SuggestionStore.hasSuggestions(this.suggestionId)) {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.SUGGESTION_COMPLETE_WORD,
-                id: this.suggestionId
-            });
-            e.preventDefault();
+        if (SuggestionStore.hasSuggestions(this.suggestionId)) {
+            if (e.which === KeyCodes.UP) {
+                EventHelpers.emitSelectPreviousSuggestion(this.suggestionId);
+                e.preventDefault();
+            } else if (e.which === KeyCodes.DOWN) {
+                EventHelpers.emitSelectNextSuggestion(this.suggestionId);
+                e.preventDefault();
+            } else if (e.which === KeyCodes.ENTER || (e.which === KeyCodes.SPACE && SuggestionStore.shouldCompleteOnSpace(this.suggestionId))) {
+                EventHelpers.emitCompleteWordSuggestion(this.suggestionId);
+                e.preventDefault();
+            } else if (this.props.onKeyDown) {
+                this.props.onKeyDown(e);
+            }
         } else if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
         }
@@ -145,20 +139,45 @@ export default class SuggestionBox extends React.Component {
             onKeyDown: this.handleKeyDown
         });
 
-        return (
-            <div>
+        let textbox = null;
+        if (this.props.type === 'input') {
+            textbox = (
                 <input
                     ref='textbox'
                     type='text'
                     {...newProps}
                 />
-                <SuggestionList suggestionId={this.suggestionId} />
+            );
+        } else if (this.props.type === 'textarea') {
+            textbox = (
+                <textarea
+                    ref='textbox'
+                    {...newProps}
+                />
+            );
+        }
+
+        const SuggestionListComponent = this.props.listComponent;
+
+        return (
+            <div>
+                {textbox}
+                <SuggestionListComponent
+                    suggestionId={this.suggestionId}
+                    show={this.state.focused}
+                />
             </div>
         );
     }
 }
 
+SuggestionBox.defaultProps = {
+    type: 'input'
+};
+
 SuggestionBox.propTypes = {
+    listComponent: React.PropTypes.func.isRequired,
+    type: React.PropTypes.oneOf(['input', 'textarea']).isRequired,
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),

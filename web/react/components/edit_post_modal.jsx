@@ -160,6 +160,7 @@ export default class EditPostModal extends React.Component {
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.editText}
                                 createMessage='Edit the post...'
+                                supportsCommands={false}
                                 id='edit_textbox'
                                 ref='editbox'
                             />

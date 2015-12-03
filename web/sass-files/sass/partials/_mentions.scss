@@ -7,26 +7,9 @@
 	@include border-radius(3px);
 }
 
-.mentions--top {
-	position: absolute;
-	z-index: 1060;
-	@extend %popover-box-shadow;
-	.mentions-box {
- 		width: 100%;
- 		height: 100%;
-		position: absolute;
-		background-color: #fff;
-		border: $border-gray;
-		overflow-x: hidden;
-		overflow-y: scroll;
-		bottom: 0;
-	}
-}
-
 .mentions-name {
 	position:relative;
 	width:100%;
-	background-color:#fff;
 	height:36px;
 	padding:2px;
 	z-index:101;

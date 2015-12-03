@@ -1,16 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import SearchStore from '../stores/search_store.jsx';
-import CommandList from './command_list.jsx';
+import AtMentionProvider from './suggestion/at_mention_provider.jsx';
+import CommandProvider from './suggestion/command_provider.jsx';
+import SuggestionList from './suggestion/suggestion_list.jsx';
+import SuggestionBox from './suggestion/suggestion_box.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
-const KeyCodes = Constants.KeyCodes;
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 export default class Textbox extends React.Component {
@@ -18,32 +17,22 @@ export default class Textbox extends React.Component {
         super(props);
 
         this.getStateFromStores = this.getStateFromStores.bind(this);
-        this.onListenerChange = this.onListenerChange.bind(this);
         this.onRecievedError = this.onRecievedError.bind(this);
-        this.updateMentionTab = this.updateMentionTab.bind(this);
-        this.handleChange = this.handleChange.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleBackspace = this.handleBackspace.bind(this);
-        this.checkForNewMention = this.checkForNewMention.bind(this);
-        this.addMention = this.addMention.bind(this);
-        this.addCommand = this.addCommand.bind(this);
         this.resize = this.resize.bind(this);
         this.handleFocus = this.handleFocus.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
-        this.handlePaste = this.handlePaste.bind(this);
         this.showPreview = this.showPreview.bind(this);
 
         this.state = {
-            mentionText: '-1',
-            mentions: [],
             connection: ''
         };
 
-        this.caret = -1;
-        this.addedMention = false;
-        this.doProcessMentions = false;
-        this.mentions = [];
+        this.suggestionProviders = [new AtMentionProvider()];
+        if (props.supportsCommands) {
+            this.suggestionProviders.push(new CommandProvider());
+        }
     }
 
     getStateFromStores() {
@@ -57,22 +46,13 @@ export default class Textbox extends React.Component {
     }
 
     componentDidMount() {
-        SearchStore.addAddMentionListener(this.onListenerChange);
         ErrorStore.addChangeListener(this.onRecievedError);
 
         this.resize();
-        this.updateMentionTab(null);
     }
 
     componentWillUnmount() {
-        SearchStore.removeAddMentionListener(this.onListenerChange);
         ErrorStore.removeChangeListener(this.onRecievedError);
-    }
-
-    onListenerChange(id, username) {
-        if (id === this.props.id) {
-            this.addMention(username);
-        }
     }
 
     onRecievedError() {
@@ -86,158 +66,21 @@ export default class Textbox extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.caret >= 0) {
-            Utils.setCaretPosition(ReactDOM.findDOMNode(this.refs.message), this.caret);
-            this.caret = -1;
-        }
-        if (this.doProcessMentions) {
-            this.updateMentionTab(null);
-            this.doProcessMentions = false;
-        }
         this.resize();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!this.addedMention) {
-            this.checkForNewMention(nextProps.messageText);
-        }
-        const text = ReactDOM.findDOMNode(this.refs.message).value;
-        if (nextProps.channelId !== this.props.channelId || nextProps.messageText !== text) {
-            this.doProcessMentions = true;
-        }
-        this.addedMention = false;
-        this.refs.commands.getSuggestedCommands(nextProps.messageText);
-    }
-
-    updateMentionTab(mentionText) {
-        // using setTimeout so dispatch isn't called during an in progress dispatch
-        setTimeout(() => {
-            AppDispatcher.handleViewAction({
-                type: ActionTypes.RECIEVED_MENTION_DATA,
-                id: this.props.id,
-                mention_text: mentionText
-            });
-        }, 1);
-    }
-
-    handleChange() {
-        const text = ReactDOM.findDOMNode(this.refs.message).value;
-        this.props.onUserInput(text);
-    }
-
     handleKeyPress(e) {
-        const text = ReactDOM.findDOMNode(this.refs.message).value;
-
-        if (!this.refs.commands.isEmpty() && text.indexOf('/') === 0 && e.which === 13) {
-            this.refs.commands.addFirstCommand();
-            e.preventDefault();
-            return;
-        }
-
-        if (!this.doProcessMentions) {
-            const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
-            const preText = text.substring(0, caret);
-            const lastSpace = preText.lastIndexOf(' ');
-            const lastAt = preText.lastIndexOf('@');
-
-            if (caret > lastAt && lastSpace < lastAt) {
-                this.doProcessMentions = true;
-            }
-        }
-
         this.props.onKeyPress(e);
     }
 
     handleKeyDown(e) {
-        if (Utils.getSelectedText(ReactDOM.findDOMNode(this.refs.message)) !== '') {
-            this.doProcessMentions = true;
-        }
-
-        if (e.keyCode === KeyCodes.BACKSPACE) {
-            this.handleBackspace(e);
-        } else if (this.props.onKeyDown) {
+        if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
         }
     }
 
-    handleBackspace() {
-        const text = ReactDOM.findDOMNode(this.refs.message).value;
-        if (text.indexOf('/') === 0) {
-            this.refs.commands.getSuggestedCommands(text.substring(0, text.length - 1));
-        }
-
-        if (this.doProcessMentions) {
-            return;
-        }
-
-        const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
-        const preText = text.substring(0, caret);
-        const lastSpace = preText.lastIndexOf(' ');
-        const lastAt = preText.lastIndexOf('@');
-
-        if (caret > lastAt && (lastSpace > lastAt || lastSpace === -1)) {
-            this.doProcessMentions = true;
-        }
-    }
-
-    checkForNewMention(text) {
-        const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
-
-        const preText = text.substring(0, caret);
-
-        const atIndex = preText.lastIndexOf('@');
-
-        // The @ character not typed, so nothing to do.
-        if (atIndex === -1) {
-            this.updateMentionTab('-1');
-            return;
-        }
-
-        const lastCharSpace = preText.lastIndexOf(String.fromCharCode(160));
-        const lastSpace = preText.lastIndexOf(' ');
-
-        // If there is a space after the last @, nothing to do.
-        if (lastSpace > atIndex || lastCharSpace > atIndex) {
-            this.updateMentionTab('-1');
-            return;
-        }
-
-        // Get the name typed so far.
-        const name = preText.substring(atIndex + 1, preText.length).toLowerCase();
-        this.updateMentionTab(name);
-    }
-
-    addMention(name) {
-        const caret = Utils.getCaretPosition(ReactDOM.findDOMNode(this.refs.message));
-
-        const text = this.props.messageText;
-
-        const preText = text.substring(0, caret);
-
-        const atIndex = preText.lastIndexOf('@');
-
-        // The @ character not typed, so nothing to do.
-        if (atIndex === -1) {
-            return;
-        }
-
-        const prefix = text.substring(0, atIndex);
-        const suffix = text.substring(caret, text.length);
-        this.caret = prefix.length + name.length + 2;
-        this.addedMention = true;
-        this.doProcessMentions = true;
-
-        this.props.onUserInput(`${prefix}@${name} ${suffix}`);
-    }
-
-    addCommand(cmd) {
-        const elm = ReactDOM.findDOMNode(this.refs.message);
-        elm.value = cmd;
-        this.handleChange();
-    }
-
     resize() {
-        const e = ReactDOM.findDOMNode(this.refs.message);
+        const e = this.refs.message.getTextbox();
         const w = ReactDOM.findDOMNode(this.refs.wrapper);
 
         const prevHeight = $(e).height();
@@ -272,21 +115,17 @@ export default class Textbox extends React.Component {
     }
 
     handleFocus() {
-        const elm = ReactDOM.findDOMNode(this.refs.message);
+        const elm = this.refs.message.getTextbox();
         if (elm.title === elm.value) {
             elm.value = '';
         }
     }
 
     handleBlur() {
-        const elm = ReactDOM.findDOMNode(this.refs.message);
+        const elm = this.refs.message.getTextbox();
         if (elm.value === '') {
             elm.value = elm.title;
         }
-    }
-
-    handlePaste() {
-        this.doProcessMentions = true;
     }
 
     showPreview(e) {
@@ -323,15 +162,11 @@ export default class Textbox extends React.Component {
                 ref='wrapper'
                 className='textarea-wrapper'
             >
-                <CommandList
-                    ref='commands'
-                    addCommand={this.addCommand}
-                    channelId={this.props.channelId}
-                />
-                <textarea
+                <SuggestionBox
                     id={this.props.id}
                     ref='message'
                     className={`form-control custom-textarea ${this.state.connection}`}
+                    type='textarea'
                     spellCheck='true'
                     autoComplete='off'
                     autoCorrect='off'
@@ -339,14 +174,15 @@ export default class Textbox extends React.Component {
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
                     value={this.props.messageText}
-                    onInput={this.handleChange}
-                    onChange={this.handleChange}
+                    onUserInput={this.props.onUserInput}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onFocus={this.handleFocus}
                     onBlur={this.handleBlur}
                     onPaste={this.handlePaste}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
+                    listComponent={SuggestionList}
+                    providers={this.suggestionProviders}
                 />
                 <div
                     ref='preview'
@@ -367,6 +203,10 @@ export default class Textbox extends React.Component {
     }
 }
 
+Textbox.defaultProps = {
+    supportsCommands: true
+};
+
 Textbox.propTypes = {
     id: React.PropTypes.string.isRequired,
     channelId: React.PropTypes.string,
@@ -375,5 +215,6 @@ Textbox.propTypes = {
     onKeyPress: React.PropTypes.func.isRequired,
     onHeightChange: React.PropTypes.func,
     createMessage: React.PropTypes.string.isRequired,
-    onKeyDown: React.PropTypes.func
+    onKeyDown: React.PropTypes.func,
+    supportsCommands: React.PropTypes.bool.isRequired
 };

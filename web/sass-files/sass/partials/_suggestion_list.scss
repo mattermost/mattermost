@@ -1,15 +1,29 @@
-.command-box {
+.suggestion-list {
+	width: 100%;
+	z-index: 100;
+	@extend %popover-box-shadow;
+}
+
+.suggestion-list--top {
     position: absolute;
-    background-color: #fff;
+}
+
+.suggestion-content {
     width: 100%;
+    max-height: 292px;
+    background-color: #fff;
     border: $border-gray;
-    bottom: 38px;
-    overflow: auto;
-    z-index: 100;
-    @extend %popover-box-shadow;
-    .sidebar--right & {
-        bottom: 100px;
-    }
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.suggestion-content--top {
+    position: absolute;
+    bottom: 0;
+}
+
+.suggestion--selected {
+    // set by theme code
 }
 
 .command-name {
@@ -20,9 +34,7 @@
     z-index: 101;
     font-size: 0.95em;
     border-bottom: 1px solid #ddd;
-    &:hover {
-        background-color: #e8eaed;
-    }
+
     .command__desc {
         margin-left: 5px;
         @include opacity(0.5);

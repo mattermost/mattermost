@@ -38,6 +38,7 @@ class SuggestionStore extends EventEmitter {
         // items: a list of objects backing the terms which may be used in rendering
         // components: a list of react components that can be used to render their corresponding item
         // selection: the term currently selected by the keyboard
+        // completeOnSpace: whether or not space will trigger the term to be autocompleted
         this.suggestions = new Map();
     }
 
@@ -78,7 +79,8 @@ class SuggestionStore extends EventEmitter {
             terms: [],
             items: [],
             components: [],
-            selection: ''
+            selection: '',
+            completeOnSpace: true
         });
     }
 
@@ -93,6 +95,12 @@ class SuggestionStore extends EventEmitter {
         suggestion.terms = [];
         suggestion.items = [];
         suggestion.components = [];
+        suggestion.completeOnSpace = true;
+    }
+
+    clearSelection(id) {
+        const suggestion = this.suggestions.get(id);
+
         suggestion.selection = '';
     }
 
@@ -110,6 +118,12 @@ class SuggestionStore extends EventEmitter {
         const suggestion = this.suggestions.get(id);
 
         suggestion.matchedPretext = matchedPretext;
+    }
+
+    setCompleteOnSpace(id, completeOnSpace) {
+        const suggestion = this.suggestions.get(id);
+
+        suggestion.completeOnSpace = completeOnSpace;
     }
 
     addSuggestion(id, term, item, component) {
@@ -175,6 +189,10 @@ class SuggestionStore extends EventEmitter {
         return this.suggestions.get(id).selection;
     }
 
+    shouldCompleteOnSpace(id) {
+        return this.suggestions.get(id).completeOnSpace;
+    }
+
     selectNext(id) {
         this.setSelectionByDelta(id, 1);
     }
@@ -218,11 +236,13 @@ class SuggestionStore extends EventEmitter {
             this.emitSuggestionsChanged(id);
             break;
         case ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS:
-            this.setMatchedPretext(id, other.matchedPretext);
-            this.addSuggestions(id, other.terms, other.items, other.componentType);
+            if (other.matchedPretext === this.getMatchedPretext(id)) {
+                // ensure the matched pretext hasn't changed so that we don't receive suggestions for outdated pretext
+                this.addSuggestions(id, other.terms, other.items, other.component);
 
-            this.ensureSelectionExists(id);
-            this.emitSuggestionsChanged(id);
+                this.ensureSelectionExists(id);
+                this.emitSuggestionsChanged(id);
+            }
             break;
         case ActionTypes.SUGGESTION_SELECT_NEXT:
             this.selectNext(id);
@@ -237,6 +257,7 @@ class SuggestionStore extends EventEmitter {
 
             this.setPretext(id, '');
             this.clearSuggestions(id);
+            this.clearSelection(id);
             this.emitSuggestionsChanged(id);
             break;
         }

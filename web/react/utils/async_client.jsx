@@ -741,3 +741,27 @@ export function savePreferences(preferences, success, error) {
         }
     );
 }
+
+export function getSuggestedCommands(command, suggestionId, component) {
+    client.executeCommand(
+        '',
+        command,
+        true,
+        (data) => {
+            // pull out the suggested commands from the returned data
+            const terms = data.suggestions.map((suggestion) => suggestion.suggestion);
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                id: suggestionId,
+                matchedPretext: command,
+                terms,
+                items: data.suggestions,
+                component
+            });
+        },
+        (err) => {
+            dispatchError(err, 'getCommandSuggestions');
+        }
+    );
+}
