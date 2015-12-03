@@ -60,7 +60,7 @@ start-docker:
 	fi
 
 build-server:
-	@echo Building mattermost server
+	@echo Building mattermost server tbuild=$(TRAVIS_BUILD_NUMBER) build=$(BUILD_NUMBER)
 
 	rm -Rf $(DIST_ROOT)
 	$(GO) clean $(GOFLAGS) -i ./...
@@ -156,7 +156,7 @@ go-test:
 test: | start-docker .prepare-go go-test
 
 travis-init:
-	@echo Setting up enviroment for travis
+	@echo Setting up enviroment for travis tbuild=$(TRAVIS_BUILD_NUMBER) build=$(BUILD_NUMBER)
 
 	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
 		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
@@ -170,7 +170,7 @@ travis-init:
 build-container:
 	@echo Building in container
 
-	docker run --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost/platform mattermost/builder:latest
+	docker run -e TRAVIS_BUILD_NUMBER=$(TRAVIS_BUILD_NUMBER) --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost/platform mattermost/builder:latest
 
 stop-docker:
 	@echo Stopping docker containers
