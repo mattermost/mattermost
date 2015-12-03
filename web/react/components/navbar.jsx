@@ -173,6 +173,7 @@ export default class Navbar extends React.Component {
                         <ToggleModalButton
                             role='menuitem'
                             dialogType={ChannelInviteModal}
+                            dialogProps={{channel}}
                         >
                             {'Add Members'}
                         </ToggleModalButton>
@@ -473,6 +474,7 @@ export default class Navbar extends React.Component {
                 <ChannelMembersModal
                     show={this.state.showMembersModal}
                     onModalDismissed={() => this.setState({showMembersModal: false})}
+                    channel={{channel}}
                 />
             </div>
         );

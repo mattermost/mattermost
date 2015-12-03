@@ -31,9 +31,7 @@ export default class MemberListItem extends React.Component {
         var timestamp = UserStore.getCurrentUser().update_at;
 
         var invite;
-        if (member.invited && this.props.handleInvite) {
-            invite = <span className='member-role'>Added</span>;
-        } else if (this.props.handleInvite) {
+        if (this.props.handleInvite) {
             invite = (
                     <a
                         onClick={this.handleInvite}

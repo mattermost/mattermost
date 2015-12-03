@@ -167,6 +167,7 @@ function createInviteChannelMemberButton(channel, uiType) {
         <ToggleModalButton
             className='intro-links'
             dialogType={ChannelInviteModal}
+            dialogProps={{channel}}
         >
             <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
         </ToggleModalButton>

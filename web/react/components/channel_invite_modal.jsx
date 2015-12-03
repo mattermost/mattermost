@@ -53,15 +53,8 @@ export default class ChannelInviteModal extends React.Component {
             return a.username.localeCompare(b.username);
         });
 
-        var channelName = '';
-        if (ChannelStore.getCurrent()) {
-            channelName = ChannelStore.getCurrent().display_name;
-        }
-
         return {
             nonmembers,
-            memberIds,
-            channelName,
             loading
         };
     }
@@ -94,28 +87,14 @@ export default class ChannelInviteModal extends React.Component {
         }
     }
     handleInvite(userId) {
-        // Make sure the user isn't already a member of the channel
-        if (this.state.memberIds.indexOf(userId) > -1) {
-            return;
-        }
-
         var data = {};
         data.user_id = userId;
 
-        Client.addChannelMember(ChannelStore.getCurrentId(), data,
+        Client.addChannelMember(
+            this.props.channel.id,
+            data,
             () => {
-                var nonmembers = this.state.nonmembers;
-                var memberIds = this.state.memberIds;
-
-                for (var i = 0; i < nonmembers.length; i++) {
-                    if (userId === nonmembers[i].id) {
-                        nonmembers[i].invited = true;
-                        memberIds.push(userId);
-                        break;
-                    }
-                }
-
-                this.setState({inviteError: null, memberIds, nonmembers});
+                this.setState({inviteError: null});
                 AsyncClient.getChannelExtraInfo();
             },
             (err) => {
@@ -160,7 +139,7 @@ export default class ChannelInviteModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.state.channelName}</span></Modal.Title>
+                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.props.channel.display_nam}</span></Modal.Title>
                 </Modal.Header>
                 <Modal.Body
                     ref='modalBody'
@@ -185,5 +164,6 @@ export default class ChannelInviteModal extends React.Component {
 
 ChannelInviteModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired,
+    channel: React.PropTypes.object.isRequired
 };
