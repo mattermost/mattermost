@@ -95,6 +95,10 @@ export default class Post extends React.Component {
             return true;
         }
 
+        if (nextProps.shouldHighlight !== this.props.shouldHighlight) {
+            return true;
+        }
+
         return false;
     }
     getCommentCount(props) {
