@@ -3,6 +3,7 @@
 
 import AtMentionProvider from './suggestion/at_mention_provider.jsx';
 import CommandProvider from './suggestion/command_provider.jsx';
+import EmoticonProvider from './suggestion/emoticon_provider.jsx';
 import SuggestionList from './suggestion/suggestion_list.jsx';
 import SuggestionBox from './suggestion/suggestion_box.jsx';
 import ErrorStore from '../stores/error_store.jsx';
@@ -29,7 +30,7 @@ export default class Textbox extends React.Component {
             connection: ''
         };
 
-        this.suggestionProviders = [new AtMentionProvider()];
+        this.suggestionProviders = [new AtMentionProvider(), new EmoticonProvider()];
         if (props.supportsCommands) {
             this.suggestionProviders.push(new CommandProvider());
         }

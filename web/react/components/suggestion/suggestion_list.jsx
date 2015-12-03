@@ -100,6 +100,7 @@ export default class SuggestionList extends React.Component {
                     key={term}
                     ref={term}
                     item={item}
+                    term={term}
                     isSelection={isSelection}
                     onClick={this.handleItemClick.bind(this, term)}
                 />
