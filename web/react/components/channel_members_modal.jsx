@@ -205,7 +205,7 @@ export default class ChannelMembersModal extends React.Component {
                 </Modal>
                 <ChannelInviteModal
                     show={this.state.showInviteModal}
-                    onModalDismissed={() => this.setState({showInviteModal: false})}
+                    onHide={() => this.setState({showInviteModal: false})}
                 />
             </div>
         );

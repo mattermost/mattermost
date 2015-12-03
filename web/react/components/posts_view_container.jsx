@@ -3,7 +3,6 @@
 
 import PostsView from './posts_view.jsx';
 import LoadingScreen from './loading_screen.jsx';
-import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
@@ -177,7 +176,7 @@ export default class PostsViewContainer extends React.Component {
                     loadMorePostsBottomClicked={() => {}}
                     showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
                     showMoreMessagesBottom={false}
-                    introText={channel ? createChannelIntroMessage(channel, () => this.setState({showInviteModal: true})) : null}
+                    introText={channel ? createChannelIntroMessage(channel) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );
@@ -194,10 +193,6 @@ export default class PostsViewContainer extends React.Component {
         return (
             <div id='post-list'>
                 {postListCtls}
-                <ChannelInviteModal
-                    show={this.state.showInviteModal}
-                    onModalDismissed={() => this.setState({showInviteModal: false})}
-                />
             </div>
         );
     }

@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from './utils.jsx';
+import ChannelInviteModal from '../components/channel_invite_modal.jsx';
 import EditChannelHeaderModal from '../components/edit_channel_header_modal.jsx';
 import ToggleModalButton from '../components/toggle_modal_button.jsx';
 import UserProfile from '../components/user_profile.jsx';
@@ -10,15 +11,15 @@ import Constants from '../utils/constants.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
-export function createChannelIntroMessage(channel, showInviteModal) {
+export function createChannelIntroMessage(channel) {
     if (channel.type === 'D') {
         return createDMIntroMessage(channel);
     } else if (ChannelStore.isDefault(channel)) {
         return createDefaultIntroMessage(channel);
     } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-        return createOffTopicIntroMessage(channel, showInviteModal);
+        return createOffTopicIntroMessage(channel);
     } else if (channel.type === 'O' || channel.type === 'P') {
-        return createStandardIntroMessage(channel, showInviteModal);
+        return createStandardIntroMessage(channel);
     }
 }
 
@@ -62,7 +63,7 @@ export function createDMIntroMessage(channel) {
     );
 }
 
-export function createOffTopicIntroMessage(channel, showInviteModal) {
+export function createOffTopicIntroMessage(channel) {
     return (
         <div className='channel-intro'>
             <h4 className='channel-intro__title'>{'Beginning of ' + channel.display_name}</h4>
@@ -71,13 +72,7 @@ export function createOffTopicIntroMessage(channel, showInviteModal) {
                 <br/>
             </p>
             {createSetHeaderButton(channel)}
-            <a
-                href='#'
-                className='intro-links'
-                onClick={showInviteModal}
-            >
-                <i className='fa fa-user-plus'></i>{'Invite others to this channel'}
-            </a>
+            {createInviteChannelMemberButton(channel, 'channel')}
         </div>
     );
 }
@@ -122,7 +117,7 @@ export function createDefaultIntroMessage(channel) {
     );
 }
 
-export function createStandardIntroMessage(channel, showInviteModal) {
+export function createStandardIntroMessage(channel) {
     var uiName = channel.display_name;
     var creatorName = '';
 
@@ -162,14 +157,19 @@ export function createStandardIntroMessage(channel, showInviteModal) {
                 <br/>
             </p>
             {createSetHeaderButton(channel)}
-            <a
-                className='intro-links'
-                href='#'
-                onClick={showInviteModal}
-            >
-                <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
-            </a>
+            {createInviteChannelMemberButton(channel, uiType)}
         </div>
+    );
+}
+
+function createInviteChannelMemberButton(channel, uiType) {
+    return (
+        <ToggleModalButton
+            className='intro-links'
+            dialogType={ChannelInviteModal}
+        >
+            <i className='fa fa-user-plus'></i>{'Invite others to this ' + uiType}
+        </ToggleModalButton>
     );
 }
 

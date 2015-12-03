@@ -157,7 +157,7 @@ export default class ChannelInviteModal extends React.Component {
             <Modal
                 dialogClassName='more-modal'
                 show={this.props.show}
-                onHide={this.props.onModalDismissed}
+                onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{'Add New Members to '}<span className='name'>{this.state.channelName}</span></Modal.Title>
@@ -173,7 +173,7 @@ export default class ChannelInviteModal extends React.Component {
                     <button
                         type='button'
                         className='btn btn-default'
-                        onClick={this.props.onModalDismissed}
+                        onClick={this.props.onHide}
                     >
                         {'Close'}
                     </button>
@@ -185,5 +185,5 @@ export default class ChannelInviteModal extends React.Component {
 
 ChannelInviteModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired
 };

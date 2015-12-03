@@ -40,7 +40,6 @@ export default class ChannelHeader extends React.Component {
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
-        state.showInviteModal = false;
         state.showMembersModal = false;
         this.state = state;
     }
@@ -201,13 +200,12 @@ export default class ChannelHeader extends React.Component {
                         key='add_members'
                         role='presentation'
                     >
-                        <a
+                        <ToggleModalButton
                             role='menuitem'
-                            href='#'
-                            onClick={() => this.setState({showInviteModal: true})}
+                            dialogType={ChannelInviteModal}
                         >
                             {'Add Members'}
-                        </a>
+                        </ToggleModalButton>
                     </li>
                 );
 
@@ -401,10 +399,6 @@ export default class ChannelHeader extends React.Component {
                     show={this.state.showEditChannelPurposeModal}
                     onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
                     channel={channel}
-                />
-                <ChannelInviteModal
-                    show={this.state.showInviteModal}
-                    onModalDismissed={() => this.setState({showInviteModal: false})}
                 />
                 <ChannelMembersModal
                     show={this.state.showMembersModal}
