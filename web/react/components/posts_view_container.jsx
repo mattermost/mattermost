@@ -12,7 +12,7 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
 
-import {createChannelIntroMessage} from '../utils/channel_intro_mssages.jsx';
+import {createChannelIntroMessage} from '../utils/channel_intro_messages.jsx';
 
 export default class PostsViewContainer extends React.Component {
     constructor() {
