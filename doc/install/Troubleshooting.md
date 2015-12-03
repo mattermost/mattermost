@@ -22,7 +22,7 @@ The following is a list of common error messages and solutions:
 
 
 ###### `x509: certificate signed by unknown authority` in server logs when attempting to sign-up
-  - This error may appear when attempt to use a self-signed certificate to setup SSL, which is not yet supported by Mattermost. You
+  - This error may appear when attempt to use a self-signed certificate to setup SSL, which is not yet supported by Mattermost. 
   - **Solution:** Set up a load balancer like Ngnix [per production install guide](https://github.com/mattermost/platform/blob/master/doc/install/Production-Ubuntu.md#set-up-nginx-with-ssl-recommended). A ticket exists to [add support for self-signed certificates in future](x509: certificate signed by unknown authority). 
 
 ###### `panic: runtime error: invalid memory address or nil pointer dereference`
