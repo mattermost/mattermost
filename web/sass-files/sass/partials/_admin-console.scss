@@ -37,13 +37,22 @@
                         background: #333;
                         padding: 10px 10px;
                         margin: 1px 0 0;
+                        .menu-icon--right {
+                            top: 6px;
+                            right: 12px;
+                        }
                     }
                 }
                 .menu-icon--right {
-                    vertical-align: top;
-                    padding: 5px 10px;
-                    margin: -5px;
-                    float: right;
+                    position: absolute;
+                    right: 10px;
+                    top: 3px;
+                    font-size: 18px;
+                    font-weight: 600;
+                    width: 20px;
+                    height: 20px;
+                    line-height: 20px;
+                    text-align: center;
                     .fa {
                         font-size: 13px;
                         right: -2px;
@@ -60,7 +69,7 @@
                     li {
                         > a {
                             font-size: 13px;
-                            padding: 5px 15px;
+                            padding: 5px 35px 5px 15px;
                             background: transparent;
                             color: #bbb;
                             &:hover {

@@ -57,7 +57,7 @@ export default class SelectTeamModal extends React.Component {
                                 <select
                                     ref='team'
                                     size='10'
-                                    style={{width: '100%'}}
+                                    className='form-control'
                                 >
                                     {options}
                                 </select>
