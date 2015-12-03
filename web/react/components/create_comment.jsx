@@ -34,7 +34,6 @@ export default class CreateComment extends React.Component {
         this.handleUploadError = this.handleUploadError.bind(this);
         this.handleTextDrop = this.handleTextDrop.bind(this);
         this.removePreview = this.removePreview.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);

@@ -101,7 +101,6 @@ export default class RhsThread extends React.Component {
         }
 
         if (currentPosts.posts[currentPosts.order[0]].channel_id === currentSelected.posts[currentSelected.order[0]].channel_id) {
-            currentSelected.posts = {};
             for (var postId in currentPosts.posts) {
                 if (currentPosts.posts.hasOwnProperty(postId)) {
                     currentSelected.posts[postId] = currentPosts.posts[postId];
