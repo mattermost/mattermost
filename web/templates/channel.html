@@ -26,13 +26,13 @@
 <script>
 window.setup_channel_page({{ .Props }}, {{ .Team }}, {{ .Channel }}, {{ .User }});
   $('body').tooltip( {selector: '[data-toggle=tooltip]'} );
+  var modals = $('.modal-body').not('.edit-modal-body');
   if($(window).height() > 1200){
-    $('.modal-body').css('max-height', 1000);
+    modals.css('max-height', 1000);
+  } else {
+    modals.css('max-height', $(window).height() - 200);
   }
-  else {
-    $('.modal-body').css('max-height', $(window).height() - 200);
-  }
-  $('.modal-body').perfectScrollbar();
+  modals.perfectScrollbar();
 </script>
 </body>
 </html>

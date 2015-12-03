@@ -5,11 +5,14 @@ import * as client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import SearchStore from '../stores/search_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import SuggestionBox from './suggestion/suggestion_box.jsx';
+import SearchChannelProvider from './suggestion/search_channel_provider.jsx';
+import SearchSuggestionList from './suggestion/search_suggestion_list.jsx';
+import SearchUserProvider from './suggestion/search_user_provider.jsx';
 import * as utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 var Popover = ReactBootstrap.Popover;
-import SearchAutocomplete from './search_autocomplete.jsx';
 
 export default class SearchBar extends React.Component {
     constructor() {
@@ -17,17 +20,17 @@ export default class SearchBar extends React.Component {
         this.mounted = false;
 
         this.onListenerChange = this.onListenerChange.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleUserInput = this.handleUserInput.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.completeWord = this.completeWord.bind(this);
 
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
         this.state = state;
+
+        this.suggestionProviders = [new SearchChannelProvider(), new SearchUserProvider()];
     }
     getSearchTermStateFromStores() {
         var term = SearchStore.getSearchTerm() || '';
@@ -77,18 +80,11 @@ export default class SearchBar extends React.Component {
             results: null
         });
     }
-    handleKeyDown(e) {
-        if (this.refs.autocomplete) {
-            this.refs.autocomplete.handleKeyDown(e);
-        }
-    }
-    handleUserInput(e) {
-        var term = e.target.value;
+    handleUserInput(text) {
+        var term = text;
         SearchStore.storeSearchTerm(term);
         SearchStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
-
-        this.refs.autocomplete.handleInputChange(e.target, term);
     }
     handleUserBlur() {
         this.setState({focused: false});
@@ -128,23 +124,6 @@ export default class SearchBar extends React.Component {
         this.performSearch(this.state.searchTerm.trim());
     }
 
-    completeWord(partialWord, word) {
-        const textbox = ReactDOM.findDOMNode(this.refs.search);
-        let text = textbox.value;
-
-        const caret = utils.getCaretPosition(textbox);
-        const preText = text.substring(0, caret - partialWord.length);
-        const postText = text.substring(caret);
-        text = preText + word + postText;
-
-        textbox.value = text;
-        utils.setCaretPosition(textbox, preText.length + word.length);
-
-        SearchStore.storeSearchTerm(text);
-        SearchStore.emitSearchTermChange(false);
-        this.setState({searchTerm: text});
-    }
-
     render() {
         var isSearching = null;
         if (this.state.isSearching) {
@@ -178,22 +157,18 @@ export default class SearchBar extends React.Component {
                     autoComplete='off'
                 >
                     <span className='glyphicon glyphicon-search sidebar__search-icon' />
-                    <input
-                        type='text'
+                    <SuggestionBox
                         ref='search'
                         className='form-control search-bar'
                         placeholder='Search'
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
-                        onChange={this.handleUserInput}
-                        onKeyDown={this.handleKeyDown}
+                        onUserInput={this.handleUserInput}
+                        listComponent={SearchSuggestionList}
+                        providers={this.suggestionProviders}
                     />
                     {isSearching}
-                    <SearchAutocomplete
-                        ref='autocomplete'
-                        completeWord={this.completeWord}
-                    />
                     <Popover
                         id='searchbar-help-popup'
                         placement='bottom'

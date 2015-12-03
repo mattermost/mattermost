@@ -6,9 +6,9 @@ import UserProfile from './user_profile.jsx';
 import UserStore from '../stores/user_store.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import * as utils from '../utils/utils.jsx';
+import * as Emoji from '../utils/emoticons.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
 import twemoji from 'twemoji';
-import Constants from '../utils/constants.jsx';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
@@ -21,7 +21,11 @@ export default class RhsRootPost extends React.Component {
         this.state = {};
     }
     parseEmojis() {
-        twemoji.parse(ReactDOM.findDOMNode(this), {size: Constants.EMOJI_SIZE});
+        twemoji.parse(ReactDOM.findDOMNode(this), {
+            className: 'emoji twemoji',
+            base: '',
+            folder: Emoji.getImagePathForEmoticon()
+        });
     }
     componentDidMount() {
         this.parseEmojis();

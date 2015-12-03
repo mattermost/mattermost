@@ -111,3 +111,33 @@ export function showRegisterAppModal() {
         value: true
     });
 }
+
+export function emitSuggestionPretextChanged(suggestionId, pretext) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,
+        id: suggestionId,
+        pretext
+    });
+}
+
+export function emitSelectNextSuggestion(suggestionId) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.SUGGESTION_SELECT_NEXT,
+        id: suggestionId
+    });
+}
+
+export function emitSelectPreviousSuggestion(suggestionId) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.SUGGESTION_SELECT_PREVIOUS,
+        id: suggestionId
+    });
+}
+
+export function emitCompleteWordSuggestion(suggestionId, term = '') {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.SUGGESTION_COMPLETE_WORD,
+        id: suggestionId,
+        term
+    });
+}

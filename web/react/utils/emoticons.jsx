@@ -116,19 +116,19 @@ function initializeEmoticonMap() {
     const out = new Map();
 
     for (let i = 0; i < emoticonNames.length; i++) {
-        out[emoticonNames[i]] = true;
+        out.set(emoticonNames[i], true);
     }
 
     return out;
 }
 
-const emoticonMap = initializeEmoticonMap();
+export const emoticonMap = initializeEmoticonMap();
 
 export function handleEmoticons(text, tokens) {
     let output = text;
 
     function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
-        if (emoticonMap[name]) {
+        if (emoticonMap.has(name)) {
             const index = tokens.size;
             const alias = `MM_EMOTICON${index}`;
 
@@ -154,6 +154,9 @@ export function handleEmoticons(text, tokens) {
     return output;
 }
 
-function getImagePathForEmoticon(name) {
-    return `/static/images/emoji/${name}.png`;
+export function getImagePathForEmoticon(name) {
+    if (name) {
+        return `/static/images/emoji/${name}.png`;
+    }
+    return `/static/images/emoji`;
 }

@@ -51,23 +51,27 @@
 
 @media screen and (max-width: 960px) {
 
-    .signup-team__container {
-        font-size: 1em;
+    .sidebar--right {
+        width: 400px;
+        z-index: 5;
+        right: 0;
+        @include translateX(100%);
+
+        &.move--left {
+            @include translateX(0);
+        }
+
+    }
+
+    .inner__wrap {
+
+        &.move--left {
+            margin-right: 0;
+        }
+
     }
 
     .post {
-
-        &.same--root {
-
-            &.same--user {
-
-                .post__time {
-                    display: none;
-                }
-
-            }
-
-        }
 
         .post-list__content & {
 
@@ -102,6 +106,30 @@
             &:after {
                 font-size: 20px;
                 content: '...'
+            }
+
+        }
+
+    }
+
+}
+
+@media screen and (max-width: 768px) {
+
+    .signup-team__container {
+        font-size: 1em;
+    }
+
+    .post {
+
+        &.same--root {
+
+            &.same--user {
+
+                .post__time {
+                    display: none;
+                }
+
             }
 
         }

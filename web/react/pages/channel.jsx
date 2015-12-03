@@ -6,7 +6,6 @@ import ChannelLoader from '../components/channel_loader.jsx';
 import ErrorBar from '../components/error_bar.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
-import MentionList from '../components/mention_list.jsx';
 import GetTeamInviteLinkModal from '../components/get_team_invite_link_modal.jsx';
 import RenameChannelModal from '../components/rename_channel_modal.jsx';
 import EditPostModal from '../components/edit_post_modal.jsx';
@@ -45,21 +44,6 @@ function setupChannelPage(props, team, channel) {
     ReactDOM.render(
         <ChannelView/>,
         document.getElementById('channel_view')
-    );
-
-    ReactDOM.render(
-        <MentionList id='post_textbox' />,
-        document.getElementById('post_mention_tab')
-    );
-
-    ReactDOM.render(
-        <MentionList id='reply_textbox' />,
-        document.getElementById('reply_mention_tab')
-    );
-
-    ReactDOM.render(
-        <MentionList id='edit_textbox' />,
-        document.getElementById('edit_mention_tab')
     );
 
     //

@@ -37,7 +37,8 @@
     label {
         font-weight: 600;
     }
-    .no-padding--left {
+
+	.no-padding--left {
         padding-left: 0;
     }
     .padding-top {
@@ -78,7 +79,6 @@
         }
         .nav {
             position: fixed;
-            top: 57px;
             width: 179px;
             &.absolute {
                 position: absolute;
