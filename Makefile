@@ -170,7 +170,7 @@ travis-init:
 build-container:
 	@echo Building in container
 
-	docker run --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost/platform mattermost/builder:latest
+	docker run -e TRAVIS_BUILD_NUMBER=$(TRAVIS_BUILD_NUMBER) --link mattermost-mysql:mysql --link mattermost-postgres:postgres -v `pwd`:/go/src/github.com/mattermost/platform mattermost/builder:latest
 
 stop-docker:
 	@echo Stopping docker containers
