@@ -43,7 +43,12 @@ _testmain.go
 *npm-debug.log*
 
 # Vim temporary files
-*.swp
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
 
 # Build files
 *bundle.js
