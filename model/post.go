@@ -112,6 +112,10 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "Invalid filenames", "id="+o.Id)
 	}
 
+	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > 8000 {
+		return NewAppError("Post.IsValid", "Invalid props", "id="+o.Id)
+	}
+
 	return nil
 }
 
