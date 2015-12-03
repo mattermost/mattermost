@@ -57,7 +57,13 @@
 
         $(function () {
             $(window).bind('storage', function (e) {
-                if (e.originalEvent.key === '__logout__') {
+                // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
+                if (e.originalEvent.key === '__logout__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
+                    // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
+                    if (window.BrowserStore.isSignallingLogout(e.originalEvent.newValue)) {
+                        return;
+                    }
+
                     console.log('detected logout from a different tab');
                     window.location.href = '/' + window.mm_team.name;
                 }

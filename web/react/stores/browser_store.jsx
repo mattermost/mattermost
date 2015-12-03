@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {generateId} from '../utils/utils.jsx';
+
 function getPrefix() {
     if (global.window.mm_user) {
         return global.window.mm_user.id + '_';
@@ -26,6 +28,7 @@ class BrowserStoreClass {
         this.clearAll = this.clearAll.bind(this);
         this.checkedLocalStorageSupported = '';
         this.signalLogout = this.signalLogout.bind(this);
+        this.isSignallingLogout = this.isSignallingLogout.bind(this);
 
         var currentVersion = sessionStorage.getItem('storage_version');
         if (currentVersion !== global.window.mm_config.Version) {
@@ -113,9 +116,17 @@ class BrowserStoreClass {
 
     signalLogout() {
         if (this.isLocalStorageSupported()) {
-            localStorage.setItem('__logout__', 'yes');
+            // PLT-1285 store an identifier in session storage so we can catch if the logout came from this tab on IE11
+            const logoutId = generateId();
+
+            sessionStorage.setItem('__logout__', logoutId);
+            localStorage.setItem('__logout__', logoutId);
             localStorage.removeItem('__logout__');
         }
+    }
+
+    isSignallingLogout(logoutId) {
+        return logoutId === sessionStorage.getItem('__logout__');
     }
 
     /**
@@ -151,7 +162,14 @@ class BrowserStoreClass {
     }
 
     clear() {
+        // don't clear the logout id so IE11 can tell which tab sent a logout request
+        const logoutId = sessionStorage.getItem('__logout__');
+
         sessionStorage.clear();
+
+        if (logoutId) {
+            sessionStorage.setItem('__logout__', logoutId);
+        }
     }
 
     clearAll() {
@@ -185,3 +203,4 @@ class BrowserStoreClass {
 
 var BrowserStore = new BrowserStoreClass();
 export default BrowserStore;
+window.BrowserStore = BrowserStore;
