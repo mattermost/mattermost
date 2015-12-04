@@ -70,6 +70,7 @@ export default class ChannelLoader extends React.Component {
             Utils.applyTheme(Constants.THEMES.default);
         }
 
+        // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
         const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT}).value;
         Utils.applyFont(selectedFont);
 
