@@ -252,13 +252,6 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractLinks(text) {
-    const urlMatcher = new Autolinker.matchParser.MatchParser({
-        urls: true,
-        emails: false,
-        twitter: false,
-        phone: false,
-        hashtag: false
-    });
     const links = [];
     let replaceText = text;
 
