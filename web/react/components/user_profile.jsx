@@ -65,11 +65,16 @@ export default class UserProfile extends React.Component {
             return <div>{name}</div>;
         }
 
+        var profileImg = '/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at + '&' + Utils.getSessionIndex();
+        if (this.props.overwriteImage) {
+            profileImg = this.props.overwriteImage;
+        }
+
         var dataContent = [];
         dataContent.push(
             <img
                 className='user-popover__image'
-                src={'/api/v1/users/' + this.state.profile.id + '/image?time=' + this.state.profile.update_at + '&' + Utils.getSessionIndex()}
+                src={profileImg}
                 height='128'
                 width='128'
                 key='user-popover-image'
@@ -130,10 +135,12 @@ export default class UserProfile extends React.Component {
 UserProfile.defaultProps = {
     userId: '',
     overwriteName: '',
+    overwriteImage: '',
     disablePopover: false
 };
 UserProfile.propTypes = {
     userId: React.PropTypes.string,
     overwriteName: React.PropTypes.string,
+    overwriteImage: React.PropTypes.string,
     disablePopover: React.PropTypes.bool
 };

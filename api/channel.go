@@ -421,7 +421,7 @@ func JoinChannel(c *Context, channelId string, role string) {
 				c.Err = err
 				return
 			}
-			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`User %v has joined this channel.`, user.Username))
+			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v has joined the channel.`, user.Username))
 		} else {
 			c.Err = model.NewAppError("join", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden

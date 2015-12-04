@@ -118,7 +118,9 @@ export default {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
-    POST_TYPE_JOIN_LEAVE: 'join_leave',
+    POST_TYPE_JOIN_LEAVE: 'system_join_leave',
+    SYSTEM_MESSAGE_PREFIX: 'system_',
+    SYSTEM_MESSAGE_PROFILE_IMAGE: '/static/images/logo_compact.png',
     RESERVED_TEAM_NAMES: [
         'www',
         'web',

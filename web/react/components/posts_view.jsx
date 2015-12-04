@@ -87,6 +87,7 @@ export default class PostsView extends React.Component {
             const post = posts[order[i]];
             const parentPost = posts[post.parent_id];
             const prevPost = posts[order[i + 1]];
+            const postUserId = Utils.isSystemMessage(post) ? '' : post.user_id;
 
             // If the post is a comment whose parent has been deleted, don't add it to the list.
             if (parentPost && parentPost.state === Constants.POST_DELETED) {
@@ -102,6 +103,7 @@ export default class PostsView extends React.Component {
                 const prevPostIsComment = Utils.isComment(prevPost);
                 const postFromWebhook = Boolean(post.props && post.props.from_webhook);
                 const prevPostFromWebhook = Boolean(prevPost.props && prevPost.props.from_webhook);
+                const prevPostUserId = Utils.isSystemMessage(prevPost) ? '' : prevPostUserId;
                 let prevWebhookName = '';
                 if (prevPost.props && prevPost.props.override_username) {
                     prevWebhookName = prevPost.props.override_username;
@@ -116,7 +118,7 @@ export default class PostsView extends React.Component {
                 //     the previous post was made within 5 minutes of the current post,
                 //     the previous post and current post are both from webhooks or both not,
                 //     the previous post and current post have the same webhook usernames
-                if (prevPost.user_id === post.user_id &&
+                if (prevPostUserId === postUserId &&
                         post.create_at - prevPost.create_at <= 1000 * 60 * 5 &&
                         postFromWebhook === prevPostFromWebhook &&
                         prevWebhookName === curWebhookName) {
@@ -144,7 +146,7 @@ export default class PostsView extends React.Component {
                 //     the current post is not a comment,
                 //     the previous post and current post are both from webhooks or both not,
                 //     the previous post and current post have the same webhook usernames
-                if (prevPost.user_id === post.user_id &&
+                if (prevPostUserId === postUserId &&
                         !prevPostIsComment &&
                         !postIsComment &&
                         postFromWebhook === prevPostFromWebhook &&
@@ -191,7 +193,7 @@ export default class PostsView extends React.Component {
                 );
             }
 
-            if (post.user_id !== userId &&
+            if (postUserId !== userId &&
                     this.props.messageSeparatorTime !== 0 &&
                     post.create_at > this.props.messageSeparatorTime &&
                     !renderedLastViewed) {

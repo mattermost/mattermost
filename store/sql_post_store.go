@@ -38,7 +38,8 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-	s.RemoveColumnIfExists("Posts", "ImgCount") // remove after 1.3 release
+	s.RemoveColumnIfExists("Posts", "ImgCount")                                                                                                                              // remove after 1.3 release
+	s.GetMaster().Exec(`UPDATE Preferences SET Type = :NewType WHERE Type = :CurrentType`, map[string]string{"NewType": model.POST_JOIN_LEAVE, "CurrentType": "join_leave"}) // remove after 1.3 release
 }
 
 func (s SqlPostStore) CreateIndexesIfNotExists() {
