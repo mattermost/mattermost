@@ -55,9 +55,14 @@ export function getChannels(checkVersion) {
                 var serverVersion = xhr.getResponseHeader('X-Version-ID');
 
                 if (serverVersion !== BrowserStore.getLastServerVersion()) {
-                    BrowserStore.setLastServerVersion(serverVersion);
-                    window.location.reload(true);
-                    console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+                    if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
+                        BrowserStore.setLastServerVersion(serverVersion);
+                    } else {
+                        console.log(BrowserStore.getLastServerVersion());
+                        BrowserStore.setLastServerVersion(serverVersion);
+                        window.location.reload(true);
+                        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+                    }
                 }
             }
 
