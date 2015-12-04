@@ -268,7 +268,7 @@ export function extractLinks(text) {
         if (match.getType() !== 'url') {
             return;
         }
-        
+
         let link = '';
         const matchText = match.getMatchedText();
         const tempText = replaceText;
