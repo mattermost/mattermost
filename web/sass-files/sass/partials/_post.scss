@@ -568,7 +568,6 @@ body.ios {
 		display: inline-block;
 		visibility: hidden;
 		top: -1px;
-		float: right;
 
 		.dropdown-menu {
 			right: 0;
@@ -805,4 +804,5 @@ body.ios {
 
 .permalink-popover {
     min-width: 320px;
+    margin-left: 50px !important;
 }
