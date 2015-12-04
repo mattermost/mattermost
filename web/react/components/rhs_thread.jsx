@@ -101,6 +101,15 @@ export default class RhsThread extends React.Component {
         }
 
         if (currentPosts.posts[currentPosts.order[0]].channel_id === currentSelected.posts[currentSelected.order[0]].channel_id) {
+            for (var key in currentSelected.posts) {
+                if (currentSelected.posts.hasOwnProperty(key)) {
+                    var post = currentSelected.posts[key];
+                    if (post.pending_post_id) {
+                        Reflect.deleteProperty(currentSelected.posts, key);
+                    }
+                }
+            }
+
             for (var postId in currentPosts.posts) {
                 if (currentPosts.posts.hasOwnProperty(postId)) {
                     currentSelected.posts[postId] = currentPosts.posts[postId];
