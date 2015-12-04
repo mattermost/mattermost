@@ -1,9 +1,9 @@
 #channel-header .search-bar__container {
-    padding: 0 8px 0 3px;
+	padding: 0 8px 0 3px;
 }
 .search-bar__container {
 	padding: 12px 8px 0 0;
-    @include flex(0 0 56px);
+	@include flex(0 0 56px);
 }
 .search__clear {
 	display: none;
@@ -107,7 +107,9 @@
 }
 
 .search-item__jump {
-	margin-left: 10px;
+	position: absolute;
+	right: 0;
+	top: 0;
 }
 
 .search-item-time {

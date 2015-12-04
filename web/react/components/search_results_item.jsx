@@ -65,7 +65,7 @@ export default class SearchResultsItem extends React.Component {
                                     className='search-item__jump'
                                     onClick={this.handleClick}
                                 >
-                                    {'[Jump]'}
+                                    {<i className='fa fa-mail-reply'></i>}
                                 </a>
                             </li>
                         </ul>

@@ -166,7 +166,7 @@ export default class MoreDirectChannels extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (!prevProps.show && this.props.show) {
-            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 300);
+            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 50);
             if ($(window).width() > 768) {
                 $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
             }

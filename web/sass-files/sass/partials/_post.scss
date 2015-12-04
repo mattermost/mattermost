@@ -599,6 +599,10 @@ body.ios {
 		@include legacy-pie-clearfix;
 		width: calc(100% - 70px);
 
+		img {
+            max-height: 400px;
+        }
+
 		ul {
 			padding: 5px 0 0 20px;
 		}
