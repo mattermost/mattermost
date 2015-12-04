@@ -12,6 +12,14 @@
         right: 0;
     }
 
+    .post-body {
+
+        img {
+            max-height: 200px;
+        }
+
+    }
+
     .sidebar--right__content {
         height: 100%;
         @include display-flex;

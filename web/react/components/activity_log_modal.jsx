@@ -51,7 +51,7 @@ export default class ActivityLogModal extends React.Component {
     onShow() {
         AsyncClient.getSessions();
 
-        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 300);
+        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 50);
         if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
         }

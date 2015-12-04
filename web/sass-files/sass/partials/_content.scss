@@ -18,30 +18,29 @@
 	margin-left: 220px;
 	position: relative;
 	background: #fff;
-    @include display-flex;
-    @include flex-direction(column);
+	@include display-flex;
+	@include flex-direction(column);
 	.channel__wrap & {
 		padding-top: 0;
 	}
 }
 #post-create {
-    @include flex(0 0 auto);
+	@include flex(0 0 auto);
 	background: #fff;
 	width: 100%;
 	z-index: 3;
 }
 
 #archive-link-home {
-    @include flex(0 0 auto);
-	background: #fff;
-	width: 100%;
-	min-height: 50px;
-	z-index: 3;
-	background-color: beige;
-	text-align: center;
-	vertical-align: middle;
-	padding-top: 10px;
+	@include flex(0 0 auto);
 	cursor: pointer;
+	padding: 10px;
+	font-size: 13px;
+
+	a {
+		color: inherit;
+	}
+
 }
 
 .post-list {

@@ -681,7 +681,11 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionHighlightBg) {
-        changeCss('.mention-highlight, .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
+        changeCss('.mention-highlight, .search-highlight, #archive-link-home', 'background:' + theme.mentionHighlightBg, 1);
+    }
+
+    if (theme.mentionHighlightBg) {
+        changeCss('.post.post--highlight, #archive-link-home', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5), 1);
     }
 
     if (theme.mentionHighlightLink) {
