@@ -58,7 +58,6 @@ export function getChannels(checkVersion) {
                     if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
                         BrowserStore.setLastServerVersion(serverVersion);
                     } else {
-                        console.log(BrowserStore.getLastServerVersion());
                         BrowserStore.setLastServerVersion(serverVersion);
                         window.location.reload(true);
                         console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
