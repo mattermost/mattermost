@@ -252,13 +252,6 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractLinks(text) {
-    const urlMatcher = new Autolinker.matchParser.MatchParser({
-        urls: true,
-        emails: false,
-        twitter: false,
-        phone: false,
-        hashtag: false
-    });
     const links = [];
     let replaceText = text;
 
@@ -271,7 +264,7 @@ export function extractLinks(text) {
         }
     }
 
-    function replaceFn(match) {
+    function replaceFn(autolinker, match) {
         let link = '';
         const matchText = match.getMatchedText();
         const tempText = replaceText;
@@ -304,7 +297,16 @@ export function extractLinks(text) {
 
         links.push(link);
     }
-    urlMatcher.replace(text, replaceFn, this);
+
+    Autolinker.link(text, {
+        replaceFn,
+        urls: true,
+        emails: false,
+        twitter: false,
+        phone: false,
+        hashtag: false
+    });
+
     return {links, text};
 }
 

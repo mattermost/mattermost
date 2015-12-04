@@ -32,6 +32,7 @@ export default class PostBodyAdditionalContent extends React.Component {
         return (
             <PostAttachmentOEmbed
                 key={'post_body_additional_content' + this.props.post.id}
+                provider={this.props.provider}
                 link={link}
             />
         );
@@ -68,5 +69,6 @@ export default class PostBodyAdditionalContent extends React.Component {
 }
 
 PostBodyAdditionalContent.propTypes = {
-    post: React.PropTypes.object.isRequired
+    post: React.PropTypes.object.isRequired,
+    provider: React.PropTypes.object
 };

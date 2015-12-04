@@ -109,10 +109,11 @@ export default class PostBody extends React.Component {
 
         const trimmedLink = link.trim();
 
-        if (this.checkForOembedContent(trimmedLink)) {
+        const provider = this.getOembedProvider(trimmedLink);
+        if (provider != null) {
             post.props.oEmbedLink = trimmedLink;
             post.type = 'oEmbed';
-            this.setState({post});
+            this.setState({post, provider});
             return '';
         }
 
@@ -133,15 +134,15 @@ export default class PostBody extends React.Component {
         return null;
     }
 
-    checkForOembedContent(link) {
+    getOembedProvider(link) {
         for (let i = 0; i < providers.length; i++) {
             for (let j = 0; j < providers[i].patterns.length; j++) {
                 if (link.match(providers[i].patterns[j])) {
-                    return true;
+                    return providers[i];
                 }
             }
         }
-        return false;
+        return null;
     }
 
     loadImg(src) {
@@ -399,6 +400,7 @@ export default class PostBody extends React.Component {
                     </div>
                     <PostBodyAdditionalContent
                         post={this.state.post}
+                        provider={this.state.provider}
                     />
                     {fileAttachmentHolder}
                     {this.embed}
