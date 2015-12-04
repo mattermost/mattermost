@@ -246,7 +246,8 @@ func (s SqlChannelStore) Get(id string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if obj, err := s.GetReplica().Get(model.Channel{}, id); err != nil {
+		// reading from master due to expected race condition when creating channels
+		if obj, err := s.GetMaster().Get(model.Channel{}, id); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Get", "We encountered an error finding the channel", "id="+id+", "+err.Error())
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlChannelStore.Get", "We couldn't find the existing channel", "id="+id)
