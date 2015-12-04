@@ -14,6 +14,7 @@ const (
 	POST_DEFAULT               = ""
 	POST_SLACK_ATTACHMENT      = "slack_attachment"
 	POST_JOIN_LEAVE            = "system_join_leave"
+	POST_HEADER_CHANGE         = "system_header_change"
 )
 
 type Post struct {
@@ -105,7 +106,7 @@ func (o *Post) IsValid() *AppError {
 	}
 
 	// should be removed once more message types are supported
-	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_SLACK_ATTACHMENT) {
+	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE) {
 		return NewAppError("Post.IsValid", "Invalid type", "id="+o.Type)
 	}
 
