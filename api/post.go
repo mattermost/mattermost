@@ -153,9 +153,6 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
-	linkRegex := regexp.MustCompile(`<\s*(\S*)\s*>`)
-	text = linkRegex.ReplaceAllString(text, "${1}")
-
 	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
@@ -185,7 +182,6 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 						if _, ok := attachment["text"]; ok {
 							aText := attachment["text"].(string)
 							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-							aText = linkRegex.ReplaceAllString(aText, "${1}")
 							attachment["text"] = aText
 							list[i] = attachment
 						}
