@@ -240,14 +240,18 @@ export default class UserSettingsDisplay extends React.Component {
 
             const inputs = [
                 <div key='userDisplayNameOptions'>
-                    <select
-                        className='form-control'
-                        type='text'
-                        value={this.state.selectedFont}
-                        onChange={(e) => this.handleFont(e.target.value)}
+                    <div
+                        className='dropdown'
                     >
-                        {options}
-                    </select>
+                        <select
+                            className='form-control'
+                            type='text'
+                            value={this.state.selectedFont}
+                            onChange={(e) => this.handleFont(e.target.value)}
+                        >
+                            {options}
+                        </select>
+                    </div>
                     <div><br/>{'Select the font displayed in the Mattermost user interface.'}</div>
                 </div>
             ];
@@ -305,11 +309,11 @@ export default class UserSettingsDisplay extends React.Component {
                 <div className='user-settings'>
                     <h3 className='tab-header'>{'Display Settings'}</h3>
                     <div className='divider-dark first'/>
+                    {fontSection}
+                    <div className='divider-dark'/>
                     {clockSection}
                     <div className='divider-dark'/>
                     {nameFormatSection}
-                    <div className='divider-dark'/>
-                    {fontSection}
                     <div className='divider-dark'/>
                 </div>
             </div>
