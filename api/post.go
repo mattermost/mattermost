@@ -565,29 +565,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 									msg.DeviceId = strings.TrimPrefix(session.DeviceId, "apple:")
 									msg.ServerId = utils.CfgDiagnosticId
 
-									if len(post.Message) == 0 {
-
-										otherFile := true
-
-										if len(post.Filenames) != 0 {
-											for _, filename := range post.Filenames {
-												ext := filepath.Ext(filename)
-												if model.IsFileExtImage(ext) {
-													otherFile = false
-													break
-												}
-											}
-										}
-
-										if otherFile {
-											msg.Message = profileMap[id].FirstName + " uploaded a file in " + channel.DisplayName
-										} else {
-											msg.Message = profileMap[id].FirstName + " uploaded an image in " + channel.DisplayName
-										}
-
-									} else {
-										msg.Message = profileMap[id].FirstName + " wrote in " + channel.DisplayName
-									}
+									msg.Message = profileMap[id].FirstName + " mentioned you in " + channel.DisplayName
 
 									httpClient := http.Client{}
 									request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+"/api/v1/send_push", strings.NewReader(msg.ToJson()))
