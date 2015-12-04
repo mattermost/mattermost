@@ -740,6 +740,7 @@ body.ios {
 		width: 80%;
 		padding-right: 5px;
 		overflow-x: auto;
+		overflow-y: hidden;
 		&.attachment__body--no_thumb {
 			width: 100%;
 		}
@@ -754,6 +755,7 @@ body.ios {
 		margin: 5px 0;
 		padding: 0;
 		line-height: 16px;
+		height: 22px;
 		font-size: 16px;
 		a {
 			font-size: 16px;
