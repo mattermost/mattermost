@@ -271,7 +271,9 @@ export function extractLinks(text) {
         }
     }
 
-    function replaceFn(match) {
+    function replaceFn(settings, match) {
+        if (match.getType() != 'url') return;
+        
         let link = '';
         const matchText = match.getMatchedText();
         const tempText = replaceText;
@@ -304,7 +306,8 @@ export function extractLinks(text) {
 
         links.push(link);
     }
-    urlMatcher.replace(text, replaceFn, this);
+
+    Autolinker.link(text, {replaceFn});
     return {links, text};
 }
 
