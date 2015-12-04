@@ -167,18 +167,7 @@ class ChannelStoreClass extends EventEmitter {
         this.emitChange();
     }
     getCurrentExtraInfo() {
-        var currentId = this.getCurrentId();
-        var extra = null;
-
-        if (currentId) {
-            extra = this.pGetExtraInfos()[currentId];
-        }
-
-        if (extra == null) {
-            extra = {members: []};
-        }
-
-        return extra;
+        return this.getExtraInfo(this.getCurrentId());
     }
     getExtraInfo(channelId) {
         var extra = null;
@@ -187,7 +176,10 @@ class ChannelStoreClass extends EventEmitter {
             extra = this.pGetExtraInfos()[channelId];
         }
 
-        if (extra == null) {
+        if (extra) {
+            // create a defensive copy
+            extra = JSON.parse(JSON.stringify(extra));
+        } else {
             extra = {members: []};
         }
 
