@@ -3,6 +3,9 @@
 
 import UserProfile from './user_profile.jsx';
 import PostInfo from './post_info.jsx';
+import * as Utils from '../utils/utils.jsx';
+
+import Constants from '../utils/constants.jsx';
 
 export default class PostHeader extends React.Component {
     constructor(props) {
@@ -27,6 +30,15 @@ export default class PostHeader extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+        } else if (Utils.isSystemMessage(post)) {
+            userProfile = (
+                <UserProfile
+                    userId={''}
+                    overwriteName={''}
+                    overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
+                    disablePopover={true}
+                />
+            );
         }
 
         return (

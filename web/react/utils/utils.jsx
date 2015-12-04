@@ -1247,3 +1247,7 @@ export function getPostTerm(post) {
 export function isFeatureEnabled(feature) {
     return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label, {value: 'false'}).value === 'true';
 }
+
+export function isSystemMessage(post) {
+    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
+}

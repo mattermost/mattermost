@@ -98,3 +98,18 @@ func TestPostPreSave(t *testing.T) {
 
 	o.Etag()
 }
+
+func TestPostIsSystemMessage(t *testing.T) {
+	post1 := Post{Message: "test_1"}
+	post1.PreSave()
+
+	if post1.IsSystemMessage() {
+		t.Fatalf("TestPostIsSystemMessage failed, expected post1.IsSystemMessage() to be false")
+	}
+
+	post2 := Post{Message: "test_2", Type: POST_JOIN_LEAVE}
+	post2.PreSave()
+	if !post2.IsSystemMessage() {
+		t.Fatalf("TestPostIsSystemMessage failed, expected post2.IsSystemMessage() to be true")
+	}
+}

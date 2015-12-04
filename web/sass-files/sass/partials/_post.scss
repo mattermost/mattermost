@@ -371,6 +371,10 @@ body.ios {
         background-color: beige;
     }
 
+	&.post--system .post__header .col__name {
+		display: none;
+	}
+
 	ul {
 		margin: 0;
 		padding: 0;
@@ -629,6 +633,9 @@ body.ios {
 
 	.post__time {
 		font-size: 13px;
+	}
+
+	.post__time, &.post--system .post__body {
 		@include opacity(0.6);
 	}
 

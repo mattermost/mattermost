@@ -12,6 +12,8 @@ import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
+import Constants from '../utils/constants.jsx';
+
 export default class RhsRootPost extends React.Component {
     constructor(props) {
         super(props);
@@ -56,6 +58,11 @@ export default class RhsRootPost extends React.Component {
         var currentUserCss = '';
         if (UserStore.getCurrentId() === post.user_id) {
             currentUserCss = 'current--user';
+        }
+
+        var systemMessageClass = '';
+        if (utils.isSystemMessage(post)) {
+            systemMessageClass = 'post--system';
         }
 
         var channelName;
@@ -156,6 +163,15 @@ export default class RhsRootPost extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+        } else if (utils.isSystemMessage(post)) {
+            userProfile = (
+                <UserProfile
+                    userId={''}
+                    overwriteName={''}
+                    overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
+                    disablePopover={true}
+                />
+            );
         }
 
         let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
@@ -163,6 +179,8 @@ export default class RhsRootPost extends React.Component {
             if (post.props.override_icon_url) {
                 src = post.props.override_icon_url;
             }
+        } else if (utils.isSystemMessage(post)) {
+            src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
         }
 
         const profilePic = (
@@ -175,7 +193,7 @@ export default class RhsRootPost extends React.Component {
         );
 
         return (
-            <div className={'post post--root ' + currentUserCss}>
+            <div className={'post post--root ' + currentUserCss + ' ' + systemMessageClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>
                     <div className='post__img'>
