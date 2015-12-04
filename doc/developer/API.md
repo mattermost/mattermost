@@ -40,7 +40,7 @@ If you're building a deep integration with Mattermost, for example a mobile nati
 
 If no driver is available for the programming language of your choice, you can view the [Golang Driver](https://github.com/mattermost/platform/blob/master/model/client.go) source code to understand how it exercises the Web Service API. You can also learn more by reviewing open source projects that use the Web Service API, like [matterircd](https://github.com/42wim/matterircd).
 
-There are a wide range of [installation guides](www.mattermost.org/installation/) for setting up your own Mattermost server on which to develop and test your integrations. 
+There are a wide range of [installation guides](http://www.mattermost.org/installation/) for setting up your own Mattermost server on which to develop and test your integrations. 
 
 
 

@@ -5,6 +5,9 @@ import AdminSidebarHeader from './admin_sidebar_header.jsx';
 import SelectTeamModal from './select_team_modal.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
+const Tooltip = ReactBootstrap.Tooltip;
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+
 export default class AdminSidebar extends React.Component {
     constructor(props) {
         super(props);
@@ -80,6 +83,12 @@ export default class AdminSidebar extends React.Component {
     render() {
         var count = '*';
         var teams = 'Loading';
+        const removeTooltip = (
+            <Tooltip id='remove-team-tooltip'>{'Remove team from sidebar menu'}</Tooltip>
+        );
+        const addTeamTooltip = (
+            <Tooltip id='add-team-tooltip'>{'Add team from sidebar menu'}</Tooltip>
+        );
 
         if (this.props.teams != null) {
             count = '' + Object.keys(this.props.teams).length;
@@ -102,14 +111,19 @@ export default class AdminSidebar extends React.Component {
                                         className={'nav__sub-menu-item ' + this.isSelected('team_users', team.id)}
                                     >
                                         {team.name}
+                                        <OverlayTrigger
+                                            delayShow={1000}
+                                            placement='top'
+                                            overlay={removeTooltip}
+                                        >
                                         <span
                                             className='menu-icon--right menu__close'
                                             onClick={this.removeTeam.bind(this, team.id)}
                                             style={{cursor: 'pointer'}}
-                                            title='Remove team from sidebar menu'
                                         >
-                                            {'x'}
+                                            {'×'}
                                         </span>
+                                        </OverlayTrigger>
                                     </a>
                                 </li>
                                 <li>
@@ -245,15 +259,20 @@ export default class AdminSidebar extends React.Component {
                                             <span className='icon fa fa-gear'></span>
                                             <span>{'TEAMS (' + count + ')'}</span>
                                             <span className='menu-icon--right'>
+                                                <OverlayTrigger
+                                                    delayShow={1000}
+                                                    placement='top'
+                                                    overlay={addTeamTooltip}
+                                                >
                                                 <a
                                                     href='#'
                                                     onClick={this.showTeamSelect}
                                                 >
                                                     <i
                                                         className='fa fa-plus'
-                                                        title='Add team to sidebar menu'
                                                     ></i>
                                                 </a>
+                                                </OverlayTrigger>
                                             </span>
                                         </h4>
                                     </li>

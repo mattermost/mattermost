@@ -13,7 +13,6 @@ export default class SuggestionBox extends React.Component {
         super(props);
 
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
-        this.handleFocus = this.handleFocus.bind(this);
 
         this.handleChange = this.handleChange.bind(this);
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
@@ -21,10 +20,6 @@ export default class SuggestionBox extends React.Component {
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
 
         this.suggestionId = Utils.generateId();
-
-        this.state = {
-            focused: false
-        };
     }
 
     componentDidMount() {
@@ -49,27 +44,11 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleDocumentClick(e) {
-        if (!this.state.focused) {
-            return;
-        }
-
         const container = $(ReactDOM.findDOMNode(this));
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             // we can't just use blur for this because it fires and hides the children before
             // their click handlers can be called
-            this.setState({
-                focused: false
-            });
-        }
-    }
-
-    handleFocus() {
-        this.setState({
-            focused: true
-        });
-
-        if (this.props.onFocus) {
-            this.props.onFocus();
+            EventHelpers.emitClearSuggestions(this.suggestionId);
         }
     }
 
@@ -134,7 +113,6 @@ export default class SuggestionBox extends React.Component {
 
     render() {
         const newProps = Object.assign({}, this.props, {
-            onFocus: this.handleFocus,
             onChange: this.handleChange,
             onKeyDown: this.handleKeyDown
         });
@@ -162,10 +140,7 @@ export default class SuggestionBox extends React.Component {
         return (
             <div>
                 {textbox}
-                <SuggestionListComponent
-                    suggestionId={this.suggestionId}
-                    show={this.state.focused}
-                />
+                <SuggestionListComponent suggestionId={this.suggestionId} />
             </div>
         );
     }
@@ -184,6 +159,5 @@ SuggestionBox.propTypes = {
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func,
-    onFocus: React.PropTypes.func
+    onKeyDown: React.PropTypes.func
 };

@@ -681,7 +681,11 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionHighlightBg) {
-        changeCss('.mention-highlight, .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
+        changeCss('.mention-highlight, .search-highlight, #archive-link-home', 'background:' + theme.mentionHighlightBg, 1);
+    }
+
+    if (theme.mentionHighlightBg) {
+        changeCss('.post.post--highlight, #archive-link-home', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5), 1);
     }
 
     if (theme.mentionHighlightLink) {
@@ -695,15 +699,19 @@ export function applyTheme(theme) {
 }
 
 export function applyFont(fontName) {
-    const body = document.querySelector('body');
-    const keys = Object.getOwnPropertyNames(body.classList);
-    keys.forEach((k) => {
-        const className = body.classList[k];
-        if (className && className.lastIndexOf('font') === 0) {
-            body.classList.remove(className);
+    const body = $('body');
+
+    for (const key of Reflect.ownKeys(Constants.FONTS)) {
+        const className = Constants.FONTS[key];
+
+        if (fontName === key) {
+            if (!body.hasClass(className)) {
+                body.addClass(className);
+            }
+        } else {
+            body.removeClass(className);
         }
-    });
-    body.classList.add(Constants.FONTS[fontName]);
+    }
 }
 
 export function changeCss(className, classValue, classRepeat) {

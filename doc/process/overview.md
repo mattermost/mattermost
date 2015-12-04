@@ -40,7 +40,7 @@ A system primarily used by Mattermost for reporting bugs with clear statements o
 
 See [Filing Issues](http://www.mattermost.org/filing-issues/) for details on how to file issues for Mattermost in GitHub.
 
-For feature ideas, troubleshooting, or general questions, we ask your help to use the appropriate [Community System](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#community-systems).
+Please consider using more mainstream processes for [filing feature ideas to be upvoted](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#feature-idea-forum), to ask [troubleshooting questions](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#troubleshooting-forum), or [general questions](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#general-forum). 
 
 ### GitHub Pull Requests 
 

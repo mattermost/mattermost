@@ -10,7 +10,7 @@ import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 
 export function emitChannelClickEvent(channel) {
-    AsyncClient.getChannels();
+    AsyncClient.getChannels(true);
     AsyncClient.getChannelExtraInfo(channel.id);
     AsyncClient.updateLastViewedAt(channel.id);
     AsyncClient.getPosts(channel.id);
@@ -139,5 +139,12 @@ export function emitCompleteWordSuggestion(suggestionId, term = '') {
         type: Constants.ActionTypes.SUGGESTION_COMPLETE_WORD,
         id: suggestionId,
         term
+    });
+}
+
+export function emitClearSuggestions(suggestionId) {
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.SUGGESTION_CLEAR_SUGGESTIONS,
+        id: suggestionId
     });
 }

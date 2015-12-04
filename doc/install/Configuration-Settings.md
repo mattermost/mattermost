@@ -268,19 +268,19 @@ Settings to configure account and team creation using GitLab OAuth.
 “true”: Allow team creation and account signup using GitLab OAuth. To configure, input the **Secret** and **Id** credentials. 
 
 ```"Secret": ""```  
-Obtain this value by logging into your GitLab account. Go to Profile Settings -> Applications -> New Application, enter a Name, then enter Redirect URLs "https://<your-mattermost-url>/login/gitlab/complete" (example: https://example.com:8065/login/gitlab/complete) and "https://<your-mattermost-url>/signup/gitlab/complete".
+Obtain this value by logging into your GitLab account. Go to Profile Settings -> Applications -> New Application, enter a Name, then enter Redirect URLs `https://<your-mattermost-url>/login/gitlab/complete` (example: `https://example.com:8065/login/gitlab/complete`) and `https://<your-mattermost-url>/signup/gitlab/complete`.
 
 ```"Id": ""```  
-Obtain this value by logging into your GitLab account. Go to Profile Settings -> Applications -> New Application, enter a Name, then enter Redirect URLs "https://<your-mattermost-url>/login/gitlab/complete" (example: https://example.com:8065/login/gitlab/complete) and "https://<your-mattermost-url>/signup/gitlab/complete".
+Obtain this value by logging into your GitLab account. Go to Profile Settings -> Applications -> New Application, enter a Name, then enter Redirect URLs `https://<your-mattermost-url>/login/gitlab/complete` (example: `https://example.com:8065/login/gitlab/complete`) and `https://<your-mattermost-url>/signup/gitlab/complete`.
 
 ```"AuthEndpoint": ""```  
-Enter https://<your-gitlab-url>/oauth/authorize (example: https://example.com:3000/oauth/authorize). Use HTTP or HTTPS depending on how your server is configured.
+Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com:3000/oauth/authorize`). Use HTTP or HTTPS depending on how your server is configured.
 
 ```"TokenEndpoint": ""```  
-Enter https://<your-gitlab-url>/oauth/authorize (example: https://example.com:3000/oauth/token). Use HTTP or HTTPS depending on how your server is configured.
+Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com:3000/oauth/token`). Use HTTP or HTTPS depending on how your server is configured.
 
 ```"UserApiEndpoint": ""```  
-Enter https://<your-gitlab-url>/oauth/authorize (example: https://example.com:3000/api/v3/user). Use HTTP or HTTPS depending on how your server is configured.
+Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com:3000/api/v3/user`). Use HTTP or HTTPS depending on how your server is configured.
 
 ## Config.json Settings Not in System Console
 

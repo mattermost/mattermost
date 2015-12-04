@@ -71,7 +71,8 @@ export default class CenterPanel extends React.Component {
                         href=''
                         onClick={handleClick}
                     >
-                        {'You are viewing the Archives. Click here to jump to recent messages.'}
+                        {'You are viewing the Archives. Click here to jump to recent messages. '}
+                        {<i className='fa fa-arrow-down'></i>}
                     </a>
                 </div>
             );

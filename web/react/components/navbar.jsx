@@ -44,7 +44,6 @@ export default class Navbar extends React.Component {
         state.showEditChannelPurposeModal = false;
         state.showEditChannelHeaderModal = false;
         state.showMembersModal = false;
-        state.showInviteModal = false;
         this.state = state;
     }
     getStateFromStores() {
@@ -171,13 +170,13 @@ export default class Navbar extends React.Component {
             if (!isDirect && !ChannelStore.isDefault(channel)) {
                 addMembersOption = (
                     <li role='presentation'>
-                        <a
+                        <ToggleModalButton
                             role='menuitem'
-                            href='#'
-                            onClick={() => this.setState({showInviteModal: true})}
+                            dialogType={ChannelInviteModal}
+                            dialogProps={{channel}}
                         >
                             {'Add Members'}
-                        </a>
+                        </ToggleModalButton>
                     </li>
                 );
 
@@ -475,10 +474,7 @@ export default class Navbar extends React.Component {
                 <ChannelMembersModal
                     show={this.state.showMembersModal}
                     onModalDismissed={() => this.setState({showMembersModal: false})}
-                />
-                <ChannelInviteModal
-                    show={this.state.showInviteModal}
-                    onModalDismissed={() => this.setState({showInviteModal: false})}
+                    channel={{channel}}
                 />
             </div>
         );

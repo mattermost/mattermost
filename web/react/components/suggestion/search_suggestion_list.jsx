@@ -35,7 +35,7 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     render() {
-        if (this.state.items.length === 0 || !this.props.show) {
+        if (this.state.items.length === 0) {
             return null;
         }
 

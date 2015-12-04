@@ -69,16 +69,9 @@ export default class ChannelMembersModal extends React.Component {
         memberList.sort(compareByUsername);
         nonmemberList.sort(compareByUsername);
 
-        const channel = ChannelStore.getCurrent();
-        let channelName = '';
-        if (channel) {
-            channelName = channel.display_name;
-        }
-
         return {
             nonmemberList,
-            memberList,
-            channelName
+            memberList
         };
     }
     onShow() {
@@ -169,7 +162,7 @@ export default class ChannelMembersModal extends React.Component {
                     onHide={this.props.onModalDismissed}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title><span className='name'>{this.state.channelName}</span>{' Members'}</Modal.Title>
+                        <Modal.Title><span className='name'>{this.props.channel.display_name}</span>{' Members'}</Modal.Title>
                         <a
                             className='btn btn-md btn-primary'
                             href='#'
@@ -205,7 +198,8 @@ export default class ChannelMembersModal extends React.Component {
                 </Modal>
                 <ChannelInviteModal
                     show={this.state.showInviteModal}
-                    onModalDismissed={() => this.setState({showInviteModal: false})}
+                    onHide={() => this.setState({showInviteModal: false})}
+                    channel={this.props.channel}
                 />
             </div>
         );
@@ -218,5 +212,6 @@ ChannelMembersModal.defaultProps = {
 
 ChannelMembersModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    onModalDismissed: React.PropTypes.func.isRequired,
+    channel: React.PropTypes.object.isRequired
 };
