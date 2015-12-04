@@ -160,11 +160,15 @@ function handleNewPostEvent(msg) {
             AsyncClient.updateLastViewedAt();
         }
     } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
-        AsyncClient.getChannel(msg.channel_id);
+        if (msg.props.ephemeral) {
+            AsyncClient.getChannelAndAddUnreadMessages(msg.channel_id, 1);
+        } else {
+            AsyncClient.getChannel(msg.channel_id);
+        }
     }
 
     // Send desktop notification
-    if ((UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post)) {
+    if ((UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post) && !post.props.disable_notification) {
         const msgProps = msg.props;
 
         let mentions = [];
