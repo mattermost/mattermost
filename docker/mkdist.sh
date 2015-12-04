@@ -44,3 +44,5 @@ sed -i'.bak' 's|perfect-scrollbar-0.6.7.jquery.js|perfect-scrollbar-0.6.7.jquery
 sed -i'.bak' 's|bundle.js|bundle-${BUILD_NUMBER}.min.js|g' ${DIST_PATH}/web/templates/head.html
 sed -i'.bak' 's|libs.min.js|libs-${BUILD_NUMBER}.min.js|g' ${DIST_PATH}/web/templates/head.html
 rm ${DIST_PATH}/web/templates/*.bak
+
+rm -rf ${DIST_PATH}/web/react/node_modules

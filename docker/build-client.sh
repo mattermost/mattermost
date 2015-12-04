@@ -9,8 +9,9 @@ PACKAGES="nodejs npm ruby2.1 ruby2.1-dev rubygems"
 
 apt-get update
 apt-get install -y ${PACKAGES}
-#npm install -g n
-#n 4.2.2
+npm install -g n
+n 5.1.1
+gem install compass
 
 ### build
 cd $SRC_DIR/web/react/
@@ -21,22 +22,21 @@ cd ../sass-files
 compass compile -e production --force
 
 ### cleanup
-rm -rf $SRC_DIR/web/react/node_modules
-#/usr/bin/npm rm n
+/usr/bin/npm rm n
 gem uninstall -x compass
 apt-get remove -y ${PACKAGES}
 apt-get autoremove -y
 apt-get clean
 
-#rm -rf /usr/local/include/node/
-#rm -f /usr/local/bin/node
-#rm -f /usr/local/bin/npm
-#rm -f /usr/local/bin/n
+rm -rf /usr/local/include/node/
+rm -f /usr/local/bin/node
+rm -f /usr/local/bin/npm
+rm -f /usr/local/bin/n
 rm -f /usr/local/bin/compass
 rm -f /usr/local/bin/sass*
 rm -f /usr/local/bin/scss
-#rm -rf /usr/local/n/
-#rm -rf /usr/local/lib/node_modules/
+rm -rf /usr/local/n/
+rm -rf /usr/local/lib/node_modules/
 
 rm -rf /tmp/* /var/tmp/*
 rm -rf /var/lib/apt/lists/*
