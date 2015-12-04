@@ -391,7 +391,8 @@ export default {
         BACKSPACE: 8,
         ENTER: 13,
         ESCAPE: 27,
-        SPACE: 32
+        SPACE: 32,
+        TAB: 9
     },
     HighlightedLanguages: {
         diff: 'Diff',
