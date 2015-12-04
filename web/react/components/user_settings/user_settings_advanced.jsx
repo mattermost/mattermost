@@ -195,7 +195,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 inputs.push(
                     <div key='advancedPreviewFeatures_helptext'>
                         <br/>
-                        {'Check any pre-released features you\'d like to preview.'}
+                        {'Check any pre-released features you\'d like to preview.  You may also need to refresh the page before the setting will take effect.'}
                     </div>
                 );
 
