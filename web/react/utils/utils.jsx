@@ -265,7 +265,9 @@ export function extractLinks(text) {
     }
 
     function replaceFn(settings, match) {
-        if (match.getType() != 'url') return;
+        if (match.getType() !== 'url') {
+            return;
+        }
         
         let link = '';
         const matchText = match.getMatchedText();
