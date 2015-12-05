@@ -9,7 +9,7 @@ From the directory where the Mattermost platform is installed a `platform` comma
 - Permanently deleting users (use cautiously - database backup recommended before use)
 - Permanently deleting teams (use cautiously - database backup recommended before use)
 
-Typing `mattermost -help` brings up the below documentation on usage. 
+Typing `platform -help` brings up the below documentation on usage. 
 
 ```
 Mattermost commands to help configure the system
