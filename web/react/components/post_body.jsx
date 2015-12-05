@@ -6,6 +6,7 @@ import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Emoji from '../utils/emoticons.jsx';
 import Constants from '../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
@@ -109,12 +110,14 @@ export default class PostBody extends React.Component {
 
         const trimmedLink = link.trim();
 
-        const provider = this.getOembedProvider(trimmedLink);
-        if (provider != null) {
-            post.props.oEmbedLink = trimmedLink;
-            post.type = 'oEmbed';
-            this.setState({post, provider});
-            return '';
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.EMBED_PREVIEW)) {
+            const provider = this.getOembedProvider(trimmedLink);
+            if (provider != null) {
+                post.props.oEmbedLink = trimmedLink;
+                post.type = 'oEmbed';
+                this.setState({post, provider});
+                return '';
+            }
         }
 
         const embed = this.createYoutubeEmbed(link);

@@ -432,6 +432,10 @@ export default {
         MARKDOWN_PREVIEW: {
             label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389
             description: 'Show markdown preview option in message input box'
+        },
+        EMBED_PREVIEW: {
+            label: 'embed_preview',
+            description: 'Show preview snippet of links below message'
         }
     }
 };
