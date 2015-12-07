@@ -173,14 +173,6 @@ func LoadConfig(fileName string) {
 	ClientCfg = getClientConfig(Cfg)
 }
 
-func GetSanitizeOptions(c *model.Config) map[string]bool {
-	options := map[string]bool{}
-	options["fullname"] = c.PrivacySettings.ShowFullName
-	options["email"] = c.PrivacySettings.ShowEmailAddress
-
-	return options
-}
-
 func getClientConfig(c *model.Config) map[string]string {
 	props := make(map[string]string)
 
