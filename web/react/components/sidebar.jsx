@@ -89,25 +89,14 @@ export default class Sidebar extends React.Component {
                 continue;
             }
 
-            const member = members[dm.id];
-            const msgCount = dm.total_msg_count - member.msg_count;
+            const show = preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'));
 
-            // always show a channel if either it is the current one or if it is unread, but it is not currently being left
-            const forceShow = (currentChannelId === dm.id || msgCount > 0) && !this.isLeaving.get(dm.id);
-            const preferenceShow = preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'));
-
-            if (preferenceShow || forceShow) {
+            if (show) {
                 dm.display_name = Utils.displayUsername(teammate.id);
                 dm.teammate_id = teammate.id;
                 dm.status = UserStore.getStatus(teammate.id);
 
                 visibleDirectChannels.push(dm);
-
-                if (forceShow && !preferenceShow) {
-                    // make sure that unread direct channels are visible
-                    const preference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammate.id, 'true');
-                    AsyncClient.savePreferences([preference]);
-                }
             }
         }
 
