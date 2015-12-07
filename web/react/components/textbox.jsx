@@ -81,7 +81,7 @@ export default class Textbox extends React.Component {
     }
 
     resize() {
-        //return;
+      //  return;
         // TODO: seriously, do it another way
 
         const e = this.refs.message.getTextbox();
@@ -102,14 +102,16 @@ export default class Textbox extends React.Component {
         if (e.scrollHeight - mod < 167) {
             de.css({height: 'auto', 'overflow-y': 'hidden'}).height(e.scrollHeight - mod);
             dw.css({height: 'auto'}).height(e.scrollHeight + 2);
-            dw.closest('.post-body__cell').removeClass('scroll');
+            var cell = $(dw.parentNode);
+            cell.removeClass('scroll');
             if (this.state.preview) {
                 $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'auto'}).height(e.scrollHeight - mod);
             }
         } else {
             de.css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
             dw.css({height: 'auto'}).height(163);
-            dw.closest('.post-body__cell').addClass('scroll');
+            var cell = $(dw.parentNode);
+            cell.addClass('scroll');
             if (this.state.preview) {
                 $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'scroll'}).height(163);
             }
