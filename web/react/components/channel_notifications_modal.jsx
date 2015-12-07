@@ -335,7 +335,7 @@ export default class ChannelNotificationsModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    {'Notification Preferences for '}<span className='name'>{this.props.channel.display_name}</span>
+                    <Modal.Title>{'Notification Preferences for '}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='settings-table'>

@@ -369,9 +369,9 @@ body.ios {
 		}
 	}
 
-    &.post--highlight {
-        background-color: beige;
-    }
+	&.post--highlight {
+		background-color: beige;
+	}
 
 	&.post--system .post__header .col__name {
 		display: none;
@@ -551,7 +551,23 @@ body.ios {
 			position: absolute;
 			right: 0;
 			top: 30px;
-			width: 60px;
+			width: 65px;
+		}
+
+		.permalink-popover {
+			min-width: 0;
+
+			.popover-content {
+				padding: 5px;
+			}
+
+			.form-control, .btn {
+				font-size: 13px;
+				height: 30px;
+				padding: 0 8px;
+				line-height: 30px;
+			}
+
 		}
 
 	}
@@ -569,6 +585,8 @@ body.ios {
 	.dropdown {
 		display: inline-block;
 		visibility: hidden;
+		position: absolute;
+		right: 0;
 		top: -1px;
 
 		.dropdown-menu {
@@ -602,11 +620,11 @@ body.ios {
 		word-wrap: break-word;
 		padding: 0.2em 0.5em 0em;
 		@include legacy-pie-clearfix;
-		width: calc(100% - 70px);
+		width: calc(100% - 75px);
 
 		img {
-            max-height: 400px;
-        }
+			max-height: 400px;
+		}
 
 		ul {
 			padding: 5px 0 0 20px;
@@ -679,11 +697,11 @@ body.ios {
 		color: #999;
 	}
 
-    .permalink-icon {
+	.permalink-icon {
 		display: inline-block;
 		color: $primary-color;
 		visibility: hidden;
-    }
+	}
 
 	.comment-icon__container {
 		fill: $primary-color;
@@ -828,10 +846,10 @@ body.ios {
 }
 
 .permalink-text {
-    overflow: hidden;
+	overflow: hidden;
 }
 
 .permalink-popover {
-    min-width: 320px;
-    margin-left: 50px !important;
+	min-width: 320px;
+	margin-left: 50px !important;
 }

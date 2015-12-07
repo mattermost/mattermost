@@ -61,6 +61,9 @@ export default class ChannelInviteModal extends React.Component {
     onShow() {
         if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
+        } else {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
         }
     }
     componentDidUpdate(prevProps) {
@@ -139,11 +142,10 @@ export default class ChannelInviteModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.props.channel.display_nam}</span></Modal.Title>
+                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
                 </Modal.Header>
                 <Modal.Body
                     ref='modalBody'
-                    style={{maxHeight}}
                 >
                     {inviteError}
                     {content}

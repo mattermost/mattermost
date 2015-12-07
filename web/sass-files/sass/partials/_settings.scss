@@ -40,7 +40,7 @@
         font-weight: 600;
     }
 
-	.no-padding--left {
+    .no-padding--left {
         padding-left: 0;
     }
     .padding-top {
@@ -313,17 +313,23 @@
     .member-name {
         font-weight:500;
         display: block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .member-email {
         color:darkgrey;
         display: block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .member-role, .member-drop {
         position:absolute;
-        right:15px;
-        top:13px;
+        right: 15px;
+        top: 8px;
     }
 }
 

@@ -32,9 +32,11 @@ export default class AccessHistoryModal extends React.Component {
     onShow() {
         AsyncClient.getAudits();
 
-        $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 50);
         if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
+        } else {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
         }
     }
     onHide() {

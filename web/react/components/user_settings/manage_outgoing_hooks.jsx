@@ -188,7 +188,7 @@ export default class ManageOutgoingHooks extends React.Component {
                     key={hook.id}
                     className='webhook__item'
                 >
-                    <div className='padding-top x2'>
+                    <div className='padding-top x2 webhook__url'>
                         <strong>{'URLs: '}</strong><span className='word-break--all'>{hook.callback_urls.join(', ')}</span>
                     </div>
                     {channelDiv}

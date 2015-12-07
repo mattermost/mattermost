@@ -39,7 +39,9 @@ export default class DeleteChannelModal extends React.Component {
                 show={this.props.show}
                 onHide={this.props.onHide}
             >
-                <Modal.Header closeButton={true}>{'Confirm DELETE Channel'}</Modal.Header>
+                <Modal.Header closeButton={true}>
+                    <h4 className='modal-title'>{'Confirm DELETE Channel'}</h4>
+                </Modal.Header>
                 <Modal.Body>
                     {`Are you sure you wish to delete the ${this.props.channel.display_name} ${channelTerm}?`}
                 </Modal.Body>
