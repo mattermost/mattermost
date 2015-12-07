@@ -268,17 +268,49 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
 			return
 		}
-
+		oldChannelHeader := channel.Header
 		channel.Header = channelHeader
 
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
 		} else {
+			PostUpdateChannelHeaderMessageAndForget(c, channel.Id, oldChannelHeader, channelHeader)
 			c.LogAudit("name=" + channel.Name)
 			w.Write([]byte(channel.ToJson()))
 		}
 	}
+}
+
+func PostUpdateChannelHeaderMessageAndForget(c *Context, channelId string, oldChannelHeader, newChannelHeader string) {
+	go func() {
+		uc := Srv.Store.User().Get(c.Session.UserId)
+
+		if uresult := <-uc; uresult.Err != nil {
+			l4g.Error("Failed to retrieve user while trying to save update channel header message %v", uresult.Err)
+			return
+		} else {
+			user := uresult.Data.(*model.User)
+
+			var message string
+			if oldChannelHeader == "" {
+				message = fmt.Sprintf("%s updated the channel header to: %s", user.Username, newChannelHeader)
+			} else if newChannelHeader == "" {
+				message = fmt.Sprintf("%s removed the channel header (was: %s)", user.Username, oldChannelHeader)
+			} else {
+				message = fmt.Sprintf("%s updated the channel header from: %s to: %s", user.Username, oldChannelHeader, newChannelHeader)
+			}
+
+			post := &model.Post{
+				ChannelId: channelId,
+				Message:   message,
+				Type:      model.POST_HEADER_CHANGE,
+			}
+			if _, err := CreatePost(c, post, false); err != nil {
+				l4g.Error("Failed to post join/leave message %v", err)
+			}
+		}
+	}()
 }
 
 func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {

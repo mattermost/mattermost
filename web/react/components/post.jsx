@@ -152,7 +152,7 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook) {
+        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook && !utils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
         }
 
