@@ -661,7 +661,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		profiles := result.Data.(map[string]*model.User)
 
 		for k, p := range profiles {
-			options := utils.SanitizeOptions
+			options := utils.Cfg.GetSanitizeOptions()
 			options["passwordupdate"] = false
 
 			if c.IsSystemAdmin() {
@@ -1102,7 +1102,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	options := utils.SanitizeOptions
+	options := utils.Cfg.GetSanitizeOptions()
 	options["passwordupdate"] = false
 	ruser.Sanitize(options)
 	w.Write([]byte(ruser.ToJson()))
@@ -1222,7 +1222,7 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 		}
 
 		ruser := result.Data.([2]*model.User)[0]
-		options := utils.SanitizeOptions
+		options := utils.Cfg.GetSanitizeOptions()
 		options["passwordupdate"] = false
 		ruser.Sanitize(options)
 		return ruser
@@ -1548,7 +1548,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(user.Id, "")
 
 		ruser := result.Data.([2]*model.User)[0]
-		options := utils.SanitizeOptions
+		options := utils.Cfg.GetSanitizeOptions()
 		options["passwordupdate"] = false
 		ruser.Sanitize(options)
 		w.Write([]byte(ruser.ToJson()))
