@@ -148,7 +148,7 @@ export default {
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
-    MAX_CHANNEL_POPOVER_COUNT: 20,
+    MAX_CHANNEL_POPOVER_COUNT: 100,
     DM_CHANNEL: 'D',
     OPEN_CHANNEL: 'O',
     PRIVATE_CHANNEL: 'P',
