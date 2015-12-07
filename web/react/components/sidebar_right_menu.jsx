@@ -87,7 +87,7 @@ export default class SidebarRightMenu extends React.Component {
             );
         }
 
-        if (isSystemAdmin) {
+        if (isSystemAdmin && !utils.isMobile()) {
             consoleLink = (
                 <li>
                     <a
