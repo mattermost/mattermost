@@ -95,8 +95,10 @@ func ShouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 			return false
 		}
 	} else {
-		// Don't share a user's view events with other users
+		// Don't share a user's view or preference events with other users
 		if msg.Action == model.ACTION_CHANNEL_VIEWED {
+			return false
+		} else if msg.Action == model.ACTION_PREFERENCE_CHANGED {
 			return false
 		}
 

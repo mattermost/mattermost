@@ -135,6 +135,10 @@ class SocketStoreClass extends EventEmitter {
             handleChannelViewedEvent(msg);
             break;
 
+        case SocketEvents.PREFERENCE_CHANGED:
+            handlePreferenceChangedEvent(msg);
+            break;
+
         default:
         }
     }
@@ -277,6 +281,11 @@ function handleChannelViewedEvent(msg) {
     if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
+}
+
+function handlePreferenceChangedEvent(msg) {
+    const preference = JSON.parse(msg.props.preference);
+    EventHelpers.emitPreferenceChangedEvent(preference);
 }
 
 var SocketStore = new SocketStoreClass();
