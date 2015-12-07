@@ -228,7 +228,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {
-            return `<li>${'<input type="checkbox" disabled="disabled" ' + (isTaskList[1] === ' ' ? '' : 'checked="checked" ') + '/> '}${text.replace(taskListReg, '')}</li>`;
+            return `<li class="list-item--task-list">${'<input type="checkbox" disabled="disabled" ' + (isTaskList[1] === ' ' ? '' : 'checked="checked" ') + '/> '}${text.replace(taskListReg, '')}</li>`;
         }
         return `<li>${text}</li>`;
     }

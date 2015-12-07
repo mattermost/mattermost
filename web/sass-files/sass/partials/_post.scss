@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .custom-textarea {
 	white-space:pre-wrap;
 	word-wrap:break-word;
@@ -615,9 +617,34 @@ body.ios {
 				padding: 0 0 0 20px
 			}
 
+			li.list-item--task-list ul, li.list-item--task-list ol {
+				margin-left: 20px;
+			}
+
+			li.list-item--task-list ul {
+				padding-left: 0;
+			}
+
+			li:not(.list-item--task-list) li.list-item--task-list, li:not(.list-item--task-list) li.list-item--task-list ~ li {
+				margin-left: -20px;
+			}
+
 			li input[type="checkbox"]:disabled {
-				vertical-align: sub;
+				vertical-align: top;
 				cursor: default;
+			}
+		}
+
+		ul li.list-item--task-list, ul li.list-item--task-list ~ li {
+			list-style-type: none;
+		}
+
+		ul li.list-item--task-list ~ li:not(.list-item--task-list) {
+			text-indent: 3px;
+
+			&:before {
+				content: "⦁";
+				margin-right: 8px;
 			}
 		}
 	}

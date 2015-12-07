@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .post-right__container {
 	@include display-flex;
 	@include flex-direction(column);
