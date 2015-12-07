@@ -489,21 +489,14 @@ export default class Sidebar extends React.Component {
         });
 
         // update the favicon to show if there are any notifications
-        var link = document.createElement('link');
-        link.type = 'image/x-icon';
-        link.rel = 'shortcut icon';
-        link.id = 'favicon';
-        if (this.badgesActive) {
-            link.href = '/static/images/redfavicon.ico';
-        } else {
-            link.href = '/static/images/favicon.ico';
+        var link = this.badgesActive ? '/static/images/redfavicon.ico' : '/static/images/favicon.ico' ;
+        var favicon = this.favicon;
+        if (!favicon) {
+          this.favicon = favicon = document.getElementById('favicon');
         }
-        var head = document.getElementsByTagName('head')[0];
-        var oldLink = document.getElementById('favicon');
-        if (oldLink) {
-            head.removeChild(oldLink);
+        if (favicon) {
+            favicon.href = link;
         }
-        head.appendChild(link);
 
         var directMessageMore = null;
         if (this.state.hiddenDirectChannelCount > 0) {

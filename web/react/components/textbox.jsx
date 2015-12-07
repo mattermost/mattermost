@@ -81,12 +81,17 @@ export default class Textbox extends React.Component {
     }
 
     resize() {
+      //  return;
+        // TODO: seriously, do it another way
+
         const e = this.refs.message.getTextbox();
         const w = ReactDOM.findDOMNode(this.refs.wrapper);
+        const de = $(e);
+        const dw = $(w);
 
-        const prevHeight = $(e).height();
+        const prevHeight = e.innerHeight;
 
-        const lht = parseInt($(e).css('lineHeight'), 10);
+        const lht = parseInt(de.css('lineHeight'), 10);
         const lines = e.scrollHeight / lht;
         let mod = 15;
 
@@ -95,22 +100,24 @@ export default class Textbox extends React.Component {
         }
 
         if (e.scrollHeight - mod < 167) {
-            $(e).css({height: 'auto', 'overflow-y': 'hidden'}).height(e.scrollHeight - mod);
-            $(w).css({height: 'auto'}).height(e.scrollHeight + 2);
-            $(w).closest('.post-body__cell').removeClass('scroll');
+            de.css({height: 'auto', 'overflow-y': 'hidden'}).height(e.scrollHeight - mod);
+            dw.css({height: 'auto'}).height(e.scrollHeight + 2);
+            var cell = $(dw.parentNode);
+            cell.removeClass('scroll');
             if (this.state.preview) {
                 $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'auto'}).height(e.scrollHeight - mod);
             }
         } else {
-            $(e).css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
-            $(w).css({height: 'auto'}).height(163);
-            $(w).closest('.post-body__cell').addClass('scroll');
+            de.css({height: 'auto', 'overflow-y': 'scroll'}).height(167 - mod);
+            dw.css({height: 'auto'}).height(163);
+            var cell = $(dw.parentNode);
+            cell.addClass('scroll');
             if (this.state.preview) {
                 $(ReactDOM.findDOMNode(this.refs.preview)).css({height: 'auto', 'overflow-y': 'scroll'}).height(163);
             }
         }
 
-        if (prevHeight !== $(e).height() && this.props.onHeightChange) {
+        if (prevHeight !== de.height() && this.props.onHeightChange) {
             this.props.onHeightChange();
         }
     }

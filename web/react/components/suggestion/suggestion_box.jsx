@@ -44,6 +44,10 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleDocumentClick(e) {
+        if (!SuggestionStore.hasSuggestions(this.suggestionId)) {
+          return;
+        }
+
         const container = $(ReactDOM.findDOMNode(this));
         if (!(container.is(e.target) || container.has(e.target).length > 0)) {
             // we can't just use blur for this because it fires and hides the children before
