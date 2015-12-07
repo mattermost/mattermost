@@ -369,7 +369,6 @@ export default class PostsView extends React.Component {
 
             // Create post elements
             postElements = this.createPosts(posts, order);
-
             // Show ourselves if we are marked active
             if (this.props.isActive) {
                 activeClass = '';

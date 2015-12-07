@@ -11,12 +11,28 @@ export default class TimeSince extends React.Component {
         super(props);
     }
     componentDidMount() {
-        this.intervalId = setInterval(() => {
-            this.forceUpdate();
-        }, 30000);
+        if (TimeSince.instances == 0) {
+          TimeSince.intervalId = setInterval(() => {
+              TimeSince.children.map((elem) => elem.forceUpdate());
+          }, 30000);
+        }
+
+        TimeSince.children.push(this)
+        TimeSince.instances++;
     }
     componentWillUnmount() {
-        clearInterval(this.intervalId);
+        // not called very often as channels are kept in background
+
+        TimeSince.instances--;
+
+        var index = TimeSince.children.indexOf(this);
+        if (index > -1) {
+          TimeSince.children.splice(index,1)
+        }
+
+        if (TimeSince.instances == 0 && TimeSince.intervalId > 0) {
+          clearInterval(TimeSince.intervalId);
+        }
     }
     render() {
         const displayDate = Utils.displayDate(this.props.eventTime);
@@ -41,6 +57,9 @@ export default class TimeSince extends React.Component {
         );
     }
 }
+TimeSince.instances = 0
+TimeSince.intervalId = 0
+TimeSince.children = []
 TimeSince.defaultProps = {
     eventTime: 0
 };
