@@ -309,7 +309,15 @@ export default class PostBody extends React.Component {
             let apostrophe = '';
             let name = '...';
             if (profile != null) {
-                if (profile.username.slice(-1) === 's') {
+                let username = profile.username;
+                if (parentPost.props &&
+                        parentPost.props.from_webhook &&
+                        parentPost.props.override_username &&
+                        global.window.mm_config.EnablePostUsernameOverride === 'true') {
+                    username = parentPost.props.override_username;
+                }
+
+                if (username.slice(-1) === 's') {
                     apostrophe = '\'';
                 } else {
                     apostrophe = '\'s';
@@ -317,9 +325,9 @@ export default class PostBody extends React.Component {
                 name = (
                     <a
                         className='theme'
-                        onClick={Utils.searchForTerm.bind(null, profile.username)}
+                        onClick={Utils.searchForTerm.bind(null, username)}
                     >
-                        {profile.username}
+                        {username}
                     </a>
                 );
             }
