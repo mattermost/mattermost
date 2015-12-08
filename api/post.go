@@ -565,7 +565,11 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 									msg.DeviceId = strings.TrimPrefix(session.DeviceId, "apple:")
 									msg.ServerId = utils.CfgDiagnosticId
 
-									msg.Message = profileMap[id].FirstName + " mentioned you in " + channel.DisplayName
+									if channel.Type == model.CHANNEL_DIRECT {
+										msg.Message = channelName + " send you a direct message"
+									} else {
+										msg.Message = profileMap[id].FirstName + " mentioned you in " + channelName
+									}
 
 									httpClient := http.Client{}
 									request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+"/api/v1/send_push", strings.NewReader(msg.ToJson()))
