@@ -141,9 +141,16 @@ Port of SMTP email server.
 ```"InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS"```  
 32-character (to be randomly generated via Admin Console) salt added to signing of email invites.
 
-
 ```"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL"```  
-32-character (to be randomly generated via Admin Console) salt added to signing of password reset emails.
+32-character (to be randomly generated via Admin Console) salt added to signing of password reset emails.  
+
+#### Push Notification Settings  
+
+```"SendPushNotifications": true```  
+"true": Your mattermsot server sends mobile push notifications to the server specified in **PushNotificationServer**; "false": Mobile push notifications are disabled.
+
+```"PushNotificationServer": "https://push.mattermost.com"```  
+Address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services).
 
 
 ### File Settings
@@ -290,14 +297,6 @@ System Console allows an IT Admin to update settings defined in `config.json`. H
 
 ```"EnableOAuthServiceProvider": false```  
 ”true”: Allow Mattermost to function as an OAuth provider, allowing 3rd party apps access to your user store for authentication.
-
-### Email Settings
-
-```"SendPushNotifications": true```  
-"true": Your mattermsot server sends mobile push notifications to the server specified in **PushNotificationServer**; "false": Mobile push notifications are disabled.
-
-```"PushNotificationServer": "https://push.mattermost.com"```  
-Address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services).
 
 ### File Settings
 
