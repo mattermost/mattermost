@@ -7,14 +7,38 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 - **Release candidate anticipated:** 2015-12-10
 - **Final release anticipated:** 2015-12-16
 
+### New Features
+
+Authentication
+- Documented unofficial GitHub SSO support using GitLab UI
+
+Archives
+- Added permalink feature that lets users link to a post in the message archives
+- Added ability to "Jump" to archives from a search result
+
+Account Settings
+- Added "Preview pre-release features" setting, to allow user to preview early features ahead of their official release
+- Added "Display font" setting, so users can select which font to use
+
+Messaging & Comments
+- Added in-line previews for links from select websites and for URLs pointing to an image (enabled via Account Settings -> Advanced -> Preview pre-release features)
+- Added emoji autocomplete
+
+Extras
+- Added `/loadtest url` tool for manually [testing text processing](https://github.com/mattermost/platform/tree/master/doc/developer/tests)
+
 ### Improvements 
 
 Performance
 - Updated getProfiles service to return less data
+- Refactored several modals to use React-Boostrap
+- Refactored the center channel
 
 Messaging & Comments
-- Added in-line previews for links from select websites and for URLs pointing to an image
-- Added a "Help" link for messaging
+- Added "Help" link for messaging
+- Removed the @all mention 
+- Added Markdown support for task lists
+- Added ability to preview a Markdown message before sending (enabled via Account Settings -> Advanced -> Preview pre-release features)
 
 Onboarding
 - Added various small improvements to the tutorial
@@ -22,6 +46,9 @@ Onboarding
 User Interface
 - Visually combined sequential messages from the same user 
 - Added ability to rename "Town Square"
+- Teammate name display option now applies to messages and comments
+- Menus and search improved on mobile UI
+- Switched to Emoji One style emojis
 
 #### Bug Fixes  
 
@@ -29,14 +56,38 @@ User Interface
 - Fixed bug where the channel sidebar didn't order correctly on Postgres databases
 - Fixed bug where search results did not highlight when searching with quotation marks, wildcard, or in: and from: modifiers
 - Fixed bug with the cancel button not properly resetting the text in some account settings fields
-- Fixed a bug where editing a post to be empty caused a 404 error
+- Fixed bug where editing a post to be empty caused a 404 error
+- Fixed bug where logging out did not work properly on IE11
 - Fixed issue where refreshing the page with the right hand sidebar open caused "..." to show up in place of usernames
+- Fixed issue where invite to channel modal did not update properly when switching between channels
+
+### Compatibility  
+
+#### Config.json Changes from v1.2 to v1.3
+
+Multiple settings were added to [`config.json`](./config/config.json). These options can be modified in the System Console, or manually updated in the existing config.json file. This is a list of changes and their new default values in a fresh install: 
+- Under `EmailSettings` in `config.json`:
+  - Removed: `"ApplePushServer": ""` which is replaced with `SendPushNotifications` and `PushNotificationServer`
+  - Removed: `"ApplePushCertPublic": ""`  which is replaced with `SendPushNotifications` and `PushNotificationServer`
+  - Removed: `"ApplePushCertPrivate": ""` which is replaced with `SendPushNotifications` and `PushNotificationServer`
+  - Added: `"SendPushNotifications": true` to control whether mobile push notifications are sent to the server specified in `PushNotificationServer`
+  - Added: `"PushNotificationServer": "https://push.mattermost.com"` to specify the address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services)
+
+#### Known Issues
+
+- When navigating to a page with new messages as well as message containing inline images added via markdown, the channel may move up and down while loading the inline images
+- Microsoft Edge does not yet support drag and drop 
+- Media files of type .avi .mkv .wmv .mov .flv .mp4a do not play  properly
+- No scroll bar in center channel
+- Pasting images into text box fails to upload on Firefox, Safari, and IE11
+- Slack import @mentions break
 
 #### Contributors 
 
 Many thanks to our external contributors. In no particular order:
 
 - [florianorben](https://github.com/florianorben)
+- [npcode](https://github.com/npcode)
 - [42wim](https://github.com/42wim)
 - [cifvts](https://github.com/cifvts)
 - [rompic](https://github.com/rompic)
@@ -45,6 +96,7 @@ Many thanks to our external contributors. In no particular order:
 - [alexgaribay](https://github.com/alexgaribay)
 - [vladikoff](https://github.com/vladikoff)
 - [jonathanwiesel](https://github.com/jonathanwiesel)
+- [tamtamchik](https://github.com/tamtamchik)
 
 ## Release v1.2.1
 
