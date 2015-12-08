@@ -18,7 +18,8 @@ Mattermost messages are formatted using a standard called "markdown". Here are e
 |`![embedded image](https://travis-ci.org/mattermost/platform.svg)`|![embedded image](https://travis-ci.org/mattermost/platform.svg)|
 |`:smile:` `:sheep:` `:alien:`|:smile: :sheep: :alien:|
 
-Check out a full list of Emojis [here](http://www.emoji-cheat-sheet.com/).
+Emojis provided free from [Emoji One](http://emojione.com/). Check out a full list of Emojis [here](http://emoji.codes/).
+
 
 ## Mentioning Teammates
 
