@@ -740,7 +740,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, 20)
+	ecm := Srv.Store.Channel().GetExtraMembers(id, 100)
 	ccm := Srv.Store.Channel().GetMemberCount(id)
 
 	if cmresult := <-scm; cmresult.Err != nil {
