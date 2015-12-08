@@ -225,6 +225,7 @@ function handlePostEditEvent(msg) {
     // Store post
     const post = JSON.parse(msg.props.post);
     PostStore.storePost(post);
+    PostStore.emitChange();
 
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.channel_id) {
