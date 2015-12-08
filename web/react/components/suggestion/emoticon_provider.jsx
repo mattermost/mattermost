@@ -51,23 +51,40 @@ export default class EmoticonProvider {
             const text = captured[1];
             const partialName = captured[2];
 
-            const terms = [];
             const names = [];
 
             for (const emoticon of Emoticons.emoticonMap.keys()) {
                 if (emoticon.indexOf(partialName) !== -1) {
-                    terms.push(':' + emoticon + ':');
                     names.push(emoticon);
 
-                    if (terms.length >= MAX_EMOTICON_SUGGESTIONS) {
+                    if (names.length >= MAX_EMOTICON_SUGGESTIONS) {
                         break;
                     }
                 }
             }
 
+            // sort the emoticons so that emoticons starting with the entered text come first
+            names.sort((a, b) => {
+                const aPrefix = a.startsWith(partialName);
+                const bPrefix = b.startsWith(partialName);
+
+                if (aPrefix === bPrefix) {
+                    return a.localeCompare(b);
+                } else if (aPrefix) {
+                    return -1;
+                }
+
+                return 1;
+            });
+
+            const terms = names.map((name) => ':' + name + ':');
+
             if (terms.length > 0) {
                 SuggestionStore.setMatchedPretext(suggestionId, text);
                 SuggestionStore.addSuggestions(suggestionId, terms, names, EmoticonSuggestion);
+
+                // force the selection to be cleared since the order of elements may have changed
+                SuggestionStore.clearSelection(suggestionId);
             }
         }
     }
