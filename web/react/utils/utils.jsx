@@ -576,6 +576,7 @@ export function applyTheme(theme) {
 
     if (theme.sidebarHeaderTextColor) {
         changeCss('.sidebar--left .team__header .header__info, .sidebar--menu .team__header .header__info', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.sidebar--left .team__header .navbar-right .dropdown__icon, .sidebar--menu .team__header .navbar-right .dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.sidebar--left .team__header .user__name, .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.sidebar--left .team__header:hover .user__name, .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.modal .modal-header .modal-title, .modal .modal-header .modal-title .name, .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);

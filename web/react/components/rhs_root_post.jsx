@@ -209,7 +209,7 @@ export default class RhsRootPost extends React.Component {
                                 </time>
                             </li>
                             <li className='col col__reply'>
-                                <div className='dropdown'>
+                                <div>
                                     {rootOptions}
                                 </div>
                             </li>

@@ -196,7 +196,7 @@ export default class PostInfo extends React.Component {
                         type='text'
                         readOnly='true'
                         ref='permalinkbox'
-                        className='permalink-text form-control no-resize min-height input-large'
+                        className='permalink-text form-control no-resize'
                         rows='1'
                         value={permalink}
                     />

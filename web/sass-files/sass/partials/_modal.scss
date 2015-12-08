@@ -35,6 +35,9 @@
 		text-align: right;
 		padding-right: 0;
 	}
+	.team-member-list {
+		width: 100%;
+	}
 	.remove__member {
 		float: right;
 		color: #999;
@@ -95,6 +98,7 @@
 				background: rgba(0, 0, 0, 0.1);
 			}
 			span {
+			    font-family: 'Open Sans', sans-serif;
 				line-height: 10px;
 			}
 		}

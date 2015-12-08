@@ -131,7 +131,7 @@ export default class DeletePostModal extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    {`Confirm ${postTerm} Delete`}
+                    <Modal.Title>{`Confirm ${postTerm} Delete`}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {`Are you sure you want to delete this ${postTerm.toLowerCase()}?`}

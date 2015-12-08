@@ -143,7 +143,7 @@ export default class InviteMemberModal extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (!prevState.show && this.state.show) {
-            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 50);
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
             if ($(window).width() > 768) {
                 $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
             }
