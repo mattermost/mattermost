@@ -111,7 +111,14 @@
 .search-item__jump {
 	position: absolute;
 	right: 0;
-	top: 0;
+	top: 0px;
+	font-size: 13px;
+	@include opacity(0.8);
+
+	&:hover {
+		@include opacity(1);
+	}
+
 }
 
 .search-item-time {
