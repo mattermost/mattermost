@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -643,6 +644,12 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	service := params["service"]
 	teamName := params["team"]
 
+	if !utils.Cfg.TeamSettings.EnableUserCreation {
+		c.Err = model.NewAppError("signupTeam", "User sign-up is disabled.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
 	if len(teamName) == 0 {
 		c.Err = model.NewAppError("signupWithOAuth", "Invalid team name", "team_name="+teamName)
 		c.Err.StatusCode = http.StatusBadRequest
@@ -699,9 +706,12 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		return
 	} else {
 		var user *model.User
-		if service == model.USER_AUTH_SERVICE_GITLAB {
-			glu := model.GitLabUserFromJson(body)
-			user = model.UserFromGitLabUser(glu)
+		provider := einterfaces.GetOauthProvider(service)
+		if provider == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", service+" oauth not avlailable on this server", "")
+			return
+		} else {
+			user = provider.GetUserFromJson(body)
 		}
 
 		if user == nil {
@@ -744,8 +754,9 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		user.TeamId = team.Id
 		user.EmailVerified = true
 
-		ruser := api.CreateUser(c, team, user)
-		if c.Err != nil {
+		ruser, err := api.CreateUser(team, user)
+		if err != nil {
+			c.Err = err
 			return
 		}
 
@@ -799,9 +810,12 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		return
 	} else {
 		authData := ""
-		if service == model.USER_AUTH_SERVICE_GITLAB {
-			glu := model.GitLabUserFromJson(body)
-			authData = glu.GetAuthData()
+		provider := einterfaces.GetOauthProvider(service)
+		if provider == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", service+" oauth not avlailable on this server", "")
+			return
+		} else {
+			authData = provider.GetAuthDataFromJson(body)
 		}
 
 		if len(authData) == 0 {

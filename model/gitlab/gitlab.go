@@ -1,10 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package model
+package oauthgitlab
 
 import (
 	"encoding/json"
+	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
 	"io"
 	"strconv"
 	"strings"
@@ -14,6 +16,9 @@ const (
 	USER_AUTH_SERVICE_GITLAB = "gitlab"
 )
 
+type GitLabProvider struct {
+}
+
 type GitLabUser struct {
 	Id       int64  `json:"id"`
 	Username string `json:"username"`
@@ -22,13 +27,18 @@ type GitLabUser struct {
 	Name     string `json:"name"`
 }
 
-func UserFromGitLabUser(glu *GitLabUser) *User {
-	user := &User{}
+func init() {
+	provider := &GitLabProvider{}
+	einterfaces.RegisterOauthProvider(USER_AUTH_SERVICE_GITLAB, provider)
+}
+
+func userFromGitLabUser(glu *GitLabUser) *model.User {
+	user := &model.User{}
 	username := glu.Username
 	if username == "" {
 		username = glu.Login
 	}
-	user.Username = CleanUsername(username)
+	user.Username = model.CleanUsername(username)
 	splitName := strings.Split(glu.Name, " ")
 	if len(splitName) == 2 {
 		user.FirstName = splitName[0]
@@ -46,7 +56,7 @@ func UserFromGitLabUser(glu *GitLabUser) *User {
 	return user
 }
 
-func GitLabUserFromJson(data io.Reader) *GitLabUser {
+func gitLabUserFromJson(data io.Reader) *GitLabUser {
 	decoder := json.NewDecoder(data)
 	var glu GitLabUser
 	err := decoder.Decode(&glu)
@@ -57,6 +67,18 @@ func GitLabUserFromJson(data io.Reader) *GitLabUser {
 	}
 }
 
-func (glu *GitLabUser) GetAuthData() string {
+func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
+}
+
+func (m *GitLabProvider) GetIdentifier() string {
+	return USER_AUTH_SERVICE_GITLAB
+}
+
+func (m *GitLabProvider) GetUserFromJson(data io.Reader) *model.User {
+	return userFromGitLabUser(gitLabUserFromJson(data))
+}
+
+func (m *GitLabProvider) GetAuthDataFromJson(data io.Reader) string {
+	return gitLabUserFromJson(data).getAuthData()
 }

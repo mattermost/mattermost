@@ -180,6 +180,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["BuildNumber"] = model.BuildNumber
 	props["BuildDate"] = model.BuildDate
 	props["BuildHash"] = model.BuildHash
+	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
@@ -203,6 +204,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
+	props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 
@@ -216,6 +218,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
+
+	props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 
 	return props
 }

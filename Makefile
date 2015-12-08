@@ -6,6 +6,9 @@ BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
+ENTERPRISE_DIR ?= ../enterprise
+BUILD_ENTERPRISE ?= true
+
 GO=$(GOPATH)/bin/godep go
 ESLINT=node_modules/eslint/bin/eslint.js
 
@@ -31,6 +34,10 @@ all: dist-local
 
 dist: | build-server build-client go-test package
 	mv ./model/version.go.bak ./model/version.go
+	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+		mv ./mattermost.go.bak ./mattermost.go; \
+		mv ./config/config.json.bak ./config/config.json 2> /dev/null || true; \
+	fi
 
 dist-local: | start-docker dist
 
@@ -79,9 +86,21 @@ build-server:
 	sed -i'.make_mac_work' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
 	sed -i'.make_mac_work' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
 	sed -i'.make_mac_work' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
+
+	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+		cp ./config/config.json ./config/config.json.bak; \
+		jq -s '.[0] * .[1]' ./config/config.json $(ENTERPRISE_DIR)/config/enterprise-config-additions.json > config.json.tmp; \
+		mv config.json.tmp ./config/config.json; \
+		sed -e '/\/\/ENTERPRISE_IMPORTS/ {' -e 'r $(ENTERPRISE_DIR)/imports' -e 'd' -e '}' -i'.bak' mattermost.go; \
+		sed -i'.make_mac_work' 's|_BUILD_ENTERPRISE_READY_|true|g' ./model/version.go; \
+	else \
+		sed -i'.make_mac_work' 's|_BUILD_ENTERPRISE_READY_|false|g' ./model/version.go; \
+	fi
+
 	rm ./model/version.go.make_mac_work
 
 	$(GO) build $(GOFLAGS) ./...
+	$(GO) generate $(GOFLAGS) ./...
 	$(GO) install $(GOFLAGS) ./...
 
 package:
@@ -242,6 +261,13 @@ run: start-docker .prepare-go .prepare-jsx
 	@echo Starting react processo
 	cd web/react && npm start &
 
+	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+		cp ./config/config.json ./config/config.json.bak; \
+		jq -s '.[0] * .[1]' ./config/config.json $(ENTERPRISE_DIR)/config/enterprise-config-additions.json > config.json.tmp; \
+		mv config.json.tmp ./config/config.json; \
+		sed -e '/\/\/ENTERPRISE_IMPORTS/ {' -e 'r $(ENTERPRISE_DIR)/imports' -e 'd' -e '}' -i'.bak' mattermost.go; \
+	fi
+
 	@echo Starting go web server
 	$(GO) run $(GOFLAGS) mattermost.go -config=config.json &
 
@@ -268,6 +294,11 @@ stop:
 		echo removing dev docker container; \
 		docker stop ${DOCKER_CONTAINER_NAME} > /dev/null; \
 		docker rm -v ${DOCKER_CONTAINER_NAME} > /dev/null; \
+	fi
+
+	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
+		mv ./config/config.json.bak ./config/config.json 2> /dev/null || true; \
+		mv ./mattermost.go.bak ./mattermost.go 2> /dev/null || true; \
 	fi
 
 setup-mac:

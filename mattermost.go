@@ -23,7 +23,15 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/web"
+
+	// Plugins
+	_ "github.com/mattermost/platform/model/gitlab"
+
+	// Enterprise Deps
+	_ "github.com/go-ldap/ldap"
 )
+
+//ENTERPRISE_IMPORTS
 
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
@@ -51,6 +59,7 @@ func main() {
 
 	pwd, _ := os.Getwd()
 	l4g.Info("Current version is %v (%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash)
+	l4g.Info("Enterprise Enabled: %t", model.BuildEnterpriseReady)
 	l4g.Info("Current working directory is %v", pwd)
 	l4g.Info("Loaded config file from %v", utils.FindConfigFile(flagConfigFile))
 
@@ -112,6 +121,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 
 						v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
 						v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+						v.Set(utils.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
 						v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
 						v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
 						v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
@@ -283,10 +293,6 @@ func cmdCreateUser() {
 			os.Exit(1)
 		}
 
-		c := &api.Context{}
-		c.RequestId = model.NewId()
-		c.IpAddress = "cmd_line"
-
 		var team *model.Team
 		user := &model.User{}
 		user.Email = flagEmail
@@ -302,10 +308,10 @@ func cmdCreateUser() {
 			user.TeamId = team.Id
 		}
 
-		api.CreateUser(c, team, user)
-		if c.Err != nil {
-			if c.Err.Message != "An account with that email already exists." {
-				l4g.Error("%v", c.Err)
+		_, err := api.CreateUser(team, user)
+		if err != nil {
+			if err.Message != "An account with that email already exists." {
+				l4g.Error("%v", err)
 				flushLogAndExit(1)
 			}
 		}
@@ -320,6 +326,7 @@ func cmdVersion() {
 		fmt.Fprintln(os.Stderr, "Build Number: "+model.BuildNumber)
 		fmt.Fprintln(os.Stderr, "Build Date: "+model.BuildDate)
 		fmt.Fprintln(os.Stderr, "Build Hash: "+model.BuildHash)
+		fmt.Fprintln(os.Stderr, "Build Enterprise Ready: "+model.BuildEnterpriseReady)
 
 		os.Exit(0)
 	}

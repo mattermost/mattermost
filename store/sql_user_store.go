@@ -540,7 +540,7 @@ func (us SqlUserStore) GetTotalActiveUsersCount() StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		time := model.GetMillis() - (1000 * 60 * 60 * 12)
+		time := model.GetMillis() - (1000 * 60 * 60 * 24)
 
 		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetTotalActiveUsersCount", "We could not count the users", err.Error())

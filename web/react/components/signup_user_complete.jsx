@@ -183,8 +183,20 @@ export default class SignupUserComplete extends React.Component {
                         href={'/' + this.props.teamName + '/signup/gitlab' + window.location.search}
                     >
                         <span className='icon' />
-                        <span>with GitLab</span>
+                        <span>{'with GitLab'}</span>
                     </a>
+           );
+        }
+
+        if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
+            signupMessage.push(
+                <a
+                    className='btn btn-custom-login google'
+                    href={'/' + this.props.teamName + '/signup/google' + window.location.search}
+                >
+                    <span className='icon' />
+                    <span>{'with Google'}</span>
+                </a>
            );
         }
 

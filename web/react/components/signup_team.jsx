@@ -112,6 +112,13 @@ export default class TeamSignUp extends React.Component {
                     <SSOSignupPage service={Constants.GITLAB_SERVICE} />
                 </div>
             );
+        } else if (this.state.page === 'google') {
+            return (
+                <div>
+                    {teamListing}
+                    <SSOSignupPage service={Constants.GOOGLE_SERVICE} />
+                </div>
+            );
         }
     }
 }

@@ -20,6 +20,7 @@ const (
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
 	SERVICE_GITLAB = "gitlab"
+	SERVICE_GOOGLE = "google"
 )
 
 type ServiceSettings struct {
@@ -133,6 +134,26 @@ type TeamSettings struct {
 	EnableTeamListing         *bool
 }
 
+type LdapSettings struct {
+	// Basic
+	Enable       *bool
+	LdapServer   *string
+	LdapPort     *int
+	BaseDN       *string
+	BindUsername *string
+	BindPassword *string
+
+	// User Mapping
+	FirstNameAttribute *string
+	LastNameAttribute  *string
+	EmailAttribute     *string
+	UsernameAttribute  *string
+	IdAttribute        *string
+
+	// Advansed
+	QueryTimeout *int
+}
+
 type Config struct {
 	ServiceSettings   ServiceSettings
 	TeamSettings      TeamSettings
@@ -144,6 +165,8 @@ type Config struct {
 	PrivacySettings   PrivacySettings
 	SupportSettings   SupportSettings
 	GitLabSettings    SSOSettings
+	GoogleSettings    SSOSettings
+	LdapSettings      LdapSettings
 }
 
 func (o *Config) ToJson() string {
@@ -156,8 +179,11 @@ func (o *Config) ToJson() string {
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
-	if service == SERVICE_GITLAB {
+	switch service {
+	case SERVICE_GITLAB:
 		return &o.GitLabSettings
+	case SERVICE_GOOGLE:
+		return &o.GoogleSettings
 	}
 
 	return nil
@@ -250,6 +276,21 @@ func (o *Config) SetDefaults() {
 	if o.SupportSettings.SupportEmail == nil {
 		o.SupportSettings.SupportEmail = new(string)
 		*o.SupportSettings.SupportEmail = "feedback@mattermost.com"
+	}
+
+	if o.LdapSettings.LdapPort == nil {
+		o.LdapSettings.LdapPort = new(int)
+		*o.LdapSettings.LdapPort = 389
+	}
+
+	if o.LdapSettings.QueryTimeout == nil {
+		o.LdapSettings.QueryTimeout = new(int)
+		*o.LdapSettings.QueryTimeout = 60
+	}
+
+	if o.LdapSettings.Enable == nil {
+		o.LdapSettings.Enable = new(bool)
+		*o.LdapSettings.Enable = false
 	}
 }
 

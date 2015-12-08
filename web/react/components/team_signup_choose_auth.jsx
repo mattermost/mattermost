@@ -26,6 +26,24 @@ export default class ChooseAuthPage extends React.Component {
             );
         }
 
+        if (global.window.mm_config.EnableSignUpWithGoogle === 'true') {
+            buttons.push(
+                    <a
+                        className='btn btn-custom-login google btn-full'
+                        href='#'
+                        onClick={
+                            (e) => {
+                                e.preventDefault();
+                                this.props.updatePage('google');
+                            }
+                        }
+                    >
+                        <span className='icon' />
+                        <span>{'Create new team with Google Apps Account'}</span>
+                    </a>
+            );
+        }
+
         if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
             buttons.push(
                     <a

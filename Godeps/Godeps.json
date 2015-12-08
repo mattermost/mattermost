@@ -30,6 +30,11 @@
 			"Rev": "c0e2e1a7adaa00e47c4f6ae8faaad6991a4570ac"
 		},
 		{
+			"ImportPath": "github.com/go-ldap/ldap",
+			"Comment": "v2.2",
+			"Rev": "e9a325d64989e2844be629682cb085d2c58eef8d"
+		},
+		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
 			"Comment": "v1.2-125-gd512f20",
 			"Rev": "d512f204a577a4ab037a1816604c48c9c13210be"
@@ -112,6 +117,11 @@
 		{
 			"ImportPath": "golang.org/x/image/tiff",
 			"Rev": "baddd3465a05d84a6d8d3507547a91cb188c81ea"
+		},
+		{
+			"ImportPath": "gopkg.in/asn1-ber.v1",
+			"Comment": "v1.1",
+			"Rev": "4e86f4367175e39f69d9358a5f17b4dda270378d"
 		},
 		{
 			"ImportPath": "gopkg.in/fsnotify.v1",

@@ -221,8 +221,9 @@ func createTeamFromSignup(c *Context, w http.ResponseWriter, r *http.Request) {
 		teamSignup.User.TeamId = rteam.Id
 		teamSignup.User.EmailVerified = true
 
-		ruser := CreateUser(c, rteam, &teamSignup.User)
-		if c.Err != nil {
+		ruser, err := CreateUser(rteam, &teamSignup.User)
+		if err != nil {
+			c.Err = err
 			return
 		}
 

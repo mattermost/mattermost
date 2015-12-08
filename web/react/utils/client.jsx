@@ -243,7 +243,7 @@ export function loginByEmail(name, email, password, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({name: name, email: email, password: password}),
+        data: JSON.stringify({name, email, password}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_login_success', data.team_id, 'email', data.email);
             BrowserStore.signalLogin();
@@ -253,6 +253,26 @@ export function loginByEmail(name, email, password, success, error) {
             track('api', 'api_users_login_fail', name, 'email', email);
 
             var e = handleError('loginByEmail', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function loginByLdap(teamName, id, password, success, error) {
+    $.ajax({
+        url: '/api/v1/users/login_ldap',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({teamName, id, password}),
+        success: function onSuccess(data, textStatus, xhr) {
+            track('api', 'api_users_loginLdap_success', data.team_id, 'id', id);
+            success(data, textStatus, xhr);
+        },
+        error: function onError(xhr, status, err) {
+            track('api', 'api_users_loginLdap_fail', teamName, 'id', id);
+
+            var e = handleError('loginByLdap', xhr, status, err);
             error(e);
         }
     });

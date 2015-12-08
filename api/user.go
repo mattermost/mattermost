@@ -11,6 +11,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -44,6 +45,7 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
 	sr.Handle("/login", ApiAppHandler(login)).Methods("POST")
 	sr.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
+	sr.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
@@ -59,7 +61,7 @@ func InitUser(r *mux.Router) {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
 		c.Err = model.NewAppError("signupTeam", "User sign-up with email is disabled.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
@@ -118,8 +120,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
-	ruser := CreateUser(c, team, user)
-	if c.Err != nil {
+	ruser, err := CreateUser(team, user)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
@@ -163,12 +166,7 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
-
-	if !utils.Cfg.TeamSettings.EnableUserCreation {
-		c.Err = model.NewAppError("CreateUser", "User creation has been disabled. Please ask your systems administrator for details.", "")
-		return nil
-	}
+func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppError) {
 
 	channelRole := ""
 	if team.Email == user.Email {
@@ -178,8 +176,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 		// Below is a speical case where the first user in the entire
 		// system is granted the system_admin role instead of admin
 		if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
-			c.Err = result.Err
-			return nil
+			return nil, result.Err
 		} else {
 			count := result.Data.(int64)
 			if count <= 0 {
@@ -194,9 +191,8 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
 	if result := <-Srv.Store.User().Save(user); result.Err != nil {
-		c.Err = result.Err
 		l4g.Error("Couldn't save the user err=%v", result.Err)
-		return nil
+		return nil, result.Err
 	} else {
 		ruser := result.Data.(*model.User)
 
@@ -225,7 +221,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User) *model.User {
 
 		PublishAndForget(message)
 
-		return ruser
+		return ruser, nil
 	}
 }
 
@@ -313,7 +309,7 @@ func LoginById(c *Context, w http.ResponseWriter, r *http.Request, userId, passw
 		return nil
 	} else {
 		user := result.Data.(*model.User)
-		if checkUserPassword(c, user, password) {
+		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
 			Login(c, w, r, user, deviceId)
 			return user
 		}
@@ -339,7 +335,7 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	} else {
 		user := result.Data.(*model.User)
 
-		if checkUserPassword(c, user, password) {
+		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
 			Login(c, w, r, user, deviceId)
 			return user
 		}
@@ -348,14 +344,18 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	return nil
 }
 
-func checkUserPassword(c *Context, user *model.User, password string) bool {
-
+func checkUserLoginAttempts(c *Context, user *model.User) bool {
 	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
 		c.LogAuditWithUserId(user.Id, "fail")
 		c.Err = model.NewAppError("checkUserPassword", "Your account is locked because of too many failed password attempts. Please reset your password.", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return false
 	}
+
+	return true
+}
+
+func checkUserPassword(c *Context, user *model.User, password string) bool {
 
 	if !model.ComparePassword(user.Password, password) {
 		c.LogAuditWithUserId(user.Id, "fail")
@@ -491,6 +491,70 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	if user != nil {
+		user.Sanitize(map[string]bool{})
+	} else {
+		user = &model.User{}
+	}
+	w.Write([]byte(user.ToJson()))
+}
+
+func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.LdapSettings.Enable {
+		c.Err = model.NewAppError("loginLdap", "LDAP not enabled on this server", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+
+	password := props["password"]
+	id := props["id"]
+	teamName := props["teamName"]
+
+	if len(password) == 0 {
+		c.Err = model.NewAppError("loginLdap", "Password field must not be blank", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if len(id) == 0 {
+		c.Err = model.NewAppError("loginLdap", "Need an ID", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	teamc := Srv.Store.Team().GetByName(teamName)
+
+	ldapInterface := einterfaces.GetLdapInterface()
+	if ldapInterface == nil {
+		c.Err = model.NewAppError("loginLdap", "LDAP not available on this server", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	var team *model.Team
+	if result := <-teamc; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	user, err := ldapInterface.DoLogin(team, id, password)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !checkUserLoginAttempts(c, user) {
+		return
+	}
+
+	// User is authenticated at this point
+
+	Login(c, w, r, user, props["device_id"])
 
 	if user != nil {
 		user.Sanitize(map[string]bool{})
