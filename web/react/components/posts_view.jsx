@@ -103,7 +103,7 @@ export default class PostsView extends React.Component {
                 const prevPostIsComment = Utils.isComment(prevPost);
                 const postFromWebhook = Boolean(post.props && post.props.from_webhook);
                 const prevPostFromWebhook = Boolean(prevPost.props && prevPost.props.from_webhook);
-                const prevPostUserId = Utils.isSystemMessage(prevPost) ? '' : prevPostUserId;
+                const prevPostUserId = Utils.isSystemMessage(prevPost) ? '' : prevPost.user_id;
                 let prevWebhookName = '';
                 if (prevPost.props && prevPost.props.override_username) {
                     prevWebhookName = prevPost.props.override_username;
