@@ -71,38 +71,47 @@ export default class Sidebar extends React.Component {
     getStateFromStores() {
         const members = ChannelStore.getAllMembers();
         const currentChannelId = ChannelStore.getCurrentId();
+        const currentUserId = UserStore.getCurrentId();
 
         const channels = Object.assign([], ChannelStore.getAll());
         channels.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
         const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
         const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
-        const directChannels = channels.filter((channel) => channel.type === Constants.DM_CHANNEL);
 
         const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
-        var visibleDirectChannels = [];
-        for (var i = 0; i < directChannels.length; i++) {
-            const dm = directChannels[i];
-            const teammate = Utils.getDirectTeammate(dm.id);
-            if (!teammate) {
+        const directChannels = [];
+        for (const preference of preferences) {
+            if (preference.value !== 'true') {
                 continue;
             }
 
-            const show = preferences.some((preference) => (preference.name === teammate.id && preference.value !== 'false'));
+            const teammateId = preference.name;
 
-            if (show) {
-                dm.display_name = Utils.displayUsername(teammate.id);
-                dm.teammate_id = teammate.id;
-                dm.status = UserStore.getStatus(teammate.id);
+            let directChannel = channels.find(Utils.isDirectChannelForUser.bind(null, teammateId));
 
-                visibleDirectChannels.push(dm);
+            // a direct channel doesn't exist yet so create a fake one
+            if (!directChannel) {
+                directChannel = {
+                    name: Utils.getDirectChannelName(currentUserId, teammateId),
+                    last_post_at: 0,
+                    total_msg_count: 0,
+                    type: Constants.DM_CHANNEL,
+                    fake: true
+                };
             }
+
+            directChannel.display_name = Utils.displayUsername(teammateId);
+            directChannel.teammate_id = teammateId;
+            directChannel.status = UserStore.getStatus(teammateId);
+
+            directChannels.push(directChannel);
         }
 
-        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList(true).length - visibleDirectChannels.length;
+        directChannels.sort(this.sortChannelsByDisplayName);
 
-        visibleDirectChannels.sort(this.sortChannelsByDisplayName);
+        const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList(true).length - directChannels.length;
 
         const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
 
@@ -111,7 +120,7 @@ export default class Sidebar extends React.Component {
             members,
             publicChannels,
             privateChannels,
-            visibleDirectChannels,
+            directChannels,
             hiddenDirectChannelCount,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.CHANNEL_POPOVER
@@ -473,7 +482,7 @@ export default class Sidebar extends React.Component {
 
         const privateChannelItems = this.state.privateChannels.map(this.createChannelElement);
 
-        const directMessageItems = this.state.visibleDirectChannels.map((channel, index, arr) => {
+        const directMessageItems = this.state.directChannels.map((channel, index, arr) => {
             return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
         });
 
