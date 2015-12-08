@@ -39,9 +39,9 @@ You can configure how you'd like to be alerted about mentions of your username, 
 
 ## Messages Dropdown Menu
 
-The Messages Dropdown Menu contains additional actions you can perform on a message: 
+To get to the Messages Dropdown Menu, hover over a message and click on the [...] menu. This shows a dropdown list containing additional actions you can perform on a message: 
 
 - **Reply:** Opens up the sidebar so you can reply to a message in a comment thread.
 - **Permalink:** Creates a link to the message. Sharing this link with other users in the channel lets them view the linked message in the Message Archives. 
-- **Delete:** Deletes the message so it is no longer visible. Team Administrators can also delete another user's message. 
-- **Edit:** Lets you edit a message.
+- **Delete:** Deletes the message so it is no longer visible. Team Administrators and System Administrators can also delete another user's message. 
+- **Edit:** Lets you edit your own message.
