@@ -92,7 +92,7 @@ Key contributors might also pick up tickets, or through conversations with the c
 
 ### Community Contributions 
 
-Community members following the Contribution Guidelines might also submit pull requests. Pull requests should not disable existing functionality without a Jira ticket, which are opened [via the feature ideas process](http://www.mattermost.org/feature-requests/). 
+Community members following the [Contribution Guidelines](https://github.com/mattermost/platform/blob/master/CONTRIBUTING.md) might also submit pull requests. Pull requests should not disable existing functionality without a Jira ticket, which are opened [via the feature ideas process](http://www.mattermost.org/feature-requests/). 
 
 #### Bug Fixes 
 
