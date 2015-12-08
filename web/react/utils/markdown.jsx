@@ -69,13 +69,11 @@ class MattermostInlineLexer extends marked.InlineLexer {
 
         this.rules = Object.assign({}, this.rules);
 
-        // modified version of the regex that doesn't break up words in snake_case,
-        // allows for links starting with www, and allows links succounded by parentheses
+        // modified version of the regex that allows for links starting with www and those surrounded by parentheses
         // the original is /^[\s\S]+?(?=[\\<!\[_*`~]|https?:\/\/| {2,}\n|$)/
-        this.rules.text = /^[\s\S]+?(?:[^\w\/](?=_)|(?=_\W|[\\<!\[*`~]|https?:\/\/|www\.|\(| {2,}\n|$))/;
+        this.rules.text = /^[\s\S]+?(?=[\\<!\[_*`~]|https?:\/\/|www\.|\(| {2,}\n|$)/;
 
-        // modified version of the regex that allows links starting with www and those surrounded
-        // by parentheses
+        // modified version of the regex that allows links starting with www and those surrounded by parentheses
         // the original is /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/
         this.rules.url = /^(\(?(?:https?:\/\/|www\.)[^\s<.][^\s<]*[^<.,:;"'\]\s])/;
 
