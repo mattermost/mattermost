@@ -59,13 +59,14 @@ class SocketStoreClass extends EventEmitter {
             conn.onopen = () => {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
+
+                    if (ErrorStore.getLastError()) {
+                        ErrorStore.storeLastError(null);
+                        ErrorStore.emitChange();
+                    }
                 }
 
                 this.failCount = 0;
-                if (ErrorStore.getLastError()) {
-                    ErrorStore.storeLastError(null);
-                    ErrorStore.emitChange();
-                }
             };
 
             conn.onclose = () => {
