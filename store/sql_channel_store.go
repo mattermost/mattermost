@@ -592,7 +592,7 @@ func (s SqlChannelStore) GetExtraMembers(channelId string, limit int) StoreChann
 			result.Err = model.NewAppError("SqlChannelStore.GetExtraMembers", "We couldn't get the extra info for channel members", "channel_id="+channelId+", "+err.Error())
 		} else {
 			for i := range members {
-				members[i].Sanitize(utils.SanitizeOptions)
+				members[i].Sanitize(utils.Cfg.GetSanitizeOptions())
 			}
 			result.Data = members
 		}

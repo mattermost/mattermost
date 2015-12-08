@@ -279,3 +279,11 @@ func (o *Config) IsValid() *AppError {
 
 	return nil
 }
+
+func (me *Config) GetSanitizeOptions() map[string]bool {
+	options := map[string]bool{}
+	options["fullname"] = me.PrivacySettings.ShowFullName
+	options["email"] = me.PrivacySettings.ShowEmailAddress
+
+	return options
+}

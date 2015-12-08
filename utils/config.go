@@ -28,7 +28,6 @@ var CfgDiagnosticId = ""
 var CfgLastModified int64 = 0
 var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
-var SanitizeOptions map[string]bool = map[string]bool{}
 
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("/tmp/" + fileName); err == nil {
@@ -171,16 +170,7 @@ func LoadConfig(fileName string) {
 	}
 
 	Cfg = &config
-	SanitizeOptions = getSanitizeOptions(Cfg)
 	ClientCfg = getClientConfig(Cfg)
-}
-
-func getSanitizeOptions(c *model.Config) map[string]bool {
-	options := map[string]bool{}
-	options["fullname"] = c.PrivacySettings.ShowFullName
-	options["email"] = c.PrivacySettings.ShowEmailAddress
-
-	return options
 }
 
 func getClientConfig(c *model.Config) map[string]string {
