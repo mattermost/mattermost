@@ -22,6 +22,11 @@ export default class SearchResultsItem extends React.Component {
         e.preventDefault();
 
         EventHelpers.emitPostFocusEvent(this.props.post.id);
+
+        if ($(window).width() < 768) {
+            $('.sidebar--right').removeClass('move--left');
+            $('.inner__wrap').removeClass('move--left');
+        }
     }
 
     handleFocusRHSClick(e) {
@@ -74,7 +79,7 @@ export default class SearchResultsItem extends React.Component {
                                     className='search-item__jump'
                                     onClick={this.handleClick}
                                 >
-                                    <i className='fa fa-mail-reply'></i>
+                                    {'Jump'}
                                 </a>
                             </li>
                             <li>
