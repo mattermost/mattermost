@@ -14,18 +14,19 @@ export default class EmailSignUpPage extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        var team = {};
-        var state = {serverError: ''};
+        const team = {};
+        const state = {serverError: null};
+        let isValid = true;
 
         team.email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
         if (!team.email || !Utils.isEmail(team.email)) {
             state.emailError = 'Please enter a valid email address';
-            state.inValid = true;
+            isValid = false;
         } else {
-            state.emailError = '';
+            state.emailError = null;
         }
 
-        if (state.inValid) {
+        if (!isValid) {
             this.setState(state);
             return;
         }
@@ -45,9 +46,14 @@ export default class EmailSignUpPage extends React.Component {
         );
     }
     render() {
-        var serverError = null;
+        let serverError = null;
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+        }
+
+        let emailError = null;
+        if (this.state.emailError) {
+            emailError = <div className='form-group has-error'><label className='control-label'>{this.state.emailError}</label></div>;
         }
 
         return (
@@ -65,6 +71,7 @@ export default class EmailSignUpPage extends React.Component {
                         maxLength='128'
                         spellCheck='false'
                     />
+                    {emailError}
                 </div>
                 <div className='form-group'>
                     <button
