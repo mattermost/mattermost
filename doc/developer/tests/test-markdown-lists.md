@@ -21,6 +21,7 @@ Verify that all list types render as expected.
 ```
 
 **Actual:**  
+
 3. One  
 2. Two  
 1. Three  
@@ -38,12 +39,13 @@ Verify that all list types render as expected.
 ```
 
 **Actual:**  
-1. Alpha  
-    1. Bravo  
+
+1. Alpha
+  1. Bravo  
 1. Charlie  
 1. Delta  
-    1. Echo  
-    1. Foxtrot  
+  1. Echo  
+  1. Foxtrot  
 
 ### Single-item Unordered List
 
@@ -99,6 +101,7 @@ Verify that all list types render as expected.
 ```
 
 **Actual:**  
+
 1. One  
 + Two  
 - Three  
@@ -169,10 +172,11 @@ Verify that all list types render as expected.
 ```
 
 **Actual:**  
+
 1. One
-  - Two
-  
-  
+  - Two 
+    
+    
 1. One
 2. Two
 
@@ -186,7 +190,42 @@ This text should be on a new line.
 ```
 
 **Actual:**  
+
 1. One
  - Two
 This text should be on a new line.
+
+### Task Lists
+
+**Expected:**
+```
+[ ] One
+  [ ] Subpoint one
+  - Normal Bullet
+[ ] Two
+[x] Completed item
+```
+
+**Actual:**  
+
+- [ ] One
+  - [ ] Subpoint one
+  - Normal Bullet
+- [ ] Two
+- [x] Completed item
+
+### Numbered Task Lists
+
+**Expected:**
+```
+1. [ ] One
+2. [ ] Two
+3. [x] Completed item
+```
+
+**Actual:**  
+
+1. [ ] One
+2. [ ] Two
+3. [x] Completed item
 
