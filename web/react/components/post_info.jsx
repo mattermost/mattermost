@@ -5,6 +5,7 @@ import UserStore from '../stores/user_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import TimeSince from './time_since.jsx';
+import StarredItem from './starred_item.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
 import Constants from '../utils/constants.jsx';
@@ -220,6 +221,10 @@ export default class PostInfo extends React.Component {
                 <li className='col'>
                     <TimeSince
                         eventTime={post.create_at}
+                    />
+                    <StarredItem
+                        id={post.id}
+                        type={Constants.Preferences.STARRED_POSTS}
                     />
                 </li>
                 <li className='col col__reply'>

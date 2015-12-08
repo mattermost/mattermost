@@ -98,6 +98,7 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+	            position: relative;
                 &.has-badge {
                     padding-right: 30px;
                 }
@@ -129,6 +130,15 @@
                 &.unread-title {
                     font-weight: 600;
                 }
+
+	            .starred-item {
+		            display: none;
+		            position: absolute;
+		            margin-left: -15px;
+	            }
+	            &:hover .starred-item {
+		            display: block;
+	            }
             }
             &.active {
                 a {
@@ -150,6 +160,10 @@
                 }
             }
         }
+
+	    &.starred-channels li a .starred-item {
+		    display: block;
+	    }
     }
     .modal-title {
         line-height: 2em;

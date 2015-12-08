@@ -88,6 +88,7 @@ type PostStore interface {
 	Save(post *model.Post) StoreChannel
 	Update(post *model.Post, newMessage string, newHashtags string) StoreChannel
 	Get(id string) StoreChannel
+	GetByIds(ids []string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int) StoreChannel

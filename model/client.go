@@ -645,6 +645,15 @@ func (c *Client) GetPost(channelId string, postId string, etag string) (*Result,
 	}
 }
 
+func (c *Client) GetStarredPosts() (*Result, *AppError) {
+	if r, err := c.DoApiGet("/posts/starred", "", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) DeletePost(channelId string, postId string) (*Result, *AppError) {
 	if r, err := c.DoApiPost(fmt.Sprintf("/channels/%v/post/%v/delete", channelId, postId), ""); err != nil {
 		return nil, err

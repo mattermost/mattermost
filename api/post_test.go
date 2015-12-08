@@ -805,3 +805,60 @@ func TestFuzzyPosts(t *testing.T) {
 		}
 	}
 }
+
+func TestGetStarredPosts(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
+
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post1a1 = Client.Must(Client.CreatePost(post1a1)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post3.Id}
+	post3a1 = Client.Must(Client.CreatePost(post3a1)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	preferences := &model.Preferences{
+		model.Preference{UserId: user1.Id, Category: model.PREFERENCE_CATEGORY_STARRED_POSTS, Name: post1a1.Id, Value: "true"},
+		model.Preference{UserId: user1.Id, Category: model.PREFERENCE_CATEGORY_STARRED_POSTS, Name: post2.Id, Value: "true"},
+		model.Preference{UserId: user1.Id, Category: model.PREFERENCE_CATEGORY_STARRED_POSTS, Name: post3.Id, Value: ""},
+	}
+	preferences = Client.Must(Client.SetPreferences(preferences)).Data.(*model.Preferences)
+
+	r1 := Client.Must(Client.GetStarredPosts()).Data.(*model.PostList)
+
+	// since the post runs multiple times we cannot check the exact amount
+	if len(r1.Posts)%2 > 0 {
+		t.Fatalf("got wrong amount starred posts %v=%v", 2, len(r1.Posts))
+	} else {
+		for postId := range r1.Posts {
+			if !(postId == post1a1.Id || postId == post2.Id) {
+				t.Fatal("got wrong search results")
+			}
+		}
+	}
+}

@@ -40,6 +40,10 @@ export default class SearchResultsHeader extends React.Component {
             title = 'Recent Mentions';
         }
 
+        if (this.props.isStarredSearch) {
+            title = 'Starred Posts';
+        }
+
         return (
             <div className='sidebar--right__header'>
                 <span className='sidebar--right__title'>{title}</span>
@@ -58,5 +62,6 @@ export default class SearchResultsHeader extends React.Component {
 }
 
 SearchResultsHeader.propTypes = {
-    isMentionSearch: React.PropTypes.bool
+    isMentionSearch: React.PropTypes.bool,
+    isStarredSearch: React.PropTypes.bool
 };

@@ -898,6 +898,21 @@ export function search(terms, success, error) {
     track('api', 'api_posts_search');
 }
 
+export function getStarredPosts(success, error) {
+    $.ajax({
+        url: '/api/v1/posts/starred',
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('starred_posts', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_starred_posts');
+}
+
 export function deletePost(channelId, id, success, error) {
     $.ajax({
         url: '/api/v1/channels/' + channelId + '/post/' + id + '/delete',

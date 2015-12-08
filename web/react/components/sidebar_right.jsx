@@ -25,7 +25,8 @@ export default class SidebarRight extends React.Component {
         return {
             search_visible: SearchStore.getSearchResults() != null,
             post_right_visible: PostStore.getSelectedPost() != null,
-            is_mention_search: SearchStore.getIsMentionSearch()
+            is_mention_search: SearchStore.getIsMentionSearch(),
+            is_starred_search: SearchStore.getIsStarredSearch()
         };
     }
     componentDidMount() {
@@ -93,12 +94,18 @@ export default class SidebarRight extends React.Component {
         var content = '';
 
         if (this.state.search_visible) {
-            content = <SearchResults isMentionSearch={this.state.is_mention_search} />;
+            content = (
+                <SearchResults
+                    isMentionSearch={this.state.is_mention_search}
+                    isStarredSearch={this.state.is_starred_search}
+                />
+            );
         } else if (this.state.post_right_visible) {
             content = (
                 <RhsThread
                     fromSearch={this.state.from_search}
                     isMentionSearch={this.state.is_mention_search}
+                    isStarredSearch={this.state.is_starred_search}
                 />
             );
         }

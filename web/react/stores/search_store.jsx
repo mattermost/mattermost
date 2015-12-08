@@ -99,6 +99,10 @@ class SearchStoreClass extends EventEmitter {
         return BrowserStore.getItem('is_mention_search');
     }
 
+    getIsStarredSearch() {
+        return BrowserStore.getItem('is_starred_search');
+    }
+
     storeSearchTerm(term) {
         BrowserStore.setItem('search_term', term);
     }
@@ -107,9 +111,10 @@ class SearchStoreClass extends EventEmitter {
         return BrowserStore.getItem('search_term');
     }
 
-    storeSearchResults(results, isMentionSearch) {
+    storeSearchResults(results, isMentionSearch, isStarredSearch) {
         BrowserStore.setItem('search_results', results);
         BrowserStore.setItem('is_mention_search', Boolean(isMentionSearch));
+        BrowserStore.setItem('is_starred_search', Boolean(isStarredSearch));
     }
 }
 
@@ -120,12 +125,12 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECIEVED_SEARCH:
-        SearchStore.storeSearchResults(action.results, action.is_mention_search);
+        SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_starred_search);
         SearchStore.emitSearchChange();
         break;
     case ActionTypes.RECIEVED_SEARCH_TERM:
         SearchStore.storeSearchTerm(action.term);
-        SearchStore.emitSearchTermChange(action.do_search, action.is_mention_search);
+        SearchStore.emitSearchTermChange(action.do_search, action.is_mention_search, action.is_starred_search);
         break;
     case ActionTypes.SHOW_SEARCH:
         SearchStore.emitShowSearch();
