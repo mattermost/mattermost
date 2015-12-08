@@ -106,11 +106,6 @@ export default class ChannelInviteModal extends React.Component {
         );
     }
     render() {
-        var maxHeight = 1000;
-        if (Utils.windowHeight() <= 1200) {
-            maxHeight = Utils.windowHeight() - 300;
-        }
-
         var inviteError = null;
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
