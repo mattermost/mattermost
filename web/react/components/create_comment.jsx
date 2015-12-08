@@ -362,11 +362,11 @@ export default class CreateComment extends React.Component {
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
+                        {preview}
                         {postError}
                         {serverError}
                     </div>
                 </div>
-                {preview}
             </form>
         );
     }

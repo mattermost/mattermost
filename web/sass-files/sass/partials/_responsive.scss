@@ -377,10 +377,8 @@
             .msg-typing {
                 display: none;
             }
-            .has-error {
-                .control-label {
-                    height: auto;
-                }
+            .control-label {
+                top: 0;
             }
         }
         .post-create-body {
@@ -409,8 +407,7 @@
         }
     }
     .preview-container {
-        padding: 0px;
-        margin-top: 5px;
+        margin: 5px 0 0;
         .preview-div {
             margin-top: 0;
         }

@@ -319,13 +319,11 @@ body.ios {
 		@include clearfix;
 		padding: 3px 0 0 0;
 		font-size: 13px;
-		.has-error {
-			.control-label {
-				height: 0;
-				display: block;
-				font-weight: normal;
-				margin-bottom: 0;
-			}
+		.control-label {
+			font-weight: normal;
+			margin-bottom: 0;
+			top: -5px;
+			position: relative;
 		}
 		.msg-typing {
 			min-height: 25px;

@@ -1,7 +1,6 @@
 @charset "UTF-8";
 
 .inner__wrap {
-	@include single-transition(all, 0.5s, ease);
 	&.move--left {
 		margin-right: 400px;
 		.search-bar__container {

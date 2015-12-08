@@ -227,7 +227,6 @@ export default class UserItem extends React.Component {
                             href='#'
                             className='dropdown-toggle theme'
                             type='button'
-                            id='channel_header_dropdown'
                             data-toggle='dropdown'
                             aria-expanded='true'
                         >
@@ -237,7 +236,6 @@ export default class UserItem extends React.Component {
                         <ul
                             className='dropdown-menu member-menu'
                             role='menu'
-                            aria-labelledby='channel_header_dropdown'
                         >
                             {makeAdmin}
                             {makeMember}

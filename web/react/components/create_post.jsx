@@ -470,13 +470,13 @@ export default class CreatePost extends React.Component {
                         {tutorialTip}
                     </div>
                     <div className={postFooterClassName}>
-                        {postError}
-                        {serverError}
-                        {preview}
                         <MsgTyping
                             channelId={this.state.channelId}
                             parentId=''
                         />
+                        {preview}
+                        {postError}
+                        {serverError}
                     </div>
                 </div>
             </form>
