@@ -135,9 +135,10 @@
                     .input-group-addon {
                         padding: 4px 5px;
                         width: 40px;
-                        img {
-                            border: 1px solid rgba(black, 0.15);
-                        }
+                    }
+                    img {
+                        border: 1px solid rgba(black, 0.15);
+                        width: 29px;
                     }
                 }
                 .premade-themes {
@@ -325,12 +326,22 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
 
-    .member-role, .member-drop {
-        position:absolute;
-        right: 15px;
-        top: 8px;
+.member-role, .member-drop {
+    position:absolute;
+    right: 15px;
+    top: 8px;
+
+    .fa {
+        margin-right: 5px;
     }
+
+    .member-menu {
+        top: -50%;
+        right: 110%;
+    }
+
 }
 
 .member-invite {
