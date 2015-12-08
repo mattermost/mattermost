@@ -1,6 +1,6 @@
 # Development Process Overview
 
-This document describes the process through which feedback and design discussions flow into community systems, then into tickets, then into merge requests, then into monthly releases based on the purpose of the product. 
+This document describes the process through which feedback and design discussions flow into community systems, then into tickets, then into pull requests, then into monthly releases based on the purpose of the product. 
 
 ## Purpose
 
@@ -44,7 +44,7 @@ Please consider using more mainstream processes for [filing feature ideas to be 
 
 ### GitHub Pull Requests 
 
-A system for submitting merge requests for changes to Mattermost. See [Merge Requests](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#merge-requests) section below. 
+A system for submitting pull requests for changes to Mattermost. See [Pull Requests](https://github.com/mattermost/platform/blob/master/doc/process/overview.md#merge-requests) section below. 
 
 ### General Forum 
 
@@ -80,7 +80,7 @@ Release planning sets the "Fix Version" of tickets to one of the upcoming monthl
 
 Tickets to be completed in the upcoming two weeks are organized on Tuesdays, with input from developers, and finalized on Fridays.
 
-## Merge Requests
+## Pull Requests
 
 ### Core Team Weekly Rhythm 
 
@@ -92,7 +92,7 @@ Key contributors might also pick up tickets, or through conversations with the c
 
 ### Community Contributions 
 
-Community members following the Contribution Guidelines might also submit pull requests. 
+Community members following the Contribution Guidelines might also submit pull requests. Pull requests should not disable existing functionality without a Jira ticket, which are opened [via the feature ideas process](http://www.mattermost.org/feature-requests/). 
 
 #### Bug Fixes 
 
