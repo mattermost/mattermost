@@ -88,7 +88,7 @@ and
 
 ## Emojis
 
-Check out a full list of emojis [here](http://www.emoji-cheat-sheet.com/).
+Emoji provided free by [Emoji One](http://emojione.com/). Check out a full list of emojis [here](http://http://emoji.codes/).
 
 ```
 :smile: :+1: :sheep:
@@ -131,6 +131,17 @@ Make it an ordered list by using numbers instead:
 Renders as: 
 1. Item one
 2. Item two
+
+Make a task list by including square brackets:
+```
+- [ ] Item one
+- [ ] Item two
+- [x] Completed item
+```
+Renders as:
+- [ ] Item one
+- [ ] Item two
+- [x] Completed item
 
 ## Tables: 
 
