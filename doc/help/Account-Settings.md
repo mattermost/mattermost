@@ -93,6 +93,9 @@ Outgoing webhooks use trigger words to fire new message events to external integ
 ##Display
 Settings to configure clock and teammate name display preferences.
 
+#### Display Font
+Select what font is used. 
+
 #### Clock Display
 Choose a 12-hour or 24-hour time preference that appears on the time stamp for all posts. 
 
@@ -104,3 +107,10 @@ Setting to configure when messages are sent.
 
 #### Send Messages on Ctrl+Enter
 If enabled, press **Enter** to insert a new line and **Ctrl + Enter** posts the message. If disabled, **Shift + Enter** inserts a new line and **Enter** posts the message.
+
+#### Preview pre-release features
+Turn on preview features to view them early, ahead of their official release:
+- **Show markdown preview option in message input box:** Turning this on will show a "Preview" option when typing in the text input box. Pressing "Preview" shows what the Markdown formatting in the message looks like before the message is sent.
+- **Show preview snippet of links below message:** Turning this on will show a preview snippet posted below links from select websites. 
+
+
