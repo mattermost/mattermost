@@ -70,15 +70,8 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
   - Removed: `"ApplePushServer": ""` which is replaced with `SendPushNotifications` and `PushNotificationServer`
   - Removed: `"ApplePushCertPublic": ""`  which is replaced with `SendPushNotifications` and `PushNotificationServer`
   - Removed: `"ApplePushCertPrivate": ""` which is replaced with `SendPushNotifications` and `PushNotificationServer`
-  - Added: `"SendPushNotifications": true` to control whether push notifications are sent to mobile apps
-  - Added: `"PushNotificationServer": "https://push.mattermost.com"` to 
-
-#### Database Changes from v1.2 to v1.3
-
-The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this. 
-
-##### Channels Table
-1. Renamed `Description` to `Header`
+  - Added: `"SendPushNotifications": true` to control whether mobile push notifications are sent to the server specified in `PushNotificationServer`
+  - Added: `"PushNotificationServer": "https://push.mattermost.com"` to specify the address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services)
 
 #### Known Issues
 
