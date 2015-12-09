@@ -14,7 +14,14 @@ export default class PostAttachmentOEmbed extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.fetchData(nextProps.link);
+        if (nextProps.link !== this.props.link) {
+            this.isLoading = false;
+            this.fetchData(nextProps.link);
+        }
+    }
+
+    componentDidMount() {
+        this.fetchData(this.props.link);
     }
 
     fetchData(link) {

@@ -300,7 +300,7 @@ export function extractLinks(text) {
 
     Autolinker.link(text, {
         replaceFn,
-        urls: true,
+        urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
         emails: false,
         twitter: false,
         phone: false,
