@@ -361,7 +361,6 @@ export default {
         'Droid Serif': 'font--droid_serif',
         'Roboto Slab': 'font--roboto_slab',
         Lora: 'font--lora',
-        Slabo: 'font--slabo',
         Arvo: 'font--arvo',
         'Open Sans': 'font--open_sans',
         Roboto: 'font--roboto',
