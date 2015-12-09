@@ -625,6 +625,9 @@ body.ios {
 		}
 
 		ul, ol {
+			p {
+				margin-bottom: 0;
+			}
 			li ul, li ol {
 				padding: 0 0 0 20px
 			}

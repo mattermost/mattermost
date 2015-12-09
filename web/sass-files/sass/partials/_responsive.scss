@@ -125,6 +125,14 @@
 
     .post {
 
+        .post__header {
+
+            .col__name {
+                pointer-events: none;
+            }
+
+        }
+
         &.same--root {
 
             &.same--user {
