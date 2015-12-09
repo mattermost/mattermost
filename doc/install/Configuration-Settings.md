@@ -146,10 +146,10 @@ Port of SMTP email server.
 
 #### Push Notification Settings  
 
-```"SendPushNotifications": true```  
+```"SendPushNotifications": false```  
 "true": Your mattermsot server sends mobile push notifications to the server specified in **PushNotificationServer**; "false": Mobile push notifications are disabled.
 
-```"PushNotificationServer": "https://push.mattermost.com"```  
+```"PushNotificationServer": ""```  
 Address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services).
 
 

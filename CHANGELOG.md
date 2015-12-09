@@ -70,8 +70,8 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
   - Removed: `"ApplePushServer": ""` which is replaced with `SendPushNotifications` and `PushNotificationServer`
   - Removed: `"ApplePushCertPublic": ""`  which is replaced with `SendPushNotifications` and `PushNotificationServer`
   - Removed: `"ApplePushCertPrivate": ""` which is replaced with `SendPushNotifications` and `PushNotificationServer`
-  - Added: `"SendPushNotifications": true` to control whether mobile push notifications are sent to the server specified in `PushNotificationServer`
-  - Added: `"PushNotificationServer": "https://push.mattermost.com"` to specify the address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services)
+  - Added: `"SendPushNotifications": false` to control whether mobile push notifications are sent to the server specified in `PushNotificationServer`
+  - Added: `"PushNotificationServer": ""` to specify the address of the proxy server that re-sends push notifications to their respective services like APNS (Apple Push Notification Services)
 
 #### Known Issues
 
@@ -81,6 +81,7 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
 - No scroll bar in center channel
 - Pasting images into text box fails to upload on Firefox, Safari, and IE11
 - Slack import @mentions break
+- Usernames containing a "." do not get mention notifications
 
 #### Contributors 
 
