@@ -181,12 +181,12 @@ func (o *Config) SetDefaults() {
 
 	if o.EmailSettings.SendPushNotifications == nil {
 		o.EmailSettings.SendPushNotifications = new(bool)
-		*o.EmailSettings.SendPushNotifications = true
+		*o.EmailSettings.SendPushNotifications = false
 	}
 
 	if o.EmailSettings.PushNotificationServer == nil {
 		o.EmailSettings.PushNotificationServer = new(string)
-		*o.EmailSettings.PushNotificationServer = "https://push.mattermost.com"
+		*o.EmailSettings.PushNotificationServer = ""
 	}
 
 }
