@@ -8,11 +8,14 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as utils from '../utils/utils.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
 
+import Constants from '../utils/constants.jsx';
+
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleClick = this.handleClick.bind(this);
+        this.handleFocusRHSClick = this.handleFocusRHSClick.bind(this);
     }
 
     handleClick(e) {
@@ -24,6 +27,12 @@ export default class SearchResultsItem extends React.Component {
             $('.sidebar--right').removeClass('move--left');
             $('.inner__wrap').removeClass('move--left');
         }
+    }
+
+    handleFocusRHSClick(e) {
+        e.preventDefault();
+
+        EventHelpers.emitPostFocusRightHandSideEvent(this.props.post);
     }
 
     render() {
@@ -73,10 +82,21 @@ export default class SearchResultsItem extends React.Component {
                                     {'Jump'}
                                 </a>
                             </li>
+                            <li>
+                                <a
+                                    href='#'
+                                    className='comment-icon__container search-item__comment'
+                                    onClick={this.handleFocusRHSClick}
+                                >
+                                    <span
+                                        className='comment-icon'
+                                        dangerouslySetInnerHTML={{__html: Constants.COMMENT_ICON}}
+                                    />
+                                </a>
+                            </li>
                         </ul>
                         <div className='search-item-snippet'>
                             <span
-                                onClick={this.handleClick}
                                 dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, formattingOptions)}}
                             />
                         </div>
