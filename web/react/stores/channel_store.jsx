@@ -317,7 +317,9 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECIEVED_CHANNEL:
         ChannelStore.pStoreChannel(action.channel);
-        ChannelStore.pStoreChannelMember(action.member);
+        if (action.member) {
+            ChannelStore.pStoreChannelMember(action.member);
+        }
         currentId = ChannelStore.getCurrentId();
         if (currentId) {
             ChannelStore.resetCounts(currentId);
