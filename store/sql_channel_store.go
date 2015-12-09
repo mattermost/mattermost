@@ -241,13 +241,27 @@ func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
 }
 
 func (s SqlChannelStore) Get(id string) StoreChannel {
+	return s.get(id, false)
+}
+
+func (s SqlChannelStore) GetFromMaster(id string) StoreChannel {
+	return s.get(id, true)
+}
+
+func (s SqlChannelStore) get(id string, master bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		// reading from master due to expected race condition when creating channels
-		if obj, err := s.GetMaster().Get(model.Channel{}, id); err != nil {
+		var db *gorp.DbMap
+		if master {
+			db = s.GetMaster()
+		} else {
+			db = s.GetReplica()
+		}
+
+		if obj, err := db.Get(model.Channel{}, id); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Get", "We encountered an error finding the channel", "id="+id+", "+err.Error())
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlChannelStore.Get", "We couldn't find the existing channel", "id="+id)
@@ -439,7 +453,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 	go func() {
 		var result StoreResult
 		// Grab the channel we are saving this member to
-		if cr := <-s.Get(member.ChannelId); cr.Err != nil {
+		if cr := <-s.GetFromMaster(member.ChannelId); cr.Err != nil {
 			result.Err = cr.Err
 		} else {
 			channel := cr.Data.(*model.Channel)
