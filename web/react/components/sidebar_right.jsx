@@ -7,6 +7,8 @@ import SearchStore from '../stores/search_store.jsx';
 import PostStore from '../stores/post_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
+const SIDEBAR_SCROLL_DELAY = 500;
+
 export default class SidebarRight extends React.Component {
     constructor(props) {
         super(props);
@@ -39,8 +41,13 @@ export default class SidebarRight extends React.Component {
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
         SearchStore.removeShowSearchListener(this.onShowSearch);
     }
-    componentWillUpdate() {
-        PostStore.jumpPostsViewSidebarOpen();
+    componentWillUpdate(nextProps, nextState) {
+        const isOpen = this.state.search_visible || this.state.post_right_visible;
+        const willOpen = nextState.search_visible || nextState.post_right_visible;
+
+        if (!isOpen && willOpen) {
+            setTimeout(() => PostStore.jumpPostsViewSidebarOpen(), SIDEBAR_SCROLL_DELAY);
+        }
     }
     doStrangeThings() {
         // We should have a better way to do this stuff
