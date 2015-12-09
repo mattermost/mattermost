@@ -81,6 +81,7 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
 - No scroll bar in center channel
 - Pasting images into text box fails to upload on Firefox, Safari, and IE11
 - Slack import @mentions break
+- Usernames containing a "." do not get mention notifications
 
 #### Contributors 
 
