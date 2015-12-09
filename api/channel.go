@@ -268,17 +268,49 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !c.HasPermissionsToTeam(channel.TeamId, "updateChannelHeader") {
 			return
 		}
-
+		oldChannelHeader := channel.Header
 		channel.Header = channelHeader
 
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
 		} else {
+			PostUpdateChannelHeaderMessageAndForget(c, channel.Id, oldChannelHeader, channelHeader)
 			c.LogAudit("name=" + channel.Name)
 			w.Write([]byte(channel.ToJson()))
 		}
 	}
+}
+
+func PostUpdateChannelHeaderMessageAndForget(c *Context, channelId string, oldChannelHeader, newChannelHeader string) {
+	go func() {
+		uc := Srv.Store.User().Get(c.Session.UserId)
+
+		if uresult := <-uc; uresult.Err != nil {
+			l4g.Error("Failed to retrieve user while trying to save update channel header message %v", uresult.Err)
+			return
+		} else {
+			user := uresult.Data.(*model.User)
+
+			var message string
+			if oldChannelHeader == "" {
+				message = fmt.Sprintf("%s updated the channel header to: %s", user.Username, newChannelHeader)
+			} else if newChannelHeader == "" {
+				message = fmt.Sprintf("%s removed the channel header (was: %s)", user.Username, oldChannelHeader)
+			} else {
+				message = fmt.Sprintf("%s updated the channel header from: %s to: %s", user.Username, oldChannelHeader, newChannelHeader)
+			}
+
+			post := &model.Post{
+				ChannelId: channelId,
+				Message:   message,
+				Type:      model.POST_HEADER_CHANGE,
+			}
+			if _, err := CreatePost(c, post, false); err != nil {
+				l4g.Error("Failed to post join/leave message %v", err)
+			}
+		}
+	}()
 }
 
 func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -421,7 +453,7 @@ func JoinChannel(c *Context, channelId string, role string) {
 				c.Err = err
 				return
 			}
-			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`User %v has joined this channel.`, user.Username))
+			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v has joined the channel.`, user.Username))
 		} else {
 			c.Err = model.NewAppError("join", "You do not have the appropriate permissions", "")
 			c.Err.StatusCode = http.StatusForbidden
@@ -708,7 +740,7 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, 20)
+	ecm := Srv.Store.Channel().GetExtraMembers(id, 100)
 	ccm := Srv.Store.Channel().GetMemberCount(id)
 
 	if cmresult := <-scm; cmresult.Err != nil {

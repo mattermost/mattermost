@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .post-right__container {
 	@include display-flex;
 	@include flex-direction(column);
@@ -41,6 +43,9 @@
 		margin-top: 10px;
 		.textarea-wrapper {
 			min-height: 100px;
+		}
+		.btn {
+			margin-bottom: 10px;
 		}
 		.custom-textarea {
 			min-height: 100px;
@@ -121,6 +126,11 @@
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 	@include flex(1 1 auto);
+
+	.preview-container {
+		margin-top: 5px;
+	}
+
 }
 
 .post-right-comment-time {

@@ -17,6 +17,8 @@ addons:
   - 127.0.0.1 dockerhost
 before_deploy:
     - sudo rm -rf dist/mattermost
+    - sudo chown `whoami` dist/mattermost.tar.gz
+    - sudo chmod 777 dist/mattermost.tar.gz
     - rvm 1.9.3 do gem install mime-types -v 2.6.2
 deploy:
 # Github releases, builds only on tags

@@ -8,6 +8,7 @@ import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export function emitChannelClickEvent(channel) {
     AsyncClient.getChannels(true);
@@ -36,6 +37,30 @@ export function emitPostFocusEvent(postId) {
             AsyncClient.getPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS);
         }
     );
+}
+
+export function emitPostFocusRightHandSideEvent(post) {
+    Client.getPost(
+        post.channel_id,
+        post.id,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_POST_SELECTED,
+                post_list: data
+            });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_SEARCH,
+                results: null
+            });
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getPost');
+        }
+    );
+
+    var postChannel = ChannelStore.get(post.channel_id);
+    Utils.switchChannel(postChannel);
 }
 
 export function emitLoadMorePostsEvent() {

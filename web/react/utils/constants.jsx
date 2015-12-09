@@ -119,7 +119,10 @@ export default {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
-    POST_TYPE_JOIN_LEAVE: 'join_leave',
+    POST_TYPE_JOIN_LEAVE: 'system_join_leave',
+    SYSTEM_MESSAGE_PREFIX: 'system_',
+    SYSTEM_MESSAGE_PROFILE_NAME: 'System',
+    SYSTEM_MESSAGE_PROFILE_IMAGE: '/static/images/logo_compact.png',
     RESERVED_TEAM_NAMES: [
         'www',
         'web',
@@ -146,7 +149,7 @@ export default {
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
-    MAX_CHANNEL_POPOVER_COUNT: 20,
+    MAX_CHANNEL_POPOVER_COUNT: 100,
     DM_CHANNEL: 'D',
     OPEN_CHANNEL: 'O',
     PRIVATE_CHANNEL: 'P',
@@ -358,7 +361,6 @@ export default {
         'Droid Serif': 'font--droid_serif',
         'Roboto Slab': 'font--roboto_slab',
         Lora: 'font--lora',
-        Slabo: 'font--slabo',
         Arvo: 'font--arvo',
         'Open Sans': 'font--open_sans',
         Roboto: 'font--roboto',
@@ -389,7 +391,8 @@ export default {
         BACKSPACE: 8,
         ENTER: 13,
         ESCAPE: 27,
-        SPACE: 32
+        SPACE: 32,
+        TAB: 9
     },
     HighlightedLanguages: {
         diff: 'Diff',
@@ -429,6 +432,10 @@ export default {
         MARKDOWN_PREVIEW: {
             label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389
             description: 'Show markdown preview option in message input box'
+        },
+        EMBED_PREVIEW: {
+            label: 'embed_preview',
+            description: 'Show preview snippet of links below message'
         }
     }
 };

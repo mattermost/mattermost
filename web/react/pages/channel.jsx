@@ -18,8 +18,19 @@ import RegisterAppModal from '../components/register_app_modal.jsx';
 import ImportThemeModal from '../components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from '../components/invite_member_modal.jsx';
 
+import PreferenceStore from '../stores/preference_store.jsx';
+
+import * as Utils from '../utils/utils.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
+
+import Constants from '../utils/constants.jsx';
+
+function onPreferenceChange() {
+    const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT}).value;
+    Utils.applyFont(selectedFont);
+    PreferenceStore.removeChangeListener(onPreferenceChange);
+}
 
 function setupChannelPage(props, team, channel) {
     if (props.PostId === '') {
@@ -28,6 +39,7 @@ function setupChannelPage(props, team, channel) {
         EventHelpers.emitPostFocusEvent(props.PostId);
     }
 
+    PreferenceStore.addChangeListener(onPreferenceChange);
     AsyncClient.getAllPreferences();
 
     // ChannelLoader must be rendered first

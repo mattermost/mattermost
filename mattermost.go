@@ -535,12 +535,14 @@ func flushLogAndExit(code int) {
 }
 
 var usage = `Mattermost commands to help configure the system
-Usage:
 
+NAME: 
+    platform -- platform configuation tool
+    
+USAGE: 
     platform [options]
-
-    -version                          Display the current version
-
+    
+FLAGS: 
     -config="config.json"             Path to the config file
 
     -email="user@example.com"         Email address used in other commands
@@ -557,10 +559,8 @@ Usage:
                                            is used to help administer one team.
                                         "system_admin" - Represents a system
                                            admin who has access to all teams
-                                           and configuration settings.  This
-                                           role can only be created on the
-                                           team named "admin"
-
+                                           and configuration settings.
+COMMANDS: 
     -create_team                      Creates a team.  It requires the -team_name
                                       and -email flag to create a team.
         Example:
@@ -572,7 +572,7 @@ Usage:
             platform -create_user -team_name="name" -email="user@example.com" -password="mypassword"
 
     -assign_role                      Assigns role to a user.  It requires the -role,
-                                      -email and -team_name flag.  You may need to logout
+                                      -email and -team_name flag.  You may need to log out
                                       of your current sessions for the new role to be
                                       applied.
         Example:
@@ -584,18 +584,19 @@ Usage:
             platform -reset_password -team_name="name" -email="user@example.com" -password="newpassword"
 
     -permanent_delete_user            Permanently deletes a user and all related information
-                                      include posts from the database.  It requires the 
+                                      including posts from the database.  It requires the 
                                       -team_name, and -email flag.  You may need to restart the
-                                      server to invlidate the cache
+                                      server to invalidate the cache
         Example:
             platform -permanent_delete_user -team_name="name" -email="user@example.com"
 
     -permanent_delete_team            Permanently deletes a team and all users along with
-                                       all related information including posts from the database.
+                                      all related information including posts from the database.
                                       It requires the -team_name flag.  You may need to restart
                                       the server to invalidate the cache.
         Example:
             platform -permanent_delete_team -team_name="name"
 
+    -version                          Display the current of the Mattermost platform 
 
-`
+    -help                             Displays this help page`

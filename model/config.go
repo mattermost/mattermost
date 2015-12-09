@@ -181,12 +181,12 @@ func (o *Config) SetDefaults() {
 
 	if o.EmailSettings.SendPushNotifications == nil {
 		o.EmailSettings.SendPushNotifications = new(bool)
-		*o.EmailSettings.SendPushNotifications = true
+		*o.EmailSettings.SendPushNotifications = false
 	}
 
 	if o.EmailSettings.PushNotificationServer == nil {
 		o.EmailSettings.PushNotificationServer = new(string)
-		*o.EmailSettings.PushNotificationServer = "https://push.mattermost.com"
+		*o.EmailSettings.PushNotificationServer = ""
 	}
 
 }
@@ -278,4 +278,12 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (me *Config) GetSanitizeOptions() map[string]bool {
+	options := map[string]bool{}
+	options["fullname"] = me.PrivacySettings.ShowFullName
+	options["email"] = me.PrivacySettings.ShowEmailAddress
+
+	return options
 }

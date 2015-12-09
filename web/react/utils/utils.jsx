@@ -252,13 +252,6 @@ export function getTimestamp() {
 
 // extracts links not styled by Markdown
 export function extractLinks(text) {
-    const urlMatcher = new Autolinker.matchParser.MatchParser({
-        urls: true,
-        emails: false,
-        twitter: false,
-        phone: false,
-        hashtag: false
-    });
     const links = [];
     let replaceText = text;
 
@@ -271,7 +264,7 @@ export function extractLinks(text) {
         }
     }
 
-    function replaceFn(match) {
+    function replaceFn(autolinker, match) {
         let link = '';
         const matchText = match.getMatchedText();
         const tempText = replaceText;
@@ -304,7 +297,16 @@ export function extractLinks(text) {
 
         links.push(link);
     }
-    urlMatcher.replace(text, replaceFn, this);
+
+    Autolinker.link(text, {
+        replaceFn,
+        urls: {schemeMatches: true, wwwMatches: true, tldMatches: false},
+        emails: false,
+        twitter: false,
+        phone: false,
+        hashtag: false
+    });
+
     return {links, text};
 }
 
@@ -574,6 +576,7 @@ export function applyTheme(theme) {
 
     if (theme.sidebarHeaderTextColor) {
         changeCss('.sidebar--left .team__header .header__info, .sidebar--menu .team__header .header__info', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.sidebar--left .team__header .navbar-right .dropdown__icon, .sidebar--menu .team__header .navbar-right .dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.sidebar--left .team__header .user__name, .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.sidebar--left .team__header:hover .user__name, .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.modal .modal-header .modal-title, .modal .modal-header .modal-title .name, .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor, 1);
@@ -681,7 +684,11 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionHighlightBg) {
-        changeCss('.mention-highlight, .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
+        changeCss('.mention-highlight, .search-highlight, #archive-link-home', 'background:' + theme.mentionHighlightBg, 1);
+    }
+
+    if (theme.mentionHighlightBg) {
+        changeCss('.post.post--highlight, #archive-link-home', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5), 1);
     }
 
     if (theme.mentionHighlightLink) {
@@ -1242,4 +1249,8 @@ export function getPostTerm(post) {
 
 export function isFeatureEnabled(feature) {
     return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label, {value: 'false'}).value === 'true';
+}
+
+export function isSystemMessage(post) {
+    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
 }

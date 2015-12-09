@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .custom-textarea {
 	white-space:pre-wrap;
 	word-wrap:break-word;
@@ -317,13 +319,11 @@ body.ios {
 		@include clearfix;
 		padding: 3px 0 0 0;
 		font-size: 13px;
-		.has-error {
-			.control-label {
-				height: 0;
-				display: block;
-				font-weight: normal;
-				margin-bottom: 0;
-			}
+		.control-label {
+			font-weight: normal;
+			margin-bottom: 0;
+			top: -5px;
+			position: relative;
 		}
 		.msg-typing {
 			min-height: 25px;
@@ -367,9 +367,9 @@ body.ios {
 		}
 	}
 
-    &.post--highlight {
-        background-color: beige;
-    }
+	&.post--highlight {
+		background-color: beige;
+	}
 
 	ul {
 		margin: 0;
@@ -545,7 +545,23 @@ body.ios {
 			position: absolute;
 			right: 0;
 			top: 30px;
-			width: 60px;
+			width: 65px;
+		}
+
+		.permalink-popover {
+			min-width: 0;
+
+			.popover-content {
+				padding: 5px;
+			}
+
+			.form-control, .btn {
+				font-size: 13px;
+				height: 30px;
+				padding: 0 8px;
+				line-height: 30px;
+			}
+
 		}
 
 	}
@@ -563,8 +579,9 @@ body.ios {
 	.dropdown {
 		display: inline-block;
 		visibility: hidden;
+		position: absolute;
+		right: 0;
 		top: -1px;
-		float: right;
 
 		.dropdown-menu {
 			right: 0;
@@ -597,20 +614,52 @@ body.ios {
 		word-wrap: break-word;
 		padding: 0.2em 0.5em 0em;
 		@include legacy-pie-clearfix;
-		width: calc(100% - 70px);
+		width: calc(100% - 75px);
+
+		img {
+			max-height: 400px;
+		}
 
 		ul {
 			padding: 5px 0 0 20px;
 		}
 
 		ul, ol {
+			p {
+				margin-bottom: 0;
+			}
 			li ul, li ol {
 				padding: 0 0 0 20px
 			}
 
+			li.list-item--task-list ul, li.list-item--task-list ol {
+				margin-left: 20px;
+			}
+
+			li.list-item--task-list ul {
+				padding-left: 0;
+			}
+
+			li:not(.list-item--task-list) li.list-item--task-list, li:not(.list-item--task-list) li.list-item--task-list ~ li {
+				margin-left: -20px;
+			}
+
 			li input[type="checkbox"]:disabled {
-				vertical-align: sub;
+				vertical-align: top;
 				cursor: default;
+			}
+		}
+
+		ul li.list-item--task-list, ul li.list-item--task-list ~ li {
+			list-style-type: none;
+		}
+
+		ul li.list-item--task-list ~ li:not(.list-item--task-list) {
+			text-indent: 3px;
+
+			&:before {
+				content: "⦁";
+				margin-right: 8px;
 			}
 		}
 	}
@@ -625,6 +674,9 @@ body.ios {
 
 	.post__time {
 		font-size: 13px;
+	}
+
+	.post__time, &.post--system .post__body {
 		@include opacity(0.6);
 	}
 
@@ -642,11 +694,11 @@ body.ios {
 		color: #999;
 	}
 
-    .permalink-icon {
+	.permalink-icon {
 		display: inline-block;
 		color: $primary-color;
 		visibility: hidden;
-    }
+	}
 
 	.comment-icon__container {
 		fill: $primary-color;
@@ -740,6 +792,7 @@ body.ios {
 		width: 80%;
 		padding-right: 5px;
 		overflow-x: auto;
+		overflow-y: hidden;
 		&.attachment__body--no_thumb {
 			width: 100%;
 		}
@@ -754,6 +807,7 @@ body.ios {
 		margin: 5px 0;
 		padding: 0;
 		line-height: 16px;
+		height: 22px;
 		font-size: 16px;
 		a {
 			font-size: 16px;
@@ -789,9 +843,10 @@ body.ios {
 }
 
 .permalink-text {
-    overflow: hidden;
+	overflow: hidden;
 }
 
 .permalink-popover {
-    min-width: 320px;
+	min-width: 320px;
+	margin-left: 50px !important;
 }

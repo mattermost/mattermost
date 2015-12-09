@@ -4,10 +4,10 @@
 
 Supported Operating Systems and Browsers for the Mattermost Web Client include: 
 
-- PC: Windows 7, Windows 8 (Chrome 43+, Firefox 38+, Internet Explorer 10+)  
-- Mac: OS 10 (Safari 7, Chrome 43+)  
+- PC: Windows 7, Windows 8, Windows 10 (Chrome 43+, Firefox 38+, Internet Explorer 11, Edge)  
+- Mac: OS 10 (Safari 9, Chrome 43+)  
 - Linux: Arch 4.0.0  (Chrome 43+)  
-- iPhone 4s and higher (Safari on iOS 8.3+, Chrome 43+)  
+- iPhone 4s and higher (Safari on iOS 9+, Chrome 43+)  
 - Android 5 and higher (Chrome 43+)  
 
 ### Email Client

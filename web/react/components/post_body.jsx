@@ -6,6 +6,7 @@ import UserStore from '../stores/user_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Emoji from '../utils/emoticons.jsx';
 import Constants from '../utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
@@ -109,11 +110,14 @@ export default class PostBody extends React.Component {
 
         const trimmedLink = link.trim();
 
-        if (this.checkForOembedContent(trimmedLink)) {
-            post.props.oEmbedLink = trimmedLink;
-            post.type = 'oEmbed';
-            this.setState({post});
-            return '';
+        if (Utils.isFeatureEnabled(PreReleaseFeatures.EMBED_PREVIEW)) {
+            const provider = this.getOembedProvider(trimmedLink);
+            if (provider != null) {
+                post.props.oEmbedLink = trimmedLink;
+                post.type = 'oEmbed';
+                this.setState({post, provider});
+                return '';
+            }
         }
 
         const embed = this.createYoutubeEmbed(link);
@@ -133,15 +137,15 @@ export default class PostBody extends React.Component {
         return null;
     }
 
-    checkForOembedContent(link) {
+    getOembedProvider(link) {
         for (let i = 0; i < providers.length; i++) {
             for (let j = 0; j < providers[i].patterns.length; j++) {
                 if (link.match(providers[i].patterns[j])) {
-                    return true;
+                    return providers[i];
                 }
             }
         }
-        return false;
+        return null;
     }
 
     loadImg(src) {
@@ -210,14 +214,14 @@ export default class PostBody extends React.Component {
     }
 
     createYoutubeEmbed(link) {
-        const ytRegex = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|watch\?(?:[a-zA-Z-_]+=[a-zA-Z0-9-_]+&)+v=)([^#\&\?]*).*/;
+        const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#\&\?]*)/;
 
         const match = link.trim().match(ytRegex);
-        if (!match || match[1].length !== 11) {
+        if (!match || match[2].length !== 11) {
             return null;
         }
 
-        const youtubeId = match[1];
+        const youtubeId = match[2];
         const time = this.handleYoutubeTime(link);
 
         function onClick(e) {
@@ -305,7 +309,15 @@ export default class PostBody extends React.Component {
             let apostrophe = '';
             let name = '...';
             if (profile != null) {
-                if (profile.username.slice(-1) === 's') {
+                let username = profile.username;
+                if (parentPost.props &&
+                        parentPost.props.from_webhook &&
+                        parentPost.props.override_username &&
+                        global.window.mm_config.EnablePostUsernameOverride === 'true') {
+                    username = parentPost.props.override_username;
+                }
+
+                if (username.slice(-1) === 's') {
                     apostrophe = '\'';
                 } else {
                     apostrophe = '\'s';
@@ -313,9 +325,9 @@ export default class PostBody extends React.Component {
                 name = (
                     <a
                         className='theme'
-                        onClick={Utils.searchForTerm.bind(null, profile.username)}
+                        onClick={Utils.searchForTerm.bind(null, username)}
                     >
-                        {profile.username}
+                        {username}
                     </a>
                 );
             }
@@ -399,6 +411,7 @@ export default class PostBody extends React.Component {
                     </div>
                     <PostBodyAdditionalContent
                         post={this.state.post}
+                        provider={this.state.provider}
                     />
                     {fileAttachmentHolder}
                     {this.embed}

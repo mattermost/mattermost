@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .sidebar--left {
     position: absolute;
     width: 220px;
@@ -108,6 +110,7 @@
                         }
                     }
                     .btn-close {
+                        font-family: 'Open Sans', sans-serif;
                         position: absolute;
                         right: 15px;
                         top: -1px;
@@ -140,7 +143,6 @@
                     }
                 }
                 a, a:hover, a:focus {
-                    padding-right: 10px;
                     background-color: rgba(black, 0.1);
                     border-radius: 0;
                     font-weight: 400;

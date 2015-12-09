@@ -1,6 +1,6 @@
 # Incoming Webhooks
 
-Incoming webhooks allow external applications, written in the programming language of your choice--to post messages into Mattermost channels and private groups by sending a specifically formatted JSON payload via HTTP POST request to a secret Mattermost URL generated specifically for each application.
+Incoming webhooks allow external applications, written in the programming language of your choice--to post messages into Mattermost channels, private groups and direct messages by sending a specifically formatted JSON payload via HTTP POST request to a secret Mattermost URL generated specifically for each application.
 
 A couple key points:
 
@@ -69,7 +69,7 @@ Additional Notes:
 
 1. For the HTTP request body, if `Content-Type` is specified as `application/json` in the headers of the HTTP request then the body of the request can be direct JSON. For example, ```{"text": "Hello, this is some text."}```
 
-2. You can override the channel specified in the webhook definition by specifying a `channel` parameter in your payload. For example, you might have a single webhook created for _Town Square_, but you can use ```payload={"channel": "off-topic", "text": "Hello, this is some text."}``` to send a message to the _Off-Topic_ channel using the same webhook URL
+2. You can override the channel specified in the webhook definition by specifying a `channel` parameter in your payload. For example, you might have a single webhook created for _Town Square_, but you can use ```payload={"channel": "off-topic", "text": "Hello, this is some text."}``` to send a message to the _Off-Topic_ channel using the same webhook URL. If an `@` symbol followed by a username is specified, then the message will be sent to that user's direct message channel
 
 1. In addition, with **Enable Overriding of Usernames from Webhooks** turned on,  you can also override the username the message posts as by providing a `username` parameter in your JSON payload. For example, you might want your message looking like it came from a robot so you can use ```payload={"username": "robot", "text": "Hello, this is some text."}``` to change the username of the post to robot. Note, to combat any malicious users from trying to use this to perform [phishing attacks](https://en.wikipedia.org/wiki/Phishing) a `BOT` indicator appears next to posts coming from webhooks
 

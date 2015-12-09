@@ -152,7 +152,7 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook) {
+        if (UserStore.getCurrentId() === post.user_id && !post.props.from_webhook && !utils.isSystemMessage(post)) {
             currentUserCss = 'current--user';
         }
 
@@ -173,6 +173,11 @@ export default class Post extends React.Component {
             shouldHighlightClass = 'post--highlight';
         }
 
+        let systemMessageClass = '';
+        if (utils.isSystemMessage(post)) {
+            systemMessageClass = 'post--system';
+        }
+
         let profilePic = null;
         if (!this.props.hideProfilePic) {
             let src = '/api/v1/users/' + post.user_id + '/image?time=' + timestamp + '&' + utils.getSessionIndex();
@@ -180,6 +185,8 @@ export default class Post extends React.Component {
                 if (post.props.override_icon_url) {
                     src = post.props.override_icon_url;
                 }
+            } else if (utils.isSystemMessage(post)) {
+                src = Constants.SYSTEM_MESSAGE_PROFILE_IMAGE;
             }
 
             profilePic = (
@@ -195,7 +202,7 @@ export default class Post extends React.Component {
             <div>
                 <div
                     id={'post_' + post.id}
-                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass}
+                    className={'post ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass}
                 >
                     <div className='post__content'>
                         <div className='post__img'>{profilePic}</div>

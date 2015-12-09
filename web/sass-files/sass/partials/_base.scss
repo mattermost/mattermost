@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 html, body {
   height: 100%;
 }
@@ -123,7 +125,7 @@ a:focus, a:hover {
 }
 
 select {
-  -webkit-appearance: none;
+  -moz-appearance:none;
 }
 
 .form-control {
@@ -143,6 +145,7 @@ select {
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
   cursor: auto;
   background: rgba(#fff, 0.1);
+  color: inherit;
 }
 
 .form-group {
@@ -208,6 +211,7 @@ select {
 
 .alert {
   padding: 8px 12px;
+  @include border-radius(2px);
 }
 
 .emoji {
