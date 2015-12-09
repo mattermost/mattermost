@@ -183,7 +183,7 @@
                 text-align: right;
                 margin-bottom: 5px;
                 .fa {
-                    margin-right: 7px;
+                    margin-right: 5px;
                     font-size: 12px;
                     @include opacity(0.5);
                     display: none;
@@ -335,6 +335,8 @@
 
     .fa {
         margin-right: 5px;
+        @include opacity(0.5);
+        font-size: 12px;
     }
 
     .member-menu {
