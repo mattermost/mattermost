@@ -60,6 +60,7 @@ type ChannelStore interface {
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
 	Update(channel *model.Channel) StoreChannel
 	Get(id string) StoreChannel
+	GetFromMaster(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, domain string) StoreChannel
