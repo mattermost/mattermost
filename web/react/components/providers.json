@@ -11,7 +11,7 @@
             "https?://soundcloud.com/.*/.*"
         ],
         "name": "SoundCloud",
-        "height": 110
+        "height": 140
     },
     {
         "patterns": [
@@ -349,7 +349,7 @@
             "https?://vine.co/v/[a-zA-Z0-9]+"
         ],
         "name": "Vine",
-        "height": 110
+        "height": 490
     },
     {
         "patterns": [

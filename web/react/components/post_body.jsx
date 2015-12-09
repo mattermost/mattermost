@@ -214,14 +214,14 @@ export default class PostBody extends React.Component {
     }
 
     createYoutubeEmbed(link) {
-        const ytRegex = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|watch\?(?:[a-zA-Z-_]+=[a-zA-Z0-9-_]+&)+v=)([^#\&\?]*).*/;
+        const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#\&\?]*)/;
 
         const match = link.trim().match(ytRegex);
-        if (!match || match[1].length !== 11) {
+        if (!match || match[2].length !== 11) {
             return null;
         }
 
-        const youtubeId = match[1];
+        const youtubeId = match[2];
         const time = this.handleYoutubeTime(link);
 
         function onClick(e) {
