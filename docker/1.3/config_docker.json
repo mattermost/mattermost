@@ -5,7 +5,8 @@
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "EnableIncomingWebhooks": true,
+        "EnableIncomingWebhooks": false,
+        "EnableOutgoingWebhooks": false,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
@@ -16,7 +17,9 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "RestrictCreationToDomains": ""
+        "RestrictCreationToDomains": "",
+        "RestrictTeamNames": true,
+        "EnableTeamListing": false
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -65,9 +68,8 @@
         "ConnectionSecurity": "",
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
-        "ApplePushServer": "",
-        "ApplePushCertPublic": "",
-        "ApplePushCertPrivate": ""
+        "SendPushNotifications": false,
+        "PushNotificationServer": ""
     },
     "RateLimitSettings": {
         "EnableRateLimiter": true,
