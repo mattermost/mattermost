@@ -376,7 +376,9 @@ export default {
         CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
         CATEGORY_DISPLAY_SETTINGS: 'display_settings',
         CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
-        TUTORIAL_STEP: 'tutorial_step'
+        TUTORIAL_STEP: 'tutorial_step',
+        STARRED_POSTS: 'starred_posts',
+        STARRED_CHANNELS: 'starred_channels'
     },
     TutorialSteps: {
         INTRO_SCREENS: 0,

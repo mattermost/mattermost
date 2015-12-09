@@ -9,6 +9,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 import FileAttachmentList from './file_attachment_list.jsx';
+import StarredItem from './starred_item.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 var ActionTypes = Constants.ActionTypes;
@@ -210,6 +211,12 @@ export default class RhsComment extends React.Component {
                                 <time className='post__time'>
                                     {Utils.displayCommentDateTime(post.create_at)}
                                 </time>
+                            </li>
+                            <li>
+                                <StarredItem
+                                    id={post.id}
+                                    type={Constants.Preferences.STARRED_POSTS}
+                                />
                             </li>
                             <li className='col col__reply'>
                                 {dropdown}

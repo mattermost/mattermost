@@ -125,11 +125,15 @@
 
     .post {
 
-        &.same--root {
+	    .starred-item {
+		    visibility: visible;
+	    }
+
+	    &.same--root {
 
             &.same--user {
 
-                .post__time {
+                .post__time, .starred-item {
                     display: none;
                 }
 

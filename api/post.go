@@ -23,6 +23,7 @@ func InitPost(r *mux.Router) {
 	l4g.Debug("Initializing post api routes")
 
 	r.Handle("/posts/search", ApiUserRequired(searchPosts)).Methods("GET")
+	r.Handle("/posts/starred", ApiUserRequired(GetStarredPosts)).Methods("GET")
 	r.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
 
 	sr := r.PathPrefix("/channels/{id:[A-Za-z0-9]+}").Subrouter()
@@ -987,4 +988,42 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(posts.ToJson()))
+}
+
+func GetStarredPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	posts, err := getStarredPosts(c.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(posts.ToJson()))
+}
+
+func getStarredPosts(userId string) (*model.PostList, *model.AppError) {
+	pchan := Srv.Store.Preference().GetCategory(userId, model.PREFERENCE_CATEGORY_STARRED_POSTS)
+
+	if presult := <-pchan; presult.Err != nil {
+		return nil, presult.Err
+	} else {
+		preferences := presult.Data.(model.Preferences)
+		ids := make([]string, 0, len(preferences))
+
+		for _, pref := range preferences {
+			if pref.Value == "true" {
+				ids = append(ids, pref.Name)
+			}
+		}
+
+		if len(ids) == 0 {
+			return &model.PostList{}, nil
+		} else {
+			pochan := Srv.Store.Post().GetByIds(ids)
+			if poresult := <-pochan; poresult.Err != nil {
+				return nil, poresult.Err
+			} else {
+				return poresult.Data.(*model.PostList), nil
+			}
+		}
+	}
 }

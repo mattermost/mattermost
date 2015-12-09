@@ -6,6 +6,7 @@ import MoreDirectChannels from './more_direct_channels.jsx';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
+import StarredItem from './starred_item.jsx';
 
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
@@ -117,12 +118,19 @@ export default class Sidebar extends React.Component {
 
         const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
 
+        const starredChannels = PreferenceStore.getPreferences(Constants.Preferences.STARRED_CHANNELS).map((preference) => {
+            return Boolean(preference.value) === true ? ChannelStore.get(preference.name) : null;
+        }).filter((channel) => {
+            return channel !== null;
+        });
+
         return {
             activeId: currentChannelId,
             members,
             publicChannels,
             privateChannels,
             visibleDirectChannels,
+            starredChannels,
             hiddenDirectChannelCount,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.CHANNEL_POPOVER
@@ -464,6 +472,10 @@ export default class Sidebar extends React.Component {
                     onClick={handleClick}
                 >
                     {status}
+                    <StarredItem
+                        id={channel.id}
+                        type={Constants.Preferences.STARRED_CHANNELS}
+                    />
                     {channel.display_name}
                     {badge}
                     {closeButton}
@@ -487,6 +499,23 @@ export default class Sidebar extends React.Component {
         const directMessageItems = this.state.visibleDirectChannels.map((channel, index, arr) => {
             return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
         });
+
+        const starredChannelItems = this.state.starredChannels.map((channel, index, arr) => {
+            if (channel) {
+                return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
+            }
+        });
+        let starredChannelSection = null;
+        if (starredChannelItems.length) {
+            starredChannelSection = (
+                <ul className='nav nav-pills nav-stacked starred-channels'>
+                    <li>
+                        <h4>{'STARRED'}</h4>
+                    </li>
+                    {starredChannelItems}
+                </ul>
+            );
+        }
 
         // update the favicon to show if there are any notifications
         var link = document.createElement('link');
@@ -565,6 +594,7 @@ export default class Sidebar extends React.Component {
                     className='nav-pills__container'
                     onScroll={this.onScroll}
                 >
+                    {starredChannelSection}
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>

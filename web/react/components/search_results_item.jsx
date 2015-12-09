@@ -4,6 +4,7 @@
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import UserProfile from './user_profile.jsx';
+import StarredItem from './starred_item.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as utils from '../utils/utils.jsx';
 import * as TextFormatting from '../utils/text_formatting.jsx';
@@ -72,6 +73,12 @@ export default class SearchResultsItem extends React.Component {
                                 <time className='search-item-time'>
                                     {utils.displayDate(this.props.post.create_at) + ' ' + utils.displayTime(this.props.post.create_at)}
                                 </time>
+                            </li>
+                            <li>
+                                <StarredItem
+                                    id={this.props.post.id}
+                                    type={Constants.Preferences.STARRED_POSTS}
+                                />
                             </li>
                             <li>
                                 <a

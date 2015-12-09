@@ -185,6 +185,40 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlPostStore) GetByIds(ids []string) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+		pl := &model.PostList{}
+
+		inClause := ":Id0"
+		queryParams := map[string]interface{}{"Id0": ids[0]}
+		for i := 1; i < len(ids); i++ {
+			paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
+			inClause += ", :" + paramName
+			queryParams[paramName] = ids[i]
+		}
+
+		var posts []*model.Post
+		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN ("+inClause+") AND DeleteAt = 0", queryParams); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "id="+strings.Join(ids, ",")+err.Error())
+			return
+		} else {
+			for _, p := range posts {
+				pl.AddPost(p)
+				pl.AddOrder(p.Id)
+			}
+		}
+
+		result.Data = pl
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 type etagPosts struct {
 	Id       string
 	UpdateAt int64
