@@ -24,4 +24,4 @@ If your account in a given team has been given the System Administrator role, it
 
 #### Logging Out
 
-You can log out from the main menu, which is accessed by clicking the three dots in the top header on the left side of the screen. Clicking "Logout" logs you out of all the teams you are signed-in to that share the same email address.
+You can log out from the main menu, which is accessed by clicking the three dots in the top header on the left side of the screen. Clicking "Logout" logs you out of all teams that are signed-in and open in your browser.
