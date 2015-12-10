@@ -7,6 +7,24 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 - **Release candidate anticipated:** 2015-12-10
 - **Final release anticipated:** 2015-12-16
 
+### Release Highlights
+
+#### iOS App
+
+- New [Mattermost iOS App](https://github.com/mattermost/ios) now available for iPhone, iPad, and iPod Touch
+- New [Mattermost Push Notification Server](https://github.com/mattermost/push-proxy) encrypts notifications before sending them to your iOS devices
+
+#### Search Upgrades
+
+- Jump to search results in archives using new message permalinks 
+- It's easier to find what you're looking for with improved auto-complete in search
+
+#### Advanced Formatting
+
+- Express more in symbols, with new emoji auto-complete
+- Express more in numbers, with rendering of mathematical expressions using Latex (start code blocks with ```latex)
+- Personalize your look with new custom font settings under **Account Settings** > **Display** > **Display Font**
+
 ### New Features
 
 Authentication
@@ -35,13 +53,12 @@ Performance
 - Refactored the center channel
 
 Messaging & Comments
-- Added "Help" link for messaging
-- Removed the @all mention 
 - Added Markdown support for task lists
+- Added "Help" link for messaging
 - Added ability to preview a Markdown message before sending (enabled via Account Settings -> Advanced -> Preview pre-release features)
 
 Onboarding
-- Added various small improvements to the tutorial
+- Minor upgrades to tutorial 
 
 User Interface
 - Visually combined sequential messages from the same user 
@@ -52,6 +69,7 @@ User Interface
 
 #### Bug Fixes  
 
+- Removed the @all mention to keep users from accidentally spamming team sites
 - Fixed bug where the member list only showed "20" members for channels with more than 20 members
 - Fixed bug where the channel sidebar didn't order correctly on Postgres databases
 - Fixed bug where search results did not highlight when searching with quotation marks, wildcard, or in: and from: modifiers
