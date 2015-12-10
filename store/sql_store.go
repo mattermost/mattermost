@@ -28,6 +28,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -51,7 +53,7 @@ type SqlStore struct {
 }
 
 func NewSqlStore() Store {
-
+	T := i18n.GetSystemLanguage()
 	sqlStore := &SqlStore{}
 
 	sqlStore.master = setupConnection("master", utils.Cfg.SqlSettings.DriverName,
@@ -151,12 +153,12 @@ func NewSqlStore() Store {
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
 	if model.IsPreviousVersion(schemaVersion) || isSchemaVersion07 || isSchemaVersion10 {
-		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion}, T)
 		l4g.Warn("The database schema has been upgraded to version " + model.CurrentVersion)
 	}
 
 	if schemaVersion == "" {
-		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion})
+		sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion}, T)
 		l4g.Info("The database schema has been set to version " + model.CurrentVersion)
 	}
 
@@ -209,13 +211,13 @@ func (ss SqlStore) GetCurrentSchemaVersion() string {
 	return version
 }
 
-func (ss SqlStore) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
+func (ss SqlStore) MarkSystemRanUnitTests(T goi18n.TranslateFunc) {
+	if result := <-ss.System().Get(T); result.Err == nil {
 		props := result.Data.(model.StringMap)
 		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
 		if len(unitTests) == 0 {
 			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
+			<-ss.System().Save(systemTests, T)
 		}
 	}
 }

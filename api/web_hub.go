@@ -6,6 +6,7 @@ package api
 import (
 	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type Hub struct {
@@ -30,15 +31,15 @@ func PublishAndForget(message *model.Message) {
 	}()
 }
 
-func UpdateChannelAccessCache(teamId, userId, channelId string) {
+func UpdateChannelAccessCache(teamId, userId, channelId string, T goi18n.TranslateFunc) {
 	if nh, ok := hub.teamHubs[teamId]; ok {
-		nh.UpdateChannelAccessCache(userId, channelId)
+		nh.UpdateChannelAccessCache(userId, channelId, T)
 	}
 }
 
-func UpdateChannelAccessCacheAndForget(teamId, userId, channelId string) {
+func UpdateChannelAccessCacheAndForget(teamId, userId, channelId string, T goi18n.TranslateFunc) {
 	go func() {
-		UpdateChannelAccessCache(teamId, userId, channelId)
+		UpdateChannelAccessCache(teamId, userId, channelId, T)
 	}()
 }
 
@@ -60,7 +61,7 @@ func (h *Hub) Stop() {
 	h.stop <- "all"
 }
 
-func (h *Hub) Start() {
+func (h *Hub) Start(T goi18n.TranslateFunc) {
 	go func() {
 		for {
 			select {
@@ -71,7 +72,7 @@ func (h *Hub) Start() {
 				if nh == nil {
 					nh = NewTeamHub(c.TeamId)
 					h.teamHubs[c.TeamId] = nh
-					nh.Start()
+					nh.Start(T)
 				}
 
 				nh.Register(c)

@@ -1,0 +1,102 @@
+{
+    "ServiceSettings": {
+        "ListenAddress": ":80",
+        "MaximumLoginAttempts": 10,
+        "SegmentDeveloperKey": "",
+        "GoogleDeveloperKey": "",
+        "EnableOAuthServiceProvider": false,
+        "EnableIncomingWebhooks": true,
+        "EnablePostUsernameOverride": false,
+        "EnablePostIconOverride": false,
+        "EnableTesting": false
+    },
+    "TeamSettings": {
+        "SiteName": "ZBox",
+        "MaxUsersPerTeam": 50,
+        "EnableTeamCreation": true,
+        "EnableUserCreation": true,
+        "RestrictCreationToDomains": ""
+    },
+    "SqlSettings": {
+        "DriverName": "mysql",
+        "DataSource": "mmuser:P4ssZ3gura-Ch4@tcp(db-chat-master.zboxapp.com:3306)/zbox_chat?charset=utf8mb4,utf8",
+        "DataSourceReplicas": [],
+        "MaxIdleConns": 10,
+        "MaxOpenConns": 10,
+        "Trace": false,
+        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QVg"
+    },
+    "LogSettings": {
+        "EnableConsole": false,
+        "ConsoleLevel": "INFO",
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileFormat": "",
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "amazons3",
+        "Directory": "/zbox/data/",
+        "EnablePublicLink": true,
+        "PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip",
+        "ThumbnailWidth": 120,
+        "ThumbnailHeight": 100,
+        "PreviewWidth": 1024,
+        "PreviewHeight": 0,
+        "ProfileWidth": 128,
+        "ProfileHeight": 128,
+        "InitialFont": "luximbi.ttf",
+        "AmazonS3AccessKeyId": "AKIAICGPXVUK4R5Q5YTA",
+        "AmazonS3SecretAccessKey": "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",
+        "AmazonS3Bucket": "zbox-chat",
+        "AmazonS3Region": "sa-east-1"
+    },
+    "EmailSettings": {
+        "ByPassEmail": true,
+        "EnableSignUpWithEmail": false,
+        "SendEmailNotifications": true,
+        "RequireEmailVerification": false,
+        "FeedbackName": "ZBox Chat",
+        "FeedbackEmail": "no-reply-chat@zboxapp.com",
+        "SMTPUsername": "chat@zboxapp.com",
+        "SMTPPassword": "87Mkd3.,201",
+        "SMTPServer": "mta-in.zboxapp.com",
+        "SMTPPort": "587",
+        "ConnectionSecurity": "STARTTLS",
+        "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
+        "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
+        "ApplePushServer": "",
+        "ApplePushCertPublic": "",
+        "ApplePushCertPrivate": ""
+    },
+    "RateLimitSettings": {
+        "EnableRateLimiter": true,
+        "PerSec": 10,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByHeader": ""
+    },
+    "PrivacySettings": {
+        "ShowEmailAddress": true,
+        "ShowFullName": true,
+        "EnableDiagnostic": false
+    },
+    "GitLabSettings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
+    },
+    "ZBoxSettings": {
+        "Enable": true,
+        "Secret": "RZqS6sS4Wv3X7Sex",
+        "Id": "YKk-3wF-UDb-3As",
+        "Scope": "",
+        "AuthEndpoint": "https://oauth.zboxapp.com/oauth/authorize",
+        "TokenEndpoint": "https://oauth.zboxapp.com/oauth/token",
+        "UserApiEndpoint": "https://oauth.zboxapp.com/me"
+    }
+}

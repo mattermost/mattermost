@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 )
@@ -26,38 +27,38 @@ type AuthData struct {
 
 // IsValid validates the AuthData and returns an error if it isn't configured
 // correctly.
-func (ad *AuthData) IsValid() *AppError {
+func (ad *AuthData) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(ad.ClientId) != 26 {
-		return NewAppError("AuthData.IsValid", "Invalid client id", "")
+		return NewAppError("AuthData.IsValid", T("Invalid client id"), "")
 	}
 
 	if len(ad.UserId) != 26 {
-		return NewAppError("AuthData.IsValid", "Invalid user id", "")
+		return NewAppError("AuthData.IsValid", T("Invalid user id"), "")
 	}
 
 	if len(ad.Code) == 0 || len(ad.Code) > 128 {
-		return NewAppError("AuthData.IsValid", "Invalid authorization code", "client_id="+ad.ClientId)
+		return NewAppError("AuthData.IsValid", T("Invalid authorization code"), "client_id="+ad.ClientId)
 	}
 
 	if ad.ExpiresIn == 0 {
-		return NewAppError("AuthData.IsValid", "Expires in must be set", "")
+		return NewAppError("AuthData.IsValid", T("Expires in must be set"), "")
 	}
 
 	if ad.CreateAt <= 0 {
-		return NewAppError("AuthData.IsValid", "Create at must be a valid time", "client_id="+ad.ClientId)
+		return NewAppError("AuthData.IsValid", T("Create at must be a valid time"), "client_id="+ad.ClientId)
 	}
 
 	if len(ad.RedirectUri) > 256 {
-		return NewAppError("AuthData.IsValid", "Invalid redirect uri", "client_id="+ad.ClientId)
+		return NewAppError("AuthData.IsValid", T("Invalid redirect uri"), "client_id="+ad.ClientId)
 	}
 
 	if len(ad.State) > 128 {
-		return NewAppError("AuthData.IsValid", "Invalid state", "client_id="+ad.ClientId)
+		return NewAppError("AuthData.IsValid", T("Invalid state"), "client_id="+ad.ClientId)
 	}
 
 	if len(ad.Scope) > 128 {
-		return NewAppError("AuthData.IsValid", "Invalid scope", "client_id="+ad.ClientId)
+		return NewAppError("AuthData.IsValid", T("Invalid scope"), "client_id="+ad.ClientId)
 	}
 
 	return nil

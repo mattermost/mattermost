@@ -8,11 +8,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
 	"net/http"
 )
 
 func InitWebhook(r *mux.Router) {
-	l4g.Debug("Initializing webhook api routes")
+	l4g.Debug(T("Initializing webhook api routes"))
 
 	sr := r.PathPrefix("/hooks").Subrouter()
 	sr.Handle("/incoming/create", ApiUserRequired(createIncomingHook)).Methods("POST")
@@ -26,13 +27,14 @@ func InitWebhook(r *mux.Router) {
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("createIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("createIncomingHook", T("Incoming webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	c.LogAudit("attempt")
+	c.LogAudit("attempt", T)
 
 	hook := model.IncomingWebhookFromJson(r.Body)
 
@@ -41,8 +43,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().Get(hook.ChannelId)
-	pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().Get(hook.ChannelId, T)
+	pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId, T)
 
 	hook.UserId = c.Session.UserId
 	hook.TeamId = c.Session.TeamId
@@ -55,31 +57,32 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	if !c.HasPermissionsToChannel(pchan, "createIncomingHook") {
+	if !c.HasPermissionsToChannel(pchan, "createIncomingHook", T) {
 		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.Session.TeamId {
-			c.LogAudit("fail - bad channel permissions")
+			c.LogAudit(T("fail - bad channel permissions"), T)
 			return
 		}
 	}
 
-	if result := <-Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
+	if result := <-Srv.Store.Webhook().SaveIncoming(hook, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		c.LogAudit("success")
+		c.LogAudit("success", T)
 		rhook := result.Data.(*model.IncomingWebhook)
 		w.Write([]byte(rhook.ToJson()))
 	}
 }
 
 func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("deleteIncomingHook", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("deleteIncomingHook", T("Incoming webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	c.LogAudit("attempt")
+	c.LogAudit("attempt", T)
 
 	props := model.MapFromJson(r.Body)
 
@@ -89,34 +92,35 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().GetIncoming(id); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetIncoming(id, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !c.IsTeamAdmin() {
-			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewAppError("deleteIncomingHook", "Inappropriate permissions to delete incoming webhook", "user_id="+c.Session.UserId)
+			c.LogAudit(T("fail - inappropriate conditions"), T)
+			c.Err = model.NewAppError("deleteIncomingHook", T("Inappropriate permissions to delete incoming webhook"), "user_id="+c.Session.UserId)
 			return
 		}
 	}
 
-	if err := (<-Srv.Store.Webhook().DeleteIncoming(id, model.GetMillis())).Err; err != nil {
+	if err := (<-Srv.Store.Webhook().DeleteIncoming(id, model.GetMillis(), T)).Err; err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success")
+	c.LogAudit("success", T)
 	w.Write([]byte(model.MapToJson(props)))
 }
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("getIncomingHooks", "Incoming webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("getIncomingHooks", T("Incoming webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().GetIncomingByUser(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetIncomingByUser(c.Session.UserId, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -126,13 +130,14 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		c.Err = model.NewAppError("createOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	c.LogAudit("attempt")
+	c.LogAudit("attempt", T)
 
 	hook := model.OutgoingWebhookFromJson(r.Body)
 
@@ -145,8 +150,8 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	hook.TeamId = c.Session.TeamId
 
 	if len(hook.ChannelId) != 0 {
-		cchan := Srv.Store.Channel().Get(hook.ChannelId)
-		pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId)
+		cchan := Srv.Store.Channel().Get(hook.ChannelId, T)
+		pchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, hook.ChannelId, c.Session.UserId, T)
 
 		var channel *model.Channel
 		if result := <-cchan; result.Err != nil {
@@ -157,12 +162,12 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if channel.Type != model.CHANNEL_OPEN {
-			c.LogAudit("fail - not open channel")
+			c.LogAudit("fail - not open channel", T)
 		}
 
-		if !c.HasPermissionsToChannel(pchan, "createOutgoingHook") {
+		if !c.HasPermissionsToChannel(pchan, "createOutgoingHook", T) {
 			if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.Session.TeamId {
-				c.LogAudit("fail - bad channel permissions")
+				c.LogAudit("fail - bad channel permissions", T)
 				return
 			}
 		}
@@ -171,24 +176,25 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().SaveOutgoing(hook); result.Err != nil {
+	if result := <-Srv.Store.Webhook().SaveOutgoing(hook, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		c.LogAudit("success")
+		c.LogAudit("success", T)
 		rhook := result.Data.(*model.OutgoingWebhook)
 		w.Write([]byte(rhook.ToJson()))
 	}
 }
 
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		c.Err = model.NewAppError("getOutgoingHooks", "Outgoing webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoingByCreator(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoingByCreator(c.Session.UserId, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -198,13 +204,14 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		c.Err = model.NewAppError("deleteOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	c.LogAudit("attempt")
+	c.LogAudit("attempt", T)
 
 	props := model.MapFromJson(r.Body)
 
@@ -214,34 +221,35 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoing(id); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoing(id, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !c.IsTeamAdmin() {
-			c.LogAudit("fail - inappropriate permissions")
+			c.LogAudit("fail - inappropriate permissions", T)
 			c.Err = model.NewAppError("deleteOutgoingHook", "Inappropriate permissions to delete outcoming webhook", "user_id="+c.Session.UserId)
 			return
 		}
 	}
 
-	if err := (<-Srv.Store.Webhook().DeleteOutgoing(id, model.GetMillis())).Err; err != nil {
+	if err := (<-Srv.Store.Webhook().DeleteOutgoing(id, model.GetMillis(), T)).Err; err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success")
+	c.LogAudit("success", T)
 	w.Write([]byte(model.MapToJson(props)))
 }
 
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		c.Err = model.NewAppError("regenOutgoingHookToken", "Outgoing webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
-	c.LogAudit("attempt")
+	c.LogAudit("attempt", T)
 
 	props := model.MapFromJson(r.Body)
 
@@ -252,14 +260,14 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var hook *model.OutgoingWebhook
-	if result := <-Srv.Store.Webhook().GetOutgoing(id); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoing(id, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		hook = result.Data.(*model.OutgoingWebhook)
 
 		if c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
-			c.LogAudit("fail - inappropriate permissions")
+			c.LogAudit("fail - inappropriate permissions", T)
 			c.Err = model.NewAppError("regenOutgoingHookToken", "Inappropriate permissions to regenerate outcoming webhook token", "user_id="+c.Session.UserId)
 			return
 		}
@@ -267,7 +275,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	hook.Token = model.NewId()
 
-	if result := <-Srv.Store.Webhook().UpdateOutgoing(hook); result.Err != nil {
+	if result := <-Srv.Store.Webhook().UpdateOutgoing(hook, T); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

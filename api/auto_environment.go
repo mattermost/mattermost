@@ -6,6 +6,7 @@ package api
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"math/rand"
 	"time"
 )
@@ -15,7 +16,7 @@ type TestEnvironment struct {
 	Environments []TeamEnvironment
 }
 
-func CreateTestEnvironmentWithTeams(client *model.Client, rangeTeams utils.Range, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TestEnvironment, bool) {
+func CreateTestEnvironmentWithTeams(client *model.Client, rangeTeams utils.Range, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool, T goi18n.TranslateFunc) (TestEnvironment, bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	teamCreator := NewAutoTeamCreator(client)
@@ -30,12 +31,12 @@ func CreateTestEnvironmentWithTeams(client *model.Client, rangeTeams utils.Range
 	for i, team := range teams {
 		userCreator := NewAutoUserCreator(client, team.Id)
 		userCreator.Fuzzy = fuzzy
-		randomUser, err := userCreator.createRandomUser()
+		randomUser, err := userCreator.createRandomUser(T)
 		if err != true {
 			return TestEnvironment{}, false
 		}
-		client.LoginById(randomUser.Id, USER_PASSWORD)
-		teamEnvironment, err := CreateTestEnvironmentInTeam(client, team.Id, rangeChannels, rangeUsers, rangePosts, fuzzy)
+		client.LoginById(randomUser.Id, USER_PASSWORD, T)
+		teamEnvironment, err := CreateTestEnvironmentInTeam(client, team.Id, rangeChannels, rangeUsers, rangePosts, fuzzy, T)
 		if err != true {
 			return TestEnvironment{}, false
 		}
@@ -45,7 +46,7 @@ func CreateTestEnvironmentWithTeams(client *model.Client, rangeTeams utils.Range
 	return environment, true
 }
 
-func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, bool) {
+func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool, T goi18n.TranslateFunc) (TeamEnvironment, bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// We need to create at least one user
@@ -55,7 +56,7 @@ func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChann
 
 	userCreator := NewAutoUserCreator(client, teamID)
 	userCreator.Fuzzy = fuzzy
-	users, err := userCreator.CreateTestUsers(rangeUsers)
+	users, err := userCreator.CreateTestUsers(rangeUsers, T)
 	if err != true {
 		return TeamEnvironment{}, false
 	}
@@ -71,8 +72,8 @@ func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChann
 	// Have every user join every channel
 	for _, user := range users {
 		for _, channel := range channels {
-			client.LoginById(user.Id, USER_PASSWORD)
-			client.JoinChannel(channel.Id)
+			client.LoginById(user.Id, USER_PASSWORD, T)
+			client.JoinChannel(channel.Id, T)
 		}
 	}
 
@@ -83,7 +84,7 @@ func CreateTestEnvironmentInTeam(client *model.Client, teamID string, rangeChann
 	numImages := utils.RandIntFromRange(rangePosts) / 4
 	for j := 0; j < numPosts; j++ {
 		user := users[utils.RandIntFromRange(utils.Range{0, len(users) - 1})]
-		client.LoginById(user.Id, USER_PASSWORD)
+		client.LoginById(user.Id, USER_PASSWORD, T)
 		for i, channel := range channels {
 			postCreator := NewAutoPostCreator(client, channel.Id)
 			postCreator.HasImage = i < numImages

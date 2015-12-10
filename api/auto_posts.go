@@ -74,7 +74,7 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 		return nil, false
 	}
 
-	resp, appErr := cfg.client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType())
+	resp, appErr := cfg.client.UploadFile("/files/upload", body.Bytes(), writer.FormDataContentType(), T)
 	if appErr != nil {
 		return nil, false
 	}
@@ -103,7 +103,7 @@ func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
 		ChannelId: cfg.channelid,
 		Message:   postText,
 		Filenames: filenames}
-	result, err2 := cfg.client.CreatePost(post)
+	result, err2 := cfg.client.CreatePost(post, T)
 	if err2 != nil {
 		return nil, false
 	}

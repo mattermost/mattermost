@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -101,54 +102,54 @@ func (o *Team) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
-func (o *Team) IsValid(restrictTeamNames bool) *AppError {
+func (o *Team) IsValid(restrictTeamNames bool, T goi18n.TranslateFunc) *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("Team.IsValid", "Invalid Id", "")
+		return NewAppError("Team.IsValid", T("Invalid Id"), "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("Team.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Create at must be a valid time"), "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Team.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Update at must be a valid time"), "id="+o.Id)
 	}
 
 	if len(o.Email) > 128 {
-		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid email"), "id="+o.Id)
 	}
 
 	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
-		return NewAppError("Team.IsValid", "Invalid email", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid email"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > 64 {
-		return NewAppError("Team.IsValid", "Invalid name", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid name"), "id="+o.Id)
 	}
 
 	if len(o.Name) > 64 {
-		return NewAppError("Team.IsValid", "Invalid URL Identifier", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid URL Identifier"), "id="+o.Id)
 	}
 
 	if restrictTeamNames && IsReservedTeamName(o.Name) {
-		return NewAppError("Team.IsValid", "This URL is unavailable. Please try another.", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("This URL is unavailable. Please try another."), "id="+o.Id)
 	}
 
 	if !IsValidTeamName(o.Name) {
-		return NewAppError("Team.IsValid", "Name must be 4 or more lowercase alphanumeric characters", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Name must be 4 or more lowercase alphanumeric characters"), "id="+o.Id)
 	}
 
 	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
-		return NewAppError("Team.IsValid", "Invalid type", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid type"), "id="+o.Id)
 	}
 
 	if len(o.CompanyName) > 64 {
-		return NewAppError("Team.IsValid", "Invalid company name", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid company name"), "id="+o.Id)
 	}
 
 	if len(o.AllowedDomains) > 500 {
-		return NewAppError("Team.IsValid", "Invalid allowed domains", "id="+o.Id)
+		return NewAppError("Team.IsValid", T("Invalid allowed domains"), "id="+o.Id)
 	}
 
 	return nil

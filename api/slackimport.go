@@ -13,6 +13,7 @@ import (
 	"mime/multipart"
 	"strconv"
 	"strings"
+	"github.com/mattermost/platform/i18n"
 )
 
 type SlackChannel struct {
@@ -174,6 +175,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 	// Write Header
 	log.WriteString("\r\n Channels Added \r\n")
 	log.WriteString("=================\r\n\r\n")
+	T := i18n.GetSystemLanguage()
 
 	addedChannels := make(map[string]*model.Channel)
 	for _, sChannel := range slackchannels {
@@ -187,7 +189,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		mChannel := ImportChannel(&newChannel)
 		if mChannel == nil {
 			// Maybe it already exists?
-			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
+			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name, T); result.Err != nil {
 				l4g.Debug("Failed to import: %s", newChannel.DisplayName)
 				log.WriteString("Failed to import: " + newChannel.DisplayName + "\r\n")
 				continue

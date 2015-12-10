@@ -10,7 +10,9 @@ import (
 
 const (
 	SESSION_COOKIE_TOKEN        = "MMTOKEN"
-	SESSION_TIME_WEB_IN_DAYS    = 30
+	SESSION_LANGUAGE			= "MMLANG"
+	SESSION_TEAM				= "MMTEAM"
+	SESSION_TIME_WEB_IN_DAYS    = 0 //30
 	SESSION_TIME_WEB_IN_SECS    = 60 * 60 * 24 * SESSION_TIME_WEB_IN_DAYS
 	SESSION_TIME_MOBILE_IN_DAYS = 30
 	SESSION_TIME_MOBILE_IN_SECS = 60 * 60 * 24 * SESSION_TIME_MOBILE_IN_DAYS
@@ -90,7 +92,9 @@ func (me *Session) IsExpired() bool {
 }
 
 func (me *Session) SetExpireInDays(days int64) {
-	me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * days)
+	if me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * days); days == 0 {
+		me.ExpiresAt = days
+	}
 }
 
 func (me *Session) AddProp(key string, value string) {

@@ -6,6 +6,7 @@ package store
 import (
 	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"time"
 )
 
@@ -38,154 +39,157 @@ type Store interface {
 	System() SystemStore
 	Webhook() WebhookStore
 	Preference() PreferenceStore
-	MarkSystemRanUnitTests()
+	MarkSystemRanUnitTests(T goi18n.TranslateFunc)
 	Close()
 }
 
 type TeamStore interface {
-	Save(team *model.Team) StoreChannel
-	Update(team *model.Team) StoreChannel
-	UpdateDisplayName(name string, teamId string) StoreChannel
-	Get(id string) StoreChannel
-	GetByName(name string) StoreChannel
-	GetTeamsForEmail(domain string) StoreChannel
-	GetAll() StoreChannel
-	GetAllTeamListing() StoreChannel
-	GetByInviteId(inviteId string) StoreChannel
-	PermanentDelete(teamId string) StoreChannel
+	Save(team *model.Team, T goi18n.TranslateFunc) StoreChannel
+	Update(team *model.Team, T goi18n.TranslateFunc) StoreChannel
+	UpdateDisplayName(name string, teamId string, T goi18n.TranslateFunc) StoreChannel
+	Get(id string, T goi18n.TranslateFunc) StoreChannel
+	GetByName(name string, T goi18n.TranslateFunc) StoreChannel
+	GetTeamsForEmail(domain string, T goi18n.TranslateFunc) StoreChannel
+	GetAll(T goi18n.TranslateFunc) StoreChannel
+	GetAllTeamListing(T goi18n.TranslateFunc) StoreChannel
+	GetByInviteId(inviteId string, T goi18n.TranslateFunc) StoreChannel
+	PermanentDelete(teamId string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel) StoreChannel
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
-	Update(channel *model.Channel) StoreChannel
-	Get(id string) StoreChannel
-	GetFromMaster(id string) StoreChannel
-	Delete(channelId string, time int64) StoreChannel
-	PermanentDeleteByTeam(teamId string) StoreChannel
-	GetByName(team_id string, domain string) StoreChannel
-	GetChannels(teamId string, userId string) StoreChannel
-	GetMoreChannels(teamId string, userId string) StoreChannel
-	GetChannelCounts(teamId string, userId string) StoreChannel
-	GetForExport(teamId string) StoreChannel
+	Save(channel *model.Channel, T goi18n.TranslateFunc) StoreChannel
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember, T goi18n.TranslateFunc) StoreChannel
+	Update(channel *model.Channel, T goi18n.TranslateFunc) StoreChannel
+	Get(id string, T goi18n.TranslateFunc) StoreChannel
+	GetFromMaster(id string, T goi18n.TranslateFunc) StoreChannel
+	Delete(channelId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteByTeam(teamId string, T goi18n.TranslateFunc) StoreChannel
+	GetByName(team_id string, domain string, T goi18n.TranslateFunc) StoreChannel
+	GetChannels(teamId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	GetMoreChannels(teamId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	GetChannelCounts(teamId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	GetForExport(teamId string, T goi18n.TranslateFunc) StoreChannel
 
-	SaveMember(member *model.ChannelMember) StoreChannel
-	UpdateMember(member *model.ChannelMember) StoreChannel
-	GetMembers(channelId string) StoreChannel
-	GetMember(channelId string, userId string) StoreChannel
-	GetMemberCount(channelId string) StoreChannel
-	RemoveMember(channelId string, userId string) StoreChannel
-	PermanentDeleteMembersByUser(userId string) StoreChannel
-	GetExtraMembers(channelId string, limit int) StoreChannel
-	CheckPermissionsTo(teamId string, channelId string, userId string) StoreChannel
-	CheckOpenChannelPermissions(teamId string, channelId string) StoreChannel
-	CheckPermissionsToByName(teamId string, channelName string, userId string) StoreChannel
-	UpdateLastViewedAt(channelId string, userId string) StoreChannel
-	IncrementMentionCount(channelId string, userId string) StoreChannel
-	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
+	SaveMember(member *model.ChannelMember, T goi18n.TranslateFunc) StoreChannel
+	UpdateMember(member *model.ChannelMember, T goi18n.TranslateFunc) StoreChannel
+	GetMembers(channelId string, T goi18n.TranslateFunc) StoreChannel
+	GetMember(channelId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	GetMemberCount(channelId string, T goi18n.TranslateFunc) StoreChannel
+	RemoveMember(channelId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteMembersByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	GetExtraMembers(channelId string, limit int, T goi18n.TranslateFunc) StoreChannel
+	CheckPermissionsTo(teamId string, channelId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	CheckOpenChannelPermissions(teamId string, channelId string, T goi18n.TranslateFunc) StoreChannel
+	CheckPermissionsToByName(teamId string, channelName string, userId string, T goi18n.TranslateFunc) StoreChannel
+	UpdateLastViewedAt(channelId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	IncrementMentionCount(channelId string, userId string, T goi18n.TranslateFunc) StoreChannel
+	AnalyticsTypeCount(teamId string, channelType string, T goi18n.TranslateFunc) StoreChannel
+
+	GetTotalChannelsByType(teamType string, teamId string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type PostStore interface {
-	Save(post *model.Post) StoreChannel
-	Update(post *model.Post, newMessage string, newHashtags string) StoreChannel
-	Get(id string) StoreChannel
-	Delete(postId string, time int64) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
-	GetPosts(channelId string, offset int, limit int) StoreChannel
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
-	GetPostsSince(channelId string, time int64) StoreChannel
+	Save(post *model.Post, T goi18n.TranslateFunc) StoreChannel
+	Update(post *model.Post, newMessage string, newHashtags string, T goi18n.TranslateFunc) StoreChannel
+	Get(id string, T goi18n.TranslateFunc) StoreChannel
+	Delete(postId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	GetPosts(channelId string, offset int, limit int, T goi18n.TranslateFunc) StoreChannel
+	GetPostsBefore(channelId string, postId string, numPosts int, offset int, T goi18n.TranslateFunc) StoreChannel
+	GetPostsAfter(channelId string, postId string, numPosts int, offset int, T goi18n.TranslateFunc) StoreChannel
+	GetPostsSince(channelId string, time int64, T goi18n.TranslateFunc) StoreChannel
 	GetEtag(channelId string) StoreChannel
-	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
-	GetForExport(channelId string) StoreChannel
-	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
-	AnalyticsPostCountsByDay(teamId string) StoreChannel
-	AnalyticsPostCount(teamId string) StoreChannel
+	Search(teamId string, userId string, params *model.SearchParams, T goi18n.TranslateFunc) StoreChannel
+	GetForExport(channelId string, T goi18n.TranslateFunc) StoreChannel
+	AnalyticsUserCountsWithPostsByDay(teamId string, T goi18n.TranslateFunc) StoreChannel
+	AnalyticsPostCountsByDay(teamId string, T goi18n.TranslateFunc) StoreChannel
+	AnalyticsPostCount(teamId string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type UserStore interface {
-	Save(user *model.User) StoreChannel
-	Update(user *model.User, allowRoleUpdate bool) StoreChannel
-	UpdateLastPictureUpdate(userId string) StoreChannel
-	UpdateLastPingAt(userId string, time int64) StoreChannel
-	UpdateLastActivityAt(userId string, time int64) StoreChannel
-	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel
-	UpdatePassword(userId, newPassword string) StoreChannel
-	Get(id string) StoreChannel
-	GetProfiles(teamId string) StoreChannel
-	GetByEmail(teamId string, email string) StoreChannel
-	GetByAuth(teamId string, authData string, authService string) StoreChannel
-	GetByUsername(teamId string, username string) StoreChannel
-	VerifyEmail(userId string) StoreChannel
+	Save(user *model.User, T goi18n.TranslateFunc) StoreChannel
+	Update(user *model.User, allowRoleUpdate bool, T goi18n.TranslateFunc) StoreChannel
+	UpdateLastPictureUpdate(userId string, T goi18n.TranslateFunc) StoreChannel
+	UpdateLastPingAt(userId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	UpdateLastActivityAt(userId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	UpdateUserAndSessionActivity(userId string, sessionId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	UpdatePassword(userId, newPassword string, T goi18n.TranslateFunc) StoreChannel
+	Get(id string, T goi18n.TranslateFunc) StoreChannel
+	GetProfiles(teamId string, T goi18n.TranslateFunc) StoreChannel
+	GetByEmail(teamId string, email string, T goi18n.TranslateFunc) StoreChannel
+	GetByAuth(teamId string, authData string, authService string, T goi18n.TranslateFunc) StoreChannel
+	GetByUsername(teamId string, username string, T goi18n.TranslateFunc) StoreChannel
+	VerifyEmail(userId string, T goi18n.TranslateFunc) StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
-	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
-	GetForExport(teamId string) StoreChannel
-	GetTotalUsersCount() StoreChannel
-	GetTotalActiveUsersCount() StoreChannel
-	GetSystemAdminProfiles() StoreChannel
-	PermanentDelete(userId string) StoreChannel
+	UpdateFailedPasswordAttempts(userId string, attempts int, T goi18n.TranslateFunc) StoreChannel
+	GetForExport(teamId string, T goi18n.TranslateFunc) StoreChannel
+	GetTotalUsersCount(T goi18n.TranslateFunc) StoreChannel
+	GetTotalActiveUsersCount(T goi18n.TranslateFunc) StoreChannel
+	GetSystemAdminProfiles(T goi18n.TranslateFunc) StoreChannel
+	PermanentDelete(userId string, T goi18n.TranslateFunc) StoreChannel
+	GetUserStatusByEmails(emails []string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type SessionStore interface {
-	Save(session *model.Session) StoreChannel
-	Get(sessionIdOrToken string) StoreChannel
-	GetSessions(userId string) StoreChannel
-	Remove(sessionIdOrToken string) StoreChannel
-	RemoveAllSessionsForTeam(teamId string) StoreChannel
-	PermanentDeleteSessionsByUser(teamId string) StoreChannel
-	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
-	UpdateRoles(userId string, roles string) StoreChannel
+	Save(session *model.Session, T goi18n.TranslateFunc) StoreChannel
+	Get(sessionIdOrToken string, T goi18n.TranslateFunc) StoreChannel
+	GetSessions(userId string, T goi18n.TranslateFunc) StoreChannel
+	Remove(sessionIdOrToken string, T goi18n.TranslateFunc) StoreChannel
+	RemoveAllSessionsForTeam(teamId string, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteSessionsByUser(teamId string, T goi18n.TranslateFunc) StoreChannel
+	UpdateLastActivityAt(sessionId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	UpdateRoles(userId string, roles string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type AuditStore interface {
-	Save(audit *model.Audit) StoreChannel
-	Get(user_id string, limit int) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	Save(audit *model.Audit, T goi18n.TranslateFunc) StoreChannel
+	Get(user_id string, limit int, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type OAuthStore interface {
-	SaveApp(app *model.OAuthApp) StoreChannel
-	UpdateApp(app *model.OAuthApp) StoreChannel
-	GetApp(id string) StoreChannel
-	GetAppByUser(userId string) StoreChannel
-	SaveAuthData(authData *model.AuthData) StoreChannel
-	GetAuthData(code string) StoreChannel
-	RemoveAuthData(code string) StoreChannel
-	PermanentDeleteAuthDataByUser(userId string) StoreChannel
-	SaveAccessData(accessData *model.AccessData) StoreChannel
-	GetAccessData(token string) StoreChannel
-	GetAccessDataByAuthCode(authCode string) StoreChannel
-	RemoveAccessData(token string) StoreChannel
+	SaveApp(app *model.OAuthApp, T goi18n.TranslateFunc) StoreChannel
+	UpdateApp(app *model.OAuthApp, T goi18n.TranslateFunc) StoreChannel
+	GetApp(id string, T goi18n.TranslateFunc) StoreChannel
+	GetAppByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	SaveAuthData(authData *model.AuthData, T goi18n.TranslateFunc) StoreChannel
+	GetAuthData(code string, T goi18n.TranslateFunc) StoreChannel
+	RemoveAuthData(code string, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteAuthDataByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	SaveAccessData(accessData *model.AccessData, T goi18n.TranslateFunc) StoreChannel
+	GetAccessData(token string, T goi18n.TranslateFunc) StoreChannel
+	GetAccessDataByAuthCode(authCode string, T goi18n.TranslateFunc) StoreChannel
+	RemoveAccessData(token string, T goi18n.TranslateFunc) StoreChannel
 }
 
 type SystemStore interface {
-	Save(system *model.System) StoreChannel
-	Update(system *model.System) StoreChannel
-	Get() StoreChannel
+	Save(system *model.System, T goi18n.TranslateFunc) StoreChannel
+	Update(system *model.System, T goi18n.TranslateFunc) StoreChannel
+	Get(T goi18n.TranslateFunc) StoreChannel
 }
 
 type WebhookStore interface {
-	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncoming(id string) StoreChannel
-	GetIncomingByUser(userId string) StoreChannel
-	GetIncomingByChannel(channelId string) StoreChannel
-	DeleteIncoming(webhookId string, time int64) StoreChannel
-	PermanentDeleteIncomingByUser(userId string) StoreChannel
-	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
-	GetOutgoing(id string) StoreChannel
-	GetOutgoingByCreator(userId string) StoreChannel
-	GetOutgoingByChannel(channelId string) StoreChannel
-	GetOutgoingByTeam(teamId string) StoreChannel
-	DeleteOutgoing(webhookId string, time int64) StoreChannel
-	PermanentDeleteOutgoingByUser(userId string) StoreChannel
-	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+	SaveIncoming(webhook *model.IncomingWebhook, T goi18n.TranslateFunc) StoreChannel
+	GetIncoming(id string, T goi18n.TranslateFunc) StoreChannel
+	GetIncomingByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	GetIncomingByChannel(channelId string, T goi18n.TranslateFunc) StoreChannel
+	DeleteIncoming(webhookId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteIncomingByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	SaveOutgoing(webhook *model.OutgoingWebhook, T goi18n.TranslateFunc) StoreChannel
+	GetOutgoing(id string, T goi18n.TranslateFunc) StoreChannel
+	GetOutgoingByCreator(userId string, T goi18n.TranslateFunc) StoreChannel
+	GetOutgoingByChannel(channelId string, T goi18n.TranslateFunc) StoreChannel
+	GetOutgoingByTeam(teamId string, T goi18n.TranslateFunc) StoreChannel
+	DeleteOutgoing(webhookId string, time int64, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteOutgoingByUser(userId string, T goi18n.TranslateFunc) StoreChannel
+	UpdateOutgoing(hook *model.OutgoingWebhook, T goi18n.TranslateFunc) StoreChannel
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) StoreChannel
-	Get(userId string, category string, name string) StoreChannel
-	GetCategory(userId string, category string) StoreChannel
-	GetAll(userId string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	Save(preferences *model.Preferences, T goi18n.TranslateFunc) StoreChannel
+	Get(userId string, category string, name string, T goi18n.TranslateFunc) StoreChannel
+	GetCategory(userId string, category string, T goi18n.TranslateFunc) StoreChannel
+	GetAll(userId string, T goi18n.TranslateFunc) StoreChannel
+	PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel
 	IsFeatureEnabled(feature, userId string) StoreChannel
 }

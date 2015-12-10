@@ -1,0 +1,103 @@
+{
+    "ServiceSettings": {
+        "ListenAddress": ":8065",
+        "MaximumLoginAttempts": 10,
+        "SegmentDeveloperKey": "",
+        "GoogleDeveloperKey": "",
+        "EnableOAuthServiceProvider": false,
+        "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true,
+        "EnablePostUsernameOverride": true,
+        "EnablePostIconOverride": true,
+        "EnableTesting": false,
+        "EnableSecurityFixAlert": true
+    },
+    "TeamSettings": {
+        "SiteName": "ZBox",
+        "MaxUsersPerTeam": 50,
+        "EnableTeamCreation": true,
+        "EnableUserCreation": true,
+        "RestrictCreationToDomains": "",
+        "RestrictTeamNames": false,
+        "EnableTeamListing": true
+    },
+    "SqlSettings": {
+        "DriverName": "mysql",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/zbox_chat?charset=utf8mb4,utf8",
+        "DataSourceReplicas": [],
+        "MaxIdleConns": 10,
+        "MaxOpenConns": 10,
+        "Trace": false,
+        "AtRestEncryptKey": "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QVg"
+    },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileFormat": "",
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "./data/",
+        "EnablePublicLink": true,
+        "PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip",
+        "ThumbnailWidth": 120,
+        "ThumbnailHeight": 100,
+        "PreviewWidth": 1024,
+        "PreviewHeight": 0,
+        "ProfileWidth": 128,
+        "ProfileHeight": 128,
+        "InitialFont": "luximbi.ttf",
+        "AmazonS3AccessKeyId": "",
+        "AmazonS3SecretAccessKey": "",
+        "AmazonS3Bucket": "",
+        "AmazonS3Region": ""
+    },
+    "EmailSettings": {
+        "EnableSignUpWithEmail": true,
+        "SendEmailNotifications": false,
+        "RequireEmailVerification": false,
+        "FeedbackName": "Chat ZBox Test",
+        "FeedbackEmail": "no-reply-chat@zboxapp.dev",
+        "SMTPUsername": "admin@zboxapp.dev",
+        "SMTPPassword": "12345678",
+        "SMTPServer": "192.168.50.10",
+        "SMTPPort": "587",
+        "ConnectionSecurity": "STARTTLS",
+        "InviteSalt": "TC47gePYJEOD0DBf1ZNVPkIvGBCvLr/C",
+        "PasswordResetSalt": "sk9HTQE9Jnen9rupwq3BUSAriOaZ5MAE",
+        "SendPushNotifications": true,
+        "PushNotificationServer": "https://push.mattermost.com"
+    },
+    "RateLimitSettings": {
+        "EnableRateLimiter": true,
+        "PerSec": 10,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByHeader": ""
+    },
+    "PrivacySettings": {
+        "ShowEmailAddress": true,
+        "ShowFullName": true
+    },
+    "GitLabSettings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
+    },
+    "ZBoxSettings": {
+        "Enable": true,
+        "Secret": "RZqS6sS4Wv3X7Sex",
+        "Id": "YKk-3wF-UDb-3As",
+        "Scope": "",
+        "AuthEndpoint": "http://dockerhost:3000/oauth/authorize",
+        "TokenEndpoint": "http://dockerhost:3000/oauth/token",
+        "UserApiEndpoint": "http://dockerhost:3000/me"
+    }
+}

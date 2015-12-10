@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlAuditStore struct {
@@ -34,7 +35,7 @@ func (s SqlAuditStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 
-func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
+func (s SqlAuditStore) Save(audit *model.Audit, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -46,7 +47,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
 
 		if err := s.GetMaster().Insert(audit); err != nil {
 			result.Err = model.NewAppError("SqlAuditStore.Save",
-				"We encountered an error saving the audit", "user_id="+
+				T("We encounted an error saving the audit"), "user_id="+
 					audit.UserId+" action="+audit.Action)
 		}
 
@@ -57,7 +58,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
+func (s SqlAuditStore) Get(user_id string, limit int, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -66,7 +67,7 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 
 		if limit > 1000 {
 			limit = 1000
-			result.Err = model.NewAppError("SqlAuditStore.Get", "Limit exceeded for paging", "user_id="+user_id)
+			result.Err = model.NewAppError("SqlAuditStore.Get", T("Limit exceeded for paging"), "user_id="+user_id)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -75,7 +76,7 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 		var audits model.Audits
 		if _, err := s.GetReplica().Select(&audits, "SELECT * FROM Audits WHERE UserId = :user_id ORDER BY CreateAt DESC LIMIT :limit",
 			map[string]interface{}{"user_id": user_id, "limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.Get", "We encountered an error finding the audits", "user_id="+user_id)
+			result.Err = model.NewAppError("SqlAuditStore.Get", T("We encounted an error finding the audits"), "user_id="+user_id)
 		} else {
 			result.Data = audits
 		}
@@ -87,7 +88,7 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlAuditStore) PermanentDeleteByUser(userId string) StoreChannel {
+func (s SqlAuditStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 

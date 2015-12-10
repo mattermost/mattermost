@@ -40,8 +40,63 @@
                                         <img width="65" src="{{.Props.SiteURL}}/static/images/circles.png" alt="">
                                     </p>
                                     <p style="padding: 0 50px;">
-                                        (c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>
-                                        If you no longer wish to receive these emails, click on the following link: <a href="mailto:{{.ClientCfg.FeedbackEmail}}?subject=Unsubscribe&body=Unsubscribe" style="text-decoration: none; color:#2389D7;">Unsubscribe</a>
+                                        (c) 2015 ZBox Spa. Andres Bello 1245, Santiago, CL
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+{{end}}
+
+{{define "verify_body_es"}}
+
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 20px; line-height: 1.7; color: #555;">
+    <tr>
+        <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 660px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; background: #FFF;">
+                <tr>
+                    <td style="border: 1px solid #ddd;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 20px 20px 10px; text-align:left;">
+                                    <img src="{{.Props.SiteURL}}/static/images/logo-email.png" width="130px" style="opacity: 0.5" alt="">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
+                                        <tr>
+                                            <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
+                                                <h2 style="font-weight: normal; margin-top: 10px;">Verificaci&oacute;n de correo electr&oacute;nico</h2>
+                                                <p>Por favor verifica tu direcci&oacute;n de correo al pinchar el siguiente enlace.</p>
+                                                <p style="margin: 20px 0 15px">
+                                                    <a href="{{.Props.VerifyUrl}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">Verifica Correo electr&oacute;nico</a>
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #999; padding-top: 20px; line-height: 25px; font-size: 13px;">
+                                                Si tienes alguna pregunta, escribenos en cualquier momento a:  <a href="mailto:{{.ClientCfg.FeedbackEmail}}" style="text-decoration: none; color:#2389D7;">{{.ClientCfg.FeedbackEmail}}</a>.<br>
+                                                Los mejores deseos,<br>
+                                                El Equipo {{.ClientCfg.SiteName}}<br>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;color: #AAA; font-size: 11px; padding-bottom: 10px;">
+                                    <p style="margin: 25px 0;">
+                                        <img width="65" src="{{.Props.SiteURL}}/static/images/circles.png" alt="">
+                                    </p>
+                                    <p style="padding: 0 50px;">
+                                        (c) 2015 ZBox Spa. Andres Bello 1245, Santiago, CL
                                     </p>
                                 </td>
                             </tr>

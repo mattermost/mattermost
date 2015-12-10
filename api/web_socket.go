@@ -8,16 +8,18 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/i18n"
 	"net/http"
 )
 
 func InitWebSocket(r *mux.Router) {
-	l4g.Debug("Initializing web socket api routes")
+	l4g.Debug(T("Initializing web socket api routes"))
 	r.Handle("/websocket", ApiUserRequired(connect)).Methods("GET")
-	hub.Start()
+	hub.Start(T)
 }
 
 func connect(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -29,7 +31,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		l4g.Error("websocket connect err: %v", err)
-		c.Err = model.NewAppError("connect", "Failed to upgrade websocket connection", "")
+		c.Err = model.NewAppError("connect", T("Failed to upgrade websocket connection"), "")
 		return
 	}
 

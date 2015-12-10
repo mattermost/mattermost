@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,42 +25,42 @@ type OAuthApp struct {
 
 // IsValid validates the app and returns an error if it isn't configured
 // correctly.
-func (a *OAuthApp) IsValid() *AppError {
+func (a *OAuthApp) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(a.Id) != 26 {
-		return NewAppError("OAuthApp.IsValid", "Invalid app id", "")
+		return NewAppError("OAuthApp.IsValid", T("Invalid app id"), "")
 	}
 
 	if a.CreateAt == 0 {
-		return NewAppError("OAuthApp.IsValid", "Create at must be a valid time", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Create at must be a valid time"), "app_id="+a.Id)
 	}
 
 	if a.UpdateAt == 0 {
-		return NewAppError("OAuthApp.IsValid", "Update at must be a valid time", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Update at must be a valid time"), "app_id="+a.Id)
 	}
 
 	if len(a.CreatorId) != 26 {
-		return NewAppError("OAuthApp.IsValid", "Invalid creator id", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Invalid creator id"), "app_id="+a.Id)
 	}
 
 	if len(a.ClientSecret) == 0 || len(a.ClientSecret) > 128 {
-		return NewAppError("OAuthApp.IsValid", "Invalid client secret", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Invalid client secret"), "app_id="+a.Id)
 	}
 
 	if len(a.Name) == 0 || len(a.Name) > 64 {
-		return NewAppError("OAuthApp.IsValid", "Invalid name", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Invalid name"), "app_id="+a.Id)
 	}
 
 	if len(a.CallbackUrls) == 0 || len(fmt.Sprintf("%s", a.CallbackUrls)) > 1024 {
-		return NewAppError("OAuthApp.IsValid", "Invalid callback urls", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Invalid callback urls"), "app_id="+a.Id)
 	}
 
 	if len(a.Homepage) == 0 || len(a.Homepage) > 256 {
-		return NewAppError("OAuthApp.IsValid", "Invalid homepage", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Invalid homepage"), "app_id="+a.Id)
 	}
 
 	if utf8.RuneCountInString(a.Description) > 512 {
-		return NewAppError("OAuthApp.IsValid", "Invalid description", "app_id="+a.Id)
+		return NewAppError("OAuthApp.IsValid", T("Invalid description"), "app_id="+a.Id)
 	}
 
 	return nil

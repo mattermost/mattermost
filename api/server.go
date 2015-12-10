@@ -8,6 +8,7 @@ import (
 	"github.com/braintree/manners"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/i18n"
 	"github.com/mattermost/platform/utils"
 	"gopkg.in/throttled/throttled.v1"
 	throttledStore "gopkg.in/throttled/throttled.v1/store"
@@ -22,10 +23,11 @@ type Server struct {
 }
 
 var Srv *Server
+var T = i18n.TranslateFunc
 
 func NewServer() {
-
-	l4g.Info("Server is initializing...")
+	T = i18n.GetSystemLanguage()
+	l4g.Info(T("Server is initializing..."))
 
 	Srv = &Server{}
 	Srv.Store = store.NewSqlStore()
@@ -35,13 +37,13 @@ func NewServer() {
 }
 
 func StartServer() {
-	l4g.Info("Starting Server...")
-	l4g.Info("Server is listening on " + utils.Cfg.ServiceSettings.ListenAddress)
+	l4g.Info(T("Starting Server..."))
+	l4g.Info(T("Server is listening on ") + utils.Cfg.ServiceSettings.ListenAddress)
 
 	var handler http.Handler = Srv.Router
 
 	if utils.Cfg.RateLimitSettings.EnableRateLimiter {
-		l4g.Info("RateLimiter is enabled")
+		l4g.Info(T("RateLimiter is enabled"))
 
 		vary := throttled.VaryBy{}
 
@@ -53,7 +55,7 @@ func StartServer() {
 			vary.Headers = strings.Fields(utils.Cfg.RateLimitSettings.VaryByHeader)
 
 			if utils.Cfg.RateLimitSettings.VaryByRemoteAddr {
-				l4g.Warn("RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr")
+				l4g.Warn(T("RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr"))
 				vary.RemoteAddr = false
 			}
 		}
@@ -71,20 +73,20 @@ func StartServer() {
 	go func() {
 		err := manners.ListenAndServe(utils.Cfg.ServiceSettings.ListenAddress, handler)
 		if err != nil {
-			l4g.Critical("Error starting server, err:%v", err)
+			l4g.Critical(T("Error starting server, err:%v"), err)
 			time.Sleep(time.Second)
-			panic("Error starting server " + err.Error())
+			panic(T("Error starting server ") + err.Error())
 		}
 	}()
 }
 
 func StopServer() {
 
-	l4g.Info("Stopping Server...")
+	l4g.Info(T("Stopping Server..."))
 
 	manners.Close()
 	Srv.Store.Close()
 	hub.Stop()
 
-	l4g.Info("Server stopped")
+	l4g.Info(T("Server stopped"))
 }

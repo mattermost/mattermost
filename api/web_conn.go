@@ -8,7 +8,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/i18n"
 	"time"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -29,8 +31,9 @@ type WebConn struct {
 
 func NewWebConn(ws *websocket.Conn, teamId string, userId string, sessionId string) *WebConn {
 	go func() {
-		achan := Srv.Store.User().UpdateUserAndSessionActivity(userId, sessionId, model.GetMillis())
-		pchan := Srv.Store.User().UpdateLastPingAt(userId, model.GetMillis())
+		T := i18n.GetSystemLanguage()
+		achan := Srv.Store.User().UpdateUserAndSessionActivity(userId, sessionId, model.GetMillis(), T)
+		pchan := Srv.Store.User().UpdateLastPingAt(userId, model.GetMillis(), T)
 
 		if result := <-achan; result.Err != nil {
 			l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", userId, sessionId, result.Err)
@@ -55,7 +58,8 @@ func (c *WebConn) readPump() {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 
 		go func() {
-			if result := <-Srv.Store.User().UpdateLastPingAt(c.UserId, model.GetMillis()); result.Err != nil {
+			T := i18n.GetSystemLanguage()
+			if result := <-Srv.Store.User().UpdateLastPingAt(c.UserId, model.GetMillis(), T); result.Err != nil {
 				l4g.Error("Failed to updated LastPingAt for user_id=%v, err=%v", c.UserId, result.Err)
 			}
 		}()
@@ -106,8 +110,8 @@ func (c *WebConn) writePump() {
 	}
 }
 
-func (c *WebConn) updateChannelAccessCache(channelId string) bool {
-	allowed := hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.UserId))
+func (c *WebConn) updateChannelAccessCache(channelId string, T goi18n.TranslateFunc) bool {
+	allowed := hasPermissionsToChannel(Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.UserId, T))
 	c.ChannelAccessCache[channelId] = allowed
 
 	return allowed

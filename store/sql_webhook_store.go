@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlWebhookStore struct {
@@ -43,7 +44,7 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_team_id", "OutgoingWebhooks", "TeamId")
 }
 
-func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChannel {
+func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -51,21 +52,21 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChann
 
 		if len(webhook.Id) > 0 {
 			result.Err = model.NewAppError("SqlWebhookStore.SaveIncoming",
-				"You cannot overwrite an existing IncomingWebhook", "id="+webhook.Id)
+				T("You cannot overwrite an existing IncomingWebhook"), "id="+webhook.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		webhook.PreSave()
-		if result.Err = webhook.IsValid(); result.Err != nil {
+		if result.Err = webhook.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if err := s.GetMaster().Insert(webhook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveIncoming", "We couldn't save the IncomingWebhook", "id="+webhook.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlWebhookStore.SaveIncoming", T("We couldn't save the IncomingWebhook"), "id="+webhook.Id+", "+err.Error())
 		} else {
 			result.Data = webhook
 		}
@@ -77,7 +78,7 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
+func (s SqlWebhookStore) GetIncoming(id string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -86,7 +87,7 @@ func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
 		var webhook model.IncomingWebhook
 
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetIncoming", "We couldn't get the webhook", "id="+id+", err="+err.Error())
+			result.Err = model.NewAppError("SqlWebhookStore.GetIncoming", T("We couldn't get the webhook"), "id="+id+", err="+err.Error())
 		}
 
 		result.Data = &webhook
@@ -98,7 +99,7 @@ func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChannel {
+func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -106,7 +107,7 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChann
 
 		_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncoming", "We couldn't delete the webhook", "id="+webhookId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncoming", T("We couldn't delete the webhook"), "id="+webhookId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -116,7 +117,7 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChannel {
+func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -134,7 +135,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -143,7 +144,7 @@ func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
 		var webhooks []*model.IncomingWebhook
 
 		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByUser", "We couldn't get the webhook", "userId="+userId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByUser", T("We couldn't get the webhook"), "userId="+userId+", err="+err.Error())
 		}
 
 		result.Data = webhooks
@@ -155,7 +156,7 @@ func (s SqlWebhookStore) GetIncomingByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByChannel(channelId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingByChannel(channelId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -176,7 +177,7 @@ func (s SqlWebhookStore) GetIncomingByChannel(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel {
+func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -210,7 +211,7 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoing(id string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -231,7 +232,7 @@ func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByCreator(userId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByCreator(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -252,7 +253,7 @@ func (s SqlWebhookStore) GetOutgoingByCreator(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -273,7 +274,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -294,7 +295,7 @@ func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChannel {
+func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -312,7 +313,7 @@ func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChannel {
+func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -330,7 +331,7 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel {
+func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

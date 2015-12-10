@@ -5,6 +5,7 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/i18n"
 	"testing"
 )
 
@@ -36,20 +37,20 @@ func TestIpAddress(t *testing.T) {
 
 func TestContext(t *testing.T) {
 	context := Context{}
-
+	T := i18n.GetSystemLanguage()
 	context.IpAddress = "127.0.0.1"
 	context.Session.UserId = "5"
 
-	if !context.HasPermissionsToUser("5", "") {
+	if !context.HasPermissionsToUser("5", "", T) {
 		t.Fatal("should have permissions")
 	}
 
-	if context.HasPermissionsToUser("6", "") {
+	if context.HasPermissionsToUser("6", "", T) {
 		t.Fatal("shouldn't have permissions")
 	}
 
 	context.Session.Roles = model.ROLE_SYSTEM_ADMIN
-	if !context.HasPermissionsToUser("6", "") {
+	if !context.HasPermissionsToUser("6", "", T) {
 		t.Fatal("should have permissions")
 	}
 

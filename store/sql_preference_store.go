@@ -8,6 +8,7 @@ import (
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type SqlPreferenceStore struct {
@@ -58,7 +59,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) StoreChannel {
+func (s SqlPreferenceStore) Save(preferences *model.Preferences, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -178,7 +179,7 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 	return result
 }
 
-func (s SqlPreferenceStore) Get(userId string, category string, name string) StoreChannel {
+func (s SqlPreferenceStore) Get(userId string, category string, name string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -207,7 +208,7 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) Sto
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreChannel {
+func (s SqlPreferenceStore) GetCategory(userId string, category string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -235,7 +236,7 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) StoreCha
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
+func (s SqlPreferenceStore) GetAll(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -262,7 +263,7 @@ func (s SqlPreferenceStore) GetAll(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) StoreChannel {
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

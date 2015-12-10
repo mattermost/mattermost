@@ -11,6 +11,8 @@ import (
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
@@ -59,7 +61,7 @@ const (
 var fileInfoCache *utils.Cache = utils.NewLru(1000)
 
 func InitFile(r *mux.Router) {
-	l4g.Debug("Initializing file api routes")
+	l4g.Debug(T("Initializing file api routes"))
 
 	sr := r.PathPrefix("/files").Subrouter()
 	sr.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
@@ -70,8 +72,9 @@ func InitFile(r *mux.Router) {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("uploadFile", "Unable to upload file. Image storage is not configured.", "")
+		c.Err = model.NewAppError("uploadFile", T("Unable to upload file. Image storage is not configured."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -96,7 +99,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId, T)
 
 	files := m.File["files"]
 
@@ -108,7 +111,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	imageNameList := []string{}
 	imageDataList := [][]byte{}
 
-	if !c.HasPermissionsToChannel(cchan, "uploadFile") {
+	if !c.HasPermissionsToChannel(cchan, "uploadFile", T) {
 		return
 	}
 
@@ -144,7 +147,7 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + c.Session.UserId + "/" + uid + "/" + filename
 
-		if err := writeFile(buf.Bytes(), path); err != nil {
+		if err := writeFile(buf.Bytes(), path, T); err != nil {
 			c.Err = err
 			return
 		}
@@ -159,12 +162,12 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		resStruct.ClientIds = append(resStruct.ClientIds, clientId)
 	}
 
-	handleImagesAndForget(imageNameList, imageDataList, c.Session.TeamId, channelId, c.Session.UserId)
+	handleImagesAndForget(imageNameList, imageDataList, c.Session.TeamId, channelId, c.Session.UserId, T)
 
 	w.Write([]byte(resStruct.ToJson()))
 }
 
-func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channelId, userId string) {
+func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channelId, userId string, T goi18n.TranslateFunc) {
 
 	go func() {
 		dest := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/"
@@ -232,7 +235,7 @@ func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channe
 						return
 					}
 
-					if err := writeFile(buf.Bytes(), dest+name+"_thumb.jpg"); err != nil {
+					if err := writeFile(buf.Bytes(), dest+name+"_thumb.jpg", T); err != nil {
 						l4g.Error("Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
 						return
 					}
@@ -255,7 +258,7 @@ func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channe
 						return
 					}
 
-					if err := writeFile(buf.Bytes(), dest+name+"_preview.jpg"); err != nil {
+					if err := writeFile(buf.Bytes(), dest+name+"_preview.jpg", T); err != nil {
 						l4g.Error("Unable to upload preview channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
 						return
 					}
@@ -288,8 +291,9 @@ type ImageGetResult struct {
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("uploadFile", "Unable to get file info. Image storage is not configured.", "")
+		c.Err = model.NewAppError("uploadFile", T("Unable to get file info. Image storage is not configured."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -314,7 +318,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId, T)
 
 	path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 	size := ""
@@ -324,12 +328,12 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		fileData := make(chan []byte)
-		getFileAndForget(path, fileData)
+		getFileAndForget(path, fileData, T)
 
 		f := <-fileData
 
 		if f == nil {
-			c.Err = model.NewAppError("getFileInfo", "Could not find file.", "path="+path)
+			c.Err = model.NewAppError("getFileInfo", T("Could not find file."), "path="+path)
 			c.Err.StatusCode = http.StatusNotFound
 			return
 		}
@@ -338,7 +342,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		fileInfoCache.Add(path, size)
 	}
 
-	if !c.HasPermissionsToChannel(cchan, "getFileInfo") {
+	if !c.HasPermissionsToChannel(cchan, "getFileInfo", T) {
 		return
 	}
 
@@ -360,8 +364,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("uploadFile", "Unable to get file. Image storage is not configured.", "")
+		c.Err = model.NewAppError("uploadFile", T("Unable to get file. Image storage is not configured."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -390,7 +395,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := r.URL.Query().Get("d")
 	teamId := r.URL.Query().Get("t")
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId, T)
 
 	path := ""
 	if len(teamId) == 26 {
@@ -400,28 +405,28 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := make(chan []byte)
-	getFileAndForget(path, fileData)
+	getFileAndForget(path, fileData, T)
 
 	if len(hash) > 0 && len(data) > 0 && len(teamId) == 26 {
 		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.FileSettings.PublicLinkSalt)) {
-			c.Err = model.NewAppError("getFile", "The public link does not appear to be valid", "")
+			c.Err = model.NewAppError("getFile", T("The public link does not appear to be valid"), "")
 			return
 		}
 		props := model.MapFromJson(strings.NewReader(data))
 
 		t, err := strconv.ParseInt(props["time"], 10, 64)
 		if err != nil || model.GetMillis()-t > 1000*60*60*24*7 { // one week
-			c.Err = model.NewAppError("getFile", "The public link has expired", "")
+			c.Err = model.NewAppError("getFile", T("The public link has expired"), "")
 			return
 		}
-	} else if !c.HasPermissionsToChannel(cchan, "getFile") {
+	} else if !c.HasPermissionsToChannel(cchan, "getFile", T) {
 		return
 	}
 
 	f := <-fileData
 
 	if f == nil {
-		c.Err = model.NewAppError("getFile", "Could not find file.", "path="+path)
+		c.Err = model.NewAppError("getFile", T("Could not find file."), "path="+path)
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
@@ -445,9 +450,9 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(f)
 }
 
-func getFileAndForget(path string, fileData chan []byte) {
+func getFileAndForget(path string, fileData chan []byte, T goi18n.TranslateFunc) {
 	go func() {
-		data, getErr := readFile(path)
+		data, getErr := readFile(path, T)
 		if getErr != nil {
 			l4g.Error(getErr)
 			fileData <- nil
@@ -458,14 +463,15 @@ func getFileAndForget(path string, fileData chan []byte) {
 }
 
 func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("uploadFile", "Unable to get link. Image storage is not configured.", "")
+		c.Err = model.NewAppError("uploadFile", T("Unable to get link. Image storage is not configured."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
 
 	if !utils.Cfg.FileSettings.EnablePublicLink {
-		c.Err = model.NewAppError("getPublicLink", "Public links have been disabled", "")
+		c.Err = model.NewAppError("getPublicLink", T("Public links have been disabled"), "")
 		c.Err.StatusCode = http.StatusForbidden
 	}
 
@@ -487,7 +493,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := matches[0][2]
 	filename = matches[0][3]
 
-	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId, T)
 
 	newProps := make(map[string]string)
 	newProps["filename"] = filename
@@ -498,7 +504,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	url := fmt.Sprintf("%s/api/v1/files/get/%s/%s/%s?d=%s&h=%s&t=%s", c.GetSiteURL(), channelId, userId, filename, url.QueryEscape(data), url.QueryEscape(hash), c.Session.TeamId)
 
-	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
+	if !c.HasPermissionsToChannel(cchan, "getPublicLink", T) {
 		return
 	}
 
@@ -509,14 +515,15 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.HasPermissionsToTeam(c.Session.TeamId, "export") || !c.IsTeamAdmin() {
-		c.Err = model.NewAppError("getExport", "Only a team admin can retrieve exported data.", "userId="+c.Session.UserId)
+	T := i18n.Language(w, r)
+	if !c.HasPermissionsToTeam(c.Session.TeamId, "export", T) || !c.IsTeamAdmin() {
+		c.Err = model.NewAppError("getExport", T("Only a team admin can retrieve exported data."), "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
-	data, err := readFile(EXPORT_PATH + EXPORT_FILENAME)
+	data, err := readFile(EXPORT_PATH + EXPORT_FILENAME, T)
 	if err != nil {
-		c.Err = model.NewAppError("getExport", "Unable to retrieve exported file. Please re-export", err.Error())
+		c.Err = model.NewAppError("getExport", T("Unable to retrieve exported file. Please re-export"), err.Error())
 		return
 	}
 
@@ -525,7 +532,7 @@ func getExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func writeFile(f []byte, path string) *model.AppError {
+func writeFile(f []byte, path string, T goi18n.TranslateFunc) *model.AppError {
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		var auth aws.Auth
@@ -548,24 +555,24 @@ func writeFile(f []byte, path string) *model.AppError {
 		}
 
 		if err != nil {
-			return model.NewAppError("writeFile", "Encountered an error writing to S3", err.Error())
+			return model.NewAppError("writeFile", T("Encountered an error writing to S3"), err.Error())
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+path), 0774); err != nil {
-			return model.NewAppError("writeFile", "Encountered an error creating the directory for the new file", err.Error())
+			return model.NewAppError("writeFile", T("Encountered an error creating the directory for the new file"), err.Error())
 		}
 
 		if err := ioutil.WriteFile(utils.Cfg.FileSettings.Directory+path, f, 0644); err != nil {
-			return model.NewAppError("writeFile", "Encountered an error writing to local server storage", err.Error())
+			return model.NewAppError("writeFile", T("Encountered an error writing to local server storage"), err.Error())
 		}
 	} else {
-		return model.NewAppError("writeFile", "File storage not configured properly. Please configure for either S3 or local server file storage.", "")
+		return model.NewAppError("writeFile", T("File storage not configured properly. Please configure for either S3 or local server file storage."), "")
 	}
 
 	return nil
 }
 
-func readFile(path string) ([]byte, *model.AppError) {
+func readFile(path string, T goi18n.TranslateFunc) ([]byte, *model.AppError) {
 
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		var auth aws.Auth
@@ -585,31 +592,31 @@ func readFile(path string) ([]byte, *model.AppError) {
 			if f != nil {
 				return f, nil
 			} else if tries >= 3 {
-				return nil, model.NewAppError("readFile", "Unable to get file from S3", "path="+path+", err="+err.Error())
+				return nil, model.NewAppError("readFile", T("Unable to get file from S3"), "path="+path+", err="+err.Error())
 			}
 			time.Sleep(3000 * time.Millisecond)
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if f, err := ioutil.ReadFile(utils.Cfg.FileSettings.Directory + path); err != nil {
-			return nil, model.NewAppError("readFile", "Encountered an error reading from local server storage", err.Error())
+			return nil, model.NewAppError("readFile", T("Encountered an error reading from local server storage"), err.Error())
 		} else {
 			return f, nil
 		}
 	} else {
-		return nil, model.NewAppError("readFile", "File storage not configured properly. Please configure for either S3 or local server file storage.", "")
+		return nil, model.NewAppError("readFile", T("File storage not configured properly. Please configure for either S3 or local server file storage."), "")
 	}
 }
 
-func openFileWriteStream(path string) (io.Writer, *model.AppError) {
+func openFileWriteStream(path string, T goi18n.TranslateFunc) (io.Writer, *model.AppError) {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		return nil, model.NewAppError("openFileWriteStream", "S3 is not supported.", "")
+		return nil, model.NewAppError("openFileWriteStream", T("S3 is not supported."), "")
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+path), 0774); err != nil {
-			return nil, model.NewAppError("openFileWriteStream", "Encountered an error creating the directory for the new file", err.Error())
+			return nil, model.NewAppError("openFileWriteStream", T("Encountered an error creating the directory for the new file"), err.Error())
 		}
 
 		if fileHandle, err := os.Create(utils.Cfg.FileSettings.Directory + path); err != nil {
-			return nil, model.NewAppError("openFileWriteStream", "Encountered an error writing to local server storage", err.Error())
+			return nil, model.NewAppError("openFileWriteStream", T("Encountered an error writing to local server storage"), err.Error())
 		} else {
 			fileHandle.Chmod(0644)
 			return fileHandle, nil
@@ -617,7 +624,7 @@ func openFileWriteStream(path string) (io.Writer, *model.AppError) {
 
 	}
 
-	return nil, model.NewAppError("openFileWriteStream", "File storage not configured properly. Please configure for either S3 or local server file storage.", "")
+	return nil, model.NewAppError("openFileWriteStream", T("File storage not configured properly. Please configure for either S3 or local server file storage."), "")
 }
 
 func closeFileWriteStream(file io.Writer) {

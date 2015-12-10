@@ -47,7 +47,7 @@ func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, bool) {
 		Name:        name,
 		Type:        cfg.ChannelType}
 
-	result, err := cfg.client.CreateChannel(channel)
+	result, err := cfg.client.CreateChannel(channel, T)
 	if err != nil {
 		return nil, false
 	}

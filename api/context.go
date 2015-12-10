@@ -15,6 +15,8 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
@@ -27,6 +29,7 @@ type Context struct {
 	Err               *model.AppError
 	teamURLValid      bool
 	teamURL           string
+	teamName	 	  string
 	siteURL           string
 	SessionTokenIndex int64
 }
@@ -80,7 +83,7 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	T := i18n.Language(w, r)
 	l4g.Debug("%v", r.URL.Path)
 
 	c := &Context{}
@@ -149,6 +152,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
 
+	// Allow Cors
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -159,14 +165,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session := GetSession(token)
+		session := GetSession(token, T)
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w, r)
-			c.Err = model.NewAppError("ServeHTTP", "Invalid or expired session, please login again.", "token="+token)
+			c.Err = model.NewAppError("ServeHTTP", T("Invalid or expired session, please login again."), "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else if !session.IsOAuth && isTokenFromQueryString {
-			c.Err = model.NewAppError("ServeHTTP", "Session is not OAuth but token was provided in the query string", "token="+token)
+			c.Err = model.NewAppError("ServeHTTP", T("Session is not OAuth but token was provided in the query string"), "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
 			c.Session = *session
@@ -178,21 +184,21 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Path = r.URL.Path
 	} else {
 		splitURL := strings.Split(r.URL.Path, "/")
-		c.setTeamURL(protocol+"://"+r.Host+"/"+splitURL[1], true)
+		c.setTeamURL(protocol+"://"+r.Host+"/"+splitURL[1]+"/", true)
 		c.Path = "/" + strings.Join(splitURL[2:], "/")
 	}
 
 	if c.Err == nil && h.requireUser {
-		c.UserRequired()
+		c.UserRequired(T)
 	}
 
 	if c.Err == nil && h.requireSystemAdmin {
-		c.SystemAdminRequired()
+		c.SystemAdminRequired(T)
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
 		go func() {
-			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis())).Err; err != nil {
+			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis(), T)).Err; err != nil {
 				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, c.Session.Id, err)
 			}
 		}()
@@ -212,7 +218,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
-				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
+				http.Redirect(w, r, c.GetTeamURL(T)+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 			} else {
 				RenderWebError(c.Err, w, r)
 			}
@@ -228,21 +234,21 @@ func GetProtocol(r *http.Request) string {
 	}
 }
 
-func (c *Context) LogAudit(extraInfo string) {
+func (c *Context) LogAudit(extraInfo string, T goi18n.TranslateFunc) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-Srv.Store.Audit().Save(audit, T); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
 
-func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
+func (c *Context) LogAuditWithUserId(userId, extraInfo string, T goi18n.TranslateFunc) {
 
 	if len(c.Session.UserId) > 0 {
 		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.Session.UserId)
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-Srv.Store.Audit().Save(audit, T); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -252,27 +258,27 @@ func (c *Context) LogError(err *model.AppError) {
 		c.RequestId, c.Session.UserId, c.IpAddress, err.Message, err.DetailedError)
 }
 
-func (c *Context) UserRequired() {
+func (c *Context) UserRequired(T goi18n.TranslateFunc) {
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewAppError("", "Invalid or expired session, please login again.", "UserRequired")
+		c.Err = model.NewAppError("", T("Invalid or expired session, please login again."), "UserRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	}
 }
 
-func (c *Context) SystemAdminRequired() {
+func (c *Context) SystemAdminRequired(T goi18n.TranslateFunc) {
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewAppError("", "Invalid or expired session, please login again.", "SystemAdminRequired")
+		c.Err = model.NewAppError("", T("Invalid or expired session, please login again."), "SystemAdminRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
 	} else if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("", "You do not have the appropriate permissions", "AdminRequired")
+		c.Err = model.NewAppError("", T("You do not have the appropriate permissions"), "AdminRequired")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 }
 
-func (c *Context) HasPermissionsToUser(userId string, where string) bool {
+func (c *Context) HasPermissionsToUser(userId string, where string, T goi18n.TranslateFunc) bool {
 
 	// You are the user
 	if c.Session.UserId == userId {
@@ -284,12 +290,12 @@ func (c *Context) HasPermissionsToUser(userId string, where string) bool {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+userId)
+	c.Err = model.NewAppError(where, T("You do not have the appropriate permissions"), "userId="+userId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
 
-func (c *Context) HasPermissionsToTeam(teamId string, where string) bool {
+func (c *Context) HasPermissionsToTeam(teamId string, where string, T goi18n.TranslateFunc) bool {
 	if c.Session.TeamId == teamId {
 		return true
 	}
@@ -299,17 +305,17 @@ func (c *Context) HasPermissionsToTeam(teamId string, where string) bool {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+c.Session.UserId+", teamId="+teamId)
+	c.Err = model.NewAppError(where, T("You do not have the appropriate permissions"), "userId="+c.Session.UserId+", teamId="+teamId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
 
-func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) bool {
+func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string, T goi18n.TranslateFunc) bool {
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
 		return false
 	} else if cresult.Data.(int64) != 1 {
-		c.Err = model.NewAppError(where, "You do not have the appropriate permissions", "userId="+c.Session.UserId)
+		c.Err = model.NewAppError(where, T("You do not have the appropriate permissions"), "userId="+c.Session.UserId)
 		c.Err.StatusCode = http.StatusForbidden
 		return false
 	}
@@ -317,12 +323,12 @@ func (c *Context) HasPermissionsToChannel(sc store.StoreChannel, where string) b
 	return true
 }
 
-func (c *Context) HasSystemAdminPermissions(where string) bool {
+func (c *Context) HasSystemAdminPermissions(where string, T goi18n.TranslateFunc) bool {
 	if c.IsSystemAdmin() {
 		return true
 	}
 
-	c.Err = model.NewAppError(where, "You do not have the appropriate permissions (system)", "userId="+c.Session.UserId)
+	c.Err = model.NewAppError(where, T("You do not have the appropriate permissions") + " (system)", "userId="+c.Session.UserId)
 	c.Err.StatusCode = http.StatusForbidden
 	return false
 }
@@ -374,8 +380,8 @@ func (c *Context) SetInvalidParam(where string, name string) {
 	c.Err.StatusCode = http.StatusBadRequest
 }
 
-func (c *Context) SetUnknownError(where string, details string) {
-	c.Err = model.NewAppError(where, "An unknown error has occured. Please contact support.", details)
+func (c *Context) SetUnknownError(where string, details string, T goi18n.TranslateFunc) {
+	c.Err = model.NewAppError(where, T("An unknown error has occured. Please contact support."), details)
 }
 
 func (c *Context) setTeamURL(url string, valid bool) {
@@ -383,9 +389,11 @@ func (c *Context) setTeamURL(url string, valid bool) {
 	c.teamURLValid = valid
 }
 
-func (c *Context) SetTeamURLFromSession() {
-	if result := <-Srv.Store.Team().Get(c.Session.TeamId); result.Err == nil {
-		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
+func (c *Context) SetTeamURLFromSession(T goi18n.TranslateFunc) {
+	if result := <-Srv.Store.Team().Get(c.Session.TeamId, T); result.Err == nil {
+		name := result.Data.(*model.Team).Name
+		c.setTeamURL(c.GetSiteURL()+"/"+name+"/", true)
+		c.teamName = name
 	}
 }
 
@@ -397,14 +405,18 @@ func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
 	return c.GetSiteURL() + "/" + team.Name
 }
 
-func (c *Context) GetTeamURL() string {
+func (c *Context) GetTeamURL(T goi18n.TranslateFunc) string {
 	if !c.teamURLValid {
-		c.SetTeamURLFromSession()
+		c.SetTeamURLFromSession(T)
 		if !c.teamURLValid {
-			l4g.Debug("TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent")
+			l4g.Debug(T("TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent"))
 		}
 	}
 	return c.teamURL
+}
+
+func (c *Context) GetTeamName() string {
+	return c.teamName
 }
 
 func (c *Context) GetSiteURL() string {
@@ -490,6 +502,7 @@ func IsPrivateIpAddress(ipAddress string) bool {
 }
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	props := make(map[string]string)
 	props["Message"] = err.Message
 	props["Details"] = err.DetailedError
@@ -502,24 +515,25 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(err.StatusCode)
-	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientCfg: utils.ClientCfg})
+	ServerTemplates.ExecuteTemplate(w, T("error.html"), Page{Props: props, ClientCfg: utils.ClientCfg})
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "Sorry, we could not find the page.", "")
+	T := i18n.Language(w, r)
+	err := model.NewAppError("Handle404", T("Sorry, we could not find the page."), "")
 	err.StatusCode = http.StatusNotFound
 	l4g.Error("%v: code=404 ip=%v", r.URL.Path, GetIpAddress(r))
 	RenderWebError(err, w, r)
 }
 
-func GetSession(token string) *model.Session {
+func GetSession(token string, T goi18n.TranslateFunc) *model.Session {
 	var session *model.Session
 	if ts, ok := sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 	}
 
 	if session == nil {
-		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
+		if sessionResult := <-Srv.Store.Session().Get(token, T); sessionResult.Err != nil {
 			l4g.Error("Invalid session token=" + token + ", err=" + sessionResult.Err.DetailedError)
 		} else {
 			session = sessionResult.Data.(*model.Session)
@@ -541,9 +555,9 @@ func GetMultiSessionCookieTokens(r *http.Request) []string {
 	return []string{}
 }
 
-func FindMultiSessionForTeamId(r *http.Request, teamId string) (int64, *model.Session) {
+func FindMultiSessionForTeamId(r *http.Request, teamId string, T goi18n.TranslateFunc) (int64, *model.Session) {
 	for index, token := range GetMultiSessionCookieTokens(r) {
-		s := GetSession(token)
+		s := GetSession(token, T)
 		if s != nil && !s.IsExpired() && s.TeamId == teamId {
 			return int64(index), s
 		}

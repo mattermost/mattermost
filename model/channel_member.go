@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 	"strings"
@@ -50,30 +51,30 @@ func ChannelMemberFromJson(data io.Reader) *ChannelMember {
 	}
 }
 
-func (o *ChannelMember) IsValid() *AppError {
+func (o *ChannelMember) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(o.ChannelId) != 26 {
-		return NewAppError("ChannelMember.IsValid", "Invalid channel id", "")
+		return NewAppError("ChannelMember.IsValid", T("Invalid channel id"), "")
 	}
 
 	if len(o.UserId) != 26 {
-		return NewAppError("ChannelMember.IsValid", "Invalid user id", "")
+		return NewAppError("ChannelMember.IsValid", T("Invalid user id"), "")
 	}
 
 	for _, role := range strings.Split(o.Roles, " ") {
 		if !(role == "" || role == CHANNEL_ROLE_ADMIN) {
-			return NewAppError("ChannelMember.IsValid", "Invalid role", "role="+role)
+			return NewAppError("ChannelMember.IsValid", T("Invalid role"), "role="+role)
 		}
 	}
 
 	notifyLevel := o.NotifyProps["desktop"]
 	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
-		return NewAppError("ChannelMember.IsValid", "Invalid notify level", "notify_level="+notifyLevel)
+		return NewAppError("ChannelMember.IsValid", T("Invalid notify level"), "notify_level="+notifyLevel)
 	}
 
 	markUnreadLevel := o.NotifyProps["mark_unread"]
 	if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
-		return NewAppError("ChannelMember.IsValid", "Invalid mark unread level", "mark_unread_level="+markUnreadLevel)
+		return NewAppError("ChannelMember.IsValid", T("Invalid mark unread level"), "mark_unread_level="+markUnreadLevel)
 	}
 
 	return nil

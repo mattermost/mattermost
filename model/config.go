@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 )
@@ -20,6 +21,7 @@ const (
 	DATABASE_DRIVER_POSTGRES = "postgres"
 
 	SERVICE_GITLAB = "gitlab"
+	SERVICE_ZBOX = "zbox"
 )
 
 type ServiceSettings struct {
@@ -133,6 +135,7 @@ type Config struct {
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
 	GitLabSettings    SSOSettings
+	ZBoxSettings	  SSOSettings
 }
 
 func (o *Config) ToJson() string {
@@ -145,8 +148,11 @@ func (o *Config) ToJson() string {
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
-	if service == SERVICE_GITLAB {
-		return &o.GitLabSettings
+	switch service {
+		case SERVICE_GITLAB:
+			return &o.GitLabSettings
+		case SERVICE_ZBOX:
+			return &o.ZBoxSettings
 	}
 
 	return nil
@@ -191,18 +197,18 @@ func (o *Config) SetDefaults() {
 
 }
 
-func (o *Config) IsValid() *AppError {
+func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if o.ServiceSettings.MaximumLoginAttempts <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum login attempts for service settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid maximum login attempts for service settings.  Must be a positive number."), "")
 	}
 
 	if len(o.ServiceSettings.ListenAddress) == 0 {
-		return NewAppError("Config.IsValid", "Invalid listen address for service settings Must be set.", "")
+		return NewAppError("Config.IsValid", T("Invalid listen address for service settings Must be set."), "")
 	}
 
 	if o.TeamSettings.MaxUsersPerTeam <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum users per team for team settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid maximum users per team for team settings.  Must be a positive number."), "")
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
@@ -210,47 +216,47 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if !(o.SqlSettings.DriverName == DATABASE_DRIVER_MYSQL || o.SqlSettings.DriverName == DATABASE_DRIVER_POSTGRES) {
-		return NewAppError("Config.IsValid", "Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'", "")
+		return NewAppError("Config.IsValid", T("Invalid driver name for SQL settings.  Must be 'mysql' or 'postgres'"), "")
 	}
 
 	if o.SqlSettings.MaxIdleConns <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum idle connection for SQL settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid maximum idle connection for SQL settings.  Must be a positive number."), "")
 	}
 
 	if len(o.SqlSettings.DataSource) == 0 {
-		return NewAppError("Config.IsValid", "Invalid data source for SQL settings.  Must be set.", "")
+		return NewAppError("Config.IsValid", T("Invalid data source for SQL settings.  Must be set."), "")
 	}
 
 	if o.SqlSettings.MaxOpenConns <= 0 {
-		return NewAppError("Config.IsValid", "Invalid maximum open connection for SQL settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid maximum open connection for SQL settings.  Must be a positive number."), "")
 	}
 
 	if !(o.FileSettings.DriverName == IMAGE_DRIVER_LOCAL || o.FileSettings.DriverName == IMAGE_DRIVER_S3) {
-		return NewAppError("Config.IsValid", "Invalid driver name for file settings.  Must be 'local' or 'amazons3'", "")
+		return NewAppError("Config.IsValid", T("Invalid driver name for file settings.  Must be 'local' or 'amazons3'"), "")
 	}
 
 	if o.FileSettings.PreviewHeight < 0 {
-		return NewAppError("Config.IsValid", "Invalid preview height for file settings.  Must be a zero or positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid preview height for file settings.  Must be a zero or positive number."), "")
 	}
 
 	if o.FileSettings.PreviewWidth <= 0 {
-		return NewAppError("Config.IsValid", "Invalid preview width for file settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid preview width for file settings.  Must be a positive number."), "")
 	}
 
 	if o.FileSettings.ProfileHeight <= 0 {
-		return NewAppError("Config.IsValid", "Invalid profile height for file settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid profile height for file settings.  Must be a positive number."), "")
 	}
 
 	if o.FileSettings.ProfileWidth <= 0 {
-		return NewAppError("Config.IsValid", "Invalid profile width for file settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid profile width for file settings.  Must be a positive number."), "")
 	}
 
 	if o.FileSettings.ThumbnailHeight <= 0 {
-		return NewAppError("Config.IsValid", "Invalid thumbnail height for file settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid thumbnail height for file settings.  Must be a positive number."), "")
 	}
 
 	if o.FileSettings.ThumbnailHeight <= 0 {
-		return NewAppError("Config.IsValid", "Invalid thumbnail width for file settings.  Must be a positive number.", "")
+		return NewAppError("Config.IsValid", T("Invalid thumbnail width for file settings.  Must be a positive number."), "")
 	}
 
 	if len(o.FileSettings.PublicLinkSalt) < 32 {
@@ -258,7 +264,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
-		return NewAppError("Config.IsValid", "Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'", "")
+		return NewAppError("Config.IsValid", T("Invalid connection security for email settings.  Must be '', 'TLS', or 'STARTTLS'"), "")
 	}
 
 	if len(o.EmailSettings.InviteSalt) < 32 {
@@ -270,11 +276,11 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {
-		return NewAppError("Config.IsValid", "Invalid memory store size for rate limit settings.  Must be a positive number", "")
+		return NewAppError("Config.IsValid", T("Invalid memory store size for rate limit settings.  Must be a positive number"), "")
 	}
 
 	if o.RateLimitSettings.PerSec <= 0 {
-		return NewAppError("Config.IsValid", "Invalid per sec for rate limit settings.  Must be a positive number", "")
+		return NewAppError("Config.IsValid", T("Invalid per sec for rate limit settings.  Must be a positive number"), "")
 	}
 
 	return nil

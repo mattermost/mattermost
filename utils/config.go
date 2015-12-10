@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	l4g "code.google.com/p/log4go"
 
 	"github.com/mattermost/platform/model"
@@ -113,15 +113,15 @@ func GetLogFileLocation(fileLocation string) string {
 	}
 }
 
-func SaveConfig(fileName string, config *model.Config) *model.AppError {
+func SaveConfig(fileName string, config *model.Config, T goi18n.TranslateFunc) *model.AppError {
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
-		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+		return model.NewAppError("SaveConfig", T("An error occurred while saving the file to ")+fileName, err.Error())
 	}
 
 	err = ioutil.WriteFile(fileName, b, 0644)
 	if err != nil {
-		return model.NewAppError("SaveConfig", "An error occurred while saving the file to "+fileName, err.Error())
+		return model.NewAppError("SaveConfig", T("An error occurred while saving the file to ")+fileName, err.Error())
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
-func LoadConfig(fileName string) {
+func LoadConfig(fileName string, T goi18n.TranslateFunc) {
 
 	fileName = FindConfigFile(fileName)
 
@@ -155,12 +155,12 @@ func LoadConfig(fileName string) {
 
 	config.SetDefaults()
 
-	if err := config.IsValid(); err != nil {
+	if err := config.IsValid(T); err != nil {
 		panic("Error validating config file=" + fileName + ", err=" + err.Message)
 	}
 
 	configureLog(&config.LogSettings)
-	TestConnection(&config)
+	TestConnection(&config, T)
 
 	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory
@@ -201,6 +201,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["FeedbackEmail"] = c.EmailSettings.FeedbackEmail
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
+	props["EnableSignUpWithZBox"] = strconv.FormatBool(c.ZBoxSettings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
 

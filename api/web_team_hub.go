@@ -6,6 +6,7 @@ package api
 import (
 	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type TeamHub struct {
@@ -40,7 +41,7 @@ func (h *TeamHub) Stop() {
 	h.stop <- true
 }
 
-func (h *TeamHub) Start() {
+func (h *TeamHub) Start(T goi18n.TranslateFunc) {
 	go func() {
 		for {
 			select {
@@ -53,7 +54,7 @@ func (h *TeamHub) Start() {
 				}
 			case msg := <-h.broadcast:
 				for webCon := range h.connections {
-					if ShouldSendEvent(webCon, msg) {
+					if ShouldSendEvent(webCon, msg, T) {
 						select {
 						case webCon.Send <- msg:
 						default:
@@ -78,16 +79,16 @@ func (h *TeamHub) Start() {
 	}()
 }
 
-func (h *TeamHub) UpdateChannelAccessCache(userId string, channelId string) {
+func (h *TeamHub) UpdateChannelAccessCache(userId string, channelId string, T goi18n.TranslateFunc) {
 	for webCon := range h.connections {
 		if webCon.UserId == userId {
-			webCon.updateChannelAccessCache(channelId)
+			webCon.updateChannelAccessCache(channelId, T)
 			break
 		}
 	}
 }
 
-func ShouldSendEvent(webCon *WebConn, msg *model.Message) bool {
+func ShouldSendEvent(webCon *WebConn, msg *model.Message, T goi18n.TranslateFunc) bool {
 
 	if webCon.UserId == msg.UserId {
 		// Don't need to tell the user they are typing
@@ -104,7 +105,7 @@ func ShouldSendEvent(webCon *WebConn, msg *model.Message) bool {
 		if len(msg.ChannelId) > 0 {
 			allowed, ok := webCon.ChannelAccessCache[msg.ChannelId]
 			if !ok {
-				allowed = webCon.updateChannelAccessCache(msg.ChannelId)
+				allowed = webCon.updateChannelAccessCache(msg.ChannelId, T)
 			}
 
 			if !allowed {

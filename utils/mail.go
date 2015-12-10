@@ -13,6 +13,7 @@ import (
 	"net/mail"
 	"net/smtp"
 	"time"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 func encodeRFC2047Word(s string) string {
@@ -22,7 +23,7 @@ func encodeRFC2047Word(s string) string {
 	return "=?utf-8?b?" + dst + "?="
 }
 
-func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
+func connectToSMTPServer(config *model.Config, T goi18n.TranslateFunc) (net.Conn, *model.AppError) {
 	var conn net.Conn
 	var err error
 
@@ -34,30 +35,30 @@ func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 
 		conn, err = tls.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort, tlsconfig)
 		if err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+			return nil, model.NewAppError("SendMail", T("Failed to open TLS connection"), err.Error())
 		}
 	} else {
 		conn, err = net.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 		if err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to open connection", err.Error())
+			return nil, model.NewAppError("SendMail", T("Failed to open connection"), err.Error())
 		}
 	}
 
 	return conn, nil
 }
 
-func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
+func newSMTPClient(conn net.Conn, config *model.Config, T goi18n.TranslateFunc) (*smtp.Client, *model.AppError) {
 	c, err := smtp.NewClient(conn, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if err != nil {
-		l4g.Error("Failed to open a connection to SMTP server %v", err)
-		return nil, model.NewAppError("SendMail", "Failed to open TLS connection", err.Error())
+		l4g.Error(T("Failed to open a connection to SMTP server %v"), err)
+		return nil, model.NewAppError("SendMail", T("Failed to open TLS connection"), err.Error())
 	}
 	// GO does not support plain auth over a non encrypted connection.
 	// so if not tls then no auth
 	auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		if err = c.Auth(auth); err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+			return nil, model.NewAppError("SendMail", T("Failed to authenticate on SMTP server"), err.Error())
 		}
 	} else if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
 		tlsconfig := &tls.Config{
@@ -66,38 +67,38 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		}
 		c.StartTLS(tlsconfig)
 		if err = c.Auth(auth); err != nil {
-			return nil, model.NewAppError("SendMail", "Failed to authenticate on SMTP server", err.Error())
+			return nil, model.NewAppError("SendMail", T("Failed to authenticate on SMTP server"), err.Error())
 		}
 	}
 	return c, nil
 }
 
-func TestConnection(config *model.Config) {
+func TestConnection(config *model.Config, T goi18n.TranslateFunc) {
 	if !config.EmailSettings.SendEmailNotifications {
 		return
 	}
 
-	conn, err1 := connectToSMTPServer(config)
+	conn, err1 := connectToSMTPServer(config, T)
 	if err1 != nil {
-		l4g.Error("SMTP server settings do not appear to be configured properly err=%v details=%v", err1.Message, err1.DetailedError)
+		l4g.Error(T("SMTP server settings do not appear to be configured properly err=%v details=%v"), err1.Message, err1.DetailedError)
 		return
 	}
 	defer conn.Close()
 
-	c, err2 := newSMTPClient(conn, config)
+	c, err2 := newSMTPClient(conn, config, T)
 	if err2 != nil {
-		l4g.Error("SMTP connection settings do not appear to be configured properly err=%v details=%v", err2.Message, err2.DetailedError)
+		l4g.Error(T("SMTP connection settings do not appear to be configured properly err=%v details=%v"), err2.Message, err2.DetailedError)
 		return
 	}
 	defer c.Quit()
 	defer c.Close()
 }
 
-func SendMail(to, subject, body string) *model.AppError {
-	return SendMailUsingConfig(to, subject, body, Cfg)
+func SendMail(to, subject, body string, T goi18n.TranslateFunc) *model.AppError {
+	return SendMailUsingConfig(to, subject, body, Cfg, T)
 }
 
-func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.AppError {
+func SendMailUsingConfig(to, subject, body string, config *model.Config, T goi18n.TranslateFunc) *model.AppError {
 
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
@@ -121,13 +122,13 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 	}
 	message += "\r\n<html><body>" + body + "</body></html>"
 
-	conn, err1 := connectToSMTPServer(config)
+	conn, err1 := connectToSMTPServer(config, T)
 	if err1 != nil {
 		return err1
 	}
 	defer conn.Close()
 
-	c, err2 := newSMTPClient(conn, config)
+	c, err2 := newSMTPClient(conn, config, T)
 	if err2 != nil {
 		return err2
 	}
@@ -135,26 +136,26 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 	defer c.Close()
 
 	if err := c.Mail(fromMail.Address); err != nil {
-		return model.NewAppError("SendMail", "Failed to add from email address", err.Error())
+		return model.NewAppError("SendMail", T("Failed to add from email address"), err.Error())
 	}
 
 	if err := c.Rcpt(toMail.Address); err != nil {
-		return model.NewAppError("SendMail", "Failed to add to email address", err.Error())
+		return model.NewAppError("SendMail", T("Failed to add to email address"), err.Error())
 	}
 
 	w, err := c.Data()
 	if err != nil {
-		return model.NewAppError("SendMail", "Failed to add email messsage data", err.Error())
+		return model.NewAppError("SendMail", T("Failed to add email messsage data"), err.Error())
 	}
 
 	_, err = w.Write([]byte(message))
 	if err != nil {
-		return model.NewAppError("SendMail", "Failed to write email message", err.Error())
+		return model.NewAppError("SendMail", T("Failed to write email message"), err.Error())
 	}
 
 	err = w.Close()
 	if err != nil {
-		return model.NewAppError("SendMail", "Failed to close connection to SMTP server", err.Error())
+		return model.NewAppError("SendMail", T("Failed to close connection to SMTP server"), err.Error())
 	}
 
 	return nil

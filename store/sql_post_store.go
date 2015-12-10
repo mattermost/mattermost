@@ -9,8 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "code.google.com/p/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"time"
 )
 
 type SqlPostStore struct {
@@ -38,7 +41,22 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 }
 
 func (s SqlPostStore) UpgradeSchemaIfNeeded() {
-	s.RemoveColumnIfExists("Posts", "ImgCount")                                                                                                                              // remove after 1.3 release
+	s.RemoveColumnIfExists("Posts", "ImgCount") // remove after 1.3 release
+	colType := s.GetColumnDataType("Posts", "Props")
+	if colType != "text" {
+
+		query := "ALTER TABLE Posts MODIFY COLUMN Props TEXT"
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "ALTER TABLE Posts ALTER COLUMN Props TYPE text"
+		}
+
+		_, err := s.GetMaster().Exec(query)
+		if err != nil {
+			l4g.Critical("Failed to alter column Posts.Props to TEXT: " + err.Error())
+			time.Sleep(time.Second)
+			panic("Failed to alter column Posts.Props to TEXT: " + err.Error())
+		}
+	}
 	s.GetMaster().Exec(`UPDATE Preferences SET Type = :NewType WHERE Type = :CurrentType`, map[string]string{"NewType": model.POST_JOIN_LEAVE, "CurrentType": "join_leave"}) // remove after 1.3 release
 }
 
@@ -52,7 +70,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s SqlPostStore) Save(post *model.Post) StoreChannel {
+func (s SqlPostStore) Save(post *model.Post, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -60,21 +78,21 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 
 		if len(post.Id) > 0 {
 			result.Err = model.NewAppError("SqlPostStore.Save",
-				"You cannot update an existing Post", "id="+post.Id)
+				T("You cannot update an existing Post"), "id="+post.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		post.PreSave()
-		if result.Err = post.IsValid(); result.Err != nil {
+		if result.Err = post.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if err := s.GetMaster().Insert(post); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "We couldn't save the Post", "id="+post.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.Save", T("We couldn't save the Post"), "id="+post.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
 
@@ -99,7 +117,7 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags string) StoreChannel {
+func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -115,14 +133,14 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 		oldPost.OriginalId = oldPost.Id
 		oldPost.Id = model.NewId()
 
-		if result.Err = editPost.IsValid(); result.Err != nil {
+		if result.Err = editPost.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if _, err := s.GetMaster().Update(&editPost); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Update", "We couldn't update the Post", "id="+editPost.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.Update", T("We couldn't update the Post"), "id="+editPost.Id+", "+err.Error())
 		} else {
 			time := model.GetMillis()
 			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": editPost.ChannelId})
@@ -144,7 +162,7 @@ func (s SqlPostStore) Update(oldPost *model.Post, newMessage string, newHashtags
 	return storeChannel
 }
 
-func (s SqlPostStore) Get(id string) StoreChannel {
+func (s SqlPostStore) Get(id string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -154,7 +172,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "id="+id+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPost", T("We couldn't get the post"), "id="+id+err.Error())
 		}
 
 		pl.AddPost(&post)
@@ -169,7 +187,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		var posts []*model.Post
 		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "We couldn't get the post", "root_id="+rootId+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPost", ("We couldn't get the post"), "root_id="+rootId+err.Error())
 		} else {
 			for _, p := range posts {
 				pl.AddPost(p)
@@ -211,7 +229,7 @@ func (s SqlPostStore) GetEtag(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
+func (s SqlPostStore) Delete(postId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -219,7 +237,7 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 
 		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "ParentId": postId, "RootId": postId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.Delete", T("We couldn't delete the post"), "id="+postId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -265,7 +283,7 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChanne
 	return storeChannel
 }
 
-func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
+func (s SqlPostStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -322,7 +340,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -335,8 +353,8 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 			return
 		}
 
-		rpc := s.getRootPosts(channelId, offset, limit)
-		cpc := s.getParentsPosts(channelId, offset, limit)
+		rpc := s.getRootPosts(channelId, offset, limit, T)
+		cpc := s.getParentsPosts(channelId, offset, limit, T)
 
 		if rpr := <-rpc; rpr.Err != nil {
 			result.Err = rpr.Err
@@ -369,7 +387,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int) StoreCha
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
+func (s SqlPostStore) GetPostsSince(channelId string, time int64, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -405,7 +423,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 			map[string]interface{}{"ChannelId": channelId, "Time": time})
 
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostsSince", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPostsSince", T("We couldn't get the posts for the channel"), "channelId="+channelId+err.Error())
 		} else {
 
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
@@ -427,11 +445,11 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel {
+func (s SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int, T goi18n.TranslateFunc) StoreChannel {
 	return s.getPostsAround(channelId, postId, numPosts, offset, true)
 }
 
-func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel {
+func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int, T goi18n.TranslateFunc) StoreChannel {
 	return s.getPostsAround(channelId, postId, numPosts, offset, false)
 }
 
@@ -525,7 +543,7 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 	return storeChannel
 }
 
-func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -534,7 +552,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", T("We couldn't get the posts for the channel"), "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -546,7 +564,7 @@ func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) Stor
 	return storeChannel
 }
 
-func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) StoreChannel {
+func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -579,7 +597,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) S
 			ORDER BY CreateAt`,
 			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "We couldn't get the parent post for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", T("We couldn't get the parent post for the channel"), "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -602,7 +620,7 @@ var specialSearchChar = []string{
 	"@",
 }
 
-func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) StoreChannel {
+func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -735,7 +753,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Search", "We encountered an error while searching for posts", "teamId="+teamId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.Search", T("We encountered an error while searching for posts"), "teamId="+teamId+", err="+err.Error())
 		}
 
 		list := &model.PostList{Order: make([]string, 0, len(posts))}
@@ -767,7 +785,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 	return storeChannel
 }
 
-func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
+func (s SqlPostStore) GetForExport(channelId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -779,7 +797,7 @@ func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 			"SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0",
 			map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetForExport", "We couldn't get the posts for the channel", "channelId="+channelId+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetForExport", T("We couldn't get the posts for the channel"), "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -791,7 +809,7 @@ func (s SqlPostStore) GetForExport(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -855,7 +873,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -920,7 +938,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) AnalyticsPostCount(teamId string) StoreChannel {
+func (s SqlPostStore) AnalyticsPostCount(teamId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

@@ -9,13 +9,16 @@ import (
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
 )
 
 var store Store
+var T = i18n.TranslateFunc
 
 func Setup() {
+	T = i18n.GetSystemLanguage()
 	if store == nil {
-		utils.LoadConfig("config.json")
+		utils.LoadConfig("config.json", T)
 		store = NewSqlStore()
 
 		store.MarkSystemRanUnitTests()
@@ -23,13 +26,13 @@ func Setup() {
 }
 
 func TestSqlStore1(t *testing.T) {
-	utils.LoadConfig("config.json")
+	utils.LoadConfig("config.json", T)
 	utils.Cfg.SqlSettings.Trace = true
 
 	store := NewSqlStore()
 	store.Close()
 
-	utils.LoadConfig("config.json")
+	utils.LoadConfig("config.json", T)
 }
 
 func TestSqlStore2(t *testing.T) {
@@ -39,11 +42,11 @@ func TestSqlStore2(t *testing.T) {
 		}
 	}()
 
-	utils.LoadConfig("config.json")
+	utils.LoadConfig("config.json", T)
 	utils.Cfg.SqlSettings.DriverName = "missing"
 	store = NewSqlStore()
 
-	utils.LoadConfig("config.json")
+	utils.LoadConfig("config.json", T)
 }
 
 func TestSqlStore3(t *testing.T) {
@@ -53,11 +56,11 @@ func TestSqlStore3(t *testing.T) {
 		}
 	}()
 
-	utils.LoadConfig("config.json")
+	utils.LoadConfig("config.json", T)
 	utils.Cfg.SqlSettings.DataSource = "missing"
 	store = NewSqlStore()
 
-	utils.LoadConfig("config.json")
+	utils.LoadConfig("config.json", T)
 }
 
 func TestEncrypt(t *testing.T) {

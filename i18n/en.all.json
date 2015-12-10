@@ -1,0 +1,1977 @@
+[
+    {
+        "id": "Team creation has been disabled. Please ask your systems administrator for details.",
+        "translation": "Team creation has been disabled. Please ask your systems administrator for details.",
+        "modified": false
+    },
+    {
+        "id": "stopping %v connections",
+        "translation": "stopping %v connections",
+        "modified": false
+    },
+    {
+        "id": "Creates a testing enviroment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>",
+        "translation": "Creates a testing enviroment in current team. [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>",
+        "modified": false
+    },
+    {
+        "id": "invalid_client: Invalid client credentials",
+        "translation": "invalid_client: Invalid client credentials",
+        "modified": false
+    },
+    {
+        "id": "No file under 'file' in request",
+        "translation": "No file under 'file' in request",
+        "modified": false
+    },
+    {
+        "id": "fail - auth code is invalid",
+        "translation": "fail - auth code is invalid",
+        "modified": false
+    },
+    {
+        "id": "Failed to send diagnostics %v",
+        "translation": "Failed to send diagnostics %v",
+        "modified": false
+    },
+    {
+        "id": "fail - auth code has been used previously",
+        "translation": "fail - auth code has been used previously",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error reading from local server storage",
+        "translation": "Encountered an error reading from local server storage",
+        "modified": false
+    },
+    {
+        "id": "unknown",
+        "translation": "unknown",
+        "modified": false
+    },
+    {
+        "id": "Build Hash: ",
+        "translation": "Build Hash: ",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>",
+        "translation": "Add a specified number of random channels with fuzz text to current team <Min Channels> <Max Channels>",
+        "modified": false
+    },
+    {
+        "id": "Unsupported OAuth service provider",
+        "translation": "Unsupported OAuth service provider",
+        "modified": false
+    },
+    {
+        "id": " already has a user with the email address attached to your ",
+        "translation": " already has a user with the email address attached to your ",
+        "modified": false
+    },
+    {
+        "id": "fail - auth code expired",
+        "translation": "fail - auth code expired",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while accessing database",
+        "translation": "server_error: Encountered internal server error while accessing database",
+        "modified": false
+    },
+    {
+        "id": "\t User to login: ",
+        "translation": "\t User to login: ",
+        "modified": false
+    },
+    {
+        "id": "team hub stopping for teamId=%v",
+        "translation": "team hub stopping for teamId=%v",
+        "modified": false
+    },
+    {
+        "id": "Session is not OAuth but token was provided in the query string",
+        "translation": "Session is not OAuth but token was provided in the query string",
+        "modified": false
+    },
+    {
+        "id": "There must be at least one active admin",
+        "translation": "There must be at least one active admin",
+        "modified": false
+    },
+    {
+        "id": "Invalid webhook",
+        "translation": "Invalid webhook",
+        "modified": false
+    },
+    {
+        "id": "Failed to parse server templates %v",
+        "translation": "Failed to parse server templates %v",
+        "modified": false
+    },
+    {
+        "id": "High volume of echo request, cannot process request",
+        "translation": "High volume of echo request, cannot process request",
+        "modified": false
+    },
+    {
+        "id": "Initializing command api routes",
+        "translation": "Initializing command api routes",
+        "modified": false
+    },
+    {
+        "id": " does not exist!",
+        "translation": " does not exist!",
+        "modified": false
+    },
+    {
+        "id": "Email Verified",
+        "translation": "Email Verified",
+        "modified": false
+    },
+    {
+        "id": "Initializing file api routes",
+        "translation": "Initializing file api routes",
+        "modified": false
+    },
+    {
+        "id": "Unable to create options file",
+        "translation": "Unable to create options file",
+        "modified": false
+    },
+    {
+        "id": "\r\n Channels Added \r\n",
+        "translation": "\r\n Channels Added \r\n",
+        "modified": false
+    },
+    {
+        "id": "attempted",
+        "translation": "attempted",
+        "modified": false
+    },
+    {
+        "id": "Failed to post leave message %v",
+        "translation": "Failed to post leave message %v",
+        "modified": false
+    },
+    {
+        "id": "invalid_grant: Authorization code already exchanged for an access token",
+        "translation": "invalid_grant: Authorization code already exchanged for an access token",
+        "modified": false
+    },
+    {
+        "id": "Password field must not be blank",
+        "translation": "Password field must not be blank",
+        "modified": false
+    },
+    {
+        "id": " account has already been used to sign up for team ",
+        "translation": " account has already been used to sign up for team ",
+        "modified": false
+    },
+    {
+        "id": "Parsing templates at %v",
+        "translation": "Parsing templates at %v",
+        "modified": false
+    },
+    {
+        "id": "Merged with existing channel: ",
+        "translation": "Merged with existing channel: ",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find auth code for code=%s",
+        "translation": "Couldn't find auth code for code=%s",
+        "modified": false
+    },
+    {
+        "id": "Token request failed",
+        "translation": "Token request failed",
+        "modified": false
+    },
+    {
+        "id": "S3 is not supported for local storage export.",
+        "translation": "S3 is not supported for local storage export.",
+        "modified": false
+    },
+    {
+        "id": "SMTP server settings do not appear to be configured properly err=%v details=%v",
+        "translation": "SMTP server settings do not appear to be configured properly err=%v details=%v",
+        "modified": false
+    },
+    {
+        "id": "flag needs an argument: -password",
+        "translation": "flag needs an argument: -password",
+        "modified": false
+    },
+    {
+        "id": "teams",
+        "translation": "teams",
+        "modified": false
+    },
+    {
+        "id": "Team ",
+        "translation": "Team ",
+        "modified": false
+    },
+    {
+        "id": "Empty array under 'image' in request",
+        "translation": "Empty array under 'image' in request",
+        "modified": false
+    },
+    {
+        "id": "Unable to write to options file",
+        "translation": "Unable to write to options file",
+        "modified": false
+    },
+    {
+        "id": "The signup link does not appear to be valid",
+        "translation": "The signup link does not appear to be valid",
+        "modified": false
+    },
+    {
+        "id": "Team sign-up with email is disabled.",
+        "translation": "Team sign-up with email is disabled.",
+        "modified": false
+    },
+    {
+        "id": "Failed to send leave message",
+        "translation": "Failed to send leave message",
+        "modified": false
+    },
+    {
+        "id": "server_error: Error accessing the database",
+        "translation": "server_error: Error accessing the database",
+        "modified": false
+    },
+    {
+        "id": "Admin Console",
+        "translation": "Admin Console",
+        "modified": false
+    },
+    {
+        "id": "Error starting server, err:%v",
+        "translation": "Error starting server, err:%v",
+        "modified": false
+    },
+    {
+        "id": "Initializing webhook api routes",
+        "translation": "Initializing webhook api routes",
+        "modified": false
+    },
+    {
+        "id": "Could not add user initial to default profile picture",
+        "translation": "Could not add user initial to default profile picture",
+        "modified": false
+    },
+    {
+        "id": "Invalid session",
+        "translation": "Invalid session",
+        "modified": false
+    },
+    {
+        "id": "Find Team",
+        "translation": "Find Team",
+        "modified": false
+    },
+    {
+        "id": "Failed to import: %s",
+        "translation": "Failed to import: %s",
+        "modified": false
+    },
+    {
+        "id": "Echo back text from your account, /echo \"message\" [delay in seconds]",
+        "translation": "Echo back text from your account, /echo \"message\" [delay in seconds]",
+        "modified": false
+    },
+    {
+        "id": "Could not find file.",
+        "translation": "Could not find file.",
+        "modified": false
+    },
+    {
+        "id": "Mattermost - Testing Email Settings",
+        "translation": "Mattermost - Testing Email Settings",
+        "modified": false
+    },
+    {
+        "id": "Failed to create directory watcher %v",
+        "translation": "Failed to create directory watcher %v",
+        "modified": false
+    },
+    {
+        "id": "Unable to convert to json",
+        "translation": "Unable to convert to json",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random users to current team <Min Users> <Max Users>",
+        "translation": "Add a specified number of random users to current team <Min Users> <Max Users>",
+        "modified": false
+    },
+    {
+        "id": "Slack bot posts are not imported yet",
+        "translation": "Slack bot posts are not imported yet",
+        "modified": false
+    },
+    {
+        "id": "using the settings menu",
+        "translation": "using the settings menu",
+        "modified": false
+    },
+    {
+        "id": "\r\n Users Created\r\n",
+        "translation": "\r\n Users Created\r\n",
+        "modified": false
+    },
+    {
+        "id": "Unable to open: ",
+        "translation": "Unable to open: ",
+        "modified": false
+    },
+    {
+        "id": "Could not create user out of ",
+        "translation": "Could not create user out of ",
+        "modified": false
+    },
+    {
+        "id": "Bad response from token request",
+        "translation": "Bad response from token request",
+        "modified": false
+    },
+    {
+        "id": "<br/><br/><br/>It appears your Mattermost email is setup correctly!",
+        "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!",
+        "modified": false
+    },
+    {
+        "id": "Unable to get channel counts from the database",
+        "translation": "Unable to get channel counts from the database",
+        "modified": false
+    },
+    {
+        "id": "Authorize Application",
+        "translation": "Authorize Application",
+        "modified": false
+    },
+    {
+        "id": "You do not have the appropriate permissions ",
+        "translation": "You do not have the appropriate permissions ",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file. Image storage is not configured.",
+        "translation": "Unable to get file. Image storage is not configured.",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find team name=%v, teamURL=%v, err=%v",
+        "translation": "Couldn't find team name=%v, teamURL=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find the channel",
+        "translation": "Couldn't find the channel",
+        "modified": false
+    },
+    {
+        "id": "Failed to set email verified err=%v",
+        "translation": "Failed to set email verified err=%v",
+        "modified": false
+    },
+    {
+        "id": "Server is initializing...",
+        "translation": "Server is initializing...",
+        "modified": false
+    },
+    {
+        "id": "Only a team admin can export data.",
+        "translation": "Only a team admin can export data.",
+        "modified": false
+    },
+    {
+        "id": "Failed to add user to channel",
+        "translation": "Failed to add user to channel",
+        "modified": false
+    },
+    {
+        "id": "Signup Email Sent",
+        "translation": "Signup Email Sent",
+        "modified": false
+    },
+    {
+        "id": "- Slack bot posts are currently not supported.\r\n",
+        "translation": "- Slack bot posts are currently not supported.\r\n",
+        "modified": false
+    },
+    {
+        "id": "Failed to open a connection to SMTP server %v",
+        "translation": "Failed to open a connection to SMTP server %v",
+        "modified": false
+    },
+    {
+        "id": "Error deleting authorization code from DB",
+        "translation": "Error deleting authorization code from DB",
+        "modified": false
+    },
+    {
+        "id": "The public link does not appear to be valid",
+        "translation": "The public link does not appear to be valid",
+        "modified": false
+    },
+    {
+        "id": "Error saving user. err=%v",
+        "translation": "Error saving user. err=%v",
+        "modified": false
+    },
+    {
+        "id": "<script type='text/javascript'>alert('yay puppies');</script>",
+        "translation": "<script type='text/javascript'>alert('yay puppies');</script>",
+        "modified": false
+    },
+    {
+        "id": "New Mention",
+        "translation": "New Mention",
+        "modified": false
+    },
+    {
+        "id": "Incoming webhooks have been disabled by the system admin.",
+        "translation": "Incoming webhooks have been disabled by the system admin.",
+        "modified": false
+    },
+    {
+        "id": "Failed to find user doing the adding",
+        "translation": "Failed to find user doing the adding",
+        "modified": false
+    },
+    {
+        "id": "\r\n Notes \r\n",
+        "translation": "\r\n Notes \r\n",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Bad response_type",
+        "translation": "invalid_request: Bad response_type",
+        "modified": false
+    },
+    {
+        "id": "Join the open channel",
+        "translation": "Join the open channel",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Missing or bad redirect_uri",
+        "translation": "invalid_request: Missing or bad redirect_uri",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri",
+        "translation": "invalid_request: Supplied redirect_uri does not match authorization code redirect_uri",
+        "modified": false
+    },
+    {
+        "id": "Error saving post. user=",
+        "translation": "Error saving post. user=",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because the user is logged in through an OAuth service",
+        "translation": "Update password failed because the user is logged in through an OAuth service",
+        "modified": false
+    },
+    {
+        "id": "%v added to the channel by %v",
+        "translation": "%v added to the channel by %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add email messsage data",
+        "translation": "Failed to add email messsage data",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v",
+        "translation": "Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate channel permissions",
+        "translation": "Inappropriate channel permissions",
+        "modified": false
+    },
+    {
+        "id": "Failed to find user to be added",
+        "translation": "Failed to find user to be added",
+        "modified": false
+    },
+    {
+        "id": "No one to invite.",
+        "translation": "No one to invite.",
+        "modified": false
+    },
+    {
+        "id": "Unable to write to team export file",
+        "translation": "Unable to write to team export file",
+        "modified": false
+    },
+    {
+        "id": "Failed to get channel members channel_id=%v err=%v",
+        "translation": "Failed to get channel members channel_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send welcome email successfully err=%v",
+        "translation": "Failed to send welcome email successfully err=%v",
+        "modified": false
+    },
+    {
+        "id": "fail - inappropriate conditions",
+        "translation": "fail - inappropriate conditions",
+        "modified": false
+    },
+    {
+        "id": "Invalid ChannelId for RootId parameter",
+        "translation": "Invalid ChannelId for RootId parameter",
+        "modified": false
+    },
+    {
+        "id": "Unable to import user: ",
+        "translation": "Unable to import user: ",
+        "modified": false
+    },
+    {
+        "id": "Unable to write to export file",
+        "translation": "Unable to write to export file",
+        "modified": false
+    },
+    {
+        "id": "Missing one or more of response_type, client_id, or redirect_uri",
+        "translation": "Missing one or more of response_type, client_id, or redirect_uri",
+        "modified": false
+    },
+    {
+        "id": "This ",
+        "translation": "This ",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error revoking an access token, err=",
+        "translation": "Encountered an error revoking an access token, err=",
+        "modified": false
+    },
+    {
+        "id": "Error getting access token from DB before deletion",
+        "translation": "Error getting access token from DB before deletion",
+        "modified": false
+    },
+    {
+        "id": "Public links have been disabled",
+        "translation": "Public links have been disabled",
+        "modified": false
+    },
+    {
+        "id": "File storage not configured properly. Please configure for either S3 or local server file storage.",
+        "translation": "File storage not configured properly. Please configure for either S3 or local server file storage.",
+        "modified": false
+    },
+    {
+        "id": "Team Created: ",
+        "translation": "Team Created: ",
+        "modified": false
+    },
+    {
+        "id": "Login failed because of invalid password",
+        "translation": "Login failed because of invalid password",
+        "modified": false
+    },
+    {
+        "id": "Failed to open connection",
+        "translation": "Failed to open connection",
+        "modified": false
+    },
+    {
+        "id": "fail - redirect_uri did not match registered callback",
+        "translation": "fail - redirect_uri did not match registered callback",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file info. Image storage is not configured.",
+        "translation": "Unable to get file info. Image storage is not configured.",
+        "modified": false
+    },
+    {
+        "id": "Could not decode profile image",
+        "translation": "Could not decode profile image",
+        "modified": false
+    },
+    {
+        "id": "Parsing server templates at %v",
+        "translation": "Parsing server templates at %v",
+        "modified": false
+    },
+    {
+        "id": "Bad filename discarded, filename=%v",
+        "translation": "Bad filename discarded, filename=%v",
+        "modified": false
+    },
+    {
+        "id": "An error occurred while saving the file to ",
+        "translation": "An error occurred while saving the file to ",
+        "modified": false
+    },
+    {
+        "id": "User: ",
+        "translation": "User: ",
+        "modified": false
+    },
+    {
+        "id": "Initializing oauth api routes",
+        "translation": "Initializing oauth api routes",
+        "modified": false
+    },
+    {
+        "id": "Error creating post",
+        "translation": "Error creating post",
+        "modified": false
+    },
+    {
+        "id": "Cannot leave the default channel ",
+        "translation": "Cannot leave the default channel ",
+        "modified": false
+    },
+    {
+        "id": "failed - tried to update user password who was logged in through oauth",
+        "translation": "failed - tried to update user password who was logged in through oauth",
+        "modified": false
+    },
+    {
+        "id": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.",
+        "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details.",
+        "modified": false
+    },
+    {
+        "id": "The system_admin role can only be set by another system admin",
+        "translation": "The system_admin role can only be set by another system admin",
+        "modified": false
+    },
+    {
+        "id": "Must provide a positive size",
+        "translation": "Must provide a positive size",
+        "modified": false
+    },
+    {
+        "id": "Filesize unavilable",
+        "translation": "Filesize unavilable",
+        "modified": false
+    },
+    {
+        "id": "Current working directory is %v",
+        "translation": "Current working directory is %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send join request",
+        "translation": "Failed to send join request",
+        "modified": false
+    },
+    {
+        "id": "The reset password link does not appear to be valid",
+        "translation": "The reset password link does not appear to be valid",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve team team_id=%v, err=%v",
+        "translation": "Failed to retrieve team team_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v",
+        "translation": "Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Complete User Sign Up",
+        "translation": "Complete User Sign Up",
+        "modified": false
+    },
+    {
+        "id": "flag needs an argument: -email",
+        "translation": "flag needs an argument: -email",
+        "modified": false
+    },
+    {
+        "id": "Stopping Server...",
+        "translation": "Stopping Server...",
+        "modified": false
+    },
+    {
+        "id": "Could not send apple push notification",
+        "translation": "Could not send apple push notification",
+        "modified": false
+    },
+    {
+        "id": "An unknown error has occured. Please contact support.",
+        "translation": "An unknown error has occured. Please contact support.",
+        "modified": false
+    },
+    {
+        "id": "Unable to open directory",
+        "translation": "Unable to open directory",
+        "modified": false
+    },
+    {
+        "id": "Failed to upgrade websocket connection",
+        "translation": "Failed to upgrade websocket connection",
+        "modified": false
+    },
+    {
+        "id": "Testing enviroment created",
+        "translation": "Testing enviroment created",
+        "modified": false
+    },
+    {
+        "id": "using a reset password link",
+        "translation": "using a reset password link",
+        "modified": false
+    },
+    {
+        "id": "fail - invalid auth code",
+        "translation": "fail - invalid auth code",
+        "modified": false
+    },
+    {
+        "id": "Failed to parse templates %v",
+        "translation": "Failed to parse templates %v",
+        "modified": false
+    },
+    {
+        "id": "Your account is locked because of too many failed password attempts. Please reset your password.",
+        "translation": "Your account is locked because of too many failed password attempts. Please reset your password.",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve user profiles team_id=%v, err=%v",
+        "translation": "Failed to retrieve user profiles team_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "SlackImport",
+        "translation": "SlackImport",
+        "modified": false
+    },
+    {
+        "id": "Failed to create testing enviroment",
+        "translation": "Failed to create testing enviroment",
+        "modified": false
+    },
+    {
+        "id": "Invalid character '__' in channel name for non-direct channel",
+        "translation": "Invalid character '__' in channel name for non-direct channel",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because context user_id did not match props user_id",
+        "translation": "Update password failed because context user_id did not match props user_id",
+        "modified": false
+    },
+    {
+        "id": "Initializing web routes",
+        "translation": "Initializing web routes",
+        "modified": false
+    },
+    {
+        "id": "Image",
+        "translation": "Image",
+        "modified": false
+    },
+    {
+        "id": "Unable to decode image channelId=%v userId=%v filename=%v err=%v",
+        "translation": "Unable to decode image channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "The team type doesn't allow open invites",
+        "translation": "The team type doesn't allow open invites",
+        "modified": false
+    },
+    {
+        "id": "Login",
+        "translation": "Login",
+        "modified": false
+    },
+    {
+        "id": "We couldn’t find an account with that address.",
+        "translation": "We couldn’t find an account with that address.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing team",
+        "translation": "We couldn't find the existing team",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v",
+        "translation": "Unable to upload preview channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "flag invalid argument needs to be more than 4 characters: -password",
+        "translation": "flag invalid argument needs to be more than 4 characters: -password",
+        "modified": false
+    },
+    {
+        "id": "Login failed because your account has been set to inactive.  Please contact an administrator.",
+        "translation": "Login failed because your account has been set to inactive.  Please contact an administrator.",
+        "modified": false
+    },
+    {
+        "id": "Error getting config info file=",
+        "translation": "Error getting config info file=",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find the user",
+        "translation": "Couldn't find the user",
+        "modified": false
+    },
+    {
+        "id": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>",
+        "translation": "Add some random posts to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Missing client_secret",
+        "translation": "invalid_request: Missing client_secret",
+        "modified": false
+    },
+    {
+        "id": "Failed to post add message %v",
+        "translation": "Failed to post add message %v",
+        "modified": false
+    },
+    {
+        "id": "Only a team admin can retrieve exported data.",
+        "translation": "Only a team admin can retrieve exported data.",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error creating the directory for the new file",
+        "translation": "Encountered an error creating the directory for the new file",
+        "modified": false
+    },
+    {
+        "id": "New Direct Message",
+        "translation": "New Direct Message",
+        "modified": false
+    },
+    {
+        "id": "Home",
+        "translation": "Home",
+        "modified": false
+    },
+    {
+        "id": "Missing access token",
+        "translation": "Missing access token",
+        "modified": false
+    },
+    {
+        "id": "Cannot leave a direct message channel",
+        "translation": "Cannot leave a direct message channel",
+        "modified": false
+    },
+    {
+        "id": "Command must start with /",
+        "translation": "Command must start with /",
+        "modified": false
+    },
+    {
+        "id": "Update password failed because we couldn't find a valid account",
+        "translation": "Update password failed because we couldn't find a valid account",
+        "modified": false
+    },
+    {
+        "id": "Build Date: ",
+        "translation": "Build Date: ",
+        "modified": false
+    },
+    {
+        "id": "Error validating config file=",
+        "translation": "Error validating config file=",
+        "modified": false
+    },
+    {
+        "id": "Failed to add member user_id=%v channel_id=%v err=%v",
+        "translation": "Failed to add member user_id=%v channel_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "This URL is unavailable. Please try another.",
+        "translation": "This URL is unavailable. Please try another.",
+        "modified": false
+    },
+    {
+        "id": "- Some posts may not have been imported because they where not supported by this importer.\r\n",
+        "translation": "- Some posts may not have been imported because they where not supported by this importer.\r\n",
+        "modified": false
+    },
+    {
+        "id": "Orientation",
+        "translation": "Orientation",
+        "modified": false
+    },
+    {
+        "id": "Failed to add directory to watcher %v",
+        "translation": "Failed to add directory to watcher %v",
+        "modified": false
+    },
+    {
+        "id": "User sign-up with email is disabled.",
+        "translation": "User sign-up with email is disabled.",
+        "modified": false
+    },
+    {
+        "id": "Could not encode default profile image",
+        "translation": "Could not encode default profile image",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error writing to S3",
+        "translation": "Encountered an error writing to S3",
+        "modified": false
+    },
+    {
+        "id": "Invalid or expired session, please login again.",
+        "translation": "Invalid or expired session, please login again.",
+        "modified": false
+    },
+    {
+        "id": "Invalid RootId parameter",
+        "translation": "Invalid RootId parameter",
+        "modified": false
+    },
+    {
+        "id": "Failed to add from email address",
+        "translation": "Failed to add from email address",
+        "modified": false
+    },
+    {
+        "id": "Failed to send mention email successfully email=%v err=%v",
+        "translation": "Failed to send mention email successfully email=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Update password failed",
+        "translation": "Update password failed",
+        "modified": false
+    },
+    {
+        "id": "Signup",
+        "translation": "Signup",
+        "modified": false
+    },
+    {
+        "id": "User creation has been disabled. Please ask your systems administrator for details.",
+        "translation": "User creation has been disabled. Please ask your systems administrator for details.",
+        "modified": false
+    },
+    {
+        "id": "Must use createDirectChannel api service for direct message channel creation",
+        "translation": "Must use createDirectChannel api service for direct message channel creation",
+        "modified": false
+    },
+    {
+        "id": "Loaded config file from %v",
+        "translation": "Loaded config file from %v",
+        "modified": false
+    },
+    {
+        "id": "Unauthorized",
+        "translation": "Unauthorized",
+        "modified": false
+    },
+    {
+        "id": "flag invalid argument: -role",
+        "translation": "flag invalid argument: -role",
+        "modified": false
+    },
+    {
+        "id": "RateLimiter is enabled",
+        "translation": "RateLimiter is enabled",
+        "modified": false
+    },
+    {
+        "id": "Couldn't save the user err=%v",
+        "translation": "Couldn't save the user err=%v",
+        "modified": false
+    },
+    {
+        "id": "%v has archived the channel.",
+        "translation": "%v has archived the channel.",
+        "modified": false
+    },
+    {
+        "id": "Cannot update the default channel ",
+        "translation": "Cannot update the default channel ",
+        "modified": false
+    },
+    {
+        "id": "Invalid ParentId parameter",
+        "translation": "Invalid ParentId parameter",
+        "modified": false
+    },
+    {
+        "id": "fail - invalid client credentials",
+        "translation": "fail - invalid client credentials",
+        "modified": false
+    },
+    {
+        "id": ", but are trying to access ",
+        "translation": ", but are trying to access ",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Missing code",
+        "translation": "invalid_request: Missing code",
+        "modified": false
+    },
+    {
+        "id": "Error in getting users profile for id=%v forcing logout",
+        "translation": "Error in getting users profile for id=%v forcing logout",
+        "modified": false
+    },
+    {
+        "id": "Could not open image file",
+        "translation": "Could not open image file",
+        "modified": false
+    },
+    {
+        "id": " user object",
+        "translation": " user object",
+        "modified": false
+    },
+    {
+        "id": "Error reading log file",
+        "translation": "Error reading log file",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate permissions to delete incoming webhook",
+        "translation": "Inappropriate permissions to delete incoming webhook",
+        "modified": false
+    },
+    {
+        "id": "Failed to post join message %v",
+        "translation": "Failed to post join message %v",
+        "modified": false
+    },
+    {
+        "id": "A team with that domain already exists",
+        "translation": "A team with that domain already exists",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing post or comment to update.",
+        "translation": "We couldn't find the existing post or comment to update.",
+        "modified": false
+    },
+    {
+        "id": "Initializing post api routes",
+        "translation": "Initializing post api routes",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Bad grant_type",
+        "translation": "invalid_request: Bad grant_type",
+        "modified": false
+    },
+    {
+        "id": "Error opening config file=",
+        "translation": "Error opening config file=",
+        "modified": false
+    },
+    {
+        "id": "Current version is %v (%v/%v/%v)",
+        "translation": "Current version is %v (%v/%v/%v)",
+        "modified": false
+    },
+    {
+        "id": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v",
+        "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "No file under 'image' in request",
+        "translation": "No file under 'image' in request",
+        "modified": false
+    },
+    {
+        "id": "Reset Password ",
+        "translation": "Reset Password ",
+        "modified": false
+    },
+    {
+        "id": "Either user id or team name and user email must be provided",
+        "translation": "Either user id or team name and user email must be provided",
+        "modified": false
+    },
+    {
+        "id": "Invalid state",
+        "translation": "Invalid state",
+        "modified": false
+    },
+    {
+        "id": "This person is already on your team",
+        "translation": "This person is already on your team",
+        "modified": false
+    },
+    {
+        "id": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 10 or higher, FireFox 14 or higher",
+        "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 10 or higher, FireFox 14 or higher",
+        "modified": false
+    },
+    {
+        "id": "Failed to write email message",
+        "translation": "Failed to write email message",
+        "modified": false
+    },
+    {
+        "id": "Failed in directory watcher %v",
+        "translation": "Failed in directory watcher %v",
+        "modified": false
+    },
+    {
+        "id": "Starting Server...",
+        "translation": "Starting Server...",
+        "modified": false
+    },
+    {
+        "id": "An error occured while sending an email in emailTeams err=%v",
+        "translation": "An error occured while sending an email in emailTeams err=%v",
+        "modified": false
+    },
+    {
+        "id": "Server stopped",
+        "translation": "Server stopped",
+        "modified": false
+    },
+    {
+        "id": "Could not parse auth data out of ",
+        "translation": "Could not parse auth data out of ",
+        "modified": false
+    },
+    {
+        "id": "Could not encode profile image",
+        "translation": "Could not encode profile image",
+        "modified": false
+    },
+    {
+        "id": "Could not open file",
+        "translation": "Could not open file",
+        "modified": false
+    },
+    {
+        "id": "sending invitation to %v %v",
+        "translation": "sending invitation to %v %v",
+        "modified": false
+    },
+    {
+        "id": "Error deleting session from DB",
+        "translation": "Error deleting session from DB",
+        "modified": false
+    },
+    {
+        "id": "Mr. Testing Tester",
+        "translation": "Mr. Testing Tester",
+        "modified": false
+    },
+    {
+        "id": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent",
+        "translation": "TeamURL accessed when not valid. Team URL should not be used in api functions or those that are team independent",
+        "modified": false
+    },
+    {
+        "id": "Delays must be under 10000 seconds",
+        "translation": "Delays must be under 10000 seconds",
+        "modified": false
+    },
+    {
+        "id": "Failed to update mention count for user_id=%v on channel_id=%v err=%v",
+        "translation": "Failed to update mention count for user_id=%v on channel_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Bad client_id",
+        "translation": "invalid_request: Bad client_id",
+        "modified": false
+    },
+    {
+        "id": "Sorry, we could not find the page.",
+        "translation": "Sorry, we could not find the page.",
+        "modified": false
+    },
+    {
+        "id": "Failed to add to email address",
+        "translation": "Failed to add to email address",
+        "modified": false
+    },
+    {
+        "id": "invalid_request: Supplied redirect_uri did not match registered callback_url",
+        "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url",
+        "modified": false
+    },
+    {
+        "id": "You have one new message.",
+        "translation": "You have one new message.",
+        "modified": false
+    },
+    {
+        "id": "%s: %s sent",
+        "translation": "%s: %s sent",
+        "modified": false
+    },
+    {
+        "id": "Already delted id=",
+        "translation": "Already delted id=",
+        "modified": false
+    },
+    {
+        "id": "Failed to send invite email successfully err=%v",
+        "translation": "Failed to send invite email successfully err=%v",
+        "modified": false
+    },
+    {
+        "id": "Error rendering template %v err=%v",
+        "translation": "Error rendering template %v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Initializing web socket api routes",
+        "translation": "Initializing web socket api routes",
+        "modified": false
+    },
+    {
+        "id": "websocket connect err: %v",
+        "translation": "websocket connect err: %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to authenticate on SMTP server",
+        "translation": "Failed to authenticate on SMTP server",
+        "modified": false
+    },
+    {
+        "id": "Post user_id not returned by GetProfiles user_id=%v",
+        "translation": "Post user_id not returned by GetProfiles user_id=%v",
+        "modified": false
+    },
+    {
+        "id": "File",
+        "translation": "File",
+        "modified": false
+    },
+    {
+        "id": "Bad timestamp detected",
+        "translation": "Bad timestamp detected",
+        "modified": false
+    },
+    {
+        "id": "Failed to send password reset email successfully",
+        "translation": "Failed to send password reset email successfully",
+        "modified": false
+    },
+    {
+        "id": "Encountered an error writing to local server storage",
+        "translation": "Encountered an error writing to local server storage",
+        "modified": false
+    },
+    {
+        "id": "The public link has expired",
+        "translation": "The public link has expired",
+        "modified": false
+    },
+    {
+        "id": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr",
+        "translation": "RateLimitSettings not configured properly using VaryByHeader and disabling VaryByRemoteAddr",
+        "modified": false
+    },
+    {
+        "id": "SMTP connection settings do not appear to be configured properly err=%v details=%v",
+        "translation": "SMTP connection settings do not appear to be configured properly err=%v details=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve sessions in notifications id=%v, err=%v",
+        "translation": "Failed to retrieve sessions in notifications id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to get link. Image storage is not configured.",
+        "translation": "Unable to get link. Image storage is not configured.",
+        "modified": false
+    },
+    {
+        "id": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again.",
+        "translation": "The \"Current Password\" you entered is incorrect. Please check that Caps Lock is off and try again.",
+        "modified": false
+    },
+    {
+        "id": "Email, Password: ",
+        "translation": "Email, Password: ",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve channel channel_id=%v, err=%v",
+        "translation": "Failed to retrieve channel channel_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>",
+        "translation": "Add a specified number of random users with fuzz text to current team <Min Users> <Max Users>",
+        "modified": false
+    },
+    {
+        "id": "Debug Load Testing",
+        "translation": "Debug Load Testing",
+        "modified": false
+    },
+    {
+        "id": ";alert('Well this is awkward.');",
+        "translation": ";alert('Well this is awkward.');",
+        "modified": false
+    },
+    {
+        "id": "Invalid other user id ",
+        "translation": "Invalid other user id ",
+        "modified": false
+    },
+    {
+        "id": "Initializing user api routes",
+        "translation": "Initializing user api routes",
+        "modified": false
+    },
+    {
+        "id": "Unable to open zip file",
+        "translation": "Unable to open zip file",
+        "modified": false
+    },
+    {
+        "id": "Error deleting access token from DB",
+        "translation": "Error deleting access token from DB",
+        "modified": false
+    },
+    {
+        "id": "Login failed because email address has not been verified",
+        "translation": "Login failed because email address has not been verified",
+        "modified": false
+    },
+    {
+        "id": "Trying to reset password for user on wrong team.",
+        "translation": "Trying to reset password for user on wrong team.",
+        "modified": false
+    },
+    {
+        "id": "Could not create default profile image font",
+        "translation": "Could not create default profile image font",
+        "modified": false
+    },
+    {
+        "id": "%v has left the channel.",
+        "translation": "%v has left the channel.",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while saving session to database",
+        "translation": "server_error: Encountered internal server error while saving session to database",
+        "modified": false
+    },
+    {
+        "id": "Failed to send verification email successfully err=%v",
+        "translation": "Failed to send verification email successfully err=%v",
+        "modified": false
+    },
+    {
+        "id": "Cannot delete the default channel ",
+        "translation": "Cannot delete the default channel ",
+        "modified": false
+    },
+    {
+        "id": "The channel has been archived or deleted",
+        "translation": "The channel has been archived or deleted",
+        "modified": false
+    },
+    {
+        "id": "You have one new mention.",
+        "translation": "You have one new mention.",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while pulling user from database",
+        "translation": "server_error: Encountered internal server error while pulling user from database",
+        "modified": false
+    },
+    {
+        "id": "flag needs an argument: -team_name",
+        "translation": "flag needs an argument: -team_name",
+        "modified": false
+    },
+    {
+        "id": "The reset link has expired",
+        "translation": "The reset link has expired",
+        "modified": false
+    },
+    {
+        "id": "Re-parsing templates because of modified file %v",
+        "translation": "Re-parsing templates because of modified file %v",
+        "modified": false
+    },
+    {
+        "id": "Failed to find channel",
+        "translation": "Failed to find channel",
+        "modified": false
+    },
+    {
+        "id": "Initializing channel api routes",
+        "translation": "Initializing channel api routes",
+        "modified": false
+    },
+    {
+        "id": "invalid_grant: Invalid or expired authorization code",
+        "translation": "invalid_grant: Invalid or expired authorization code",
+        "modified": false
+    },
+    {
+        "id": "Using static directory at %v",
+        "translation": "Using static directory at %v",
+        "modified": false
+    },
+    {
+        "id": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>",
+        "translation": "Add some random posts with fuzz text to current channel <Min Posts> <Max Posts> <Min Images> <Max Images>",
+        "modified": false
+    },
+    {
+        "id": "Could not parse auth data out of zbox user object",
+        "translation": "Could not parse auth data out of zbox user object",
+        "modified": false
+    },
+    {
+        "id": "S3 is not supported.",
+        "translation": "S3 is not supported.",
+        "modified": false
+    },
+    {
+        "id": "Logout",
+        "translation": "Logout",
+        "modified": false
+    },
+    {
+        "id": "Filesize not an integer",
+        "translation": "Filesize not an integer",
+        "modified": false
+    },
+    {
+        "id": "Join an open channel",
+        "translation": "Join an open channel",
+        "modified": false
+    },
+    {
+        "id": "Token request to ",
+        "translation": "Token request to ",
+        "modified": false
+    },
+    {
+        "id": "Your user is not authorized to use the Chat app",
+        "translation": "Your user is not authorized to use the Chat app",
+        "modified": false
+    },
+    {
+        "id": "The system admin has turned off OAuth service providing.",
+        "translation": "The system admin has turned off OAuth service providing.",
+        "modified": false
+    },
+    {
+        "id": "Empty array under 'file' in request",
+        "translation": "Empty array under 'file' in request",
+        "modified": false
+    },
+    {
+        "id": "An account with that email already exists.",
+        "translation": "An account with that email already exists.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing account",
+        "translation": "We couldn't find the existing account",
+        "modified": false
+    },
+    {
+        "id": "You do not have the appropriate permissions",
+        "translation": "You do not have the appropriate permissions",
+        "modified": false
+    },
+    {
+        "id": "server_error: Encountered internal server error while saving access token to database",
+        "translation": "server_error: Encountered internal server error while saving access token to database",
+        "modified": false
+    },
+    {
+        "id": "Team creation is disabled.",
+        "translation": "Team creation is disabled.",
+        "modified": false
+    },
+    {
+        "id": "Failed to send archive message",
+        "translation": "Failed to send archive message",
+        "modified": false
+    },
+    {
+        "id": "Initializing admin api routes",
+        "translation": "Initializing admin api routes",
+        "modified": false
+    },
+    {
+        "id": "Error decoding config file=",
+        "translation": "Error decoding config file=",
+        "modified": false
+    },
+    {
+        "id": "Initializing team api routes",
+        "translation": "Initializing team api routes",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file from S3",
+        "translation": "Unable to get file from S3",
+        "modified": false
+    },
+    {
+        "id": "Could not parse multipart form",
+        "translation": "Could not parse multipart form",
+        "modified": false
+    },
+    {
+        "id": "Unable to open file for export",
+        "translation": "Unable to open file for export",
+        "modified": false
+    },
+    {
+        "id": "Failed to updated LastPingAt for user_id=%v, err=%v",
+        "translation": "Failed to updated LastPingAt for user_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Error starting server ",
+        "translation": "Error starting server ",
+        "modified": false
+    },
+    {
+        "id": "Failed to close connection to SMTP server",
+        "translation": "Failed to close connection to SMTP server",
+        "modified": false
+    },
+    {
+        "id": "Couldn't upload profile image",
+        "translation": "Couldn't upload profile image",
+        "modified": false
+    },
+    {
+        "id": "The reset link does not appear to be valid",
+        "translation": "The reset link does not appear to be valid",
+        "modified": false
+    },
+    {
+        "id": "The signup link has expired",
+        "translation": "The signup link has expired",
+        "modified": false
+    },
+    {
+        "id": "fail - redirect uri provided did not match previous redirect uri",
+        "translation": "fail - redirect uri provided did not match previous redirect uri",
+        "modified": false
+    },
+    {
+        "id": "Mattermost Slack Import Log\r\n",
+        "translation": "Mattermost Slack Import Log\r\n",
+        "modified": false
+    },
+    {
+        "id": "Server is listening on ",
+        "translation": "Server is listening on ",
+        "modified": false
+    },
+    {
+        "id": "Failed to import: ",
+        "translation": "Failed to import: ",
+        "modified": false
+    },
+    {
+        "id": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v",
+        "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to send update password email successfully err=%v",
+        "translation": "Failed to send update password email successfully err=%v",
+        "modified": false
+    },
+    {
+        "id": "It appears you are logged into ",
+        "translation": "It appears you are logged into ",
+        "modified": false
+    },
+    {
+        "id": "Sending error and diagnostic information to mattermost",
+        "translation": "Sending error and diagnostic information to mattermost",
+        "modified": false
+    },
+    {
+        "id": "Unsupported post type: ",
+        "translation": "Unsupported post type: ",
+        "modified": false
+    },
+    {
+        "id": "Unable to open file",
+        "translation": "Unable to open file",
+        "modified": false
+    },
+    {
+        "id": "No text specified",
+        "translation": "No text specified",
+        "modified": false
+    },
+    {
+        "id": " parameter",
+        "translation": " parameter",
+        "modified": false
+    },
+    {
+        "id": "Failed to open TLS connection",
+        "translation": "Failed to open TLS connection",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload file. Image storage is not configured.",
+        "translation": "Unable to upload file. Image storage is not configured.",
+        "modified": false
+    },
+    {
+        "id": "Bad token type",
+        "translation": "Bad token type",
+        "modified": false
+    },
+    {
+        "id": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>",
+        "translation": "Add a specified number of random channels to current team <MinChannels> <MaxChannels>",
+        "modified": false
+    },
+    {
+        "id": "Failed to add member to channel",
+        "translation": "Failed to add member to channel",
+        "modified": false
+    },
+    {
+        "id": "Version: ",
+        "translation": "Version: ",
+        "modified": false
+    },
+    {
+        "id": "No channels were found",
+        "translation": "No channels were found",
+        "modified": false
+    },
+    {
+        "id": "Unable to create /echo post, err=%v",
+        "translation": "Unable to create /echo post, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to post archive message %v",
+        "translation": "Failed to post archive message %v",
+        "modified": false
+    },
+    {
+        "id": "Invalid ",
+        "translation": "Invalid ",
+        "modified": false
+    },
+    {
+        "id": "User %v has joined this channel.",
+        "translation": "User %v has joined this channel.",
+        "modified": false
+    },
+    {
+        "id": "fail - bad channel permissions",
+        "translation": "fail - bad channel permissions",
+        "modified": false
+    },
+    {
+        "id": "Message without user",
+        "translation": "Message without user",
+        "modified": false
+    },
+    {
+        "id": "Invalid team name",
+        "translation": "Invalid team name",
+        "modified": false
+    },
+    {
+        "id": "Build Number: ",
+        "translation": "Build Number: ",
+        "modified": false
+    },
+    {
+        "id": "Unable to read directory",
+        "translation": "Unable to read directory",
+        "modified": false
+    },
+    {
+        "id": "Only a team admin can import data.",
+        "translation": "Only a team admin can import data.",
+        "modified": false
+    },
+    {
+        "id": "Unable to retrieve exported file. Please re-export",
+        "translation": "Unable to retrieve exported file. Please re-export",
+        "modified": false
+    },
+    {
+        "id": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v",
+        "translation": "Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Complete Team Sign Up",
+        "translation": "Complete Team Sign Up",
+        "modified": false
+    },
+    {
+        "id": "This username is already taken. Please choose another.",
+        "translation": "This username is already taken. Please choose another.",
+        "modified": false
+    },
+    {
+        "id": "This email is already taken. Please choose another",
+        "translation": "This email is already taken. Please choose another",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the account",
+        "translation": "We encounted an error updating the account",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the account",
+        "translation": "We couldn't update the account",
+        "modified": false
+    },
+    {
+        "id": "January",
+        "translation": "January",
+        "modified": false
+    },
+    {
+        "id": "February",
+        "translation": "February",
+        "modified": false
+    },
+    {
+        "id": "March",
+        "translation": "March",
+        "modified": false
+    },
+    {
+        "id": "April",
+        "translation": "April",
+        "modified": false
+    },
+    {
+        "id": "May",
+        "translation": "May",
+        "modified": false
+    },
+    {
+        "id": "June",
+        "translation": "June",
+        "modified": false
+    },
+    {
+        "id": "July",
+        "translation": "July",
+        "modified": false
+    },
+    {
+        "id": "August",
+        "translation": "August",
+        "modified": false
+    },
+    {
+        "id": "September",
+        "translation": "September",
+        "modified": false
+    },
+    {
+        "id": "October",
+        "translation": "October",
+        "modified": false
+    },
+    {
+        "id": "November",
+        "translation": "November",
+        "modified": false
+    },
+    {
+        "id": "December",
+        "translation": "December",
+        "modified": false
+    },
+    {
+        "id": "administrator",
+        "translation": "administrator",
+        "modified": false
+    },
+    {
+        "id": "member",
+        "translation": "member",
+        "modified": false
+    },
+    {
+        "id": "post_subject",
+        "translation": "post_subject",
+        "modified": false
+    },
+    {
+        "id": "post_body",
+        "translation": "post_body",
+        "modified": false
+    },
+    {
+        "id": "email_change_subject",
+        "translation": "email_change_subject",
+        "modified": false
+    },
+    {
+        "id": "email_change_body",
+        "translation": "email_change_body",
+        "modified": false
+    },
+    {
+        "id": "signup_team_subject",
+        "translation": "signup_team_subject",
+        "modified": false
+    },
+    {
+        "id": "signup_team_body",
+        "translation": "signup_team_body",
+        "modified": false
+    },
+    {
+        "id": "find_teams_subject",
+        "translation": "find_teams_subject",
+        "modified": false
+    },
+    {
+        "id": "find_teams_body",
+        "translation": "find_teams_body",
+        "modified": false
+    },
+    {
+        "id": "invite_subject",
+        "translation": "invite_subject",
+        "modified": false
+    },
+    {
+        "id": "invite_body",
+        "translation": "invite_body",
+        "modified": false
+    },
+    {
+        "id": "welcome_subject",
+        "translation": "welcome_subject",
+        "modified": false
+    },
+    {
+        "id": "welcome_body",
+        "translation": "welcome_body",
+        "modified": false
+    },
+    {
+        "id": "verify_subject",
+        "translation": "verify_subject",
+        "modified": false
+    },
+    {
+        "id": "verify_body",
+        "translation": "verify_body",
+        "modified": false
+    },
+    {
+        "id": "reset_subject",
+        "translation": "reset_subject",
+        "modified": false
+    },
+    {
+        "id": "reset_body",
+        "translation": "reset_body",
+        "modified": false
+    },
+    {
+        "id": "password_change_subject",
+        "translation": "password_change_subject",
+        "modified": false
+    },
+    {
+        "id": "password_change_body",
+        "translation": "password_change_body",
+        "modified": false
+    },
+    {
+        "id": "authorize",
+        "translation": "authorize",
+        "modified": false
+    },
+    {
+        "id": "signup_team",
+        "translation": "signup_team",
+        "modified": false
+    },
+    {
+        "id": "login",
+        "translation": "login",
+        "modified": false
+    },
+    {
+        "id": "signup_team_confirm",
+        "translation": "signup_team_confirm",
+        "modified": false
+    },
+    {
+        "id": "signup_team_complete",
+        "translation": "signup_team_complete",
+        "modified": false
+    },
+    {
+        "id": "signup_user_complete",
+        "translation": "signup_user_complete",
+        "modified": false
+    },
+    {
+        "id": "find_team",
+        "translation": "find_team",
+        "modified": false
+    },
+    {
+        "id": "error.html",
+        "translation": "error.html",
+        "modified": false
+    },
+    {
+        "id": "email_change_verify_subject",
+        "translation": "email_change_verify_subject",
+        "modified": false
+    },
+    {
+        "id": "email_change_verify_body",
+        "translation": "email_change_verify_body",
+        "modified": false
+    }
+]

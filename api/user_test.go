@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/i18n"
 	"image"
 	"image/color"
 	"io"
@@ -344,8 +345,8 @@ func TestGetAudits(t *testing.T) {
 
 func TestUserCreateImage(t *testing.T) {
 	Setup()
-
-	b, err := createProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
+	T := i18n.GetSystemLanguage()
+	b, err := createProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", T)
 	if err != nil {
 		t.Fatal(err)
 	}

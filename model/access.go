@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 )
@@ -31,22 +32,22 @@ type AccessResponse struct {
 
 // IsValid validates the AccessData and returns an error if it isn't configured
 // correctly.
-func (ad *AccessData) IsValid() *AppError {
+func (ad *AccessData) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(ad.AuthCode) == 0 || len(ad.AuthCode) > 128 {
-		return NewAppError("AccessData.IsValid", "Invalid auth code", "")
+		return NewAppError("AccessData.IsValid", T("Invalid auth code"), "")
 	}
 
 	if len(ad.Token) != 26 {
-		return NewAppError("AccessData.IsValid", "Invalid access token", "")
+		return NewAppError("AccessData.IsValid", T("Invalid access token"), "")
 	}
 
 	if len(ad.RefreshToken) > 26 {
-		return NewAppError("AccessData.IsValid", "Invalid refresh token", "")
+		return NewAppError("AccessData.IsValid", T("Invalid refresh token"), "")
 	}
 
 	if len(ad.RedirectUri) > 256 {
-		return NewAppError("AccessData.IsValid", "Invalid redirect uri", "")
+		return NewAppError("AccessData.IsValid", T("Invalid redirect uri"), "")
 	}
 
 	return nil

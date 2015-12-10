@@ -5,6 +5,7 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"strings"
 )
 
@@ -52,7 +53,7 @@ func (as SqlOAuthStore) CreateIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthauthdata_client_id", "OAuthAuthData", "Code")
 }
 
-func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
+func (as SqlOAuthStore) SaveApp(app *model.OAuthApp, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -60,21 +61,21 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
 		result := StoreResult{}
 
 		if len(app.Id) > 0 {
-			result.Err = model.NewAppError("SqlOAuthStore.SaveApp", "Must call update for exisiting app", "app_id="+app.Id)
+			result.Err = model.NewAppError("SqlOAuthStore.SaveApp", T("Must call update for exisiting app"), "app_id="+app.Id)
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		app.PreSave()
-		if result.Err = app.IsValid(); result.Err != nil {
+		if result.Err = app.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if err := as.GetMaster().Insert(app); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.SaveApp", "We couldn't save the app.", "app_id="+app.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.SaveApp", T("We couldn't save the app."), "app_id="+app.Id+", "+err.Error())
 		} else {
 			result.Data = app
 		}
@@ -86,7 +87,7 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
+func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -95,16 +96,16 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 
 		app.PreUpdate()
 
-		if result.Err = app.IsValid(); result.Err != nil {
+		if result.Err = app.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if oldAppResult, err := as.GetMaster().Get(model.OAuthApp{}, app.Id); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", "We encountered an error finding the app", "app_id="+app.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", T("We encounted an error finding the app"), "app_id="+app.Id+", "+err.Error())
 		} else if oldAppResult == nil {
-			result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", "We couldn't find the existing app to update", "app_id="+app.Id)
+			result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", T("We couldn't find the existing app to update"), "app_id="+app.Id)
 		} else {
 			oldApp := oldAppResult.(*model.OAuthApp)
 			app.CreateAt = oldApp.CreateAt
@@ -112,9 +113,9 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 			app.CreatorId = oldApp.CreatorId
 
 			if count, err := as.GetMaster().Update(app); err != nil {
-				result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", "We encountered an error updating the app", "app_id="+app.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", T("We encounted an error updating the app"), "app_id="+app.Id+", "+err.Error())
 			} else if count != 1 {
-				result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", "We couldn't update the app", "app_id="+app.Id)
+				result.Err = model.NewAppError("SqlOAuthStore.UpdateApp", T("We couldn't update the app"), "app_id="+app.Id)
 			} else {
 				result.Data = [2]*model.OAuthApp{app, oldApp}
 			}
@@ -127,7 +128,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetApp(id string) StoreChannel {
+func (as SqlOAuthStore) GetApp(id string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -135,9 +136,9 @@ func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := as.GetReplica().Get(model.OAuthApp{}, id); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetApp", "We encountered an error finding the app", "app_id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetApp", T("We encounted an error finding the app"), "app_id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetApp", "We couldn't find the existing app", "app_id="+id)
+			result.Err = model.NewAppError("SqlOAuthStore.GetApp", T("We couldn't find the existing app"), "app_id="+id)
 		} else {
 			result.Data = obj.(*model.OAuthApp)
 		}
@@ -150,7 +151,7 @@ func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
+func (as SqlOAuthStore) GetAppByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -160,7 +161,7 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 		var apps []*model.OAuthApp
 
 		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetAppByUser", "We couldn't find any existing apps", "user_id="+userId+", "+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetAppByUser", T("We couldn't find any existing apps"), "user_id="+userId+", "+err.Error())
 		}
 
 		result.Data = apps
@@ -172,21 +173,21 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChannel {
+func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
-		if result.Err = accessData.IsValid(); result.Err != nil {
+		if result.Err = accessData.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if err := as.GetMaster().Insert(accessData); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.SaveAccessData", "We couldn't save the access token.", err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.SaveAccessData", T("We couldn't save the access token."), err.Error())
 		} else {
 			result.Data = accessData
 		}
@@ -198,7 +199,7 @@ func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) StoreChanne
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
+func (as SqlOAuthStore) GetAccessData(token string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -208,7 +209,7 @@ func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
 		accessData := model.AccessData{}
 
 		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetAccessData", "We encountered an error finding the access token", err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetAccessData", T("We encounted an error finding the access token"), err.Error())
 		} else {
 			result.Data = &accessData
 		}
@@ -221,7 +222,7 @@ func (as SqlOAuthStore) GetAccessData(token string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
+func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -234,7 +235,7 @@ func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
 			if strings.Contains(err.Error(), "no rows") {
 				result.Data = nil
 			} else {
-				result.Err = model.NewAppError("SqlOAuthStore.GetAccessDataByAuthCode", "We encountered an error finding the access token", err.Error())
+				result.Err = model.NewAppError("SqlOAuthStore.GetAccessDataByAuthCode", T("We encountered an error finding the access token"), err.Error())
 			}
 		} else {
 			result.Data = &accessData
@@ -248,14 +249,14 @@ func (as SqlOAuthStore) GetAccessDataByAuthCode(authCode string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) RemoveAccessData(token string) StoreChannel {
+func (as SqlOAuthStore) RemoveAccessData(token string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
 
 		if _, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.RemoveAccessData", "We couldn't remove the access token", "err="+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.RemoveAccessData", T("We couldn't remove the access token"), "err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -265,7 +266,7 @@ func (as SqlOAuthStore) RemoveAccessData(token string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
+func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -273,14 +274,14 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
 		result := StoreResult{}
 
 		authData.PreSave()
-		if result.Err = authData.IsValid(); result.Err != nil {
+		if result.Err = authData.IsValid(T); result.Err != nil {
 			storeChannel <- result
 			close(storeChannel)
 			return
 		}
 
 		if err := as.GetMaster().Insert(authData); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.SaveAuthData", "We couldn't save the authorization code.", err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.SaveAuthData", T("We couldn't save the authorization code."), err.Error())
 		} else {
 			result.Data = authData
 		}
@@ -292,7 +293,7 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
+func (as SqlOAuthStore) GetAuthData(code string, T goi18n.TranslateFunc) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -300,9 +301,9 @@ func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := as.GetReplica().Get(model.AuthData{}, code); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", "We encountered an error finding the authorization code", err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", T("We encounted an error finding the authorization code"), err.Error())
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", "We couldn't find the existing authorization code", "")
+			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", T("We couldn't find the existing authorization code"), "")
 		} else {
 			result.Data = obj.(*model.AuthData)
 		}
@@ -315,7 +316,7 @@ func (as SqlOAuthStore) GetAuthData(code string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
+func (as SqlOAuthStore) RemoveAuthData(code string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -323,7 +324,7 @@ func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
 
 		_, err := as.GetMaster().Exec("DELETE FROM OAuthAuthData WHERE Code = :Code", map[string]interface{}{"Code": code})
 		if err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthData", "We couldn't remove the authorization code", "err="+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthData", T("We couldn't remove the authorization code"), "err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -333,7 +334,7 @@ func (as SqlOAuthStore) RemoveAuthData(code string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) StoreChannel {
+func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {

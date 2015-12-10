@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 	"unicode/utf8"
@@ -59,59 +60,59 @@ func (o *Post) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
-func (o *Post) IsValid() *AppError {
+func (o *Post) IsValid(T goi18n.TranslateFunc) *AppError {
 
 	if len(o.Id) != 26 {
-		return NewAppError("Post.IsValid", "Invalid Id", "")
+		return NewAppError("Post.IsValid", T("Invalid Id"), "")
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("Post.IsValid", "Create at must be a valid time", "id="+o.Id)
+		return NewAppError("Post.IsValid", T("Create at must be a valid time"), "id="+o.Id)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Post.IsValid", "Update at must be a valid time", "id="+o.Id)
+		return NewAppError("Post.IsValid", T("Update at must be a valid time"), "id="+o.Id)
 	}
 
 	if len(o.UserId) != 26 {
-		return NewAppError("Post.IsValid", "Invalid user id", "")
+		return NewAppError("Post.IsValid", T("Invalid user id"), "")
 	}
 
 	if len(o.ChannelId) != 26 {
-		return NewAppError("Post.IsValid", "Invalid channel id", "")
+		return NewAppError("Post.IsValid", T("Invalid channel id"), "")
 	}
 
 	if !(len(o.RootId) == 26 || len(o.RootId) == 0) {
-		return NewAppError("Post.IsValid", "Invalid root id", "")
+		return NewAppError("Post.IsValid", T("Invalid root id"), "")
 	}
 
 	if !(len(o.ParentId) == 26 || len(o.ParentId) == 0) {
-		return NewAppError("Post.IsValid", "Invalid parent id", "")
+		return NewAppError("Post.IsValid", T("Invalid parent id"), "")
 	}
 
 	if len(o.ParentId) == 26 && len(o.RootId) == 0 {
-		return NewAppError("Post.IsValid", "Invalid root id must be set if parent id set", "")
+		return NewAppError("Post.IsValid", T("Invalid root id must be set if parent id set"), "")
 	}
 
 	if !(len(o.OriginalId) == 26 || len(o.OriginalId) == 0) {
-		return NewAppError("Post.IsValid", "Invalid original id", "")
+		return NewAppError("Post.IsValid", T("Invalid original id"), "")
 	}
 
 	if utf8.RuneCountInString(o.Message) > 4000 {
-		return NewAppError("Post.IsValid", "Invalid message", "id="+o.Id)
+		return NewAppError("Post.IsValid", T("Invalid message"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > 1000 {
-		return NewAppError("Post.IsValid", "Invalid hashtags", "id="+o.Id)
+		return NewAppError("Post.IsValid", T("Invalid hashtags"), "id="+o.Id)
 	}
 
 	// should be removed once more message types are supported
 	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE) {
-		return NewAppError("Post.IsValid", "Invalid type", "id="+o.Type)
+		return NewAppError("Post.IsValid", T("Invalid type"), "id="+o.Type)
 	}
 
 	if utf8.RuneCountInString(ArrayToJson(o.Filenames)) > 4000 {
-		return NewAppError("Post.IsValid", "Invalid filenames", "id="+o.Id)
+		return NewAppError("Post.IsValid", T("Invalid filenames"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > 8000 {
