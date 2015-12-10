@@ -381,6 +381,8 @@
 .more-modal {
 
 	.user-list {
+		overflow-y: auto;
+		overflow-x: hidden;
 		margin-top: 10px;
 		max-height: 500px;
 		position: relative;
