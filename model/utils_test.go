@@ -17,6 +17,15 @@ func TestNewId(t *testing.T) {
 	}
 }
 
+func TestRandomString(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		r := NewRandomString(32)
+		if len(r) != 32 {
+			t.Fatal("should be 32 chars")
+		}
+	}
+}
+
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", "")
 	json := err.ToJson()

@@ -164,6 +164,23 @@ func ConfigFromJson(data io.Reader) *Config {
 }
 
 func (o *Config) SetDefaults() {
+
+	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
+		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
+	}
+
+	if len(o.FileSettings.PublicLinkSalt) == 0 {
+		o.FileSettings.PublicLinkSalt = NewRandomString(32)
+	}
+
+	if len(o.EmailSettings.InviteSalt) == 0 {
+		o.EmailSettings.InviteSalt = NewRandomString(32)
+	}
+
+	if len(o.EmailSettings.PasswordResetSalt) == 0 {
+		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
+	}
+
 	if o.ServiceSettings.EnableSecurityFixAlert == nil {
 		o.ServiceSettings.EnableSecurityFixAlert = new(bool)
 		*o.ServiceSettings.EnableSecurityFixAlert = true
