@@ -20,7 +20,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"io/ioutil"
 )
+
+var languages = [2]string{"es", "en"}
+var jsonMessages map[string]string = map[string]string{}
 
 var Templates *template.Template
 
@@ -101,6 +105,21 @@ func InitWeb() {
 	mainrouter.Handle("/zimbra/{email}/{token}", api.AppHandler(zimbra)).Methods("GET")
 
 	watchAndParseTemplates()
+	loadLanguages()
+}
+
+func loadLanguages() {
+	lenght := len(languages)
+	for i:= 0; i < lenght; i++ {
+		lang := languages[i]
+		fileName := "./web/i18n/" + lang +".json"
+		raw, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			l4g.Error("Error opening file=" + fileName + ", err=" + err.Error())
+		}
+		jsonMessages[lang] = string(raw)
+		l4g.Info("Loaded Language file from %v", fileName)
+	}
 }
 
 func watchAndParseTemplates() {
@@ -218,7 +237,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page.Render(c, w, T)
 		page.Props["TeamURL"] = c.GetTeamURL(T)
 		page.Props["Locale"] = lang
-		page.Props["Messages"] = i18n.JsonMessages[lang]
+		page.Props["Messages"] = jsonMessages[lang]
 		setTeamCookie(w, c.GetTeamName())
 		page.Render(c, w, T)
 	}
@@ -232,7 +251,7 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	page := NewHtmlTemplatePage(T("signup_team"), T("Signup"))
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -266,7 +285,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 
 	if team.AllowOpenInvite {
 		page.Props["InviteId"] = team.InviteId
@@ -282,7 +301,7 @@ func signupTeamConfirm(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage(T("signup_team_confirm"), T("Signup Email Sent"))
 	page.Props["Email"] = email
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -309,7 +328,7 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -364,7 +383,7 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -562,7 +581,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 	page.User = user
 	page.Channel = channel
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -617,7 +636,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["UserEmail"] = email
 	page.Props["ResendSuccess"] = resendSuccess
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -626,7 +645,7 @@ func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	page := NewHtmlTemplatePage(T("find_team"), T("Find Team"))
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -638,7 +657,7 @@ func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page := NewHtmlTemplatePage("docs", "Documentation")
 	page.Props["Site"] = doc
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -689,7 +708,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["TeamName"] = teamName
 	page.Props["IsReset"] = strconv.FormatBool(isResetLink)
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -1038,7 +1057,7 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["ActiveTab"] = activeTab
 	page.Props["TeamId"] = teamId
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -1091,7 +1110,7 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["Scope"] = scope
 	page.Props["State"] = state
 	page.Props["Locale"] = lang
-	page.Props["Messages"] = i18n.JsonMessages[lang]
+	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 

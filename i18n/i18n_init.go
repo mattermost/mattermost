@@ -5,30 +5,15 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/cloudfoundry/jibber_jabber"
 	"net/http"
-	"io/ioutil"
 	"strings"
-	l4g "code.google.com/p/log4go"
 )
 
 var TranslateFunc i18n.TranslateFunc
 var languages = [2]string{"es", "en"}
-var JsonMessages map[string]string = map[string]string{}
-
 
 func Init() {
-	lenght := len(languages)
 	i18n.MustLoadTranslationFile("./i18n/en.all.json")
 	i18n.MustLoadTranslationFile("./i18n/es.all.json")
-	for i:= 0; i < lenght; i++ {
-		lang := languages[i]
-		fileName := "./i18n/web/" + lang +".json"
-		raw, err := ioutil.ReadFile(fileName)
-		if err != nil {
-			l4g.Error("Error opening file=" + fileName + ", err=" + err.Error())
-		}
-		JsonMessages[lang] = string(raw)
-		l4g.Info("Loaded Language file from %v", fileName)
-	}
 }
 
 func GetSystemLanguage() (i18n.TranslateFunc) {
