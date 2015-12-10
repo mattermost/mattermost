@@ -1,11 +1,8 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT Release v1.3.0
+## Release v1.3.0
 
-The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
-
-- **Release candidate anticipated:** 2015-12-10
-- **Final release anticipated:** 2015-12-16
+Release date: 2015-12-16
 
 ### Release Highlights
 
