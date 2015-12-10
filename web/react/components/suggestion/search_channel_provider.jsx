@@ -33,7 +33,7 @@ SearchChannelSuggestion.propTypes = {
 
 export default class SearchChannelProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext);
+        const captured = (/\b(?:in|channel|en|canal):\s*(\S*)$/i).exec(pretext);
         if (captured) {
             const channelPrefix = captured[1];
 

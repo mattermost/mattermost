@@ -1,13 +1,33 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SocketStore from '../stores/socket_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 
 import Constants from '../utils/constants.jsx';
 const SocketEvents = Constants.SocketEvents;
 
-export default class MsgTyping extends React.Component {
+const messages = defineMessages({
+    someone: {
+        id: 'msg_typing.someone',
+        defaultMessage: 'Someone'
+    },
+    typing: {
+        id: 'msg_typing.typing',
+        defaultMessage: ' is typing...'
+    },
+    and: {
+        id: 'msg_typing.and',
+        defaultMessage: ' and '
+    },
+    plus: {
+        id: 'msg_typing.plus',
+        defaultMessage: ' are typing...'
+    }
+});
+
+class MsgTyping extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,7 +56,8 @@ export default class MsgTyping extends React.Component {
     }
 
     onChange(msg) {
-        let username = 'Someone';
+        const {formatMessage} = this.props.intl;
+        let username = formatMessage(messages.someone);
         if (msg.action === SocketEvents.TYPING &&
                 this.props.channelId === msg.channel_id &&
                 this.props.parentId === msg.props.parent_id) {
@@ -65,6 +86,7 @@ export default class MsgTyping extends React.Component {
     }
 
     updateTypingText() {
+        const {formatMessage} = this.props.intl;
         const users = Object.keys(this.typingUsers);
         let text = '';
         switch (users.length) {
@@ -72,11 +94,11 @@ export default class MsgTyping extends React.Component {
             text = '';
             break;
         case 1:
-            text = users[0] + ' is typing...';
+            text = users[0] + formatMessage(messages.typing);
             break;
         default: {
             const last = users.pop();
-            text = users.join(', ') + ' and ' + last + ' are typing...';
+            text = users.join(', ') + formatMessage(messages.and) + last + formatMessage(messages.plus);
             break;
         }
         }
@@ -92,6 +114,9 @@ export default class MsgTyping extends React.Component {
 }
 
 MsgTyping.propTypes = {
+    intl: intlShape.isRequired,
     channelId: React.PropTypes.string,
     parentId: React.PropTypes.string
 };
+
+export default injectIntl(MsgTyping);

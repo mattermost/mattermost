@@ -1,6 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {addLocaleData, IntlProvider} from 'react-intl';
+import enLocaleData from '../utils/locales/en';
+import esLocaleData from '../utils/locales/es';
+
 import ChannelView from '../components/channel_view.jsx';
 import ChannelLoader from '../components/channel_loader.jsx';
 import ErrorBar from '../components/error_bar.jsx';
@@ -32,7 +36,13 @@ function onPreferenceChange() {
     PreferenceStore.removeChangeListener(onPreferenceChange);
 }
 
+addLocaleData(enLocaleData);
+addLocaleData(esLocaleData);
+
 function setupChannelPage(props, team, channel) {
+    const lang = props.Locale;
+    const messages = JSON.parse(props.Messages);
+
     if (props.PostId === '') {
         EventHelpers.emitChannelClickEvent(channel);
     } else {
@@ -49,12 +59,22 @@ function setupChannelPage(props, team, channel) {
     );
 
     ReactDOM.render(
-        <ErrorBar/>,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <ErrorBar/>
+        </IntlProvider>,
         document.getElementById('error_bar')
     );
 
     ReactDOM.render(
-        <ChannelView/>,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <ChannelView/>
+        </IntlProvider>,
         document.getElementById('channel_view')
     );
 
@@ -62,62 +82,117 @@ function setupChannelPage(props, team, channel) {
     // Modals
     //
     ReactDOM.render(
-        <GetTeamInviteLinkModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <GetTeamInviteLinkModal />
+        </IntlProvider>,
         document.getElementById('get_team_invite_link_modal')
     );
 
     ReactDOM.render(
-        <InviteMemberModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <InviteMemberModal />
+        </IntlProvider>,
         document.getElementById('invite_member_modal')
     );
 
     ReactDOM.render(
-        <ImportThemeModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <ImportThemeModal />
+        </IntlProvider>,
         document.getElementById('import_theme_modal')
     );
 
     ReactDOM.render(
-        <TeamSettingsModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <TeamSettingsModal teamType='team.type' />
+        </IntlProvider>,
         document.getElementById('team_settings_modal')
     );
 
     ReactDOM.render(
-        <RenameChannelModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <RenameChannelModal />
+        </IntlProvider>,
         document.getElementById('rename_channel_modal')
     );
 
     ReactDOM.render(
-        <MoreChannelsModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <MoreChannelsModal />
+        </IntlProvider>,
         document.getElementById('more_channels_modal')
     );
 
     ReactDOM.render(
-        <EditPostModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <EditPostModal />
+        </IntlProvider>,
         document.getElementById('edit_post_modal')
     );
 
     ReactDOM.render(
-        <DeletePostModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <DeletePostModal />
+        </IntlProvider>,
         document.getElementById('delete_post_modal')
     );
 
     ReactDOM.render(
-        <PostDeletedModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <PostDeletedModal />
+        </IntlProvider>,
         document.getElementById('post_deleted_modal')
     );
 
     ReactDOM.render(
-        <RemovedFromChannelModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <RemovedFromChannelModal />
+        </IntlProvider>,
         document.getElementById('removed_from_channel_modal')
     );
 
     ReactDOM.render(
-        <RegisterAppModal />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <RegisterAppModal />
+        </IntlProvider>,
         document.getElementById('register_app_modal')
     );
 
     if (global.window.mm_config.SendEmailNotifications === 'false') {
-        ErrorStore.storeLastError({message: 'Preview Mode: Email notifications have not been configured'});
+        ErrorStore.storeLastError({message: messages.preview_mode});
         ErrorStore.emitChange();
     }
 }

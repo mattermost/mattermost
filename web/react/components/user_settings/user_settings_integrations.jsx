@@ -1,12 +1,40 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
 import ManageIncomingHooks from './manage_incoming_hooks.jsx';
 import ManageOutgoingHooks from './manage_outgoing_hooks.jsx';
 
-export default class UserSettingsIntegrationsTab extends React.Component {
+const messages = defineMessages({
+    inName: {
+        id: 'user.settings.integrations.incomingWebhooks',
+        defaultMessage: 'Incoming Webhooks'
+    },
+    inDesc: {
+        id: 'user.settings.integrations.incomingWebhooksDescription',
+        defaultMessage: 'Manage your incoming webhooks'
+    },
+    outName: {
+        id: 'user.settings.integrations.outWebhooks',
+        defaultMessage: 'Outgoing Webhooks'
+    },
+    outDesc: {
+        id: 'user.settings.integrations.outWebhooksDescription',
+        defaultMessage: 'Manage your outgoing webhooks'
+    },
+    title: {
+        id: 'user.settings.integrations.title',
+        defaultMessage: 'Integration Settings'
+    },
+    close: {
+        id: 'user.settings.integrations.close',
+        defaultMessage: 'Close'
+    }
+});
+
+class UserSettingsIntegrationsTab extends React.Component {
     constructor(props) {
         super(props);
 
@@ -18,6 +46,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
         this.props.updateSection(section);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let incomingHooksSection;
         let outgoingHooksSection;
         var inputs = [];
@@ -30,7 +59,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
 
                 incomingHooksSection = (
                     <SettingItemMax
-                        title='Incoming Webhooks'
+                        title={formatMessage(messages.inName)}
                         width='medium'
                         inputs={inputs}
                         updateSection={(e) => {
@@ -42,9 +71,9 @@ export default class UserSettingsIntegrationsTab extends React.Component {
             } else {
                 incomingHooksSection = (
                     <SettingItemMin
-                        title='Incoming Webhooks'
+                        title={formatMessage(messages.inName)}
                         width='medium'
-                        describe='Manage your incoming webhooks'
+                        describe={formatMessage(messages.inDesc)}
                         updateSection={() => {
                             this.updateSection('incoming-hooks');
                         }}
@@ -61,7 +90,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
 
                 outgoingHooksSection = (
                     <SettingItemMax
-                        title='Outgoing Webhooks'
+                        title={formatMessage(messages.outName)}
                         width='medium'
                         inputs={inputs}
                         updateSection={(e) => {
@@ -73,9 +102,9 @@ export default class UserSettingsIntegrationsTab extends React.Component {
             } else {
                 outgoingHooksSection = (
                     <SettingItemMin
-                        title='Outgoing Webhooks'
+                        title={formatMessage(messages.outName)}
                         width='medium'
-                        describe='Manage your outgoing webhooks'
+                        describe={formatMessage(messages.outDesc)}
                         updateSection={() => {
                             this.updateSection('outgoing-hooks');
                         }}
@@ -91,7 +120,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
                         type='button'
                         className='close'
                         data-dismiss='modal'
-                        aria-label='Close'
+                        aria-label={formatMessage(messages.close)}
                         onClick={this.props.closeModal}
                     >
                         <span aria-hidden='true'>{'×'}</span>
@@ -104,11 +133,11 @@ export default class UserSettingsIntegrationsTab extends React.Component {
                             className='modal-back'
                             onClick={this.props.collapseModal}
                         />
-                        {'Integration Settings'}
+                        {formatMessage(messages.title)}
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>{'Integration Settings'}</h3>
+                    <h3 className='tab-header'>{formatMessage(messages.title)}</h3>
                     <div className='divider-dark first'/>
                     {incomingHooksSection}
                     <div className='divider-light'/>
@@ -121,6 +150,7 @@ export default class UserSettingsIntegrationsTab extends React.Component {
 }
 
 UserSettingsIntegrationsTab.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
@@ -128,3 +158,5 @@ UserSettingsIntegrationsTab.propTypes = {
     closeModal: React.PropTypes.func.isRequired,
     collapseModal: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(UserSettingsIntegrationsTab);

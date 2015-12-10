@@ -761,6 +761,29 @@ export function getChannelCounts(success, error) {
     });
 }
 
+export function getTotalChannelsByTypeSync(teamId, type, error) {
+    var total = 0;
+    $.ajax({
+        async: false,
+        cache: false,
+        url: '/api/v1/channels/totalChannelsByType/' + type + '/' + teamId,
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'GET',
+        success: function gotUser(data) {
+            total = data.total;
+        },
+        error: function onError(xhr, status, err) {
+            if (error) {
+                var e = handleError('getTotalChannelsByType', xhr, status, err);
+                error(e);
+            }
+        }
+    });
+
+    return total;
+}
+
 export function getChannelExtraInfo(id, success, error) {
     $.ajax({
         url: '/api/v1/channels/' + id + '/extra_info',

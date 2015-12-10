@@ -1,12 +1,88 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import UserStore from '../stores/user_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 
-export default class Login extends React.Component {
+const messages = defineMessages({
+    badTeam: {
+        id: 'login.badTeam',
+        defaultMessage: 'Bad team name'
+    },
+    emailRequired: {
+        id: 'login.emailRequired',
+        defaultMessage: 'An email is required'
+    },
+    passwordRequired: {
+        id: 'login.passwordRequired',
+        defaultMessage: 'A password is required'
+    },
+    localStorage: {
+        id: 'login.localStorage',
+        defaultMessage: 'This service requires local storage to be enabled. Please enable it or exit private browsing.'
+    },
+    notVerified: {
+        id: 'login.notVerified',
+        defaultMessage: 'Login failed because email address has not been verified'
+    },
+    zbox: {
+        id: 'login.zbox',
+        defaultMessage: 'With ZBox'
+    },
+    email: {
+        id: 'login.email',
+        defaultMessage: 'Email'
+    },
+    password: {
+        id: 'login.password',
+        defaultMessage: 'Password'
+    },
+    singIn: {
+        id: 'login.singIn',
+        defaultMessage: 'Sign in'
+    },
+    or: {
+        id: 'login.or',
+        defaultMessage: 'or'
+    },
+    signTo: {
+        id: 'login.signTo',
+        defaultMessage: 'Sign in to:'
+    },
+    on: {
+        id: 'login.on',
+        defaultMessage: 'on '
+    },
+    verified: {
+        id: 'login.verified',
+        defaultMessage: ' Email Verified'
+    },
+    forgot: {
+        id: 'login.forgot',
+        defaultMessage: 'I forgot my password'
+    },
+    noAccount: {
+        id: 'login.noAccount',
+        defaultMessage: 'Don\'t have an account? '
+    },
+    create: {
+        id: 'login.create',
+        defaultMessage: 'Create one now'
+    },
+    createTeam: {
+        id: 'login.createTeam',
+        defaultMessage: 'Create a new team'
+    },
+    find: {
+        id: 'login.find',
+        defaultMessage: 'Find your other teams'
+    }
+});
+
+class Login extends React.Component {
     constructor(props) {
         super(props);
 
@@ -16,31 +92,32 @@ export default class Login extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
+        const {formatMessage} = this.props.intl;
         var state = {};
 
         const name = this.props.teamName;
         if (!name) {
-            state.serverError = 'Bad team name';
+            state.serverError = formatMessage(messages.badTeam);
             this.setState(state);
             return;
         }
 
         const email = ReactDOM.findDOMNode(this.refs.email).value.trim();
         if (!email) {
-            state.serverError = 'An email is required';
+            state.serverError = formatMessage(messages.emailRequired);
             this.setState(state);
             return;
         }
 
         const password = ReactDOM.findDOMNode(this.refs.password).value.trim();
         if (!password) {
-            state.serverError = 'A password is required';
+            state.serverError = formatMessage(messages.passwordRequired);
             this.setState(state);
             return;
         }
 
         if (!BrowserStore.isLocalStorageSupported()) {
-            state.serverError = 'This service requires local storage to be enabled. Please enable it or exit private browsing.';
+            state.serverError = formatMessage(messages.localStorage);
             this.setState(state);
             return;
         }
@@ -56,11 +133,11 @@ export default class Login extends React.Component {
                 if (redirect) {
                     window.location.href = decodeURIComponent(redirect);
                 } else {
-                    window.location.href = '/' + name + '/channels/town-square';
+                    window.location.href = '/' + name + '/channels/general';
                 }
             },
             (err) => {
-                if (err.message === 'Login failed because email address has not been verified') {
+                if (err.message === formatMessage(messages.notVerified)) {
                     window.location.href = '/verify_email?teamname=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email);
                     return;
                 }
@@ -71,6 +148,7 @@ export default class Login extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError;
         if (this.state.serverError) {
             serverError = <label className='control-label'>{this.state.serverError}</label>;
@@ -106,6 +184,18 @@ export default class Login extends React.Component {
            );
         }
 
+        if (global.window.mm_config.EnableSignUpWithZBox === 'true') {
+            loginMessage.push(
+                <a
+                    className='btn btn-custom-login zbox'
+                    href={'/login/zbox'}
+                >
+                    <span className='icon' />
+                    <span>{formatMessage(messages.zbox)}</span>
+                </a>
+            );
+        }
+
         let errorClass = '';
         if (serverError) {
             errorClass = ' has-error';
@@ -117,7 +207,7 @@ export default class Login extends React.Component {
             verifiedBox = (
                 <div className='alert alert-success'>
                     <i className='fa fa-check' />
-                    {' Email Verified'}
+                    {formatMessage(messages.verified)}
                 </div>
             );
         }
@@ -134,7 +224,7 @@ export default class Login extends React.Component {
                             name='email'
                             defaultValue={priorEmail}
                             ref='email'
-                            placeholder='Email'
+                            placeholder={formatMessage(messages.email)}
                             spellCheck='false'
                         />
                     </div>
@@ -145,7 +235,7 @@ export default class Login extends React.Component {
                             className='form-control'
                             name='password'
                             ref='password'
-                            placeholder='Password'
+                            placeholder={formatMessage(messages.password)}
                             spellCheck='false'
                         />
                     </div>
@@ -154,7 +244,7 @@ export default class Login extends React.Component {
                             type='submit'
                             className='btn btn-primary'
                         >
-                            {'Sign in'}
+                            {formatMessage(messages.singIn)}
                         </button>
                     </div>
                 </div>
@@ -166,7 +256,7 @@ export default class Login extends React.Component {
                 <div>
                     {loginMessage}
                     <div className='or__container'>
-                        <span>{'or'}</span>
+                        <span>{formatMessage(messages.or)}</span>
                     </div>
                 </div>
             );
@@ -176,7 +266,7 @@ export default class Login extends React.Component {
         if (emailSignup) {
             forgotPassword = (
                 <div className='form-group'>
-                    <a href={'/' + teamName + '/reset_password'}>{'I forgot my password'}</a>
+                    <a href={'/' + teamName + '/reset_password'}>{formatMessage(messages.forgot)}</a>
                 </div>
             );
         }
@@ -185,12 +275,12 @@ export default class Login extends React.Component {
         if (this.props.inviteId) {
             userSignUp = (
                 <div>
-                    <span>{`Don't have an account? `}
+                    <span>{formatMessage(messages.noAccount)}
                         <a
                             href={'/signup_user_complete/?id=' + this.props.inviteId}
                             className='signup-team-login'
                         >
-                            {'Create one now'}
+                            {formatMessage(messages.create)}
                         </a>
                     </span>
                 </div>
@@ -205,7 +295,7 @@ export default class Login extends React.Component {
                         href='/'
                         className='signup-team-login'
                     >
-                        {'Create a new team'}
+                        {formatMessage(messages.createTeam)}
                     </a>
                 </div>
             );
@@ -213,9 +303,9 @@ export default class Login extends React.Component {
 
         return (
             <div className='signup-team__container'>
-                <h5 className='margin--less'>{'Sign in to:'}</h5>
+                <h5 className='margin--less'>{formatMessage(messages.signTo)}</h5>
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
-                <h2 className='signup-team__subdomain'>{'on '}{global.window.mm_config.SiteName}</h2>
+                <h2 className='signup-team__subdomain'>{formatMessage(messages.on) + global.window.mm_config.SiteName}</h2>
                 <form onSubmit={this.handleSubmit}>
                     {verifiedBox}
                     <div className={'form-group' + errorClass}>
@@ -225,7 +315,7 @@ export default class Login extends React.Component {
                     {emailSignup}
                     {userSignUp}
                     <div className='form-group margin--extra form-group--small'>
-                        <span><a href='/find_team'>{'Find your other teams'}</a></span>
+                        <span><a href='/find_team'>{formatMessage(messages.find)}</a></span>
                     </div>
                     {forgotPassword}
                     {teamSignUp}
@@ -240,7 +330,10 @@ Login.defaultProps = {
     teamDisplayName: ''
 };
 Login.propTypes = {
+    intl: intlShape.isRequired,
     teamName: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string,
     inviteId: React.PropTypes.string
 };
+
+export default injectIntl(Login);

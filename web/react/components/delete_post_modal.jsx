@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import PostStore from '../stores/post_store.jsx';
 import ModalStore from '../stores/modal_store.jsx';
@@ -11,7 +12,38 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 
-export default class DeletePostModal extends React.Component {
+const messages = defineMessages({
+    has: {
+        id: 'delete_post.has',
+        defaultMessage: 'This post has '
+    },
+    comments: {
+        id: 'delete_post.comments',
+        defaultMessage: ' comment(s) on it.'
+    },
+    close: {
+        id: 'delete_post.close',
+        defaultMessage: 'Close'
+    },
+    cancel: {
+        id: 'delete_post.cancel',
+        defaultMessage: 'Cancel'
+    },
+    confirm: {
+        id: 'delete_post.confirm',
+        defaultMessage: 'Confirm '
+    },
+    del: {
+        id: 'delete_post.del',
+        defaultMessage: ' Delete'
+    },
+    question: {
+        id: 'delete_post.question',
+        defaultMessage: 'Are you sure you want to delete the '
+    }
+});
+
+class DeletePostModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -113,6 +145,8 @@ export default class DeletePostModal extends React.Component {
             return null;
         }
 
+        const {formatMessage, locale} = this.props.intl;
+
         var error = null;
         if (this.state.error) {
             error = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
@@ -120,10 +154,10 @@ export default class DeletePostModal extends React.Component {
 
         var commentWarning = '';
         if (this.state.commentCount > 0) {
-            commentWarning = 'This post has ' + this.state.commentCount + ' comment(s) on it.';
+            commentWarning = formatMessage(messages.has) + this.state.commentCount + formatMessage(messages.comments);
         }
 
-        const postTerm = Utils.getPostTerm(this.state.post);
+        const postTerm = Utils.getPostTerm(this.state.post, locale);
 
         return (
             <Modal
@@ -131,10 +165,10 @@ export default class DeletePostModal extends React.Component {
                 onHide={this.handleHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{`Confirm ${postTerm} Delete`}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.confirm)} {postTerm} {formatMessage(messages.del)}?</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {`Are you sure you want to delete this ${postTerm.toLowerCase()}?`}
+                    {`${formatMessage(messages.question)} ${postTerm.toLowerCase()}?`}
                     <br />
                     <br />
                     {commentWarning}
@@ -146,7 +180,7 @@ export default class DeletePostModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.handleHide}
                     >
-                        {'Cancel'}
+                        {formatMessage(messages.cancel)}
                     </button>
                     <button
                         type='button'
@@ -154,10 +188,16 @@ export default class DeletePostModal extends React.Component {
                         onClick={this.handleDelete}
                         autoFocus='autofocus'
                     >
-                        {'Delete'}
+                        {formatMessage(messages.del)}
                     </button>
                 </Modal.Footer>
             </Modal>
         );
     }
 }
+
+DeletePostModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(DeletePostModal);

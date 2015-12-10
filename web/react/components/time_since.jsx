@@ -1,12 +1,20 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 
 var Tooltip = ReactBootstrap.Tooltip;
 var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class TimeSince extends React.Component {
+const messages = defineMessages({
+    at: {
+        id: 'time_since.at',
+        defaultMessage: ' at '
+    }
+});
+
+class TimeSince extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -19,12 +27,14 @@ export default class TimeSince extends React.Component {
         clearInterval(this.intervalId);
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         const displayDate = Utils.displayDate(this.props.eventTime);
         const displayTime = Utils.displayTime(this.props.eventTime);
 
         const tooltip = (
             <Tooltip id={'time-since-tooltip-' + this.props.eventTime}>
-                {displayDate + ' at ' + displayTime}
+                {displayDate + formatMessage(messages.at) + displayTime}
             </Tooltip>
         );
 
@@ -46,5 +56,8 @@ TimeSince.defaultProps = {
 };
 
 TimeSince.propTypes = {
-    eventTime: React.PropTypes.number.isRequired
+    eventTime: React.PropTypes.number.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(TimeSince);

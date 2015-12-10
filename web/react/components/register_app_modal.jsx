@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 
@@ -9,7 +10,86 @@ const Modal = ReactBootstrap.Modal;
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
-export default class RegisterAppModal extends React.Component {
+const messages = defineMessages({
+    nameError: {
+        id: 'register_app.nameError',
+        defaultMessage: 'Application name must be filled in.'
+    },
+    homepageError: {
+        id: 'register_app.homepageError',
+        defaultMessage: 'Homepage must be filled in.'
+    },
+    callbackError: {
+        id: 'register_app.callbackError',
+        defaultMessage: 'At least one callback URL must be filled in.'
+    },
+    title: {
+        id: 'register_app.title',
+        defaultMessage: 'Register a New Application'
+    },
+    name: {
+        id: 'register_app.name',
+        defaultMessage: 'Application Name'
+    },
+    required: {
+        id: 'register_app.required',
+        defaultMessage: 'Required'
+    },
+    optional: {
+        id: 'register_app.optional',
+        defaultMessage: 'Optional'
+    },
+    homepage: {
+        id: 'register_app.homepage',
+        defaultMessage: 'Homepage URL'
+    },
+    description: {
+        id: 'register_app.description',
+        defaultMessage: 'Description'
+    },
+    callback: {
+        id: 'register_app.callback',
+        defaultMessage: 'Callback URL'
+    },
+    close: {
+        id: 'register_app.close',
+        defaultMessage: 'Close'
+    },
+    cancel: {
+        id: 'register_app.cancel',
+        defaultMessage: 'Cancel'
+    },
+    register: {
+        id: 'register_app.register',
+        defaultMessage: 'Register'
+    },
+    credentialsTitle: {
+        id: 'register_app.credentialsTitle',
+        defaultMessage: 'Your Application Credentials'
+    },
+    clientId: {
+        id: 'register_app.clientId',
+        defaultMessage: 'Client ID'
+    },
+    clientSecret: {
+        id: 'register_app.clientSecret',
+        defaultMessage: 'Client Secret'
+    },
+    credentialsDescription: {
+        id: 'register_app.credentialsDescription',
+        defaultMessage: 'Save these somewhere SAFE and SECURE. We can retrieve your Client Id if you lose it, but your Client Secret will be lost forever if you were to lose it.'
+    },
+    credentialsSave: {
+        id: 'register_app.credentialsSave',
+        defaultMessage: 'I have saved both my Client Id and Client Secret somewhere safe'
+    },
+    dev: {
+        id: 'register_app.dev',
+        defaultMessage: 'Developer Applications'
+    }
+});
+
+class RegisterAppModal extends React.Component {
     constructor() {
         super();
 
@@ -53,6 +133,7 @@ export default class RegisterAppModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         var state = this.state;
         state.serverError = null;
 
@@ -60,7 +141,7 @@ export default class RegisterAppModal extends React.Component {
 
         var name = this.refs.name.value;
         if (!name || name.length === 0) {
-            state.nameError = 'Application name must be filled in.';
+            state.nameError = formatMessage(messages.nameError);
             this.setState(state);
             return;
         }
@@ -69,7 +150,7 @@ export default class RegisterAppModal extends React.Component {
 
         var homepage = this.refs.homepage.value;
         if (!homepage || homepage.length === 0) {
-            state.homepageError = 'Homepage must be filled in.';
+            state.homepageError = formatMessage(messages.homepageError);
             this.setState(state);
             return;
         }
@@ -81,7 +162,7 @@ export default class RegisterAppModal extends React.Component {
 
         var rawCallbacks = this.refs.callback.value.trim();
         if (!rawCallbacks || rawCallbacks.length === 0) {
-            state.callbackError = 'At least one callback URL must be filled in.';
+            state.callbackError = formatMessage(messages.callbackError);
             this.setState(state);
             return;
         }
@@ -112,6 +193,7 @@ export default class RegisterAppModal extends React.Component {
         this.setState({saved: this.refs.save.checked});
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var nameError;
         if (this.state.nameError) {
             nameError = <div className='form-group has-error'><label className='control-label'>{this.state.nameError}</label></div>;
@@ -135,50 +217,50 @@ export default class RegisterAppModal extends React.Component {
             body = (
                 <div className='settings-modal'>
                     <div className='form-horizontal user-settings'>
-                        <h4 className='padding-bottom x3'>{'Register a New Application'}</h4>
+                        <h4 className='padding-bottom x3'>{formatMessage(messages.title)}</h4>
                         <div className='row'>
-                            <label className='col-sm-4 control-label'>{'Application Name'}</label>
+                            <label className='col-sm-4 control-label'>{formatMessage(messages.name)}</label>
                             <div className='col-sm-7'>
                                 <input
                                     ref='name'
                                     className='form-control'
                                     type='text'
-                                    placeholder='Required'
+                                    placeholder={formatMessage(messages.required)}
                                 />
                                 {nameError}
                             </div>
                         </div>
                         <div className='row padding-top x2'>
-                            <label className='col-sm-4 control-label'>{'Homepage URL'}</label>
+                            <label className='col-sm-4 control-label'>{formatMessage(messages.homepage)}</label>
                             <div className='col-sm-7'>
                                 <input
                                     ref='homepage'
                                     className='form-control'
                                     type='text'
-                                    placeholder='Required'
+                                    placeholder={formatMessage(messages.required)}
                                 />
                                 {homepageError}
                             </div>
                         </div>
                         <div className='row padding-top x2'>
-                            <label className='col-sm-4 control-label'>{'Description'}</label>
+                            <label className='col-sm-4 control-label'>{formatMessage(messages.description)}</label>
                             <div className='col-sm-7'>
                                 <input
                                     ref='desc'
                                     className='form-control'
                                     type='text'
-                                    placeholder='Optional'
+                                    placeholder={formatMessage(messages.optional)}
                                 />
                             </div>
                         </div>
                         <div className='row padding-top padding-bottom x2'>
-                            <label className='col-sm-4 control-label'>{'Callback URL'}</label>
+                            <label className='col-sm-4 control-label'>{formatMessage(messages.callback)}</label>
                             <div className='col-sm-7'>
                                 <textarea
                                     ref='callback'
                                     className='form-control'
                                     type='text'
-                                    placeholder='Required'
+                                    placeholder={formatMessage(messages.required)}
                                     rows='5'
                                 />
                                 {callbackError}
@@ -196,7 +278,7 @@ export default class RegisterAppModal extends React.Component {
                         className='btn btn-default'
                         onClick={() => this.updateShow(false)}
                     >
-                        {'Cancel'}
+                        {formatMessage(messages.cancel)}
                     </button>
                     <button
                         onClick={this.handleSubmit}
@@ -204,7 +286,7 @@ export default class RegisterAppModal extends React.Component {
                         className='btn btn-primary'
                         tabIndex='3'
                     >
-                        {'Register'}
+                        {formatMessage(messages.register)}
                     </button>
                 </div>
             );
@@ -216,10 +298,10 @@ export default class RegisterAppModal extends React.Component {
 
             body = (
                 <div className='form-horizontal user-settings'>
-                    <h4 className='padding-bottom x3'>{'Your Application Credentials'}</h4>
+                    <h4 className='padding-bottom x3'>{formatMessage(messages.credentialsTitle)}</h4>
                     <br/>
                     <div className='row'>
-                        <label className='col-sm-4 control-label'>{'Client ID'}</label>
+                        <label className='col-sm-4 control-label'>{formatMessage(messages.clientId)}</label>
                         <div className='col-sm-7'>
                             <input
                                 className='form-control'
@@ -231,7 +313,7 @@ export default class RegisterAppModal extends React.Component {
                     </div>
                     <br/>
                     <div className='row padding-top x2'>
-                        <label className='col-sm-4 control-label'>{'Client Secret'}</label>
+                        <label className='col-sm-4 control-label'>{formatMessage(messages.clientSecret)}</label>
                         <div className='col-sm-7'>
                             <input
                                 className='form-control'
@@ -243,7 +325,7 @@ export default class RegisterAppModal extends React.Component {
                     </div>
                     <br/>
                     <br/>
-                    <strong>{'Save these somewhere SAFE and SECURE. Treat your Client ID as your app\'s username and your Client Secret as the app\'s password.'}</strong>
+                    <strong>{formatMessage(messages.credentialsDescription)}</strong>
                     <br/>
                     <br/>
                     <div className='checkbox'>
@@ -254,7 +336,7 @@ export default class RegisterAppModal extends React.Component {
                                 checked={this.state.saved}
                                 onChange={this.save}
                             />
-                            {'I have saved both my Client Id and Client Secret somewhere safe'}
+                            {formatMessage(messages.credentialsSave)}
                         </label>
                     </div>
                 </div>
@@ -269,7 +351,7 @@ export default class RegisterAppModal extends React.Component {
                         this.updateShow(false);
                     }}
                 >
-                    {'Close'}
+                    {formatMessage(messages.close)}
                 </a>
             );
         }
@@ -281,7 +363,7 @@ export default class RegisterAppModal extends React.Component {
                     onHide={() => this.updateShow(false)}
                 >
                     <Modal.Header closeButton={true}>
-                        <Modal.Title>{'Developer Applications'}</Modal.Title>
+                        <Modal.Title>{formatMessage(messages.dev)}</Modal.Title>
                     </Modal.Header>
                     <form
                         role='form'
@@ -300,3 +382,8 @@ export default class RegisterAppModal extends React.Component {
     }
 }
 
+RegisterAppModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(RegisterAppModal);

@@ -1,11 +1,55 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class TeamSignupUrlPage extends React.Component {
+const messages = defineMessages({
+    nameError1: {
+        id: 'team_signup_url.nameError1',
+        defaultMessage: 'This field is required'
+    },
+    nameError2: {
+        id: 'team_signup_url.nameError2',
+        defaultMessage: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
+    },
+    nameError3: {
+        id: 'team_signup_url.nameError3',
+        defaultMessage: 'Name must be 4 or more characters up to a maximum of 15'
+    },
+    nameError4: {
+        id: 'team_signup_url.nameError4',
+        defaultMessage: 'URL is taken or contains a reserved word'
+    },
+    nameError5: {
+        id: 'team_signup_url.nameError5',
+        defaultMessage: 'This URL is unavailable. Please try another.'
+    },
+    teamUrl: {
+        id: 'team_signup_url.teamUrl',
+        defaultMessage: 'Team URL'
+    },
+    webAddress: {
+        id: 'team_signup_url.webAddress',
+        defaultMessage: 'Choose the web address of your new team:'
+    },
+    hint: {
+        id: 'team_signup_url.hint',
+        defaultMessage: "<li>Short and memorable is best</li><li>Use lowercase letters, numbers and dashes</li><li>Must start with a letter and can't end in a dash</li>"
+    },
+    next: {
+        id: 'team_signup_url.next',
+        defaultMessage: 'Next'
+    },
+    back: {
+        id: 'team_signup_url.back',
+        defaultMessage: 'Back to previous step'
+    }
+});
+
+class TeamSignupUrlPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -23,9 +67,10 @@ export default class TeamSignupUrlPage extends React.Component {
     submitNext(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!name) {
-            this.setState({nameError: 'This field is required'});
+            this.setState({nameError: formatMessage(messages.nameError1)});
             return;
         }
 
@@ -33,17 +78,17 @@ export default class TeamSignupUrlPage extends React.Component {
 
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
         if (cleanedName !== name || !urlRegex.test(name)) {
-            this.setState({nameError: "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."});
+            this.setState({nameError: formatMessage(messages.nameError2)});
             return;
         } else if (cleanedName.length < 4 || cleanedName.length > 15) {
-            this.setState({nameError: 'Name must be 4 or more characters up to a maximum of 15'});
+            this.setState({nameError: formatMessage(messages.nameError3)});
             return;
         }
 
         if (global.window.mm_config.RestrictTeamNames === 'true') {
             for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
                 if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                    this.setState({nameError: 'URL is taken or contains a reserved word'});
+                    this.setState({nameError: formatMessage(messages.nameError4)});
                     return;
                 }
             }
@@ -52,7 +97,7 @@ export default class TeamSignupUrlPage extends React.Component {
         Client.findTeamByName(name,
               (data) => {
                   if (data) {
-                      this.setState({nameError: 'This URL is unavailable. Please try another.'});
+                      this.setState({nameError: formatMessage(messages.nameError5)});
                   } else {
                       if (global.window.mm_config.SendEmailNotifications === 'true') {
                           this.props.state.wizard = 'send_invites';
@@ -76,6 +121,7 @@ export default class TeamSignupUrlPage extends React.Component {
         e.currentTarget.select();
     }
     render() {
+        const {formatMessage} = this.props.intl;
         $('body').tooltip({selector: '[data-toggle=tooltip]', trigger: 'hover click'});
 
         Client.track('signup', 'signup_team_03_url');
@@ -96,7 +142,7 @@ export default class TeamSignupUrlPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{`Team URL`}</h2>
+                    <h2>{formatMessage(messages.teamUrl)}</h2>
                     <div className={nameDivClass}>
                         <div className='row'>
                             <div className='col-sm-11'>
@@ -124,25 +170,23 @@ export default class TeamSignupUrlPage extends React.Component {
                         </div>
                         {nameError}
                     </div>
-                    <p>{`Choose the web address of your new team:`}</p>
+                    <p>{formatMessage(messages.webAddress)}</p>
                     <ul className='color--light'>
-                        <li>Short and memorable is best</li>
-                        <li>Use lowercase letters, numbers and dashes</li>
-                        <li>Must start with a letter and can't end in a dash</li>
+                        <FormattedHTMLMessage id='team_signup_url.hint' />
                     </ul>
                     <button
                         type='submit'
                         className='btn btn-primary margin--extra'
                         onClick={this.submitNext}
                     >
-                        Next<i className='glyphicon glyphicon-chevron-right'></i>
+                        {formatMessage(messages.next)}<i className='glyphicon glyphicon-chevron-right'></i>
                     </button>
                     <div className='margin--extra'>
                         <a
                             href='#'
                             onClick={this.submitBack}
                         >
-                            Back to previous step
+                            {formatMessage(messages.back)}
                         </a>
                     </div>
                 </form>
@@ -152,6 +196,9 @@ export default class TeamSignupUrlPage extends React.Component {
 }
 
 TeamSignupUrlPage.propTypes = {
+    intl: intlShape.isRequired,
     state: React.PropTypes.object,
     updateParent: React.PropTypes.func
 };
+
+export default injectIntl(TeamSignupUrlPage);

@@ -1,11 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl} from 'react-intl';
 import Constants from '../../utils/constants.jsx';
 import SuggestionList from './suggestion_list.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-export default class SearchSuggestionList extends SuggestionList {
+class SearchSuggestionList extends SuggestionList {
     componentDidUpdate(prevProps, prevState) {
         if (this.state.items.length > 0 && prevState.items.length === 0) {
             this.getContent().perfectScrollbar();
@@ -17,11 +18,20 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     renderChannelDivider(type) {
+        const {locale} = this.props.intl;
         let text;
         if (type === Constants.OPEN_CHANNEL) {
-            text = 'Public ' + Utils.getChannelTerm(type) + 's';
+            if (locale === 'es') {
+                text = Utils.getChannelTerm(type, locale) + locale;
+            } else {
+                text = Utils.getChannelTerm(type, locale) + 's';
+            }
+        } else if (locale === 'es') {
+            text = Utils.getChannelTerm(type, locale).split(' ').map(function plural(s) {
+                return s + 's';
+            }).join(' ');
         } else {
-            text = 'Private ' + Utils.getChannelTerm(type) + 's';
+            text = Utils.getChannelTerm(type, locale) + 's';
         }
 
         return (
@@ -82,5 +92,8 @@ export default class SearchSuggestionList extends SuggestionList {
 }
 
 SearchSuggestionList.propTypes = {
+    intl: intlShape.isRequired,
     ...SuggestionList.propTypes
 };
+
+export default injectIntl(SuggestionList);

@@ -86,7 +86,7 @@ class SocketStoreClass extends EventEmitter {
 
                 this.failCount = this.failCount + 1;
 
-                ErrorStore.storeLastError({connErrorCount: this.failCount, message: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'});
+                ErrorStore.storeLastError({connErrorCount: this.failCount, message: 'webSocket'});
                 ErrorStore.emitChange();
             };
 

@@ -90,5 +90,14 @@
         "AuthEndpoint": "",
         "TokenEndpoint": "",
         "UserApiEndpoint": ""
+    },
+    "ZBoxSettings": {
+        "Enable": true,
+        "Secret": "RZqS6sS4Wv3X7Sex",
+        "Id": "YKk-3wF-UDb-3As",
+        "Scope": "",
+        "AuthEndpoint": "http://dockerhost:3000/oauth/authorize",
+        "TokenEndpoint": "http://dockerhost:3000/oauth/token",
+        "UserApiEndpoint": "http://dockerhost:3000/me"
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -9,7 +10,18 @@ import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
-export default class PostsView extends React.Component {
+const messages = defineMessages({
+    newMsg: {
+        id: 'posts_view.newMsg',
+        defaultMessage: 'New Messages'
+    },
+    loadMore: {
+        id: 'post_view.loadMore',
+        defaultMessage: 'Load more messages'
+    }
+});
+
+class PostsView extends React.Component {
     constructor(props) {
         super(props);
 
@@ -77,6 +89,8 @@ export default class PostsView extends React.Component {
         this.props.loadMorePostsBottomClicked();
     }
     createPosts(posts, order) {
+        const {formatMessage, locale} = this.props.intl;
+
         const postCtls = [];
         let previousPostDay = new Date(0);
         const userId = UserStore.getCurrentId();
@@ -188,7 +202,7 @@ export default class PostsView extends React.Component {
                         className='date-separator'
                     >
                         <hr className='separator__hr' />
-                        <div className='separator__text'>{currentPostDay.toDateString()}</div>
+                        <div className='separator__text'>{currentPostDay.toLocaleDateString(locale, {weekday: 'short', month: 'short', day: '2-digit', year: 'numeric'}).replace(/,/g, '')}</div>
                     </div>
                 );
             }
@@ -214,7 +228,7 @@ export default class PostsView extends React.Component {
                         <hr
                             className='separator__hr'
                         />
-                        <div className='separator__text'>{'New Messages'}</div>
+                        <div className='separator__text'>{formatMessage(messages.newMsg)}</div>
                     </div>
                 );
             }
@@ -325,6 +339,8 @@ export default class PostsView extends React.Component {
         return false;
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         let posts = [];
         let order = [];
         let moreMessagesTop;
@@ -344,7 +360,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsTop}
                     >
-                        {'Load more messages'}
+                        {formatMessage(messages.loadMore)}
                     </a>
                 );
             } else {
@@ -360,7 +376,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsBottom}
                     >
-                        {'Load more messages'}
+                        {formatMessage(messages.loadMore)}
                     </a>
                 );
             } else {
@@ -411,5 +427,8 @@ PostsView.propTypes = {
     showMoreMessagesBottom: React.PropTypes.bool,
     introText: React.PropTypes.element,
     messageSeparatorTime: React.PropTypes.number,
-    postsToHighlight: React.PropTypes.object
+    postsToHighlight: React.PropTypes.object,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(PostsView);

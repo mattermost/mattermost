@@ -1,9 +1,17 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import ErrorStore from '../stores/error_store.jsx';
 
-export default class ErrorBar extends React.Component {
+const messages = defineMessages({
+    webSocket: {
+        id: 'error_bar.webSocket',
+        defaultMessage: 'We cannot reach the ZBox Chat service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.'
+    }
+});
+
+class ErrorBar extends React.Component {
     constructor() {
         super();
 
@@ -50,9 +58,13 @@ export default class ErrorBar extends React.Component {
     }
 
     onErrorChange() {
+        const {formatMessage} = this.props.intl;
         var newState = ErrorStore.getLastError();
 
         if (newState) {
+            if (newState.message === 'webSocket') {
+                newState.message = formatMessage(messages.webSocket);
+            }
             this.setState(newState);
         } else {
             this.setState({message: null});
@@ -86,3 +98,9 @@ export default class ErrorBar extends React.Component {
         );
     }
 }
+
+ErrorBar.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ErrorBar);

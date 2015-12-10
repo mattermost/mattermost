@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
@@ -8,7 +9,22 @@ import ViewImagePopoverBar from './view_image_popover_bar.jsx';
 const Modal = ReactBootstrap.Modal;
 const KeyCodes = Constants.KeyCodes;
 
-export default class ViewImageModal extends React.Component {
+const messages = defineMessages({
+    fileType: {
+        id: 'view_image.fileType',
+        defaultMessage: 'File type '
+    },
+    size: {
+        id: 'view_image.size',
+        defaultMessage: ', Size '
+    },
+    previewing: {
+        id: 'view_image.previewing',
+        defaultMessage: 'Previewing '
+    }
+});
+
+class ViewImageModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -210,6 +226,7 @@ export default class ViewImageModal extends React.Component {
         this.setState({showFooter: false});
     }
     render() {
+        const {formatMessage} = this.props.intl;
         if (this.props.filenames.length < 1 || this.props.filenames.length - 1 < this.state.imgId) {
             return <div/>;
         }
@@ -311,9 +328,9 @@ export default class ViewImageModal extends React.Component {
                 );
             } else {
                 // non-image files include a section providing details about the file
-                var infoString = 'File type ' + fileInfo.ext.toUpperCase();
+                var infoString = formatMessage(messages.fileType) + fileInfo.ext.toUpperCase();
                 if (this.state.fileSizes[filename] && this.state.fileSizes[filename] >= 0) {
-                    infoString += ', Size ' + Utils.fileSizeToString(this.state.fileSizes[filename]);
+                    infoString += formatMessage(messages.size) + Utils.fileSizeToString(this.state.fileSizes[filename]);
                 }
 
                 content = (
@@ -363,7 +380,7 @@ export default class ViewImageModal extends React.Component {
                             src='/static/images/load.gif'
                         />
                         <span className='loader-percent'>
-                            {'Previewing ' + percentage + '%'}
+                            {formatMessage(messages.previewing) + percentage + '%'}
                         </span>
                     </div>
                 );
@@ -463,6 +480,7 @@ ViewImageModal.defaultProps = {
     startId: 0
 };
 ViewImageModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
     filenames: React.PropTypes.array,
@@ -471,3 +489,5 @@ ViewImageModal.propTypes = {
     userId: React.PropTypes.string,
     startId: React.PropTypes.number
 };
+
+export default injectIntl(ViewImageModal);

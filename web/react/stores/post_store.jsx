@@ -465,14 +465,14 @@ class PostStoreClass extends EventEmitter {
         return newPost;
     }
 
-    deletePost(post) {
+    deletePost(post, msg) {
         const newId = Utils.generateId();
         const index = this.postsInfo[post.channel_id].postList.order.indexOf(post.id);
         this.postsInfo[post.channel_id].postList.order.splice(index, 1, newId);
         this.removePost(post);
 
         post.id = newId;
-        post.message = '(message deleted)';
+        post.message = msg;
         post.state = Constants.POST_DELETED;
         post.filenames = [];
         if (post.props && post.props.attachments) {

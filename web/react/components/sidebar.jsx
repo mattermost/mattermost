@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
 import NewChannelFlow from './new_channel_flow.jsx';
 import MoreDirectChannels from './more_direct_channels.jsx';
 import SidebarHeader from './sidebar_header.jsx';
@@ -23,7 +24,84 @@ const TutorialSteps = Constants.TutorialSteps;
 const Tooltip = ReactBootstrap.Tooltip;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class Sidebar extends React.Component {
+const messages = defineMessages({
+    someone: {
+        id: 'sidebar.someone',
+        defaultMessage: 'Someone'
+    },
+    posted: {
+        id: 'sidebar.posted',
+        defaultMessage: 'Posted'
+    },
+    uploadedImage: {
+        id: 'sidebar.uploadedImage',
+        defaultMessage: ' uploaded an image'
+    },
+    uploadedFile: {
+        id: 'sidebar.uploadedFile',
+        defaultMessage: ' uploaded a file'
+    },
+    something: {
+        id: 'sidebar.something',
+        defaultMessage: ' did something new'
+    },
+    wrote: {
+        id: 'sidebar.wrote',
+        defaultMessage: ' wrote: '
+    },
+    more: {
+        id: 'sidebar.more',
+        defaultMessage: 'More'
+    },
+    unreadAbove: {
+        id: 'sidebar.unreadAbove',
+        defaultMessage: 'Unread post(s) above'
+    },
+    unreadBelow: {
+        id: 'sidebar.unreadBelow',
+        defaultMessage: 'Unread post(s) below'
+    },
+    channels: {
+        id: 'sidebar.channels',
+        defaultMessage: 'Channels'
+    },
+    pg: {
+        id: 'sidebar.pg',
+        defaultMessage: 'Private Groups'
+    },
+    direct: {
+        id: 'sidebar.direct',
+        defaultMessage: 'Direct Messages'
+    },
+    tutorialScreen1: {
+        id: 'sidebar.tutorialScreen1',
+        defaultMessage: '<h4>Channels</h4><p><strong>Channels</strong> organize conversations across different topics. They’re open to everyone on your team. To send private communications use <strong>Direct Messages</strong> for a single person or <strong>Private Groups</strong> for multiple people.</p>'
+    },
+    tutorialScreen2: {
+        id: 'sidebar.tutorialScreen2',
+        defaultMessage: '<h4>"General" channel</h4><p>Here is a channel to start:</p><p><strong>General</strong> is a place for team-wide communication. Everyone in your team is a member of this channel.</p>'
+    },
+    tutorialScreen3: {
+        id: 'sidebar.tutorialScreen3',
+        defaultMessage: '<h4>Creating and Joining Channels</h4><p>Click <strong>"More..."</strong> to create a new channel or join an existing one.</p><p>You can also create a new channel or private group by clicking the <strong>"+" symbol</strong> next to the channel or private group header.</p>'
+    },
+    removeList: {
+        id: 'sidebar.removeList',
+        defaultMessage: 'Remove from list'
+    },
+    createChannel: {
+        id: 'sidebar.createChannel',
+        defaultMessage: 'Create new channel'
+    },
+    createGroup: {
+        id: 'sidebar.createGroup',
+        defaultMessage: 'Create new group'
+    }
+});
+
+let msges = {};
+
+class Sidebar extends React.Component {
     constructor(props) {
         super(props);
 
@@ -54,6 +132,15 @@ export default class Sidebar extends React.Component {
         state.showDirectChannelsModal = false;
         state.loadingDMChannel = -1;
         state.windowWidth = Utils.windowWidth();
+
+        const {formatMessage} = this.props.intl;
+        msges[messages.someone.id] = formatMessage(messages.someone);
+        msges[messages.posted.id] = formatMessage(messages.posted);
+        msges[messages.uploadedImage.id] = formatMessage(messages.uploadedImage);
+        msges[messages.uploadedFile.id] = formatMessage(messages.uploadedFile);
+        msges[messages.something.id] = formatMessage(messages.something);
+        msges[messages.wrote.id] = formatMessage(messages.wrote);
+
         this.state = state;
     }
     getTotalUnreadCount() {
@@ -271,34 +358,19 @@ export default class Sidebar extends React.Component {
 
         screens.push(
             <div>
-                <h4>{'Channels'}</h4>
-                <p><strong>{'Channels'}</strong>{' organize conversations across different topics. They’re open to everyone on your team. To send private communications use '}<strong>{'Direct Messages'}</strong>{' for a single person or '}<strong>{'Private Groups'}</strong>{' for multiple people.'}
-                </p>
+                <FormattedHTMLMessage id='sidebar.tutorialScreen1' />
             </div>
         );
 
         screens.push(
             <div>
-                <h4>{'"Town Square" and "Off-Topic" channels'}</h4>
-                <p>{'Here are two public channels to start:'}</p>
-                <p>
-                    <strong>{'Town Square'}</strong>{' is a place for team-wide communication. Everyone in your team is a member of this channel.'}
-                </p>
-                <p>
-                    <strong>{'Off-Topic'}</strong>{' is a place for fun and humor outside of work-related channels. You and your team can decide what other channels to create.'}
-                </p>
+                <FormattedHTMLMessage id='sidebar.tutorialScreen2' />
             </div>
         );
 
         screens.push(
             <div>
-                <h4>{'Creating and Joining Channels'}</h4>
-                <p>
-                    {'Click '}<strong>{'"More..."'}</strong>{' to create a new channel or join an existing one.'}
-                </p>
-                <p>
-                    {'You can also create a new channel or private group by clicking the '}<strong>{'"+" symbol'}</strong>{' next to the channel or private group header.'}
-                </p>
+                <FormattedHTMLMessage id='sidebar.tutorialScreen3' />
             </div>
         );
 
@@ -312,6 +384,8 @@ export default class Sidebar extends React.Component {
     }
 
     createChannelElement(channel, index, arr, handleClose) {
+        const {formatMessage} = this.props.intl;
+
         const members = this.state.members;
         const activeId = this.state.activeId;
         const channelMember = members[channel.id];
@@ -426,7 +500,7 @@ export default class Sidebar extends React.Component {
 
         let closeButton = null;
         const removeTooltip = (
-            <Tooltip id='remove-dm-tooltip'>{'Remove from list'}</Tooltip>
+            <Tooltip id='remove-dm-tooltip'>{formatMessage(messages.removeList)}</Tooltip>
         );
         if (handleClose && !badge) {
             closeButton = (
@@ -473,6 +547,7 @@ export default class Sidebar extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         this.badgesActive = false;
 
         // keep track of the first and last unread channels so we can use them to set the unread indicators
@@ -513,7 +588,7 @@ export default class Sidebar extends React.Component {
                         href='#'
                         onClick={this.showMoreDirectChannelsModal}
                     >
-                        {'More (' + this.state.hiddenDirectChannelCount + ')'}
+                        {formatMessage(messages.more) + ' (' + this.state.hiddenDirectChannelCount + ')'}
                     </a>
                 </li>
             );
@@ -525,10 +600,10 @@ export default class Sidebar extends React.Component {
         }
 
         const createChannelTootlip = (
-            <Tooltip id='new-channel-tooltip' >{'Create new channel'}</Tooltip>
+            <Tooltip id='new-channel-tooltip' >{formatMessage(messages.createChannel)}</Tooltip>
         );
         const createGroupTootlip = (
-            <Tooltip id='new-group-tooltip'>{'Create new group'}</Tooltip>
+            <Tooltip id='new-group-tooltip'>{formatMessage(messages.createGroup)}</Tooltip>
         );
 
         return (
@@ -552,12 +627,12 @@ export default class Sidebar extends React.Component {
                 <UnreadChannelIndicator
                     show={this.state.showTopUnread}
                     extraClass='nav-pills__unread-indicator-top'
-                    text={'Unread post(s) above'}
+                    text={formatMessage(messages.unreadAbove)}
                 />
                 <UnreadChannelIndicator
                     show={this.state.showBottomUnread}
                     extraClass='nav-pills__unread-indicator-bottom'
-                    text={'Unread post(s) below'}
+                    text={formatMessage(messages.unreadBelow)}
                 />
 
                 <div
@@ -568,7 +643,7 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                {'Channels'}
+                                {formatMessage(messages.channels)}
                                 <OverlayTrigger
                                     delayShow={500}
                                     placement='top'
@@ -593,7 +668,7 @@ export default class Sidebar extends React.Component {
                                 data-target='#more_channels'
                                 data-channeltype='O'
                             >
-                                {'More...'}
+                                {formatMessage(messages.more)}...
                             </a>
                         </li>
                     </ul>
@@ -601,7 +676,7 @@ export default class Sidebar extends React.Component {
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
-                                {'Private Groups'}
+                                {formatMessage(messages.pg)}
                                 <OverlayTrigger
                                     delayShow={500}
                                     placement='top'
@@ -620,7 +695,7 @@ export default class Sidebar extends React.Component {
                         {privateChannelItems}
                     </ul>
                     <ul className='nav nav-pills nav-stacked'>
-                        <li><h4>{'Direct Messages'}</h4></li>
+                        <li><h4>{formatMessage(messages.direct)}</h4></li>
                         {directMessageItems}
                         {directMessageMore}
                     </ul>
@@ -633,4 +708,7 @@ export default class Sidebar extends React.Component {
 Sidebar.defaultProps = {
 };
 Sidebar.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(Sidebar);

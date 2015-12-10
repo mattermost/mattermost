@@ -2,10 +2,24 @@
 // See License.txt for license information.
 
 import FindTeam from '../components/find_team.jsx';
+import {addLocaleData, IntlProvider} from 'react-intl';
+import enLocaleData from '../utils/locales/en';
+import esLocaleData from '../utils/locales/es';
 
-function setupFindTeamPage() {
+addLocaleData(enLocaleData);
+addLocaleData(esLocaleData);
+
+function setupFindTeamPage(props) {
+    const lang = props.Locale;
+    const messages = JSON.parse(props.Messages);
+
     ReactDOM.render(
-        <FindTeam />,
+        <IntlProvider
+            locale={lang}
+            messages={messages}
+        >
+            <FindTeam />
+        </IntlProvider>,
         document.getElementById('find-team')
     );
 }

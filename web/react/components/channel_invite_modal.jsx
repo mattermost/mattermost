@@ -10,10 +10,21 @@ import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
-
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 const Modal = ReactBootstrap.Modal;
 
-export default class ChannelInviteModal extends React.Component {
+const messages = defineMessages({
+    close: {
+        id: 'channel_invite.close',
+        defaultMessage: 'Close'
+    },
+    addNewMembers: {
+        id: 'channel_invite.addNewMembers',
+        defaultMessage: 'Add New Members to '
+    }
+});
+
+class ChannelInviteModal extends React.Component {
     constructor() {
         super();
 
@@ -106,6 +117,7 @@ export default class ChannelInviteModal extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var inviteError = null;
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
@@ -137,7 +149,7 @@ export default class ChannelInviteModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Add New Members to '}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
+                    <Modal.Title>{formatMessage(messages.addNewMembers)}<span className='name'>{this.props.channel.display_name}</span></Modal.Title>
                 </Modal.Header>
                 <Modal.Body
                     ref='modalBody'
@@ -151,7 +163,7 @@ export default class ChannelInviteModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Close'}
+                        {formatMessage(messages.close)}
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -160,7 +172,10 @@ export default class ChannelInviteModal extends React.Component {
 }
 
 ChannelInviteModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };
+
+export default injectIntl(ChannelInviteModal);

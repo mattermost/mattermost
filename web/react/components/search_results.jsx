@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
 import SearchStore from '../stores/search_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import SearchBox from './search_bar.jsx';
@@ -8,11 +9,34 @@ import * as Utils from '../utils/utils.jsx';
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
 
+const messages = defineMessages({
+    noResults: {
+        id: 'search_results.noResults',
+        defaultMessage: 'NO RESULTS'
+    },
+    opt1: {
+        id: 'search_results.opt1',
+        defaultMessage: '<span>Use </span><b>"quotation marks"</b><span> to search for phrases</span>'
+    },
+    opt2: {
+        id: 'search_results.opt2',
+        defaultMessage: '<span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span>'
+    },
+    noResultsHelp1: {
+        id: 'search_results.noResultsHelp1',
+        defaultMessage: 'If you\'re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term'
+    },
+    noResultsHelp2: {
+        id: 'search_results.noResultsHelp2',
+        defaultMessage: 'Due to the volume of results, two letter searches and common words like "this", "a" and "is" won\'t appear in search results'
+    }
+});
+
 function getStateFromStores() {
     return {results: SearchStore.getSearchResults()};
 }
 
-export default class SearchResults extends React.Component {
+class SearchResults extends React.Component {
     constructor(props) {
         super(props);
 
@@ -69,6 +93,7 @@ export default class SearchResults extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var results = this.state.results;
         var currentId = UserStore.getCurrentId();
         var searchForm = null;
@@ -85,10 +110,10 @@ export default class SearchResults extends React.Component {
                 <div className='sidebar--right__subheader'>
                     <ul>
                         <li>
-                            {'Use '}<b>{'"quotation marks"'}</b>{' to search for phrases'}
+                            <FormattedHTMLMessage id='search_results.opt1' />
                         </li>
                         <li>
-                            {'Use '}<b>{'from:'}</b>{' to find posts from specific users and '}<b>{'in:'}</b>{' to find posts in specific channels'}
+                            <FormattedHTMLMessage id='search_results.opt2' />
                         </li>
                     </ul>
                 </div>
@@ -97,10 +122,10 @@ export default class SearchResults extends React.Component {
             ctls =
             (
                 <div className='sidebar--right__subheader'>
-                    <h4>{'NO RESULTS'}</h4>
+                    <h4>{formatMessage(messages.noResults)}</h4>
                     <ul>
-                        <li>{'If you\'re searching a partial phrase (ex. searching "rea", looking for "reach" or "reaction"), append a * to your search term'}</li>
-                        <li>{'Due to the volume of results, two letter searches and common words like "this", "a" and "is" won\'t appear in search results'}</li>
+                        <li>{formatMessage(messages.noResultsHelp1)}</li>
+                        <li>{formatMessage(messages.noResultsHelp2)}</li>
                     </ul>
                 </div>
             );
@@ -136,5 +161,8 @@ export default class SearchResults extends React.Component {
 }
 
 SearchResults.propTypes = {
+    intl: intlShape.isRequired,
     isMentionSearch: React.PropTypes.bool
 };
+
+export default injectIntl(SearchResults);

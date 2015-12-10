@@ -1,12 +1,40 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserStore from '../stores/user_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import * as utils from '../utils/utils.jsx';
 
-export default class RemovedFromChannelModal extends React.Component {
+const messages = defineMessages({
+    channelName: {
+        id: 'removed_channel.channelName',
+        defaultMessage: 'the channel'
+    },
+    someone: {
+        id: 'removed_channel.someone',
+        defaultMessage: 'Someone'
+    },
+    close: {
+        id: 'removed_channel.close',
+        defaultMessage: 'Close'
+    },
+    from: {
+        id: 'removed_channel.from',
+        defaultMessage: 'Removed from'
+    },
+    you: {
+        id: 'removed_channel.you',
+        defaultMessage: 'removed you from'
+    },
+    okay: {
+        id: 'removed_channel.okay',
+        defaultMessage: 'Okay'
+    }
+});
+
+class RemovedFromChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -47,14 +75,15 @@ export default class RemovedFromChannelModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var currentUser = UserStore.getCurrentUser();
 
-        var channelName = 'the channel';
+        var channelName = formatMessage(messages.channelName);
         if (this.state.channelName) {
             channelName = this.state.channelName;
         }
 
-        var remover = 'Someone';
+        var remover = formatMessage(messages.someone);
         if (this.state.remover) {
             remover = this.state.remover;
         }
@@ -76,19 +105,19 @@ export default class RemovedFromChannelModal extends React.Component {
                                     type='button'
                                     className='close'
                                     data-dismiss='modal'
-                                    aria-label='Close'
+                                    aria-label={formatMessage(messages.close)}
                                 ><span aria-hidden='true'>&times;</span></button>
-                                <h4 className='modal-title'>Removed from <span className='name'>{channelName}</span></h4>
+                                <h4 className='modal-title'>{formatMessage(messages.from)} <span className='name'>{channelName}</span></h4>
                             </div>
                             <div className='modal-body'>
-                                  <p>{remover} removed you from {channelName}</p>
+                                  <p>{remover} {formatMessage(messages.you)} {channelName}</p>
                             </div>
                             <div className='modal-footer'>
                                 <button
                                     type='button'
                                     className='btn btn-primary'
                                     data-dismiss='modal'
-                                >Okay</button>
+                                >{formatMessage(messages.okay)}</button>
                             </div>
                         </div>
                     </div>
@@ -99,3 +128,9 @@ export default class RemovedFromChannelModal extends React.Component {
         return <div/>;
     }
 }
+
+RemovedFromChannelModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(RemovedFromChannelModal);

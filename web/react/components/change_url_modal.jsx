@@ -3,8 +3,44 @@
 
 var Modal = ReactBootstrap.Modal;
 import * as Utils from '../utils/utils.jsx';
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class ChangeUrlModal extends React.Component {
+const messages = defineMessages({
+    longer: {
+        id: 'change_url.longer',
+        defaultMessage: 'Must be longer than two characters'
+    },
+    startWithLetter: {
+        id: 'change_url.startWithLetter',
+        defaultMessage: 'Must start with a letter or number'
+    },
+    endWithLetter: {
+        id: 'change_url.endWithLetter',
+        defaultMessage: 'Must end with a letter or number'
+    },
+    noUnderscore: {
+        id: 'change_url.noUnderscore',
+        defaultMessage: 'Can not contain two underscores in a row.'
+    },
+    invalidUrl: {
+        id: 'change_url.invalidUrl',
+        defaultMessage: 'Invalid URL'
+    },
+    close: {
+        id: 'change_url.close',
+        defaultMessage: 'Close'
+    },
+    save: {
+        id: 'change_url.save',
+        defaultMessage: 'Save'
+    },
+    title: {
+        id: 'change_url.title',
+        defaultMessage: 'Change URL'
+    }
+});
+
+class ChangeUrlModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -37,23 +73,24 @@ export default class ChangeUrlModal extends React.Component {
         this.setState({currentURL: url.replace(/[^A-Za-z0-9-_]/g, '').toLowerCase(), userEdit: true});
     }
     getURLError(url) {
+        const {formatMessage} = this.props.intl;
         let error = []; //eslint-disable-line prefer-const
         if (url.length < 2) {
-            error.push(<span key='error1'>{'Must be longer than two characters'}<br/></span>);
+            error.push(<span key='error1'>{formatMessage(messages.longer)}<br/></span>);
         }
         if (url.charAt(0) === '-' || url.charAt(0) === '_') {
-            error.push(<span key='error2'>{'Must start with a letter or number'}<br/></span>);
+            error.push(<span key='error2'>{formatMessage(messages.startWithLetter)}<br/></span>);
         }
         if (url.length > 1 && (url.charAt(url.length - 1) === '-' || url.charAt(url.length - 1) === '_')) {
-            error.push(<span key='error3'>{'Must end with a letter or number'}<br/></span>);
+            error.push(<span key='error3'>{formatMessage(messages.endWithLetter)}<br/></span>);
         }
         if (url.indexOf('__') > -1) {
-            error.push(<span key='error4'>{'Can not contain two underscores in a row.'}<br/></span>);
+            error.push(<span key='error4'>{formatMessage(messages.noUnderscore)}<br/></span>);
         }
 
         // In case of error we don't detect
         if (error.length === 0) {
-            error.push(<span key='errorlast'>{'Invalid URL'}<br/></span>);
+            error.push(<span key='errorlast'>{formatMessage(messages.invalidUrl)}<br/></span>);
         }
         return error;
     }
@@ -74,6 +111,7 @@ export default class ChangeUrlModal extends React.Component {
         this.props.onModalDismissed();
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let urlClass = 'input-group input-group--limit';
         let urlError = null;
         let serverError = null;
@@ -96,7 +134,7 @@ export default class ChangeUrlModal extends React.Component {
                 onHide={this.doCancel}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{this.props.title}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.title)}</Modal.Title>
                 </Modal.Header>
                 <form
                     role='form'
@@ -137,7 +175,7 @@ export default class ChangeUrlModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.doCancel}
                         >
-                            {'Close'}
+                            {formatMessage(messages.close)}
                         </button>
                         <button
                             onClick={this.doSubmit}
@@ -165,6 +203,7 @@ ChangeUrlModal.defaultProps = {
 };
 
 ChangeUrlModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     title: React.PropTypes.string,
     description: React.PropTypes.string,
@@ -175,3 +214,5 @@ ChangeUrlModal.propTypes = {
     onModalSubmit: React.PropTypes.func.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(ChangeUrlModal);

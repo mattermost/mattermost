@@ -1,12 +1,33 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
+
 import ChoosePage from './team_signup_choose_auth.jsx';
 import EmailSignUpPage from './team_signup_with_email.jsx';
 import SSOSignupPage from './team_signup_with_sso.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class TeamSignUp extends React.Component {
+const messages = defineMessages({
+    noTeams: {
+        id: 'signup_team.noTeams',
+        defaultMessage: 'There are no teams include in the Team Directory and team creation has been disabled.'
+    },
+    choose: {
+        id: 'signup_team.choose',
+        defaultMessage: 'Choose a Team'
+    },
+    createTeam: {
+        id: 'signup_team.createTeam',
+        defaultMessage: 'Or Create a Team'
+    },
+    disabled: {
+        id: 'signup_team.disabled',
+        defaultMessage: 'Team creation has been disabled.  Please contact an administrator for access.'
+    }
+});
+
+class TeamSignUp extends React.Component {
     constructor(props) {
         super(props);
 
@@ -28,6 +49,8 @@ export default class TeamSignUp extends React.Component {
             this.state = {page: 'email'};
         } else if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             this.state = {page: 'gitlab'};
+        } else if (global.window.mm_config.EnableSignUpWithZBox === 'true') {
+            this.state = {page: 'zbox'};
         }
     }
 
@@ -36,17 +59,19 @@ export default class TeamSignUp extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         var teamListing = null;
 
         if (global.window.mm_config.EnableTeamListing === 'true') {
             if (this.props.teams.length === 0) {
                 if (global.window.mm_config.EnableTeamCreation !== 'true') {
-                    teamListing = (<div>{'There are no teams include in the Team Directory and team creation has been disabled.'}</div>);
+                    teamListing = (<div>{formatMessage(messages.noTeams)}</div>);
                 }
             } else {
                 teamListing = (
                     <div>
-                        <h4>{'Choose a Team'}</h4>
+                        <h4>{formatMessage(messages.choose)}</h4>
                         <div className='signup-team-all'>
                             {
                                 this.props.teams.map((team) => {
@@ -69,7 +94,7 @@ export default class TeamSignUp extends React.Component {
                                 })
                             }
                         </div>
-                        <h4>{'Or Create a Team'}</h4>
+                        <h4>{formatMessage(messages.createTeam)}</h4>
                     </div>
                 );
             }
@@ -77,7 +102,7 @@ export default class TeamSignUp extends React.Component {
 
         if (global.window.mm_config.EnableTeamCreation !== 'true') {
             if (teamListing == null) {
-                return (<div>{'Team creation has been disabled.  Please contact an administrator for access.'}</div>);
+                return (<div>{formatMessage(messages.disabled)}</div>);
             }
 
             return (
@@ -112,11 +137,21 @@ export default class TeamSignUp extends React.Component {
                     <SSOSignupPage service={Constants.GITLAB_SERVICE} />
                 </div>
             );
+        } else if (this.state.page === 'zbox') {
+            return (
+                <div>
+                    {teamListing}
+                    <SSOSignupPage service={Constants.ZBOX_SERVICE} />
+                </div>
+            );
         }
     }
 }
 
 TeamSignUp.propTypes = {
-    teams: React.PropTypes.array
+    teams: React.PropTypes.array,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(TeamSignUp);
 

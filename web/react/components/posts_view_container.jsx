@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import PostsView from './posts_view.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
@@ -14,7 +15,86 @@ import Constants from '../utils/constants.jsx';
 
 import {createChannelIntroMessage} from '../utils/channel_intro_messages.jsx';
 
-export default class PostsViewContainer extends React.Component {
+const messages = defineMessages({
+    DMIntro1: {
+        id: 'post_view_container.DMIntro1',
+        defaultMessage: 'This is the start of your direct message history with '
+    },
+    DMIntro2: {
+        id: 'post_view_container.DMIntro2',
+        defaultMessage: 'Direct messages and files shared here are not shown to people outside this area.'
+    },
+    DMIntro3: {
+        id: 'post_view_container.DMIntro3',
+        defaultMessage: 'This is the start of your direct message history with this teammate. Direct messages and files shared here are not shown to people outside this area.'
+    },
+    beginning: {
+        id: 'post_view_container.beginning',
+        defaultMessage: 'Beginning of '
+    },
+    start1: {
+        id: 'post_view_container.start1',
+        defaultMessage: 'This is the start of '
+    },
+    offTopic: {
+        id: 'post_view_container.offTopic',
+        defaultMessage: ', a channel for non-work-related conversations.'
+    },
+    inviteOthers: {
+        id: 'post_view_container.inviteOthers',
+        defaultMessage: 'Invite others to this channel'
+    },
+    welcome: {
+        id: 'post_view_container.welcome',
+        defaultMessage: 'Welcome to '
+    },
+    defaultIntro: {
+        id: 'post_view_container.defaultIntro',
+        defaultMessage: 'This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.'
+    },
+    pg: {
+        id: 'post_view_container.pg',
+        defaultMessage: 'private group'
+    },
+    memberMsg1: {
+        id: 'post_view_container.memberMsg1',
+        defaultMessage: ' Only invited members can see this private group.'
+    },
+    channel: {
+        id: 'post_view_container.channel',
+        defaultMessage: 'channel'
+    },
+    memberMsg2: {
+        id: 'post_view_container.memberMsg2',
+        defaultMessage: ' Any member can join and read this channel.'
+    },
+    start2: {
+        id: 'post_view_container.start2',
+        defaultMessage: 'This is the start of the '
+    },
+    created: {
+        id: 'post_view_container.created',
+        defaultMessage: ', created on '
+    },
+    createdBy: {
+        id: 'post_view_container.createdBy',
+        defaultMessage: ', created by '
+    },
+    on: {
+        id: 'post_view_container.on',
+        defaultMessage: ' on '
+    },
+    inviteType: {
+        id: 'post_view_container.inviteType',
+        defaultMessage: 'Invite others to this '
+    },
+    header: {
+        id: 'post_view_container.header',
+        defaultMessage: 'Set a header'
+    }
+});
+
+class PostsViewContainer extends React.Component {
     constructor() {
         super();
 
@@ -156,12 +236,37 @@ export default class PostsViewContainer extends React.Component {
         return true;
     }
     render() {
+        const {formatMessage, locale} = this.props.intl;
+
         const postLists = this.state.postLists;
         const channels = this.state.channels;
         const currentChannelId = channels[this.state.currentChannelIndex];
         const channel = ChannelStore.get(currentChannelId);
 
         const postListCtls = [];
+
+        const translations = {
+            DMIntro1: formatMessage(messages.DMIntro1),
+            DMIntro2: formatMessage(messages.DMIntro2),
+            DMIntro3: formatMessage(messages.DMIntro3),
+            beginning: formatMessage(messages.beginning),
+            start1: formatMessage(messages.start1),
+            offTopic: formatMessage(messages.offTopic),
+            inviteOthers: formatMessage(messages.inviteOthers),
+            welcome: formatMessage(messages.welcome),
+            defaultIntro: formatMessage(messages.defaultIntro),
+            pg: formatMessage(messages.pg),
+            memberMsg1: formatMessage(messages.memberMsg1),
+            channel: formatMessage(messages.channel),
+            memberMsg2: formatMessage(messages.memberMsg2),
+            start2: formatMessage(messages.start2),
+            created: formatMessage(messages.created),
+            createdBy: formatMessage(messages.createdBy),
+            on: formatMessage(messages.on),
+            inviteType: formatMessage(messages.inviteType),
+            header: formatMessage(messages.header)
+        };
+
         for (let i = 0; i < channels.length; i++) {
             const isActive = (channels[i] === currentChannelId);
             postListCtls.push(
@@ -176,7 +281,7 @@ export default class PostsViewContainer extends React.Component {
                     loadMorePostsBottomClicked={() => {}}
                     showMoreMessagesTop={!this.state.atTop[this.state.currentChannelIndex]}
                     showMoreMessagesBottom={false}
-                    introText={channel ? createChannelIntroMessage(channel) : null}
+                    introText={channel ? createChannelIntroMessage(channel, translations, locale) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
                 />
             );
@@ -197,3 +302,9 @@ export default class PostsViewContainer extends React.Component {
         );
     }
 }
+
+PostsViewContainer.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(PostsViewContainer);

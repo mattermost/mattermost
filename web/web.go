@@ -234,7 +234,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page := NewHtmlTemplatePage("home", T("Home"))
 		page.Team = team
 		page.User = user
-		page.Render(c, w, T)
+
 		page.Props["TeamURL"] = c.GetTeamURL(T)
 		page.Props["Locale"] = lang
 		page.Props["Messages"] = jsonMessages[lang]
@@ -281,7 +281,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage(T("login"), T("Login"))
+	page := NewHtmlTemplatePage("login", T("Login"))
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
 	page.Props["Locale"] = lang

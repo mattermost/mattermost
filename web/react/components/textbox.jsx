@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AtMentionProvider from './suggestion/at_mention_provider.jsx';
 import CommandProvider from './suggestion/command_provider.jsx';
 import EmoticonProvider from './suggestion/emoticon_provider.jsx';
@@ -13,7 +14,22 @@ import * as Utils from '../utils/utils.jsx';
 import Constants from '../utils/constants.jsx';
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
-export default class Textbox extends React.Component {
+const messages = defineMessages({
+    help: {
+        id: 'textbox.help',
+        defaultMessage: 'Help'
+    },
+    edit: {
+        id: 'textbox.edit',
+        defaultMessage: 'Edit message'
+    },
+    preview: {
+        id: 'textbox.preview',
+        defaultMessage: 'Preview'
+    }
+});
+
+class Textbox extends React.Component {
     constructor(props) {
         super(props);
 
@@ -144,6 +160,8 @@ export default class Textbox extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
+
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
             const previewLinkVisible = this.props.messageText.length > 0;
@@ -153,7 +171,7 @@ export default class Textbox extends React.Component {
                     onClick={this.showPreview}
                     className='textbox-preview-link'
                 >
-                    {this.state.preview ? 'Edit message' : 'Preview'}
+                    {this.state.preview ? formatMessage(messages.edit) : formatMessage(messages.preview)}
                 </a>
             );
         }
@@ -197,7 +215,7 @@ export default class Textbox extends React.Component {
                     onClick={this.showHelp}
                     className='textbox-help-link'
                 >
-                    {'Help'}
+                    {formatMessage(messages.help)}
                 </a>
             </div>
         );
@@ -217,5 +235,8 @@ Textbox.propTypes = {
     onHeightChange: React.PropTypes.func,
     createMessage: React.PropTypes.string.isRequired,
     onKeyDown: React.PropTypes.func,
-    supportsCommands: React.PropTypes.bool.isRequired
+    supportsCommands: React.PropTypes.bool.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(Textbox);

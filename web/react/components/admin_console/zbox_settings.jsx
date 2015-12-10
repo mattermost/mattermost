@@ -1,102 +1,102 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
-import * as Client from '../../utils/client.jsx';
-import * as AsyncClient from '../../utils/async_client.jsx';
+var Client = require('../../utils/client.jsx');
+var AsyncClient = require('../../utils/async_client.jsx');
 
 const messages = defineMessages({
-    settingsTitle: {
-        id: 'admin.gitlab.settingsTitle',
-        defaultMessage: 'GitLab Settings'
-    },
-    enableTitle: {
-        id: 'admin.gitlab.enableTitle',
-        defaultMessage: 'Enable Sign Up With GitLab: '
-    },
-    enableDescription: {
-        id: 'admin.gitlab.enableDescription',
-        defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth. To configure, log in to your GitLab account and go to Applications -> Profile Settings. Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". Then use "Secret" and "Id" fields to complete the options below.'
-    },
     true: {
-        id: 'admin.gitlab.true',
+        id: 'admin.zbox.true',
         defaultMessage: 'true'
     },
     false: {
-        id: 'admin.gitlab.false',
+        id: 'admin.zbox.false',
         defaultMessage: 'false'
     },
+    title: {
+        id: 'admin.zbox.title',
+        defaultMessage: 'ZBox Settings'
+    },
+    enableTitle: {
+        id: 'admin.zbox.enableTitle',
+        defaultMessage: 'Enable Login With ZBox: '
+    },
+    enableDescription: {
+        id: 'admin.zbox.enableDescription',
+        defaultMessage: 'When true, Mattermost allows account signup and login using ZBox OAuth. To configure, set the "Id", "Secret" and the Endpoints fields to complete the options below.'
+    },
     clientIdTitle: {
-        id: 'admin.gitlab.clientIdTitle',
+        id: 'admin.zbox.clientIdTitle',
         defaultMessage: 'Id:'
     },
     clientIdExample: {
-        id: 'admin.gitlab.clientIdExample',
+        id: 'admin.zbox.clientIdExample',
         defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
     },
     clientIdDescription: {
-        id: 'admin.gitlab.clientIdDescription',
-        defaultMessage: 'Obtain this value via the instructions above for logging into GitLab'
+        id: 'admin.zbox.clientIdDescription',
+        defaultMessage: 'Set the client id provided by ZBoxOAuth2 service.'
     },
     clientSecretTitle: {
-        id: 'admin.gitlab.clientSecretTitle',
+        id: 'admin.zbox.clientSecretTitle',
         defaultMessage: 'Secret:'
     },
     clientSecretExample: {
-        id: 'admin.gitlab.clientSecretExample',
+        id: 'admin.zbox.clientSecretExample',
         defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
     },
     clientSecretDescription: {
-        id: 'admin.gitab.clientSecretDescription',
-        defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'
+        id: 'admin.zbox.clientSecretDescription',
+        defaultMessage: 'Set the client secret provided by ZBoxOAuth2 service.'
     },
     authTitle: {
-        id: 'admin.gitlab.authTitle',
+        id: 'admin.zbox.authTitle',
         defaultMessage: 'Auth Endpoint:'
     },
     authExample: {
-        id: 'admin.gitlab.authExample',
+        id: 'admin.zbox.authExample',
         defaultMessage: 'Ex ""'
     },
     authDescription: {
-        id: 'admin.gitlab.authDescription',
-        defaultMessage: 'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+        id: 'admin.zbox.authDescription',
+        defaultMessage: 'Enter <your-zboxoauth2-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
     },
     tokenTitle: {
-        id: 'admin.gitlab.tokenTitle',
+        id: 'admin.zbox.tokenTitle',
         defaultMessage: 'Token Endpoint:'
     },
     tokenExample: {
-        id: 'admin.gitlab.tokenExample',
+        id: 'admin.zbox.tokenExample',
         defaultMessage: 'Ex ""'
     },
     tokenDescription: {
-        id: 'admin.gitlab.tokenDescription',
-        defaultMessage: 'Enter <your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+        id: 'admin.zbox.tokenDescription',
+        defaultMessage: 'Enter <your-zboxoauth2-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URLs as appropriate.'
     },
     userTitle: {
-        id: 'admin.gitlab.userTitle',
+        id: 'admin.zbox.userTitle',
         defaultMessage: 'User API Endpoint:'
     },
     userExample: {
-        id: 'admin.gitlab.userExample',
+        id: 'admin.zbox.userExample',
         defaultMessage: 'Ex ""'
     },
     userDescription: {
-        id: 'admin.gitlab.userDescription',
-        defaultMessage: 'Enter <your-gitlab-url>/api/v3/user.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+        id: 'admin.zbox.userDescription',
+        defaultMessage: 'Enter <your-zboxoauth2-url>/me.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
     },
     saving: {
-        id: 'admin.gitlab.saving',
+        id: 'admin.zbox.saving',
         defaultMessage: 'Saving Config...'
     },
     save: {
-        id: 'admin.gitlab.save',
+        id: 'admin.zbox.save',
         defaultMessage: 'Save'
     }
 });
 
-class GitLabSettings extends React.Component {
+class ZBoxSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -104,7 +104,7 @@ class GitLabSettings extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
 
         this.state = {
-            Enable: this.props.config.GitLabSettings.Enable,
+            Enable: this.props.config.ZBoxSettings.Enable,
             saveNeeded: false,
             serverError: null
         };
@@ -129,12 +129,12 @@ class GitLabSettings extends React.Component {
         $('#save-button').button('loading');
 
         var config = this.props.config;
-        config.GitLabSettings.Enable = ReactDOM.findDOMNode(this.refs.Enable).checked;
-        config.GitLabSettings.Secret = ReactDOM.findDOMNode(this.refs.Secret).value.trim();
-        config.GitLabSettings.Id = ReactDOM.findDOMNode(this.refs.Id).value.trim();
-        config.GitLabSettings.AuthEndpoint = ReactDOM.findDOMNode(this.refs.AuthEndpoint).value.trim();
-        config.GitLabSettings.TokenEndpoint = ReactDOM.findDOMNode(this.refs.TokenEndpoint).value.trim();
-        config.GitLabSettings.UserApiEndpoint = ReactDOM.findDOMNode(this.refs.UserApiEndpoint).value.trim();
+        config.ZBoxSettings.Enable = ReactDOM.findDOMNode(this.refs.Enable).checked;
+        config.ZBoxSettings.Secret = ReactDOM.findDOMNode(this.refs.Secret).value.trim();
+        config.ZBoxSettings.Id = ReactDOM.findDOMNode(this.refs.Id).value.trim();
+        config.ZBoxSettings.AuthEndpoint = ReactDOM.findDOMNode(this.refs.AuthEndpoint).value.trim();
+        config.ZBoxSettings.TokenEndpoint = ReactDOM.findDOMNode(this.refs.TokenEndpoint).value.trim();
+        config.ZBoxSettings.UserApiEndpoint = ReactDOM.findDOMNode(this.refs.UserApiEndpoint).value.trim();
 
         Client.saveConfig(
             config,
@@ -171,7 +171,7 @@ class GitLabSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
 
-                <h3>{formatMessage(messages.settingsTitle)}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -191,32 +191,22 @@ class GitLabSettings extends React.Component {
                                     name='Enable'
                                     value='true'
                                     ref='Enable'
-                                    defaultChecked={this.props.config.GitLabSettings.Enable}
+                                    defaultChecked={this.props.config.ZBoxSettings.Enable}
                                     onChange={this.handleChange.bind(this, 'EnableTrue')}
                                 />
-                                    {formatMessage(messages.true)}
+                                {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
                                     type='radio'
                                     name='Enable'
                                     value='false'
-                                    defaultChecked={!this.props.config.GitLabSettings.Enable}
+                                    defaultChecked={!this.props.config.ZBoxSettings.Enable}
                                     onChange={this.handleChange.bind(this, 'EnableFalse')}
                                 />
-                                    {formatMessage(messages.false)}
+                                {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>
-                                {'When true, Mattermost allows team creation and account signup using GitLab OAuth.'} <br/>
-                            </p>
-                            <div className='help-text'>
-                                <ol>
-                                    <li>{'Log in to your GitLab account and go to Applications -> Profile Settings.'}</li>
-                                    <li>{'Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". '}</li>
-                                    <li>{'Then use "Secret" and "Id" fields from GitLab to complete the options below.'}</li>
-                                    <li>{'Complete the Endpoint URLs below. '}</li>
-                                </ol>
-                            </div>
+                            <p className='help-text'>{formatMessage(messages.enableDescription)}</p>
                         </div>
                     </div>
 
@@ -234,7 +224,7 @@ class GitLabSettings extends React.Component {
                                 id='Id'
                                 ref='Id'
                                 placeholder={formatMessage(messages.clientIdExample)}
-                                defaultValue={this.props.config.GitLabSettings.Id}
+                                defaultValue={this.props.config.ZBoxSettings.Id}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
@@ -256,7 +246,7 @@ class GitLabSettings extends React.Component {
                                 id='Secret'
                                 ref='Secret'
                                 placeholder={formatMessage(messages.clientSecretExample)}
-                                defaultValue={this.props.config.GitLabSettings.Secret}
+                                defaultValue={this.props.config.ZBoxSettings.Secret}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
@@ -278,7 +268,7 @@ class GitLabSettings extends React.Component {
                                 id='AuthEndpoint'
                                 ref='AuthEndpoint'
                                 placeholder={formatMessage(messages.authExample)}
-                                defaultValue={this.props.config.GitLabSettings.AuthEndpoint}
+                                defaultValue={this.props.config.ZBoxSettings.AuthEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
@@ -300,7 +290,7 @@ class GitLabSettings extends React.Component {
                                 id='TokenEndpoint'
                                 ref='TokenEndpoint'
                                 placeholder={formatMessage(messages.tokenExample)}
-                                defaultValue={this.props.config.GitLabSettings.TokenEndpoint}
+                                defaultValue={this.props.config.ZBoxSettings.TokenEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
@@ -322,7 +312,7 @@ class GitLabSettings extends React.Component {
                                 id='UserApiEndpoint'
                                 ref='UserApiEndpoint'
                                 placeholder={formatMessage(messages.userExample)}
-                                defaultValue={this.props.config.GitLabSettings.UserApiEndpoint}
+                                defaultValue={this.props.config.ZBoxSettings.UserApiEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
@@ -352,32 +342,9 @@ class GitLabSettings extends React.Component {
     }
 }
 
-//config.GitLabSettings.Scope = ReactDOM.findDOMNode(this.refs.Scope).value.trim();
-//  <div className='form-group'>
-//     <label
-//         className='control-label col-sm-4'
-//         htmlFor='Scope'
-//     >
-//         {'Scope:'}
-//     </label>
-//     <div className='col-sm-8'>
-//         <input
-//             type='text'
-//             className='form-control'
-//             id='Scope'
-//             ref='Scope'
-//             placeholder='Not currently used by GitLab. Please leave blank'
-//             defaultValue={this.props.config.GitLabSettings.Scope}
-//             onChange={this.handleChange}
-//             disabled={!this.state.Allow}
-//         />
-//         <p className='help-text'>{'This field is not yet used by GitLab OAuth. Other OAuth providers may use this field to specify the scope of account data from OAuth provider that is sent to Mattermost.'}</p>
-//     </div>
-// </div>
-
-GitLabSettings.propTypes = {
+ZBoxSettings.propTypes = {
     intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
 
-export default injectIntl(GitLabSettings);
+export default injectIntl(ZBoxSettings);

@@ -1,13 +1,73 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import Constants from '../utils/constants.jsx';
 
-export default class RenameChannelModal extends React.Component {
+const messages = defineMessages({
+    displayNameError1: {
+        id: 'rename_channel.displayNameError1',
+        defaultMessage: 'This field is required'
+    },
+    displayNameError2: {
+        id: 'rename_channel.displayNameError2',
+        defaultMessage: 'This field must be less than 22 characters'
+    },
+    nameError1: {
+        id: 'rename_channel.nameError1',
+        defaultMessage: 'This field is required'
+    },
+    nameError2: {
+        id: 'rename_channel.nameError2',
+        defaultMessage: 'This field must be less than 22 characters'
+    },
+    nameError3: {
+        id: 'rename_channel.nameError3',
+        defaultMessage: 'Must be lowercase alphanumeric characters'
+    },
+    close: {
+        id: 'rename_channel.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'rename_channel.title',
+        defaultMessage: 'Rename Channel'
+    },
+    displayName: {
+        id: 'rename_channel.displayName',
+        defaultMessage: 'Display Name'
+    },
+    displayNameHolder: {
+        id: 'rename_channel.displayNameHolder',
+        defaultMessage: 'Enter display name'
+    },
+    handle: {
+        id: 'rename_channel.handle',
+        defaultMessage: 'Handle'
+    },
+    handleHolder: {
+        id: 'rename_channel.handleHolder',
+        defaultMessage: 'lowercase alphanumeric&#39;s only'
+    },
+    cancel: {
+        id: 'rename_channel.cancel',
+        defaultMessage: 'Cancel'
+    },
+    save: {
+        id: 'rename_channel.save',
+        defaultMessage: 'Save'
+    },
+    defaultError: {
+        id: 'rename_channel.defaultError',
+        defaultMessage: ' - Cannot be changed for the default channel'
+    }
+});
+
+class RenameChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -33,6 +93,7 @@ export default class RenameChannelModal extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         if (this.state.channelId.length !== 26) {
             return;
         }
@@ -44,10 +105,10 @@ export default class RenameChannelModal extends React.Component {
 
         channel.display_name = this.state.displayName.trim();
         if (!channel.display_name) {
-            state.displayNameError = 'This field is required';
+            state.displayNameError = formatMessage(messages.displayNameError1);
             state.invalid = true;
         } else if (channel.display_name.length > 22) {
-            state.displayNameError = 'This field must be less than 22 characters';
+            state.displayNameError = formatMessage(messages.displayNameError2);
             state.invalid = true;
         } else {
             state.displayNameError = '';
@@ -55,17 +116,17 @@ export default class RenameChannelModal extends React.Component {
 
         channel.name = this.state.channelName.trim();
         if (!channel.name) {
-            state.nameError = 'This field is required';
+            state.nameError = formatMessage(messages.nameError1);
             state.invalid = true;
         } else if (channel.name.length > 22) {
-            state.nameError = 'This field must be less than 22 characters';
+            state.nameError = formatMessage(messages.nameError2);
             state.invalid = true;
         } else {
             const cleanedName = Utils.cleanUpUrlable(channel.name);
             if (cleanedName === channel.name) {
                 state.nameError = '';
             } else {
-                state.nameError = 'Must be lowercase alphanumeric characters';
+                state.nameError = formatMessage(messages.nameError3);
                 state.invalid = true;
             }
         }
@@ -134,6 +195,7 @@ export default class RenameChannelModal extends React.Component {
         $(ReactDOM.findDOMNode(this.refs.modal)).off('hidden.bs.modal', this.handleClose);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let displayNameError = null;
         let displayNameClass = 'form-group';
         if (this.state.displayNameError) {
@@ -157,7 +219,7 @@ export default class RenameChannelModal extends React.Component {
         let handleInputClass = 'form-control';
         let readOnlyHandleInput = false;
         if (this.state.channelName === Constants.DEFAULT_CHANNEL) {
-            handleInputLabel += ' - Cannot be changed for the default channel';
+            handleInputLabel += formatMessage(messages.defaultError);
             handleInputClass += ' disabled-input';
             readOnlyHandleInput = true;
         }
@@ -180,14 +242,14 @@ export default class RenameChannelModal extends React.Component {
                                 data-dismiss='modal'
                             >
                                 <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>{'Close'}</span>
+                                <span className='sr-only'>{formatMessage(messages.close)}</span>
                             </button>
-                        <h4 className='modal-title'>{'Rename Channel'}</h4>
+                        <h4 className='modal-title'>{formatMessage(messages.title)}</h4>
                         </div>
                         <form role='form'>
                             <div className='modal-body'>
                                 <div className={displayNameClass}>
-                                    <label className='control-label'>{'Display Name'}</label>
+                                    <label className='control-label'>{formatMessage(messages.displayName)}</label>
                                     <input
                                         onKeyUp={this.displayNameKeyUp}
                                         onChange={this.onDisplayNameChange}
@@ -195,7 +257,7 @@ export default class RenameChannelModal extends React.Component {
                                         ref='displayName'
                                         id='display_name'
                                         className='form-control'
-                                        placeholder='Enter display name'
+                                        placeholder={formatMessage(messages.displayNameHolder)}
                                         value={this.state.displayName}
                                         maxLength='64'
                                     />
@@ -208,7 +270,7 @@ export default class RenameChannelModal extends React.Component {
                                         type='text'
                                         className={handleInputClass}
                                         ref='channelName'
-                                        placeholder='lowercase alphanumeric&#39;s only'
+                                        placeholder={formatMessage(messages.handleHolder)}
                                         value={this.state.channelName}
                                         maxLength='64'
                                         readOnly={readOnlyHandleInput}
@@ -223,14 +285,14 @@ export default class RenameChannelModal extends React.Component {
                                     className='btn btn-default'
                                     data-dismiss='modal'
                                 >
-                                    {'Cancel'}
+                                    {formatMessage(messages.cancel)}
                                 </button>
                                 <button
                                     onClick={this.handleSubmit}
                                     type='submit'
                                     className='btn btn-primary'
                                 >
-                                    {'Save'}
+                                    {formatMessage(messages.save)}
                                 </button>
                             </div>
                         </form>
@@ -240,3 +302,9 @@ export default class RenameChannelModal extends React.Component {
         );
     }
 }
+
+RenameChannelModal.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(RenameChannelModal);
