@@ -4,6 +4,7 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import PostStore from '../stores/post_store.jsx';
+import SearchStore from '../stores/search_store.jsx';
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from '../utils/async_client.jsx';
@@ -39,28 +40,27 @@ export function emitPostFocusEvent(postId) {
     );
 }
 
-export function emitPostFocusRightHandSideEvent(post) {
+export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
     Client.getPost(
         post.channel_id,
         post.id,
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_POST_SELECTED,
-                post_list: data
+                post_list: data,
+                from_search: SearchStore.getSearchTerm()
             });
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_SEARCH,
-                results: null
+                results: null,
+                is_mention_search: isMentionSearch
             });
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getPost');
         }
     );
-
-    var postChannel = ChannelStore.get(post.channel_id);
-    Utils.switchChannel(postChannel);
 }
 
 export function emitLoadMorePostsEvent() {
