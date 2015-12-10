@@ -9,7 +9,6 @@ import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
-import * as Utils from '../utils/utils.jsx';
 
 export function emitChannelClickEvent(channel) {
     AsyncClient.getChannels(true);
