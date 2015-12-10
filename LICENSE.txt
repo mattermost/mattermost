@@ -4,7 +4,7 @@ SOFTWARE LICENSING
 
 You are licensed to use compiled versions of the Mattermost platform produced by Mattermost, Inc. under an MIT LICENSE 
 
--	See MIT-COMPILED-LICENSE.md included in compiled versions for details.
+-	See MIT-COMPILED-LICENSE.md included in compiled versions for details
 
 You may be licensed to use source code to create compiled versions not produced by Mattermost, Inc. in one of two ways:
 

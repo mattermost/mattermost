@@ -181,17 +181,15 @@ export default class MemberListTeamItem extends React.Component {
                             href='#'
                             className='dropdown-toggle theme'
                             type='button'
-                            id='channel_header_dropdown'
                             data-toggle='dropdown'
                             aria-expanded='true'
                         >
+                            <span className='fa fa-pencil'></span>
                             <span>{currentRoles} </span>
-                            <span className='caret'></span>
                         </a>
                         <ul
                             className='dropdown-menu member-menu'
                             role='menu'
-                            aria-labelledby='channel_header_dropdown'
                         >
                             {makeAdmin}
                             {makeMember}

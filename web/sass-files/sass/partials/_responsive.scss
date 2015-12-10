@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 @media screen and (max-width: 1800px) {
     .inner__wrap {
         &.move--left {
@@ -105,7 +107,8 @@
 
             &:after {
                 font-size: 20px;
-                content: '...'
+                content: '...';
+                top: -3px;
             }
 
         }
@@ -121,6 +124,14 @@
     }
 
     .post {
+
+        .post__header {
+
+            .col__name {
+                pointer-events: none;
+            }
+
+        }
 
         &.same--root {
 
@@ -374,10 +385,8 @@
             .msg-typing {
                 display: none;
             }
-            .has-error {
-                .control-label {
-                    height: auto;
-                }
+            .control-label {
+                top: 0;
             }
         }
         .post-create-body {
@@ -406,8 +415,7 @@
         }
     }
     .preview-container {
-        padding: 0px;
-        margin-top: 5px;
+        margin: 5px 0 0;
         .preview-div {
             margin-top: 0;
         }

@@ -68,8 +68,8 @@
         "ConnectionSecurity": "",
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
-        "SendPushNotifications": true,
-        "PushNotificationServer": "https://push.mattermost.com"
+        "SendPushNotifications": false,
+        "PushNotificationServer": ""
     },
     "RateLimitSettings": {
         "EnableRateLimiter": true,

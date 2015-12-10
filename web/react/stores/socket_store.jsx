@@ -59,13 +59,14 @@ class SocketStoreClass extends EventEmitter {
             conn.onopen = () => {
                 if (this.failCount > 0) {
                     console.log('websocket re-established connection'); //eslint-disable-line no-console
+
+                    if (ErrorStore.getLastError()) {
+                        ErrorStore.storeLastError(null);
+                        ErrorStore.emitChange();
+                    }
                 }
 
                 this.failCount = 0;
-                if (ErrorStore.getLastError()) {
-                    ErrorStore.storeLastError(null);
-                    ErrorStore.emitChange();
-                }
             };
 
             conn.onclose = () => {
@@ -163,7 +164,7 @@ function handleNewPostEvent(msg) {
     }
 
     // Send desktop notification
-    if (UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') {
+    if ((UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post)) {
         const msgProps = msg.props;
 
         let mentions = [];
@@ -224,6 +225,7 @@ function handlePostEditEvent(msg) {
     // Store post
     const post = JSON.parse(msg.props.post);
     PostStore.storePost(post);
+    PostStore.emitChange();
 
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.channel_id) {

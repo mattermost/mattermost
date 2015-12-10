@@ -18,7 +18,8 @@ Mattermost messages are formatted using a standard called "markdown". Here are e
 |`![embedded image](https://travis-ci.org/mattermost/platform.svg)`|![embedded image](https://travis-ci.org/mattermost/platform.svg)|
 |`:smile:` `:sheep:` `:alien:`|:smile: :sheep: :alien:|
 
-Check out a full list of Emojis [here](http://www.emoji-cheat-sheet.com/).
+Emojis provided free from [Emoji One](http://emojione.com/). Check out a full list of Emojis [here](http://emoji.codes/).
+
 
 ## Mentioning Teammates
 
@@ -35,3 +36,12 @@ Which sends a special mention notification to **alice** to check your message.
 To mention a teammate, press `@` and you should see a list of team members who can be messaged. You can either type their username or use the **Up** and **Down** arrow keys and then **ENTER** to select them to be mentioned. 
 
 You can configure how you'd like to be alerted about mentions of your username, your first name, your nickname, or other keywords from **Account Settings** > **Notifications** and you can set channel-specific preferences from **[Channel Name]** > **Notification Preferences** 
+
+## Messages Dropdown Menu
+
+To get to the Messages Dropdown Menu, hover over a message and click on the [...] menu. This shows a dropdown list containing additional actions you can perform on a message: 
+
+- **Reply:** Opens up the sidebar so you can reply to a message in a comment thread.
+- **Permalink:** Creates a link to the message. Sharing this link with other users in the channel lets them view the linked message in the Message Archives. 
+- **Delete:** Deletes the message so it is no longer visible. Team Administrators and System Administrators can also delete another user's message. 
+- **Edit:** Lets you edit your own message.

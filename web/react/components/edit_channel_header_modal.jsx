@@ -84,7 +84,7 @@ export default class EditChannelHeaderModal extends React.Component {
                 onHide={this.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    {'Edit Header for ' + this.props.channel.display_name}
+                    <Modal.Title>{'Edit Header for ' + this.props.channel.display_name}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <p>{'Edit the text appearing next to the channel name in the channel header.'}</p>

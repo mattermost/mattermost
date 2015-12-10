@@ -78,17 +78,15 @@ export default class MemberListItem extends React.Component {
                                 href='#'
                                 className='dropdown-toggle theme'
                                 type='button'
-                                id='channel_header_dropdown'
                                 data-toggle='dropdown'
                                 aria-expanded='true'
                             >
+                                <span className='fa fa-pencil'></span>
                                 <span className='text-capitalize'>{member.roles || 'Member'} </span>
-                                <span className='caret'></span>
                             </a>
                             <ul
                                 className='dropdown-menu member-menu'
                                 role='menu'
-                                aria-labelledby='channel_header_dropdown'
                             >
                                 {makeAdminOption}
                                 {handleRemoveOption}
@@ -96,7 +94,7 @@ export default class MemberListItem extends React.Component {
                         </div>
                     );
         } else {
-            invite = <div className='member-role text-capitalize'>{member.roles || 'Member'}<span className='caret hidden'></span></div>;
+            invite = <div className='member-role text-capitalize'><span className='fa fa-pencil hidden'></span>{member.roles || 'Member'}</div>;
         }
 
         return (

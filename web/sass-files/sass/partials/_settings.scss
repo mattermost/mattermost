@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 @import "access-history";
 @import "activity-log";
 @import "webhooks";
@@ -38,7 +40,7 @@
         font-weight: 600;
     }
 
-	.no-padding--left {
+    .no-padding--left {
         padding-left: 0;
     }
     .padding-top {
@@ -133,9 +135,10 @@
                     .input-group-addon {
                         padding: 4px 5px;
                         width: 40px;
-                        img {
-                            border: 1px solid rgba(black, 0.15);
-                        }
+                    }
+                    img {
+                        border: 1px solid rgba(black, 0.15);
+                        width: 29px;
                     }
                 }
                 .premade-themes {
@@ -180,7 +183,7 @@
                 text-align: right;
                 margin-bottom: 5px;
                 .fa {
-                    margin-right: 7px;
+                    margin-right: 5px;
                     font-size: 12px;
                     @include opacity(0.5);
                     display: none;
@@ -311,18 +314,36 @@
     .member-name {
         font-weight:500;
         display: block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .member-email {
         color:darkgrey;
         display: block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.member-role, .member-drop {
+    position:absolute;
+    right: 15px;
+    top: 8px;
+
+    .fa {
+        margin-right: 5px;
+        @include opacity(0.5);
+        font-size: 12px;
     }
 
-    .member-role, .member-drop {
-        position:absolute;
-        right:15px;
-        top:13px;
+    .member-menu {
+        top: -50%;
+        right: 110%;
     }
+
 }
 
 .member-invite {

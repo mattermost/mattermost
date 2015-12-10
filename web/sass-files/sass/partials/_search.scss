@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 #channel-header .search-bar__container {
 	padding: 0 8px 0 3px;
 }
@@ -109,6 +111,20 @@
 .search-item__jump {
 	position: absolute;
 	right: 0;
+	top: 0px;
+	font-size: 13px;
+	@include opacity(0.8);
+
+	&:hover {
+		@include opacity(1);
+	}
+
+}
+
+.search-item__comment {
+	position: absolute;
+	right: 0;
+	margin-right: 35px;
 	top: 0;
 }
 

@@ -15,7 +15,7 @@ If you're upgrading across multiple major releases, from 1.0.x to 1.2.x for exam
   3. Review Release Notes 
     1. Check the release notes for the version of Mattermost you are able to install, and note any setting changes in the **Compatibility** section that apply to your deployment (Release notes across versions are available from the [CHANGELOG](https://github.com/mattermost/platform/blob/master/CHANGELOG.md)). 
   4. Download the `mattermost.tar.gz` file with the correct version for your upgrade
-    1. You can use `wget` to retrieve a specific version. For example, to download v1.1.0 run `wget https://github.com/mattermost/platform/releases/download/v1.1.0/mattermost.tar.gz`
+    1. You can use `wget` to retrieve a specific version. For example, to download v1.1.0 run `wget https://github.com/mattermost/platform/releases/download/v1.x.x/mattermost.tar.gz`
 2. Stop the Mattermost Server
   1. As best practice, consider posting to the Town Square channel of active teams pre-announcing the scheduled downtime to apply these upgrade procedures
   2. To stop the server run `sudo stop mattermost`

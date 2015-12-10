@@ -221,7 +221,7 @@ export default class TeamAnalytics extends React.Component {
         var openChannelCount = (
             <div className='col-sm-3'>
                 <div className='total-count'>
-                    <div className='title'>{'Public Groups'}<i className='fa fa-unlock-alt'/></div>
+                    <div className='title'>{'Public Channels'}<i className='fa fa-globe'/></div>
                     <div className='content'>{this.state.channel_open_count == null ? 'Loading...' : this.state.channel_open_count}</div>
                 </div>
             </div>

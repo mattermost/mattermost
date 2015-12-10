@@ -49,7 +49,7 @@ git checkout -b <branch name>
 2. When you submit your pull request please make it against `master` and include the Ticket ID at the beginning of your pull request comment, followed by a colon
 
   - For example, for a ticket ID `PLT-394` start your comment with:  `PLT-394:`. See [previously closed pull requests](https://github.com/mattermost/platform/pulls?q=is%3Apr+is%3Aclosed) for examples
-  - All pull requests must have a ticket ID so the issue can be tracked and tested properly. If there is no existing ticket in Jira, please [file an issue in GitHub](http://www.mattermost.org/filing-issues/) so a Jira ticket can be created
+  - All pull requests must have a ticket ID so the issue can be tracked and tested properly. If there is no existing ticket in Jira, please [file a bug in GitHub](http://www.mattermost.org/filing-issues/) or a [feature idea you're proposing to implement](http://www.mattermost.org/feature-requests/) so a Jira ticket can be created
 
 3. Please include a comment on the pull request describing the changes
    

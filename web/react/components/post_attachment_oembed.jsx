@@ -14,14 +14,24 @@ export default class PostAttachmentOEmbed extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.fetchData(nextProps.link);
+        if (nextProps.link !== this.props.link) {
+            this.isLoading = false;
+            this.fetchData(nextProps.link);
+        }
+    }
+
+    componentDidMount() {
+        this.fetchData(this.props.link);
     }
 
     fetchData(link) {
         if (!this.isLoading) {
             this.isLoading = true;
+            let url = 'https://noembed.com/embed?nowrap=on';
+            url += '&url=' + encodeURIComponent(link);
+            url += '&maxheight=' + this.props.provider.height;
             return $.ajax({
-                url: 'https://noembed.com/embed?nowrap=on&url=' + encodeURIComponent(link),
+                url,
                 dataType: 'jsonp',
                 success: (result) => {
                     this.isLoading = false;
@@ -39,8 +49,18 @@ export default class PostAttachmentOEmbed extends React.Component {
     }
 
     render() {
+        let data = {};
+        let content;
         if ($.isEmptyObject(this.state.data)) {
-            return <div></div>;
+            content = <div style={{height: this.props.provider.height}}/>;
+        } else {
+            data = this.state.data;
+            content = (
+                <div
+                    style={{height: this.props.provider.height}}
+                    dangerouslySetInnerHTML={{__html: data.html}}
+                />
+            );
         }
 
         return (
@@ -57,18 +77,17 @@ export default class PostAttachmentOEmbed extends React.Component {
                             >
                                 <a
                                     className='attachment__title-link'
-                                    href={this.state.data.url}
+                                    href={data.url}
                                     target='_blank'
                                 >
-                                    {this.state.data.title}
+                                    {data.title}
                                 </a>
                             </h1>
-                            <div>
-                                <div className={'attachment__body attachment__body--no_thumb'}>
-                                    <div
-                                        dangerouslySetInnerHTML={{__html: this.state.data.html}}
-                                    >
-                                    </div>
+                            <div >
+                                <div
+                                    className={'attachment__body attachment__body--no_thumb'}
+                                >
+                                    {content}
                                 </div>
                             </div>
                         </div>
@@ -79,5 +98,6 @@ export default class PostAttachmentOEmbed extends React.Component {
 }
 
 PostAttachmentOEmbed.propTypes = {
-    link: React.PropTypes.string.isRequired
+    link: React.PropTypes.string.isRequired,
+    provider: React.PropTypes.object.isRequired
 };

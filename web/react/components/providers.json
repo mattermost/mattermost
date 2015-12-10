@@ -3,265 +3,308 @@
         "patterns": [
             "http://(?:www\\.)?xkcd\\.com/\\d+/?"
         ],
-        "name": "XKCD"
+        "name": "XKCD",
+        "height": 110
     },
     {
         "patterns": [
             "https?://soundcloud.com/.*/.*"
         ],
-        "name": "SoundCloud"
+        "name": "SoundCloud",
+        "height": 140
     },
     {
         "patterns": [
             "https?://(?:www\\.)?flickr\\.com/.*",
             "https?://flic\\.kr/p/[a-zA-Z0-9]+"
         ],
-        "name": "Flickr"
+        "name": "Flickr",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.ted\\.com/talks/.+\\.html"
         ],
-        "name": "TED"
+        "name": "TED",
+        "height": 110
     },
     {
         "patterns": [
             "http://(?:www\\.)?theverge\\.com/\\d{4}/\\d{1,2}/\\d{1,2}/\\d+/[^/]+/?$"
         ],
-        "name": "The Verge"
+        "name": "The Verge",
+        "height": 110
     },
     {
         "patterns": [
             "http://.*\\.viddler\\.com/.*"
         ],
-        "name": "Viddler"
+        "name": "Viddler",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(?:www\\.)?avclub\\.com/article/[^/]+/?$"
         ],
-        "name": "The AV Club"
+        "name": "The AV Club",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(?:www\\.)?wired\\.com/([^/]+/)?\\d+/\\d+/[^/]+/?$"
         ],
-        "name": "Wired"
+        "name": "Wired",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.theonion\\.com/articles/[^/]+/?"
         ],
-        "name": "The Onion"
+        "name": "The Onion",
+        "height": 110
     },
     {
         "patterns": [
             "http://yfrog\\.com/[0-9a-zA-Z]+/?$"
         ],
-        "name": "YFrog"
+        "name": "YFrog",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.duffelblog\\.com/\\d{4}/\\d{1,2}/[^/]+/?$"
         ],
-        "name": "The Duffel Blog"
+        "name": "The Duffel Blog",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.clickhole\\.com/article/[^/]+/?"
         ],
-        "name": "Clickhole"
+        "name": "Clickhole",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(?:www.)?skitch.com/([^/]+)/[^/]+/.+",
             "http://skit.ch/[^/]+"
         ],
-        "name": "Skitch"
+        "name": "Skitch",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(alpha|posts|photos)\\.app\\.net/.*"
         ],
-        "name": "ADN"
+        "name": "ADN",
+        "height": 110
     },
     {
         "patterns": [
             "https?://gist\\.github\\.com/(?:[-0-9a-zA-Z]+/)?([0-9a-fA-f]+)"
         ],
-        "name": "Gist"
+        "name": "Gist",
+        "height": 110
     },
     {
         "patterns": [
             "https?://www\\.(dropbox\\.com/s/.+\\.(?:jpg|png|gif))",
             "https?://db\\.tt/[a-zA-Z0-9]+"
         ],
-        "name": "Dropbox"
+        "name": "Dropbox",
+        "height": 110
     },
     {
         "patterns": [
             "https?://[^\\.]+\\.wikipedia\\.org/wiki/(?!Talk:)[^#]+(?:#(.+))?"
         ],
-        "name": "Wikipedia"
+        "name": "Wikipedia",
+        "height": 110
     },
     {
         "patterns": [
             "http://www.traileraddict.com/trailer/[^/]+/trailer"
         ],
-        "name": "TrailerAddict"
+        "name": "TrailerAddict",
+        "height": 110
     },
     {
         "patterns": [
             "http://lockerz\\.com/[sd]/\\d+"
         ],
-        "name": "Lockerz"
+        "name": "Lockerz",
+        "height": 110
     },
     {
         "patterns": [
             "http://gifuk\\.com/s/[0-9a-f]{16}"
         ],
-        "name": "GIFUK"
+        "name": "GIFUK",
+        "height": 110
     },
     {
         "patterns": [
             "http://trailers\\.apple\\.com/trailers/[^/]+/[^/]+"
         ],
-        "name": "iTunes Movie Trailers"
+        "name": "iTunes Movie Trailers",
+        "height": 110
     },
     {
         "patterns": [
             "http://gfycat\\.com/([a-zA-Z]+)"
         ],
-        "name": "Gfycat"
+        "name": "Gfycat",
+        "height": 110
     },
     {
         "patterns": [
             "http://bash\\.org/\\?(\\d+)"
         ],
-        "name": "Bash.org"
+        "name": "Bash.org",
+        "height": 110
     },
     {
         "patterns": [
             "http://arstechnica\\.com/[^/]+/\\d+/\\d+/[^/]+/?$"
         ],
-        "name": "Ars Technica"
+        "name": "Ars Technica",
+        "height": 110
     },
     {
         "patterns": [
             "http://imgur\\.com/gallery/[0-9a-zA-Z]+"
         ],
-        "name": "Imgur"
+        "name": "Imgur",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.asciiartfarts\\.com/[0-9]+\\.html"
         ],
-        "name": "ASCII Art Farts"
+        "name": "ASCII Art Farts",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.monoprice\\.com/products/product\\.asp\\?.*p_id=\\d+"
         ],
-        "name": "Monoprice"
+        "name": "Monoprice",
+        "height": 110
     },
     {
         "patterns": [
             "http://boingboing\\.net/\\d{4}/\\d{2}/\\d{2}/[^/]+\\.html"
         ],
-        "name": "Boing Boing"
+        "name": "Boing Boing",
+        "height": 110
     },
     {
         "patterns": [
             "https?://github\\.com/([^/]+)/([^/]+)/commit/(.+)",
             "http://git\\.io/[_0-9a-zA-Z]+"
         ],
-        "name": "Github Commit"
+        "name": "Github Commit",
+        "height": 110
     },
     {
         "patterns": [
             "https?://open\\.spotify\\.com/(track|album)/([0-9a-zA-Z]{22})"
         ],
-        "name": "Spotify"
+        "name": "Spotify",
+        "height": 110
     },
     {
         "patterns": [
             "https?://path\\.com/p/([0-9a-zA-Z]+)$"
         ],
-        "name": "Path"
+        "name": "Path",
+        "height": 110
     },
     {
         "patterns": [
             "http://www.funnyordie.com/videos/[^/]+/.+"
         ],
-        "name": "Funny or Die"
+        "name": "Funny or Die",
+        "height": 110
     },
     {
         "patterns": [
             "http://(?:www\\.)?twitpic\\.com/([^/]+)"
         ],
-        "name": "Twitpic"
+        "name": "Twitpic",
+        "height": 110
     },
     {
         "patterns": [
             "https?://www\\.giantbomb\\.com/videos/[^/]+/\\d+-\\d+/?"
         ],
-        "name": "GiantBomb"
+        "name": "GiantBomb",
+        "height": 110
     },
     {
         "patterns": [
             "http://(?:www\\.)?beeradvocate\\.com/beer/profile/\\d+/\\d+"
         ],
-        "name": "Beer Advocate"
+        "name": "Beer Advocate",
+        "height": 110
     },
     {
         "patterns": [
             "http://(?:www\\.)?imdb.com/title/(tt\\d+)"
         ],
-        "name": "IMDB"
+        "name": "IMDB",
+        "height": 110
     },
     {
         "patterns": [
             "http://cl\\.ly/(?:image/)?[0-9a-zA-Z]+/?$"
         ],
-        "name": "CloudApp"
+        "name": "CloudApp",
+        "height": 110
     },
     {
         "patterns": [
             "http://clyp\\.it/.*"
         ],
-        "name": "Clyp"
+        "name": "Clyp",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.hulu\\.com/watch/.*"
         ],
-        "name": "Hulu"
+        "name": "Hulu",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(?:www|mobile\\.)?twitter\\.com/(?:#!/)?[^/]+/status(?:es)?/(\\d+)/?$",
             "https?://t\\.co/[a-zA-Z0-9]+"
         ],
-        "name": "Twitter"
+        "name": "Twitter",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(?:www\\.)?vimeo\\.com/.+"
         ],
-        "name": "Vimeo"
+        "name": "Vimeo",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.amazon\\.com/(?:.+/)?[gd]p/(?:product/)?(?:tags-on-product/)?([a-zA-Z0-9]+)",
             "http://amzn\\.com/([^/]+)"
         ],
-        "name": "Amazon"
+        "name": "Amazon",
+        "height": 110
     },
     {
         "patterns": [
             "http://qik\\.com/video/.*"
         ],
-        "name": "Qik"
+        "name": "Qik",
+        "height": 110
     },
     {
         "patterns": [
@@ -269,56 +312,65 @@
             "http://www\\.rdio\\.com/artist/[^/]+/album/[^/]+/track/[^/]+/?",
             "http://www\\.rdio\\.com/people/[^/]+/playlists/\\d+/[^/]+"
         ],
-        "name": "Rdio"
+        "name": "Rdio",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.slideshare\\.net/.*/.*"
         ],
-        "name": "SlideShare"
+        "name": "SlideShare",
+        "height": 110
     },
     {
         "patterns": [
             "http://imgur\\.com/([0-9a-zA-Z]+)$"
         ],
-        "name": "Imgur"
+        "name": "Imgur",
+        "height": 110
     },
     {
         "patterns": [
             "https?://instagr(?:\\.am|am\\.com)/p/.+"
         ],
-        "name": "Instagram"
+        "name": "Instagram",
+        "height": 110
     },
     {
         "patterns": [
             "http://www\\.twitlonger\\.com/show/[a-zA-Z0-9]+",
             "http://tl\\.gd/[^/]+"
         ],
-        "name": "Twitlonger"
+        "name": "Twitlonger",
+        "height": 110
     },
     {
         "patterns": [
             "https?://vine.co/v/[a-zA-Z0-9]+"
         ],
-        "name": "Vine"
+        "name": "Vine",
+        "height": 490
     },
     {
         "patterns": [
             "http://www\\.urbandictionary\\.com/define\\.php\\?term=.+"
         ],
-        "name": "Urban Dictionary"
+        "name": "Urban Dictionary",
+        "height": 110
     },
     {
         "patterns": [
             "http://picplz\\.com/user/[^/]+/pic/[^/]+"
         ],
-        "name": "Picplz"
+        "name": "Picplz",
+        "height": 110
     },
     {
         "patterns": [
             "https?://(?:www\\.)?twitter\\.com/(?:#!/)?[^/]+/status(?:es)?/(\\d+)/photo/\\d+(?:/large|/)?$",
             "https?://pic\\.twitter\\.com/.+"
         ],
-        "name": "Twitter"
+        "name": "Twitter",
+        "height": 110
     }
 ]

@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 @function em($pixels, $context: 14px) {
 	@return #{$pixels/$context}em
 }
