@@ -477,8 +477,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				teamURL := c.GetSiteURL() + "/" + team.Name
 
 				// Build and send the emails
-				location, _ := time.LoadLocation("UTC")
-				tm := time.Unix(post.CreateAt/1000, 0).In(location)
+				tm := time.Unix(post.CreateAt/1000, 0)
 
 				subjectPage := NewServerTemplatePage("post_subject")
 				subjectPage.Props["SiteURL"] = c.GetSiteURL()
@@ -510,6 +509,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 					bodyPage.Props["Minute"] = fmt.Sprintf("%02d", tm.Minute())
 					bodyPage.Props["Month"] = tm.Month().String()[:3]
 					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
+					bodyPage.Props["TimeZone"], _ = tm.Zone()
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
 
