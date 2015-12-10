@@ -25,7 +25,7 @@ Release date: 2015-12-16
 ### New Features
 
 Authentication
-- Documented unofficial GitHub SSO support using GitLab UI
+- Added unofficial SSO support for GitHub.com and GitHub Enterprise using GitLab UI
 
 Archives
 - Added permalink feature that lets users link to a post in the message archives
