@@ -12,7 +12,7 @@ The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the produ
 #### iOS App
 
 - New [Mattermost iOS App](https://github.com/mattermost/ios) now available for iPhone, iPad, and iPod Touch
-- New [Mattermost Push Notification Server](https://github.com/mattermost/push-proxy) encrypts notifications before sending them to your iOS devices
+- New [Mattermost Push Notification Service](https://github.com/mattermost/push-proxy) encrypts notifications before sending them to your iOS devices
 
 #### Search Upgrades
 
