@@ -169,8 +169,8 @@
             margin-right: 8px;
         }
         .icon {
-            width: 18px;
-            height: 18px;
+            width: 36px;
+            height: 16px;
             margin-right: 8px;
             @include background-size(100% 100%);
             display: inline-block;
@@ -195,6 +195,18 @@
                 }
                 .icon {
                     background-image: url("../images/gitlabLogo.png");
+                }
+            }
+            &.zbox {
+                background: #056998;
+                &:hover {
+                    background: darken(#056998, 10%);
+                }
+                span {
+                    vertical-align: middle;
+                }
+                .icon {
+                    background-image: url("../images/zboxLogo.png");
                 }
             }
             &.google {
