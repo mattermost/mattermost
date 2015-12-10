@@ -382,8 +382,6 @@
 
 	.user-list {
 		margin-top: 10px;
-		overflow: auto;
-		-webkit-overflow-scrolling: touch;
 		max-height: 500px;
 		position: relative;
 	}
@@ -394,11 +392,12 @@
 
 	.modal-body {
 		padding: 10px 0 20px;
+		overflow-x: hidden;
 	}
 
 	.filter-row {
 		margin-top: 10px;
-		padding: 0 15px;
+		@include clearfix;
 	}
 
 	.member-count {

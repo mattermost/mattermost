@@ -47,6 +47,21 @@ export default class MoreDirectChannels extends React.Component {
         UserStore.addChangeListener(this.handleUserChange);
     }
 
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            this.onShow();
+        }
+    }
+
+    onShow() {
+        if ($(window).width() > 768) {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 200);
+        } else {
+            $(ReactDOM.findDOMNode(this.refs.modalBody)).css('max-height', $(window).height() - 150);
+        }
+    }
+
     handleFilterChange() {
         const filter = ReactDOM.findDOMNode(this.refs.filter).value;
 
@@ -164,15 +179,6 @@ export default class MoreDirectChannels extends React.Component {
         );
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
-            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 50);
-            if ($(window).width() > 768) {
-                $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
-            }
-        }
-    }
-
     render() {
         if (!this.props.show) {
             return null;
@@ -217,8 +223,8 @@ export default class MoreDirectChannels extends React.Component {
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{'Direct Messages'}</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <div className='row filter-row'>
+                <Modal.Body ref='modalBody'>
+                    <div className='filter-row'>
                         <div className='col-sm-6'>
                             <input
                                 ref='filter'
