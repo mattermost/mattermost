@@ -12,6 +12,7 @@ export default class GeneralTab extends React.Component {
     constructor(props) {
         super(props);
 
+        this.updateSection = this.updateSection.bind(this);
         this.handleNameSubmit = this.handleNameSubmit.bind(this);
         this.handleInviteIdSubmit = this.handleInviteIdSubmit.bind(this);
         this.handleOpenInviteSubmit = this.handleOpenInviteSubmit.bind(this);
@@ -27,11 +28,22 @@ export default class GeneralTab extends React.Component {
         this.handleTeamListingRadio = this.handleTeamListingRadio.bind(this);
         this.handleGenerateInviteId = this.handleGenerateInviteId.bind(this);
 
-        this.state = {
-            name: props.team.display_name,
-            invite_id: props.team.invite_id,
-            allow_open_invite: props.team.allow_open_invite,
-            allow_team_listing: props.team.allow_team_listing,
+        this.state = this.setupInitialState(props);
+    }
+
+    updateSection(section) {
+        this.setState(this.setupInitialState(this.props));
+        this.props.updateSection(section);
+    }
+
+    setupInitialState(props) {
+        const team = props.team;
+
+        return {
+            name: team.display_name,
+            invite_id: team.invite_id,
+            allow_open_invite: team.allow_open_invite,
+            allow_team_listing: team.allow_team_listing,
             serverError: '',
             clientError: ''
         };
@@ -71,7 +83,7 @@ export default class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -91,7 +103,7 @@ export default class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -129,7 +141,7 @@ export default class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -164,7 +176,7 @@ export default class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -180,8 +192,7 @@ export default class GeneralTab extends React.Component {
     }
 
     handleClose() {
-        this.setState({clientError: '', serverError: ''});
-        this.props.updateSection('');
+        this.updateSection('');
     }
 
     componentDidMount() {
@@ -195,36 +206,36 @@ export default class GeneralTab extends React.Component {
     onUpdateNameSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'name') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('name');
+            this.updateSection('name');
         }
     }
 
     onUpdateInviteIdSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'invite_id') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('invite_id');
+            this.updateSection('invite_id');
         }
     }
 
     onUpdateOpenInviteSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'open_invite') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('open_invite');
+            this.updateSection('open_invite');
         }
     }
 
     onUpdateTeamListingSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'team_listing') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('team_listing');
+            this.updateSection('team_listing');
         }
     }
 
