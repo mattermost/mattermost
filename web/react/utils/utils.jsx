@@ -1254,3 +1254,8 @@ export function isFeatureEnabled(feature) {
 export function isSystemMessage(post) {
     return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
 }
+
+// convenience method to dispatch an event in JS' next event cycle
+export function defer(fn) {
+    setTimeout(fn, 0);
+}
