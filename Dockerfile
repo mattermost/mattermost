@@ -1,6 +1,6 @@
 FROM golang:1.5
 
-ENV SRC_DIR="/go/src/github.com/bkeroack/platform"
+ENV SRC_DIR="/go/src/github.com/mattermost/platform"
 
 RUN mkdir -p $SRC_DIR
 ADD . $SRC_DIR
