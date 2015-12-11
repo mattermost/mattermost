@@ -1,0 +1,19 @@
+@charset "UTF-8";
+
+.docks__page {
+	line-height: 1.7;
+	padding-bottom: 20px;
+
+	> div {
+		width: 1170px;
+		margin: 0 auto;
+		padding: 0 15px;
+		max-width: 100%;
+	}
+
+	h1.markdown__heading {
+		border-bottom: 1px solid #ddd;
+		padding-bottom: 1rem;
+		margin: 1em 0 1em;
+	}
+}
