@@ -54,11 +54,11 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     onShow() {
-        if (!Utils.isMobile()) {
+        if (Utils.isMobile()) {
+            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 250);
+        } else {
             $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
             $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 300);
-        } else {
-            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 250);
         }
     }
 
