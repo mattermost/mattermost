@@ -98,6 +98,7 @@
         "Scope": "",
         "AuthEndpoint": "http://dockerhost:3000/oauth/authorize",
         "TokenEndpoint": "http://dockerhost:3000/oauth/token",
-        "UserApiEndpoint": "http://dockerhost:3000/me"
+        "UserApiEndpoint": "http://dockerhost:3000/me",
+        "LoginEndPoint": "http://dockerhost:3000/login"
     }
 }

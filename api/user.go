@@ -641,7 +641,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	if len(props["id"]) != 0 {
 		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
-	} else if len(props["email"]) != 0 && len(props["name"]) != 0 && len(props["zbox"]) != 0 {
+	} else if len(props["email"]) != 0 && len(props["zbox"]) != 0 {
 		user = LoginByZBox(c, w, r, props["email"], props["password"], props["device_id"])
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
@@ -1980,7 +1980,7 @@ func zboxAuth(email, password string, T goi18n.TranslateFunc) (io.ReadCloser, *m
 		return nil, model.NewAppError("ZBoxAuth", err.Error(), "service=zbox")
 	} else {
 		if resp.StatusCode != 200 {
-			return nil, model.NewAppError("ZimbraAuth", T("Unauthorized"), "service=zbox")
+			return nil, model.NewAppError("ZBoxAuth", T("Unauthorized"), "service=zbox")
 		}
 		return resp.Body, nil
 	}

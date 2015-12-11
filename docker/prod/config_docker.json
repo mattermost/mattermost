@@ -97,6 +97,7 @@
         "Scope": "",
         "AuthEndpoint": "https://oauth.zboxapp.com/oauth/authorize",
         "TokenEndpoint": "https://oauth.zboxapp.com/oauth/token",
-        "UserApiEndpoint": "https://oauth.zboxapp.com/me"
+        "UserApiEndpoint": "https://oauth.zboxapp.com/me",
+        "LoginEndPoint": "https://oauth.zboxapp.com/login"
     }
 }
