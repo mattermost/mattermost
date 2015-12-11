@@ -183,6 +183,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["EnableTeamListing"] = strconv.FormatBool(*c.TeamSettings.EnableTeamListing)
 
