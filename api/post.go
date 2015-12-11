@@ -491,33 +491,50 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				splitF := func(c rune) bool {
 					return model.SplitRunes[c]
 				}
-				splitMessage := strings.FieldsFunc(post.Message, splitF)
+				splitMessage := strings.Fields(post.Message)
 				for _, word := range splitMessage {
+					var userIds []string
 
 					// Non-case-sensitive check for regular keys
-					userIds1, keyMatch := keywordMap[strings.ToLower(word)]
+					if ids, match := keywordMap[strings.ToLower(word)]; match {
+						userIds = append(userIds, ids...)
+					}
 
 					// Case-sensitive check for first name
-					userIds2, firstNameMatch := keywordMap[word]
+					if ids, match := keywordMap[word]; match {
+						userIds = append(userIds, ids...)
+					}
 
-					userIds := append(userIds1, userIds2...)
+					if len(userIds) == 0 {
+						// No matches were found with the string split just on whitespace so try further splitting
+						// the message on punctuation
+						splitWords := strings.FieldsFunc(word, splitF)
 
-					// If one of the non-case-senstive keys or the first name matches the word
-					//  then we add en entry to the sendEmail map
-					if keyMatch || firstNameMatch {
-						for _, userId := range userIds {
-							if post.UserId == userId {
-								continue
+						for _, splitWord := range splitWords {
+							// Non-case-sensitive check for regular keys
+							if ids, match := keywordMap[strings.ToLower(splitWord)]; match {
+								userIds = append(userIds, ids...)
 							}
-							sendEmail := true
-							if _, ok := profileMap[userId].NotifyProps["email"]; ok && profileMap[userId].NotifyProps["email"] == "false" {
-								sendEmail = false
+
+							// Case-sensitive check for first name
+							if ids, match := keywordMap[splitWord]; match {
+								userIds = append(userIds, ids...)
 							}
-							if sendEmail && (profileMap[userId].IsAway() || profileMap[userId].IsOffline()) {
-								toEmailMap[userId] = true
-							} else {
-								toEmailMap[userId] = false
-							}
+						}
+					}
+
+					for _, userId := range userIds {
+						if post.UserId == userId {
+							continue
+						}
+						sendEmail := true
+						if _, ok := profileMap[userId].NotifyProps["email"]; ok && profileMap[userId].NotifyProps["email"] == "false" {
+							sendEmail = false
+						}
+						if sendEmail && (profileMap[userId].IsAway() || profileMap[userId].IsOffline()) {
+							toEmailMap[userId] = true
+						} else {
+							toEmailMap[userId] = false
 						}
 					}
 				}
