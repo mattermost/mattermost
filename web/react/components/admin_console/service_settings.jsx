@@ -172,7 +172,16 @@ export default class ServiceSettings extends React.Component {
                                 defaultValue={this.props.config.ServiceSettings.GoogleDeveloperKey}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at '}<a href='https://www.youtube.com/watch?v=Im69kzhpR3I'>{'https://www.youtube.com/watch?v=Im69kzhpR3I'}</a>{'. Leaving field blank disables the automatic generation of YouTube video previews from links.'}</p>
+                            <p className='help-text'>
+                                {'Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at '}
+                                <a
+                                    href='https://www.youtube.com/watch?v=Im69kzhpR3I'
+                                    target='_blank'
+                                >
+                                    {'https://www.youtube.com/watch?v=Im69kzhpR3I'}
+                                </a>
+                                {'. Leaving the field blank disables the automatic generation of YouTube video previews from links.'}
+                            </p>
                         </div>
                     </div>
 
