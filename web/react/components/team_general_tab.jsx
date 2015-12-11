@@ -248,44 +248,59 @@ export default class GeneralTab extends React.Component {
             serverError = this.state.serverError;
         }
 
+        const enableTeamListing = global.window.mm_config.EnableTeamListing === 'true';
+
         let teamListingSection;
         if (this.props.activeSection === 'team_listing') {
-            const inputs = [
-                <div key='userTeamListingOptions'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                name='userTeamListingOptions'
-                                type='radio'
-                                defaultChecked={this.state.allow_team_listing}
-                                onChange={this.handleTeamListingRadio.bind(this, true)}
-                            />
-                            {'Yes'}
-                        </label>
-                        <br/>
+            const inputs = [];
+            let submitHandle = null;
+
+            if (enableTeamListing) {
+                submitHandle = this.handleTeamListingSubmit;
+
+                inputs.push(
+                    <div key='userTeamListingOptions'>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    name='userTeamListingOptions'
+                                    type='radio'
+                                    defaultChecked={this.state.allow_team_listing}
+                                    onChange={this.handleTeamListingRadio.bind(this, true)}
+                                />
+                                {'Yes'}
+                            </label>
+                            <br/>
+                        </div>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    ref='teamListingRadioNo'
+                                    name='userTeamListingOptions'
+                                    type='radio'
+                                    defaultChecked={!this.state.allow_team_listing}
+                                    onChange={this.handleTeamListingRadio.bind(this, false)}
+                                />
+                                {'No'}
+                            </label>
+                            <br/>
+                        </div>
+                        <div><br/>{'Including this team will display the team name from the Team Directory section of the Home Page, and provide a link to the sign-in page.'}</div>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                ref='teamListingRadioNo'
-                                name='userTeamListingOptions'
-                                type='radio'
-                                defaultChecked={!this.state.allow_team_listing}
-                                onChange={this.handleTeamListingRadio.bind(this, false)}
-                            />
-                            {'No'}
-                        </label>
-                        <br/>
+                );
+            } else {
+                inputs.push(
+                    <div key='userTeamListingOptions'>
+                        <div><br/>{'Contact your system administrator to turn on the team directory on the system home page.'}</div>
                     </div>
-                    <div><br/>{'Including this team will display the team name from the Team Directory section of the Home Page, and provide a link to the sign-in page.'}</div>
-                </div>
-            ];
+                );
+            }
 
             teamListingSection = (
                 <SettingItemMax
                     title='Include this team in the Team Directory'
                     inputs={inputs}
-                    submit={this.handleTeamListingSubmit}
+                    submit={submitHandle}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={this.onUpdateTeamListingSection}
@@ -293,10 +308,15 @@ export default class GeneralTab extends React.Component {
             );
         } else {
             let describe = '';
-            if (this.state.allow_team_listing === true) {
-                describe = 'Yes';
+
+            if (enableTeamListing) {
+                if (this.state.allow_team_listing === true) {
+                    describe = 'Yes';
+                } else {
+                    describe = 'No';
+                }
             } else {
-                describe = 'No';
+                describe = 'Team directory is turned off for this system.';
             }
 
             teamListingSection = (
