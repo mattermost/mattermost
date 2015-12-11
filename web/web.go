@@ -215,7 +215,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		page := NewHtmlTemplatePage("home", T("Home"))
 		page.Team = team
 		page.User = user
-		page.Render(c, w, T)
+
 		page.Props["TeamURL"] = c.GetTeamURL(T)
 		page.Props["Locale"] = lang
 		page.Props["Messages"] = i18n.JsonMessages[lang]
