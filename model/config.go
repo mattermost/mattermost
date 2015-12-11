@@ -46,6 +46,7 @@ type SSOSettings struct {
 	AuthEndpoint    string
 	TokenEndpoint   string
 	UserApiEndpoint string
+	LoginEndPoint	string
 }
 
 type SqlSettings struct {

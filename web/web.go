@@ -973,51 +973,8 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 
 func signUpAndLogin(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, user *model.User, service string) {
 	T := i18n.Language(w, r)
-	euchan := api.Srv.Store.User().GetByEmail(team.Id, user.Email, T)
-
-	if result := <-euchan; result.Err == nil {
-		c.Err = model.NewAppError("signupCompleteOAuth", T("Team ")+team.DisplayName+T(" already has a user with the email address attached to your ")+service+" account", "email="+user.Email)
-		return
-	}
-
-	if team.Email == "" {
-		team.Email = user.Email
-		if result := <-api.Srv.Store.Team().Update(team, T); result.Err != nil {
-			c.Err = result.Err
-			return
-		}
-	} else {
-		found := true
-		count := 0
-		for found {
-			if found = api.IsUsernameTaken(user.Username, team.Id, T); c.Err != nil {
-				return
-			} else if found {
-				user.Username = user.Username + strconv.Itoa(count)
-				count += 1
-			}
-		}
-	}
-	user.TeamId = team.Id
-	user.EmailVerified = true
-	if cookie, err := r.Cookie(model.SESSION_LANGUAGE); err != nil {
-		user.Language = cookie.Value
-	} else {
-		user.Language = model.DEFAULT_LANGUAGE
-	}
-
-	ruser := api.CreateUser(c, team, user, T)
-	if c.Err != nil {
-		return
-	}
-
+	api.SignUpAndLogin(c, w, r, team, user, service, T)
 	setTeamCookie(w, team.Name)
-	api.Login(c, w, r, ruser, "")
-
-	if c.Err != nil {
-		return
-	}
-
 	root(c, w, r)
 }
 

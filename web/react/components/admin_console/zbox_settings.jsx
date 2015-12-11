@@ -2,8 +2,8 @@
 // See License.txt for license information.
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
-var Client = require('../../utils/client.jsx');
-var AsyncClient = require('../../utils/async_client.jsx');
+import * as Client from '../../utils/client.jsx';
+import * as AsyncClient from '../../utils/async_client.jsx';
 
 const messages = defineMessages({
     true: {
@@ -86,6 +86,18 @@ const messages = defineMessages({
         id: 'admin.zbox.userDescription',
         defaultMessage: 'Enter <your-zboxoauth2-url>/me.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
     },
+    loginTitle: {
+        id: 'admin.zbox.loginTitle',
+        defaultMessage: 'Login Endpoint:'
+    },
+    loginExample: {
+        id: 'admin.zbox.loginExample',
+        defaultMessage: 'Ex ""'
+    },
+    loginDescription: {
+        id: 'admin.zbox.loginDescription',
+        defaultMessage: 'Enter <your-zboxoauth2-url>/login.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+    },
     saving: {
         id: 'admin.zbox.saving',
         defaultMessage: 'Saving Config...'
@@ -135,6 +147,7 @@ class ZBoxSettings extends React.Component {
         config.ZBoxSettings.AuthEndpoint = ReactDOM.findDOMNode(this.refs.AuthEndpoint).value.trim();
         config.ZBoxSettings.TokenEndpoint = ReactDOM.findDOMNode(this.refs.TokenEndpoint).value.trim();
         config.ZBoxSettings.UserApiEndpoint = ReactDOM.findDOMNode(this.refs.UserApiEndpoint).value.trim();
+        config.ZBoxSettings.LoginEndPoint = ReactDOM.findDOMNode(this.refs.LoginEndPoint).value.trim();
 
         Client.saveConfig(
             config,
@@ -317,6 +330,28 @@ class ZBoxSettings extends React.Component {
                                 disabled={!this.state.Enable}
                             />
                             <p className='help-text'>{formatMessage(messages.userDescription)}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='LoginEndPoint'
+                            >
+                            {formatMessage(messages.loginTitle)}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='LoginEndPoint'
+                                ref='LoginEndPoint'
+                                placeholder={formatMessage(messages.loginExample)}
+                                defaultValue={this.props.config.ZBoxSettings.LoginEndPoint}
+                                onChange={this.handleChange}
+                                disabled={!this.state.Enable}
+                                />
+                            <p className='help-text'>{formatMessage(messages.loginDescription)}</p>
                         </div>
                     </div>
 

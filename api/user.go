@@ -393,6 +393,119 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	return nil
 }
 
+func LoginByZBox(c *Context, w http.ResponseWriter, r *http.Request, email, password, deviceId string) *model.User {
+	var team *model.Team
+	T := i18n.Language(w, r)
+
+	if body, err := zboxAuth(email, password, T); err != nil {
+		c.Err = err
+		return nil
+	} else {
+		authData := ""
+		teamName := ""
+		var user *model.User
+		zbu := model.ZboxUserFromJson(body)
+		teamName = zbu.Team
+		authData = zbu.Email
+		user = model.UserFromZBoxUser(zbu)
+
+		if len(authData) == 0 {
+			c.Err = model.NewAppError("zboxOAuth", T("Could not parse auth data out of zbox user object"), "")
+			return nil
+		}
+
+		if len(teamName) == 0 {
+			c.Err = model.NewAppError("zboxOAuth", T("Invalid team name"), "team_name="+teamName)
+			c.Err.StatusCode = http.StatusBadRequest
+			return nil
+		}
+
+		if !zbu.Enabled || !zbu.ChatEnabled {
+			c.Err = model.NewAppError("zboxOAuth", T("Your user is not authorized to use the Chat app"), "")
+			c.Err.StatusCode = http.StatusForbidden
+			return nil
+		}
+
+		if result := <-Srv.Store.Team().GetByName(teamName, T); result.Err != nil {
+			c.Err = result.Err
+			return nil
+		} else {
+			team = result.Data.(*model.Team)
+		}
+
+		if result := <-Srv.Store.User().GetByAuth(team.Id, authData, "zbox", T); result.Err != nil {
+			if user != nil {
+				SignUpAndLogin(c, w, r, team, user, "zbox", T)
+				if c.Err != nil {
+					return nil
+				}
+
+				return user
+			} else {
+				c.Err = result.Err
+				return nil
+			}
+		} else {
+			user = result.Data.(*model.User)
+			Login(c, w, r, user, "")
+
+			if c.Err != nil {
+				return nil
+			}
+
+			return user
+		}
+
+		return nil
+	}
+}
+
+func SignUpAndLogin (c *Context, w http.ResponseWriter, r *http.Request, team *model.Team, user *model.User, service string, T goi18n.TranslateFunc) {
+	euchan := Srv.Store.User().GetByEmail(team.Id, user.Email, T)
+
+	if result := <-euchan; result.Err == nil {
+		c.Err = model.NewAppError("signupCompleteOAuth", T("Team ")+team.DisplayName+T(" already has a user with the email address attached to your ")+service+" account", "email="+user.Email)
+		return
+	}
+
+	if team.Email == "" {
+		team.Email = user.Email
+		if result := <-Srv.Store.Team().Update(team, T); result.Err != nil {
+			c.Err = result.Err
+			return
+		}
+	} else {
+		found := true
+		count := 0
+		for found {
+			if found = IsUsernameTaken(user.Username, team.Id, T); c.Err != nil {
+				return
+			} else if found {
+				user.Username = user.Username + strconv.Itoa(count)
+				count += 1
+			}
+		}
+	}
+	user.TeamId = team.Id
+	user.EmailVerified = true
+	if cookie, err := r.Cookie(model.SESSION_LANGUAGE); err != nil {
+		user.Language = cookie.Value
+	} else {
+		user.Language = model.DEFAULT_LANGUAGE
+	}
+
+	ruser := CreateUser(c, team, user, T)
+	if c.Err != nil {
+		return
+	}
+
+	Login(c, w, r, ruser, "")
+
+	if c.Err != nil {
+		return
+	}
+}
+
 func checkUserPassword(c *Context, user *model.User, password string, T goi18n.TranslateFunc) bool {
 
 	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
@@ -528,6 +641,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	if len(props["id"]) != 0 {
 		user = LoginById(c, w, r, props["id"], props["password"], props["device_id"])
+	} else if len(props["email"]) != 0 && len(props["name"]) != 0 && len(props["zbox"]) != 0 {
+		user = LoginByZBox(c, w, r, props["email"], props["password"], props["device_id"])
 	} else if len(props["email"]) != 0 && len(props["name"]) != 0 {
 		user = LoginByEmail(c, w, r, props["email"], props["name"], props["password"], props["device_id"])
 	} else {
@@ -1842,6 +1957,30 @@ func ZimbraAuth(service string, email string, token string, T goi18n.TranslateFu
 	} else {
 		if resp.StatusCode != 200 {
 			return nil, model.NewAppError("ZimbraAuth", T("Unauthorized"), "service="+service)
+		}
+		return resp.Body, nil
+	}
+}
+
+func zboxAuth(email, password string, T goi18n.TranslateFunc) (io.ReadCloser, *model.AppError) {
+	sso := utils.Cfg.GetSSOService("zbox")
+	if sso == nil || !sso.Enable {
+		return nil, model.NewAppError("AuthorizeOAuthUser", T("Unsupported OAuth service provider"), "service=zbox")
+	}
+
+	var jsonStr = []byte(fmt.Sprintf(`{"username":"%s", "password":"%s", "zbox":"true"}`, email, password))
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", sso.LoginEndPoint, bytes.NewBuffer(jsonStr))
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	if resp, err := client.Do(req); err != nil {
+		return nil, model.NewAppError("ZBoxAuth", err.Error(), "service=zbox")
+	} else {
+		if resp.StatusCode != 200 {
+			return nil, model.NewAppError("ZimbraAuth", T("Unauthorized"), "service=zbox")
 		}
 		return resp.Body, nil
 	}
