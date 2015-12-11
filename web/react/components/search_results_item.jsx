@@ -31,8 +31,7 @@ export default class SearchResultsItem extends React.Component {
 
     handleFocusRHSClick(e) {
         e.preventDefault();
-
-        EventHelpers.emitPostFocusRightHandSideEvent(this.props.post);
+        EventHelpers.emitPostFocusRightHandSideFromSearch(this.props.post, this.props.isMentionSearch);
     }
 
     render() {
