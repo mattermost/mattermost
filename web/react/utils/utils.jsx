@@ -1138,6 +1138,11 @@ export function getUserIdFromChannelName(channel) {
     return otherUserId;
 }
 
+// Returns true if the given channel is a direct channel between the current user and the given one
+export function isDirectChannelForUser(otherUserId, channel) {
+    return channel.type === Constants.DM_CHANNEL && getUserIdFromChannelName(channel) === otherUserId;
+}
+
 export function importSlack(file, success, error) {
     var formData = new FormData();
     formData.append('file', file, file.name);

@@ -236,7 +236,66 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		if triggerWebhooks {
 			handleWebhookEventsAndForget(c, post, team, channel, user)
 		}
+
+		if channel.Type == model.CHANNEL_DIRECT {
+			go makeDirectChannelVisible(c.Session.TeamId, post.ChannelId)
+		}
 	}()
+}
+
+func makeDirectChannelVisible(teamId string, channelId string) {
+	var members []model.ChannelMember
+	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
+		l4g.Error("Failed to get channel members channel_id=%v err=%v", channelId, result.Err.Message)
+		return
+	} else {
+		members = result.Data.([]model.ChannelMember)
+	}
+
+	if len(members) != 2 {
+		l4g.Error("Failed to get 2 members for a direct channel channel_id=%v", channelId)
+		return
+	}
+
+	// make sure the channel is visible to both members
+	for i, member := range members {
+		otherUserId := members[1-i].UserId
+
+		if result := <-Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId); result.Err != nil {
+			// create a new preference since one doesn't exist yet
+			preference := &model.Preference{
+				UserId:   member.UserId,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name:     otherUserId,
+				Value:    "true",
+			}
+
+			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
+				l4g.Error("Failed to save direct channel preference user_id=%v other_user_id=%v err=%v", member.UserId, otherUserId, saveResult.Err.Message)
+			} else {
+				message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+				message.Add("preference", preference.ToJson())
+
+				PublishAndForget(message)
+			}
+		} else {
+			preference := result.Data.(model.Preference)
+
+			if preference.Value != "true" {
+				// update the existing preference to make the channel visible
+				preference.Value = "true"
+
+				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
+					l4g.Error("Failed to update direct channel preference user_id=%v other_user_id=%v err=%v", member.UserId, otherUserId, updateResult.Err.Message)
+				} else {
+					message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+					message.Add("preference", preference.ToJson())
+
+					PublishAndForget(message)
+				}
+			}
+		}
+	}
 }
 
 func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) {
