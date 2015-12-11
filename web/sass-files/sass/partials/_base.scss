@@ -8,7 +8,8 @@ body {
   font-family: 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   background: $body-bg;
-  position: relative;
+  position: absolute;
+  width: 100%;
   height: 100%;
   &.white {
       background: #fff;
@@ -35,13 +36,11 @@ body {
 .container-fluid {
     @include legacy-pie-clearfix;
     height: 100%;
-    position: relative;
 }
 
 .channel-view {
     @include clearfix;
     height: 100%;
-    position: relative;
 }
 
 img {
