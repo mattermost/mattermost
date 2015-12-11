@@ -81,3 +81,51 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 10. If tests passed, you can now run Mattermost using `make run`
 
 Any issues? Please let us know on our forums at: http://forum.mattermost.org
+
+### Archlinux ###
+
+1. Install Docker
+	1. `pacman -S docker`
+	2. `gpasswd -a user docker`
+	3. `systemctl enable docker.service`
+	4. `systemctl start docker.service`
+	5. `newgrp docker`
+2. Set up your dockerhost address
+	1. Edit your /etc/hosts file to include the following line
+		`127.0.0.1 dockerhost`
+3. Install Go
+	1. `pacman -S go`
+4. Set up your Go workspace and add Go to the PATH
+	1. `mkdir ~/go`
+	2. Add the following to your ~/.bashrc
+		1. `export GOPATH=$HOME/go`
+		2. `export GOROOT=/usr/lib/go`
+		3. `export PATH=$PATH:$GOROOT/bin`
+	3. Reload your bashrc
+		`source ~/.bashrc`
+4. Edit /etc/security/limits.conf and add the following lines (replace *username* with your user):
+
+	```
+		username	soft	nofile	8096  
+		username	hard	nofile	8096  
+	```
+
+	You will need to reboot after changing this. If you don't increase the file handle limit you may see some weird build issues with browserify or npm.
+5. Install Node.js
+	`pacman -S nodejs npm`
+6. Install Ruby and Compass
+	1. `pacman -S ruby`
+	2. Add executable gems to your path in your ~/.bashrc
+
+		`PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"`
+	3. `gem install compass`
+7. Download Mattermost
+	`cd ~/go`  
+	`mkdir -p src/github.com/mattermost`  
+	`cd src/github.com/mattermost`  
+	`git clone https://github.com/mattermost/platform.git`  
+	`cd platform`  
+8. Run unit tests on Mattermost using `make test` to make sure the installation was successful
+9. If tests passed, you can now run Mattermost using `make run`
+
+Any issues? Please let us know on our forums at: http://forum.mattermost.org
