@@ -36,7 +36,7 @@ export default class ServiceSettings extends React.Component {
         config.ServiceSettings.SegmentDeveloperKey = ReactDOM.findDOMNode(this.refs.SegmentDeveloperKey).value.trim();
         config.ServiceSettings.GoogleDeveloperKey = ReactDOM.findDOMNode(this.refs.GoogleDeveloperKey).value.trim();
         config.ServiceSettings.EnableIncomingWebhooks = ReactDOM.findDOMNode(this.refs.EnableIncomingWebhooks).checked;
-        config.ServiceSettings.EnableOutgoingWebhooks = React.findDOMNode(this.refs.EnableOutgoingWebhooks).checked;
+        config.ServiceSettings.EnableOutgoingWebhooks = ReactDOM.findDOMNode(this.refs.EnableOutgoingWebhooks).checked;
         config.ServiceSettings.EnablePostUsernameOverride = ReactDOM.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
         config.ServiceSettings.EnablePostIconOverride = ReactDOM.findDOMNode(this.refs.EnablePostIconOverride).checked;
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
