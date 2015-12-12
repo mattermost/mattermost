@@ -51,7 +51,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         }
 
         if (user.username === username) {
-            this.setState({clientError: 'You must submit a new username.', emailError: '', serverError: ''});
+            this.updateSection('');
             return;
         }
 
@@ -66,7 +66,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         const nickname = this.state.nickname.trim();
 
         if (user.nickname === nickname) {
-            this.setState({clientError: 'You must submit a new nickname.', emailError: '', serverError: ''});
+            this.updateSection('');
             return;
         }
 
@@ -82,7 +82,7 @@ export default class UserSettingsGeneralTab extends React.Component {
         const lastName = this.state.lastName.trim();
 
         if (user.first_name === firstName && user.last_name === lastName) {
-            this.setState({clientError: 'You must submit a new first or last name.', emailError: '', serverError: ''});
+            this.updateSection('');
             return;
         }
 
@@ -98,10 +98,6 @@ export default class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
-        if (user.email === email) {
-            return;
-        }
-
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: 'Please enter a valid email address.', clientError: '', serverError: ''});
             return;
@@ -109,6 +105,11 @@ export default class UserSettingsGeneralTab extends React.Component {
 
         if (email !== confirmEmail) {
             this.setState({emailError: 'The new emails you entered do not match.', clientError: '', serverError: ''});
+            return;
+        }
+
+        if (user.email === email) {
+            this.updateSection('');
             return;
         }
 
