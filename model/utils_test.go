@@ -56,21 +56,21 @@ func TestMapJson(t *testing.T) {
 }
 
 func TestValidEmail(t *testing.T) {
-	if !IsValidEmail("corey@hulen.com") {
+	if !IsValidEmail("corey+test@hulen.com") {
 		t.Error("email should be valid")
 	}
 
-	if IsValidEmail("@corey@hulen.com") {
+	if IsValidEmail("@corey+test@hulen.com") {
 		t.Error("should be invalid")
 	}
 }
 
 func TestValidLower(t *testing.T) {
-	if !IsLower("corey@hulen.com") {
+	if !IsLower("corey+test@hulen.com") {
 		t.Error("should be valid")
 	}
 
-	if IsLower("Corey@hulen.com") {
+	if IsLower("corey+test@hulen.com") {
 		t.Error("should be invalid")
 	}
 }
