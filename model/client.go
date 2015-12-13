@@ -230,7 +230,7 @@ func (c *Client) CreateUser(user *User, hash string) (*Result, *AppError) {
 }
 
 func (c *Client) CreateUserFromSignup(user *User, data string, hash string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/create?d="+data+"&h="+hash, user.ToJson()); err != nil {
+	if r, err := c.DoApiPost("/users/create?d="+url.QueryEscape(data)+"&h="+hash, user.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

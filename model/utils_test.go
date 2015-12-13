@@ -70,7 +70,7 @@ func TestValidLower(t *testing.T) {
 		t.Error("should be valid")
 	}
 
-	if IsLower("corey+test@hulen.com") {
+	if IsLower("Corey+test@hulen.com") {
 		t.Error("should be invalid")
 	}
 }
