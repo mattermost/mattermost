@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import PostStore from '../stores/post_store.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import UserProfile from './user_profile.jsx';
@@ -16,7 +17,30 @@ import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 
-export default class RhsComment extends React.Component {
+const messages = defineMessages({
+    post: {
+        id: 'rhs_comment.post',
+        defaultMessage: 'Post'
+    },
+    comment: {
+        id: 'rhs_comment.comment',
+        defaultMessage: 'Comment'
+    },
+    retry: {
+        id: 'rhs_comment.retry',
+        defaultMessage: 'Retry'
+    },
+    edit: {
+        id: 'rhs_comment.edit',
+        defaultMessage: 'Edit'
+    },
+    del: {
+        id: 'rhs_comment.del',
+        defaultMessage: 'Delete'
+    }
+});
+
+class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -72,6 +96,7 @@ export default class RhsComment extends React.Component {
         this.parseEmojis();
     }
     createDropdown() {
+        const {formatMessage} = this.props.intl;
         var post = this.props.post;
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING || post.state === Constants.POST_DELETED) {
@@ -95,12 +120,12 @@ export default class RhsComment extends React.Component {
                         data-toggle='modal'
                         data-target='#edit_post'
                         data-refocusid='#reply_textbox'
-                        data-title='Comment'
+                        data-title={formatMessage(messages.comment)}
                         data-message={post.message}
                         data-postid={post.id}
                         data-channelid={post.channel_id}
                     >
-                        {'Edit'}
+                        {formatMessage(messages.edit)}
                     </a>
                 </li>
             );
@@ -117,7 +142,7 @@ export default class RhsComment extends React.Component {
                         role='menuitem'
                         onClick={() => EventHelpers.showDeletePostModal(post, 0)}
                     >
-                        {'Delete'}
+                        {formatMessage(messages.del)}
                     </a>
                 </li>
             );
@@ -146,6 +171,7 @@ export default class RhsComment extends React.Component {
             );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var post = this.props.post;
 
         var currentUserCss = '';
@@ -165,7 +191,7 @@ export default class RhsComment extends React.Component {
                     href='#'
                     onClick={this.retryComment}
                 >
-                    {'Retry'}
+                    {formatMessage(messages.retry)}
                 </a>
             );
         } else if (post.state === Constants.POST_LOADING) {
@@ -237,5 +263,8 @@ RhsComment.defaultProps = {
     post: null
 };
 RhsComment.propTypes = {
+    intl: intlShape.isRequired,
     post: React.PropTypes.object
 };
+
+export default injectIntl(RhsComment);

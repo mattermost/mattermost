@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../../stores/user_store.jsx';
 import PreferenceStore from '../../stores/preference_store.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
@@ -10,7 +11,26 @@ const Preferences = Constants.Preferences;
 
 const Overlay = ReactBootstrap.Overlay;
 
-export default class TutorialTip extends React.Component {
+const messages = defineMessages({
+    ok: {
+        id: 'tutorial_tip.ok',
+        defaultMessage: 'Okay'
+    },
+    next: {
+        id: 'tutorial_tip.next',
+        defaultMessage: 'Next'
+    },
+    seen: {
+        id: 'tutorial_tip.seen',
+        defaultMessage: 'Seen this before? '
+    },
+    out: {
+        id: 'tutorial_tip.out',
+        defaultMessage: 'Opt out of these tips.'
+    }
+});
+
+class TutorialTip extends React.Component {
     constructor(props) {
         super(props);
 
@@ -46,7 +66,9 @@ export default class TutorialTip extends React.Component {
         AsyncClient.savePreferences([preference]);
     }
     render() {
-        const buttonText = this.state.currentScreen === this.props.screens.length - 1 ? 'Okay' : 'Next';
+        const {formatMessage} = this.props.intl;
+
+        const buttonText = this.state.currentScreen === this.props.screens.length - 1 ? formatMessage(messages.ok) : formatMessage(messages.next);
 
         const dots = [];
         if (this.props.screens.length > 1) {
@@ -110,12 +132,12 @@ export default class TutorialTip extends React.Component {
                                 {buttonText}
                             </button>
                             <div className='tip-opt'>
-                                {'Seen this before? '}
+                                {formatMessage(messages.seen)}
                                 <a
                                     href='#'
                                     onClick={this.skipTutorial}
                                 >
-                                    {'Opt out of these tips.'}
+                                    {formatMessage(messages.out)}
                                 </a>
                             </div>
                         </div>
@@ -133,5 +155,8 @@ TutorialTip.defaultProps = {
 TutorialTip.propTypes = {
     screens: React.PropTypes.array.isRequired,
     placement: React.PropTypes.string.isRequired,
-    overlayClass: React.PropTypes.string
+    overlayClass: React.PropTypes.string,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(TutorialTip);

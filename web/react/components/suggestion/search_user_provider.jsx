@@ -36,7 +36,7 @@ SearchUserSuggestion.propTypes = {
 
 export default class SearchUserProvider {
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext);
+        const captured = (/\b(?:from|de):\s*(\S*)$/i).exec(pretext);
         if (captured) {
             const usernamePrefix = captured[1];
 

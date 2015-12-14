@@ -1,12 +1,48 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-export default class MemberListTeamItem extends React.Component {
+const messages = defineMessages({
+    member: {
+        id: 'member_team_item.member',
+        defaultMessage: 'Member'
+    },
+    inactive: {
+        id: 'member_team_item.inactive',
+        defaultMessage: 'Inactive'
+    },
+    makeAdmin: {
+        id: 'member_team_item.makeAdmin',
+        defaultMessage: 'Make Team Admin'
+    },
+    makeMember: {
+        id: 'member_team_item.makeMember',
+        defaultMessage: 'Make Member'
+    },
+    makeActive: {
+        id: 'member_team_item.makeActive',
+        defaultMessage: 'Make Active'
+    },
+    makeInactive: {
+        id: 'member_team_item.makeInactive',
+        defaultMessage: 'Make Inactive'
+    },
+    systemAdmin: {
+        id: 'member_team_item.systemAdmin',
+        defaultMessage: 'System Admin'
+    },
+    teamAdmin: {
+        id: 'member_team_item.teamAdmin',
+        defaultMessage: 'Team Admin'
+    }
+});
+
+class MemberListTeamItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -68,6 +104,7 @@ export default class MemberListTeamItem extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -78,14 +115,14 @@ export default class MemberListTeamItem extends React.Component {
         }
 
         const user = this.props.user;
-        let currentRoles = 'Member';
+        let currentRoles = formatMessage(messages.member);
         const timestamp = UserStore.getCurrentUser().update_at;
 
         if (user.roles.length > 0) {
             if (Utils.isSystemAdmin(user.roles)) {
-                currentRoles = 'System Admin';
+                currentRoles = formatMessage(messages.systemAdmin);
             } else if (Utils.isAdmin(user.roles)) {
-                currentRoles = 'Team Admin';
+                currentRoles = formatMessage(messages.teamAdmin);
             } else {
                 currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
             }
@@ -98,7 +135,7 @@ export default class MemberListTeamItem extends React.Component {
         let showMakeNotActive = user.roles !== 'system_admin';
 
         if (user.delete_at > 0) {
-            currentRoles = 'Inactive';
+            currentRoles = formatMessage(messages.inactive);
             showMakeMember = false;
             showMakeAdmin = false;
             showMakeActive = true;
@@ -114,7 +151,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeAdmin}
                     >
-                        {'Make Team Admin'}
+                        {formatMessage(messages.makeAdmin)}
                     </a>
                 </li>
             );
@@ -129,7 +166,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeMember}
                     >
-                        {'Make Member'}
+                        {formatMessage(messages.makeMember)}
                     </a>
                 </li>
             );
@@ -144,7 +181,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeActive}
                     >
-                        {'Make Active'}
+                        {formatMessage(messages.makeActive)}
                     </a>
                 </li>
             );
@@ -159,7 +196,7 @@ export default class MemberListTeamItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeNotActive}
                     >
-                        {'Make Inactive'}
+                        {formatMessage(messages.makeInactive)}
                     </a>
                 </li>
             );
@@ -205,5 +242,8 @@ export default class MemberListTeamItem extends React.Component {
 }
 
 MemberListTeamItem.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object.isRequired
 };
+
+export default injectIntl(MemberListTeamItem);

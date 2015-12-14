@@ -1,13 +1,49 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 const Modal = ReactBootstrap.Modal;
 import TeamStore from '../stores/team_store.jsx';
 import * as Utils from '../utils/utils.jsx';
 
-export default class DeleteChannelModal extends React.Component {
+const messages = defineMessages({
+    channel: {
+        id: 'delete_channel.channel',
+        defaultMessage: 'channel'
+    },
+    private: {
+        id: 'delete_channel.private',
+        defaultMessage: 'private group'
+    },
+    close: {
+        id: 'delete_channel.close',
+        defaultMessage: 'Close'
+    },
+    confirm: {
+        id: 'delete_channel.confirm',
+        defaultMessage: 'Confirm DELETE Channel'
+    },
+    question: {
+        id: 'delete_channel.question',
+        defaultMessage: 'Are you sure you wish to delete the '
+    },
+    cancel: {
+        id: 'delete_channel.cancel',
+        defaultMessage: 'Cancel'
+    },
+    del: {
+        id: 'delete_channel.del',
+        defaultMessage: 'Delete'
+    },
+    pg: {
+        id: 'delete_channel.pg',
+        defaultMessage: 'private group'
+    }
+});
+
+class DeleteChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -23,7 +59,7 @@ export default class DeleteChannelModal extends React.Component {
             this.props.channel.id,
             () => {
                 AsyncClient.getChannels(true);
-                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/general';
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleDelete');
@@ -32,7 +68,13 @@ export default class DeleteChannelModal extends React.Component {
     }
 
     render() {
-        const channelTerm = Utils.getChannelTerm(this.props.channel.type).toLowerCase();
+        const {formatMessage, locale} = this.props.intl;
+        const channelTerm = Utils.getChannelTerm(this.props.channel.type, locale).toLowerCase();
+
+        let question = `${formatMessage(messages.question)} ${this.props.channel.display_name} ${channelTerm}?`;
+        if (locale === 'es') {
+            question = `${formatMessage(messages.question)} ${channelTerm} ${this.props.channel.display_name}?`;
+        }
 
         return (
             <Modal
@@ -40,10 +82,10 @@ export default class DeleteChannelModal extends React.Component {
                 onHide={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
-                    <h4 className='modal-title'>{'Confirm DELETE Channel'}</h4>
+                    <h4 className='modal-title'>{formatMessage(messages.confirm)}</h4>
                 </Modal.Header>
                 <Modal.Body>
-                    {`Are you sure you wish to delete the ${this.props.channel.display_name} ${channelTerm}?`}
+                    {question}
                 </Modal.Body>
                 <Modal.Footer>
                     <button
@@ -51,7 +93,7 @@ export default class DeleteChannelModal extends React.Component {
                         className='btn btn-default'
                         onClick={this.props.onHide}
                     >
-                        {'Cancel'}
+                        {formatMessage(messages.cancel)}
                     </button>
                     <button
                         type='button'
@@ -59,7 +101,7 @@ export default class DeleteChannelModal extends React.Component {
                         data-dismiss='modal'
                         onClick={this.handleDelete}
                     >
-                        {'Delete'}
+                        {formatMessage(messages.del)}
                     </button>
                 </Modal.Footer>
             </Modal>
@@ -70,5 +112,8 @@ export default class DeleteChannelModal extends React.Component {
 DeleteChannelModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    channel: React.PropTypes.object.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(DeleteChannelModal);

@@ -1,12 +1,72 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import ConfirmModal from '../confirm_modal.jsx';
 const Modal = ReactBootstrap.Modal;
 import SettingsSidebar from '../settings_sidebar.jsx';
 import UserSettings from './user_settings.jsx';
 
-export default class UserSettingsModal extends React.Component {
+const messages = defineMessages({
+    general: {
+        id: 'user.settings.modal.general',
+        defaultMessage: 'General'
+    },
+    security: {
+        id: 'user.settings.modal.security',
+        defaultMessage: 'Security'
+    },
+    notifications: {
+        id: 'user.settings.modal.notifications',
+        defaultMessage: 'Notifications'
+    },
+    appearance: {
+        id: 'user.settings.modal.appearance',
+        defaultMessage: 'Appearance'
+    },
+    developer: {
+        id: 'user.settings.modal.developer',
+        defaultMessage: 'Developer'
+    },
+    integrations: {
+        id: 'user.settings.modal.integrations',
+        defaultMessage: 'Integrations'
+    },
+    languages: {
+        id: 'user.settings.modal.languages',
+        defaultMessage: 'Languages'
+    },
+    close: {
+        id: 'user.settings.modal.close',
+        defaultMessage: 'Close'
+    },
+    title: {
+        id: 'user.settings.modal.title',
+        defaultMessage: 'Account Settings'
+    },
+    confirmTitle: {
+        id: 'user.settings.modal.confirmTitle',
+        defaultMessage: 'Discard Changes?'
+    },
+    confirmMsg: {
+        id: 'user.settings.modal.confirmMsg',
+        defaultMessage: 'You have unsaved changes, are you sure you want to discard them?'
+    },
+    confirmBtns: {
+        id: 'user.settings.modal.confirmBtns',
+        defaultMessage: 'Yes, Discard'
+    },
+    display: {
+        id: 'user.settings.modal.display',
+        defaultMessage: 'Display'
+    },
+    advanced: {
+        id: 'user.settings.modal.advanced',
+        defaultMessage: 'Advanced'
+    }
+});
+
+class UserSettingsModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -170,20 +230,22 @@ export default class UserSettingsModal extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var tabs = [];
-        tabs.push({name: 'general', uiName: 'General', icon: 'glyphicon glyphicon-cog'});
-        tabs.push({name: 'security', uiName: 'Security', icon: 'glyphicon glyphicon-lock'});
-        tabs.push({name: 'notifications', uiName: 'Notifications', icon: 'glyphicon glyphicon-exclamation-sign'});
-        tabs.push({name: 'appearance', uiName: 'Appearance', icon: 'glyphicon glyphicon-wrench'});
+        tabs.push({name: 'general', uiName: formatMessage(messages.general), icon: 'glyphicon glyphicon-cog'});
+        tabs.push({name: 'security', uiName: formatMessage(messages.security), icon: 'glyphicon glyphicon-lock'});
+        tabs.push({name: 'notifications', uiName: formatMessage(messages.notifications), icon: 'glyphicon glyphicon-exclamation-sign'});
+        tabs.push({name: 'appearance', uiName: formatMessage(messages.appearance), icon: 'glyphicon glyphicon-wrench'});
         if (global.window.mm_config.EnableOAuthServiceProvider === 'true') {
-            tabs.push({name: 'developer', uiName: 'Developer', icon: 'glyphicon glyphicon-th'});
+            tabs.push({name: 'developer', uiName: formatMessage(messages.developer), icon: 'glyphicon glyphicon-th'});
         }
 
         if (global.window.mm_config.EnableIncomingWebhooks === 'true' || global.window.mm_config.EnableOutgoingWebhooks === 'true') {
-            tabs.push({name: 'integrations', uiName: 'Integrations', icon: 'glyphicon glyphicon-transfer'});
+            tabs.push({name: 'integrations', uiName: formatMessage(messages.integrations), icon: 'glyphicon glyphicon-transfer'});
         }
-        tabs.push({name: 'display', uiName: 'Display', icon: 'glyphicon glyphicon-eye-open'});
-        tabs.push({name: 'advanced', uiName: 'Advanced', icon: 'glyphicon glyphicon-list-alt'});
+        tabs.push({name: 'display', uiName: formatMessage(messages.display), icon: 'glyphicon glyphicon-eye-open'});
+        tabs.push({name: 'advanced', uiName: formatMessage(messages.advanced), icon: 'glyphicon glyphicon-list-alt'});
+        tabs.push({name: 'languages', uiName: formatMessage(messages.languages), icon: 'glyphicon glyphicon-flag'});
 
         return (
             <Modal
@@ -194,7 +256,7 @@ export default class UserSettingsModal extends React.Component {
                 enforceFocus={this.state.enforceFocus}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Account Settings'}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.title)}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
                     <div className='settings-table'>
@@ -221,9 +283,9 @@ export default class UserSettingsModal extends React.Component {
                     </div>
                 </Modal.Body>
                 <ConfirmModal
-                    title='Discard Changes?'
-                    message='You have unsaved changes, are you sure you want to discard them?'
-                    confirm_button='Yes, Discard'
+                    title={formatMessage(messages.confirmTitle)}
+                    message={formatMessage(messages.confirmMsg)}
+                    confirm_button={formatMessage(messages.confirmBtns)}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}
@@ -235,5 +297,8 @@ export default class UserSettingsModal extends React.Component {
 
 UserSettingsModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    onModalDismissed: React.PropTypes.func.isRequired,
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(UserSettingsModal);

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
 import * as client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
 import SearchStore from '../stores/search_store.jsx';
@@ -14,7 +15,30 @@ import Constants from '../utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 var Popover = ReactBootstrap.Popover;
 
-export default class SearchBar extends React.Component {
+const messages = defineMessages({
+    search: {
+        id: 'search_bar.search',
+        defaultMessage: 'Search'
+    },
+    cancel: {
+        id: 'search_bar.cancel',
+        defaultMessage: 'Cancel'
+    },
+    options: {
+        id: 'search_bar.options',
+        defaultMessage: 'Search Options'
+    },
+    opt1: {
+        id: 'search_bar.opt1',
+        defaultMessage: '<span>Use </span><b>"quotation marks"</b><span> to search for phrases</span>'
+    },
+    opt2: {
+        id: 'search_bar.opt2',
+        defaultMessage: '<span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span>'
+    }
+});
+
+class SearchBar extends React.Component {
     constructor() {
         super();
         this.mounted = false;
@@ -125,6 +149,7 @@ export default class SearchBar extends React.Component {
     }
 
     render() {
+        const {formatMessage, locale} = this.props.intl;
         var isSearching = null;
         if (this.state.isSearching) {
             isSearching = <span className={'glyphicon glyphicon-refresh glyphicon-refresh-animate'}></span>;
@@ -147,7 +172,7 @@ export default class SearchBar extends React.Component {
                     className='search__clear'
                     onClick={this.clearFocus}
                 >
-                    {'Cancel'}
+                    {formatMessage(messages.cancel)}
                 </span>
                 <form
                     role='form'
@@ -160,11 +185,12 @@ export default class SearchBar extends React.Component {
                     <SuggestionBox
                         ref='search'
                         className='form-control search-bar'
-                        placeholder='Search'
+                        placeholder={formatMessage(messages.search)}
                         value={this.state.searchTerm}
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onUserInput={this.handleUserInput}
+                        locale={locale}
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                     />
@@ -174,13 +200,13 @@ export default class SearchBar extends React.Component {
                         placement='bottom'
                         className={helpClass}
                     >
-                        <h4>{'Search Options'}</h4>
+                        <h4>{formatMessage(messages.options)}</h4>
                         <ul>
                             <li>
-                                <span>{'Use '}</span><b>{'"quotation marks"'}</b><span>{' to search for phrases'}</span>
+                                <FormattedHTMLMessage id='search_bar.opt1' />
                             </li>
                             <li>
-                                <span>{'Use '}</span><b>{'from:'}</b><span>{' to find posts from specific users and '}</span><b>{'in:'}</b><span>{' to find posts in specific channels'}</span>
+                                <FormattedHTMLMessage id='search_bar.opt2' />
                             </li>
                         </ul>
                     </Popover>
@@ -189,3 +215,10 @@ export default class SearchBar extends React.Component {
         );
     }
 }
+
+SearchBar.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(SearchBar);
+

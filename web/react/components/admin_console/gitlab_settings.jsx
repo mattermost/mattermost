@@ -1,10 +1,106 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class GitLabSettings extends React.Component {
+const messages = defineMessages({
+    settingsTitle: {
+        id: 'admin.gitlab.settingsTitle',
+        defaultMessage: 'GitLab Settings'
+    },
+    enableTitle: {
+        id: 'admin.gitlab.enableTitle',
+        defaultMessage: 'Enable Sign Up With GitLab: '
+    },
+    enableDescription: {
+        id: 'admin.gitlab.enableDescription',
+        defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth.'
+    },
+    enableHtmlDesc: {
+        id: 'admin.gitlab.EnableHtmlDesc',
+        defaultMessage: '<ol><li>Log in to your GitLab account and go to Applications -> Profile Settings.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Secret" and "Id" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
+    },
+    true: {
+        id: 'admin.gitlab.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.gitlab.false',
+        defaultMessage: 'false'
+    },
+    clientIdTitle: {
+        id: 'admin.gitlab.clientIdTitle',
+        defaultMessage: 'Id:'
+    },
+    clientIdExample: {
+        id: 'admin.gitlab.clientIdExample',
+        defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+    },
+    clientIdDescription: {
+        id: 'admin.gitlab.clientIdDescription',
+        defaultMessage: 'Obtain this value via the instructions above for logging into GitLab'
+    },
+    clientSecretTitle: {
+        id: 'admin.gitlab.clientSecretTitle',
+        defaultMessage: 'Secret:'
+    },
+    clientSecretExample: {
+        id: 'admin.gitlab.clientSecretExample',
+        defaultMessage: 'Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+    },
+    clientSecretDescription: {
+        id: 'admin.gitab.clientSecretDescription',
+        defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'
+    },
+    authTitle: {
+        id: 'admin.gitlab.authTitle',
+        defaultMessage: 'Auth Endpoint:'
+    },
+    authExample: {
+        id: 'admin.gitlab.authExample',
+        defaultMessage: 'Ex ""'
+    },
+    authDescription: {
+        id: 'admin.gitlab.authDescription',
+        defaultMessage: 'Enter <your-gitlab-url>/oauth/authorize (example http://localhost:3000/oauth/authorize).  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+    },
+    tokenTitle: {
+        id: 'admin.gitlab.tokenTitle',
+        defaultMessage: 'Token Endpoint:'
+    },
+    tokenExample: {
+        id: 'admin.gitlab.tokenExample',
+        defaultMessage: 'Ex ""'
+    },
+    tokenDescription: {
+        id: 'admin.gitlab.tokenDescription',
+        defaultMessage: 'Enter <your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+    },
+    userTitle: {
+        id: 'admin.gitlab.userTitle',
+        defaultMessage: 'User API Endpoint:'
+    },
+    userExample: {
+        id: 'admin.gitlab.userExample',
+        defaultMessage: 'Ex ""'
+    },
+    userDescription: {
+        id: 'admin.gitlab.userDescription',
+        defaultMessage: 'Enter <your-gitlab-url>/api/v3/user.  Make sure you use HTTP or HTTPS in your URLs as appropriate.'
+    },
+    saving: {
+        id: 'admin.gitlab.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.gitlab.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class GitLabSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -65,6 +161,7 @@ export default class GitLabSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -78,7 +175,7 @@ export default class GitLabSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
 
-                <h3>{'GitLab Settings'}</h3>
+                <h3>{formatMessage(messages.settingsTitle)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -89,7 +186,7 @@ export default class GitLabSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='Enable'
                         >
-                            {'Enable Sign Up With GitLab: '}
+                            {formatMessage(messages.enableTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -101,7 +198,7 @@ export default class GitLabSettings extends React.Component {
                                     defaultChecked={this.props.config.GitLabSettings.Enable}
                                     onChange={this.handleChange.bind(this, 'EnableTrue')}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -111,18 +208,13 @@ export default class GitLabSettings extends React.Component {
                                     defaultChecked={!this.props.config.GitLabSettings.Enable}
                                     onChange={this.handleChange.bind(this, 'EnableFalse')}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
                             <p className='help-text'>
-                                {'When true, Mattermost allows team creation and account signup using GitLab OAuth.'} <br/>
+                                {formatMessage(messages.enableDescription)} <br/>
                             </p>
                             <div className='help-text'>
-                                <ol>
-                                    <li>{'Log in to your GitLab account and go to Applications -> Profile Settings.'}</li>
-                                    <li>{'Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". '}</li>
-                                    <li>{'Then use "Secret" and "Id" fields from GitLab to complete the options below.'}</li>
-                                    <li>{'Complete the Endpoint URLs below. '}</li>
-                                </ol>
+                                <FormattedHTMLMessage id='admin.gitlab.EnableHtmlDesc' />
                             </div>
                         </div>
                     </div>
@@ -132,7 +224,7 @@ export default class GitLabSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='Id'
                         >
-                            {'Id:'}
+                            {formatMessage(messages.clientIdTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -140,12 +232,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='Id'
                                 ref='Id'
-                                placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+                                placeholder={formatMessage(messages.clientIdExample)}
                                 defaultValue={this.props.config.GitLabSettings.Id}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab'}</p>
+                            <p className='help-text'>{formatMessage(messages.clientIdDescription)}</p>
                         </div>
                     </div>
 
@@ -154,7 +246,7 @@ export default class GitLabSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='Secret'
                         >
-                            {'Secret:'}
+                            {formatMessage(messages.clientSecretTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -162,12 +254,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='Secret'
                                 ref='Secret'
-                                placeholder='Ex "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'
+                                placeholder={formatMessage(messages.clientSecretExample)}
                                 defaultValue={this.props.config.GitLabSettings.Secret}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Obtain this value via the instructions above for logging into GitLab.'}</p>
+                            <p className='help-text'>{formatMessage(messages.clientSecretDescription)}</p>
                         </div>
                     </div>
 
@@ -176,7 +268,7 @@ export default class GitLabSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='AuthEndpoint'
                         >
-                            {'Auth Endpoint:'}
+                            {formatMessage(messages.authTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -184,12 +276,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='AuthEndpoint'
                                 ref='AuthEndpoint'
-                                placeholder='Ex ""'
+                                placeholder={formatMessage(messages.authExample)}
                                 defaultValue={this.props.config.GitLabSettings.AuthEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Enter https://<your-gitlab-url>/oauth/authorize (example https://example.com:3000/oauth/authorize).   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'}</p>
+                            <p className='help-text'>{formatMessage(messages.authDescription)}</p>
                         </div>
                     </div>
 
@@ -198,7 +290,7 @@ export default class GitLabSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='TokenEndpoint'
                         >
-                            {'Token Endpoint:'}
+                            {formatMessage(messages.tokenTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -206,12 +298,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='TokenEndpoint'
                                 ref='TokenEndpoint'
-                                placeholder='Ex ""'
+                                placeholder={formatMessage(messages.tokenExample)}
                                 defaultValue={this.props.config.GitLabSettings.TokenEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Enter https://<your-gitlab-url>/oauth/token.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'}</p>
+                            <p className='help-text'>{formatMessage(messages.tokenDescription)}</p>
                         </div>
                     </div>
 
@@ -220,7 +312,7 @@ export default class GitLabSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='UserApiEndpoint'
                         >
-                            {'User API Endpoint:'}
+                            {formatMessage(messages.userTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -228,12 +320,12 @@ export default class GitLabSettings extends React.Component {
                                 className='form-control'
                                 id='UserApiEndpoint'
                                 ref='UserApiEndpoint'
-                                placeholder='Ex ""'
+                                placeholder={formatMessage(messages.userExample)}
                                 defaultValue={this.props.config.GitLabSettings.UserApiEndpoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
                             />
-                            <p className='help-text'>{'Enter https://<your-gitlab-url>/api/v3/user.   Make sure you use HTTP or HTTPS in your URL depending on your server configuration.'}</p>
+                            <p className='help-text'>{formatMessage(messages.userDescription)}</p>
                         </div>
                     </div>
 
@@ -246,9 +338,9 @@ export default class GitLabSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -283,5 +375,8 @@ export default class GitLabSettings extends React.Component {
 // </div>
 
 GitLabSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(GitLabSettings);

@@ -1,9 +1,37 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
 
-export default class TeamExportTab extends React.Component {
+const messages = defineMessages({
+    exporting: {
+        id: 'team_export_tab.exporting',
+        defaultMessage: ' Exporting...'
+    },
+    ready: {
+        id: 'team_export_tab.ready',
+        defaultMessage: ' Ready for '
+    },
+    download: {
+        id: 'team_export_tab.download',
+        defaultMessage: 'download'
+    },
+    unable: {
+        id: 'team_export_tab.unable',
+        defaultMessage: ' Unable to export: '
+    },
+    export: {
+        id: 'team_export_tab.export',
+        defaultMessage: 'Export'
+    },
+    exportTeam: {
+        id: 'team_export_tab.exportTeam',
+        defaultMessage: 'Export your team'
+    }
+});
+
+class TeamExportTab extends React.Component {
     constructor(props) {
         super(props);
         this.state = {status: 'request', link: '', err: ''};
@@ -26,6 +54,7 @@ export default class TeamExportTab extends React.Component {
         Client.exportTeam(this.onExportSuccess, this.onExportFailure);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var messageSection = '';
         switch (this.state.status) {
         case 'request':
@@ -35,7 +64,7 @@ export default class TeamExportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
                     <i className='fa fa-spinner fa-pulse' />
-                    {' Exporting...'}
+                    {formatMessage(messages.exporting)}
                 </p>
             );
             break;
@@ -43,12 +72,12 @@ export default class TeamExportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-success'>
                     <i className='fa fa-check' />
-                    {' Ready for '}
+                    {formatMessage(messages.ready)}
                     <a
                         href={this.state.link}
                         download={true}
                     >
-                        {'download'}
+                        {formatMessage(messages.download)}
                     </a>
                 </p>
             );
@@ -57,7 +86,7 @@ export default class TeamExportTab extends React.Component {
             messageSection = (
                 <p className='confirm-import alert alert-warning'>
                     <i className='fa fa-warning' />
-                    {' Unable to export: ' + this.state.err}
+                    {formatMessage(messages.unable) + this.state.err}
                 </p>
             );
             break;
@@ -68,10 +97,10 @@ export default class TeamExportTab extends React.Component {
                 ref='wrapper'
                 className='user-settings'
             >
-                <h3 className='tab-header'>{'Export'}</h3>
+                <h3 className='tab-header'>{formatMessage(messages.export)}</h3>
                 <div className='divider-dark first'/>
                 <ul className='section-max'>
-                    <li className='col-xs-12 section-title'>{'Export your team'}</li>
+                    <li className='col-xs-12 section-title'>{formatMessage(messages.exportTeam)}</li>
                     <li className='col-xs-offset-3 col-xs-8'>
                         <ul className='setting-list'>
                             <li className='setting-list-item'>
@@ -80,7 +109,7 @@ export default class TeamExportTab extends React.Component {
                                     href='#'
                                     onClick={this.doExport}
                                 >
-                                {'Export'}
+                                {formatMessage(messages.export)}
                                 </a>
                             </li>
                         </ul>
@@ -92,3 +121,9 @@ export default class TeamExportTab extends React.Component {
         );
     }
 }
+
+TeamExportTab.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(TeamExportTab);

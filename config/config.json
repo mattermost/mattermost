@@ -4,12 +4,12 @@
         "MaximumLoginAttempts": 10,
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
-        "EnableOAuthServiceProvider": false,
-        "EnableIncomingWebhooks": false,
-        "EnableOutgoingWebhooks": false,
-        "EnablePostUsernameOverride": false,
-        "EnablePostIconOverride": false,
-        "EnableTesting": false,
+        "EnableOAuthServiceProvider": true,
+        "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true,
+        "EnablePostUsernameOverride": true,
+        "EnablePostIconOverride": true,
+        "EnableTesting": true,
         "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
@@ -19,7 +19,7 @@
         "EnableUserCreation": true,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
-        "EnableTeamListing": false
+        "EnableTeamListing": true
     },
     "SqlSettings": {
         "DriverName": "mysql",

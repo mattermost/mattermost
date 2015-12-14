@@ -100,6 +100,8 @@ export default {
         patch: 'patch',
         other: 'generic'
     },
+    MAX_FREE_CHANNELS: 10,
+    MAX_FREE_PRIVATE_GROUP: 1,
     MAX_DISPLAY_FILES: 5,
     MAX_UPLOAD_FILES: 5,
     MAX_FILE_SIZE: 50000000, // 50 MB
@@ -109,9 +111,10 @@ export default {
     WEB_VIDEO_HEIGHT: 480,
     MOBILE_VIDEO_WIDTH: 480,
     MOBILE_VIDEO_HEIGHT: 360,
-    DEFAULT_CHANNEL: 'town-square',
+    DEFAULT_CHANNEL: 'general',
     OFFTOPIC_CHANNEL: 'off-topic',
     GITLAB_SERVICE: 'gitlab',
+    ZBOX_SERVICE: 'zbox',
     EMAIL_SERVICE: 'email',
     POST_CHUNK_SIZE: 60,
     MAX_POST_CHUNKS: 3,
@@ -148,6 +151,7 @@ export default {
         'channel'
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    MONTHS_ES: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
     MAX_DMS: 20,
     MAX_CHANNEL_POPOVER_COUNT: 100,
     DM_CHANNEL: 'D',

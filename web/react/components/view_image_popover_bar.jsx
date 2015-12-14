@@ -1,11 +1,32 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class ViewImagePopoverBar extends React.Component {
+const messages = defineMessages({
+    publicLink: {
+        id: 'view_image_popover.publicLink',
+        defaultMessage: 'Get Public Link'
+    },
+    file: {
+        id: 'view_image_popover.file',
+        defaultMessage: 'File '
+    },
+    of: {
+        id: 'view_image_popover.of',
+        defaultMessage: ' of '
+    },
+    download: {
+        id: 'view_image_popover.download',
+        defaultMessage: 'Download'
+    }
+});
+
+class ViewImagePopoverBar extends React.Component {
     constructor(props) {
         super(props);
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var publicLink = '';
         if (global.window.mm_config.EnablePublicLink === 'true') {
             publicLink = (
@@ -16,7 +37,7 @@ export default class ViewImagePopoverBar extends React.Component {
                         data-title='Public Image'
                         onClick={this.props.getPublicLink}
                     >
-                        {'Get Public Link'}
+                        {formatMessage(messages.publicLink)}
                     </a>
                     <span className='text'>{' | '}</span>
                 </div>
@@ -33,7 +54,7 @@ export default class ViewImagePopoverBar extends React.Component {
                 ref='imageFooter'
                 className={footerClass}
             >
-                <span className='pull-left text'>{'File ' + (this.props.fileId + 1) + ' of ' + this.props.totalFiles}</span>
+                <span className='pull-left text'>{formatMessage(messages.file) + (this.props.fileId + 1) + formatMessage(messages.of) + this.props.totalFiles}</span>
                 <div className='image-links'>
                     {publicLink}
                     <a
@@ -41,7 +62,7 @@ export default class ViewImagePopoverBar extends React.Component {
                         download={this.props.filename}
                         className='text'
                     >
-                        {'Download'}
+                        {formatMessage(messages.download)}
                     </a>
                 </div>
             </div>
@@ -57,6 +78,7 @@ ViewImagePopoverBar.defaultProps = {
 };
 
 ViewImagePopoverBar.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     fileId: React.PropTypes.number.isRequired,
     totalFiles: React.PropTypes.number.isRequired,
@@ -64,3 +86,5 @@ ViewImagePopoverBar.propTypes = {
     fileURL: React.PropTypes.string.isRequired,
     getPublicLink: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(ViewImagePopoverBar);

@@ -1,10 +1,58 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class PrivacySettings extends React.Component {
+const messages = defineMessages({
+    true: {
+        id: 'admin.privacy.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.privacy.false',
+        defaultMessage: 'false'
+    },
+    title: {
+        id: 'admin.privacy.title',
+        defaultMessage: 'Privacy Settings'
+    },
+    showEmailTitle: {
+        id: 'admin.privacy.showEmailTitle',
+        defaultMessage: 'Show Email Address: '
+    },
+    showEmailDescription: {
+        id: 'admin.privacy.showEmailDescription',
+        defaultMessage: 'When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
+    },
+    showFullNameTitle: {
+        id: 'admin.privacy.showFullNameTitle',
+        defaultMessage: 'Show Full Name: '
+    },
+    showFullNameDescription: {
+        id: 'admin.privacy.showFullNameDescription',
+        defaultMessage: 'When false, hides full name of users from other users including team owner and team administrators.'
+    },
+    diagnosticTitle: {
+        id: 'admin.privacy.diagnosticTitle',
+        defaultMessage: 'Send Error and Diagnostic: '
+    },
+    diagnosticDescription: {
+        id: 'admin.privacy.diagnosticDescription',
+        defaultMessage: 'When true, The server will periodically send error and diagnostic information to Mattermost.'
+    },
+    saving: {
+        id: 'admin.privacy.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.privacy.save',
+        defaultMessage: 'Save'
+    }
+});
+
+class PrivacySettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -52,6 +100,7 @@ export default class PrivacySettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -64,7 +113,7 @@ export default class PrivacySettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>{'Privacy Settings'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -75,7 +124,7 @@ export default class PrivacySettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ShowEmailAddress'
                         >
-                            {'Show Email Address: '}
+                            {formatMessage(messages.showEmailTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -87,7 +136,7 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={this.props.config.PrivacySettings.ShowEmailAddress}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -97,9 +146,9 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={!this.props.config.PrivacySettings.ShowEmailAddress}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When false, hides email address of users from other users in the user interface, including team owners and team administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'}</p>
+                            <p className='help-text'>{formatMessage(messages.showEmailDescription)}</p>
                         </div>
                     </div>
 
@@ -108,7 +157,7 @@ export default class PrivacySettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ShowFullName'
                         >
-                            {'Show Full Name: '}
+                            {formatMessage(messages.showFullNameTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -120,7 +169,7 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={this.props.config.PrivacySettings.ShowFullName}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -130,9 +179,9 @@ export default class PrivacySettings extends React.Component {
                                     defaultChecked={!this.props.config.PrivacySettings.ShowFullName}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When false, hides full name of users from other users including team owner and team administrators.'}</p>
+                            <p className='help-text'>{formatMessage(messages.showFullNameDescription)}</p>
                         </div>
                     </div>
 
@@ -145,9 +194,9 @@ export default class PrivacySettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -159,5 +208,8 @@ export default class PrivacySettings extends React.Component {
 }
 
 PrivacySettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(PrivacySettings);

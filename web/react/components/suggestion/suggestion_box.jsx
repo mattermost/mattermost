@@ -140,7 +140,10 @@ export default class SuggestionBox extends React.Component {
         return (
             <div>
                 {textbox}
-                <SuggestionListComponent suggestionId={this.suggestionId} />
+                <SuggestionListComponent
+                    suggestionId={this.suggestionId}
+                    locale={this.props.locale}
+                />
             </div>
         );
     }

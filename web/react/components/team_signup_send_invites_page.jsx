@@ -1,10 +1,46 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import EmailItem from './team_signup_email_item.jsx';
 import * as Client from '../utils/client.jsx';
 
-export default class TeamSignupSendInvitesPage extends React.Component {
+const messages = defineMessages({
+    addInvitation: {
+        id: 'team_signup_send_invites.addInvitation',
+        defaultMessage: 'Add Invitation'
+    },
+    prefer: {
+        id: 'team_signup_send_invites.prefer',
+        defaultMessage: 'if you prefer, you can invite team members later<br /> and '
+    },
+    skip: {
+        id: 'team_signup_send_invites.skip',
+        defaultMessage: 'skip this step '
+    },
+    forNow: {
+        id: 'team_signup_send_invites.forNow',
+        defaultMessage: 'for now.'
+    },
+    disabled: {
+        id: 'team_signup_send_invites.disabled',
+        defaultMessage: 'Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.'
+    },
+    title: {
+        id: 'team_signup_send_invites.title',
+        defaultMessage: 'Invite Team Members'
+    },
+    next: {
+        id: 'team_signup_send_invites.next',
+        defaultMessage: 'Next'
+    },
+    back: {
+        id: 'team_signup_send_invites.back',
+        defaultMessage: 'Back to previous step'
+    }
+});
+
+class TeamSignupSendInvitesPage extends React.Component {
     constructor(props) {
         super(props);
         this.submitBack = this.submitBack.bind(this);
@@ -81,6 +117,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
     render() {
         Client.track('signup', 'signup_team_05_send_invites');
 
+        const {formatMessage} = this.props.intl;
         var content = null;
         var bottomContent = null;
 
@@ -117,7 +154,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                             href='#'
                             onClick={this.submitAddInvite}
                         >
-                            Add Invitation
+                            {formatMessage(messages.addInvitation)}
                         </a>
                     </div>
                 </div>
@@ -125,22 +162,20 @@ export default class TeamSignupSendInvitesPage extends React.Component {
 
             bottomContent = (
                 <p className='color--light'>
-                    {'if you prefer, you can invite team members later'}
-                    <br />
-                    {' and '}
+                    <FormattedHTMLMessage id='team_signup_send_invites.prefer' />
                     <a
                         href='#'
                         onClick={this.submitSkip}
                     >
-                    {'skip this step '}
+                    {formatMessage(messages.skip)}
                     </a>
-                    {'for now.'}
+                    {formatMessage(messages.forNow)}
                 </p>
             );
         } else {
             content = (
                 <div className='form-group color--light'>
-                    {'Email is currently disabled for your team, and emails cannot be sent. Contact your system administrator to enable email and email invitations.'}
+                    {formatMessage(messages.disabled)}
                 </div>
             );
         }
@@ -152,7 +187,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                         className='signup-team-logo'
                         src='/static/images/logo.png'
                     />
-                    <h2>{'Invite Team Members'}</h2>
+                    <h2>{formatMessage(messages.title)}</h2>
                     {content}
                     <div className='form-group'>
                         <button
@@ -160,7 +195,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                             className='btn-primary btn'
                             onClick={this.submitNext}
                         >
-                            Next<i className='glyphicon glyphicon-chevron-right' />
+                            {formatMessage(messages.next)}<i className='glyphicon glyphicon-chevron-right' />
                         </button>
                     </div>
                 </form>
@@ -170,7 +205,7 @@ export default class TeamSignupSendInvitesPage extends React.Component {
                         href='#'
                         onClick={this.submitBack}
                     >
-                        Back to previous step
+                        {formatMessage(messages.back)}
                     </a>
                 </div>
             </div>
@@ -179,6 +214,9 @@ export default class TeamSignupSendInvitesPage extends React.Component {
 }
 
 TeamSignupSendInvitesPage.propTypes = {
+    intl: intlShape.isRequired,
     state: React.PropTypes.object.isRequired,
     updateParent: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(TeamSignupSendInvitesPage);

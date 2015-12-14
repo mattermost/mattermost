@@ -1,9 +1,25 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 var Modal = ReactBootstrap.Modal;
 
-export default class SelectTeamModal extends React.Component {
+const messages = defineMessages({
+    selectTeam: {
+        id: 'admin.select_team.selectTeam',
+        defaultMessage: 'Select Team'
+    },
+    select: {
+        id: 'admin.select_team.select',
+        defaultMessage: 'Select'
+    },
+    close: {
+        id: 'admin.select_team.close',
+        defaultMessage: 'Close'
+    }
+});
+
+class SelectTeamModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -19,6 +35,7 @@ export default class SelectTeamModal extends React.Component {
         this.props.onModalDismissed();
     }
     render() {
+        const {formatMessage} = this.props.intl;
         if (this.props.teams == null) {
             return <div/>;
         }
@@ -45,7 +62,7 @@ export default class SelectTeamModal extends React.Component {
                 onHide={this.doCancel}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Select Team'}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.selectTeam)}</Modal.Title>
                 </Modal.Header>
                 <form
                     role='form'
@@ -70,7 +87,7 @@ export default class SelectTeamModal extends React.Component {
                             className='btn btn-default'
                             onClick={this.doCancel}
                         >
-                            {'Close'}
+                            {formatMessage(messages.close)}
                         </button>
                         <button
                             onClick={this.doSubmit}
@@ -78,7 +95,7 @@ export default class SelectTeamModal extends React.Component {
                             className='btn btn-primary'
                             tabIndex='2'
                         >
-                            {'Select'}
+                            {formatMessage(messages.select)}
                         </button>
                     </Modal.Footer>
                 </form>
@@ -92,8 +109,11 @@ SelectTeamModal.defaultProps = {
 };
 
 SelectTeamModal.propTypes = {
+    intl: intlShape.isRequired,
     teams: React.PropTypes.object,
     show: React.PropTypes.bool.isRequired,
     onModalSubmit: React.PropTypes.func,
     onModalDismissed: React.PropTypes.func
 };
+
+export default injectIntl(SelectTeamModal);

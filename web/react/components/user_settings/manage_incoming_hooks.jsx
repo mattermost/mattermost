@@ -1,13 +1,45 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 import Constants from '../../utils/constants.jsx';
 import ChannelStore from '../../stores/channel_store.jsx';
 import LoadingScreen from '../loading_screen.jsx';
 
-export default class ManageIncomingHooks extends React.Component {
+const messages = defineMessages({
+    channel: {
+        id: 'user.settings.hooks_in.channel',
+        defaultMessage: 'Channel: '
+    },
+    remove: {
+        id: 'user.settings.hooks_in.remove',
+        defaultMessage: 'Remove'
+    },
+    none: {
+        id: 'user.settings.hooks_in.none',
+        defaultMessage: 'None'
+    },
+    existing: {
+        id: 'user.settings.hooks_in.existing',
+        defaultMessage: 'Existing incoming webhooks'
+    },
+    addDescription: {
+        id: 'user.settings.hooks_in.addDescription',
+        defaultMessage: 'Create webhook URLs for use in external integrations. Please see <a href="http://mattermost.org/webhooks">http://mattermost.org/webhooks</a>  to learn more.'
+    },
+    addTitle: {
+        id: 'user.settings.hooks_in.addTitle',
+        defaultMessage: 'Add a new incoming webhook'
+    },
+    add: {
+        id: 'user.settings.hooks_in.add',
+        defaultMessage: 'Add'
+    }
+});
+
+class ManageIncomingHooks extends React.Component {
     constructor() {
         super();
 
@@ -87,6 +119,8 @@ export default class ManageIncomingHooks extends React.Component {
         this.setState({channelId: e.target.value});
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         let serverError;
         if (this.state.serverError) {
             serverError = <label className='has-error'>{this.state.serverError}</label>;
@@ -126,7 +160,7 @@ export default class ManageIncomingHooks extends React.Component {
                             <span className='word-break--all'>{Utils.getWindowLocationOrigin() + '/hooks/' + hook.id}</span>
                         </div>
                         <div className='padding-top'>
-                            <strong>{'Channel: '}</strong>{c.display_name}
+                            <strong>{formatMessage(messages.channel)}</strong>{c.display_name}
                         </div>
                         <a
                             className={'webhook__remove'}
@@ -147,12 +181,12 @@ export default class ManageIncomingHooks extends React.Component {
         } else if (hooks.length > 0) {
             displayHooks = hooks;
         } else {
-            displayHooks = <div className='padding-top x2'>{'None'}</div>;
+            displayHooks = <div className='padding-top x2'>{formatMessage(messages.none)}</div>;
         }
 
         const existingHooks = (
             <div className='webhooks__container'>
-                <label className='control-label padding-top x2'>{'Existing incoming webhooks'}</label>
+                <label className='control-label padding-top x2'>{formatMessage(messages.existing)}</label>
                 <div className='padding-top divider-light'></div>
                 <div className='webhooks__list'>
                     {displayHooks}
@@ -162,8 +196,8 @@ export default class ManageIncomingHooks extends React.Component {
 
         return (
             <div key='addIncomingHook'>
-                {'Create webhook URLs for use in external integrations. Please see '}<a href='http://mattermost.org/webhooks'>{'http://mattermost.org/webhooks'}</a> {' to learn more.'}
-                <div><label className='control-label padding-top x2'>{'Add a new incoming webhook'}</label></div>
+                <FormattedHTMLMessage id='user.settings.hooks_in.addDescription' />
+                <div><label className='control-label padding-top x2'>{formatMessage(messages.addTitle)}</label></div>
                 <div className='row padding-top'>
                     <div className='col-sm-10 padding-bottom'>
                         <select
@@ -182,7 +216,7 @@ export default class ManageIncomingHooks extends React.Component {
                             href='#'
                             onClick={this.addNewHook}
                         >
-                            {'Add'}
+                            {formatMessage(messages.add)}
                         </a>
                     </div>
                 </div>
@@ -191,3 +225,9 @@ export default class ManageIncomingHooks extends React.Component {
         );
     }
 }
+
+ManageIncomingHooks.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(ManageIncomingHooks);

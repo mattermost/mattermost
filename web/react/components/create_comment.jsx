@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as Client from '../utils/client.jsx';
 import * as AsyncClient from '../utils/async_client.jsx';
@@ -19,7 +20,42 @@ import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-export default class CreateComment extends React.Component {
+const messages = defineMessages({
+    commentLength: {
+        id: 'create_comment.commentLength',
+        defaultMessage: 'Comment length must be less than'
+    },
+    chars: {
+        id: 'create_comment.chars',
+        defaultMessage: 'characters.'
+    },
+    addComment: {
+        id: 'create_comment.addComment',
+        defaultMessage: 'Add a comment...'
+    },
+    comment: {
+        id: 'create_comment.comment',
+        defaultMessage: 'Add Comment'
+    },
+    commentTitle: {
+        id: 'create_comment.commentTitle',
+        defaultMessage: 'Comment'
+    },
+    invalidRoot: {
+        id: 'create_comment.invalidRoot',
+        defaultMessage: 'Invalid RootId parameter'
+    },
+    file: {
+        id: 'create_comment.file',
+        defaultMessage: 'File uploading'
+    },
+    files: {
+        id: 'create_comment.files',
+        defaultMessage: 'Files uploading'
+    }
+});
+
+class CreateComment extends React.Component {
     constructor(props) {
         super(props);
 
@@ -77,6 +113,7 @@ export default class CreateComment extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         if (this.state.uploadsInProgress.length > 0) {
             return;
         }
@@ -94,7 +131,7 @@ export default class CreateComment extends React.Component {
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: `Comment length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
+            this.setState({postError: `${formatMessage(messages.commentLength)} ${Constants.CHARACTER_LIMIT} ${formatMessage(messages.chars)}`});
             return;
         }
 
@@ -130,7 +167,7 @@ export default class CreateComment extends React.Component {
             function handlePostError(err) {
                 let state = {};
 
-                if (err.message === 'Invalid RootId parameter') {
+                if (err.message === formatMessage(messages.invalidRoot)) {
                     PostStore.removePendingPost(post.channel_id, post.pending_post_id);
 
                     if ($('#post_deleted').length > 0) {
@@ -173,6 +210,8 @@ export default class CreateComment extends React.Component {
         this.setState({messageText: messageText});
     }
     handleKeyDown(e) {
+        const {formatMessage} = this.props.intl;
+
         if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.commentMsgKeyPress(e);
             return;
@@ -190,7 +229,7 @@ export default class CreateComment extends React.Component {
             AppDispatcher.handleViewAction({
                 type: ActionTypes.RECIEVED_EDIT_POST,
                 refocusId: '#reply_textbox',
-                title: 'Comment',
+                title: formatMessage(messages.comment),
                 message: lastPost.message,
                 postId: lastPost.id,
                 channelId: lastPost.channel_id,
@@ -278,6 +317,7 @@ export default class CreateComment extends React.Component {
         return this.state.previews.length + this.state.uploadsInProgress.length;
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -314,7 +354,7 @@ export default class CreateComment extends React.Component {
                 <span
                     className='pull-right post-right-comments-upload-in-progress'
                 >
-                    {this.state.uploadsInProgress.length === 1 ? 'File uploading' : 'Files uploading'}
+                    {this.state.uploadsInProgress.length === 1 ? formatMessage(messages.file) : formatMessage(messages.files)}
                 </span>
             );
         }
@@ -332,7 +372,7 @@ export default class CreateComment extends React.Component {
                                 onKeyPress={this.commentMsgKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 messageText={this.state.messageText}
-                                createMessage='Add a comment...'
+                                createMessage={formatMessage(messages.addComment)}
                                 initialText=''
                                 supportsCommands={false}
                                 id='reply_textbox'
@@ -358,7 +398,7 @@ export default class CreateComment extends React.Component {
                         <input
                             type='button'
                             className='btn btn-primary comment-btn pull-right'
-                            value='Add Comment'
+                            value={formatMessage(messages.comment)}
                             onClick={this.handleSubmit}
                         />
                         {uploadsInProgressText}
@@ -373,6 +413,9 @@ export default class CreateComment extends React.Component {
 }
 
 CreateComment.propTypes = {
+    intl: intlShape.isRequired,
     channelId: React.PropTypes.string.isRequired,
     rootId: React.PropTypes.string.isRequired
 };
+
+export default injectIntl(CreateComment);

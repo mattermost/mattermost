@@ -1,10 +1,130 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages, FormattedHTMLMessage} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
-export default class ServiceSettings extends React.Component {
+const messages = defineMessages({
+    title: {
+        id: 'admin.service.title',
+        defaultMessage: 'Service Settings'
+    },
+    true: {
+        id: 'admin.service.true',
+        defaultMessage: 'true'
+    },
+    false: {
+        id: 'admin.service.false',
+        defaultMessage: 'false'
+    },
+    listenTitle: {
+        id: 'admin.service.listenAddress',
+        defaultMessage: 'Listen Address:'
+    },
+    listenExample: {
+        id: 'admin.service.listenExample',
+        defaultMessage: 'Ex ":8065"'
+    },
+    listenDescription: {
+        id: 'admin.service.listenDescription',
+        defaultMessage: 'The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'
+    },
+    attemptsTitle: {
+        id: 'admin.service.attemptTitle',
+        defaultMessage: 'Maximum Login Attempts:'
+    },
+    attemptExample: {
+        id: 'admin.service.attemptExample',
+        defaultMessage: 'Ex "10"'
+    },
+    attemptDescription: {
+        id: 'admin.service.attemptDescription',
+        defaultMessage: 'Login attempts allowed before user is locked out and required to reset password via email.'
+    },
+    segmentTitle: {
+        id: 'admin.service.segmentTitle',
+        defaultMessage: 'Segment Developer Key:'
+    },
+    segmentExample: {
+        id: 'admin.service.segmentExample',
+        defaultMessage: 'Ex "g3fgGOXJAQ43QV7rAh6iwQCkV4cA1Gs"'
+    },
+    segmentDescription: {
+        id: 'admin.service.segmentDescription',
+        defaultMessage: 'For users running a SaaS services, sign up for a key at Segment.com to track metrics.'
+    },
+    googleTitle: {
+        id: 'admin.service.googleTitle',
+        defaultMessage: 'Google Developer Key:'
+    },
+    googleExample: {
+        id: 'admin.service.googleExample',
+        defaultMessage: 'Ex "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'
+    },
+    googleDescription: {
+        id: 'admin.service.googleDescription',
+        defaultMessage: 'Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at <a href="https://www.youtube.com/watch?v=Im69kzhpR3I">https://www.youtube.com/watch?v=Im69kzhpR3I</a>. Leaving field blank disables the automatic generation of YouTube video previews from links.'
+    },
+    webhooksTitle: {
+        id: 'admin.service.webhooksTitle',
+        defaultMessage: 'Enable Incoming Webhooks: '
+    },
+    webhooksDescription: {
+        id: 'admin.service.webhooksDescription',
+        defaultMessage: 'When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag.'
+    },
+    overrideTitle: {
+        id: 'admin.service.overrideTitle',
+        defaultMessage: 'Enable Overriding Usernames from Webhooks: '
+    },
+    overrideDescription: {
+        id: 'admin.service.overrideDescription',
+        defaultMessage: 'When true, webhooks will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'
+    },
+    iconTitle: {
+        id: 'admin.service.iconTitle',
+        defaultMessage: 'Enable Overriding Icon from Webhooks: '
+    },
+    iconDescription: {
+        id: 'admin.service.iconDescription',
+        defaultMessage: 'When true, webhooks will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'
+    },
+    testingTitle: {
+        id: 'admin.service.testingTitle',
+        defaultMessage: 'Enable Testing: '
+    },
+    testingDescription: {
+        id: 'admin.service.testingDescription',
+        defaultMessage: '(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'
+    },
+    saving: {
+        id: 'admin.service.saving',
+        defaultMessage: 'Saving Config...'
+    },
+    save: {
+        id: 'admin.service.save',
+        defaultMessage: 'Save'
+    },
+    outWebhooksTitle: {
+        id: 'admin.service.outWebhooksTitle',
+        defaultMessage: 'Enable Outgoing Webhooks: '
+    },
+    outWebhooksDesc: {
+        id: 'admin.service.outWebhooksDesc',
+        defaultMessage: 'When true, outgoing webhooks will be allowed.'
+    },
+    securityTitle: {
+        id: 'admin.service.securityTitle',
+        defaultMessage: 'Enable Security Alerts: '
+    },
+    securityDesc: {
+        id: 'admin.service.securityDesc',
+        defaultMessage: 'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'
+    }
+});
+
+class ServiceSettings extends React.Component {
     constructor(props) {
         super(props);
 
@@ -72,6 +192,7 @@ export default class ServiceSettings extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
@@ -85,7 +206,7 @@ export default class ServiceSettings extends React.Component {
         return (
             <div className='wrapper--fixed'>
 
-                <h3>{'Service Settings'}</h3>
+                <h3>{formatMessage(messages.title)}</h3>
                 <form
                     className='form-horizontal'
                     role='form'
@@ -96,7 +217,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='ListenAddress'
                         >
-                            {'Listen Address:'}
+                            {formatMessage(messages.listenTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -104,11 +225,11 @@ export default class ServiceSettings extends React.Component {
                                 className='form-control'
                                 id='ListenAddress'
                                 ref='ListenAddress'
-                                placeholder='Ex ":8065"'
+                                placeholder={formatMessage(messages.listenExample)}
                                 defaultValue={this.props.config.ServiceSettings.ListenAddress}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065".  Changing this will require a server restart before taking effect.'}</p>
+                            <p className='help-text'>{formatMessage(messages.listenDescription)}</p>
                         </div>
                     </div>
 
@@ -117,7 +238,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='MaximumLoginAttempts'
                         >
-                            {'Maximum Login Attempts:'}
+                            {formatMessage(messages.attemptsTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -125,11 +246,11 @@ export default class ServiceSettings extends React.Component {
                                 className='form-control'
                                 id='MaximumLoginAttempts'
                                 ref='MaximumLoginAttempts'
-                                placeholder='Ex "10"'
+                                placeholder={formatMessage(messages.attemptExample)}
                                 defaultValue={this.props.config.ServiceSettings.MaximumLoginAttempts}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Login attempts allowed before user is locked out and required to reset password via email.'}</p>
+                            <p className='help-text'>{formatMessage(messages.attemptDescription)}</p>
                         </div>
                     </div>
 
@@ -138,7 +259,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='SegmentDeveloperKey'
                         >
-                            {'Segment Developer Key:'}
+                            {formatMessage(messages.segmentTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -146,11 +267,11 @@ export default class ServiceSettings extends React.Component {
                                 className='form-control'
                                 id='SegmentDeveloperKey'
                                 ref='SegmentDeveloperKey'
-                                placeholder='Ex "g3fgGOXJAQ43QV7rAh6iwQCkV4cA1Gs"'
+                                placeholder={formatMessage(messages.segmentExample)}
                                 defaultValue={this.props.config.ServiceSettings.SegmentDeveloperKey}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'For users running a SaaS services, sign up for a key at Segment.com to track metrics.'}</p>
+                            <p className='help-text'>{formatMessage(messages.segmentDescription)}</p>
                         </div>
                     </div>
 
@@ -159,7 +280,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='GoogleDeveloperKey'
                         >
-                            {'Google Developer Key:'}
+                            {formatMessage(messages.googleTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <input
@@ -167,11 +288,12 @@ export default class ServiceSettings extends React.Component {
                                 className='form-control'
                                 id='GoogleDeveloperKey'
                                 ref='GoogleDeveloperKey'
-                                placeholder='Ex "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'
+                                placeholder={formatMessage(messages.googleExample)}
                                 defaultValue={this.props.config.ServiceSettings.GoogleDeveloperKey}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Set this key to enable embedding of YouTube video previews based on hyperlinks appearing in messages or comments. Instructions to obtain a key available at '}<a href='https://www.youtube.com/watch?v=Im69kzhpR3I'>{'https://www.youtube.com/watch?v=Im69kzhpR3I'}</a>{'. Leaving field blank disables the automatic generation of YouTube video previews from links.'}</p>
+                            <p className='help-text'>
+                                <FormattedHTMLMessage id='admin.service.googleDescription' /></p>
                         </div>
                     </div>
 
@@ -180,7 +302,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableIncomingWebhooks'
                         >
-                            {'Enable Incoming Webhooks: '}
+                            {formatMessage(messages.webhooksTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -192,7 +314,7 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableIncomingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -202,9 +324,9 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableIncomingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, incoming webhooks will be allowed. To help combat phishing attacks, all posts from webhooks will be labelled by a BOT tag.'}</p>
+                            <p className='help-text'>{formatMessage(messages.webhooksDescription)}</p>
                         </div>
                     </div>
 
@@ -213,7 +335,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableOutgoingWebhooks'
                         >
-                            {'Enable Outgoing Webhooks: '}
+                            {formatMessage(messages.outWebhooksTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -225,7 +347,7 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableOutgoingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -235,9 +357,9 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableOutgoingWebhooks}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, outgoing webhooks will be allowed.'}</p>
+                            <p className='help-text'>{formatMessage(messages.outWebhooksDesc)}</p>
                         </div>
                     </div>
 
@@ -246,7 +368,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnablePostUsernameOverride'
                         >
-                            {'Enable Overriding Usernames from Webhooks: '}
+                            {formatMessage(messages.overrideTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -258,7 +380,7 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnablePostUsernameOverride}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -268,9 +390,9 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnablePostUsernameOverride}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, webhooks will be allowed to change the username they are posting as. Note, combined with allowing icon overriding, this could open users up to phishing attacks.'}</p>
+                            <p className='help-text'>{formatMessage(messages.overrideDescription)}</p>
                         </div>
                     </div>
 
@@ -279,7 +401,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnablePostIconOverride'
                         >
-                            {'Enable Overriding Icon from Webhooks: '}
+                            {formatMessage(messages.iconTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -291,7 +413,7 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnablePostIconOverride}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -301,9 +423,9 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnablePostIconOverride}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, webhooks will be allowed to change the icon they post with. Note, combined with allowing username overriding, this could open users up to phishing attacks.'}</p>
+                            <p className='help-text'>{formatMessage(messages.iconDescription)}</p>
                         </div>
                     </div>
 
@@ -312,7 +434,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableTesting'
                         >
-                            {'Enable Testing: '}
+                            {formatMessage(messages.testingTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -324,7 +446,7 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableTesting}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -334,9 +456,9 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableTesting}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'}</p>
+                            <p className='help-text'>{formatMessage(messages.testingDescription)}</p>
                         </div>
                     </div>
 
@@ -345,7 +467,7 @@ export default class ServiceSettings extends React.Component {
                             className='control-label col-sm-4'
                             htmlFor='EnableSecurityFixAlert'
                         >
-                            {'Enable Security Alerts: '}
+                            {formatMessage(messages.securityTitle)}
                         </label>
                         <div className='col-sm-8'>
                             <label className='radio-inline'>
@@ -357,7 +479,7 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={this.props.config.ServiceSettings.EnableSecurityFixAlert}
                                     onChange={this.handleChange}
                                 />
-                                    {'true'}
+                                    {formatMessage(messages.true)}
                             </label>
                             <label className='radio-inline'>
                                 <input
@@ -367,9 +489,9 @@ export default class ServiceSettings extends React.Component {
                                     defaultChecked={!this.props.config.ServiceSettings.EnableSecurityFixAlert}
                                     onChange={this.handleChange}
                                 />
-                                    {'false'}
+                                    {formatMessage(messages.false)}
                             </label>
-                            <p className='help-text'>{'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}</p>
+                            <p className='help-text'>{formatMessage(messages.securityDesc)}</p>
                         </div>
                     </div>
 
@@ -382,9 +504,9 @@ export default class ServiceSettings extends React.Component {
                                 className={saveClass}
                                 onClick={this.handleSubmit}
                                 id='save-button'
-                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> Saving Config...'}
+                                data-loading-text={'<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ' + formatMessage(messages.saving)}
                             >
-                                {'Save'}
+                                {formatMessage(messages.save)}
                             </button>
                         </div>
                     </div>
@@ -429,5 +551,8 @@ export default class ServiceSettings extends React.Component {
 // </div>
 
 ServiceSettings.propTypes = {
+    intl: intlShape.isRequired,
     config: React.PropTypes.object
 };
+
+export default injectIntl(ServiceSettings);

@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
 import MessageWrapper from './message_wrapper.jsx';
@@ -27,7 +28,66 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 const Popover = ReactBootstrap.Popover;
 const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
-export default class Navbar extends React.Component {
+const messages = defineMessages({
+    viewInfo: {
+        id: 'navbar.viewInfo',
+        defaultMessage: 'View Info'
+    },
+    setHeader: {
+        id: 'navbar.setDescription',
+        defaultMessage: 'Set Channel Header...'
+    },
+    setPurpose: {
+        id: 'navbar.setPurpose',
+        defaultMessage: 'Set Channel Purpose...'
+    },
+    addMembers: {
+        id: 'navbar.addMembers',
+        defaultMessage: 'Add Members'
+    },
+    leaveChannel: {
+        id: 'navbar.leaveChannel',
+        defaultMessage: 'Leave Channel'
+    },
+    manageMembers: {
+        id: 'navbar.manageMembers',
+        defaultMessage: 'Manage Members'
+    },
+    rename: {
+        id: 'navbar.rename',
+        defaultMessage: 'Rename Channel...'
+    },
+    del: {
+        id: 'navbar.del',
+        defaultMessage: 'Delete Channel...'
+    },
+    preferences: {
+        id: 'navbar.preferences',
+        defaultMessage: 'Notification Preferences'
+    },
+    toggle: {
+        id: 'navbar.toggle',
+        defaultMessage: 'Toggle sidebar'
+    },
+    noDescription: {
+        id: 'navbar.noDescription',
+        defaultMessage: 'No channel description yet. '
+    },
+    clickHere: {
+        id: 'navbar.clickHere',
+        defaultMessage: 'Click here'
+    },
+    addOne: {
+        id: 'navbar.addOne',
+        defaultMessage: ' to add one.'
+    },
+    noChannels: {
+        id: 'navbar.noChannels',
+        defaultMessage: 'No channel header yet.'
+    }
+});
+
+class Navbar extends React.Component {
     constructor(props) {
         super(props);
 
@@ -69,7 +129,7 @@ export default class Navbar extends React.Component {
         Client.leaveChannel(this.state.channel.id,
             () => {
                 AsyncClient.getChannels(true);
-                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/general';
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'handleLeave');
@@ -125,6 +185,7 @@ export default class Navbar extends React.Component {
         });
     }
     createDropdown(channel, channelTitle, isAdmin, isDirect, popoverContent) {
+        const {formatMessage} = this.props.intl;
         if (channel) {
             var viewInfoOption = (
                 <li role='presentation'>
@@ -133,7 +194,7 @@ export default class Navbar extends React.Component {
                         dialogType={ChannelInfoModal}
                         dialogProps={{channel}}
                     >
-                        {'View Info'}
+                        {formatMessage(messages.viewInfo)}
                     </ToggleModalButton>
                 </li>
             );
@@ -145,7 +206,7 @@ export default class Navbar extends React.Component {
                         href='#'
                         onClick={this.showEditChannelHeaderModal}
                     >
-                        {'Set Channel Header...'}
+                        {formatMessage(messages.setHeader)}
                     </a>
                 </li>
             );
@@ -159,7 +220,7 @@ export default class Navbar extends React.Component {
                             href='#'
                             onClick={() => this.setState({showEditChannelPurposeModal: true})}
                         >
-                            {'Set Channel Purpose...'}
+                            {formatMessage(messages.setPurpose)}
                         </a>
                     </li>
                 );
@@ -175,7 +236,7 @@ export default class Navbar extends React.Component {
                             dialogType={ChannelInviteModal}
                             dialogProps={{channel}}
                         >
-                            {'Add Members'}
+                            {formatMessage(messages.addMembers)}
                         </ToggleModalButton>
                     </li>
                 );
@@ -187,7 +248,7 @@ export default class Navbar extends React.Component {
                             href='#'
                             onClick={this.handleLeave}
                         >
-                            {'Leave Channel'}
+                            {formatMessage(messages.leaveChannel)}
                         </a>
                     </li>
                 );
@@ -205,7 +266,7 @@ export default class Navbar extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showMembersModal: true})}
                             >
-                                {'Manage Members'}
+                                {formatMessage(messages.manageMembers)}
                             </a>
                         </li>
                     );
@@ -217,7 +278,7 @@ export default class Navbar extends React.Component {
                                 dialogType={DeleteChannelModal}
                                 dialogProps={{channel}}
                             >
-                                {'Delete Channel...'}
+                                {formatMessage(messages.del)}
                             </ToggleModalButton>
                         </li>
                     );
@@ -234,7 +295,7 @@ export default class Navbar extends React.Component {
                             data-name={channel.name}
                             data-channelid={channel.id}
                         >
-                            {'Rename Channel...'}
+                            {formatMessage(messages.rename)}
                         </a>
                     </li>
                 );
@@ -249,7 +310,7 @@ export default class Navbar extends React.Component {
                             dialogType={ChannelNotificationsModal}
                             dialogProps={{channel}}
                         >
-                            {'Notification Preferences'}
+                            {formatMessage(messages.preferences)}
                         </ToggleModalButton>
                     </li>
                 );
@@ -300,7 +361,7 @@ export default class Navbar extends React.Component {
         return (
             <div className='navbar-brand'>
                 <a
-                    href={TeamStore.getCurrentTeamUrl() + '/channels/town-square'}
+                    href={TeamStore.getCurrentTeamUrl() + '/channels/general'}
                     className='heading'
                 >
                     {channelTitle}
@@ -309,6 +370,7 @@ export default class Navbar extends React.Component {
         );
     }
     createCollapseButtons(currentId) {
+        const {formatMessage} = this.props.intl;
         var buttons = [];
         if (currentId == null) {
             buttons.push(
@@ -319,7 +381,7 @@ export default class Navbar extends React.Component {
                     data-toggle='collapse'
                     data-target='#navbar-collapse-1'
                 >
-                    <span className='sr-only'>{'Toggle sidebar'}</span>
+                    <span className='sr-only'>{formatMessage(messages.toggle)}</span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
@@ -335,7 +397,7 @@ export default class Navbar extends React.Component {
                     data-target='#sidebar-nav'
                     onClick={this.toggleLeftSidebar}
                 >
-                    <span className='sr-only'>{'Toggle sidebar'}</span>
+                    <span className='sr-only'>{formatMessage(messages.toggle)}</span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
                     <span className='icon-bar'></span>
@@ -360,6 +422,7 @@ export default class Navbar extends React.Component {
         return buttons;
     }
     render() {
+        const {formatMessage} = this.props.intl;
         var currentId = UserStore.getCurrentId();
         var channel = this.state.channel;
         var channelTitle = this.props.teamDisplayName;
@@ -408,15 +471,15 @@ export default class Navbar extends React.Component {
                         id='header-popover'
                     >
                         <div>
-                            {'No channel header yet.'}
+                            {formatMessage(messages.noChannels)}
                             <br/>
                             <a
                                 href='#'
                                 onClick={this.showEditChannelHeaderModal}
                             >
-                                {'Click here'}
+                                {formatMessage(messages.clickHere)}
                             </a>
-                            {' to add one.'}
+                            {formatMessage(messages.addOne)}
                         </div>
                     </Popover>
                 );
@@ -483,5 +546,8 @@ Navbar.defaultProps = {
     teamDisplayName: ''
 };
 Navbar.propTypes = {
+    intl: intlShape.isRequired,
     teamDisplayName: React.PropTypes.string
 };
+
+export default injectIntl(Navbar);

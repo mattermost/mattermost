@@ -1,9 +1,25 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Utils from '../utils/utils.jsx';
 
-export default class TeamSignupEmailItem extends React.Component {
+const messages = defineMessages({
+    emailError1: {
+        id: 'team_signup_email.emailError1',
+        defaultMessage: 'Please enter a valid email address'
+    },
+    emailError2: {
+        id: 'team_signup_email.emailError2',
+        defaultMessage: 'Please use a different email than the one used at signup'
+    },
+    address: {
+        id: 'team_signup_email.address',
+        defaultMessage: 'Email Address'
+    }
+});
+
+class TeamSignupEmailItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -16,6 +32,7 @@ export default class TeamSignupEmailItem extends React.Component {
         return ReactDOM.findDOMNode(this.refs.email).value.trim();
     }
     validate(teamEmail) {
+        const {formatMessage} = this.props.intl;
         const email = ReactDOM.findDOMNode(this.refs.email).value.trim().toLowerCase();
 
         if (!email) {
@@ -23,10 +40,10 @@ export default class TeamSignupEmailItem extends React.Component {
         }
 
         if (!Utils.isEmail(email)) {
-            this.setState({emailError: 'Please enter a valid email address'});
+            this.setState({emailError: formatMessage(messages.emailError1)});
             return false;
         } else if (email === teamEmail) {
-            this.setState({emailError: 'Please use a different email than the one used at signup'});
+            this.setState({emailError: formatMessage(messages.emailError2)});
             return false;
         }
 
@@ -34,6 +51,7 @@ export default class TeamSignupEmailItem extends React.Component {
         return true;
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let emailError = null;
         let emailDivClass = 'form-group';
         if (this.state.emailError) {
@@ -48,7 +66,7 @@ export default class TeamSignupEmailItem extends React.Component {
                     type='email'
                     ref='email'
                     className='form-control'
-                    placeholder='Email Address'
+                    placeholder={formatMessage(messages.address)}
                     defaultValue={this.props.email}
                     maxLength='128'
                     spellCheck='false'
@@ -60,6 +78,9 @@ export default class TeamSignupEmailItem extends React.Component {
 }
 
 TeamSignupEmailItem.propTypes = {
+    intl: intlShape.isRequired,
     focus: React.PropTypes.bool,
     email: React.PropTypes.string
 };
+
+export default injectIntl(TeamSignupEmailItem);

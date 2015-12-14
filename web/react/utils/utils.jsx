@@ -135,14 +135,19 @@ export function notifyMe(title, body, channel) {
             }
 
             if (permission === 'granted') {
-                var notification = new Notification(title, {body: body, tag: body, icon: '/static/images/icon50x50.png'});
+                var icon = '';
+                if (navigator.userAgent.indexOf('ZBoxChat') > -1) {
+                    icon = '/static/images/icon50x50.gif';
+                }
+                var notification = new Notification(title, {body: body, tag: body, icon: icon});
                 notification.onclick = function onClick() {
                     window.focus();
                     if (channel) {
                         switchChannel(channel);
                     } else {
-                        window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/town-square';
+                        window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/general';
                     }
+                    console.log('notification'); // this is necesary to fix matterfront notification bug
                 };
                 setTimeout(function closeNotificationOnTimeout() {
                     notification.close();
@@ -179,11 +184,15 @@ export function getDateForUnixTicks(ticks) {
     return new Date(ticks);
 }
 
-export function displayDate(ticks) {
+export function displayDate(ticks, lang) {
     var d = new Date(ticks);
-    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var monthNames = Constants.MONTHS_ES;
+    if (lang && lang === 'en') {
+        monthNames = Constants.MONTHS;
+        return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    }
 
-    return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    return d.getDate() + ' ' + monthNames[d.getMonth()] + ', ' + d.getFullYear();
 }
 
 export function displayTime(ticks) {
@@ -212,7 +221,7 @@ export function displayTime(ticks) {
     return hours + ':' + minutes + ampm;
 }
 
-export function displayDateTime(ticks) {
+export function displayDateTime(ticks, lang) {
     var seconds = Math.floor((Date.now() - ticks) / 1000);
 
     var interval = Math.floor(seconds / 3600);
@@ -222,23 +231,37 @@ export function displayDateTime(ticks) {
     }
 
     if (interval > 1) {
-        return interval + ' hours ago';
+        if (lang && lang === 'en') {
+            return interval + ' hours ago';
+        }
+        return `hace ${interval} horas`;
     }
 
     if (interval === 1) {
-        return interval + ' hour ago';
+        if (lang && lang === 'en') {
+            return interval + ' hour ago';
+        }
+        return `hace ${interval} hora`;
     }
 
     interval = Math.floor(seconds / 60);
     if (interval >= 2) {
-        return interval + ' minutes ago';
+        if (lang && lang === 'en') {
+            return interval + ' minutes ago';
+        }
+        return `hace ${interval} minutos`;
     }
-
     if (interval >= 1) {
-        return '1 minute ago';
+        if (lang && lang === 'en') {
+            return '1 minute ago';
+        }
+        return 'hace 1 minuto';
     }
 
-    return 'just now';
+    if (lang && lang === 'en') {
+        return 'just now';
+    }
+    return 'justo ahora';
 }
 
 export function displayCommentDateTime(ticks) {
@@ -1229,19 +1252,19 @@ export function sortByDisplayName(a, b) {
     return 0;
 }
 
-export function getChannelTerm(channelType) {
-    let channelTerm = 'Channel';
+export function getChannelTerm(channelType, locale) {
+    let channelTerm = locale === 'en' ? 'Channel' : 'Canal';
     if (channelType === Constants.PRIVATE_CHANNEL) {
-        channelTerm = 'Group';
+        channelTerm = locale === 'en' ? 'Private Group' : 'Grupo Privado';
     }
 
     return channelTerm;
 }
 
-export function getPostTerm(post) {
+export function getPostTerm(post, locale) {
     let postTerm = 'Post';
     if (post.root_id) {
-        postTerm = 'Comment';
+        postTerm = locale === 'en' ? 'Comment' : 'Comentario';
     }
 
     return postTerm;

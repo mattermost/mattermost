@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import TutorialIntroScreens from './tutorial/tutorial_intro_screens.jsx';
 import CreatePost from './create_post.jsx';
 import PostsViewContainer from './posts_view_container.jsx';
@@ -19,7 +20,14 @@ import Constants from '../utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
-export default class CenterPanel extends React.Component {
+const messages = defineMessages({
+    archives: {
+        id: 'center_panel.archives',
+        defaultMessage: 'You are viewing the Archives. Click here to jump to recent messages.'
+    }
+});
+
+class CenterPanel extends React.Component {
     constructor(props) {
         super(props);
 
@@ -48,6 +56,8 @@ export default class CenterPanel extends React.Component {
         this.setState({showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS});
     }
     render() {
+        const {formatMessage} = this.props.intl;
+
         const channel = ChannelStore.getCurrent();
         var handleClick = null;
         let postsContainer;
@@ -71,7 +81,7 @@ export default class CenterPanel extends React.Component {
                         href=''
                         onClick={handleClick}
                     >
-                        {'You are viewing the Archives. Click here to jump to recent messages. '}
+                        {formatMessage(messages.archives)}
                         {<i className='fa fa-arrow-down'></i>}
                     </a>
                 </div>
@@ -120,4 +130,7 @@ CenterPanel.defaultProps = {
 };
 
 CenterPanel.propTypes = {
+    intl: intlShape.isRequired
 };
+
+export default injectIntl(CenterPanel);

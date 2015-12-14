@@ -77,6 +77,9 @@ export default class PostsView extends React.Component {
         this.props.loadMorePostsBottomClicked();
     }
     createPosts(posts, order) {
+        const messages = this.props.translations;
+        const locale = this.props.locale;
+
         const postCtls = [];
         let previousPostDay = new Date(0);
         const userId = UserStore.getCurrentId();
@@ -188,7 +191,7 @@ export default class PostsView extends React.Component {
                         className='date-separator'
                     >
                         <hr className='separator__hr' />
-                        <div className='separator__text'>{currentPostDay.toDateString()}</div>
+                        <div className='separator__text'>{currentPostDay.toLocaleDateString(locale, {weekday: 'short', month: 'short', day: '2-digit', year: 'numeric'}).replace(/,/g, '')}</div>
                     </div>
                 );
             }
@@ -214,7 +217,7 @@ export default class PostsView extends React.Component {
                         <hr
                             className='separator__hr'
                         />
-                        <div className='separator__text'>{'New Messages'}</div>
+                        <div className='separator__text'>{messages.newMsg}</div>
                     </div>
                 );
             }
@@ -325,6 +328,7 @@ export default class PostsView extends React.Component {
         return false;
     }
     render() {
+        const messages = this.props.translations;
         let posts = [];
         let order = [];
         let moreMessagesTop;
@@ -344,7 +348,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsTop}
                     >
-                        {'Load more messages'}
+                        {messages.loadMore}
                     </a>
                 );
             } else {
@@ -360,7 +364,7 @@ export default class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsBottom}
                     >
-                        {'Load more messages'}
+                        {messages.loadMore}
                     </a>
                 );
             } else {
@@ -411,5 +415,7 @@ PostsView.propTypes = {
     showMoreMessagesBottom: React.PropTypes.bool,
     introText: React.PropTypes.element,
     messageSeparatorTime: React.PropTypes.number,
-    postsToHighlight: React.PropTypes.object
+    postsToHighlight: React.PropTypes.object,
+    locale: React.PropTypes.string.isRequired,
+    translations: React.PropTypes.object.isRequired
 };

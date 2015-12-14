@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
+
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
@@ -9,7 +11,46 @@ import * as client from '../utils/client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as utils from '../utils/utils.jsx';
 
-export default class SidebarRightMenu extends React.Component {
+const messages = defineMessages({
+    inviteNew: {
+        id: 'sidebar_right_menu.inviteNew',
+        defaultMessage: 'Invite New Member'
+    },
+    teamLink: {
+        id: 'sidebar_right_menu.teamLink',
+        defaultMessage: 'Get Team Invite Link'
+    },
+    teamSettings: {
+        id: 'sidebar_right_menu.teamSettings',
+        defaultMessage: 'Team Settings'
+    },
+    manageTeams: {
+        id: 'sidebar_right_menu.manageTeams',
+        defaultMessage: 'Manage Members'
+    },
+    console: {
+        id: 'sidebar_right_menu.console',
+        defaultMessage: 'System Console'
+    },
+    accountSettings: {
+        id: 'sidebar_right_menu.accountSettings',
+        defaultMessage: 'Account Settings'
+    },
+    logout: {
+        id: 'sidebar_right_menu.logout',
+        defaultMessage: 'Logout'
+    },
+    help: {
+        id: 'sidebar_right_menu.help',
+        defaultMessage: 'Help'
+    },
+    report: {
+        id: 'sidebar_right_menu.report',
+        defaultMessage: 'Report a Problem'
+    }
+});
+
+class SidebarRightMenu extends React.Component {
     componentDidMount() {
         $('.sidebar--left .dropdown-menu').perfectScrollbar();
     }
@@ -30,6 +71,7 @@ export default class SidebarRightMenu extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         var teamLink = '';
         var inviteLink = '';
         var teamSettingsLink = '';
@@ -49,7 +91,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={EventHelpers.showInviteMemberModal}
                     >
-                        <i className='fa fa-user'></i>Invite New Member
+                        <i className='fa fa-user'></i>{formatMessage(messages.inviteNew)}
                     </a>
                 </li>
             );
@@ -61,7 +103,7 @@ export default class SidebarRightMenu extends React.Component {
                             href='#'
                             onClick={EventHelpers.showGetTeamInviteLinkModal}
                         >
-                            <i className='glyphicon glyphicon-link'></i>{'Get Team Invite Link'}
+                            <i className='glyphicon glyphicon-link'></i>{formatMessage(messages.teamLink)}
                         </a>
                     </li>
                 );
@@ -75,13 +117,13 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
-                    ><i className='fa fa-globe'></i>Team Settings</a>
+                    ><i className='fa fa-globe'></i>{formatMessage(messages.teamSettings)}</a>
                 </li>
             );
             manageLink = (
                 <li>
                     <ToggleModalButton dialogType={TeamMembersModal}>
-                        <i className='fa fa-users'></i>{'Manage Members'}
+                        <i className='fa fa-users'></i>{formatMessage(messages.manageTeams)}
                     </ToggleModalButton>
                 </li>
             );
@@ -93,7 +135,7 @@ export default class SidebarRightMenu extends React.Component {
                     <a
                         href={'/admin_console?' + utils.getSessionIndex()}
                     >
-                    <i className='fa fa-wrench'></i>System Console</a>
+                    <i className='fa fa-wrench'></i>{formatMessage(messages.console)}</a>
                 </li>
             );
         }
@@ -112,7 +154,7 @@ export default class SidebarRightMenu extends React.Component {
                 <div className='team__header theme'>
                     <a
                         className='team__name'
-                        href='/channels/town-square'
+                        href='/channels/general'
                     >{teamDisplayName}</a>
                 </div>
 
@@ -123,7 +165,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                <i className='fa fa-cog'></i>Account Settings
+                                <i className='fa fa-cog'></i>{formatMessage(messages.accountSettings)}
                             </a>
                         </li>
                         {teamSettingsLink}
@@ -135,18 +177,18 @@ export default class SidebarRightMenu extends React.Component {
                             <a
                                 href='#'
                                 onClick={this.handleLogoutClick}
-                            ><i className='fa fa-sign-out'></i>Logout</a></li>
+                            ><i className='fa fa-sign-out'></i>{formatMessage(messages.logout)}</a></li>
                         <li className='divider'></li>
                         <li>
                             <a
                                 target='_blank'
-                                href='/static/help/help.html'
-                            ><i className='fa fa-question'></i>Help</a></li>
+                                href='http://ayuda.zboxapp.com/collection/65-chat'
+                            ><i className='fa fa-question'></i>{formatMessage(messages.help)}</a></li>
                         <li>
                             <a
                                 target='_blank'
-                                href='/static/help/report_problem.html'
-                            ><i className='fa fa-phone'></i>Report a Problem</a></li>
+                                href='http://ayuda.zboxapp.com/collection/65-chat#contactModal'
+                            ><i className='fa fa-phone'></i>{formatMessage(messages.report)}</a></li>
                     </ul>
                 </div>
                 <UserSettingsModal
@@ -159,6 +201,9 @@ export default class SidebarRightMenu extends React.Component {
 }
 
 SidebarRightMenu.propTypes = {
+    intl: intlShape.isRequired,
     teamType: React.PropTypes.string,
     teamDisplayName: React.PropTypes.string
 };
+
+export default injectIntl(SidebarRightMenu);

@@ -35,3 +35,39 @@
 </body>
 </html>
 {{end}}
+
+{{define "welcome_es"}}
+<!DOCTYPE html>
+<html>
+{{template "head" . }}
+<body>
+<div class="container-fluid">
+    <div class="inner__wrap">
+        <div class="row header">
+            <div id="navbar"></div>
+        </div>
+        <div class="row main">
+            <div class="app__content">
+                <div class="welcome-info">
+                    <h1>Bienvenido a {{ .ClientProps.SiteName }}!</h1>
+                    <p>
+                        No pareces ser parte de ning&uacute;n equipo. Por favor contacta a
+                        tu administrador para que te incorpore al equipo.
+                    </p>
+                    <div class="alert alert-warning">
+                        Si fuiste invitado a algún equipo que no logras ver, es porque debes
+                        confirmar tu correo electrónico antes de obtener acceso al equipo.
+                    </div>
+                    <div id="new_channel">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.setup_welcome_page();
+</script>
+</body>
+</html>
+{{end}}

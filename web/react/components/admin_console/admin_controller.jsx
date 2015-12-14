@@ -20,6 +20,7 @@ import TeamSettingsTab from './team_settings.jsx';
 import ServiceSettingsTab from './service_settings.jsx';
 import TeamUsersTab from './team_users.jsx';
 import TeamAnalyticsTab from './team_analytics.jsx';
+import ZBoxSettingsTab from './zbox_settings.jsx';
 
 export default class AdminController extends React.Component {
     constructor(props) {
@@ -142,6 +143,8 @@ export default class AdminController extends React.Component {
                 tab = <RateSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'gitlab_settings') {
                 tab = <GitLabSettingsTab config={this.state.config} />;
+            } else if (this.state.selected === 'zbox_settings') {
+                tab = <ZBoxSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'sql_settings') {
                 tab = <SqlSettingsTab config={this.state.config} />;
             } else if (this.state.selected === 'team_settings') {

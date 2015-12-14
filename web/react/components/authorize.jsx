@@ -2,8 +2,40 @@
 // See License.txt for license information.
 
 import * as Client from '../utils/client.jsx';
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class Authorize extends React.Component {
+const messages = defineMessages({
+    accountDescription1: {
+        id: 'authorize.accountDescription1',
+        defaultMessage: 'An application would like to connect to your '
+    },
+    accountDescription2: {
+        id: 'authorize.accountDescription2',
+        defaultMessage: ' account'
+    },
+    theApp: {
+        id: 'authorize.theApp',
+        defaultMessage: 'The app '
+    },
+    appAccess: {
+        id: 'authorize.appAccess',
+        defaultMessage: ' would like the ability to access and modify your basic information.'
+    },
+    allowAccess: {
+        id: 'authorize.allowAccess',
+        defaultMessage: 'Allow access to '
+    },
+    allow: {
+        id: 'authorize.allow',
+        defaultMessage: 'Allow'
+    },
+    deny: {
+        id: 'authorize.deny',
+        defaultMessage: 'Deny'
+    }
+});
+
+class Authorize extends React.Component {
     constructor(props) {
         super(props);
 
@@ -32,28 +64,33 @@ export default class Authorize extends React.Component {
         window.location.replace(this.props.redirectUri + '?error=access_denied');
     }
     render() {
+        const {formatMessage} = this.props.intl;
+        var accountDescription = formatMessage(messages.accountDescription1) + this.props.teamName + formatMessage(messages.accountDescription2);
+        if (this.props.intl.locale === 'es') {
+            accountDescription = formatMessage(messages.accountDescription1) + formatMessage(messages.accountDescription2) + this.props.teamName;
+        }
         return (
             <div className='authorize-box'>
                 <div className='authorize-inner'>
-                    <h3>{'An application would like to connect to your '}{this.props.teamName}{' account'}</h3>
-                    <label>{'The app '}{this.props.appName}{' would like the ability to access and modify your basic information.'}</label>
+                    <h3>{accountDescription}</h3>
+                    <label>{formatMessage(messages.theApp) + this.props.appName + formatMessage(messages.appAccess)}</label>
                     <br/>
                     <br/>
-                    <label>{'Allow '}{this.props.appName}{' access?'}</label>
+                    <label>{formatMessage(messages.allowAccess) + this.props.appName + '?'}</label>
                     <br/>
                     <button
                         type='submit'
                         className='btn authorize-btn'
                         onClick={this.handleDeny}
                     >
-                        {'Deny'}
+                        {formatMessage(messages.deny)}
                     </button>
                     <button
                         type='submit'
                         className='btn btn-primary authorize-btn'
                         onClick={this.handleAllow}
                     >
-                        {'Allow'}
+                        {formatMessage(messages.allow)}
                     </button>
                 </div>
             </div>
@@ -62,6 +99,7 @@ export default class Authorize extends React.Component {
 }
 
 Authorize.propTypes = {
+    intl: intlShape.isRequired,
     appName: React.PropTypes.string,
     teamName: React.PropTypes.string,
     responseType: React.PropTypes.string,
@@ -70,3 +108,5 @@ Authorize.propTypes = {
     state: React.PropTypes.string,
     scope: React.PropTypes.string
 };
+
+export default injectIntl(Authorize);

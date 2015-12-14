@@ -1,10 +1,54 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-export default class UserItem extends React.Component {
+const messages = defineMessages({
+    member: {
+        id: 'admin.userItem.member',
+        defaultMessage: 'Member'
+    },
+    systemAdmin: {
+        id: 'admin.userItems.systemAdmin',
+        defaultMessage: 'System Admin'
+    },
+    admin: {
+        id: 'admin.userItems.admin',
+        defaultMessage: 'Team Admin'
+    },
+    inactive: {
+        id: 'admin.userItems.inactive',
+        defaultMessage: 'Inactive'
+    },
+    makeSysAdmin: {
+        id: 'admin.userItems.makeSysAdmin',
+        defaultMessage: 'Make System Admin'
+    },
+    makeAdmin: {
+        id: 'admin.userItems.makeAdmin',
+        defaultMessage: 'Make Team Admin'
+    },
+    makeMember: {
+        id: 'admin.userItems.makeMember',
+        defaultMessage: 'Make Member'
+    },
+    makeActive: {
+        id: 'admin.userItems.makeActive',
+        defaultMessage: 'Make Active'
+    },
+    makeInactive: {
+        id: 'admin.userItems.makeInactive',
+        defaultMessage: 'Make Inactive'
+    },
+    reset: {
+        id: 'admin.userItems.reset',
+        defaultMessage: 'Reset Password'
+    }
+});
+
+class UserItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -99,6 +143,7 @@ export default class UserItem extends React.Component {
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -109,14 +154,12 @@ export default class UserItem extends React.Component {
         }
 
         const user = this.props.user;
-        let currentRoles = 'Member';
+        let currentRoles = formatMessage(messages.member);
         if (user.roles.length > 0) {
             if (Utils.isSystemAdmin(user.roles)) {
-                currentRoles = 'System Admin';
+                currentRoles = formatMessage(messages.systemAdmin);
             } else if (Utils.isAdmin(user.roles)) {
-                currentRoles = 'Team Admin';
-            } else {
-                currentRoles = user.roles.charAt(0).toUpperCase() + user.roles.slice(1);
+                currentRoles = formatMessage(messages.admin);
             }
         }
 
@@ -128,7 +171,7 @@ export default class UserItem extends React.Component {
         let showMakeNotActive = user.roles !== 'system_admin';
 
         if (user.delete_at > 0) {
-            currentRoles = 'Inactive';
+            currentRoles = formatMessage(messages.inactive);
             showMakeMember = false;
             showMakeAdmin = false;
             showMakeSystemAdmin = false;
@@ -145,7 +188,7 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeSystemAdmin}
                     >
-                        {'Make System Admin'}
+                        {formatMessage(messages.makeSysAdmin)}
                     </a>
                 </li>
             );
@@ -160,7 +203,7 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeAdmin}
                     >
-                        {'Make Team Admin'}
+                        {formatMessage(messages.makeAdmin)}
                     </a>
                 </li>
             );
@@ -175,7 +218,7 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeMember}
                     >
-                        {'Make Member'}
+                        {formatMessage(messages.makeMember)}
                     </a>
                 </li>
             );
@@ -190,7 +233,7 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeActive}
                     >
-                        {'Make Active'}
+                        {formatMessage(messages.makeActive)}
                     </a>
                 </li>
             );
@@ -205,7 +248,7 @@ export default class UserItem extends React.Component {
                         href='#'
                         onClick={this.handleMakeNotActive}
                     >
-                        {'Make Inactive'}
+                        {formatMessage(messages.makeInactive)}
                     </a>
                 </li>
             );
@@ -248,7 +291,7 @@ export default class UserItem extends React.Component {
                                     href='#'
                                     onClick={this.handleResetPassword}
                                 >
-                                    {'Reset Password'}
+                                    {formatMessage(messages.reset)}
                                 </a>
                             </li>
                         </ul>
@@ -261,7 +304,10 @@ export default class UserItem extends React.Component {
 }
 
 UserItem.propTypes = {
+    intl: intlShape.isRequired,
     user: React.PropTypes.object.isRequired,
     refreshProfiles: React.PropTypes.func.isRequired,
     doPasswordReset: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(UserItem);

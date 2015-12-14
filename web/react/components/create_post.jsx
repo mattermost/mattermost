@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
 import MsgTyping from './msg_typing.jsx';
 import Textbox from './textbox.jsx';
 import FileUpload from './file_upload.jsx';
@@ -25,8 +26,30 @@ const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
+const messages = defineMessages({
+    postLength: {
+        id: 'create_post.postLength',
+        defaultMessage: 'Post length must be less than'
+    },
+    chars: {
+        id: 'create_post.chars',
+        defaultMessage: 'characters.'
+    },
+    invalidRoot: {
+        id: 'create_post.invalidRoot',
+        defaultMessage: 'Invalid RootId parameter'
+    },
+    write: {
+        id: 'post_create.write',
+        defaultMessage: 'Write a message...'
+    },
+    tutorialTip: {
+        id: 'post_create.tutorialTip',
+        defaultMessage: '<h4>Sending Messages</h4> <p>Type here to write a message and press <strong>Enter</strong> to post it.</p><p>Click the <strong>Attachment</strong> button to upload an image or a file.</p>'
+    }
+});
 
-export default class CreatePost extends React.Component {
+class CreatePost extends React.Component {
     constructor(props) {
         super(props);
 
@@ -112,6 +135,7 @@ export default class CreatePost extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        const {formatMessage} = this.props.intl;
         if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
             return;
         }
@@ -125,7 +149,7 @@ export default class CreatePost extends React.Component {
         }
 
         if (post.message.length > Constants.CHARACTER_LIMIT) {
-            this.setState({postError: `Post length must be less than ${Constants.CHARACTER_LIMIT} characters.`});
+            this.setState({postError: `${formatMessage(messages.postLength)} ${Constants.CHARACTER_LIMIT} ${formatMessage(messages.chars)}`});
             return;
         }
 
@@ -165,6 +189,8 @@ export default class CreatePost extends React.Component {
         }
     }
     sendMessage(post) {
+        const {formatMessage} = this.props.intl;
+
         post.channel_id = this.state.channelId;
         post.filenames = this.state.previews;
 
@@ -195,7 +221,7 @@ export default class CreatePost extends React.Component {
             (err) => {
                 const state = {};
 
-                if (err.message === 'Invalid RootId parameter') {
+                if (err.message === formatMessage(messages.invalidRoot)) {
                     if ($('#post_deleted').length > 0) {
                         $('#post_deleted').modal('show');
                     }
@@ -379,9 +405,9 @@ export default class CreatePost extends React.Component {
 
         screens.push(
             <div>
-                <h4>{'Sending Messages'}</h4>
-                <p>{'Type here to write a message and press '}<strong>{'Enter'}</strong>{' to post it.'}</p>
-                <p>{'Click the '}<strong>{'Attachment'}</strong>{' button to upload an image or a file.'}</p>
+                <FormattedHTMLMessage
+                    id='post_create.tutorialTip'
+                />
             </div>
         );
 
@@ -394,6 +420,7 @@ export default class CreatePost extends React.Component {
         );
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -445,7 +472,7 @@ export default class CreatePost extends React.Component {
                                 onKeyDown={this.handleKeyDown}
                                 onHeightChange={this.resizePostHolder}
                                 messageText={this.state.messageText}
-                                createMessage='Write a message...'
+                                createMessage={formatMessage(messages.write)}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
                                 ref='textbox'
@@ -483,3 +510,9 @@ export default class CreatePost extends React.Component {
         );
     }
 }
+
+CreatePost.propTypes = {
+    intl: intlShape.isRequired
+};
+
+export default injectIntl(CreatePost);

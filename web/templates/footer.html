@@ -4,11 +4,32 @@
         <span class="pull-right footer-site-name">{{ .ClientCfg.SiteName }}</span>
     </div>
     <div class="col-xs-12">
-        <span class="pull-right footer-link copyright">© 2015 Mattermost, Inc.</span>
+        <span class="pull-right footer-link copyright">© 2015 ZBox Spa</span>
         <a id="help_link" class="pull-right footer-link" href="#">Help</a>
         <a id="terms_link" class="pull-right footer-link" href="#">Terms</a>
         <a id="privacy_link" class="pull-right footer-link" href="#">Privacy</a>
         <a id="about_link" class="pull-right footer-link" href="#">About</a>
+    </div>
+</div>
+<script>
+    document.getElementById("help_link").setAttribute("href", '/static/help/help.html');
+    document.getElementById("terms_link").setAttribute("href", '/static/help/terms.html');
+    document.getElementById("privacy_link").setAttribute("href", '/static/help/privacy.html');
+    document.getElementById("about_link").setAttribute("href", '/static/help/about.html');
+</script>
+{{end}}
+
+{{define "footer_es"}}
+<div class="footer-pane col-xs-12">
+    <div class="col-xs-12">
+        <span class="pull-right footer-site-name">{{ .ClientCfg.SiteName }}</span>
+    </div>
+    <div class="col-xs-12">
+        <span class="pull-right footer-link copyright">© 2015 ZBox Spa</span>
+        <a id="help_link" class="pull-right footer-link" href="#">Ayuda</a>
+        <a id="terms_link" class="pull-right footer-link" href="#">Terminos</a>
+        <a id="privacy_link" class="pull-right footer-link" href="#">Privacidad</a>
+        <a id="about_link" class="pull-right footer-link" href="#">Acerca</a>
     </div>
 </div>
 <script>

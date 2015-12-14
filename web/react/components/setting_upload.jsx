@@ -1,7 +1,23 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
-export default class SettingsUpload extends React.Component {
+const messages = defineMessages({
+    noFile: {
+        id: 'setting_upload.noFile',
+        defaultMessage: 'No file selected.'
+    },
+    select: {
+        id: 'setting_upload.select',
+        defaultMessage: 'Select file'
+    },
+    import: {
+        id: 'setting_upload.import',
+        defaultMessage: 'Import'
+    }
+});
+
+class SettingsUpload extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,16 +52,18 @@ export default class SettingsUpload extends React.Component {
     }
 
     doSubmit(e) {
+        const {formatMessage} = this.props.intl;
         e.preventDefault();
         var inputnode = ReactDOM.findDOMNode(this.refs.uploadinput);
         if (inputnode.files && inputnode.files[0]) {
             this.props.submit(inputnode.files[0]);
         } else {
-            this.setState({clientError: 'No file selected.'});
+            this.setState({clientError: formatMessage(messages.noFile)});
         }
     }
 
     render() {
+        const {formatMessage} = this.props.intl;
         let clientError = null;
         if (this.state.clientError) {
             clientError = (
@@ -75,7 +93,7 @@ export default class SettingsUpload extends React.Component {
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
-                                {'Select file'}
+                                {formatMessage(messages.select)}
                                 <input
                                     ref='uploadinput'
                                     accept={this.props.fileTypesAccepted}
@@ -87,7 +105,7 @@ export default class SettingsUpload extends React.Component {
                                 className={submitButtonClass}
                                 onClick={this.doSubmit}
                             >
-                                {'Import'}
+                                {formatMessage(messages.import)}
                             </a>
                             {fileNameText}
                             {serverError}
@@ -101,6 +119,7 @@ export default class SettingsUpload extends React.Component {
 }
 
 SettingsUpload.propTypes = {
+    intl: intlShape.isRequired,
     title: React.PropTypes.string.isRequired,
     submit: React.PropTypes.func.isRequired,
     fileTypesAccepted: React.PropTypes.string.isRequired,
@@ -108,3 +127,5 @@ SettingsUpload.propTypes = {
     serverError: React.PropTypes.string,
     helpText: React.PropTypes.object
 };
+
+export default injectIntl(SettingsUpload);

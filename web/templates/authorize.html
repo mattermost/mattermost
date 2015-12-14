@@ -19,8 +19,35 @@
         </div>
     </div>
     <script>
-        window.setup_authorize_page('{{.Props}}');
+        window.setup_authorize_page({{.Props}});
     </script>
+</body>
+</html>
+{{end}}
+
+{{define "authorize_es"}}
+<html>
+{{template "head" . }}
+<body>
+<div class="container-fluid">
+    <div class="oauth-prompt">
+        <div class="prompt__heading">
+            <div class="prompt__app-icon">
+                <img src="/static/images/icon50x50.gif" width="50" height="50" alt="">
+            </div>
+            <div class="text">Hay una aplicaci&oacute;n solicitando conectarse con tu cuenta de {{.Props.TeamName}}.</div>
+        </div>
+        <p>La app <strong>{{.Props.AppName}}</strong> desea tener la posibilidad de accesar ZBox Chat en tu nombre.</p>
+        <h2 class="prompt__allow">Permitir a <strong>{{.Props.AppName}}</strong> el acceso?</h2>
+        <div class="prompt__buttons">
+            <input type="button" class="btn btn-link" value="Denegar">
+            <input type="button" class="btn btn-primary" value="Permitir">
+        </div>
+    </div>
+</div>
+<script>
+    window.setup_authorize_page({{.Props}});
+</script>
 </body>
 </html>
 {{end}}

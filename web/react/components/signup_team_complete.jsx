@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import WelcomePage from './team_signup_welcome_page.jsx';
 import TeamDisplayNamePage from './team_signup_display_name_page.jsx';
 import TeamURLPage from './team_signup_url_page.jsx';
@@ -9,7 +10,14 @@ import UsernamePage from './team_signup_username_page.jsx';
 import PasswordPage from './team_signup_password_page.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 
-export default class SignupTeamComplete extends React.Component {
+const messages = defineMessages({
+    completed: {
+        id: 'signup_team_complete.completed',
+        defaultMessage: "You've already completed the signup process for this invitation or this invitation has expired."
+    }
+});
+
+class SignupTeamComplete extends React.Component {
     constructor(props) {
         super(props);
 
@@ -42,6 +50,7 @@ export default class SignupTeamComplete extends React.Component {
         }
     }
     render() {
+        const {formatMessage} = this.props.intl;
         if (this.state.wizard === 'welcome') {
             return (
                 <WelcomePage
@@ -96,7 +105,7 @@ export default class SignupTeamComplete extends React.Component {
             );
         }
 
-        return (<div>You've already completed the signup process for this invitation or this invitation has expired.</div>);
+        return (<div>{formatMessage(messages.completed)}</div>);
     }
 }
 
@@ -106,7 +115,10 @@ SignupTeamComplete.defaultProps = {
     data: ''
 };
 SignupTeamComplete.propTypes = {
+    intl: intlShape.isRequried,
     hash: React.PropTypes.string,
     email: React.PropTypes.string,
     data: React.PropTypes.string
 };
+
+export default injectIntl(SignupTeamComplete);

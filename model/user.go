@@ -236,7 +236,6 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 func (u *User) ClearNonProfileFields() {
-	u.CreateAt = 0
 	u.UpdateAt = 0
 	u.Password = ""
 	u.AuthData = ""

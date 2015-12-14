@@ -7,8 +7,52 @@ import * as AsyncClient from '../utils/async_client.jsx';
 const Modal = ReactBootstrap.Modal;
 import LoadingScreen from './loading_screen.jsx';
 import * as Utils from '../utils/utils.jsx';
+import {intlShape, injectIntl, defineMessages, FormattedDate} from 'react-intl';
 
-export default class ActivityLogModal extends React.Component {
+const messages = defineMessages({
+    firstTime: {
+        id: 'activity_log.firstTime',
+        defaultMessage: 'First time active:'
+    },
+    os: {
+        id: 'activity_log.os',
+        defaultMessage: 'OS:'
+    },
+    browser: {
+        id: 'activity_log.browser',
+        defaultMessage: 'Browser:'
+    },
+    sessionId: {
+        id: 'activity_log.sessionId',
+        defaultMessage: 'Session ID:'
+    },
+    moreInfo: {
+        id: 'activity_log.moreInfo',
+        defaultMessage: 'More info'
+    },
+    lastActivity: {
+        id: 'activity_log.lastActivity',
+        defaultMessage: 'Last activity:'
+    },
+    logout: {
+        id: 'activity_log.logout',
+        defaultMessage: 'Logout'
+    },
+    close: {
+        id: 'activity_log.close',
+        defaultMessage: 'Close'
+    },
+    activeSessions: {
+        id: 'activity_log.activeSessions',
+        defaultMessage: 'Active Sessions'
+    },
+    sessionsDescription: {
+        id: 'activity_log.sessionsDescription',
+        defaultMessage: 'Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the \'Logout\' button below to end a session.'
+    }
+});
+
+class ActivityLogModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -89,6 +133,7 @@ export default class ActivityLogModal extends React.Component {
         this.setState({moreInfo: newMoreInfo});
     }
     render() {
+        const {formatMessage} = this.props.intl;
         let activityList = [];
 
         for (let i = 0; i < this.state.sessions.length; i++) {
@@ -115,10 +160,20 @@ export default class ActivityLogModal extends React.Component {
             if (this.state.moreInfo[i]) {
                 moreInfo = (
                     <div>
-                        <div>{`First time active: ${firstAccessTime.toDateString()}, ${lastAccessTime.toLocaleTimeString()}`}</div>
-                        <div>{`OS: ${currentSession.props.os}`}</div>
-                        <div>{`Browser: ${currentSession.props.browser}`}</div>
-                        <div>{`Session ID: ${currentSession.id}`}</div>
+                        <div>{formatMessage(messages.firstTime)}
+                            <FormattedDate
+                                value={firstAccessTime}
+                                hour='2-digit'
+                                minute='2-digit'
+                                second='2-digit'
+                                day='2-digit'
+                                month='short'
+                                year='numeric'
+                            />
+                        </div>
+                        <div>{`${formatMessage(messages.os)} ${currentSession.props.os}`}</div>
+                        <div>{`${formatMessage(messages.browser)} ${currentSession.props.browser}`}</div>
+                        <div>{`${formatMessage(messages.sessionId)} ${currentSession.id}`}</div>
                     </div>
                 );
             } else {
@@ -128,7 +183,7 @@ export default class ActivityLogModal extends React.Component {
                         href='#'
                         onClick={this.handleMoreInfo.bind(this, i)}
                     >
-                        More info
+                        {formatMessage(messages.moreInfo)}
                     </a>
                 );
             }
@@ -141,7 +196,17 @@ export default class ActivityLogModal extends React.Component {
                     <div className='activity-log__report'>
                         <div className='report__platform'><i className={devicePicture} />{devicePlatform}</div>
                         <div className='report__info'>
-                            <div>{`Last activity: ${lastAccessTime.toDateString()}, ${lastAccessTime.toLocaleTimeString()}`}</div>
+                            <div>{formatMessage(messages.lastActivity)}
+                                <FormattedDate
+                                    value={lastAccessTime}
+                                    hour='2-digit'
+                                    minute='2-digit'
+                                    second='2-digit'
+                                    day='2-digit'
+                                    month='short'
+                                    year='numeric'
+                                />
+                            </div>
                             {moreInfo}
                         </div>
                     </div>
@@ -150,7 +215,7 @@ export default class ActivityLogModal extends React.Component {
                             onClick={this.submitRevoke.bind(this, currentSession.id)}
                             className='btn btn-primary'
                         >
-                            Logout
+                            {formatMessage(messages.logout)}
                         </button>
                     </div>
                 </div>
@@ -171,10 +236,10 @@ export default class ActivityLogModal extends React.Component {
                 bsSize='large'
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{'Active Sessions'}</Modal.Title>
+                    <Modal.Title>{formatMessage(messages.activeSessions)}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
-                    <p className='session-help-text'>{'Sessions are created when you log in with your email and password to a new browser on a device. Sessions let you use Mattermost for up to 30 days without having to log in again. If you want to log out sooner, use the \'Logout\' button below to end a session.'}</p>
+                    <p className='session-help-text'>{formatMessage(messages.sessionsDescription)}</p>
                     {content}
                 </Modal.Body>
             </Modal>
@@ -183,6 +248,9 @@ export default class ActivityLogModal extends React.Component {
 }
 
 ActivityLogModal.propTypes = {
+    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired
 };
+
+export default injectIntl(ActivityLogModal);
