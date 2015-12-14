@@ -133,7 +133,7 @@ echo "Hello World"
 
 ### CoffeeScript
 
-``` coffee
+``` coffeescript
 console.log(“Hello world!”);
 ```
 
