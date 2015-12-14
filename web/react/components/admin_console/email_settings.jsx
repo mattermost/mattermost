@@ -586,7 +586,7 @@ export default class EmailSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendPushNotifications}
                             />
-                            <p className='help-text'>{'Location of the push notification server.'}</p>
+                            <p className='help-text'>{'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'}</p>
                         </div>
                     </div>
 
