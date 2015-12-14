@@ -124,7 +124,7 @@ To limit the impact of this security issue, Mattermost v1.2.0 has been removed f
 
 #### Syntax Highlighting 
 
-- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, JavaScript, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`
+- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, JavaScript, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, CoffeeScript, C, SQL, Go, Ruby, Java, and ini`
 
 #### Usability Improvements 
 
@@ -161,7 +161,7 @@ User Interface
 - Member list in Channel display now scrollable, and includes Message button to message channel members directly
 - Added ability to edit previous message by hitting UP arrow 
 - Syntax highlighting added for code blocks 
-   - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`. 
+   - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, CoffeeScript, C, SQL, Go, Ruby, Java, and ini`. 
    - Use by adding the name of the language on the first link of the code block, for example: ```python
    - Syntax color theme can be defined under **Account Settings** > **Appearance Settings** > **Custom Theme**
 - Updated Drag & Drop UI
