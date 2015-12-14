@@ -514,6 +514,7 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 			subjectPage.Props["TeamDisplayName"] = team.DisplayName
 
 			bodyPage := NewServerTemplatePage("invite_body")
+			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["TeamURL"] = c.GetTeamURL()
 			bodyPage.Props["TeamDisplayName"] = team.DisplayName
 			bodyPage.Props["SenderName"] = sender
