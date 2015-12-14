@@ -17,6 +17,8 @@ export default class RhsThread extends React.Component {
     constructor(props) {
         super(props);
 
+        this.mounted = false;
+
         this.onChange = this.onChange.bind(this);
         this.onChangeAll = this.onChangeAll.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
@@ -50,8 +52,11 @@ export default class RhsThread extends React.Component {
         PostStore.addSelectedPostChangeListener(this.onChange);
         PostStore.addChangeListener(this.onChangeAll);
         PreferenceStore.addChangeListener(this.forceUpdateInfo);
+
         this.resize();
         window.addEventListener('resize', this.handleResize);
+
+        this.mounted = true;
     }
     componentDidUpdate() {
         if ($('.post-right__scroll')[0]) {
@@ -63,7 +68,10 @@ export default class RhsThread extends React.Component {
         PostStore.removeSelectedPostChangeListener(this.onChange);
         PostStore.removeChangeListener(this.onChangeAll);
         PreferenceStore.removeChangeListener(this.forceUpdateInfo);
+
         window.removeEventListener('resize', this.handleResize);
+
+        this.mounted = false;
     }
     forceUpdateInfo() {
         if (this.state.postList) {
@@ -82,7 +90,7 @@ export default class RhsThread extends React.Component {
     }
     onChange() {
         var newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(newState, this.state)) {
+        if (this.mounted && !Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
@@ -120,7 +128,7 @@ export default class RhsThread extends React.Component {
         }
 
         var newState = this.getStateFromStores();
-        if (!Utils.areObjectsEqual(newState, this.state)) {
+        if (this.mounted && !Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
     }
