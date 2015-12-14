@@ -58,8 +58,7 @@ Any issues? Please let us know on our forums at: http://forum.mattermost.org
 	1. `mkdir ~/go`
 	2. Add the following to your ~/.bashrc  
 		`export GOPATH=$HOME/go`  
-		`export GOROOT=/usr/local/go`  
-		`export PATH=$PATH:$GOROOT/bin`  
+		`export PATH=$PATH:$GOPATH/bin`  
 		`ulimit -n 8096`  
 		If you don't increase the file handle limit you may see some weird build issues with browserify or npm.  
 	3. Reload your bashrc  
