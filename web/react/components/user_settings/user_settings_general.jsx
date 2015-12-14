@@ -9,6 +9,7 @@ import UserStore from '../../stores/user_store.jsx';
 import ErrorStore from '../../stores/error_store.jsx';
 
 import * as Client from '../../utils/client.jsx';
+import Constants from '../../utils/constants.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
@@ -156,7 +157,11 @@ export default class UserSettingsGeneralTab extends React.Component {
         if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
             this.setState({clientError: 'Only JPG or PNG images may be used for profile pictures.'});
             return;
+        } else if (picture.size > Constants.MAX_FILE_SIZE) {
+            this.setState({clientError: 'Unable to upload profile image. File is too large.'});
+            return;
         }
+
 
         var formData = new FormData();
         formData.append('image', picture, picture.name);
