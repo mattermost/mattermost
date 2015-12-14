@@ -8,7 +8,7 @@
     padding: 0;
     background: #fff;
     @include single-transition(transform, 0.5s, ease);
-    right: -320px;
+    right: -400px;
 
     &.move--left {
         right: 0;
