@@ -246,6 +246,7 @@ export function loginByEmail(name, email, password, success, error) {
         data: JSON.stringify({name: name, email: email, password: password}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_login_success', data.team_id, 'email', data.email);
+            BrowserStore.signalLogin();
             success(data, textStatus, xhr);
         },
         error: function onError(xhr, status, err) {

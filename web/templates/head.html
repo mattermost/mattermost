@@ -68,6 +68,16 @@
                     console.log('detected logout from a different tab');
                     window.location.href = '/' + window.mm_team.name;
                 }
+
+                if (e.originalEvent.key === '__login__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
+                    // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
+                    if (window.BrowserStore.isSignallingLogin(e.originalEvent.newValue)) {
+                        return;
+                    }
+
+                    console.log('detected login from a different tab');
+                    window.location.href = '/';
+                }
             });
         });
     </script>
