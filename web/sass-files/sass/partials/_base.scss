@@ -43,12 +43,6 @@ body {
     @include clearfix;
     height: 100%;
     position: relative;
-    .container-fluid {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
 }
 
 img {
