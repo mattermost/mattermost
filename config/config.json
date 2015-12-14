@@ -10,7 +10,7 @@
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
-        "EnableDeveloper": true,
+        "EnableDeveloper": false,
         "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
