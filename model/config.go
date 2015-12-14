@@ -33,6 +33,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride bool
 	EnablePostIconOverride     bool
 	EnableTesting              bool
+	EnableDeveloper            *bool
 	EnableSecurityFixAlert     *bool
 }
 
@@ -189,6 +190,11 @@ func (o *Config) SetDefaults() {
 
 	if len(o.EmailSettings.PasswordResetSalt) == 0 {
 		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
+	}
+
+	if o.ServiceSettings.EnableDeveloper == nil {
+		o.ServiceSettings.EnableDeveloper = new(bool)
+		*o.ServiceSettings.EnableDeveloper = false
 	}
 
 	if o.ServiceSettings.EnableSecurityFixAlert == nil {
