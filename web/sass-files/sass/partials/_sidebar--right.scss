@@ -8,10 +8,10 @@
     padding: 0;
     background: #fff;
     @include single-transition(transform, 0.5s, ease);
-    right: -320px;
+    @include translateX(400px);
 
     &.move--left {
-        right: 0;
+        @include translateX(0);
     }
 
     .post-body {

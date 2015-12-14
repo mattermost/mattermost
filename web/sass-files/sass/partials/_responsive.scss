@@ -54,9 +54,7 @@
 @media screen and (max-width: 960px) {
 
     .sidebar--right {
-        width: 400px;
         z-index: 5;
-        right: 0;
         @include translateX(100%);
 
         &.move--left {
