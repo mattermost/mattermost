@@ -236,7 +236,66 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		if triggerWebhooks {
 			handleWebhookEventsAndForget(c, post, team, channel, user)
 		}
+
+		if channel.Type == model.CHANNEL_DIRECT {
+			go makeDirectChannelVisible(c.Session.TeamId, post.ChannelId)
+		}
 	}()
+}
+
+func makeDirectChannelVisible(teamId string, channelId string) {
+	var members []model.ChannelMember
+	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
+		l4g.Error("Failed to get channel members channel_id=%v err=%v", channelId, result.Err.Message)
+		return
+	} else {
+		members = result.Data.([]model.ChannelMember)
+	}
+
+	if len(members) != 2 {
+		l4g.Error("Failed to get 2 members for a direct channel channel_id=%v", channelId)
+		return
+	}
+
+	// make sure the channel is visible to both members
+	for i, member := range members {
+		otherUserId := members[1-i].UserId
+
+		if result := <-Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId); result.Err != nil {
+			// create a new preference since one doesn't exist yet
+			preference := &model.Preference{
+				UserId:   member.UserId,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name:     otherUserId,
+				Value:    "true",
+			}
+
+			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
+				l4g.Error("Failed to save direct channel preference user_id=%v other_user_id=%v err=%v", member.UserId, otherUserId, saveResult.Err.Message)
+			} else {
+				message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+				message.Add("preference", preference.ToJson())
+
+				PublishAndForget(message)
+			}
+		} else {
+			preference := result.Data.(model.Preference)
+
+			if preference.Value != "true" {
+				// update the existing preference to make the channel visible
+				preference.Value = "true"
+
+				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
+					l4g.Error("Failed to update direct channel preference user_id=%v other_user_id=%v err=%v", member.UserId, otherUserId, updateResult.Err.Message)
+				} else {
+					message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+					message.Add("preference", preference.ToJson())
+
+					PublishAndForget(message)
+				}
+			}
+		}
+	}
 }
 
 func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) {
@@ -432,33 +491,50 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				splitF := func(c rune) bool {
 					return model.SplitRunes[c]
 				}
-				splitMessage := strings.FieldsFunc(post.Message, splitF)
+				splitMessage := strings.Fields(post.Message)
 				for _, word := range splitMessage {
+					var userIds []string
 
 					// Non-case-sensitive check for regular keys
-					userIds1, keyMatch := keywordMap[strings.ToLower(word)]
+					if ids, match := keywordMap[strings.ToLower(word)]; match {
+						userIds = append(userIds, ids...)
+					}
 
 					// Case-sensitive check for first name
-					userIds2, firstNameMatch := keywordMap[word]
+					if ids, match := keywordMap[word]; match {
+						userIds = append(userIds, ids...)
+					}
 
-					userIds := append(userIds1, userIds2...)
+					if len(userIds) == 0 {
+						// No matches were found with the string split just on whitespace so try further splitting
+						// the message on punctuation
+						splitWords := strings.FieldsFunc(word, splitF)
 
-					// If one of the non-case-senstive keys or the first name matches the word
-					//  then we add en entry to the sendEmail map
-					if keyMatch || firstNameMatch {
-						for _, userId := range userIds {
-							if post.UserId == userId {
-								continue
+						for _, splitWord := range splitWords {
+							// Non-case-sensitive check for regular keys
+							if ids, match := keywordMap[strings.ToLower(splitWord)]; match {
+								userIds = append(userIds, ids...)
 							}
-							sendEmail := true
-							if _, ok := profileMap[userId].NotifyProps["email"]; ok && profileMap[userId].NotifyProps["email"] == "false" {
-								sendEmail = false
+
+							// Case-sensitive check for first name
+							if ids, match := keywordMap[splitWord]; match {
+								userIds = append(userIds, ids...)
 							}
-							if sendEmail && (profileMap[userId].IsAway() || profileMap[userId].IsOffline()) {
-								toEmailMap[userId] = true
-							} else {
-								toEmailMap[userId] = false
-							}
+						}
+					}
+
+					for _, userId := range userIds {
+						if post.UserId == userId {
+							continue
+						}
+						sendEmail := true
+						if _, ok := profileMap[userId].NotifyProps["email"]; ok && profileMap[userId].NotifyProps["email"] == "false" {
+							sendEmail = false
+						}
+						if sendEmail && (profileMap[userId].IsAway() || profileMap[userId].IsOffline()) {
+							toEmailMap[userId] = true
+						} else {
+							toEmailMap[userId] = false
 						}
 					}
 				}
@@ -477,8 +553,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				teamURL := c.GetSiteURL() + "/" + team.Name
 
 				// Build and send the emails
-				location, _ := time.LoadLocation("UTC")
-				tm := time.Unix(post.CreateAt/1000, 0).In(location)
+				tm := time.Unix(post.CreateAt/1000, 0)
 
 				subjectPage := NewServerTemplatePage("post_subject")
 				subjectPage.Props["SiteURL"] = c.GetSiteURL()
@@ -510,6 +585,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 					bodyPage.Props["Minute"] = fmt.Sprintf("%02d", tm.Minute())
 					bodyPage.Props["Month"] = tm.Month().String()[:3]
 					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
+					bodyPage.Props["TimeZone"], _ = tm.Zone()
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
 

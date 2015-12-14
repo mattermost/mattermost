@@ -252,6 +252,15 @@ export default class AdminSidebar extends React.Component {
                                             {'GitLab Settings'}
                                         </a>
                                     </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('legal_and_support_settings')}
+                                            onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
+                                        >
+                                            {'Legal and Support Settings'}
+                                        </a>
+                                    </li>
                                 </ul>
                                 <ul className='nav nav__sub-menu'>
                                      <li>

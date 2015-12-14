@@ -12,9 +12,28 @@
     </div>
 </div>
 <script>
-    document.getElementById("help_link").setAttribute("href", '/static/help/help.html');
-    document.getElementById("terms_link").setAttribute("href", '/static/help/terms.html');
-    document.getElementById("privacy_link").setAttribute("href", '/static/help/privacy.html');
-    document.getElementById("about_link").setAttribute("href", '/static/help/about.html');
+    if (window.mm_config.HelpLink) {
+        document.getElementById("help_link").setAttribute("href", window.mm_config.HelpLink);
+    } else {
+        $("#help_link").remove();
+    }
+
+    if (window.mm_config.TermsOfServiceLink) {
+        document.getElementById("terms_link").setAttribute("href", window.mm_config.TermsOfServiceLink);
+    } else {
+        $("#terms_link").remove();
+    }
+
+    if (window.mm_config.PrivacyPolicyLink) {
+        document.getElementById("privacy_link").setAttribute("href", window.mm_config.PrivacyPolicyLink);
+    } else {
+        $("#privacy_link").remove();
+    }
+    
+    if (window.mm_config.AboutLink) {
+        document.getElementById("about_link").setAttribute("href", window.mm_config.AboutLink);
+    } else {
+        $("#about_link").remove();
+    }
 </script>
 {{end}}

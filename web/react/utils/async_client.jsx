@@ -82,7 +82,7 @@ export function getChannels(checkVersion) {
     );
 }
 
-export function getChannelAndAddUnreadMessages(id, unreadCount) {
+export function getChannel(id) {
     if (isCallInProgress('getChannel' + id)) {
         return;
     }
@@ -97,7 +97,6 @@ export function getChannelAndAddUnreadMessages(id, unreadCount) {
                 return;
             }
 
-            data.channel.total_msg_count += (unreadCount || 0);
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECIEVED_CHANNEL,
                 channel: data.channel,
@@ -109,10 +108,6 @@ export function getChannelAndAddUnreadMessages(id, unreadCount) {
             dispatchError(err, 'getChannel');
         }
     );
-}
-
-export function getChannel(id) {
-    getChannelAndAddUnreadMessages(id, 0);
 }
 
 export function updateLastViewedAt(id) {
@@ -136,14 +131,6 @@ export function updateLastViewedAt(id) {
         channelId,
         () => {
             callTracker.updateLastViewed = 0;
-
-            var channel = ChannelStore.get(channelId);
-            var member = ChannelStore.getMember(channelId);
-            if (channel && member) {
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = utils.getTimestamp();
-                ChannelStore.setChannelMember(member);
-            }
         },
         (err) => {
             callTracker.updateLastViewed = 0;

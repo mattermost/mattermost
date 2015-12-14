@@ -7,9 +7,6 @@ import EventEmitter from 'events';
 import ChannelStore from '../stores/channel_store.jsx';
 import BrowserStore from '../stores/browser_store.jsx';
 import UserStore from '../stores/user_store.jsx';
-import SocketStore from '../stores/socket_store.jsx';
-
-import * as Utils from '../utils/utils.jsx';
 
 import Constants from '../utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -56,20 +53,21 @@ class PostStoreClass extends EventEmitter {
         this.storePost = this.storePost.bind(this);
         this.storeFocusedPost = this.storeFocusedPost.bind(this);
         this.checkBounds = this.checkBounds.bind(this);
-        this.addEphemeralPost = this.addEphemeralPost.bind(this);
 
         this.clearFocusedPost = this.clearFocusedPost.bind(this);
         this.clearChannelVisibility = this.clearChannelVisibility.bind(this);
 
         this.removePost = this.removePost.bind(this);
-        this.deletePost = this.deletePost.bind(this);
-        this.clearUnseenDeletedPosts = this.clearUnseenDeletedPosts.bind(this);
 
         this.getPendingPosts = this.getPendingPosts.bind(this);
         this.storePendingPost = this.storePendingPost.bind(this);
         this.removePendingPost = this.removePendingPost.bind(this);
         this.clearPendingPosts = this.clearPendingPosts.bind(this);
         this.updatePendingPost = this.updatePendingPost.bind(this);
+
+        this.storeUnseenDeletedPost = this.storeUnseenDeletedPost.bind(this);
+        this.getUnseenDeletedPosts = this.getUnseenDeletedPosts.bind(this);
+        this.clearUnseenDeletedPosts = this.clearUnseenDeletedPosts.bind(this);
 
         // These functions are bad and work should be done to remove this system when the RHS dies
         this.storeSelectedPost = this.storeSelectedPost.bind(this);
@@ -211,6 +209,28 @@ class PostStoreClass extends EventEmitter {
             if (this.postsInfo[id].hasOwnProperty('pendingPosts')) {
                 Object.assign(postList.posts, this.postsInfo[id].pendingPosts.posts);
                 postList.order = this.postsInfo[id].pendingPosts.order.concat(postList.order);
+            }
+
+            // Add deleted posts
+            if (this.postsInfo[id].hasOwnProperty('deletedPosts')) {
+                Object.assign(postList.posts, this.postsInfo[id].deletedPosts);
+
+                for (const postID in this.postsInfo[id].deletedPosts) {
+                    if (this.postsInfo[id].deletedPosts.hasOwnProperty(postID)) {
+                        postList.order.push(postID);
+                    }
+                }
+
+                // Merge would be faster
+                postList.order.sort((a, b) => {
+                    if (postList.posts[a].create_at > postList.posts[b].create_at) {
+                        return -1;
+                    }
+                    if (postList.posts[a].create_at < postList.posts[b].create_at) {
+                        return 1;
+                    }
+                    return 0;
+                });
             }
 
             return postList;
@@ -419,88 +439,33 @@ class PostStoreClass extends EventEmitter {
         this.emitChange();
     }
 
-    addEphemeralPost(post, disableNotification, autoDeleteTimer) {
-        if (!post.channel_id) {
-            return null;
+    storeUnseenDeletedPost(post) {
+        let posts = this.getUnseenDeletedPosts(post.channel_id);
+
+        if (!posts) {
+            posts = {};
         }
 
-        const member = ChannelStore.getMember(post.channel_id);
-        if (!member) {
-            return null;
-        }
-
-        const timestamp = Utils.getTimestamp();
-        const newPost = $.extend(true, {
-            id: Utils.generateId(),
-            user_id: '0',
-            create_at: timestamp,
-            update_at: timestamp,
-            filenames: [],
-            props: {}
-        }, post);
-
-        if (disableNotification) {
-            newPost.props.disable_notification = true;
-        }
-
-        SocketStore.handleMessage({
-            user_id: newPost.user_id,
-            channel_id: newPost.channel_id,
-            action: Constants.SocketEvents.POSTED,
-            props: {
-                post: JSON.stringify(newPost),
-                ephemeral: true
-            }
-        });
-
-        if (autoDeleteTimer) {
-            setTimeout(() => {
-                ChannelStore.resetCounts(newPost.channel_id);
-                this.removePost(newPost);
-                this.emitChange();
-                ChannelStore.emitChange();
-            }, autoDeleteTimer);
-        }
-
-        return newPost;
-    }
-
-    deletePost(post) {
-        const newId = Utils.generateId();
-        const index = this.postsInfo[post.channel_id].postList.order.indexOf(post.id);
-        this.postsInfo[post.channel_id].postList.order.splice(index, 1, newId);
-        this.removePost(post);
-
-        post.id = newId;
         post.message = '(message deleted)';
         post.state = Constants.POST_DELETED;
         post.filenames = [];
-        if (post.props && post.props.attachments) {
-            Reflect.deleteProperty(post.props, 'attachments');
+
+        posts[post.id] = post;
+        this.postsInfo[post.channel_id].deletedPosts = posts;
+    }
+
+    getUnseenDeletedPosts(channelId) {
+        if (this.postsInfo.hasOwnProperty(channelId)) {
+            return this.postsInfo[channelId].deletedPosts;
         }
 
-        Utils.defer(() => {
-            this.addEphemeralPost(post, true);
-        });
+        return null;
     }
 
     clearUnseenDeletedPosts(channelId) {
-        const postList = this.postsInfo[channelId] && this.postsInfo[channelId].postList;
-        if (!postList) {
-            return;
+        if (this.postsInfo.hasOwnProperty(channelId)) {
+            Reflect.deleteProperty(this.postsInfo[channelId], 'deletedPosts');
         }
-
-        const member = ChannelStore.getMember(channelId);
-        if (!member) {
-            return;
-        }
-
-        Object.keys(postList.posts).forEach((postId) => {
-            const post = postList.posts[postId];
-            if (post.state === Constants.POST_DELETED && post.create_at < member.last_viewed_at) {
-                this.removePost(post);
-            }
-        });
     }
 
     storeSelectedPost(postList) {
@@ -653,7 +618,9 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         PostStore.jumpPostsViewToBottom();
         break;
     case ActionTypes.POST_DELETED:
-        PostStore.deletePost(action.post);
+        PostStore.storeUnseenDeletedPost(action.post);
+        PostStore.removePost(action.post);
+        PostStore.emitChange();
         break;
     case ActionTypes.RECIEVED_POST_SELECTED:
         PostStore.storeSelectedPost(action.post_list);

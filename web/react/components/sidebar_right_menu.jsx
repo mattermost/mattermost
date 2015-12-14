@@ -49,7 +49,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         onClick={EventHelpers.showInviteMemberModal}
                     >
-                        <i className='fa fa-user'></i>Invite New Member
+                        <i className='fa fa-user'></i>{'Invite New Member'}
                     </a>
                 </li>
             );
@@ -75,7 +75,7 @@ export default class SidebarRightMenu extends React.Component {
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
-                    ><i className='fa fa-globe'></i>Team Settings</a>
+                    ><i className='fa fa-globe'></i>{'Team Settings'}</a>
                 </li>
             );
             manageLink = (
@@ -93,7 +93,7 @@ export default class SidebarRightMenu extends React.Component {
                     <a
                         href={'/admin_console?' + utils.getSessionIndex()}
                     >
-                    <i className='fa fa-wrench'></i>System Console</a>
+                    <i className='fa fa-wrench'></i>{'System Console'}</a>
                 </li>
             );
         }
@@ -107,6 +107,27 @@ export default class SidebarRightMenu extends React.Component {
             teamDisplayName = this.props.teamDisplayName;
         }
 
+        let helpLink = null;
+        if (global.window.mm_config.HelpLink) {
+            helpLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.HelpLink}
+                    ><i className='fa fa-question'></i>{'Help'}</a></li>
+            );
+        }
+
+        let reportLink = null;
+        if (global.window.mm_config.ReportAProblemLink) {
+            reportLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.ReportAProblemLink}
+                    ><i className='fa fa-phone'></i>{'Report a Problem'}</a></li>
+            );
+        }
         return (
             <div>
                 <div className='team__header theme'>
@@ -123,7 +144,7 @@ export default class SidebarRightMenu extends React.Component {
                                 href='#'
                                 onClick={() => this.setState({showUserSettingsModal: true})}
                             >
-                                <i className='fa fa-cog'></i>Account Settings
+                                <i className='fa fa-cog'></i>{'Account Settings'}
                             </a>
                         </li>
                         {teamSettingsLink}
@@ -135,18 +156,10 @@ export default class SidebarRightMenu extends React.Component {
                             <a
                                 href='#'
                                 onClick={this.handleLogoutClick}
-                            ><i className='fa fa-sign-out'></i>Logout</a></li>
+                            ><i className='fa fa-sign-out'></i>{'Logout'}</a></li>
                         <li className='divider'></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='/static/help/help.html'
-                            ><i className='fa fa-question'></i>Help</a></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='/static/help/report_problem.html'
-                            ><i className='fa fa-phone'></i>Report a Problem</a></li>
+                        {helpLink}
+                        {reportLink}
                     </ul>
                 </div>
                 <UserSettingsModal

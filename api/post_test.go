@@ -805,3 +805,51 @@ func TestFuzzyPosts(t *testing.T) {
 		}
 	}
 }
+
+func TestMakeDirectChannelVisible(t *testing.T) {
+	Setup()
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user1 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user1.Id))
+
+	user2 := &model.User{TeamId: team.Id, Email: model.NewId() + "corey@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+
+	// user2 will be created with prefs created to show user1 in the sidebar so set that to false to get rid of it
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+
+	preferences := &model.Preferences{
+		{
+			UserId:   user2.Id,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     user1.Id,
+			Value:    "false",
+		},
+	}
+	Client.Must(Client.SetPreferences(preferences))
+
+	Client.LoginByEmail(team.Name, user1.Email, "pwd")
+
+	channel := Client.Must(Client.CreateDirectChannel(map[string]string{"user_id": user2.Id})).Data.(*model.Channel)
+
+	makeDirectChannelVisible(team.Id, channel.Id)
+
+	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
+		t.Fatal("Errored trying to set direct channel to be visible for user1")
+	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
+		t.Fatal("Failed to set direct channel to be visible for user1")
+	}
+
+	Client.LoginByEmail(team.Name, user2.Email, "pwd")
+
+	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user1.Id); err != nil {
+		t.Fatal("Errored trying to set direct channel to be visible for user2")
+	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
+		t.Fatal("Failed to set direct channel to be visible for user2")
+	}
+}

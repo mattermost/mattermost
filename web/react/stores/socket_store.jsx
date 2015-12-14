@@ -136,6 +136,10 @@ class SocketStoreClass extends EventEmitter {
             handleChannelViewedEvent(msg);
             break;
 
+        case SocketEvents.PREFERENCE_CHANGED:
+            handlePreferenceChangedEvent(msg);
+            break;
+
         default:
         }
     }
@@ -160,15 +164,11 @@ function handleNewPostEvent(msg) {
             AsyncClient.updateLastViewedAt();
         }
     } else if (UserStore.getCurrentId() !== msg.user_id || post.type !== Constants.POST_TYPE_JOIN_LEAVE) {
-        if (msg.props.ephemeral) {
-            AsyncClient.getChannelAndAddUnreadMessages(msg.channel_id, 1);
-        } else {
-            AsyncClient.getChannel(msg.channel_id);
-        }
+        AsyncClient.getChannel(msg.channel_id);
     }
 
     // Send desktop notification
-    if ((UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post) && !post.props.disable_notification) {
+    if ((UserStore.getCurrentId() !== msg.user_id || post.props.from_webhook === 'true') && !Utils.isSystemMessage(post)) {
         const msgProps = msg.props;
 
         let mentions = [];
@@ -283,6 +283,11 @@ function handleChannelViewedEvent(msg) {
     if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
+}
+
+function handlePreferenceChangedEvent(msg) {
+    const preference = JSON.parse(msg.props.preference);
+    EventHelpers.emitPreferenceChangedEvent(preference);
 }
 
 var SocketStore = new SocketStoreClass();
