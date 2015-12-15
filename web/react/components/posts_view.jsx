@@ -7,6 +7,7 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
+import DelayedAction from '../utils/delayed_action.jsx';
 const Preferences = Constants.Preferences;
 
 export default class PostsView extends React.Component {
@@ -15,6 +16,7 @@ export default class PostsView extends React.Component {
 
         this.updateState = this.updateState.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
+        this.handleScrollStop = this.handleScrollStop.bind(this);
         this.isAtBottom = this.isAtBottom.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.loadMorePostsBottom = this.loadMorePostsBottom.bind(this);
@@ -26,9 +28,11 @@ export default class PostsView extends React.Component {
         this.wasAtBottom = true;
         this.scrollHeight = 0;
 
+        this.scrollStopAction = new DelayedAction(this.handleScrollStop);
+
         this.state = {
             displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
-            isScrolling: true, // TODO change this once we start detecting scrolling
+            isScrolling: false,
             topPostId: null
         };
     }
@@ -75,6 +79,19 @@ export default class PostsView extends React.Component {
         this.prevOffsetTop = this.jumpToPostNode.offsetTop;
 
         this.updateFloatingTimestamp();
+
+        if (!this.state.isScrolling) {
+            this.setState({
+                isScrolling: true
+            });
+        }
+
+        this.scrollStopAction.fireAfter(1000);
+    }
+    handleScrollStop() {
+        this.setState({
+            isScrolling: false
+        });
     }
     updateFloatingTimestamp() {
         if (this.props.postList) {

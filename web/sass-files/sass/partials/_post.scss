@@ -262,7 +262,7 @@ body.ios {
 	line-height: 25px;
 	margin-left: -60px;
 	-webkit-font-smoothing: initial;
-	@include single-transition(all, 0.3s, ease, 1.0s);
+	@include single-transition(all, 0.3s, ease);
 	@include translateY(-45px);
 	@include opacity(0);
 
