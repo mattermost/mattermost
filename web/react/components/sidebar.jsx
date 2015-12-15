@@ -378,6 +378,13 @@ export default class Sidebar extends React.Component {
             );
         }
 
+        var icon = null;
+        if (channel.type === 'O') {
+            icon = <div className='status'><i className='fa fa-globe'></i></div>;
+        } else if (channel.type === 'P') {
+            icon = <div className='status'><i className='fa fa-lock'></i></div>;
+        }
+
         // set up click handler to switch channels (or create a new channel for non-existant ones)
         var handleClick = null;
         var href = '#';
@@ -461,6 +468,7 @@ export default class Sidebar extends React.Component {
                     href={href}
                     onClick={handleClick}
                 >
+                    {icon}
                     {status}
                     {channel.display_name}
                     {badge}
