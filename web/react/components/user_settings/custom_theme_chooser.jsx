@@ -92,7 +92,7 @@ export default class CustomThemeChooser extends React.Component {
                     >
                         <img
                             width='200'
-                            src={'/static/images/themes/code_themes/' + theme[element.id] + 'Large.png'}
+                            src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
                         />
                     </Popover>
                 );
