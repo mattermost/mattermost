@@ -132,7 +132,7 @@ export default class PrivacySettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'When false, hides full name of users from other users including team owner and team administrators.'}</p>
+                            <p className='help-text'>{'When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'}</p>
                         </div>
                     </div>
 
