@@ -23,8 +23,11 @@ class PreferenceStoreClass extends EventEmitter {
         super();
 
         this.getAllPreferences = this.getAllPreferences.bind(this);
+        this.get = this.get.bind(this);
+        this.getBool = this.getBool.bind(this);
+        this.getInt = this.getInt.bind(this);
         this.getPreference = this.getPreference.bind(this);
-        this.getPreferences = this.getPreferences.bind(this);
+        this.getCategory = this.getCategory.bind(this);
         this.getPreferencesWhere = this.getPreferencesWhere.bind(this);
         this.setAllPreferences = this.setAllPreferences.bind(this);
         this.setPreference = this.setPreference.bind(this);
@@ -41,11 +44,51 @@ class PreferenceStoreClass extends EventEmitter {
         return new Map(BrowserStore.getItem('preferences', []));
     }
 
-    getPreference(category, name, defaultValue = '') {
+    get(category, name, defaultValue = '') {
+        const preference = this.getAllPreferences().get(getPreferenceKey(category, name));
+
+        if (!preference) {
+            return defaultValue;
+        }
+
+        return preference.value || defaultValue;
+    }
+
+    getBool(category, name, defaultValue = false) {
+        const preference = this.getAllPreferences().get(getPreferenceKey(category, name));
+
+        if (!preference) {
+            return defaultValue;
+        }
+
+        // prevent a non-false default value from being returned instead of an actual false value
+        if (preference.value === 'false') {
+            return false;
+        }
+
+        return (preference.value !== 'false') || defaultValue;
+    }
+
+    getInt(category, name, defaultValue = 0) {
+        const preference = this.getAllPreferences().get(getPreferenceKey(category, name));
+
+        if (!preference) {
+            return defaultValue;
+        }
+
+        // prevent a non-zero default value from being returned instead of an actual 0 value
+        if (preference.value === '0') {
+            return 0;
+        }
+
+        return parseInt(preference.value, 10) || defaultValue;
+    }
+
+    getPreference(category, name, defaultValue = {}) {
         return this.getAllPreferences().get(getPreferenceKey(category, name)) || defaultValue;
     }
 
-    getPreferences(category) {
+    getCategory(category) {
         return this.getPreferencesWhere((preference) => (preference.category === category));
     }
 
