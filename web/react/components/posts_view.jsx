@@ -94,6 +94,11 @@ export default class PostsView extends React.Component {
         });
     }
     updateFloatingTimestamp() {
+        // skip this in non-mobile view since that's when the timestamp is visible
+        if ($(window).width() > 768) {
+            return;
+        }
+
         if (this.props.postList) {
             // iterate through posts starting at the bottom since users are more likely to be viewing newer posts
             for (let i = 0; i < this.props.postList.order.length; i++) {

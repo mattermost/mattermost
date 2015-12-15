@@ -265,6 +265,7 @@ body.ios {
 	@include single-transition(all, 0.3s, ease);
 	@include translateY(-45px);
 	@include opacity(0);
+	display: none;
 
 	&.scrolling {
 		@include single-transition(all, 0.3s, ease);
