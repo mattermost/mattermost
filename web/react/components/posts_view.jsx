@@ -26,7 +26,11 @@ export default class PostsView extends React.Component {
         this.wasAtBottom = true;
         this.scrollHeight = 0;
 
-        this.state = {displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false')};
+        this.state = {
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            isScrolling: true, // TODO change this once we start detecting scrolling
+            topPostId: null
+        };
     }
     static get SCROLL_TYPE_FREE() {
         return 1;
@@ -69,6 +73,37 @@ export default class PostsView extends React.Component {
         this.props.postViewScrolled(this.isAtBottom());
         this.prevScrollHeight = this.refs.postlist.scrollHeight;
         this.prevOffsetTop = this.jumpToPostNode.offsetTop;
+
+        this.updateFloatingTimestamp();
+    }
+    updateFloatingTimestamp() {
+        if (this.props.postList) {
+            // iterate through posts starting at the bottom since users are more likely to be viewing newer posts
+            for (let i = 0; i < this.props.postList.order.length; i++) {
+                const id = this.props.postList.order[i];
+                const element = ReactDOM.findDOMNode(this.refs[id]);
+
+                if (!element || element.offsetTop + element.clientHeight <= this.refs.postlist.scrollTop) {
+                    // this post is off the top of the screen so the last one is at the top of the screen
+                    let topPostId;
+
+                    if (i > 0) {
+                        topPostId = this.props.postList.order[i - 1];
+                    } else {
+                        // the first post we look at should always be on the screen, but handle that case anyway
+                        topPostId = id;
+                    }
+
+                    if (topPostId !== this.state.topPostId) {
+                        this.setState({
+                            topPostId
+                        });
+                    }
+
+                    break;
+                }
+            }
+        }
     }
     loadMorePostsTop() {
         this.props.loadMorePostsTopClicked();
@@ -322,6 +357,12 @@ export default class PostsView extends React.Component {
         if (nextState.displayNameType !== this.state.displayNameType) {
             return true;
         }
+        if (this.state.topPostId !== nextState.topPostId) {
+            return true;
+        }
+        if (this.state.isScrolling !== nextState.isScrolling) {
+            return true;
+        }
 
         return false;
     }
@@ -377,20 +418,43 @@ export default class PostsView extends React.Component {
             }
         }
 
+        let floatingTimestamp = null;
+        if (this.state.topPostId) {
+            const topPost = this.props.postList.posts[this.state.topPostId];
+            const dateString = Utils.getDateForUnixTicks(topPost.create_at).toDateString();
+
+            let timestampClass = 'post-list__timestamp';
+            if (this.state.isScrolling) {
+                timestampClass += ' scrolling';
+            }
+
+            floatingTimestamp = (
+                <div
+                    ref='postTimestamp'
+                    className={timestampClass}
+                >
+                    <span>{dateString}</span>
+                </div>
+            );
+        }
+
         return (
-            <div
-                ref='postlist'
-                className={'post-list-holder-by-time ' + activeClass}
-                onScroll={this.handleScroll}
-            >
-                <div className='post-list__table'>
-                    <div
-                        ref='postlistcontent'
-                        className='post-list__content'
-                    >
-                        {moreMessagesTop}
-                        {postElements}
-                        {moreMessagesBottom}
+            <div className={activeClass}>
+                {floatingTimestamp}
+                <div
+                    ref='postlist'
+                    className='post-list-holder-by-time'
+                    onScroll={this.handleScroll}
+                >
+                    <div className='post-list__table'>
+                        <div
+                            ref='postlistcontent'
+                            className='post-list__content'
+                        >
+                            {moreMessagesTop}
+                            {postElements}
+                            {moreMessagesBottom}
+                        </div>
                     </div>
                 </div>
             </div>
