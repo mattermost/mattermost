@@ -145,18 +145,20 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		return result
 	}
 
-	if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
-		result.Err = model.NewAppError("SqlChannelStore.Save", "Failed to get current channel count", "teamId="+channel.TeamId+", "+err.Error())
-		return result
-	} else if count > 150 {
-		result.Err = model.NewAppError("SqlChannelStore.Save", "You've reached the limit of the number of allowed channels.", "teamId="+channel.TeamId)
-		return result
+	if channel.Type != model.CHANNEL_DIRECT {
+		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "Failed to get current channel count", "teamId="+channel.TeamId+", "+err.Error())
+			return result
+		} else if count > 1000 {
+			result.Err = model.NewAppError("SqlChannelStore.Save", "You've reached the limit of the number of allowed channels.", "teamId="+channel.TeamId)
+			return result
+		}
 	}
 
 	if err := transaction.Insert(channel); err != nil {
 		if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
 			dupChannel := model.Channel{}
-			s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
+			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
 				result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that URL was previously created", "id="+channel.Id+", "+err.Error())
 			} else {
