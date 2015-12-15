@@ -40,6 +40,7 @@ export default class ServiceSettings extends React.Component {
         config.ServiceSettings.EnablePostUsernameOverride = ReactDOM.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
         config.ServiceSettings.EnablePostIconOverride = ReactDOM.findDOMNode(this.refs.EnablePostIconOverride).checked;
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
+        config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
 
         //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
@@ -337,6 +338,39 @@ export default class ServiceSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'(Developer Option) When true, /loadtest slash command is enabled to load test accounts and test data. Changing this will require a server restart before taking effect.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableDeveloper'
+                        >
+                            {'Enable Developer Mode: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableDeveloper'
+                                    value='true'
+                                    ref='EnableDeveloper'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableDeveloper}
+                                    onChange={this.handleChange}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableDeveloper'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableDeveloper}
+                                    onChange={this.handleChange}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'(Developer Option) When true, extra information around errors will be displayed in the UI.'}</p>
                         </div>
                     </div>
 

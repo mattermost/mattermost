@@ -85,6 +85,11 @@
                 type: 'POST',
                 data: JSON.stringify(l)
             });
+
+            if (window.mm_config.EnableDeveloper === 'true') {
+                window.ErrorStore.storeLastError('DEVELOPER MODE: A javascript error has occured.  Please use the javascript console to capture and report the error (row: ' + line + ' col: ' + column + ').');
+                window.ErrorStore.emitChange();
+            }
         }
     </script>
 
