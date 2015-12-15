@@ -233,7 +233,8 @@ export default class PostsView extends React.Component {
             window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
                 if (this.refs.newMessageSeparator) {
-                    this.refs.newMessageSeparator.scrollIntoView();
+                    var objDiv = this.refs.postlist;
+                    objDiv.scrollTop = this.refs.newMessageSeparator.offsetTop; //scrolls node to top of Div
                 } else {
                     this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
                 }
