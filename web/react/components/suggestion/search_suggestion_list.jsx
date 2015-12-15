@@ -1,12 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {intlShape, injectIntl} from 'react-intl';
 import Constants from '../../utils/constants.jsx';
 import SuggestionList from './suggestion_list.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
-class SearchSuggestionList extends SuggestionList {
+export default class SearchSuggestionList extends SuggestionList {
     componentDidUpdate(prevProps, prevState) {
         if (this.state.items.length > 0 && prevState.items.length === 0) {
             this.getContent().perfectScrollbar();
@@ -18,7 +17,7 @@ class SearchSuggestionList extends SuggestionList {
     }
 
     renderChannelDivider(type) {
-        const {locale} = this.props.intl;
+        const locale = this.props.locale;
         let text;
         if (type === Constants.OPEN_CHANNEL) {
             if (locale === 'es') {
@@ -92,8 +91,5 @@ class SearchSuggestionList extends SuggestionList {
 }
 
 SearchSuggestionList.propTypes = {
-    intl: intlShape.isRequired,
     ...SuggestionList.propTypes
 };
-
-export default injectIntl(SuggestionList);

@@ -91,7 +91,11 @@ class PostFocusView extends React.Component {
     render() {
         const postsToHighlight = {};
         postsToHighlight[this.state.scrollPostId] = true;
-
+        const {formatMessage, locale} = this.props.intl;
+        const postViewMessages = {
+            newMsg: formatMessage({id: 'posts_view.newMsg'}),
+            loadMore: formatMessage({id: 'post_view.loadMore'})
+        };
         return (
             <div id='post-list'>
                 <PostsView
@@ -108,6 +112,8 @@ class PostFocusView extends React.Component {
                     introText={this.getIntroMessage()}
                     messageSeparatorTime={0}
                     postsToHighlight={postsToHighlight}
+                    locale={locale}
+                    translations={postViewMessages}
                 />
             </div>
         );

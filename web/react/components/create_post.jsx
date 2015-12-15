@@ -46,12 +46,42 @@ const messages = defineMessages({
     tutorialTip: {
         id: 'post_create.tutorialTip',
         defaultMessage: '<h4>Sending Messages</h4> <p>Type here to write a message and press <strong>Enter</strong> to post it.</p><p>Click the <strong>Attachment</strong> button to upload an image or a file.</p>'
+    },
+    deleteMsg: {
+        id: 'post_create.deleteMsg',
+        defaultMessage: '(message deleted)'
+    },
+    someone: {
+        id: 'post_create.someone',
+        defaultMessage: 'Someone'
+    },
+    posted: {
+        id: 'post_create.posted',
+        defaultMessage: 'Posted'
+    },
+    uploadedImage: {
+        id: 'post_create.uploadedImage',
+        defaultMessage: ' uploaded an image'
+    },
+    uploadedFile: {
+        id: 'post_create.uploadedFile',
+        defaultMessage: ' uploaded a file'
+    },
+    something: {
+        id: 'post_create.something',
+        defaultMessage: ' did something new'
+    },
+    wrote: {
+        id: 'post_create.wrote',
+        defaultMessage: ' wrote: '
     }
 });
 
 class CreatePost extends React.Component {
     constructor(props) {
         super(props);
+
+        const {formatMessage} = this.props.intl;
 
         this.lastTime = 0;
 
@@ -73,6 +103,17 @@ class CreatePost extends React.Component {
         this.sendMessage = this.sendMessage.bind(this);
 
         PostStore.clearDraftUploads();
+        PostStore.setDeleteMessage(formatMessage(messages.deleteMsg));
+
+        const translations = {
+            someone: formatMessage(messages.someone),
+            posted: formatMessage(messages.posted),
+            uploadedImage: formatMessage(messages.uploadedImage),
+            uploadedFile: formatMessage(messages.uploadedFile),
+            something: formatMessage(messages.something),
+            wrote: formatMessage(messages.wrote)
+        };
+        SocketStore.setTranslations(translations);
 
         const draft = this.getCurrentDraft();
         const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});

@@ -149,7 +149,7 @@ class SearchBar extends React.Component {
     }
 
     render() {
-        const {formatMessage} = this.props.intl;
+        const {formatMessage, locale} = this.props.intl;
         var isSearching = null;
         if (this.state.isSearching) {
             isSearching = <span className={'glyphicon glyphicon-refresh glyphicon-refresh-animate'}></span>;
@@ -190,6 +190,7 @@ class SearchBar extends React.Component {
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onUserInput={this.handleUserInput}
+                        locale={locale}
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                     />

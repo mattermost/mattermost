@@ -86,6 +86,10 @@ const messages = defineMessages({
     sending: {
         id: 'invite_member.sending',
         defaultMessage: ' Sending'
+    },
+    disabled: {
+        id: 'invite_member.disabled',
+        defaultMessage: 'User creation has been disabled for your team. Please ask your team administrator for details.'
     }
 });
 
@@ -109,6 +113,7 @@ class InviteMemberModal extends React.Component {
             firstNameErrors: {},
             lastNameErrors: {},
             emailEnabled: global.window.mm_config.SendEmailNotifications === 'true',
+            userCreationEnabled: global.window.mm_config.EnableUserCreation === 'true',
             showConfirmModal: false,
             isSendingEmails: false
         };
@@ -330,7 +335,7 @@ class InviteMemberModal extends React.Component {
                                             ref={'first_name' + index}
                                             placeholder={formatMessage(messages.firstname)}
                                             maxLength='64'
-                                            disabled={!this.state.emailEnabled}
+                                            disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
                                             spellCheck='false'
                                         />
                                         {firstNameError}
@@ -344,7 +349,7 @@ class InviteMemberModal extends React.Component {
                                             ref={'last_name' + index}
                                             placeholder={formatMessage(messages.lastname)}
                                             maxLength='64'
-                                            disabled={!this.state.emailEnabled}
+                                            disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
                                             spellCheck='false'
                                         />
                                         {lastNameError}
@@ -363,7 +368,7 @@ class InviteMemberModal extends React.Component {
                             className='form-control'
                             placeholder='email@domain.com'
                             maxLength='64'
-                            disabled={!this.state.emailEnabled}
+                            disabled={!this.state.emailEnabled || !this.state.userCreationEnabled}
                             spellCheck='false'
                         />
                         {emailError}
@@ -381,7 +386,7 @@ class InviteMemberModal extends React.Component {
             var content = null;
             var sendButton = null;
 
-            if (this.state.emailEnabled) {
+            if (this.state.emailEnabled && this.state.userCreationEnabled) {
                 content = (
                     <div>
                         {serverError}
@@ -415,7 +420,7 @@ class InviteMemberModal extends React.Component {
                         {sendButtonLabel}
                     </button>
                 );
-            } else {
+            } else if (this.state.userCreationEnabled) {
                 var teamInviteLink = null;
                 if (currentUser && TeamStore.getCurrent().type === 'O') {
                     var link = (
@@ -438,6 +443,12 @@ class InviteMemberModal extends React.Component {
                     <div>
                         <p>{formatMessage(messages.content)}</p>
                         {teamInviteLink}
+                    </div>
+                );
+            } else {
+                content = (
+                    <div>
+                        <p>{formatMessage(messages.disabled)}</p>
                     </div>
                 );
             }

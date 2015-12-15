@@ -5,6 +5,7 @@ import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import AtMentionProvider from './suggestion/at_mention_provider.jsx';
 import CommandProvider from './suggestion/command_provider.jsx';
 import EmoticonProvider from './suggestion/emoticon_provider.jsx';
+import SuggestionStore from '../stores/suggestion_store.jsx';
 import SuggestionList from './suggestion/suggestion_list.jsx';
 import SuggestionBox from './suggestion/suggestion_box.jsx';
 import ErrorStore from '../stores/error_store.jsx';
@@ -26,6 +27,14 @@ const messages = defineMessages({
     preview: {
         id: 'textbox.preview',
         defaultMessage: 'Preview'
+    },
+    all: {
+        id: 'textbox.all',
+        defaultMessage: 'Notifies everyone in the team'
+    },
+    channel: {
+        id: 'textbox.channel',
+        defaultMessage: 'Notifies everyone in the channel'
     }
 });
 
@@ -45,6 +54,14 @@ class Textbox extends React.Component {
         this.state = {
             connection: ''
         };
+
+        const {formatMessage} = this.props.intl;
+        const translations = {
+            all: formatMessage(messages.all),
+            channel: formatMessage(messages.channel)
+        };
+
+        SuggestionStore.setTranslations(translations);
 
         this.suggestionProviders = [new AtMentionProvider(), new EmoticonProvider()];
         if (props.supportsCommands) {

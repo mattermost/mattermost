@@ -91,6 +91,14 @@ const messages = defineMessages({
     header: {
         id: 'post_view_container.header',
         defaultMessage: 'Set a header'
+    },
+    newMsg: {
+        id: 'posts_view.newMsg',
+        defaultMessage: 'New Messages'
+    },
+    loadMore: {
+        id: 'post_view.loadMore',
+        defaultMessage: 'Load more messages'
     }
 });
 
@@ -267,6 +275,11 @@ class PostsViewContainer extends React.Component {
             header: formatMessage(messages.header)
         };
 
+        const postViewMessages = {
+            newMsg: formatMessage(messages.newMsg),
+            loadMore: formatMessage(messages.loadMore)
+        };
+
         for (let i = 0; i < channels.length; i++) {
             const isActive = (channels[i] === currentChannelId);
             postListCtls.push(
@@ -283,6 +296,8 @@ class PostsViewContainer extends React.Component {
                     showMoreMessagesBottom={false}
                     introText={channel ? createChannelIntroMessage(channel, translations, locale) : null}
                     messageSeparatorTime={this.state.currentLastViewed}
+                    locale={locale}
+                    translations={postViewMessages}
                 />
             );
             if (!postLists[i] && isActive) {

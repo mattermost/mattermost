@@ -46,6 +46,14 @@ const messages = defineMessages({
     end: {
         id: 'tutorial_intro.end',
         defaultMessage: 'Click “Next” to enter to General Channel. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'
+    },
+    support: {
+        id: 'tutorial_intro.support',
+        defaultMessage: 'Need anything, just email us at '
+    },
+    whenReady: {
+        id: 'tutorial_intro.whenReady',
+        defaultMessage: ' when you’re ready.'
     }
 });
 
@@ -124,7 +132,7 @@ class TutorialIntroScreens extends React.Component {
                     data-toggle='modal'
                     data-target='#invite_member'
                 >
-                    {'Invite teammates'}
+                    {formatMessage(messages.invite)}
                 </a>
             );
         } else {
@@ -137,30 +145,37 @@ class TutorialIntroScreens extends React.Component {
                     data-title='Team Invite'
                     data-value={Utils.getWindowLocationOrigin() + '/signup_user_complete/?id=' + team.id}
                 >
-                    {'Invite teammates'}
+                    {formatMessage(messages.invite)}
                 </a>
             );
         }
 
         const circles = this.createCircles();
 
+        let supportInfo = null;
+        if (global.window.mm_config.SupportEmail) {
+            supportInfo = (
+                <p>
+                    {formatMessage(messages.support)}
+                    <a
+                        href={'mailto:' + global.window.mm_config.SupportEmail}
+                        target='_blank'
+                    >
+                        {global.window.mm_config.SupportEmail}
+                    </a>
+                    {'.'}
+                </p>
+            );
+        }
+
         return (
             <div>
                 <h3>{formatMessage(messages.allSet)}</h3>
                 <p>
                     {inviteModalLink}
-                    {' when you’re ready.'}
+                    {formatMessage(messages.whenReady)}
                 </p>
-                <p>
-                    {'Need anything, just email us at '}
-                    <a
-                        href='mailto:feedback@mattermost.com'
-                        target='_blank'
-                    >
-                        {'feedback@mattermost.com'}
-                    </a>
-                    {'.'}
-                </p>
+                {supportInfo}
                 {formatMessage(messages.end)}
                 {circles}
             </div>

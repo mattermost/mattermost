@@ -147,7 +147,7 @@ export function notifyMe(title, body, channel) {
                     } else {
                         window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/general';
                     }
-                    console.log('notification'); // this is necesary to fix matterfront notification bug
+                    console.log('notification'); //eslint-disable-line no-console
                 };
                 setTimeout(function closeNotificationOnTimeout() {
                     notification.close();
@@ -1161,6 +1161,11 @@ export function getUserIdFromChannelName(channel) {
     return otherUserId;
 }
 
+// Returns true if the given channel is a direct channel between the current user and the given one
+export function isDirectChannelForUser(otherUserId, channel) {
+    return channel.type === Constants.DM_CHANNEL && getUserIdFromChannelName(channel) === otherUserId;
+}
+
 export function importSlack(file, success, error) {
     var formData = new FormData();
     formData.append('file', file, file.name);
@@ -1276,9 +1281,4 @@ export function isFeatureEnabled(feature) {
 
 export function isSystemMessage(post) {
     return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
-}
-
-// convenience method to dispatch an event in JS' next event cycle
-export function defer(fn) {
-    setTimeout(fn, 0);
 }

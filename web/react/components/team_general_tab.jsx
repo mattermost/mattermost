@@ -81,6 +81,14 @@ const messages = defineMessages({
     teamNameInfo: {
         id: 'general_tab.teamNameInfo',
         defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
+    },
+    dirContact: {
+        id: 'general_tab.dirContact',
+        defaultMessage: 'Contact your system administrator to turn on the team directory on the system home page.'
+    },
+    dirOff: {
+        id: 'general_tab.dirOff',
+        defaultMessage: 'Team directory is turned off for this system.'
     }
 });
 
@@ -88,6 +96,7 @@ class GeneralTab extends React.Component {
     constructor(props) {
         super(props);
 
+        this.updateSection = this.updateSection.bind(this);
         this.handleNameSubmit = this.handleNameSubmit.bind(this);
         this.handleInviteIdSubmit = this.handleInviteIdSubmit.bind(this);
         this.handleOpenInviteSubmit = this.handleOpenInviteSubmit.bind(this);
@@ -103,11 +112,22 @@ class GeneralTab extends React.Component {
         this.handleTeamListingRadio = this.handleTeamListingRadio.bind(this);
         this.handleGenerateInviteId = this.handleGenerateInviteId.bind(this);
 
-        this.state = {
-            name: props.team.display_name,
-            invite_id: props.team.invite_id,
-            allow_open_invite: props.team.allow_open_invite,
-            allow_team_listing: props.team.allow_team_listing,
+        this.state = this.setupInitialState(props);
+    }
+
+    updateSection(section) {
+        this.setState(this.setupInitialState(this.props));
+        this.props.updateSection(section);
+    }
+
+    setupInitialState(props) {
+        const team = props.team;
+
+        return {
+            name: team.display_name,
+            invite_id: team.invite_id,
+            allow_open_invite: team.allow_open_invite,
+            allow_team_listing: team.allow_team_listing,
             serverError: '',
             clientError: ''
         };
@@ -149,7 +169,7 @@ class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -169,7 +189,7 @@ class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -208,7 +228,7 @@ class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -245,7 +265,7 @@ class GeneralTab extends React.Component {
             (team) => {
                 TeamStore.saveTeam(team);
                 TeamStore.emitChange();
-                this.props.updateSection('');
+                this.updateSection('');
             },
             (err) => {
                 state.serverError = err.message;
@@ -261,8 +281,7 @@ class GeneralTab extends React.Component {
     }
 
     handleClose() {
-        this.setState({clientError: '', serverError: ''});
-        this.props.updateSection('');
+        this.updateSection('');
     }
 
     componentDidMount() {
@@ -276,36 +295,36 @@ class GeneralTab extends React.Component {
     onUpdateNameSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'name') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('name');
+            this.updateSection('name');
         }
     }
 
     onUpdateInviteIdSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'invite_id') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('invite_id');
+            this.updateSection('invite_id');
         }
     }
 
     onUpdateOpenInviteSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'open_invite') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('open_invite');
+            this.updateSection('open_invite');
         }
     }
 
     onUpdateTeamListingSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'team_listing') {
-            this.props.updateSection('');
+            this.updateSection('');
         } else {
-            this.props.updateSection('team_listing');
+            this.updateSection('team_listing');
         }
     }
 
@@ -330,44 +349,59 @@ class GeneralTab extends React.Component {
             serverError = this.state.serverError;
         }
 
+        const enableTeamListing = global.window.mm_config.EnableTeamListing === 'true';
+
         let teamListingSection;
         if (this.props.activeSection === 'team_listing') {
-            const inputs = [
-                <div key='userTeamListingOptions'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                name='userTeamListingOptions'
-                                type='radio'
-                                defaultChecked={this.state.allow_team_listing}
-                                onChange={this.handleTeamListingRadio.bind(this, true)}
-                            />
-                            {formatMessage(messages.yes)}
-                        </label>
-                        <br/>
+            const inputs = [];
+            let submitHandle = null;
+
+            if (enableTeamListing) {
+                submitHandle = this.handleTeamListingSubmit;
+
+                inputs.push(
+                    <div key='userTeamListingOptions'>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    name='userTeamListingOptions'
+                                    type='radio'
+                                    defaultChecked={this.state.allow_team_listing}
+                                    onChange={this.handleTeamListingRadio.bind(this, true)}
+                                />
+                                {formatMessage(messages.yes)}
+                            </label>
+                            <br/>
+                        </div>
+                        <div className='radio'>
+                            <label>
+                                <input
+                                    ref='teamListingRadioNo'
+                                    name='userTeamListingOptions'
+                                    type='radio'
+                                    defaultChecked={!this.state.allow_team_listing}
+                                    onChange={this.handleTeamListingRadio.bind(this, false)}
+                                />
+                                {formatMessage(messages.no)}
+                            </label>
+                            <br/>
+                        </div>
+                        <div><br/>{formatMessage(messages.includeDirDesc)}</div>
                     </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                ref='teamListingRadioNo'
-                                name='userTeamListingOptions'
-                                type='radio'
-                                defaultChecked={!this.state.allow_team_listing}
-                                onChange={this.handleTeamListingRadio.bind(this, false)}
-                            />
-                            {formatMessage(messages.no)}
-                        </label>
-                        <br/>
+                );
+            } else {
+                inputs.push(
+                    <div key='userTeamListingOptions'>
+                        <div><br/>{formatMessage(messages.dirContact)}</div>
                     </div>
-                    <div><br/>{formatMessage(messages.includeDirDesc)}</div>
-                </div>
-            ];
+                );
+            }
 
             teamListingSection = (
                 <SettingItemMax
                     title={formatMessage(messages.includeDirTitle)}
                     inputs={inputs}
-                    submit={this.handleTeamListingSubmit}
+                    submit={submitHandle}
                     server_error={serverError}
                     client_error={clientError}
                     updateSection={this.onUpdateTeamListingSection}
@@ -375,10 +409,15 @@ class GeneralTab extends React.Component {
             );
         } else {
             let describe = '';
-            if (this.state.allow_team_listing === true) {
-                describe = formatMessage(messages.yes);
+
+            if (enableTeamListing) {
+                if (this.state.allow_team_listing === true) {
+                    describe = formatMessage(messages.yes);
+                } else {
+                    describe = formatMessage(messages.no);
+                }
             } else {
-                describe = formatMessage(messages.no);
+                describe = formatMessage(messages.dirOff);
             }
 
             teamListingSection = (

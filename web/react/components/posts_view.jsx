@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import UserStore from '../stores/user_store.jsx';
 import PreferenceStore from '../stores/preference_store.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
@@ -10,18 +9,7 @@ import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
-const messages = defineMessages({
-    newMsg: {
-        id: 'posts_view.newMsg',
-        defaultMessage: 'New Messages'
-    },
-    loadMore: {
-        id: 'post_view.loadMore',
-        defaultMessage: 'Load more messages'
-    }
-});
-
-class PostsView extends React.Component {
+export default class PostsView extends React.Component {
     constructor(props) {
         super(props);
 
@@ -89,7 +77,8 @@ class PostsView extends React.Component {
         this.props.loadMorePostsBottomClicked();
     }
     createPosts(posts, order) {
-        const {formatMessage, locale} = this.props.intl;
+        const messages = this.props.translations;
+        const locale = this.props.locale;
 
         const postCtls = [];
         let previousPostDay = new Date(0);
@@ -228,7 +217,7 @@ class PostsView extends React.Component {
                         <hr
                             className='separator__hr'
                         />
-                        <div className='separator__text'>{formatMessage(messages.newMsg)}</div>
+                        <div className='separator__text'>{messages.newMsg}</div>
                     </div>
                 );
             }
@@ -339,8 +328,7 @@ class PostsView extends React.Component {
         return false;
     }
     render() {
-        const {formatMessage} = this.props.intl;
-
+        const messages = this.props.translations;
         let posts = [];
         let order = [];
         let moreMessagesTop;
@@ -360,7 +348,7 @@ class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsTop}
                     >
-                        {formatMessage(messages.loadMore)}
+                        {messages.loadMore}
                     </a>
                 );
             } else {
@@ -376,7 +364,7 @@ class PostsView extends React.Component {
                         href='#'
                         onClick={this.loadMorePostsBottom}
                     >
-                        {formatMessage(messages.loadMore)}
+                        {messages.loadMore}
                     </a>
                 );
             } else {
@@ -428,7 +416,6 @@ PostsView.propTypes = {
     introText: React.PropTypes.element,
     messageSeparatorTime: React.PropTypes.number,
     postsToHighlight: React.PropTypes.object,
-    intl: intlShape.isRequired
+    locale: React.PropTypes.string.isRequired,
+    translations: React.PropTypes.object.isRequired
 };
-
-export default injectIntl(PostsView);

@@ -173,3 +173,10 @@ export function emitClearSuggestions(suggestionId) {
         id: suggestionId
     });
 }
+
+export function emitPreferenceChangedEvent(preference) {
+    AppDispatcher.handleServerAction({
+        type: Constants.ActionTypes.RECIEVED_PREFERENCE,
+        preference
+    });
+}
