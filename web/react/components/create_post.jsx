@@ -52,7 +52,6 @@ export default class CreatePost extends React.Component {
         PostStore.clearDraftUploads();
 
         const draft = this.getCurrentDraft();
-        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
@@ -63,11 +62,9 @@ export default class CreatePost extends React.Component {
             initialText: draft.messageText,
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight(),
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
+            ctrlSend: false,
+            showTutorialTip: false
         };
-
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
     handleResize() {
         this.setState({
@@ -312,6 +309,15 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
 
         this.setState({previews, uploadsInProgress});
+    }
+    componentWillMount() {
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+
+        // wait to load these since they may have changed since the component was constructed (particularly in the case of skipping the tutorial)
+        this.setState({
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
+        });
     }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
