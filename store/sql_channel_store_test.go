@@ -41,7 +41,7 @@ func TestChannelStoreSave(t *testing.T) {
 	}
 
 	o1.Type = model.CHANNEL_OPEN
-	for i := 0; i < 150; i++ {
+	for i := 0; i < 1000; i++ {
 		o1.Id = ""
 		o1.Name = "a" + model.NewId() + "b"
 		if err := (<-store.Channel().Save(&o1)).Err; err != nil {
