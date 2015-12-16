@@ -274,6 +274,24 @@ body.ios {
 	}
 }
 
+.post-list__arrows {
+	background: url('../images/postArrows.png') center;
+	@include background-size(28px 28px);
+	background-repeat: no-repeat;
+	width: 40px;
+	height: 40px;
+	position: absolute;
+	bottom: 50px;
+	right: 5px;
+	z-index: 50;
+	@include opacity(0);
+	@include single-transition(all, 0.3s);
+
+	&.scrolling {
+		@include opacity(1);
+	}
+}
+
 .post-create__container {
 	form {
 		width: 100%;

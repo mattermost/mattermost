@@ -23,6 +23,7 @@ export default class PostsView extends React.Component {
         this.createPosts = this.createPosts.bind(this);
         this.updateScrolling = this.updateScrolling.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.scrollToBottom = this.scrollToBottom.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -283,9 +284,7 @@ export default class PostsView extends React.Component {
     }
     updateScrolling() {
         if (this.props.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
-            window.requestAnimationFrame(() => {
-                this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
-            });
+            this.scrollToBottom();
         } else if (this.props.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
             window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
@@ -334,6 +333,11 @@ export default class PostsView extends React.Component {
     }
     handleResize() {
         this.updateScrolling();
+    }
+    scrollToBottom() {
+        window.requestAnimationFrame(() => {
+            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        });
     }
     componentDidMount() {
         if (this.props.postList != null) {
@@ -460,9 +464,26 @@ export default class PostsView extends React.Component {
             );
         }
 
+        let scrollToBottomArrows = null;
+        if ($(window).width() <= 768) {
+            let scrollToBottomArrowsClass = 'post-list__arrows';
+            if (this.state.isScrolling && !this.wasAtBottom) {
+                scrollToBottomArrowsClass += ' scrolling';
+            }
+
+            scrollToBottomArrows = (
+                <div
+                    ref='postArrows'
+                    className={scrollToBottomArrowsClass}
+                    onClick={this.scrollToBottom}
+                />
+            );
+        }
+
         return (
             <div className={activeClass}>
                 {floatingTimestamp}
+                {scrollToBottomArrows}
                 <div
                     ref='postlist'
                     className='post-list-holder-by-time'
