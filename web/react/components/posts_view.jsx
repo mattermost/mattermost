@@ -444,46 +444,22 @@ export default class PostsView extends React.Component {
             }
         }
 
-        let floatingTimestamp = null;
+        let topPost = null;
         if (this.state.topPostId) {
-            const topPost = this.props.postList.posts[this.state.topPostId];
-            const dateString = Utils.getDateForUnixTicks(topPost.create_at).toDateString();
-
-            let timestampClass = 'post-list__timestamp';
-            if (this.state.isScrolling) {
-                timestampClass += ' scrolling';
-            }
-
-            floatingTimestamp = (
-                <div
-                    ref='postTimestamp'
-                    className={timestampClass}
-                >
-                    <span>{dateString}</span>
-                </div>
-            );
-        }
-
-        let scrollToBottomArrows = null;
-        if ($(window).width() <= 768) {
-            let scrollToBottomArrowsClass = 'post-list__arrows';
-            if (this.state.isScrolling && !this.wasAtBottom) {
-                scrollToBottomArrowsClass += ' scrolling';
-            }
-
-            scrollToBottomArrows = (
-                <div
-                    ref='postArrows'
-                    className={scrollToBottomArrowsClass}
-                    onClick={this.scrollToBottom}
-                />
-            );
+            topPost = this.props.postList.posts[this.state.topPostId];
         }
 
         return (
             <div className={activeClass}>
-                {floatingTimestamp}
-                {scrollToBottomArrows}
+                <FloatingTimestamp
+                    isScrolling={this.state.isScrolling}
+                    post={topPost}
+                />
+                <ScrollToBottomArrows
+                    isScrolling={this.state.isScrolling}
+                    atBottom={this.wasAtBottom}
+                    onClick={this.scrollToBottom}
+                />
                 <div
                     ref='postlist'
                     className='post-list-holder-by-time'
@@ -521,3 +497,46 @@ PostsView.propTypes = {
     messageSeparatorTime: React.PropTypes.number,
     postsToHighlight: React.PropTypes.object
 };
+
+function FloatingTimestamp({isScrolling, post}) {
+    // only show on mobile
+    if ($(window).width() > 768) {
+        return <noscript />;
+    }
+
+    if (!post) {
+        return <noscript />;
+    }
+
+    const dateString = Utils.getDateForUnixTicks(post.create_at).toDateString();
+
+    let className = 'post-list__timestamp';
+    if (isScrolling) {
+        className += ' scrolling';
+    }
+
+    return (
+        <div className={className}>
+            <span>{dateString}</span>
+        </div>
+    );
+}
+
+function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
+    // only show on mobile
+    if ($(window).width() > 768) {
+        return <noscript />;
+    }
+
+    let className = 'post-list__arrows';
+    if (isScrolling && !atBottom) {
+        className += ' scrolling';
+    }
+
+    return (
+        <div
+            className={className}
+            onClick={onClick}
+        />
+    );
+}
