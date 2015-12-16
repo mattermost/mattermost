@@ -10,6 +10,7 @@ import UserStore from '../../stores/user_store.jsx';
 import ErrorStore from '../../stores/error_store.jsx';
 
 import * as Client from '../../utils/client.jsx';
+import Constants from '../../utils/constants.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import * as Utils from '../../utils/utils.jsx';
 
@@ -169,6 +170,10 @@ const messages = defineMessages({
     close: {
         id: 'user.settings.general.close',
         defaultMessage: 'Close'
+    },
+    imageTooLarge: {
+        id: 'user.settings.general.imageTooLarge',
+        defaultMessage: 'Unable to upload profile image. File is too large.'
     }
 });
 
@@ -321,6 +326,9 @@ class UserSettingsGeneralTab extends React.Component {
 
         if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
             this.setState({clientError: formatMessage(messages.validImage)});
+            return;
+        } else if (picture.size > Constants.MAX_FILE_SIZE) {
+            this.setState({clientError: formatMessage(messages.imageTooLarge)});
             return;
         }
 

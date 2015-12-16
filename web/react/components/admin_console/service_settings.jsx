@@ -121,6 +121,14 @@ const messages = defineMessages({
     securityDesc: {
         id: 'admin.service.securityDesc',
         defaultMessage: 'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'
+    },
+    developerDesc: {
+        id: 'admin.service.developerDesc',
+        defaultMessage: '(Developer Option) When true, extra information around errors will be displayed in the UI.'
+    },
+    developerTitle: {
+        id: 'admin.service.developerTitle',
+        defaultMessage: 'Enable Developer Mode: '
     }
 });
 
@@ -160,6 +168,7 @@ class ServiceSettings extends React.Component {
         config.ServiceSettings.EnablePostUsernameOverride = ReactDOM.findDOMNode(this.refs.EnablePostUsernameOverride).checked;
         config.ServiceSettings.EnablePostIconOverride = ReactDOM.findDOMNode(this.refs.EnablePostIconOverride).checked;
         config.ServiceSettings.EnableTesting = ReactDOM.findDOMNode(this.refs.EnableTesting).checked;
+        config.ServiceSettings.EnableDeveloper = ReactDOM.findDOMNode(this.refs.EnableDeveloper).checked;
         config.ServiceSettings.EnableSecurityFixAlert = ReactDOM.findDOMNode(this.refs.EnableSecurityFixAlert).checked;
 
         //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
@@ -459,6 +468,39 @@ class ServiceSettings extends React.Component {
                                     {formatMessage(messages.false)}
                             </label>
                             <p className='help-text'>{formatMessage(messages.testingDescription)}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='EnableDeveloper'
+                        >
+                            {formatMessage(messages.developerTitle)}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableDeveloper'
+                                    value='true'
+                                    ref='EnableDeveloper'
+                                    defaultChecked={this.props.config.ServiceSettings.EnableDeveloper}
+                                    onChange={this.handleChange}
+                                />
+                                    {formatMessage(messages.true)}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='EnableDeveloper'
+                                    value='false'
+                                    defaultChecked={!this.props.config.ServiceSettings.EnableDeveloper}
+                                    onChange={this.handleChange}
+                                />
+                                    {formatMessage(messages.false)}
+                            </label>
+                            <p className='help-text'>{formatMessage(messages.developerDesc)}</p>
                         </div>
                     </div>
 

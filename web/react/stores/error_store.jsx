@@ -63,3 +63,4 @@ ErrorStore.dispatchToken = AppDispatcher.register((payload) => {
 });
 
 export default ErrorStore;
+window.ErrorStore = ErrorStore;

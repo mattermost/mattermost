@@ -29,6 +29,8 @@ class BrowserStoreClass {
         this.checkedLocalStorageSupported = '';
         this.signalLogout = this.signalLogout.bind(this);
         this.isSignallingLogout = this.isSignallingLogout.bind(this);
+        this.signalLogin = this.signalLogin.bind(this);
+        this.isSignallingLogin = this.isSignallingLogin.bind(this);
 
         var currentVersion = sessionStorage.getItem('storage_version');
         if (currentVersion !== global.window.mm_config.Version) {
@@ -127,6 +129,21 @@ class BrowserStoreClass {
 
     isSignallingLogout(logoutId) {
         return logoutId === sessionStorage.getItem('__logout__');
+    }
+
+    signalLogin() {
+        if (this.isLocalStorageSupported()) {
+            // PLT-1285 store an identifier in session storage so we can catch if the logout came from this tab on IE11
+            const loginId = generateId();
+
+            sessionStorage.setItem('__login__', loginId);
+            localStorage.setItem('__login__', loginId);
+            localStorage.removeItem('__login__');
+        }
+    }
+
+    isSignallingLogin(loginId) {
+        return loginId === sessionStorage.getItem('__login__');
     }
 
     /**

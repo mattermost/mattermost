@@ -3,6 +3,7 @@
 import BrowserStore from '../stores/browser_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ErrorStore from '../stores/error_store.jsx';
+let messages;
 
 export function track(category, action, label, property, value) {
     global.window.analytics.track(action, {category, label, property, value});
@@ -246,6 +247,7 @@ export function loginByEmail(name, email, password, success, error) {
         data: JSON.stringify({name: name, email: email, password: password}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_login_success', data.team_id, 'email', data.email);
+            BrowserStore.signalLogin();
             success(data, textStatus, xhr);
         },
         error: function onError(xhr, status, err) {

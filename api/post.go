@@ -650,9 +650,9 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 									msg.ServerId = utils.CfgDiagnosticId
 
 									if channel.Type == model.CHANNEL_DIRECT {
-										msg.Message = channelName + T(" sent you a direct message")
+										msg.Message = senderName + T(" sent you a direct message")
 									} else {
-										msg.Message = profileMap[id].FirstName + T(" mentioned you in ") + channelName
+										msg.Message = senderName + T(" mentioned you in ") + channelName
 									}
 
 									httpClient := http.Client{}

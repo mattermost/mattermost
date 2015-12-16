@@ -30,6 +30,15 @@ class CustomThemeChooser extends React.Component {
         });
         $('.color-picker').on('changeColor', this.onPickerChange);
     }
+    componentDidUpdate() {
+        const theme = this.props.theme;
+        Constants.THEME_ELEMENTS.forEach((element) => {
+            if (theme.hasOwnProperty(element.id) && element.id !== 'codeTheme') {
+                $('#' + element.id).data('colorpicker').color.setColor(theme[element.id]);
+                $('#' + element.id).colorpicker('update');
+            }
+        });
+    }
     onPickerChange(e) {
         const theme = this.props.theme;
         theme[e.target.id] = e.color.toHex();
@@ -92,7 +101,7 @@ class CustomThemeChooser extends React.Component {
                     >
                         <img
                             width='200'
-                            src={'/static/images/themes/code_themes/' + theme[element.id] + 'Large.png'}
+                            src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
                         />
                     </Popover>
                 );
@@ -110,7 +119,7 @@ class CustomThemeChooser extends React.Component {
                             <select
                                 className='form-control'
                                 type='text'
-                                defaultValue={theme[element.id]}
+                                value={theme[element.id]}
                                 onChange={this.onInputChange}
                             >
                                 {codeThemeOptions}
@@ -143,7 +152,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                defaultValue={theme[element.id]}
+                                value={theme[element.id]}
                                 onChange={this.onInputChange}
                             />
                             <span className='input-group-addon'><i></i></span>

@@ -143,6 +143,19 @@
 		url('/static/fonts/Lato-regular.svg#Lato') format('svg');
 }
 
+/* Lato Italic */
+@font-face {
+  font-family: 'Lato';
+  font-weight: 400;
+  font-style: italic;
+  src: url('/static/fonts/lato-italic-webfont.eot');
+    src: url('/static/fonts/lato-italic-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/static/fonts/lato-italic-webfont.woff2') format('woff2'),
+         url('/static/fonts/lato-italic-webfont.woff') format('woff'),
+         url('/static/fonts/lato-italic-webfont.ttf') format('truetype'),
+         url('/static/fonts/lato-italic-webfont.svg#latoitalic') format('svg');
+}
+
 /* Lato Bold */
 @font-face {
     font-family: 'Lato';

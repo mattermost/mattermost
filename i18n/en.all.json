@@ -3223,5 +3223,10 @@
         "id": "We couldn't update the webhook",
         "translation": "We couldn't update the webhook",
         "modified": false
+    },
+    {
+        "id": "Unable to upload file. File is too large.",
+        "translation": "Unable to upload file. File is too large.",
+        "modified": false
     }
 ]
