@@ -109,7 +109,7 @@ class SocketStoreClass extends EventEmitter {
     handleMessage(msg) {
         switch (msg.action) {
         case SocketEvents.POSTED:
-            handleNewPostEvent(msg);
+            handleNewPostEvent(msg, this.translations);
             break;
 
         case SocketEvents.POST_EDITED:
@@ -136,6 +136,10 @@ class SocketStoreClass extends EventEmitter {
             handleChannelViewedEvent(msg);
             break;
 
+        case SocketEvents.PREFERENCE_CHANGED:
+            handlePreferenceChangedEvent(msg);
+            break;
+
         default:
         }
     }
@@ -147,9 +151,12 @@ class SocketStoreClass extends EventEmitter {
             this.initialize();
         }
     }
+    setTranslations(messages) {
+        this.translations = messages;
+    }
 }
 
-function handleNewPostEvent(msg) {
+function handleNewPostEvent(msg, translations) {
     // Store post
     const post = JSON.parse(msg.props.post);
     EventHelpers.emitPostRecievedEvent(post);
@@ -191,14 +198,14 @@ function handleNewPostEvent(msg) {
             return;
         }
 
-        let username = 'Someone';
+        let username = translations.someone;
         if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
             username = post.props.override_username;
         } else if (UserStore.hasProfile(msg.user_id)) {
             username = UserStore.getProfile(msg.user_id).username;
         }
 
-        let title = 'Posted';
+        let title = translations.posted;
         if (channel) {
             title = channel.display_name;
         }
@@ -210,14 +217,14 @@ function handleNewPostEvent(msg) {
 
         if (notifyText.length === 0) {
             if (msgProps.image) {
-                Utils.notifyMe(title, username + ' uploaded an image', channel);
+                Utils.notifyMe(title, username + translations.uploadedImage, channel);
             } else if (msgProps.otherFile) {
-                Utils.notifyMe(title, username + ' uploaded a file', channel);
+                Utils.notifyMe(title, username + translations.uploadedFile, channel);
             } else {
-                Utils.notifyMe(title, username + ' did something new', channel);
+                Utils.notifyMe(title, username + translations.something, channel);
             }
         } else {
-            Utils.notifyMe(title, username + ' wrote: ' + notifyText, channel);
+            Utils.notifyMe(title, username + translations.wrote + notifyText, channel);
         }
         if (!user.notify_props || user.notify_props.desktop_sound === 'true') {
             Utils.ding();
@@ -283,6 +290,11 @@ function handleChannelViewedEvent(msg) {
     if (ChannelStore.getCurrentId() !== msg.channel_id && UserStore.getCurrentId() === msg.user_id) {
         AsyncClient.getChannel(msg.channel_id);
     }
+}
+
+function handlePreferenceChangedEvent(msg) {
+    const preference = JSON.parse(msg.props.preference);
+    EventHelpers.emitPreferenceChangedEvent(preference);
 }
 
 var SocketStore = new SocketStoreClass();

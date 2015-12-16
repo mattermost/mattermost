@@ -1835,143 +1835,1398 @@
         "modified": false
     },
     {
-        "id": "post_subject",
-        "translation": "post_subject",
+        "id": "%v needs your help:",
+        "translation": "%v needs your help:",
         "modified": false
     },
     {
-        "id": "post_body",
-        "translation": "post_body",
+        "id": "Go back to team site",
+        "translation": "Go back to team site",
         "modified": false
     },
     {
-        "id": "email_change_subject",
-        "translation": "email_change_subject",
+        "id": "Your email address has changed for %v",
+        "translation": "Your email address has changed for %v",
         "modified": false
     },
     {
-        "id": "email_change_body",
-        "translation": "email_change_body",
+        "id": "You updated your email",
+        "translation": "You updated your email",
         "modified": false
     },
     {
-        "id": "signup_team_subject",
-        "translation": "signup_team_subject",
+        "id": "Your email address for %v has been changed to %v.<br>If you did not make this change, please contact the system administrator.",
+        "translation": "Your email address for %v has been changed to %v.<br>If you did not make this change, please contact the system administrator.",
         "modified": false
     },
     {
-        "id": "signup_team_body",
-        "translation": "signup_team_body",
+        "id": "Verify new email address for %v",
+        "translation": "Verify new email address for %v",
         "modified": false
     },
     {
-        "id": "find_teams_subject",
-        "translation": "find_teams_subject",
+        "id": "You updated your email",
+        "translation": "You updated your email",
         "modified": false
     },
     {
-        "id": "find_teams_body",
-        "translation": "find_teams_body",
+        "id": "To finish updating your email address for %v, please click the link below to confirm this is the right address.",
+        "translation": "To finish updating your email address for %v, please click the link below to confirm this is the right address.",
         "modified": false
     },
     {
-        "id": "invite_subject",
-        "translation": "invite_subject",
+        "id": "Verify Email",
+        "translation": "Verify Email",
         "modified": false
     },
     {
-        "id": "invite_body",
-        "translation": "invite_body",
+        "id": "Your %v Teams",
+        "translation": "Your %v Teams",
         "modified": false
     },
     {
-        "id": "welcome_subject",
-        "translation": "welcome_subject",
+        "id": "Finding teams",
+        "translation": "Finding teams",
         "modified": false
     },
     {
-        "id": "welcome_body",
-        "translation": "welcome_body",
+        "id": "Your request to find teams associated with your email found the following:",
+        "translation": "Your request to find teams associated with your email found the following:",
         "modified": false
     },
     {
-        "id": "verify_subject",
-        "translation": "verify_subject",
+        "id": "We could not find any teams for the given email.",
+        "translation": "We could not find any teams for the given email.",
         "modified": false
     },
     {
-        "id": "verify_body",
-        "translation": "verify_body",
+        "id": "invited you to join %v Team on",
+        "translation": "invited you to join %v Team on",
         "modified": false
     },
     {
-        "id": "reset_subject",
-        "translation": "reset_subject",
+        "id": "You've been invited",
+        "translation": "You've been invited",
         "modified": false
     },
     {
-        "id": "reset_body",
-        "translation": "reset_body",
+        "id": "The team %v <strong>%v</strong>, has invited you to join <strong>%v</strong>.",
+        "translation": "The team %v <strong>%v</strong>, has invited you to join <strong>%v</strong>.",
         "modified": false
     },
     {
-        "id": "password_change_subject",
-        "translation": "password_change_subject",
+        "id": "Join Team",
+        "translation": "Join Team",
         "modified": false
     },
     {
-        "id": "password_change_body",
-        "translation": "password_change_body",
+        "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
+        "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
         "modified": false
     },
     {
-        "id": "authorize",
-        "translation": "authorize",
+        "id": "You updated your password for %v on",
+        "translation": "You updated your password for %v on",
         "modified": false
     },
     {
-        "id": "signup_team",
-        "translation": "signup_team",
+        "id": "You updated your password",
+        "translation": "You updated your password",
         "modified": false
     },
     {
-        "id": "login",
-        "translation": "login",
+        "id": "You updated your password for %v on %v by %v.<br>If this change wasn't initiated by you, please contact your system administrator.",
+        "translation": "You updated your password for %v on %v by %v.<br>If this change wasn't initiated by you, please contact your system administrator.",
         "modified": false
     },
     {
-        "id": "signup_team_confirm",
-        "translation": "signup_team_confirm",
+        "id": "You have one new message.",
+        "translation": "You have one new message.",
         "modified": false
     },
     {
-        "id": "signup_team_complete",
-        "translation": "signup_team_complete",
+        "id": "New Direct Message",
+        "translation": "New Direct Message",
         "modified": false
     },
     {
-        "id": "signup_user_complete",
-        "translation": "signup_user_complete",
+        "id": "You have one new mention.",
+        "translation": "You have one new mention.",
         "modified": false
     },
     {
-        "id": "find_team",
-        "translation": "find_team",
+        "id": "New Mention",
+        "translation": "New Mention",
         "modified": false
     },
     {
-        "id": "error.html",
-        "translation": "error.html",
+        "id": "for %v at %v %v, %v",
+        "translation": "for %v at %v %v, %v",
         "modified": false
     },
     {
-        "id": "email_change_verify_subject",
-        "translation": "email_change_verify_subject",
+        "id": "CHANNEL",
+        "translation": "CHANNEL",
         "modified": false
     },
     {
-        "id": "email_change_verify_body",
-        "translation": "email_change_verify_body",
+        "id": "Go To Channel",
+        "translation": "Go To Channel",
+        "modified": false
+    },
+    {
+        "id": "Reset your password",
+        "translation": "Reset your password",
+        "modified": false
+    },
+    {
+        "id": "You requested a password reset",
+        "translation": "You requested a password reset",
+        "modified": false
+    },
+    {
+        "id": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same.",
+        "translation": "To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same.",
+        "modified": false
+    },
+    {
+        "id": "Reset Password",
+        "translation": "Reset Password",
+        "modified": false
+    },
+    {
+        "id": "%v Team Setup",
+        "translation": "%v Team Setup",
+        "modified": false
+    },
+    {
+        "id": "Thanks for creating a team!",
+        "translation": "Thanks for creating a team!",
+        "modified": false
+    },
+    {
+        "id": "Set up your team",
+        "translation": "Set up your team",
+        "modified": false
+    },
+    {
+        "id": "is one place for all your team communication, searchable and available anywhere.<br>You'll get more out of %v when your team is in constant communication--let's get them on board.",
+        "translation": "is one place for all your team communication, searchable and available anywhere.<br>You'll get more out of %v when your team is in constant communication--let's get them on board.",
+        "modified": false
+    },
+    {
+        "id": "Email Verification",
+        "translation": "Email Verification",
+        "modified": false
+    },
+    {
+        "id": "Please verify your email address by clicking below.",
+        "translation": "Please verify your email address by clicking below.",
+        "modified": false
+    },
+    {
+        "id": "Verify Email",
+        "translation": "Verify Email",
+        "modified": false
+    },
+    {
+        "id": "You joined",
+        "translation": "You joined",
+        "modified": false
+    },
+    {
+        "id": "You can sign-in to your new team from the web address:",
+        "translation": "You can sign-in to your new team from the web address:",
+        "modified": false
+    },
+    {
+        "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.",
+        "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.",
+        "modified": false
+    },
+    {
+        "id": "footer",
+        "translation": "(c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>To change your notification preferences, log in to your team site and go to Account Settings > Notifications.",
+        "modified": false
+    },
+    {
+        "id": "email_info",
+        "translation": "Any questions at all, mail us any time: <a href=\"mailto:%v\" style=\"text-decoration: none; color:#2389D7;\">%v</a>.<br>Best wishes,<br>The %v Team<br>",
+        "modified": false
+    },
+    {
+        "id": "footer_company",
+        "translation": "© 2015 Mattermost, Inc.",
+        "modified": false
+    },
+    {
+        "id": "footer_help",
+        "translation": "Help",
+        "modified": false
+    },
+    {
+        "id": "footer_terms",
+        "translation": "Terms",
+        "modified": false
+    },
+    {
+        "id": "footer_privacy",
+        "translation": "Privacy",
+        "modified": false
+    },
+    {
+        "id": "footer_about",
+        "translation": "About",
+        "modified": false
+    },
+    {
+        "id": "authorize_title",
+        "translation": "An application would like to connect to your %v account.",
+        "modified": false
+    },
+    {
+        "id": "authorize_info",
+        "translation": "The app <strong>%v</strong> would like the ability to access Mattermost on your behalf.",
+        "modified": false
+    },
+    {
+        "id": "authorize_question",
+        "translation": "Allow <strong>%v</strong> access?",
+        "modified": false
+    },
+    {
+        "id": "authorize_deny",
+        "translation": "Deny",
+        "modified": false
+    },
+    {
+        "id": "authorize_allow",
+        "translation": "Allow",
+        "modified": false
+    },
+    {
+        "id": "signup_team_confirm.title",
+        "translation": "Sign up Complete",
+        "modified": false
+    },
+    {
+        "id": "signup_team_confirm.info",
+        "translation": "Please check your email: %v<br>Your email contains a link to set up your team",
+        "modified": false
+    },
+    {
+        "id": "signup_team.title",
+        "translation": "All team communication in one place, searchable and accessible anywhere",
+        "modified": false
+    },
+    {
+        "id": "Couldn't find team name=%v, err=%v",
+        "translation": "Couldn't find team name=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Invalid Post ID",
+        "translation": "Invalid Post ID",
+        "modified": false
+    },
+    {
+        "id": "Documentation",
+        "translation": "Documentation",
+        "modified": false
+    },
+    {
+        "id": "Unable to parse incoming data",
+        "translation": "Unable to parse incoming data",
+        "modified": false
+    },
+    {
+        "id": "Checking for security update from Mattermost",
+        "translation": "Checking for security update from Mattermost",
+        "modified": false
+    },
+    {
+        "id": "Failed to get security update information from Mattermost.",
+        "translation": "Failed to get security update information from Mattermost.",
+        "modified": false
+    },
+    {
+        "id": "Failed to get system admins for security update information from Mattermost.",
+        "translation": "Failed to get system admins for security update information from Mattermost.",
+        "modified": false
+    },
+    {
+        "id": "Failed to get security bulletin details",
+        "translation": "Failed to get security bulletin details",
+        "modified": false
+    },
+    {
+        "id": "Failed to read security bulletin details",
+        "translation": "Failed to read security bulletin details",
+        "modified": false
+    },
+    {
+        "id": "Sending security bulletin for ",
+        "translation": "Sending security bulletin for ",
+        "modified": false
+    },
+    {
+        "id": " to ",
+        "translation": " to ",
+        "modified": false
+    },
+    {
+        "id": "Mattermost Security Bulletin",
+        "translation": "Mattermost Security Bulletin",
+        "modified": false
+    },
+    {
+        "id": "Have you performed a database backup? (YES/NO): ",
+        "translation": "Have you performed a database backup? (YES/NO): ",
+        "modified": false
+    },
+    {
+        "id": "Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ",
+        "translation": "Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ",
+        "modified": false
+    },
+    {
+        "id": "Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ",
+        "translation": "Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ",
+        "modified": false
+    },
+    {
+        "id": "Tried to perform an invalid update of the default channel ",
+        "translation": "Tried to perform an invalid update of the default channel ",
+        "modified": false
+    },
+    {
+        "id": "Failed to retrieve user while trying to save update channel header message %v",
+        "translation": "Failed to retrieve user while trying to save update channel header message %v",
+        "modified": false
+    },
+    {
+        "id": "%s updated the channel header to: %s",
+        "translation": "%s updated the channel header to: %s",
+        "modified": false
+    },
+    {
+        "id": "%s removed the channel header (was: %s)",
+        "translation": "%s removed the channel header (was: %s)",
+        "modified": false
+    },
+    {
+        "id": "%s updated the channel header from: %s to: %s",
+        "translation": "%s updated the channel header from: %s to: %s",
+        "modified": false
+    },
+    {
+        "id": "Failed to post join/leave message %v",
+        "translation": "Failed to post join/leave message %v",
+        "modified": false
+    },
+    {
+        "id": "%v has joined the channel.",
+        "translation": "%v has joined the channel.",
+        "modified": false
+    },
+    {
+        "id": "Encountered error deleting incoming webhook, id=",
+        "translation": "Encountered error deleting incoming webhook, id=",
+        "modified": false
+    },
+    {
+        "id": "Encountered error deleting outgoing webhook, id=",
+        "translation": "Encountered error deleting outgoing webhook, id=",
+        "modified": false
+    },
+    {
+        "id": "Unable to remove user.",
+        "translation": "Unable to remove user.",
+        "modified": false
+    },
+    {
+        "id": "Command not implemented",
+        "translation": "Command not implemented",
+        "modified": false
+    },
+    {
+        "id": "Unable to create /me post post, err=%v",
+        "translation": "Unable to create /me post post, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Do an action, /me [message]",
+        "translation": "Do an action, /me [message]",
+        "modified": false
+    },
+    {
+        "id": "Unable to create /shrug post post, err=%v",
+        "translation": "Unable to create /shrug post post, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]",
+        "translation": "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]",
+        "modified": false
+    },
+    {
+        "id": "Command must contain a url",
+        "translation": "Command must contain a url",
+        "modified": false
+    },
+    {
+        "id": "Unable to get file",
+        "translation": "Unable to get file",
+        "modified": false
+    },
+    {
+        "id": "Encountered error reading file",
+        "translation": "Encountered error reading file",
+        "modified": false
+    },
+    {
+        "id": "Unable to create post, err=%v",
+        "translation": "Unable to create post, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Add a post containing the text from a given url to current channel <Url>",
+        "translation": "Add a post containing the text from a given url to current channel <Url>",
+        "modified": false
+    },
+    {
+        "id": "Invalid session token=",
+        "translation": "Invalid session token=",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload image file.",
+        "translation": "Unable to upload image file.",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload image file. File is too large.",
+        "translation": "Unable to upload image file. File is too large.",
+        "modified": false
+    },
+    {
+        "id": "File exceeds max image size.",
+        "translation": "File exceeds max image size.",
+        "modified": false
+    },
+    {
+        "id": "Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v",
+        "translation": "Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting team, team_id=%s, err=%v",
+        "translation": "Encountered error getting team, team_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting channel, channel_id=%s, err=%v",
+        "translation": "Encountered error getting channel, channel_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting user, user_id=%s, err=%v",
+        "translation": "Encountered error getting user, user_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to get 2 members for a direct channel channel_id=%v",
+        "translation": "Failed to get 2 members for a direct channel channel_id=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to save direct channel preference user_id=%v other_user_id=%v err=%v",
+        "translation": "Failed to save direct channel preference user_id=%v other_user_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v",
+        "translation": "Failed to update direct channel preference user_id=%v other_user_id=%v err=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error getting webhooks by team, err=%v",
+        "translation": "Encountered error getting webhooks by team, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Event POST failed, err=%s",
+        "translation": "Event POST failed, err=%s",
+        "modified": false
+    },
+    {
+        "id": "Failed to create response post, err=%v",
+        "translation": "Failed to create response post, err=%v",
+        "modified": false
+    },
+    {
+        "id": " sent you a direct message",
+        "translation": " sent you a direct message",
+        "modified": false
+    },
+    {
+        "id": " mentioned you in ",
+        "translation": " mentioned you in ",
+        "modified": false
+    },
+    {
+        "id": "Failed to send push notificationid=%v, err=%v",
+        "translation": "Failed to send push notificationid=%v, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Unable to get post",
+        "translation": "Unable to get post",
+        "modified": false
+    },
+    {
+        "id": "Initializing preference api routes",
+        "translation": "Initializing preference api routes",
+        "modified": false
+    },
+    {
+        "id": "Unable to decode preferences from request",
+        "translation": "Unable to decode preferences from request",
+        "modified": false
+    },
+    {
+        "id": "Unable to set preferences for other user",
+        "translation": "Unable to set preferences for other user",
+        "modified": false
+    },
+    {
+        "id": "Attempting to permanently delete team %v id=%v",
+        "translation": "Attempting to permanently delete team %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "Permanently deleted team %v id=%v",
+        "translation": "Permanently deleted team %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "Encountered error saving tutorial preference, err=%v",
+        "translation": "Encountered error saving tutorial preference, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v",
+        "translation": "Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v",
+        "translation": "Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v",
+        "modified": false
+    },
+    {
+        "id": "Could not decode profile image config.",
+        "translation": "Could not decode profile image config.",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload profile image. File is too large.",
+        "translation": "Unable to upload profile image. File is too large.",
+        "modified": false
+    },
+    {
+        "id": "The system admin role can only by modified by another system admin",
+        "translation": "The system admin role can only by modified by another system admin",
+        "modified": false
+    },
+    {
+        "id": "Attempting to permanently delete account %v id=%v",
+        "translation": "Attempting to permanently delete account %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "attempt userId=%v",
+        "translation": "attempt userId=%v",
+        "modified": false
+    },
+    {
+        "id": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.",
+        "translation": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.",
+        "modified": false
+    },
+    {
+        "id": "Permanently deleted account %v id=%v",
+        "translation": "Permanently deleted account %v id=%v",
+        "modified": false
+    },
+    {
+        "id": "Cannot reset password for SSO accounts",
+        "translation": "Cannot reset password for SSO accounts",
+        "modified": false
+    },
+    {
+        "id": "Failed to send email change verification email successfully err=%v",
+        "translation": "Failed to send email change verification email successfully err=%v",
+        "modified": false
+    },
+    {
+        "id": "Outgoing webhooks have been disabled by the system admin.",
+        "translation": "Outgoing webhooks have been disabled by the system admin.",
+        "modified": false
+    },
+    {
+        "id": "fail - not open channel",
+        "translation": "fail - not open channel",
+        "modified": false
+    },
+    {
+        "id": "Either trigger_words or channel_id must be set",
+        "translation": "Either trigger_words or channel_id must be set",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate permissions to delete outcoming webhook",
+        "translation": "Inappropriate permissions to delete outcoming webhook",
+        "modified": false
+    },
+    {
+        "id": "fail - inappropriate permissions",
+        "translation": "fail - inappropriate permissions",
+        "modified": false
+    },
+    {
+        "id": "Inappropriate permissions to regenerate outcoming webhook token",
+        "translation": "Inappropriate permissions to regenerate outcoming webhook token",
+        "modified": false
+    },
+    {
+        "id": "Invalid header",
+        "translation": "Invalid header",
+        "modified": false
+    },
+    {
+        "id": "Invalid purpose",
+        "translation": "Invalid purpose",
+        "modified": false
+    },
+    {
+        "id": "Loaded i18n file from %v",
+        "translation": "Loaded i18n file from %v",
+        "modified": false
+    },
+    {
+        "id": "Error opening file=",
+        "translation": "Error opening file=",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while connecting to the server",
+        "translation": "We encountered an error while connecting to the server",
+        "modified": false
+    },
+    {
+        "id": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.",
+        "translation": "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.",
+        "modified": false
+    },
+    {
+        "id": "Invalid public link salt for file settings.  Must be 32 chars or more.",
+        "translation": "Invalid public link salt for file settings.  Must be 32 chars or more.",
+        "modified": false
+    },
+    {
+        "id": "Invalid invite salt for email settings.  Must be 32 chars or more.",
+        "translation": "Invalid invite salt for email settings.  Must be 32 chars or more.",
+        "modified": false
+    },
+    {
+        "id": "Invalid password reset salt for email settings.  Must be 32 chars or more.",
+        "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more.",
+        "modified": false
+    },
+    {
+        "id": "Invalid Id",
+        "translation": "Invalid Id",
+        "modified": false
+    },
+    {
+        "id": "Invalid token",
+        "translation": "Invalid token",
+        "modified": false
+    },
+    {
+        "id": "Create at must be a valid time",
+        "translation": "Create at must be a valid time",
+        "modified": false
+    },
+    {
+        "id": "Update at must be a valid time",
+        "translation": "Update at must be a valid time",
+        "modified": false
+    },
+    {
+        "id": "Invalid user id",
+        "translation": "Invalid user id",
+        "modified": false
+    },
+    {
+        "id": "Invalid channel id",
+        "translation": "Invalid channel id",
+        "modified": false
+    },
+    {
+        "id": "Invalid team id",
+        "translation": "Invalid team id",
+        "modified": false
+    },
+    {
+        "id": "Invalid callback urls",
+        "translation": "Invalid callback urls",
+        "modified": false
+    },
+    {
+        "id": "Invalid callback URLs. Each must be a valid URL and start with http:// or https://",
+        "translation": "Invalid callback URLs. Each must be a valid URL and start with http:// or https://",
+        "modified": false
+    },
+    {
+        "id": "Invalid props",
+        "translation": "Invalid props",
+        "modified": false
+    },
+    {
+        "id": "Invalid category",
+        "translation": "Invalid category",
+        "modified": false
+    },
+    {
+        "id": "Invalid name",
+        "translation": "Invalid name",
+        "modified": false
+    },
+    {
+        "id": "Value is too long",
+        "translation": "Value is too long",
+        "modified": false
+    },
+    {
+        "id": "could not decode",
+        "translation": "could not decode",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the audits",
+        "translation": "We encountered an error finding the audits",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error deleting the audits",
+        "translation": "We encountered an error deleting the audits",
+        "modified": false
+    },
+    {
+        "id": "Use SaveDirectChannel to create a direct channel",
+        "translation": "Use SaveDirectChannel to create a direct channel",
+        "modified": false
+    },
+    {
+        "id": "Unable to open transaction",
+        "translation": "Unable to open transaction",
+        "modified": false
+    },
+    {
+        "id": "Unable to commit transaction",
+        "translation": "Unable to commit transaction",
+        "modified": false
+    },
+    {
+        "id": "Unable to rollback transaction",
+        "translation": "Unable to rollback transaction",
+        "modified": false
+    },
+    {
+        "id": "Not a direct channel attempted to be created with SaveDirectChannel",
+        "translation": "Not a direct channel attempted to be created with SaveDirectChannel",
+        "modified": false
+    },
+    {
+        "id": "Unable to add direct channel members",
+        "translation": "Unable to add direct channel members",
+        "modified": false
+    },
+    {
+        "id": "Must call update for exisiting channel",
+        "translation": "Must call update for exisiting channel",
+        "modified": false
+    },
+    {
+        "id": "Failed to get current channel count",
+        "translation": "Failed to get current channel count",
+        "modified": false
+    },
+    {
+        "id": "You've reached the limit of the number of allowed channels.",
+        "translation": "You've reached the limit of the number of allowed channels.",
+        "modified": false
+    },
+    {
+        "id": "A channel with that URL was previously created",
+        "translation": "A channel with that URL was previously created",
+        "modified": false
+    },
+    {
+        "id": "A channel with that URL already exists",
+        "translation": "A channel with that URL already exists",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the channel",
+        "translation": "We couldn't save the channel",
+        "modified": false
+    },
+    {
+        "id": "A channel with that handle was previously created",
+        "translation": "A channel with that handle was previously created",
+        "modified": false
+    },
+    {
+        "id": "A channel with that handle already exists",
+        "translation": "A channel with that handle already exists",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the channel",
+        "translation": "We encounted an error updating the channel",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the channel",
+        "translation": "We couldn't update the channel",
+        "modified": false
+    },
+    {
+        "id": "Problem updating members last updated time",
+        "translation": "Problem updating members last updated time",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the channel",
+        "translation": "We encountered an error finding the channel",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing channel",
+        "translation": "We couldn't find the existing channel",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the channel",
+        "translation": "We couldn't delete the channel",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the channels",
+        "translation": "We couldn't delete the channels",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channels",
+        "translation": "We couldn't get the channels",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel counts",
+        "translation": "We couldn't get the channel counts",
+        "modified": false
+    },
+    {
+        "id": "A channel member with that id already exists",
+        "translation": "A channel member with that id already exists",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the channel member",
+        "translation": "We couldn't save the channel member",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the channel member",
+        "translation": "We encounted an error updating the channel member",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel members",
+        "translation": "We couldn't get the channel members",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel member",
+        "translation": "We couldn't get the channel member",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the channel member count",
+        "translation": "We couldn't get the channel member count",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the extra info for channel members",
+        "translation": "We couldn't get the extra info for channel members",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the channel member",
+        "translation": "We couldn't remove the channel member",
+        "modified": false
+    },
+    {
+        "id": "We couldn't check the permissions",
+        "translation": "We couldn't check the permissions",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last viewed at time",
+        "translation": "We couldn't update the last viewed at time",
+        "modified": false
+    },
+    {
+        "id": "We couldn't increment the mention count",
+        "translation": "We couldn't increment the mention count",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get all the channels",
+        "translation": "We couldn't get all the channels",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get channel type counts",
+        "translation": "We couldn't get channel type counts",
+        "modified": false
+    },
+    {
+        "id": "Must call update for exisiting app",
+        "translation": "Must call update for exisiting app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the app.",
+        "translation": "We couldn't save the app.",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the app",
+        "translation": "We encounted an error finding the app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing app to update",
+        "translation": "We couldn't find the existing app to update",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the app",
+        "translation": "We encounted an error updating the app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the app",
+        "translation": "We couldn't update the app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing app",
+        "translation": "We couldn't find the existing app",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find any existing apps",
+        "translation": "We couldn't find any existing apps",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the access token.",
+        "translation": "We couldn't save the access token.",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the access token",
+        "translation": "We encountered an error finding the access token",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the access token",
+        "translation": "We couldn't remove the access token",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the authorization code.",
+        "translation": "We couldn't save the authorization code.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing authorization code",
+        "translation": "We couldn't find the existing authorization code",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the authorization code",
+        "translation": "We couldn't remove the authorization code",
+        "modified": false
+    },
+    {
+        "id": "You cannot update an existing Post",
+        "translation": "You cannot update an existing Post",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the Post",
+        "translation": "We couldn't save the Post",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the Post",
+        "translation": "We couldn't update the Post",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the post",
+        "translation": "We couldn't get the post",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the post",
+        "translation": "We couldn't delete the post",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the comments for user",
+        "translation": "We couldn't delete the comments for user",
+        "modified": false
+    },
+    {
+        "id": "We couldn't select the posts to delete for the user",
+        "translation": "We couldn't select the posts to delete for the user",
+        "modified": false
+    },
+    {
+        "id": "We couldn't select the posts to delete for the user (too many), please re-run",
+        "translation": "We couldn't select the posts to delete for the user (too many), please re-run",
+        "modified": false
+    },
+    {
+        "id": "Limit exceeded for paging",
+        "translation": "Limit exceeded for paging",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the posts for the channel",
+        "translation": "We couldn't get the posts for the channel",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the parent posts for the channel",
+        "translation": "We couldn't get the parent posts for the channel",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while searching for posts",
+        "translation": "We encountered an error while searching for posts",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get user counts with posts",
+        "translation": "We couldn't get user counts with posts",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get post counts by day",
+        "translation": "We couldn't get post counts by day",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get post counts",
+        "translation": "We couldn't get post counts",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while updating preferences",
+        "translation": "We encountered an error while updating preferences",
+        "modified": false
+    },
+    {
+        "id": "Failed to update preference because of missing driver",
+        "translation": "Failed to update preference because of missing driver",
+        "modified": false
+    },
+    {
+        "id": "A preference with that user id, category, and name already exists",
+        "translation": "A preference with that user id, category, and name already exists",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the preference",
+        "translation": "We couldn't save the preference",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the preference",
+        "translation": "We couldn't update the preference",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while finding preferences",
+        "translation": "We encountered an error while finding preferences",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while deleteing preferences",
+        "translation": "We encountered an error while deleteing preferences",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while finding a pre release feature preference",
+        "translation": "We encountered an error while finding a pre release feature preference",
+        "modified": false
+    },
+    {
+        "id": "Cannot update existing session",
+        "translation": "Cannot update existing session",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the session",
+        "translation": "We couldn't save the session",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the session",
+        "translation": "We encounted an error finding the session",
+        "modified": false
+    },
+    {
+        "id": "Failed to cleanup sessions in getSessions err=%v",
+        "translation": "Failed to cleanup sessions in getSessions err=%v",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error while finding user sessions",
+        "translation": "We encounted an error while finding user sessions",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove the session",
+        "translation": "We couldn't remove the session",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove all the sessions for the team",
+        "translation": "We couldn't remove all the sessions for the team",
+        "modified": false
+    },
+    {
+        "id": "We couldn't remove all the sessions for the user",
+        "translation": "We couldn't remove all the sessions for the user",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error while deleting expired user sessions",
+        "translation": "We encounted an error while deleting expired user sessions",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last_activity_at",
+        "translation": "We couldn't update the last_activity_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the roles",
+        "translation": "We couldn't update the roles",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error saving the system property",
+        "translation": "We encounted an error saving the system property",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the system property",
+        "translation": "We encounted an error updating the system property",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the system properties",
+        "translation": "We encounted an error finding the system properties",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the team",
+        "translation": "We couldn't save the team",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error finding the team",
+        "translation": "We encounted an error finding the team",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing team to update",
+        "translation": "We couldn't find the existing team to update",
+        "modified": false
+    },
+    {
+        "id": "We encounted an error updating the team",
+        "translation": "We encounted an error updating the team",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the team",
+        "translation": "We couldn't update the team",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the team name",
+        "translation": "We couldn't update the team name",
+        "modified": false
+    },
+    {
+        "id": "We encounted a problem when looking up teams",
+        "translation": "We encounted a problem when looking up teams",
+        "modified": false
+    },
+    {
+        "id": "We could not get all teams",
+        "translation": "We could not get all teams",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the existing team",
+        "translation": "We couldn't delete the existing team",
+        "modified": false
+    },
+    {
+        "id": "Must call update for exisiting user",
+        "translation": "Must call update for exisiting user",
+        "modified": false
+    },
+    {
+        "id": "Failed to get current team member count",
+        "translation": "Failed to get current team member count",
+        "modified": false
+    },
+    {
+        "id": "This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit.",
+        "translation": "This team has reached the maxmium number of allowed accounts. Contact your systems administrator to set a higher limit.",
+        "modified": false
+    },
+    {
+        "id": "An account with that username already exists.",
+        "translation": "An account with that username already exists.",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the account.",
+        "translation": "We couldn't save the account.",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the account",
+        "translation": "We encountered an error finding the account",
+        "modified": false
+    },
+    {
+        "id": "We couldn't find the existing account to update",
+        "translation": "We couldn't find the existing account to update",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the update_at",
+        "translation": "We couldn't update the update_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last_ping_at",
+        "translation": "We couldn't update the last_ping_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the last_activity_at",
+        "translation": "We couldn't update the last_activity_at",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the user password",
+        "translation": "We couldn't update the user password",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the failed_attempts",
+        "translation": "We couldn't update the failed_attempts",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error finding the account",
+        "translation": "We encountered an error finding the account",
+        "modified": false
+    },
+    {
+        "id": "We encountered an error while finding user profiles",
+        "translation": "We encountered an error while finding user profiles",
+        "modified": false
+    },
+    {
+        "id": "Unable to update verify email field",
+        "translation": "Unable to update verify email field",
+        "modified": false
+    },
+    {
+        "id": "We could not count the users",
+        "translation": "We could not count the users",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the existing account",
+        "translation": "We couldn't delete the existing account",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the IncomingWebhook",
+        "translation": "We couldn't save the IncomingWebhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the webhook",
+        "translation": "We couldn't get the webhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't delete the webhook",
+        "translation": "We couldn't delete the webhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't get the webhooks",
+        "translation": "We couldn't get the webhooks",
+        "modified": false
+    },
+    {
+        "id": "You cannot overwrite an existing OutgoingWebhook",
+        "translation": "You cannot overwrite an existing OutgoingWebhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't save the OutgoingWebhook",
+        "translation": "We couldn't save the OutgoingWebhook",
+        "modified": false
+    },
+    {
+        "id": "We couldn't update the webhook",
+        "translation": "We couldn't update the webhook",
+        "modified": false
+    },
+    {
+        "id": "Unable to upload file. File is too large.",
+        "translation": "Unable to upload file. File is too large.",
         "modified": false
     }
 ]

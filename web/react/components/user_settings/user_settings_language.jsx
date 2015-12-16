@@ -73,7 +73,6 @@ class UserSettingsLanguageTab extends React.Component {
             );
         }
 
-
         return (
             <div>
                 <div className='modal-header'>
@@ -82,18 +81,14 @@ class UserSettingsLanguageTab extends React.Component {
                         className='close'
                         data-dismiss='modal'
                         aria-label={formatMessage(messages.close)}
-                        onClick={this.props.closeModal}
-                        >
+                    >
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4
                         className='modal-title'
                         ref='title'
-                        >
-                        <i
-                            className='modal-back'
-                            onClick={this.props.collapseModal}
-                            />
+                    >
+                        <i className='modal-back'></i>
                         {formatMessage(messages.title)}
                     </h4>
                 </div>
@@ -113,9 +108,7 @@ UserSettingsLanguageTab.propTypes = {
     user: React.PropTypes.object,
     updateSection: React.PropTypes.func,
     updateTab: React.PropTypes.func,
-    activeSection: React.PropTypes.string,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
+    activeSection: React.PropTypes.string
 };
 
 export default injectIntl(UserSettingsLanguageTab);

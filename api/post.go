@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"html/template"
 )
 
 func InitPost(r *mux.Router) {
@@ -63,7 +64,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if result := <-Srv.Store.Channel().UpdateLastViewedAt(post.ChannelId, c.Session.UserId, T); result.Err != nil {
-			l4g.Error("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, c.Session.UserId, result.Err)
+			l4g.Error(T("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v"), post.ChannelId, c.Session.UserId, result.Err)
 		}
 
 		w.Write([]byte(rp.ToJson()))
@@ -198,7 +199,7 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 	}
 
 	if _, err := CreatePost(c, post, false, T); err != nil {
-		return nil, model.NewAppError("CreateWebhookPost", "Error creating post", "err="+err.Message)
+		return nil, model.NewAppError("CreateWebhookPost", T("Error creating post"), "err="+err.Message)
 	}
 
 	return post, nil
@@ -212,7 +213,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 
 		var team *model.Team
 		if result := <-tchan; result.Err != nil {
-			l4g.Error("Encountered error getting team, team_id=%s, err=%v", c.Session.TeamId, result.Err)
+			l4g.Error(T("Encountered error getting team, team_id=%s, err=%v"), c.Session.TeamId, result.Err)
 			return
 		} else {
 			team = result.Data.(*model.Team)
@@ -220,7 +221,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 
 		var channel *model.Channel
 		if result := <-cchan; result.Err != nil {
-			l4g.Error("Encountered error getting channel, channel_id=%s, err=%v", post.ChannelId, result.Err)
+			l4g.Error(T("Encountered error getting channel, channel_id=%s, err=%v"), post.ChannelId, result.Err)
 			return
 		} else {
 			channel = result.Data.(*model.Channel)
@@ -230,7 +231,7 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 
 		var user *model.User
 		if result := <-uchan; result.Err != nil {
-			l4g.Error("Encountered error getting user, user_id=%s, err=%v", post.UserId, result.Err)
+			l4g.Error(T("Encountered error getting user, user_id=%s, err=%v"), post.UserId, result.Err)
 			return
 		} else {
 			user = result.Data.(*model.User)
@@ -239,7 +240,66 @@ func handlePostEventsAndForget(c *Context, post *model.Post, triggerWebhooks boo
 		if triggerWebhooks {
 			handleWebhookEventsAndForget(c, post, team, channel, user, T)
 		}
+
+		if channel.Type == model.CHANNEL_DIRECT {
+			go makeDirectChannelVisible(c.Session.TeamId, post.ChannelId, T)
+		}
 	}()
+}
+
+func makeDirectChannelVisible(teamId string, channelId string, T goi18n.TranslateFunc) {
+	var members []model.ChannelMember
+	if result := <-Srv.Store.Channel().GetMembers(channelId, T); result.Err != nil {
+		l4g.Error(T("Failed to get channel members channel_id=%v err=%v"), channelId, result.Err.Message)
+		return
+	} else {
+		members = result.Data.([]model.ChannelMember)
+	}
+
+	if len(members) != 2 {
+		l4g.Error(T("Failed to get 2 members for a direct channel channel_id=%v"), channelId)
+		return
+	}
+
+	// make sure the channel is visible to both members
+	for i, member := range members {
+		otherUserId := members[1-i].UserId
+
+		if result := <-Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId, T); result.Err != nil {
+			// create a new preference since one doesn't exist yet
+			preference := &model.Preference{
+				UserId:   member.UserId,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name:     otherUserId,
+				Value:    "true",
+			}
+
+			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}, T); saveResult.Err != nil {
+				l4g.Error(T("Failed to save direct channel preference user_id=%v other_user_id=%v err=%v"), member.UserId, otherUserId, saveResult.Err.Message)
+			} else {
+				message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+				message.Add("preference", preference.ToJson())
+
+				PublishAndForget(message)
+			}
+		} else {
+			preference := result.Data.(model.Preference)
+
+			if preference.Value != "true" {
+				// update the existing preference to make the channel visible
+				preference.Value = "true"
+
+				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}, T); updateResult.Err != nil {
+					l4g.Error(T("Failed to update direct channel preference user_id=%v other_user_id=%v err=%v"), member.UserId, otherUserId, updateResult.Err.Message)
+				} else {
+					message := model.NewMessage(teamId, channelId, member.UserId, model.ACTION_PREFERENCE_CHANGED)
+					message.Add("preference", preference.ToJson())
+
+					PublishAndForget(message)
+				}
+			}
+		}
+	}
 }
 
 func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel, user *model.User, T goi18n.TranslateFunc) {
@@ -257,7 +317,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 		hooks := []*model.OutgoingWebhook{}
 
 		if result := <-hchan; result.Err != nil {
-			l4g.Error("Encountered error getting webhooks by team, err=%v", result.Err)
+			l4g.Error(T("Encountered error getting webhooks by team, err=%v"), result.Err)
 			return
 		} else {
 			hooks = result.Data.([]*model.OutgoingWebhook)
@@ -308,7 +368,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 						req.Header.Set("Accept", "application/json")
 						if resp, err := client.Do(req); err != nil {
-							l4g.Error("Event POST failed, err=%s", err.Error())
+							l4g.Error(T("Event POST failed, err=%s"), err.Error())
 						} else {
 							respProps := model.MapFromJson(resp.Body)
 
@@ -318,7 +378,7 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 							if text, ok := respProps["text"]; ok {
 								if _, err := CreateWebhookPost(newContext, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
-									l4g.Error("Failed to create response post, err=%v", err)
+									l4g.Error(T("Failed to create response post, err=%v"), err)
 								}
 							}
 						}
@@ -333,8 +393,6 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 }
 
 func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel, T goi18n.TranslateFunc) {
-	var Lang goi18n.TranslateFunc
-
 	go func() {
 		// Get a list of user names (to be used as keywords) and ids for the given team
 		uchan := Srv.Store.User().GetProfiles(c.Session.TeamId, T)
@@ -344,24 +402,24 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 		var bodyText string
 		var subjectText string
 		if channel.Type == model.CHANNEL_DIRECT {
-			bodyText = "You have one new message."
-			subjectText = "New Direct Message"
+			bodyText = T("You have one new message.")
+			subjectText = T("New Direct Message")
 		} else {
-			bodyText = "You have one new mention."
-			subjectText = "New Mention"
+			bodyText = T("You have one new mention.")
+			subjectText = T("New Mention")
 			channelName = channel.DisplayName
 		}
 
 		var mentionedUsers []string
 
 		if result := <-uchan; result.Err != nil {
-			l4g.Error("Failed to retrieve user profiles team_id=%v, err=%v", c.Session.TeamId, result.Err)
+			l4g.Error(T("Failed to retrieve user profiles team_id=%v, err=%v"), c.Session.TeamId, result.Err)
 			return
 		} else {
 			profileMap := result.Data.(map[string]*model.User)
 
 			if _, ok := profileMap[post.UserId]; !ok {
-				l4g.Error("Post user_id not returned by GetProfiles user_id=%v", post.UserId)
+				l4g.Error(T("Post user_id not returned by GetProfiles user_id=%v"), post.UserId)
 				return
 			}
 			senderName := profileMap[post.UserId].Username
@@ -392,7 +450,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 
 				// Find out who is a member of the channel, only keep those profiles
 				if eResult := <-echan; eResult.Err != nil {
-					l4g.Error("Failed to get channel members channel_id=%v err=%v", post.ChannelId, eResult.Err.Message)
+					l4g.Error(T("Failed to get channel members channel_id=%v err=%v"), post.ChannelId, eResult.Err.Message)
 					return
 				} else {
 					tempProfileMap := make(map[string]*model.User)
@@ -436,33 +494,50 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				splitF := func(c rune) bool {
 					return model.SplitRunes[c]
 				}
-				splitMessage := strings.FieldsFunc(post.Message, splitF)
+				splitMessage := strings.Fields(post.Message)
 				for _, word := range splitMessage {
+					var userIds []string
 
 					// Non-case-sensitive check for regular keys
-					userIds1, keyMatch := keywordMap[strings.ToLower(word)]
+					if ids, match := keywordMap[strings.ToLower(word)]; match {
+						userIds = append(userIds, ids...)
+					}
 
 					// Case-sensitive check for first name
-					userIds2, firstNameMatch := keywordMap[word]
+					if ids, match := keywordMap[word]; match {
+						userIds = append(userIds, ids...)
+					}
 
-					userIds := append(userIds1, userIds2...)
+					if len(userIds) == 0 {
+						// No matches were found with the string split just on whitespace so try further splitting
+						// the message on punctuation
+						splitWords := strings.FieldsFunc(word, splitF)
 
-					// If one of the non-case-senstive keys or the first name matches the word
-					//  then we add en entry to the sendEmail map
-					if keyMatch || firstNameMatch {
-						for _, userId := range userIds {
-							if post.UserId == userId {
-								continue
+						for _, splitWord := range splitWords {
+							// Non-case-sensitive check for regular keys
+							if ids, match := keywordMap[strings.ToLower(splitWord)]; match {
+								userIds = append(userIds, ids...)
 							}
-							sendEmail := true
-							if _, ok := profileMap[userId].NotifyProps["email"]; ok && profileMap[userId].NotifyProps["email"] == "false" {
-								sendEmail = false
+
+							// Case-sensitive check for first name
+							if ids, match := keywordMap[splitWord]; match {
+								userIds = append(userIds, ids...)
 							}
-							if sendEmail && (profileMap[userId].IsAway() || profileMap[userId].IsOffline()) {
-								toEmailMap[userId] = true
-							} else {
-								toEmailMap[userId] = false
-							}
+						}
+					}
+
+					for _, userId := range userIds {
+						if post.UserId == userId {
+							continue
+						}
+						sendEmail := true
+						if _, ok := profileMap[userId].NotifyProps["email"]; ok && profileMap[userId].NotifyProps["email"] == "false" {
+							sendEmail = false
+						}
+						if sendEmail && (profileMap[userId].IsAway() || profileMap[userId].IsOffline()) {
+							toEmailMap[userId] = true
+						} else {
+							toEmailMap[userId] = false
 						}
 					}
 				}
@@ -481,8 +556,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 				teamURL := c.GetSiteURL() + "/" + team.Name
 
 				// Build and send the emails
-				location, _ := time.LoadLocation("UTC")
-				tm := time.Unix(post.CreateAt/1000, 0).In(location)
+				tm := time.Unix(post.CreateAt/1000, 0)
 
 				for id, doSend := range toEmailMap {
 
@@ -495,28 +569,33 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 						continue
 					}
 
-					Lang = i18n.SetLanguage(profileMap[id].Language)
-					subjectPage := NewServerTemplatePage(Lang("post_subject"))
+					subjectPage := NewServerTemplatePage("post_subject")
 					subjectPage.Props["SiteURL"] = c.GetSiteURL()
-					subjectPage.Props["TeamDisplayName"] = team.DisplayName
 					subjectPage.Props["SubjectText"] = subjectText
-					subjectPage.Props["Month"] = tm.Month().String()[:3]
-					subjectPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
-					subjectPage.Props["Year"] = fmt.Sprintf("%d", tm.Year())
+					if profileMap[id].Language == "es" {
+						subjectPage.Props["Subject"] = fmt.Sprintf(T("for %v at %v %v, %v"), team.DisplayName, fmt.Sprintf("%d", tm.Day()), T(tm.Month().String())[:3], fmt.Sprintf("%d", tm.Year()))
+					} else {
+						subjectPage.Props["Subject"] = fmt.Sprintf(T("for %v at %v %v, %v"), team.DisplayName, tm.Month().String()[:3], fmt.Sprintf("%d", tm.Day(), fmt.Sprintf("%d", tm.Year())))
+					}
 
-					bodyPage := NewServerTemplatePage(Lang("post_body"))
+					bodyPage := NewServerTemplatePage("post_body")
 					bodyPage.Props["SiteURL"] = c.GetSiteURL()
 					bodyPage.Props["Nickname"] = profileMap[id].FirstName
 					bodyPage.Props["TeamDisplayName"] = team.DisplayName
 					bodyPage.Props["ChannelName"] = channelName
+					bodyPage.Props["Info"] = T("CHANNEL")
+					bodyPage.Props["Button"] = T("Go To Channel")
 					bodyPage.Props["BodyText"] = bodyText
 					bodyPage.Props["SenderName"] = senderName
 					bodyPage.Props["Hour"] = fmt.Sprintf("%02d", tm.Hour())
 					bodyPage.Props["Minute"] = fmt.Sprintf("%02d", tm.Minute())
-					bodyPage.Props["Month"] = Lang(tm.Month().String())[:3]
+					bodyPage.Props["Month"] = T(tm.Month().String())[:3]
 					bodyPage.Props["Day"] = fmt.Sprintf("%d", tm.Day())
+					bodyPage.Props["TimeZone"], _ = tm.Zone()
 					bodyPage.Props["PostMessage"] = model.ClearMentionTags(post.Message)
 					bodyPage.Props["TeamLink"] = teamURL + "/channels/" + channel.Name
+					bodyPage.Html["Footer"] = template.HTML(T("footer"))
+					bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 					// attempt to fill in a message body if the post doesn't have any text
 					if len(strings.TrimSpace(bodyPage.Props["PostMessage"])) == 0 && len(post.Filenames) > 0 {
@@ -549,13 +628,13 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 					}
 
 					if err := utils.SendMail(profileMap[id].Email, subjectPage.Render(), bodyPage.Render(), T); err != nil {
-						l4g.Error("Failed to send mention email successfully email=%v err=%v", profileMap[id].Email, err)
+						l4g.Error(T("Failed to send mention email successfully email=%v err=%v"), profileMap[id].Email, err)
 					}
 
 					if *utils.Cfg.EmailSettings.SendPushNotifications {
 						sessionChan := Srv.Store.Session().GetSessions(id, T)
 						if result := <-sessionChan; result.Err != nil {
-							l4g.Error("Failed to retrieve sessions in notifications id=%v, err=%v", id, result.Err)
+							l4g.Error(T("Failed to retrieve sessions in notifications id=%v, err=%v"), id, result.Err)
 						} else {
 							sessions := result.Data.([]*model.Session)
 							alreadySeen := make(map[string]string)
@@ -571,16 +650,16 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 									msg.ServerId = utils.CfgDiagnosticId
 
 									if channel.Type == model.CHANNEL_DIRECT {
-										msg.Message = channelName + " sent you a direct message"
+										msg.Message = senderName + T(" sent you a direct message")
 									} else {
-										msg.Message = profileMap[id].FirstName + " mentioned you in " + channelName
+										msg.Message = senderName + T(" mentioned you in ") + channelName
 									}
 
 									httpClient := http.Client{}
 									request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+"/api/v1/send_push", strings.NewReader(msg.ToJson()))
 
 									if _, err := httpClient.Do(request); err != nil {
-										l4g.Error("Failed to send push notificationid=%v, err=%v", id, err)
+										l4g.Error(T("Failed to send push notificationid=%v, err=%v"), id, err)
 									}
 								}
 							}
@@ -616,7 +695,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 func updateMentionCountAndForget(channelId, userId string, T goi18n.TranslateFunc) {
 	go func() {
 		if result := <-Srv.Store.Channel().IncrementMentionCount(channelId, userId, T); result.Err != nil {
-			l4g.Error("Failed to update mention count for user_id=%v on channel_id=%v err=%v", userId, channelId, result.Err)
+			l4g.Error(T("Failed to update mention count for user_id=%v on channel_id=%v err=%v"), userId, channelId, result.Err)
 		}
 	}()
 }
@@ -822,7 +901,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		list := result.Data.(*model.PostList)
 
 		if len(list.Order) != 1 {
-			c.Err = model.NewAppError("getPostById", "Unable to get post", "")
+			c.Err = model.NewAppError("getPostById", T("Unable to get post"), "")
 			return
 		}
 		post := list.Posts[list.Order[0]]
@@ -999,5 +1078,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Expires", "0")
 	w.Write([]byte(posts.ToJson()))
 }

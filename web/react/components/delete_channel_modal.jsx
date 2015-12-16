@@ -73,7 +73,7 @@ class DeleteChannelModal extends React.Component {
 
         let question = `${formatMessage(messages.question)} ${this.props.channel.display_name} ${channelTerm}?`;
         if (locale === 'es') {
-            question = `${formatMessage(messages.question)} ${channelTerm} ${this.props.channel.display_name}?`;
+            question = `¿${formatMessage(messages.question)} ${channelTerm} ${this.props.channel.display_name}?`;
         }
 
         return (

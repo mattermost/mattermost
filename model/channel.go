@@ -94,11 +94,11 @@ func (o *Channel) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Header) > 1024 {
-		return NewAppError("Channel.IsValid", "Invalid header", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid header"), "id="+o.Id)
 	}
 
 	if utf8.RuneCountInString(o.Purpose) > 128 {
-		return NewAppError("Channel.IsValid", "Invalid purpose", "id="+o.Id)
+		return NewAppError("Channel.IsValid", T("Invalid purpose"), "id="+o.Id)
 	}
 
 	if len(o.CreatorId) > 26 {

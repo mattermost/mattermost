@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
+import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
@@ -16,11 +16,7 @@ const messages = defineMessages({
     },
     enableDescription: {
         id: 'admin.gitlab.enableDescription',
-        defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth.'
-    },
-    enableHtmlDesc: {
-        id: 'admin.gitlab.EnableHtmlDesc',
-        defaultMessage: '<ol><li>Log in to your GitLab account and go to Applications -> Profile Settings.</li><li>Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". </li><li>Then use "Secret" and "Id" fields from GitLab to complete the options below.</li><li>Complete the Endpoint URLs below. </li></ol>'
+        defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth. To configure, log in to your GitLab account and go to Applications -> Profile Settings. Enter Redirect URIs "<your-mattermost-url>/login/gitlab/complete" (example: http://localhost:8065/login/gitlab/complete) and "<your-mattermost-url>/signup/gitlab/complete". Then use "Secret" and "Id" fields to complete the options below.'
     },
     true: {
         id: 'admin.gitlab.true',

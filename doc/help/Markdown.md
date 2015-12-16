@@ -31,7 +31,7 @@ code block
 To add syntax highlighting, type the language to be highlighted after the ``` at the beginning of the code block. 
 
 Supported languages are:
-`diff, apache, makefile, http, json, markdown, javascript, css, nginx, objectivec, python, xml, perl, bash, php, coffee (CoffeeScript), cs (C#), cpp (C++), sql, go, ruby, java, ini, latex`
+`diff, apache, makefile, http, json, markdown, javascript, css, nginx, objectivec, python, xml, perl, bash, php, coffeescript, cs (C#), cpp (C++), sql, go, ruby, java, ini, latex`
 
 Example:
 

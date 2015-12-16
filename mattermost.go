@@ -59,7 +59,7 @@ func main() {
 
 	api.NewServer()
 	api.InitApi()
-	web.InitWeb()
+	web.InitWeb(T)
 
 	if flagRunCmds {
 		runCmds()
@@ -109,7 +109,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 					currentTime := model.GetMillis()
 
 					if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-						l4g.Debug("Checking for security update from Mattermost")
+						l4g.Debug(T("Checking for security update from Mattermost"))
 
 						v := url.Values{}
 
@@ -142,7 +142,7 @@ func runSecurityAndDiagnosticsJobAndForget() {
 
 						res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
 						if err != nil {
-							l4g.Error("Failed to get security update information from Mattermost.")
+							l4g.Error(T("Failed to get security update information from Mattermost."))
 							return
 						}
 
@@ -152,27 +152,27 @@ func runSecurityAndDiagnosticsJobAndForget() {
 							if bulletin.AppliesToVersion == model.CurrentVersion {
 								if props["SecurityBulletin_"+bulletin.Id] == "" {
 									if results := <-api.Srv.Store.User().GetSystemAdminProfiles(T); results.Err != nil {
-										l4g.Error("Failed to get system admins for security update information from Mattermost.")
+										l4g.Error(T("Failed to get system admins for security update information from Mattermost."))
 										return
 									} else {
 										users := results.Data.(map[string]*model.User)
 
 										resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
 										if err != nil {
-											l4g.Error("Failed to get security bulletin details")
+											l4g.Error(T("Failed to get security bulletin details"))
 											return
 										}
 
 										body, err := ioutil.ReadAll(resBody.Body)
 										res.Body.Close()
 										if err != nil || resBody.StatusCode != 200 {
-											l4g.Error("Failed to read security bulletin details")
+											l4g.Error(T("Failed to read security bulletin details"))
 											return
 										}
 
 										for _, user := range users {
-											l4g.Info("Sending security bulletin for " + bulletin.Id + " to " + user.Email)
-											utils.SendMail(user.Email, "Mattermost Security Bulletin", string(body), T)
+											l4g.Info(T("Sending security bulletin for ") + bulletin.Id + T(" to ") + user.Email)
+											utils.SendMail(user.Email, T("Mattermost Security Bulletin"), string(body), T)
 										}
 									}
 
@@ -434,13 +434,13 @@ func cmdResetPassword() {
 func cmdPermDeleteUser() {
 	if flagCmdPermanentDeleteUser {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
 
 		if len(flagEmail) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -email")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -email"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -466,14 +466,14 @@ func cmdPermDeleteUser() {
 		}
 
 		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Print(T("Have you performed a database backup? (YES/NO): "))
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
 			flushLogAndExit(1)
 		}
 
 		var confirm string
-		fmt.Printf("Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): ", user.Email)
+		fmt.Printf(T("Are you sure you want to delete the user %v?  All data will be permanently deleted? (YES/NO): "), user.Email)
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			flushLogAndExit(1)
@@ -491,7 +491,7 @@ func cmdPermDeleteUser() {
 func cmdPermDeleteTeam() {
 	if flagCmdPermanentDeleteTeam {
 		if len(flagTeamName) == 0 {
-			fmt.Fprintln(os.Stderr, "flag needs an argument: -team_name")
+			fmt.Fprintln(os.Stderr, T("flag needs an argument: -team_name"))
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -509,14 +509,14 @@ func cmdPermDeleteTeam() {
 		}
 
 		var confirmBackup string
-		fmt.Print("Have you performed a database backup? (YES/NO): ")
+		fmt.Print(T("Have you performed a database backup? (YES/NO): "))
 		fmt.Scanln(&confirmBackup)
 		if confirmBackup != "YES" {
 			flushLogAndExit(1)
 		}
 
 		var confirm string
-		fmt.Printf("Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): ", team.Name)
+		fmt.Printf(T("Are you sure you want to delete the team %v?  All data will be permanently deleted? (YES/NO): "), team.Name)
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			flushLogAndExit(1)

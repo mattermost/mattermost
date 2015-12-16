@@ -76,7 +76,7 @@ func (s SqlAuditStore) Get(user_id string, limit int, T goi18n.TranslateFunc) St
 		var audits model.Audits
 		if _, err := s.GetReplica().Select(&audits, "SELECT * FROM Audits WHERE UserId = :user_id ORDER BY CreateAt DESC LIMIT :limit",
 			map[string]interface{}{"user_id": user_id, "limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.Get", T("We encounted an error finding the audits"), "user_id="+user_id)
+			result.Err = model.NewAppError("SqlAuditStore.Get", T("We encountered an error finding the audits"), "user_id="+user_id)
 		} else {
 			result.Data = audits
 		}
@@ -97,7 +97,7 @@ func (s SqlAuditStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFu
 
 		if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
 			map[string]interface{}{"userId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.Delete", "We encountered an error deleting the audits", "user_id="+userId)
+			result.Err = model.NewAppError("SqlAuditStore.Delete", T("We encountered an error deleting the audits"), "user_id="+userId)
 		}
 
 		storeChannel <- result

@@ -149,6 +149,27 @@ class SidebarRightMenu extends React.Component {
             teamDisplayName = this.props.teamDisplayName;
         }
 
+        let helpLink = null;
+        if (global.window.mm_config.HelpLink) {
+            helpLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.HelpLink}
+                    ><i className='fa fa-question'></i>{formatMessage(messages.help)}</a></li>
+            );
+        }
+
+        let reportLink = null;
+        if (global.window.mm_config.ReportAProblemLink) {
+            reportLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.ReportAProblemLink}
+                    ><i className='fa fa-phone'></i>{formatMessage(messages.report)}</a></li>
+            );
+        }
         return (
             <div>
                 <div className='team__header theme'>
@@ -179,16 +200,8 @@ class SidebarRightMenu extends React.Component {
                                 onClick={this.handleLogoutClick}
                             ><i className='fa fa-sign-out'></i>{formatMessage(messages.logout)}</a></li>
                         <li className='divider'></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='http://ayuda.zboxapp.com/collection/65-chat'
-                            ><i className='fa fa-question'></i>{formatMessage(messages.help)}</a></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='http://ayuda.zboxapp.com/collection/65-chat#contactModal'
-                            ><i className='fa fa-phone'></i>{formatMessage(messages.report)}</a></li>
+                        {helpLink}
+                        {reportLink}
                     </ul>
                 </div>
                 <UserSettingsModal

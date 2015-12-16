@@ -17,10 +17,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"html/template"
 )
 
 func InitTeam(r *mux.Router) {
-	l4g.Debug("Initializing team api routes")
+	l4g.Debug(T("Initializing team api routes"))
 
 	sr := r.PathPrefix("/teams").Subrouter()
 	sr.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
@@ -59,10 +60,16 @@ func signupTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage(T("signup_team_subject"))
+	subjectPage := NewServerTemplatePage("signup_team_subject")
 	subjectPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage := NewServerTemplatePage(T("signup_team_body"))
+	subjectPage.Props["Subject"] = fmt.Sprintf(T("%v Team Setup"), utils.ClientCfg["SiteName"])
+	bodyPage := NewServerTemplatePage("signup_team_body")
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
+	bodyPage.Props["Title"] = T("Thanks for creating a team!")
+	bodyPage.Props["Button"] = T("Set up your team")
+	bodyPage.Html["Info"] = template.HTML(fmt.Sprintf(T("is one place for all your team communication, searchable and available anywhere.<br>You'll get more out of %v when your team is in constant communication--let's get them on board."), utils.ClientCfg["SiteName"]))
+	bodyPage.Html["Footer"] = template.HTML(T("footer"))
+	bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 	props := make(map[string]string)
 	props["email"] = email
@@ -432,10 +439,15 @@ func emailTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subjectPage := NewServerTemplatePage(T("find_teams_subject"))
-	subjectPage.ClientCfg["SiteURL"] = c.GetSiteURL()
-	bodyPage := NewServerTemplatePage(T("find_teams_body"))
+	subjectPage := NewServerTemplatePage("find_teams_subject")
+	subjectPage.Props["Subject"] = fmt.Sprintf(T("Your %v Teams"), c.GetSiteURL())
+	bodyPage := NewServerTemplatePage("find_teams_body")
 	bodyPage.ClientCfg["SiteURL"] = c.GetSiteURL()
+	bodyPage.ClientCfg["Title"] = T("Finding teams")
+	bodyPage.ClientCfg["Found"] = T("Your request to find teams associated with your email found the following:")
+	bodyPage.ClientCfg["NotFound"] = T("We could not find any teams for the given email.")
+	bodyPage.Html["Footer"] = template.HTML(T("footer"))
+	bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 	if result := <-Srv.Store.Team().GetTeamsForEmail(email, T); result.Err != nil {
 		c.Err = result.Err
@@ -517,15 +529,20 @@ func InviteMembers(c *Context, team *model.Team, user *model.User, invites []str
 				senderRole = T("member")
 			}
 
-			subjectPage := NewServerTemplatePage(T("invite_subject"))
+			subjectPage := NewServerTemplatePage("invite_subject")
 			subjectPage.Props["SenderName"] = sender
-			subjectPage.Props["TeamDisplayName"] = team.DisplayName
+			subjectPage.Props["Subject"] = fmt.Sprintf(T("invited you to join %v Team on"), team.DisplayName)
 
-			bodyPage := NewServerTemplatePage(T("invite_body"))
+			bodyPage := NewServerTemplatePage("invite_body")
+			bodyPage.Props["SiteURL"] = c.GetSiteURL()
 			bodyPage.Props["TeamURL"] = c.GetTeamURL(T)
+			bodyPage.Props["Title"] = T("You've been invited")
+			bodyPage.Html["Info"] = template.HTML(fmt.Sprintf(T("The team %v <strong>%v</strong>, has invited you to join <strong>%v</strong>."), senderRole, sender, team.DisplayName))
+			bodyPage.Props["Button"] = T("Join Team")
+			bodyPage.Html["Extra"] = template.HTML(fmt.Sprintf(T("Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>"), team.DisplayName, c.GetTeamURL(T), c.GetTeamURL(T)))
 			bodyPage.Props["TeamDisplayName"] = team.DisplayName
-			bodyPage.Props["SenderName"] = sender
-			bodyPage.Props["SenderStatus"] = senderRole
+			bodyPage.Html["Footer"] = template.HTML(T("footer"))
+			bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 			props := make(map[string]string)
 			props["email"] = invite
 			props["id"] = team.Id
@@ -591,7 +608,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func PermanentDeleteTeam(c *Context, team *model.Team, T goi18n.TranslateFunc) *model.AppError {
-	l4g.Warn("Attempting to permanently delete team %v id=%v", team.Name, team.Id)
+	l4g.Warn(T("Attempting to permanently delete team %v id=%v"), team.Name, team.Id)
 	c.Path = "/teams/permanent_delete"
 	c.LogAuditWithUserId("", fmt.Sprintf("attempt teamId=%v", team.Id), T)
 
@@ -617,7 +634,7 @@ func PermanentDeleteTeam(c *Context, team *model.Team, T goi18n.TranslateFunc) *
 		return result.Err
 	}
 
-	l4g.Warn("Permanently deleted team %v id=%v", team.Name, team.Id)
+	l4g.Warn(T("Permanently deleted team %v id=%v"), team.Name, team.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success teamId=%v", team.Id), T)
 
 	return nil
@@ -660,7 +677,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
 	if !ok {
-		c.Err = model.NewAppError("importTeam", "Filesize unavilable", "")
+		c.Err = model.NewAppError("importTeam", T("Filesize unavilable"), "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}

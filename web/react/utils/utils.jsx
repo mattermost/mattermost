@@ -147,7 +147,7 @@ export function notifyMe(title, body, channel) {
                     } else {
                         window.location.href = TeamStore.getCurrentTeamUrl() + '/channels/general';
                     }
-                    console.log('notification'); // this is necesary to fix matterfront notification bug
+                    console.log('notification'); //eslint-disable-line no-console
                 };
                 setTimeout(function closeNotificationOnTimeout() {
                     notification.close();
@@ -205,8 +205,8 @@ export function displayTime(ticks) {
         minutes = '0' + minutes;
     }
 
-    const useMilitaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'}).value;
-    if (useMilitaryTime === 'false') {
+    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+    if (!useMilitaryTime) {
         ampm = ' AM';
         if (hours >= 12) {
             ampm = ' PM';
@@ -567,7 +567,7 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
-        changeCss('.sidebar--left .status path', 'fill:' + changeOpacity(theme.sidebarText, 0.5), 1);
+        changeCss('.sidebar--left .status path', 'fill:' + theme.sidebarText, 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
     }
 
@@ -1024,7 +1024,7 @@ export function getDisplayName(user) {
 
 export function displayUsername(userId) {
     const user = UserStore.getProfile(userId);
-    const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value;
+    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false');
 
     let username = '';
     if (user) {
@@ -1161,6 +1161,11 @@ export function getUserIdFromChannelName(channel) {
     return otherUserId;
 }
 
+// Returns true if the given channel is a direct channel between the current user and the given one
+export function isDirectChannelForUser(otherUserId, channel) {
+    return channel.type === Constants.DM_CHANNEL && getUserIdFromChannelName(channel) === otherUserId;
+}
+
 export function importSlack(file, success, error) {
     var formData = new FormData();
     formData.append('file', file, file.name);
@@ -1271,7 +1276,7 @@ export function getPostTerm(post, locale) {
 }
 
 export function isFeatureEnabled(feature) {
-    return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label, {value: 'false'}).value === 'true';
+    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label);
 }
 
 export function isSystemMessage(post) {

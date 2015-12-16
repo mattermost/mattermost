@@ -33,6 +33,11 @@
 	line-height: 40px;
 	display: none;
 }
+.search-item-snippet {
+	ul, ol {
+		padding-left: 20px;
+	}
+}
 .sidebar__search-icon {
 	position: absolute;
 	top: 15px;

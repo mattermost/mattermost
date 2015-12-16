@@ -280,7 +280,6 @@ class SignupUserComplete extends React.Component {
                 <a
                     className='btn btn-custom-login zbox'
                     href={'/' + this.props.teamName + '/signup/zbox' + window.location.search}
-                    key='zbox'
                 >
                     <span className='icon' />
                     <span>{formatMessage(messages.zbox)}</span>

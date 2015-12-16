@@ -191,5 +191,5 @@ type PreferenceStore interface {
 	GetCategory(userId string, category string, T goi18n.TranslateFunc) StoreChannel
 	GetAll(userId string, T goi18n.TranslateFunc) StoreChannel
 	PermanentDeleteByUser(userId string, T goi18n.TranslateFunc) StoreChannel
-	IsFeatureEnabled(feature, userId string) StoreChannel
+	IsFeatureEnabled(feature, userId string, T goi18n.TranslateFunc) StoreChannel
 }

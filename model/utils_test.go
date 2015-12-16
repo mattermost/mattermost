@@ -17,6 +17,15 @@ func TestNewId(t *testing.T) {
 	}
 }
 
+func TestRandomString(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		r := NewRandomString(32)
+		if len(r) != 32 {
+			t.Fatal("should be 32 chars")
+		}
+	}
+}
+
 func TestAppError(t *testing.T) {
 	err := NewAppError("TestAppError", "message", "")
 	json := err.ToJson()
@@ -47,21 +56,21 @@ func TestMapJson(t *testing.T) {
 }
 
 func TestValidEmail(t *testing.T) {
-	if !IsValidEmail("corey@hulen.com") {
+	if !IsValidEmail("corey+test@hulen.com") {
 		t.Error("email should be valid")
 	}
 
-	if IsValidEmail("@corey@hulen.com") {
+	if IsValidEmail("@corey+test@hulen.com") {
 		t.Error("should be invalid")
 	}
 }
 
 func TestValidLower(t *testing.T) {
-	if !IsLower("corey@hulen.com") {
+	if !IsLower("corey+test@hulen.com") {
 		t.Error("should be valid")
 	}
 
-	if IsLower("Corey@hulen.com") {
+	if IsLower("Corey+test@hulen.com") {
 		t.Error("should be invalid")
 	}
 }
@@ -70,5 +79,29 @@ func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
 	if len(etag) <= 0 {
 		t.Fatal()
+	}
+}
+
+var hashtags map[string]string = map[string]string{
+	"#test":         "#test",
+	"test":          "",
+	"#test123":      "#test123",
+	"#123test123":   "",
+	"#test-test":    "#test-test",
+	"#test?":        "#test",
+	"hi #there":     "#there",
+	"#bug #idea":    "#bug #idea",
+	"#bug or #gif!": "#bug #gif",
+	"#hüllo":        "#hüllo",
+	"#?test":        "",
+	"#-test":        "",
+	"#yo_yo":        "#yo_yo",
+}
+
+func TestParseHashtags(t *testing.T) {
+	for input, output := range hashtags {
+		if o, _ := ParseHashtags(input); o != output {
+			t.Fatal("expected=" + output + " actual=" + o)
+		}
 	}
 }

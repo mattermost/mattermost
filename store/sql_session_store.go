@@ -167,7 +167,7 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string, T goi18n.
 
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "We couldn't remove all the sessions for the user", "id="+userId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", T("We couldn't remove all the sessions for the user"), "id="+userId+", err="+err.Error())
 		}
 
 		storeChannel <- result

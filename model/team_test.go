@@ -45,7 +45,7 @@ func TestTeamIsValid(t *testing.T) {
 		t.Fatal("should be invalid")
 	}
 
-	o.Email = "corey@hulen.com"
+	o.Email = "corey+test@hulen.com"
 	o.DisplayName = strings.Repeat("01234567890", 20)
 	if err := o.IsValid(true); err == nil {
 		t.Fatal("should be invalid")

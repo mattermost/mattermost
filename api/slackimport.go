@@ -45,7 +45,7 @@ func SlackConvertTimeStamp(ts string) int64 {
 
 	timeStamp, err := strconv.ParseInt(timeString, 10, 64)
 	if err != nil {
-		l4g.Warn("Bad timestamp detected")
+		l4g.Warn(T("Bad timestamp detected"))
 		return 1
 	}
 	return timeStamp * 1000 // Convert to milliseconds
@@ -92,7 +92,7 @@ func SlackParsePosts(data io.Reader) []SlackPost {
 
 func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map[string]*model.User {
 	// Log header
-	log.WriteString("\r\n Users Created\r\n")
+	log.WriteString(T("\r\n Users Created\r\n"))
 	log.WriteString("===============\r\n\r\n")
 
 	addedUsers := make(map[string]*model.User)
@@ -119,9 +119,9 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 
 		if mUser := ImportUser(&newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
-			log.WriteString("Email, Password: " + newUser.Email + ", " + password + "\r\n")
+			log.WriteString(T("Email, Password: ") + newUser.Email + ", " + password + "\r\n")
 		} else {
-			log.WriteString("Unable to import user: " + sUser.Username + "\r\n")
+			log.WriteString(T("Unable to import user: ") + sUser.Username + "\r\n")
 		}
 	}
 
@@ -133,10 +133,10 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
 			if sPost.User == "" {
-				l4g.Debug("Message without user")
+				l4g.Debug(T("Message without user"))
 				continue
 			} else if users[sPost.User] == nil {
-				l4g.Debug("User: " + sPost.User + " does not exist!")
+				l4g.Debug(T("User: ") + sPost.User + T(" does not exist!"))
 				continue
 			}
 			newPost := model.Post{
@@ -148,10 +148,10 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 			ImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
 			if sPost.Comment["user"] == "" {
-				l4g.Debug("Message without user")
+				l4g.Debug(T("Message without user"))
 				continue
 			} else if users[sPost.Comment["user"]] == nil {
-				l4g.Debug("User: " + sPost.User + " does not exist!")
+				l4g.Debug(T("User: ") + sPost.User + T(" does not exist!"))
 				continue
 			}
 			newPost := model.Post{
@@ -164,16 +164,16 @@ func SlackAddPosts(channel *model.Channel, posts []SlackPost, users map[string]*
 		case sPost.Type == "message" && sPost.SubType == "bot_message":
 			// In the future this will use the "Action Post" spec to post
 			// a message without using a username. For now we just warn that we don't handle this case
-			l4g.Warn("Slack bot posts are not imported yet")
+			l4g.Warn(T("Slack bot posts are not imported yet"))
 		default:
-			l4g.Warn("Unsupported post type: " + sPost.Type + ", " + sPost.SubType)
+			l4g.Warn(T("Unsupported post type: ") + sPost.Type + ", " + sPost.SubType)
 		}
 	}
 }
 
 func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, log *bytes.Buffer) map[string]*model.Channel {
 	// Write Header
-	log.WriteString("\r\n Channels Added \r\n")
+	log.WriteString(T("\r\n Channels Added \r\n"))
 	log.WriteString("=================\r\n\r\n")
 	T := i18n.GetSystemLanguage()
 
@@ -190,12 +190,12 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		if mChannel == nil {
 			// Maybe it already exists?
 			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name, T); result.Err != nil {
-				l4g.Debug("Failed to import: %s", newChannel.DisplayName)
-				log.WriteString("Failed to import: " + newChannel.DisplayName + "\r\n")
+				l4g.Debug(T("Failed to import: %s"), newChannel.DisplayName)
+				log.WriteString(T("Failed to import: ") + newChannel.DisplayName + "\r\n")
 				continue
 			} else {
 				mChannel = result.Data.(*model.Channel)
-				log.WriteString("Merged with existing channel: " + newChannel.DisplayName + "\r\n")
+				log.WriteString(T("Merged with existing channel: ") + newChannel.DisplayName + "\r\n")
 			}
 		}
 		log.WriteString(newChannel.DisplayName + "\r\n")
@@ -209,11 +209,11 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	zipreader, err := zip.NewReader(fileData, fileSize)
 	if err != nil || zipreader.File == nil {
-		return model.NewAppError("SlackImport", "Unable to open zip file", err.Error()), nil
+		return model.NewAppError("SlackImport", T("Unable to open zip file"), err.Error()), nil
 	}
 
 	// Create log file
-	log := bytes.NewBufferString("Mattermost Slack Import Log\r\n")
+	log := bytes.NewBufferString(T("Mattermost Slack Import Log\r\n"))
 
 	var channels []SlackChannel
 	var users []SlackUser
@@ -221,7 +221,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	for _, file := range zipreader.File {
 		reader, err := file.Open()
 		if err != nil {
-			return model.NewAppError("SlackImport", "Unable to open: "+file.Name, err.Error()), log
+			return model.NewAppError("SlackImport", T("Unable to open: ")+file.Name, err.Error()), log
 		}
 		if file.Name == "channels.json" {
 			channels = SlackParseChannels(reader)
@@ -245,11 +245,11 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	addedUsers := SlackAddUsers(teamID, users, log)
 	SlackAddChannels(teamID, channels, posts, addedUsers, log)
 
-	log.WriteString("\r\n Notes \r\n")
+	log.WriteString(T("\r\n Notes \r\n"))
 	log.WriteString("=======\r\n\r\n")
 
-	log.WriteString("- Some posts may not have been imported because they where not supported by this importer.\r\n")
-	log.WriteString("- Slack bot posts are currently not supported.\r\n")
+	log.WriteString(T("- Some posts may not have been imported because they where not supported by this importer.\r\n"))
+	log.WriteString(T("- Slack bot posts are currently not supported.\r\n"))
 
 	return nil, log
 }

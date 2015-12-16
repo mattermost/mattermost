@@ -66,7 +66,7 @@ func (h *TeamHub) Start(T goi18n.TranslateFunc) {
 			case s := <-h.stop:
 				if s {
 
-					l4g.Debug("team hub stopping for teamId=%v", h.teamId)
+					l4g.Debug(T("team hub stopping for teamId=%v"), h.teamId)
 
 					for webCon := range h.connections {
 						webCon.WebSocket.Close()
@@ -96,8 +96,10 @@ func ShouldSendEvent(webCon *WebConn, msg *model.Message, T goi18n.TranslateFunc
 			return false
 		}
 	} else {
-		// Don't share a user's view events with other users
+		// Don't share a user's view or preference events with other users
 		if msg.Action == model.ACTION_CHANNEL_VIEWED {
+			return false
+		} else if msg.Action == model.ACTION_PREFERENCE_CHANGED {
 			return false
 		}
 

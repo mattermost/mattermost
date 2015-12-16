@@ -209,6 +209,7 @@ body.ios {
 	@include flex(1 1 auto);
 	position: relative;
 	overflow-y: hidden;
+	height: 100%;
 
 	.post-list-holder-by-time {
 		background: #fff;

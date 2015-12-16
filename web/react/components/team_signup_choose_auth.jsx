@@ -53,7 +53,6 @@ class ChooseAuthPage extends React.Component {
                 <a
                     className='btn btn-custom-login zbox btn-full'
                     href='#'
-                    key='zbox'
                     onClick={
                             function clickGit(e) {
                                 e.preventDefault();

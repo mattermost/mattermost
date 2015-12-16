@@ -116,7 +116,7 @@ func (o *Post) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > 8000 {
-		return NewAppError("Post.IsValid", "Invalid props", "id="+o.Id)
+		return NewAppError("Post.IsValid", T("Invalid props"), "id="+o.Id)
 	}
 
 	return nil

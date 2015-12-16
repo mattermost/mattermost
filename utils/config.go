@@ -136,18 +136,18 @@ func LoadConfig(fileName string, T goi18n.TranslateFunc) {
 
 	file, err := os.Open(fileName)
 	if err != nil {
-		panic("Error opening config file=" + fileName + ", err=" + err.Error())
+		panic(T("Error opening config file=") + fileName + ", err=" + err.Error())
 	}
 
 	decoder := json.NewDecoder(file)
 	config := model.Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
-		panic("Error decoding config file=" + fileName + ", err=" + err.Error())
+		panic(T("Error decoding config file=") + fileName + ", err=" + err.Error())
 	}
 
 	if info, err := file.Stat(); err != nil {
-		panic("Error getting config info file=" + fileName + ", err=" + err.Error())
+		panic(T("Error getting config info file=") + fileName + ", err=" + err.Error())
 	} else {
 		CfgLastModified = info.ModTime().Unix()
 		CfgFileName = fileName
@@ -156,7 +156,7 @@ func LoadConfig(fileName string, T goi18n.TranslateFunc) {
 	config.SetDefaults()
 
 	if err := config.IsValid(T); err != nil {
-		panic("Error validating config file=" + fileName + ", err=" + err.Message)
+		panic(T("Error validating config file=") + fileName + ", err=" + err.Message)
 	}
 
 	configureLog(&config.LogSettings)
@@ -183,6 +183,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
+	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["EnableTeamListing"] = strconv.FormatBool(*c.TeamSettings.EnableTeamListing)
 
@@ -194,6 +195,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
+	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
@@ -204,6 +206,13 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableSignUpWithZBox"] = strconv.FormatBool(c.ZBoxSettings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
+
+	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
+	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
+	props["AboutLink"] = *c.SupportSettings.AboutLink
+	props["HelpLink"] = *c.SupportSettings.HelpLink
+	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
+	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)

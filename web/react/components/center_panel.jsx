@@ -34,9 +34,9 @@ class CenterPanel extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onChannelChange = this.onChannelChange.bind(this);
 
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         this.state = {
-            showTutorialScreens: parseInt(tutorialPref.value, 10) === TutorialSteps.INTRO_SCREENS,
+            showTutorialScreens: tutorialStep === TutorialSteps.INTRO_SCREENS,
             showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS
         };
     }
@@ -49,8 +49,8 @@ class CenterPanel extends React.Component {
         ChannelStore.removeChangeListener(this.onChannelChange);
     }
     onPreferenceChange() {
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
-        this.setState({showTutorialScreens: parseInt(tutorialPref.value, 10) <= TutorialSteps.INTRO_SCREENS});
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+        this.setState({showTutorialScreens: tutorialStep <= TutorialSteps.INTRO_SCREENS});
     }
     onChannelChange() {
         this.setState({showPostFocus: ChannelStore.getPostMode() === ChannelStore.POST_MODE_FOCUS});

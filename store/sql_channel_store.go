@@ -106,17 +106,17 @@ func (s SqlChannelStore) Save(channel *model.Channel, T goi18n.TranslateFunc) St
 	go func() {
 		var result StoreResult
 		if channel.Type == model.CHANNEL_DIRECT {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "Use SaveDirectChannel to create a direct channel", "")
+			result.Err = model.NewAppError("SqlChannelStore.Save", T("Use SaveDirectChannel to create a direct channel"), "")
 		} else {
 			if transaction, err := s.GetMaster().Begin(); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.Save", "Unable to open transaction", err.Error())
+				result.Err = model.NewAppError("SqlChannelStore.Save", T("Unable to open transaction"), err.Error())
 			} else {
 				result = s.saveChannelT(transaction, channel, T)
 				if result.Err != nil {
 					transaction.Rollback()
 				} else {
 					if err := transaction.Commit(); err != nil {
-						result.Err = model.NewAppError("SqlChannelStore.Save", "Unable to commit transaction", err.Error())
+						result.Err = model.NewAppError("SqlChannelStore.Save", T("Unable to commit transaction"), err.Error())
 					}
 				}
 			}
@@ -136,10 +136,10 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 		var result StoreResult
 
 		if directchannel.Type != model.CHANNEL_DIRECT {
-			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "Not a direct channel attempted to be created with SaveDirectChannel", "")
+			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", T("Not a direct channel attempted to be created with SaveDirectChannel"), "")
 		} else {
 			if transaction, err := s.GetMaster().Begin(); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "Unable to open transaction", err.Error())
+				result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", T("Unable to open transaction"), err.Error())
 			} else {
 				channelResult := s.saveChannelT(transaction, directchannel, T)
 
@@ -164,10 +164,10 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 						if member2Result.Err != nil {
 							details += "Member2Err: " + member2Result.Err.Message
 						}
-						result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "Unable to add direct channel members", details)
+						result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", T("Unable to add direct channel members"), details)
 					} else {
 						if err := transaction.Commit(); err != nil {
-							result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "Ubable to commit transaction", err.Error())
+							result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", T("Unable to commit transaction"), err.Error())
 						} else {
 							result = channelResult
 						}
@@ -187,7 +187,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 	result := StoreResult{}
 
 	if len(channel.Id) > 0 {
-		result.Err = model.NewAppError("SqlChannelStore.Save", "Must call update for exisiting channel", "id="+channel.Id)
+		result.Err = model.NewAppError("SqlChannelStore.Save", T("Must call update for exisiting channel"), "id="+channel.Id)
 		return result
 	}
 
@@ -196,25 +196,27 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		return result
 	}
 
-	if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
-		result.Err = model.NewAppError("SqlChannelStore.Save", "Failed to get current channel count", "teamId="+channel.TeamId+", "+err.Error())
-		return result
-	} else if count > 150 {
-		result.Err = model.NewAppError("SqlChannelStore.Save", "You've reached the limit of the number of allowed channels.", "teamId="+channel.TeamId)
-		return result
+	if channel.Type != model.CHANNEL_DIRECT {
+		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Save", T("Failed to get current channel count"), "teamId="+channel.TeamId+", "+err.Error())
+			return result
+		} else if count > 1000 {
+			result.Err = model.NewAppError("SqlChannelStore.Save", T("You've reached the limit of the number of allowed channels."), "teamId="+channel.TeamId)
+			return result
+		}
 	}
 
 	if err := transaction.Insert(channel); err != nil {
 		if IsUniqueConstraintError(err.Error(), "Name", "channels_name_teamid_key") {
 			dupChannel := model.Channel{}
-			s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
+			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
-				result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that URL was previously created", "id="+channel.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlChannelStore.Update", T("A channel with that URL was previously created"), "id="+channel.Id+", "+err.Error())
 			} else {
-				result.Err = model.NewAppError("SqlChannelStore.Update", "A channel with that URL already exists", "id="+channel.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlChannelStore.Update", T("A channel with that URL already exists"), "id="+channel.Id+", "+err.Error())
 			}
 		} else {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "We couldn't save the channel", "id="+channel.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.Save", T("We couldn't save the channel"), "id="+channel.Id+", "+err.Error())
 		}
 	} else {
 		result.Data = channel
@@ -539,14 +541,14 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember, T goi18n.Transl
 			channel := cr.Data.(*model.Channel)
 
 			if transaction, err := s.GetMaster().Begin(); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.SaveMember", "Unable to open transaction", err.Error())
+				result.Err = model.NewAppError("SqlChannelStore.SaveMember", T("Unable to open transaction"), err.Error())
 			} else {
 				result = s.saveMemberT(transaction, member, channel, T)
 				if result.Err != nil {
 					transaction.Rollback()
 				} else {
 					if err := transaction.Commit(); err != nil {
-						result.Err = model.NewAppError("SqlChannelStore.SaveMember", "Unable to commit transaction", err.Error())
+						result.Err = model.NewAppError("SqlChannelStore.SaveMember", T("Unable to commit transaction"), err.Error())
 					}
 					// If sucessfull record members have changed in channel
 					if mu := <-s.extraUpdated(channel, T); mu.Err != nil {
@@ -573,9 +575,9 @@ func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *mode
 
 	if err := transaction.Insert(member); err != nil {
 		if IsUniqueConstraintError(err.Error(), "ChannelId", "channelmembers_pkey") {
-			result.Err = model.NewAppError("SqlChannelStore.SaveMember", "A channel member with that id already exists", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.SaveMember", T("A channel member with that id already exists"), "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
 		} else {
-			result.Err = model.NewAppError("SqlChannelStore.SaveMember", "We couldn't save the channel member", "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.SaveMember", T("We couldn't save the channel member"), "channel_id="+member.ChannelId+", user_id="+member.UserId+", "+err.Error())
 		}
 	} else {
 		result.Data = member
@@ -662,7 +664,7 @@ func (s SqlChannelStore) GetMemberCount(channelId string, T goi18n.TranslateFunc
 
 		count, err := s.GetReplica().SelectInt("SELECT count(*) FROM ChannelMembers WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMemberCount", "We couldn't get the channel member count", "channel_id="+channelId+", "+err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.GetMemberCount", T("We couldn't get the channel member count"), "channel_id="+channelId+", "+err.Error())
 		} else {
 			result.Data = count
 		}
@@ -735,7 +737,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string, T goi18n.Tr
 		result := StoreResult{}
 
 		if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "We couldn't remove the channel member", "user_id="+userId+", "+err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", T("We couldn't remove the channel member"), "user_id="+userId+", "+err.Error())
 		}
 
 		storeChannel <- result
@@ -950,7 +952,7 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string, T
 			        AND Type = :ChannelType`,
 			map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.AnalyticsTypeCount", "We couldn't get channel type counts", err.Error())
+			result.Err = model.NewAppError("SqlChannelStore.AnalyticsTypeCount", T("We couldn't get channel type counts"), err.Error())
 		} else {
 			result.Data = v
 		}

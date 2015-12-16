@@ -11,7 +11,6 @@ import (
 var TranslateFunc i18n.TranslateFunc
 var languages = [2]string{"es", "en"}
 
-
 func Init() {
 	i18n.MustLoadTranslationFile("./i18n/en.all.json")
 	i18n.MustLoadTranslationFile("./i18n/es.all.json")

@@ -59,7 +59,7 @@ func (c *Client) DoPost(url, data, contentType string, T goi18n.TranslateFunc) (
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewAppError(url, T("We encountered an error while connecting to the server"), err.Error())
 	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
+		return nil, AppErrorFromJson(rp.Body, T)
 	} else {
 		return rp, nil
 	}
@@ -75,7 +75,7 @@ func (c *Client) DoApiPost(url string, data string, T goi18n.TranslateFunc) (*ht
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewAppError(url, T("We encountered an error while connecting to the server"), err.Error())
 	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
+		return nil, AppErrorFromJson(rp.Body, T)
 	} else {
 		return rp, nil
 	}
@@ -97,7 +97,7 @@ func (c *Client) DoApiGet(url string, data string, etag string, T goi18n.Transla
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
-		return rp, AppErrorFromJson(rp.Body)
+		return rp, AppErrorFromJson(rp.Body, T)
 	} else {
 		return rp, nil
 	}
@@ -231,7 +231,7 @@ func (c *Client) CreateUser(user *User, hash string, T goi18n.TranslateFunc) (*R
 }
 
 func (c *Client) CreateUserFromSignup(user *User, data string, hash string, T goi18n.TranslateFunc) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/create?d="+data+"&h="+hash, user.ToJson(), T); err != nil {
+	if r, err := c.DoApiPost("/users/create?d="+url.QueryEscape(data)+"&h="+hash, user.ToJson(), T); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
@@ -675,7 +675,7 @@ func (c *Client) UploadFile(url string, data []byte, contentType string, T goi18
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewAppError(url, T("We encountered an error while connecting to the server"), err.Error())
 	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
+		return nil, AppErrorFromJson(rp.Body, T)
 	} else {
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), FileUploadResponseFromJson(rp.Body)}, nil
@@ -697,7 +697,7 @@ func (c *Client) GetFile(url string, isFullUrl bool, T goi18n.TranslateFunc) (*R
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewAppError(url, T("We encountered an error while connecting to the server"), err.Error())
 	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
+		return nil, AppErrorFromJson(rp.Body, T)
 	} else {
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), rp.Body}, nil
@@ -715,7 +715,7 @@ func (c *Client) GetFileInfo(url string, T goi18n.TranslateFunc) (*Result, *AppE
 	if rp, err := c.HttpClient.Do(rq); err != nil {
 		return nil, NewAppError(url, T("We encountered an error while connecting to the server"), err.Error())
 	} else if rp.StatusCode >= 300 {
-		return nil, AppErrorFromJson(rp.Body)
+		return nil, AppErrorFromJson(rp.Body, T)
 	} else {
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
 			rp.Header.Get(HEADER_ETAG_SERVER), MapFromJson(rp.Body)}, nil

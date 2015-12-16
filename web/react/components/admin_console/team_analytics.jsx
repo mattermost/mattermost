@@ -246,7 +246,7 @@ class TeamAnalytics extends React.Component {
     }
 
     render() {
-        const {formatMessage, locale} = this.props.intl;
+        const {formatMessage} = this.props.intl;
         var serverError = '';
         if (this.state.serverError) {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;

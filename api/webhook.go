@@ -132,7 +132,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
-		c.Err = model.NewAppError("createOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("createOutgoingHook", T("Outgoing webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -162,17 +162,17 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if channel.Type != model.CHANNEL_OPEN {
-			c.LogAudit("fail - not open channel", T)
+			c.LogAudit(T("fail - not open channel"), T)
 		}
 
 		if !c.HasPermissionsToChannel(pchan, "createOutgoingHook", T) {
 			if channel.Type != model.CHANNEL_OPEN || channel.TeamId != c.Session.TeamId {
-				c.LogAudit("fail - bad channel permissions", T)
+				c.LogAudit(T("fail - bad channel permissions"), T)
 				return
 			}
 		}
 	} else if len(hook.TriggerWords) == 0 {
-		c.Err = model.NewAppError("createOutgoingHook", "Either trigger_words or channel_id must be set", "")
+		c.Err = model.NewAppError("createOutgoingHook", T("Either trigger_words or channel_id must be set"), "")
 		return
 	}
 
@@ -189,7 +189,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
-		c.Err = model.NewAppError("getOutgoingHooks", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("getOutgoingHooks", T("Outgoing webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -206,7 +206,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("deleteOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("deleteOutgoingHook", T("Outgoing webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -226,8 +226,8 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !c.IsTeamAdmin() {
-			c.LogAudit("fail - inappropriate permissions", T)
-			c.Err = model.NewAppError("deleteOutgoingHook", "Inappropriate permissions to delete outcoming webhook", "user_id="+c.Session.UserId)
+			c.LogAudit(T("fail - inappropriate permissions"), T)
+			c.Err = model.NewAppError("deleteOutgoingHook", T("Inappropriate permissions to delete outcoming webhook"), "user_id="+c.Session.UserId)
 			return
 		}
 	}
@@ -244,7 +244,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewAppError("regenOutgoingHookToken", "Outgoing webhooks have been disabled by the system admin.", "")
+		c.Err = model.NewAppError("regenOutgoingHookToken", T("Outgoing webhooks have been disabled by the system admin."), "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
 	}
@@ -267,8 +267,8 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		hook = result.Data.(*model.OutgoingWebhook)
 
 		if c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
-			c.LogAudit("fail - inappropriate permissions", T)
-			c.Err = model.NewAppError("regenOutgoingHookToken", "Inappropriate permissions to regenerate outcoming webhook token", "user_id="+c.Session.UserId)
+			c.LogAudit(T("fail - inappropriate permissions"), T)
+			c.Err = model.NewAppError("regenOutgoingHookToken", T("Inappropriate permissions to regenerate outcoming webhook token"), "user_id="+c.Session.UserId)
 			return
 		}
 	}

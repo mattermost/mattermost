@@ -26,7 +26,7 @@ export default class PostsView extends React.Component {
         this.wasAtBottom = true;
         this.scrollHeight = 0;
 
-        this.state = {displayNameType: PreferenceStore.getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value};
+        this.state = {displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false')};
     }
     static get SCROLL_TYPE_FREE() {
         return 1;
@@ -44,7 +44,7 @@ export default class PostsView extends React.Component {
         return 5;
     }
     updateState() {
-        this.setState({displayNameType: PreferenceStore.getPreference(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value});
+        this.setState({displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false')});
     }
     isAtBottom() {
         return ((this.refs.postlist.scrollHeight - this.refs.postlist.scrollTop) === this.refs.postlist.clientHeight);
@@ -236,7 +236,8 @@ export default class PostsView extends React.Component {
             window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
                 if (this.refs.newMessageSeparator) {
-                    this.refs.newMessageSeparator.scrollIntoView();
+                    var objDiv = this.refs.postlist;
+                    objDiv.scrollTop = this.refs.newMessageSeparator.offsetTop; //scrolls node to top of Div
                 } else {
                     this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
                 }
