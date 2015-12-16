@@ -81,3 +81,27 @@ func TestEtag(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+var hashtags map[string]string = map[string]string{
+	"#test":         "#test",
+	"test":          "",
+	"#test123":      "#test123",
+	"#123test123":   "",
+	"#test-test":    "#test-test",
+	"#test?":        "#test",
+	"hi #there":     "#there",
+	"#bug #idea":    "#bug #idea",
+	"#bug or #gif!": "#bug #gif",
+	"#hüllo":        "#hüllo",
+	"#?test":        "",
+	"#-test":        "",
+	"#yo_yo":        "#yo_yo",
+}
+
+func TestParseHashtags(t *testing.T) {
+	for input, output := range hashtags {
+		if o, _ := ParseHashtags(input); o != output {
+			t.Fatal("expected=" + output + " actual=" + o)
+		}
+	}
+}
