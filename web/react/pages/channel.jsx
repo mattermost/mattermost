@@ -27,7 +27,7 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import Constants from '../utils/constants.jsx';
 
 function onPreferenceChange() {
-    const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT}).value;
+    const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
     Utils.applyFont(selectedFont);
     PreferenceStore.removeChangeListener(onPreferenceChange);
 }

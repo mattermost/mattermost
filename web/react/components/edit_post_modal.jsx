@@ -58,7 +58,7 @@ export default class EditPostModal extends React.Component {
         this.setState({editText: editMessage});
     }
     handleEditKeyPress(e) {
-        if (this.state.ctrlSend === 'false' && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+        if (!this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             e.preventDefault();
             ReactDOM.findDOMNode(this.refs.editbox).blur();
             this.handleEdit(e);
@@ -80,13 +80,13 @@ export default class EditPostModal extends React.Component {
         $(ReactDOM.findDOMNode(this.refs.modal)).modal('show');
     }
     handleKeyDown(e) {
-        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+        if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.handleEdit(e);
         }
     }
     onPreferenceChange() {
         this.setState({
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
     componentDidMount() {

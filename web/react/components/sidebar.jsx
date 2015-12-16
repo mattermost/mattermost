@@ -79,7 +79,7 @@ export default class Sidebar extends React.Component {
         const publicChannels = channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL);
         const privateChannels = channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL);
 
-        const preferences = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
+        const preferences = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
 
         const directChannels = [];
         for (const preference of preferences) {
@@ -113,7 +113,7 @@ export default class Sidebar extends React.Component {
 
         const hiddenDirectChannelCount = UserStore.getActiveOnlyProfileList(true).length - directChannels.length;
 
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
         return {
             activeId: currentChannelId,
@@ -123,7 +123,7 @@ export default class Sidebar extends React.Component {
             directChannels,
             hiddenDirectChannelCount,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
-            showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.CHANNEL_POPOVER
+            showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER
         };
     }
 

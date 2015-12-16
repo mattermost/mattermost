@@ -196,8 +196,8 @@ export function displayTime(ticks) {
         minutes = '0' + minutes;
     }
 
-    const useMilitaryTime = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', {value: 'false'}).value;
-    if (useMilitaryTime === 'false') {
+    const useMilitaryTime = PreferenceStore.getBool(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time');
+    if (!useMilitaryTime) {
         ampm = ' AM';
         if (hours >= 12) {
             ampm = ' PM';
@@ -1001,7 +1001,7 @@ export function getDisplayName(user) {
 
 export function displayUsername(userId) {
     const user = UserStore.getProfile(userId);
-    const nameFormat = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', {value: 'false'}).value;
+    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false');
 
     let username = '';
     if (user) {
@@ -1253,7 +1253,7 @@ export function getPostTerm(post) {
 }
 
 export function isFeatureEnabled(feature) {
-    return PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label, {value: 'false'}).value === 'true';
+    return PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, Constants.FeatureTogglePrefix + feature.label);
 }
 
 export function isSystemMessage(post) {

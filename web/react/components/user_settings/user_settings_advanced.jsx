@@ -18,7 +18,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
 
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeatures);
-        const advancedSettings = PreferenceStore.getPreferences(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
+        const advancedSettings = PreferenceStore.getCategory(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS);
         const settings = {
             send_on_ctrl_enter: PreferenceStore.getPreference(
                 Constants.Preferences.CATEGORY_ADVANCED_SETTINGS,

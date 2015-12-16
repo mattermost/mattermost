@@ -52,7 +52,6 @@ export default class CreatePost extends React.Component {
         PostStore.clearDraftUploads();
 
         const draft = this.getCurrentDraft();
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
 
         this.state = {
             channelId: ChannelStore.getCurrentId(),
@@ -63,11 +62,9 @@ export default class CreatePost extends React.Component {
             initialText: draft.messageText,
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight(),
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value,
-            showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.POST_POPOVER
+            ctrlSend: false,
+            showTutorialTip: false
         };
-
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
     }
     handleResize() {
         this.setState({
@@ -211,7 +208,7 @@ export default class CreatePost extends React.Component {
         );
     }
     postMsgKeyPress(e) {
-        if (this.state.ctrlSend === 'true' && e.ctrlKey || this.state.ctrlSend === 'false') {
+        if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();
@@ -313,6 +310,15 @@ export default class CreatePost extends React.Component {
 
         this.setState({previews, uploadsInProgress});
     }
+    componentWillMount() {
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+
+        // wait to load these since they may have changed since the component was constructed (particularly in the case of skipping the tutorial)
+        this.setState({
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
+        });
+    }
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
@@ -333,10 +339,10 @@ export default class CreatePost extends React.Component {
         }
     }
     onPreferenceChange() {
-        const tutorialPref = PreferenceStore.getPreference(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), {value: '999'});
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
         this.setState({
-            showTutorialTip: parseInt(tutorialPref.value, 10) === TutorialSteps.POST_POPOVER,
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+            showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
     getFileCount(channelId) {
@@ -348,7 +354,7 @@ export default class CreatePost extends React.Component {
         return draft.previews.length + draft.uploadsInProgress.length;
     }
     handleKeyDown(e) {
-        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+        if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.postMsgKeyPress(e);
             return;
         }
