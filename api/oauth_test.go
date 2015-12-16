@@ -18,7 +18,7 @@ func TestRegisterApp(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 
@@ -75,7 +75,7 @@ func TestAllowOAuth(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey@test.com", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Password: "pwd"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
 

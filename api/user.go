@@ -31,10 +31,11 @@ import (
 	"strconv"
 	"strings"
 	"encoding/json"
+	"html/template"
 )
 
 func InitUser(r *mux.Router) {
-	l4g.Debug("Initializing user api routes")
+	l4g.Debug(T("Initializing user api routes"))
 
 	sr := r.PathPrefix("/users").Subrouter()
 	sr.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
@@ -258,7 +259,7 @@ func CreateUser(c *Context, team *model.Team, user *model.User, T goi18n.Transla
 
 		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
 		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}, T); presult.Err != nil {
-			l4g.Error("Encountered error saving tutorial preference, err=%v", presult.Err.Message)
+			l4g.Error(T("Encountered error saving tutorial preference, err=%v"), presult.Err.Message)
 		}
 
 		ruser.Sanitize(map[string]bool{})
@@ -275,11 +276,19 @@ func CreateUser(c *Context, team *model.Team, user *model.User, T goi18n.Transla
 func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool, T goi18n.TranslateFunc) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage(T("welcome_subject"))
+		subjectPage := NewServerTemplatePage("welcome_subject")
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage(T("welcome_body"))
+		subjectPage.Props["Subject"] = T("You joined")
+		bodyPage := NewServerTemplatePage("welcome_body")
 		bodyPage.Props["SiteURL"] = siteURL
 		bodyPage.Props["TeamURL"] = teamURL
+		bodyPage.Props["VerifyTitle"] = T("You've been invited")
+		bodyPage.Props["VerifyInfo"] = T("Please verify your email address by clicking below.")
+		bodyPage.Props["VerifyButton"] = T("Verify Email")
+		bodyPage.Props["Info"] = T("You can sign-in to your new team from the web address:")
+		bodyPage.Props["Extra"] = T("Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.")
+		bodyPage.Html["Footer"] = template.HTML(T("footer"))
+		bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 		if !verified {
 			link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, email)
@@ -287,7 +296,7 @@ func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL
 		}
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render(), T); err != nil {
-			l4g.Error("Failed to send welcome email successfully err=%v", err)
+			l4g.Error(T("Failed to send welcome email successfully err=%v"), err)
 		}
 	}()
 }
@@ -296,7 +305,7 @@ func addDirectChannelsAndForget(user *model.User, T goi18n.TranslateFunc) {
 	go func() {
 		var profiles map[string]*model.User
 		if result := <-Srv.Store.User().GetProfiles(user.TeamId, T); result.Err != nil {
-			l4g.Error("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+			l4g.Error(T("Failed to add direct channel preferences for user user_id=%s, team_id=%s, err=%v"), user.Id, user.TeamId, result.Err.Error())
 			return
 		} else {
 			profiles = result.Data.(map[string]*model.User)
@@ -326,7 +335,7 @@ func addDirectChannelsAndForget(user *model.User, T goi18n.TranslateFunc) {
 		}
 
 		if result := <-Srv.Store.Preference().Save(&preferences, T); result.Err != nil {
-			l4g.Error("Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v", user.Id, user.TeamId, result.Err.Error())
+			l4g.Error(T("Failed to add direct channel preferences for new user user_id=%s, eam_id=%s, err=%v"), user.Id, user.TeamId, result.Err.Error())
 		}
 	}()
 }
@@ -336,13 +345,19 @@ func SendVerifyEmailAndForget(userId, userEmail, teamName, teamDisplayName, site
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, userEmail)
 
-		subjectPage := NewServerTemplatePage(T("verify_subject"))
+		subjectPage := NewServerTemplatePage("verify_subject")
 		subjectPage.Props["SiteURL"] = siteURL
 		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage(T("verify_body"))
+		subjectPage.Props["Subject"] = T("Email Verification")
+		bodyPage := NewServerTemplatePage("verify_body")
 		bodyPage.Props["SiteURL"] = siteURL
+		bodyPage.Props["Title"] = T("You've been invited")
+		bodyPage.Props["Info"] = T("Please verify your email address by clicking below.")
+		bodyPage.Props["Button"] = T("Verify Email")
 		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["VerifyUrl"] = link
+		bodyPage.Html["Footer"] = template.HTML(T("footer"))
+		bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 		if err := utils.SendMail(userEmail, subjectPage.Render(), bodyPage.Render(), T); err != nil {
 			l4g.Error(T("Failed to send verification email successfully err=%v"), err)
@@ -932,10 +947,10 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
-		c.Err = model.NewAppError("uploadProfileFile", "Could not decode profile image config.", err.Error())
+		c.Err = model.NewAppError("uploadProfileFile", T("Could not decode profile image config."), err.Error())
 		return
 	} else if config.Width*config.Height > MaxImageSize {
-		c.Err = model.NewAppError("uploadProfileFile", "Unable to upload profile image. File is too large.", err.Error())
+		c.Err = model.NewAppError("uploadProfileFile", T("Unable to upload profile image. File is too large."), err.Error())
 		return
 	}
 
@@ -1137,7 +1152,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) && !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("updateRoles", "The system admin role can only by modified by another system admin", "")
+		c.Err = model.NewAppError("updateRoles", T("The system admin role can only by modified by another system admin"), "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
@@ -1294,12 +1309,12 @@ func UpdateActive(c *Context, user *model.User, active bool) *model.User {
 }
 
 func PermanentDeleteUser(c *Context, user *model.User, T goi18n.TranslateFunc) *model.AppError {
-	l4g.Warn("Attempting to permanently delete account %v id=%v", user.Email, user.Id)
+	l4g.Warn(T("Attempting to permanently delete account %v id=%v"), user.Email, user.Id)
 	c.Path = "/users/permanent_delete"
-	c.LogAuditWithUserId(user.Id, fmt.Sprintf("attempt userId=%v", user.Id), T)
-	c.LogAuditWithUserId("", fmt.Sprintf("attempt userId=%v", user.Id), T)
+	c.LogAuditWithUserId(user.Id, fmt.Sprintf(T("attempt userId=%v"), user.Id), T)
+	c.LogAuditWithUserId("", fmt.Sprintf(T("attempt userId=%v"), user.Id), T)
 	if user.IsInRole(model.ROLE_SYSTEM_ADMIN) {
-		l4g.Warn("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", user.Email)
+		l4g.Warn(T("You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools."), user.Email)
 	}
 
 	UpdateActive(c, user, false)
@@ -1340,7 +1355,7 @@ func PermanentDeleteUser(c *Context, user *model.User, T goi18n.TranslateFunc) *
 		return result.Err
 	}
 
-	l4g.Warn("Permanently deleted account %v id=%v", user.Email, user.Id)
+	l4g.Warn(T("Permanently deleted account %v id=%v"), user.Email, user.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id), T)
 
 	return nil
@@ -1379,7 +1394,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(user.AuthData) != 0 {
-		c.Err = model.NewAppError("sendPasswordReset", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		c.Err = model.NewAppError("sendPasswordReset", T("Cannot reset password for SSO accounts"), "userId="+user.Id+", teamId="+team.Id)
 		return
 	}
 
@@ -1392,11 +1407,18 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	link := fmt.Sprintf("%s/reset_password?d=%s&h=%s", c.GetTeamURLFromTeam(team), url.QueryEscape(data), url.QueryEscape(hash))
 
-	subjectPage := NewServerTemplatePage(T("reset_subject"))
+	subjectPage := NewServerTemplatePage("reset_subject")
+	subjectPage.Props["Subject"] = T("Reset your password")
 	subjectPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage := NewServerTemplatePage(T("reset_body"))
+
+	bodyPage := NewServerTemplatePage("reset_body")
+	bodyPage.Props["Title"] = T("You requested a password reset")
+	bodyPage.Html["Info"] = template.HTML(T("To change your password, click \"Reset Password\" below.<br>If you did not mean to reset your password, please ignore this email and your password will remain the same."))
+	bodyPage.Props["Button"] = T("Reset Password")
 	bodyPage.Props["SiteURL"] = c.GetSiteURL()
 	bodyPage.Props["ResetUrl"] = link
+	bodyPage.Html["Footer"] = template.HTML(T("footer"))
+	bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 	if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render(), T); err != nil {
 		c.Err = model.NewAppError("sendPasswordReset", T("Failed to send password reset email successfully"), "err="+err.Message)
@@ -1469,7 +1491,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(user.AuthData) != 0 {
-		c.Err = model.NewAppError("resetPassword", "Cannot reset password for SSO accounts", "userId="+user.Id+", teamId="+team.Id)
+		c.Err = model.NewAppError("resetPassword", T("Cannot reset password for SSO accounts"), "userId="+user.Id+", teamId="+team.Id)
 		return
 	}
 
@@ -1508,14 +1530,15 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 func sendPasswordChangeEmailAndForget(email, teamDisplayName, teamURL, siteURL, method string, T goi18n.TranslateFunc) {
 	go func() {
 
-		subjectPage := NewServerTemplatePage(T("password_change_subject"))
+		subjectPage := NewServerTemplatePage("password_change_subject")
 		subjectPage.Props["SiteURL"] = siteURL
-		subjectPage.Props["TeamDisplayName"] = teamDisplayName
+		subjectPage.Props["Subject"] = fmt.Sprintf(T("You updated your password for %v on"), teamDisplayName)
 		bodyPage := NewServerTemplatePage(T("password_change_body"))
+		bodyPage.Props["Title"] = T("You updated your password")
+		bodyPage.Html["Info"] = template.HTML(fmt.Sprintf(T("You updated your password for %v on %v by %v.<br>If this change wasn't initiated by you, please contact your system administrator."), teamDisplayName, teamURL, method))
 		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage.Props["TeamURL"] = teamURL
-		bodyPage.Props["Method"] = method
+		bodyPage.Html["Footer"] = template.HTML(T("footer"))
+		bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render(), T); err != nil {
 			l4g.Error(T("Failed to send update password email successfully err=%v"), err)
@@ -1529,12 +1552,14 @@ func sendEmailChangeEmailAndForget(oldEmail, newEmail, teamDisplayName, teamURL,
 
 		subjectPage := NewServerTemplatePage(T("email_change_subject"))
 		subjectPage.Props["SiteURL"] = siteURL
-		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage(T("email_change_body"))
+		subjectPage.Props["Subject"] = fmt.Sprintf(T("Your email address has changed for %v"), teamDisplayName)
+		bodyPage := NewServerTemplatePage("email_change_body")
 		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["TeamDisplayName"] = teamDisplayName
 		bodyPage.Props["TeamURL"] = teamURL
-		bodyPage.Props["NewEmail"] = newEmail
+		bodyPage.Props["Title"] = T("You updated your email")
+		bodyPage.Html["Info"] = template.HTML(fmt.Sprintf("Your email address for %v has been changed to %v.<br>If you did not make this change, please contact the system administrator.", teamDisplayName, newEmail))
+		bodyPage.Html["Footer"] = template.HTML(T("footer"))
+		bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 		if err := utils.SendMail(oldEmail, subjectPage.Render(), bodyPage.Render(), T); err != nil {
 			l4g.Error(T("Failed to send email change notification email successfully err=%v"), err)
@@ -1548,16 +1573,20 @@ func SendEmailChangeVerifyEmailAndForget(userId, newUserEmail, teamName, teamDis
 
 		link := fmt.Sprintf("%s/verify_email?uid=%s&hid=%s&teamname=%s&email=%s", siteURL, userId, model.HashPassword(userId), teamName, newUserEmail)
 
-		subjectPage := NewServerTemplatePage(T("email_change_verify_subject"))
+		subjectPage := NewServerTemplatePage("email_change_verify_subject")
 		subjectPage.Props["SiteURL"] = siteURL
-		subjectPage.Props["TeamDisplayName"] = teamDisplayName
-		bodyPage := NewServerTemplatePage(T("email_change_verify_body"))
+		subjectPage.Props["Subject"] = fmt.Sprintf(T("Verify new email address for %v"), teamDisplayName)
+		bodyPage := NewServerTemplatePage("email_change_verify_body")
 		bodyPage.Props["SiteURL"] = siteURL
-		bodyPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage.Props["Title"] = T("You updated your email")
+		bodyPage.Props["Info"] = fmt.Sprintf(T("To finish updating your email address for %v, please click the link below to confirm this is the right address."), teamDisplayName)
+		bodyPage.Props["Button"] = T("Verify Email")
 		bodyPage.Props["VerifyUrl"] = link
+		bodyPage.Html["Footer"] = template.HTML(T("footer"))
+		bodyPage.Html["EmailInfo"] = template.HTML(fmt.Sprintf(T("email_info"), utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["FeedbackEmail"], utils.ClientCfg["SiteName"]))
 
 		if err := utils.SendMail(newUserEmail, subjectPage.Render(), bodyPage.Render(), T); err != nil {
-			l4g.Error("Failed to send email change verification email successfully err=%v", err)
+			l4g.Error(T("Failed to send email change verification email successfully err=%v"), err)
 		}
 	}()
 }

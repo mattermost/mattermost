@@ -268,7 +268,7 @@ func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
-		return NewAppError("Config.IsValid", "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."), "")
 	}
 
 	if !(o.SqlSettings.DriverName == DATABASE_DRIVER_MYSQL || o.SqlSettings.DriverName == DATABASE_DRIVER_POSTGRES) {
@@ -316,7 +316,7 @@ func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if len(o.FileSettings.PublicLinkSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid public link salt for file settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid public link salt for file settings.  Must be 32 chars or more."), "")
 	}
 
 	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
@@ -324,11 +324,11 @@ func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if len(o.EmailSettings.InviteSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid invite salt for email settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid invite salt for email settings.  Must be 32 chars or more."), "")
 	}
 
 	if len(o.EmailSettings.PasswordResetSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid password reset salt for email settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid password reset salt for email settings.  Must be 32 chars or more."), "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {

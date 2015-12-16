@@ -110,6 +110,10 @@ const messages = defineMessages({
         id: 'user.settings.general.primaryEmail',
         defaultMessage: 'Primary Email'
     },
+    confirmEmail: {
+        id: 'user.settings.general.confirmEmail',
+        defaultMessage: 'Confirm Email'
+    },
     email: {
         id: 'user.settings.general.email',
         defaultMessage: 'Email'
@@ -209,7 +213,7 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         if (user.username === username) {
-            this.setState({clientError: formatMessage(messages.newUsername), emailError: '', serverError: ''});
+            this.updateSection('');
             return;
         }
 
@@ -220,13 +224,11 @@ class UserSettingsGeneralTab extends React.Component {
     submitNickname(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
-
         const user = Object.assign({}, this.props.user);
         const nickname = this.state.nickname.trim();
 
         if (user.nickname === nickname) {
-            this.setState({clientError: formatMessage(messages.newNickname), emailError: '', serverError: ''});
+            this.updateSection('');
             return;
         }
 
@@ -237,14 +239,12 @@ class UserSettingsGeneralTab extends React.Component {
     submitName(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
-
         const user = Object.assign({}, this.props.user);
         const firstName = this.state.firstName.trim();
         const lastName = this.state.lastName.trim();
 
         if (user.first_name === firstName && user.last_name === lastName) {
-            this.setState({clientError: formatMessage(messages.newName), emailError: '', serverError: ''});
+            this.updateSection('');
             return;
         }
 
@@ -262,10 +262,6 @@ class UserSettingsGeneralTab extends React.Component {
         const email = this.state.email.trim().toLowerCase();
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
 
-        if (user.email === email) {
-            return;
-        }
-
         if (email === '' || !Utils.isEmail(email)) {
             this.setState({emailError: formatMessage(messages.validEmail), clientError: '', serverError: ''});
             return;
@@ -273,6 +269,11 @@ class UserSettingsGeneralTab extends React.Component {
 
         if (email !== confirmEmail) {
             this.setState({emailError: formatMessage(messages.emailMatch), clientError: '', serverError: ''});
+            return;
+        }
+
+        if (user.email === email) {
+            this.updateSection('');
             return;
         }
 
@@ -640,7 +641,7 @@ class UserSettingsGeneralTab extends React.Component {
                 inputs.push(
                     <div key='confirmEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>{'Confirm Email'}</label>
+                            <label className='col-sm-5 control-label'>{formatMessage(messages.confirmEmail)}</label>
                             <div className='col-sm-7'>
                                 <input
                                     className='form-control'

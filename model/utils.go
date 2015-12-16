@@ -4,6 +4,7 @@
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"bytes"
 	"crypto/rand"
 	"encoding/base32"
@@ -47,14 +48,14 @@ func (er *AppError) ToJson() string {
 }
 
 // AppErrorFromJson will decode the input and return an AppError
-func AppErrorFromJson(data io.Reader) *AppError {
+func AppErrorFromJson(data io.Reader, T goi18n.TranslateFunc) *AppError {
 	decoder := json.NewDecoder(data)
 	var er AppError
 	err := decoder.Decode(&er)
 	if err == nil {
 		return &er
 	} else {
-		return NewAppError("AppErrorFromJson", "could not decode", err.Error())
+		return NewAppError("AppErrorFromJson", T("could not decode"), err.Error())
 	}
 }
 

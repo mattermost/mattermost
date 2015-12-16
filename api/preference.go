@@ -12,7 +12,7 @@ import (
 )
 
 func InitPreference(r *mux.Router) {
-	l4g.Debug("Initializing preference api routes")
+	l4g.Debug(T("Initializing preference api routes"))
 
 	sr := r.PathPrefix("/preferences").Subrouter()
 	sr.Handle("/", ApiUserRequired(getAllPreferences)).Methods("GET")
@@ -36,14 +36,14 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("savePreferences", "Unable to decode preferences from request", err.Error())
+		c.Err = model.NewAppError("savePreferences", T("Unable to decode preferences from request"), err.Error())
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	for _, preference := range preferences {
 		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewAppError("savePreferences", "Unable to set preferences for other user", "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
+			c.Err = model.NewAppError("savePreferences", T("Unable to set preferences for other user"), "session.user_id="+c.Session.UserId+", preference.user_id="+preference.UserId)
 			c.Err.StatusCode = http.StatusUnauthorized
 			return
 		}

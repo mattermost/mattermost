@@ -177,7 +177,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string, T goi18n.TranslateFunc) Sto
 		team := model.Team{}
 
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Id = :InviteId OR InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "We couldn't find the existing team", "inviteId="+inviteId+", "+err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", T("We couldn't find the existing team"), "inviteId="+inviteId+", "+err.Error())
 		}
 
 		if len(team.InviteId) == 0 {
@@ -185,7 +185,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string, T goi18n.TranslateFunc) Sto
 		}
 
 		if len(inviteId) == 0 || team.InviteId != inviteId {
-			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "We couldn't find the existing team", "inviteId="+inviteId)
+			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", T("We couldn't find the existing team"), "inviteId="+inviteId)
 		}
 
 		result.Data = &team
@@ -288,7 +288,7 @@ func (s SqlTeamStore) GetAllTeamListing(T goi18n.TranslateFunc) StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "We could not get all teams", err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", T("We could not get all teams"), err.Error())
 		}
 
 		for _, team := range data {
@@ -313,7 +313,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string, T goi18n.TranslateFunc) Sto
 		result := StoreResult{}
 
 		if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Delete", "We couldn't delete the existing team", "teamId="+teamId+", "+err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.Delete", T("We couldn't delete the existing team"), "teamId="+teamId+", "+err.Error())
 		}
 
 		storeChannel <- result

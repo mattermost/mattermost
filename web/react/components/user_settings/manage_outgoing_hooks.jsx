@@ -101,7 +101,7 @@ class ManageOutgoingHooks extends React.Component {
         if (this.state.triggerWords.length !== 0) {
             hook.trigger_words = this.state.triggerWords.trim().split(',');
         }
-        hook.callback_urls = this.state.callbackURLs.split('\n');
+        hook.callback_urls = this.state.callbackURLs.split('\n').map((url) => url.trim());
 
         Client.addOutgoingHook(
             hook,

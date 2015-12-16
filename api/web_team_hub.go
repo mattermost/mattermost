@@ -66,7 +66,7 @@ func (h *TeamHub) Start(T goi18n.TranslateFunc) {
 			case s := <-h.stop:
 				if s {
 
-					l4g.Debug("team hub stopping for teamId=%v", h.teamId)
+					l4g.Debug(T("team hub stopping for teamId=%v"), h.teamId)
 
 					for webCon := range h.connections {
 						webCon.WebSocket.Close()

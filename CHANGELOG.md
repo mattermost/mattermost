@@ -1,16 +1,31 @@
 # Mattermost Changelog
 
-## UNDER DEVELOPMENT Release v1.3.0
+## Release v1.3.0
 
-The "UNDER DEVELOPMENT" section of the Mattermost changelog appears in the product's `master` branch to note key changes committed to master and are on their way to the next stable release. When a stable release is pushed the "UNDER DEVELOPMENT" heading is removed from the final changelog of the release. 
+Release date: 2015-12-16
 
-- **Release candidate anticipated:** 2015-12-10
-- **Final release anticipated:** 2015-12-16
+### Release Highlights
+
+#### iOS App
+
+- New [Mattermost iOS App](https://github.com/mattermost/ios) now available for iPhone, iPad, and iPod Touch
+- New [Mattermost Push Notification Service](https://github.com/mattermost/push-proxy) to relay notifications to custom iOS applications
+
+#### Search Upgrades
+
+- Jump to search results in archives using new message permalinks 
+- It's easier to find what you're looking for with improved auto-complete in search
+
+#### Advanced Formatting
+
+- Express more in symbols, with new emoji auto-complete
+- Express more in numbers, with rendering of mathematical expressions using Latex (start code blocks with ```latex)
+- Personalize your look with new custom font settings under **Account Settings** > **Display** > **Display Font**
 
 ### New Features
 
 Authentication
-- Documented unofficial GitHub SSO support using GitLab UI
+- Added unofficial SSO support for GitHub.com and GitHub Enterprise using GitLab UI
 
 Archives
 - Added permalink feature that lets users link to a post in the message archives
@@ -35,13 +50,12 @@ Performance
 - Refactored the center channel
 
 Messaging & Comments
-- Added "Help" link for messaging
-- Removed the @all mention 
 - Added Markdown support for task lists
+- Added "Help" link for messaging
 - Added ability to preview a Markdown message before sending (enabled via Account Settings -> Advanced -> Preview pre-release features)
 
 Onboarding
-- Added various small improvements to the tutorial
+- Minor upgrades to tutorial 
 
 User Interface
 - Visually combined sequential messages from the same user 
@@ -52,6 +66,7 @@ User Interface
 
 #### Bug Fixes  
 
+- Removed the @all mention to keep users from accidentally spamming team sites
 - Fixed bug where the member list only showed "20" members for channels with more than 20 members
 - Fixed bug where the channel sidebar didn't order correctly on Postgres databases
 - Fixed bug where search results did not highlight when searching with quotation marks, wildcard, or in: and from: modifiers
@@ -124,7 +139,7 @@ To limit the impact of this security issue, Mattermost v1.2.0 has been removed f
 
 #### Syntax Highlighting 
 
-- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, JavaScript, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`
+- Syntax highlight for code blocks now available for `Diff, Apache, Makefile, HTTP, JSON, Markdown, JavaScript, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, CoffeeScript, C, SQL, Go, Ruby, Java, and ini`
 
 #### Usability Improvements 
 
@@ -161,7 +176,7 @@ User Interface
 - Member list in Channel display now scrollable, and includes Message button to message channel members directly
 - Added ability to edit previous message by hitting UP arrow 
 - Syntax highlighting added for code blocks 
-   - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, Coffee, C, SQL, Go, Ruby, Java, and ini`. 
+   - Languages include `Diff, Apache, Makefile, HTTP, JSON, Markdown, Java, CSS, nginx, ObjectiveC, Python, XML, Perl, Bash, PHP, CoffeeScript, C, SQL, Go, Ruby, Java, and ini`. 
    - Use by adding the name of the language on the first link of the code block, for example: ```python
    - Syntax color theme can be defined under **Account Settings** > **Appearance Settings** > **Custom Theme**
 - Updated Drag & Drop UI

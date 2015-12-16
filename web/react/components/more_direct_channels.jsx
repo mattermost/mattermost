@@ -28,8 +28,12 @@ const messages = defineMessages({
         defaultMessage: 'Member'
     },
     of: {
-        id: 'more_direct_channls.of',
+        id: 'more_direct_channels.of',
         defaultMessage: 'of'
+    },
+    search: {
+        id: 'more_direct_channels.search',
+        defaultMessage: 'Search members'
     }
 });
 
@@ -73,6 +77,21 @@ class MoreDirectChannels extends React.Component {
 
     componentWillUnmount() {
         UserStore.addChangeListener(this.handleUserChange);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            this.onShow();
+        }
+    }
+
+    onShow() {
+        if (Utils.isMobile()) {
+            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 250);
+        } else {
+            $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
+            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 300);
+        }
     }
 
     handleFilterChange() {
@@ -193,15 +212,6 @@ class MoreDirectChannels extends React.Component {
         );
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
-            $(ReactDOM.findDOMNode(this.refs.userList)).css('max-height', $(window).height() - 50);
-            if ($(window).width() > 768) {
-                $(ReactDOM.findDOMNode(this.refs.userList)).perfectScrollbar();
-            }
-        }
-    }
-
     render() {
         const {formatMessage} = this.props.intl;
         if (!this.props.show) {
@@ -247,13 +257,13 @@ class MoreDirectChannels extends React.Component {
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{formatMessage(messages.title)}</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <div className='row filter-row'>
+                <Modal.Body ref='modalBody'>
+                    <div className='filter-row'>
                         <div className='col-sm-6'>
                             <input
                                 ref='filter'
                                 className='form-control filter-textbox'
-                                placeholder='Search members'
+                                placeholder={formatMessage(messages.search)}
                                 onInput={this.handleFilterChange}
                             />
                         </div>

@@ -4,6 +4,9 @@
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import Constants from '../../utils/constants.jsx';
 
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Popover = ReactBootstrap.Popover;
+
 const messages = defineMessages({
     copyPaste: {
         id: 'user.settings.custom_theme.copyPaste',
@@ -81,6 +84,19 @@ class CustomThemeChooser extends React.Component {
                     );
                 });
 
+                var popoverContent = (
+                    <Popover
+                        bsStyle='info'
+                        id='code-popover'
+                        className='code-popover'
+                    >
+                        <img
+                            width='200'
+                            src={'/static/images/themes/code_themes/' + theme[element.id] + 'Large.png'}
+                        />
+                    </Popover>
+                );
+
                 elements.push(
                     <div
                         className='col-sm-4 form-group'
@@ -99,11 +115,17 @@ class CustomThemeChooser extends React.Component {
                             >
                                 {codeThemeOptions}
                             </select>
+                            <OverlayTrigger
+                                placement='top'
+                                overlay={popoverContent}
+                                ref='headerOverlay'
+                            >
                             <span className='input-group-addon'>
                                 <img
                                     src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
                                 />
                             </span>
+                            </OverlayTrigger>
                         </div>
                     </div>
                 );
