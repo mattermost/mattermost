@@ -22,6 +22,11 @@ func TestScan(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	err = (&uuid).Scan([]byte(stringTest))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	err = (&uuid).Scan(byteTest)
 	if err != nil {
 		t.Fatal(err)

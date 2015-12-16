@@ -8,17 +8,9 @@
 			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
 		},
 		{
-			"ImportPath": "github.com/anachronistic/apns",
-			"Rev": "f90152b7e0ae845938ce1258d90072fd116131ac"
-		},
-		{
 			"ImportPath": "github.com/braintree/manners",
 			"Comment": "0.4.0-9-g3fdfada",
 			"Rev": "3fdfadabc96863ceec055bd73ab1e80324e72706"
-		},
-		{
-			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
 		},
 		{
 			"ImportPath": "github.com/disintegration/imaging",
@@ -34,8 +26,8 @@
 		},
 		{
 			"ImportPath": "github.com/go-gorp/gorp",
-			"Comment": "v1.7-146-gc391a3d",
-			"Rev": "c391a3da75cf2003f4bf4763d0b5755c4500aef1"
+			"Comment": "v1.7-148-gc0e2e1a",
+			"Rev": "c0e2e1a7adaa00e47c4f6ae8faaad6991a4570ac"
 		},
 		{
 			"ImportPath": "github.com/go-sql-driver/mysql",
@@ -69,12 +61,12 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "361d4c0ffd78338ebe0a9e6320cdbe115d7dc026"
+			"Rev": "3986be78bf859e01f01af631ad76da5b269d270c"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-61-g83c4f41",
-			"Rev": "83c4f410d0aed80a0f44bac6a576a7f2435791f3"
+			"Comment": "go1.0-cutoff-63-g11fc39a",
+			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
 		},
 		{
 			"ImportPath": "github.com/mssola/user_agent",
@@ -83,11 +75,7 @@
 		},
 		{
 			"ImportPath": "github.com/pborman/uuid",
-			"Rev": "cccd189d45f7ac3368a0d127efb7f4d08ae0b655"
-		},
-		{
-			"ImportPath": "github.com/pmezard/go-difflib/difflib",
-			"Rev": "d8ed2627bdf02c080bf22230dbb337003b7aba2d"
+			"Rev": "dee7705ef7b324f27ceb85a121c61f2c2e8ce988"
 		},
 		{
 			"ImportPath": "github.com/rwcarlsen/goexif/exif",
@@ -98,30 +86,16 @@
 			"Rev": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8"
 		},
 		{
-			"ImportPath": "github.com/stretchr/objx",
-			"Rev": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.0-83-gd797d25",
-			"Rev": "d797d25e0fa6d53be3b1a216d24e868d6a1912ef"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/mock",
-			"Comment": "v1.0-83-gd797d25",
-			"Rev": "d797d25e0fa6d53be3b1a216d24e868d6a1912ef"
-		},
-		{
 			"ImportPath": "github.com/vaughan0/go-ini",
 			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",
-			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+			"Rev": "f18420efc3b4f8e9f3d51f6bd2476e92c46260e9"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
-			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+			"Rev": "f18420efc3b4f8e9f3d51f6bd2476e92c46260e9"
 		},
 		{
 			"ImportPath": "golang.org/x/image/bmp",

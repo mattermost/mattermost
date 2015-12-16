@@ -345,6 +345,59 @@ func TestEmptyQuery(t *testing.T) {
 	}
 }
 
+// Test that rows.Columns() is correct even if there are no result rows.
+func TestEmptyResultSetColumns(t *testing.T) {
+	db := openTestConn(t)
+	defer db.Close()
+
+	rows, err := db.Query("SELECT 1 AS a, text 'bar' AS bar WHERE FALSE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cols, err := rows.Columns()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cols) != 2 {
+		t.Fatalf("unexpected number of columns %d in response to an empty query", len(cols))
+	}
+	if rows.Next() {
+		t.Fatal("unexpected row")
+	}
+	if rows.Err() != nil {
+		t.Fatal(rows.Err())
+	}
+	if cols[0] != "a" || cols[1] != "bar" {
+		t.Fatalf("unexpected Columns result %v", cols)
+	}
+
+	stmt, err := db.Prepare("SELECT $1::int AS a, text 'bar' AS bar WHERE FALSE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows, err = stmt.Query(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cols, err = rows.Columns()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cols) != 2 {
+		t.Fatalf("unexpected number of columns %d in response to an empty query", len(cols))
+	}
+	if rows.Next() {
+		t.Fatal("unexpected row")
+	}
+	if rows.Err() != nil {
+		t.Fatal(rows.Err())
+	}
+	if cols[0] != "a" || cols[1] != "bar" {
+		t.Fatalf("unexpected Columns result %v", cols)
+	}
+
+}
+
 func TestEncodeDecode(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()

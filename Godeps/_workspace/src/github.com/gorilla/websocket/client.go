@@ -95,12 +95,19 @@ func parseURL(s string) (*url.URL, error) {
 		return nil, errMalformedURL
 	}
 
-	u.Host = s
-	u.Opaque = "/"
-	if i := strings.Index(s, "/"); i >= 0 {
-		u.Host = s[:i]
-		u.Opaque = s[i:]
+	if i := strings.Index(s, "?"); i >= 0 {
+		u.RawQuery = s[i+1:]
+		s = s[:i]
 	}
+
+	if i := strings.Index(s, "/"); i >= 0 {
+		u.Opaque = s[i:]
+		s = s[:i]
+	} else {
+		u.Opaque = "/"
+	}
+
+	u.Host = s
 
 	if strings.Contains(u.Host, "@") {
 		// Don't bother parsing user information because user information is

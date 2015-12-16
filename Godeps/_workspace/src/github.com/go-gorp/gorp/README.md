@@ -502,7 +502,10 @@ func (i *Invoice) PreUpdate(s gorp.SqlExecutor) error {
 //
 func (p *Person) PreDelete(s gorp.SqlExecutor) error {
     query := "delete from invoice_test where PersonId=?"
-    err := s.Exec(query, p.Id); if err != nil {
+    
+    _, err := s.Exec(query, p.Id)
+    
+    if err != nil {
         return err
     }
     return nil
