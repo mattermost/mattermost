@@ -44,6 +44,9 @@
         display: inline-block;
         i, path {
             @include opacity(0.5);
+            &.online--icon {
+                @include opacity(1);
+            }
         }
         .fa-lock {
             margin-left: 1px;
@@ -51,9 +54,6 @@
         .fa-globe {
             top: -1px;
             position: relative;
-        }
-        .online--icon {
-            fill: #7DBE00;
         }
     }
     .nav-pills__container {

@@ -501,6 +501,15 @@ body.ios {
 
 		&.post--comment {
 
+			.popover {
+
+				margin-top: 84px;
+
+				> .arrow {
+					top: 21px !important;
+				}
+			}
+
 			.post__header {
 
 				.col__reply {
