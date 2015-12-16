@@ -11,16 +11,19 @@ import (
 )
 
 var parseURLTests = []struct {
-	s string
-	u *url.URL
+	s   string
+	u   *url.URL
+	rui string
 }{
-	{"ws://example.com/", &url.URL{Scheme: "ws", Host: "example.com", Opaque: "/"}},
-	{"ws://example.com", &url.URL{Scheme: "ws", Host: "example.com", Opaque: "/"}},
-	{"ws://example.com:7777/", &url.URL{Scheme: "ws", Host: "example.com:7777", Opaque: "/"}},
-	{"wss://example.com/", &url.URL{Scheme: "wss", Host: "example.com", Opaque: "/"}},
-	{"wss://example.com/a/b", &url.URL{Scheme: "wss", Host: "example.com", Opaque: "/a/b"}},
-	{"ss://example.com/a/b", nil},
-	{"ws://webmaster@example.com/", nil},
+	{"ws://example.com/", &url.URL{Scheme: "ws", Host: "example.com", Opaque: "/"}, "/"},
+	{"ws://example.com", &url.URL{Scheme: "ws", Host: "example.com", Opaque: "/"}, "/"},
+	{"ws://example.com:7777/", &url.URL{Scheme: "ws", Host: "example.com:7777", Opaque: "/"}, "/"},
+	{"wss://example.com/", &url.URL{Scheme: "wss", Host: "example.com", Opaque: "/"}, "/"},
+	{"wss://example.com/a/b", &url.URL{Scheme: "wss", Host: "example.com", Opaque: "/a/b"}, "/a/b"},
+	{"ss://example.com/a/b", nil, ""},
+	{"ws://webmaster@example.com/", nil, ""},
+	{"wss://example.com/a/b?x=y", &url.URL{Scheme: "wss", Host: "example.com", Opaque: "/a/b", RawQuery: "x=y"}, "/a/b?x=y"},
+	{"wss://example.com?x=y", &url.URL{Scheme: "wss", Host: "example.com", Opaque: "/", RawQuery: "x=y"}, "/?x=y"},
 }
 
 func TestParseURL(t *testing.T) {
@@ -30,13 +33,18 @@ func TestParseURL(t *testing.T) {
 			t.Errorf("parseURL(%q) returned error %v", tt.s, err)
 			continue
 		}
-		if tt.u == nil && err == nil {
-			t.Errorf("parseURL(%q) did not return error", tt.s)
+		if tt.u == nil {
+			if err == nil {
+				t.Errorf("parseURL(%q) did not return error", tt.s)
+			}
 			continue
 		}
 		if !reflect.DeepEqual(u, tt.u) {
-			t.Errorf("parseURL(%q) returned %v, want %v", tt.s, u, tt.u)
+			t.Errorf("parseURL(%q) = %v, want %v", tt.s, u, tt.u)
 			continue
+		}
+		if u.RequestURI() != tt.rui {
+			t.Errorf("parseURL(%q).RequestURI() = %v, want %v", tt.s, u.RequestURI(), tt.rui)
 		}
 	}
 }
