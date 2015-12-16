@@ -7,11 +7,7 @@ import UserStore from '../stores/user_store.jsx';
 
 class Docs extends React.Component {
     constructor(props) {
-        super(props);Release candidate for zbox
-                                           - ESLint fixes
-        - Docker configuration
-        - Fix web.go imports and i18n directory
-        - Fix Messaging doc in spanish
+        super(props);
         UserStore.setCurrentUser(global.window.mm_user || {});
 
         this.state = {text: ''};
