@@ -7,7 +7,7 @@ import ErrorStore from '../stores/error_store.jsx';
 const messages = defineMessages({
     webSocket: {
         id: 'error_bar.webSocket',
-        defaultMessage: 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.'
+        defaultMessage: 'We cannot reach the ZBox Chat service.  The service may be down or misconfigured.  Please contact an administrator to make sure the WebSocket port is configured properly.'
     }
 });
 

@@ -209,7 +209,7 @@ func (as SqlOAuthStore) GetAccessData(token string, T goi18n.TranslateFunc) Stor
 		accessData := model.AccessData{}
 
 		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetAccessData", T("We encounted an error finding the access token"), err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetAccessData", T("We encountered an error finding the access token"), err.Error())
 		} else {
 			result.Data = &accessData
 		}
@@ -301,7 +301,7 @@ func (as SqlOAuthStore) GetAuthData(code string, T goi18n.TranslateFunc) StoreCh
 		result := StoreResult{}
 
 		if obj, err := as.GetReplica().Get(model.AuthData{}, code); err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", T("We encounted an error finding the authorization code"), err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", T("We encountered an error finding the authorization code"), err.Error())
 		} else if obj == nil {
 			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", T("We couldn't find the existing authorization code"), "")
 		} else {
@@ -342,7 +342,7 @@ func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string, T goi18n.Tr
 
 		_, err := as.GetMaster().Exec("DELETE FROM OAuthAuthData WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthDataByUserId", "We couldn't remove the authorization code", "err="+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthDataByUserId", T("We couldn't remove the authorization code"), "err="+err.Error())
 		}
 
 		storeChannel <- result

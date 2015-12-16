@@ -1,17 +1,17 @@
 @charset "UTF-8";
 
 .sidebar--right {
-    position: absolute;
+    position: fixed;
     width: 400px;
     height: 100%;
     right: 0px;
     padding: 0;
     background: #fff;
     @include single-transition(transform, 0.5s, ease);
-    right: -320px;
+    @include translateX(400px);
 
     &.move--left {
-        right: 0;
+        @include translateX(0);
     }
 
     .post-body {

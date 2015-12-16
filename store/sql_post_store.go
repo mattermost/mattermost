@@ -247,7 +247,7 @@ func (s SqlPostStore) Delete(postId string, time int64, T goi18n.TranslateFunc) 
 	return storeChannel
 }
 
-func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
+func (s SqlPostStore) permanentDelete(postId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -255,7 +255,7 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 
 		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"Id": postId, "ParentId": postId, "RootId": postId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "We couldn't delete the post", "id="+postId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.Delete", T("We couldn't delete the post"), "id="+postId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -265,7 +265,7 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChannel {
+func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -273,7 +273,7 @@ func (s SqlPostStore) permanentDeleteAllCommentByUser(userId string) StoreChanne
 
 		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", "We couldn't delete the comments for user", "userId="+userId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", T("We couldn't delete the comments for user"), "userId="+userId+", err="+err.Error())
 		}
 
 		storeChannel <- result
@@ -290,7 +290,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFun
 		result := StoreResult{}
 
 		// First attempt to delete all the comments for a user
-		if r := <-s.permanentDeleteAllCommentByUser(userId); r.Err != nil {
+		if r := <-s.permanentDeleteAllCommentByUser(userId, T); r.Err != nil {
 			result.Err = r.Err
 			storeChannel <- result
 			close(storeChannel)
@@ -306,7 +306,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFun
 			var ids []string
 			_, err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = :UserId LIMIT 1000", map[string]interface{}{"UserId": userId})
 			if err != nil {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", "We couldn't select the posts to delete for the user", "userId="+userId+", err="+err.Error())
+				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", T("We couldn't select the posts to delete for the user"), "userId="+userId+", err="+err.Error())
 				storeChannel <- result
 				close(storeChannel)
 				return
@@ -314,7 +314,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFun
 				found = false
 				for _, id := range ids {
 					found = true
-					if r := <-s.permanentDelete(id); r.Err != nil {
+					if r := <-s.permanentDelete(id, T); r.Err != nil {
 						result.Err = r.Err
 						storeChannel <- result
 						close(storeChannel)
@@ -326,7 +326,7 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string, T goi18n.TranslateFun
 			// This is a fail safe, give up if more than 10K messages
 			count = count + 1
 			if count >= 10 {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "We couldn't select the posts to delete for the user (too many), please re-run", "userId="+userId)
+				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", T("We couldn't select the posts to delete for the user (too many), please re-run"), "userId="+userId)
 				storeChannel <- result
 				close(storeChannel)
 				return
@@ -347,7 +347,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, T goi18n
 		result := StoreResult{}
 
 		if limit > 1000 {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "Limit exceeded for paging", "channelId="+channelId)
+			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", T("Limit exceeded for paging"), "channelId="+channelId)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -446,14 +446,14 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, T goi18n.Trans
 }
 
 func (s SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int, T goi18n.TranslateFunc) StoreChannel {
-	return s.getPostsAround(channelId, postId, numPosts, offset, true)
+	return s.getPostsAround(channelId, postId, numPosts, offset, true, T)
 }
 
 func (s SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int, T goi18n.TranslateFunc) StoreChannel {
-	return s.getPostsAround(channelId, postId, numPosts, offset, false)
+	return s.getPostsAround(channelId, postId, numPosts, offset, false, T)
 }
 
-func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) StoreChannel {
+func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool, T goi18n.TranslateFunc) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
@@ -508,9 +508,9 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "NumPosts": numPosts, "Offset": offset})
 
 		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "We couldn't get the posts for the channel", "channelId="+channelId+err1.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPostContext", T("We couldn't get the posts for the channel"), "channelId="+channelId+err1.Error())
 		} else if err2 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "We couldn't get the parent posts for the channel", "channelId="+channelId+err2.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPostContext", T("We couldn't get the parent posts for the channel"), "channelId="+channelId+err2.Error())
 		} else {
 
 			list := &model.PostList{Order: make([]string, 0, len(posts))}
@@ -597,7 +597,7 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int, T
 			ORDER BY CreateAt`,
 			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", T("We couldn't get the parent post for the channel"), "channelId="+channelId+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", T("We couldn't get the parent posts for the channel"), "channelId="+channelId+err.Error())
 		} else {
 			result.Data = posts
 		}
@@ -861,7 +861,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string, T goi18n.
 			query,
 			map[string]interface{}{"TeamId": teamId, "EndTime": end})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "We couldn't get user counts with posts", err.Error())
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", T("We couldn't get user counts with posts"), err.Error())
 		} else {
 			result.Data = rows
 		}
@@ -926,7 +926,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string, T goi18n.Translate
 			query,
 			map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "We couldn't get post counts by day", err.Error())
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", T("We couldn't get post counts by day"), err.Error())
 		} else {
 			result.Data = rows
 		}
@@ -955,7 +955,7 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, T goi18n.TranslateFunc) 
 			        AND Channels.TeamId = :TeamId`,
 			map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "We couldn't get post counts", err.Error())
+			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", T("We couldn't get post counts"), err.Error())
 		} else {
 			result.Data = v
 		}

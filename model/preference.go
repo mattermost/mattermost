@@ -1,9 +1,10 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
 
 import (
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"encoding/json"
 	"io"
 	"unicode/utf8"
@@ -42,21 +43,21 @@ func PreferenceFromJson(data io.Reader) *Preference {
 	}
 }
 
-func (o *Preference) IsValid() *AppError {
+func (o *Preference) IsValid(T goi18n.TranslateFunc) *AppError {
 	if len(o.UserId) != 26 {
-		return NewAppError("Preference.IsValid", "Invalid user id", "user_id="+o.UserId)
+		return NewAppError("Preference.IsValid", T("Invalid user id"), "user_id="+o.UserId)
 	}
 
 	if len(o.Category) == 0 || len(o.Category) > 32 {
-		return NewAppError("Preference.IsValid", "Invalid category", "category="+o.Category)
+		return NewAppError("Preference.IsValid", T("Invalid category"), "category="+o.Category)
 	}
 
 	if len(o.Name) == 0 || len(o.Name) > 32 {
-		return NewAppError("Preference.IsValid", "Invalid name", "name="+o.Name)
+		return NewAppError("Preference.IsValid", T("Invalid name"), "name="+o.Name)
 	}
 
 	if utf8.RuneCountInString(o.Value) > 128 {
-		return NewAppError("Preference.IsValid", "Value is too long", "value="+o.Value)
+		return NewAppError("Preference.IsValid", T("Value is too long"), "value="+o.Value)
 	}
 
 	return nil

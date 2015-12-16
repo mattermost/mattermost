@@ -71,7 +71,7 @@ export default class ChannelLoader extends React.Component {
         }
 
         // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
-        const selectedFont = PreferenceStore.getPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', {value: Constants.DEFAULT_FONT}).value;
+        const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
         Utils.applyFont(selectedFont);
 
         $('body').on('mouseenter mouseleave', '.post', function mouseOver(ev) {

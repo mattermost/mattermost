@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Spinpunch, Inc. All Rights Reserved.
+// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {intlShape, injectIntl, FormattedHTMLMessage, defineMessages} from 'react-intl';
@@ -101,7 +101,7 @@ class ManageOutgoingHooks extends React.Component {
         if (this.state.triggerWords.length !== 0) {
             hook.trigger_words = this.state.triggerWords.trim().split(',');
         }
-        hook.callback_urls = this.state.callbackURLs.split('\n');
+        hook.callback_urls = this.state.callbackURLs.split('\n').map((url) => url.trim());
 
         Client.addOutgoingHook(
             hook,

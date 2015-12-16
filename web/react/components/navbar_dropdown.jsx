@@ -241,6 +241,34 @@ class NavbarDropdown extends React.Component {
             );
         }
 
+        let helpLink = null;
+        if (global.window.mm_config.HelpLink) {
+            helpLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.HelpLink}
+                    >
+                        {formatMessage(messages.help)}
+                    </a>
+                </li>
+            );
+        }
+
+        let reportLink = null;
+        if (global.window.mm_config.ReportAProblemLink) {
+            reportLink = (
+                <li>
+                    <a
+                        target='_blank'
+                        href={global.window.mm_config.ReportAProblemLink}
+                    >
+                        {formatMessage(messages.report)}
+                    </a>
+                </li>
+            );
+        }
+
         return (
             <ul className='nav navbar-nav navbar-right'>
                 <li
@@ -287,22 +315,8 @@ class NavbarDropdown extends React.Component {
                         {sysAdminLink}
                         {teams}
                         <li className='divider'></li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='http://ayuda.zboxapp.com/collection/65-chat'
-                            >
-                                {formatMessage(messages.help)}
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                target='_blank'
-                                href='http://ayuda.zboxapp.com/collection/65-chat#contactModal'
-                            >
-                                {formatMessage(messages.report)}
-                            </a>
-                        </li>
+                        {helpLink}
+                        {reportLink}
                         <li>
                             <a
                                 href='#'

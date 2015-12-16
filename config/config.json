@@ -57,15 +57,15 @@
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
-        "SendEmailNotifications": false,
+        "SendEmailNotifications": true,
         "RequireEmailVerification": false,
-        "FeedbackName": "",
-        "FeedbackEmail": "",
-        "SMTPUsername": "",
-        "SMTPPassword": "",
-        "SMTPServer": "",
-        "SMTPPort": "",
-        "ConnectionSecurity": "",
+        "FeedbackName": "Chat ZBox Test",
+        "FeedbackEmail": "no-reply-chat@zboxapp.dev",
+        "SMTPUsername": "admin@zboxapp.dev",
+        "SMTPPassword": "12345678",
+        "SMTPServer": "192.168.50.10",
+        "SMTPPort": "587",
+        "ConnectionSecurity": "STARTTLS",
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
         "SendPushNotifications": false,
@@ -81,6 +81,14 @@
     "PrivacySettings": {
         "ShowEmailAddress": true,
         "ShowFullName": true
+    },
+    "SupportSettings": {
+        "TermsOfServiceLink": "/static/help/terms.html",
+        "PrivacyPolicyLink": "/static/help/privacy.html",
+        "AboutLink": "/static/help/about.html",
+        "HelpLink": "/static/help/help.html",
+        "ReportAProblemLink": "/static/help/report_problem.html",
+        "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {
         "Enable": false,

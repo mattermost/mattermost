@@ -1,9 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import * as Client from '../utils/client.jsx';
-import * as AsyncClient from '../utils/async_client.jsx';
+import Constants from '../utils/constants.jsx';
 import * as Utils from '../utils/utils.jsx';
 
 const Modal = ReactBootstrap.Modal;
@@ -35,12 +36,14 @@ class EditChannelHeaderModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleEdit = this.handleEdit.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
 
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
 
         this.state = {
+            header: props.channel.header,
             serverError: ''
         };
     }
@@ -51,29 +54,39 @@ class EditChannelHeaderModal extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.props.channel.header !== nextProps.channel.header) {
+            this.setState({
+                header: nextProps.channel.header
+            });
+        }
+    }
+
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
             this.onShow();
         }
     }
 
-    handleEdit() {
+    handleChange(e) {
+        this.setState({
+            header: e.target.value
+        });
+    }
+
+    handleSubmit() {
         const {formatMessage} = this.props.intl;
-
-        var data = {};
-        data.channel_id = this.props.channel.id;
-
-        if (data.channel_id.length !== 26) {
-            return;
-        }
-
-        data.channel_header = ReactDOM.findDOMNode(this.refs.textarea).value;
-
-        Client.updateChannelHeader(data,
-            () => {
+        Client.updateChannelHeader(
+            this.props.channel.id,
+            this.state.header,
+            (channel) => {
                 this.setState({serverError: ''});
-                AsyncClient.getChannel(this.props.channel.id);
                 this.onHide();
+
+                AppDispatcher.handleServerAction({
+                    type: Constants.ActionTypes.RECIEVED_CHANNEL,
+                    channel
+                });
             },
             (err) => {
                 if (err.message === 'Invalid channel_header parameter') {
@@ -92,7 +105,8 @@ class EditChannelHeaderModal extends React.Component {
 
     onHide() {
         this.setState({
-            serverError: ''
+            serverError: '',
+            header: this.props.channel.header
         });
 
         this.props.onHide();
@@ -122,7 +136,8 @@ class EditChannelHeaderModal extends React.Component {
                         rows='6'
                         id='edit_header'
                         maxLength='1024'
-                        defaultValue={this.props.channel.header}
+                        value={this.state.header}
+                        onChange={this.handleChange}
                     />
                     {serverError}
                 </Modal.Body>
@@ -130,14 +145,14 @@ class EditChannelHeaderModal extends React.Component {
                     <button
                         type='button'
                         className='btn btn-default'
-                        onClick={this.props.onHide}
+                        onClick={this.onHide}
                     >
                         {formatMessage(messages.cancel)}
                     </button>
                     <button
                         type='button'
                         className='btn btn-primary'
-                        onClick={this.handleEdit}
+                        onClick={this.handleSubmit}
                     >
                         {formatMessage(messages.save)}
                     </button>

@@ -569,7 +569,7 @@ class AccessHistoryModal extends React.Component {
         }
 
         const currentDate = new Date(currentAudit.create_at);
-        return currentDate.toLocaleDateString(locale, {weekday: 'long', month: 'short', day: '2-digit', year: 'numeric'}) +
+        return currentDate.toLocaleDateString('en', {weekday: 'long', month: 'short', day: '2-digit', year: 'numeric'}) +
             ' - ' + currentDate.toLocaleTimeString(locale, {hour: '2-digit', minute: '2-digit'}) + ' | ' + currentAuditDesc;
     }
     render() {

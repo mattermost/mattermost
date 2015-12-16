@@ -179,8 +179,10 @@ class NewChannelFlow extends React.Component {
             case SHOW_NEW_CHANNEL:
                 if (this.state.channelType === 'O') {
                     showChannelModal = true;
+                    channelTerm = formatMessage(messages.channel);
                 } else {
                     showGroupModal = true;
+                    channelTerm = formatMessage(messages.group);
                 }
                 break;
             case SHOW_EDIT_URL:

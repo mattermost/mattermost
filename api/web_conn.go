@@ -36,11 +36,11 @@ func NewWebConn(ws *websocket.Conn, teamId string, userId string, sessionId stri
 		pchan := Srv.Store.User().UpdateLastPingAt(userId, model.GetMillis(), T)
 
 		if result := <-achan; result.Err != nil {
-			l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", userId, sessionId, result.Err)
+			l4g.Error(T("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"), userId, sessionId, result.Err)
 		}
 
 		if result := <-pchan; result.Err != nil {
-			l4g.Error("Failed to updated LastPingAt for user_id=%v, err=%v", userId, result.Err)
+			l4g.Error(T("Failed to updated LastPingAt for user_id=%v, err=%v"), userId, result.Err)
 		}
 	}()
 
@@ -60,7 +60,7 @@ func (c *WebConn) readPump() {
 		go func() {
 			T := i18n.GetSystemLanguage()
 			if result := <-Srv.Store.User().UpdateLastPingAt(c.UserId, model.GetMillis(), T); result.Err != nil {
-				l4g.Error("Failed to updated LastPingAt for user_id=%v, err=%v", c.UserId, result.Err)
+				l4g.Error(T("Failed to updated LastPingAt for user_id=%v, err=%v"), c.UserId, result.Err)
 			}
 		}()
 

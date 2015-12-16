@@ -42,6 +42,16 @@
         margin-right: 6px;
         width: 12px;
         display: inline-block;
+        i, path {
+            @include opacity(0.5);
+        }
+        .fa-lock {
+            margin-left: 1px;
+        }
+        .fa-globe {
+            top: -1px;
+            position: relative;
+        }
         .online--icon {
             fill: #7DBE00;
         }

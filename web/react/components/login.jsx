@@ -190,7 +190,6 @@ class Login extends React.Component {
                 <a
                     className='btn btn-custom-login zbox'
                     href={'/login/zbox'}
-                    key='zbox'
                 >
                     <span className='icon' />
                     <span>{formatMessage(messages.zbox)}</span>

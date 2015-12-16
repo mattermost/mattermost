@@ -159,6 +159,7 @@ SuggestionBox.propTypes = {
     value: React.PropTypes.string.isRequired,
     onUserInput: React.PropTypes.func,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
+    locale: React.PropTypes.string.isRequired,
 
     // explicitly name any input event handlers we override and need to manually call
     onChange: React.PropTypes.func,

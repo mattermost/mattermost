@@ -209,7 +209,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if oldChannel.Name == model.DEFAULT_CHANNEL {
 			if (len(channel.Name) > 0 && channel.Name != oldChannel.Name) || (len(channel.Type) > 0 && channel.Type != oldChannel.Type) {
-				c.Err = model.NewAppError("updateChannel", "Tried to perform an invalid update of the default channel "+model.DEFAULT_CHANNEL, "")
+				c.Err = model.NewAppError("updateChannel", T("Tried to perform an invalid update of the default channel ")+model.DEFAULT_CHANNEL, "")
 				c.Err.StatusCode = http.StatusForbidden
 				return
 			}
@@ -290,18 +290,18 @@ func PostUpdateChannelHeaderMessageAndForget(c *Context, channelId string, oldCh
 		uc := Srv.Store.User().Get(c.Session.UserId, T)
 
 		if uresult := <-uc; uresult.Err != nil {
-			l4g.Error("Failed to retrieve user while trying to save update channel header message %v", uresult.Err)
+			l4g.Error(T("Failed to retrieve user while trying to save update channel header message %v"), uresult.Err)
 			return
 		} else {
 			user := uresult.Data.(*model.User)
 
 			var message string
 			if oldChannelHeader == "" {
-				message = fmt.Sprintf("%s updated the channel header to: %s", user.Username, newChannelHeader)
+				message = fmt.Sprintf(T("%s updated the channel header to: %s"), user.Username, newChannelHeader)
 			} else if newChannelHeader == "" {
-				message = fmt.Sprintf("%s removed the channel header (was: %s)", user.Username, oldChannelHeader)
+				message = fmt.Sprintf(T("%s removed the channel header (was: %s)"), user.Username, oldChannelHeader)
 			} else {
-				message = fmt.Sprintf("%s updated the channel header from: %s to: %s", user.Username, oldChannelHeader, newChannelHeader)
+				message = fmt.Sprintf(T("%s updated the channel header from: %s to: %s"), user.Username, oldChannelHeader, newChannelHeader)
 			}
 
 			post := &model.Post{
@@ -310,7 +310,7 @@ func PostUpdateChannelHeaderMessageAndForget(c *Context, channelId string, oldCh
 				Type:      model.POST_HEADER_CHANGE,
 			}
 			if _, err := CreatePost(c, post, false, T); err != nil {
-				l4g.Error("Failed to post join/leave message %v", err)
+				l4g.Error(T("Failed to post join/leave message %v"), err)
 			}
 		}
 	}()
@@ -369,7 +369,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			if result := <-Srv.Store.User().Get(c.Session.UserId, T); result.Err != nil {
 				c.Err = result.Err
 				c.RemoveSessionCookie(w, r)
-				l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
+				l4g.Error(T("Error in getting users profile for id=%v forcing logout"), c.Session.UserId)
 				return
 			}
 		}
@@ -471,7 +471,7 @@ func JoinChannel(c *Context, channelId string, role string, T goi18n.TranslateFu
 				c.Err = err
 				return
 			}
-			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v has joined the channel.`, user.Username))
+			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(T(`%v has joined the channel.`), user.Username))
 		} else {
 			c.Err = model.NewAppError("join", T("You do not have the appropriate permissions"), "")
 			c.Err.StatusCode = http.StatusForbidden
@@ -488,7 +488,7 @@ func PostUserAddRemoveMessageAndForget(c *Context, channelId string, message str
 			Type:      model.POST_JOIN_LEAVE,
 		}
 		if _, err := CreatePost(c, post, false, T); err != nil {
-			l4g.Error("Failed to post join/leave message %v", err)
+			l4g.Error(T("Failed to post join/leave message %v"), err)
 		}
 	}()
 }
@@ -504,7 +504,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel, T goi18n.Transla
 
 	newMember := &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
 	if cmresult := <-Srv.Store.Channel().SaveMember(newMember, T); cmresult.Err != nil {
-		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, cmresult.Err)
+		l4g.Error(T("Failed to add member user_id=%v channel_id=%v err=%v"), user.Id, channel.Id, cmresult.Err)
 		return nil, model.NewAppError("AddUserToChannel", T("Failed to add user to channel"), "")
 	}
 
@@ -658,7 +658,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		for _, hook := range incomingHooks {
 			go func() {
 				if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now, T); result.Err != nil {
-					l4g.Error("Encountered error deleting incoming webhook, id=" + hook.Id)
+					l4g.Error(T("Encountered error deleting incoming webhook, id=") + hook.Id)
 				}
 			}()
 		}
@@ -666,7 +666,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		for _, hook := range outgoingHooks {
 			go func() {
 				if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now, T); result.Err != nil {
-					l4g.Error("Encountered error deleting outgoing webhook, id=" + hook.Id)
+					l4g.Error(T("Encountered error deleting outgoing webhook, id=") + hook.Id)
 				}
 			}()
 		}
@@ -847,7 +847,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			c.LogAudit("name=" + channel.Name + " user_id=" + userId, T)
 
-			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(`%v added to the channel by %v`, nUser.Username, oUser.Username))
+			PostUserAddRemoveMessageAndForget(c, channel.Id, fmt.Sprintf(T(`%v added to the channel by %v`), nUser.Username, oUser.Username))
 
 			<-Srv.Store.Channel().UpdateLastViewedAt(id, oUser.Id, T)
 			w.Write([]byte(cm.ToJson()))
@@ -892,7 +892,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel, T); err != nil {
-			c.Err = model.NewAppError("updateChannel", "Unable to remove user.", err.Message)
+			c.Err = model.NewAppError("updateChannel", T("Unable to remove user."), err.Message)
 			return
 		}
 

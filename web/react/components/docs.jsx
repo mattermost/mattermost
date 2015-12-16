@@ -15,8 +15,9 @@ class Docs extends React.Component {
 
         if (props.site) {
             let md = props.site + '.md';
-            if (props.intl.locale === 'es') {
-                md = props.site + '_es.md';
+            const locale = props.intl.locale;
+            if (locale !== 'en') {
+                md = props.site + locale + '.md';
             }
 
             $.get('/static/help/' + md).then((response) => {

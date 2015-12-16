@@ -19,7 +19,7 @@ func ImportPost(post *model.Post) {
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 	if result := <-Srv.Store.Post().Save(post, T); result.Err != nil {
-		l4g.Debug("Error saving post. user=" + post.UserId + ", message=" + post.Message)
+		l4g.Debug(T("Error saving post. user=") + post.UserId + ", message=" + post.Message)
 	}
 }
 

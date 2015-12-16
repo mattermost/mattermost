@@ -122,7 +122,6 @@ class SSOSignUpPage extends React.Component {
                 <a
                     className='btn btn-custom-login zbox btn-full'
                     href='#'
-                    key='zbox'
                     onClick={this.handleSubmit}
                     disabled={disabled}
                 >

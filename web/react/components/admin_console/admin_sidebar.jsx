@@ -85,6 +85,10 @@ const messages = defineMessages({
     addTeamSidebar: {
         id: 'admin.sidebar.addTeamSidebar',
         defaultMessage: 'Add team to sidebar menu'
+    },
+    support: {
+        id: 'admin.sidebar.support',
+        defaultMessage: 'Legal and Support Settings'
     }
 });
 
@@ -189,7 +193,7 @@ class AdminSidebar extends React.Component {
                                     <a
                                         href='#'
                                         onClick={this.handleClick.bind(this, 'team_users', team.id)}
-                                        className={'nav__sub-menu-item ' + this.isSelected('team_users', team.id)}
+                                        className={'nav__sub-menu-item ' + this.isSelected('team_users', team.id) + ' ' + this.isSelected('team_analytics', team.id)}
                                     >
                                         {team.name}
                                         <OverlayTrigger
@@ -340,6 +344,15 @@ class AdminSidebar extends React.Component {
                                             onClick={this.handleClick.bind(this, 'zbox_settings', null)}
                                         >
                                             {formatMessage(messages.zbox)}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href='#'
+                                            className={this.isSelected('legal_and_support_settings')}
+                                            onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
+                                        >
+                                            {formatMessage(messages.support)}
                                         </a>
                                     </li>
                                 </ul>

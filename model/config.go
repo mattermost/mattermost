@@ -35,6 +35,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride bool
 	EnablePostIconOverride     bool
 	EnableTesting              bool
+	EnableDeveloper            *bool
 	EnableSecurityFixAlert     *bool
 }
 
@@ -116,6 +117,15 @@ type PrivacySettings struct {
 	ShowFullName     bool
 }
 
+type SupportSettings struct {
+	TermsOfServiceLink *string
+	PrivacyPolicyLink  *string
+	AboutLink          *string
+	HelpLink           *string
+	ReportAProblemLink *string
+	SupportEmail       *string
+}
+
 type TeamSettings struct {
 	SiteName                  string
 	MaxUsersPerTeam           int
@@ -135,6 +145,7 @@ type Config struct {
 	EmailSettings     EmailSettings
 	RateLimitSettings RateLimitSettings
 	PrivacySettings   PrivacySettings
+	SupportSettings   SupportSettings
 	GitLabSettings    SSOSettings
 	ZBoxSettings	  SSOSettings
 }
@@ -171,6 +182,28 @@ func ConfigFromJson(data io.Reader) *Config {
 }
 
 func (o *Config) SetDefaults() {
+
+	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
+		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
+	}
+
+	if len(o.FileSettings.PublicLinkSalt) == 0 {
+		o.FileSettings.PublicLinkSalt = NewRandomString(32)
+	}
+
+	if len(o.EmailSettings.InviteSalt) == 0 {
+		o.EmailSettings.InviteSalt = NewRandomString(32)
+	}
+
+	if len(o.EmailSettings.PasswordResetSalt) == 0 {
+		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
+	}
+
+	if o.ServiceSettings.EnableDeveloper == nil {
+		o.ServiceSettings.EnableDeveloper = new(bool)
+		*o.ServiceSettings.EnableDeveloper = false
+	}
+
 	if o.ServiceSettings.EnableSecurityFixAlert == nil {
 		o.ServiceSettings.EnableSecurityFixAlert = new(bool)
 		*o.ServiceSettings.EnableSecurityFixAlert = true
@@ -196,6 +229,35 @@ func (o *Config) SetDefaults() {
 		*o.EmailSettings.PushNotificationServer = ""
 	}
 
+	if o.SupportSettings.TermsOfServiceLink == nil {
+		o.SupportSettings.TermsOfServiceLink = new(string)
+		*o.SupportSettings.TermsOfServiceLink = "/static/help/terms.html"
+	}
+
+	if o.SupportSettings.PrivacyPolicyLink == nil {
+		o.SupportSettings.PrivacyPolicyLink = new(string)
+		*o.SupportSettings.PrivacyPolicyLink = "/static/help/privacy.html"
+	}
+
+	if o.SupportSettings.AboutLink == nil {
+		o.SupportSettings.AboutLink = new(string)
+		*o.SupportSettings.AboutLink = "/static/help/about.html"
+	}
+
+	if o.SupportSettings.HelpLink == nil {
+		o.SupportSettings.HelpLink = new(string)
+		*o.SupportSettings.HelpLink = "/static/help/help.html"
+	}
+
+	if o.SupportSettings.ReportAProblemLink == nil {
+		o.SupportSettings.ReportAProblemLink = new(string)
+		*o.SupportSettings.ReportAProblemLink = "/static/help/report_problem.html"
+	}
+
+	if o.SupportSettings.SupportEmail == nil {
+		o.SupportSettings.SupportEmail = new(string)
+		*o.SupportSettings.SupportEmail = "feedback@mattermost.com"
+	}
 }
 
 func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
@@ -213,7 +275,7 @@ func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
-		return NewAppError("Config.IsValid", "Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid at rest encrypt key for SQL settings.  Must be 32 chars or more."), "")
 	}
 
 	if !(o.SqlSettings.DriverName == DATABASE_DRIVER_MYSQL || o.SqlSettings.DriverName == DATABASE_DRIVER_POSTGRES) {
@@ -261,7 +323,7 @@ func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if len(o.FileSettings.PublicLinkSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid public link salt for file settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid public link salt for file settings.  Must be 32 chars or more."), "")
 	}
 
 	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
@@ -269,11 +331,11 @@ func (o *Config) IsValid(T goi18n.TranslateFunc) *AppError {
 	}
 
 	if len(o.EmailSettings.InviteSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid invite salt for email settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid invite salt for email settings.  Must be 32 chars or more."), "")
 	}
 
 	if len(o.EmailSettings.PasswordResetSalt) < 32 {
-		return NewAppError("Config.IsValid", "Invalid password reset salt for email settings.  Must be 32 chars or more.", "")
+		return NewAppError("Config.IsValid", T("Invalid password reset salt for email settings.  Must be 32 chars or more."), "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {

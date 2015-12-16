@@ -4,6 +4,9 @@
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import Constants from '../../utils/constants.jsx';
 
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Popover = ReactBootstrap.Popover;
+
 const messages = defineMessages({
     copyPaste: {
         id: 'user.settings.custom_theme.copyPaste',
@@ -26,6 +29,15 @@ class CustomThemeChooser extends React.Component {
             format: 'hex'
         });
         $('.color-picker').on('changeColor', this.onPickerChange);
+    }
+    componentDidUpdate() {
+        const theme = this.props.theme;
+        Constants.THEME_ELEMENTS.forEach((element) => {
+            if (theme.hasOwnProperty(element.id) && element.id !== 'codeTheme') {
+                $('#' + element.id).data('colorpicker').color.setColor(theme[element.id]);
+                $('#' + element.id).colorpicker('update');
+            }
+        });
     }
     onPickerChange(e) {
         const theme = this.props.theme;
@@ -81,6 +93,19 @@ class CustomThemeChooser extends React.Component {
                     );
                 });
 
+                var popoverContent = (
+                    <Popover
+                        bsStyle='info'
+                        id='code-popover'
+                        className='code-popover'
+                    >
+                        <img
+                            width='200'
+                            src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
+                        />
+                    </Popover>
+                );
+
                 elements.push(
                     <div
                         className='col-sm-4 form-group'
@@ -94,16 +119,22 @@ class CustomThemeChooser extends React.Component {
                             <select
                                 className='form-control'
                                 type='text'
-                                defaultValue={theme[element.id]}
+                                value={theme[element.id]}
                                 onChange={this.onInputChange}
                             >
                                 {codeThemeOptions}
                             </select>
+                            <OverlayTrigger
+                                placement='top'
+                                overlay={popoverContent}
+                                ref='headerOverlay'
+                            >
                             <span className='input-group-addon'>
                                 <img
                                     src={'/static/images/themes/code_themes/' + theme[element.id] + '.png'}
                                 />
                             </span>
+                            </OverlayTrigger>
                         </div>
                     </div>
                 );
@@ -121,7 +152,7 @@ class CustomThemeChooser extends React.Component {
                             <input
                                 className='form-control'
                                 type='text'
-                                defaultValue={theme[element.id]}
+                                value={theme[element.id]}
                                 onChange={this.onInputChange}
                             />
                             <span className='input-group-addon'><i></i></span>

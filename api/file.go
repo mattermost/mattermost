@@ -79,6 +79,12 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.ContentLength > model.MAX_FILE_SIZE {
+		c.Err = model.NewAppError("uploadFile", T("Unable to upload file. File is too large."), "")
+		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		return
+	}
+
 	err := r.ParseMultipartForm(model.MAX_FILE_SIZE)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -137,10 +143,10 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Decode image config first to check dimensions before loading the whole thing into memory later on
 			config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes()))
 			if err != nil {
-				c.Err = model.NewAppError("uploadFile", "Unable to upload image file.", err.Error())
+				c.Err = model.NewAppError("uploadFile", T("Unable to upload image file."), err.Error())
 				return
 			} else if config.Width*config.Height > MaxImageSize {
-				c.Err = model.NewAppError("uploadFile", "Unable to upload image file. File is too large.", "File exceeds max image size.")
+				c.Err = model.NewAppError("uploadFile", T("Unable to upload image file. File is too large."), T("File exceeds max image size."))
 				return
 			}
 		}
@@ -178,7 +184,7 @@ func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channe
 				// Decode image bytes into Image object
 				img, imgType, err := image.Decode(bytes.NewReader(fileData[i]))
 				if err != nil {
-					l4g.Error("Unable to decode image channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+					l4g.Error(T("Unable to decode image channelId=%v userId=%v filename=%v err=%v"), channelId, userId, filename, err)
 					return
 				}
 
@@ -231,12 +237,12 @@ func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channe
 					buf := new(bytes.Buffer)
 					err = jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90})
 					if err != nil {
-						l4g.Error("Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+						l4g.Error(T("Unable to encode image as jpeg channelId=%v userId=%v filename=%v err=%v"), channelId, userId, filename, err)
 						return
 					}
 
 					if err := writeFile(buf.Bytes(), dest+name+"_thumb.jpg", T); err != nil {
-						l4g.Error("Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+						l4g.Error(T("Unable to upload thumbnail channelId=%v userId=%v filename=%v err=%v"), channelId, userId, filename, err)
 						return
 					}
 				}()
@@ -254,12 +260,12 @@ func handleImagesAndForget(filenames []string, fileData [][]byte, teamId, channe
 
 					err = jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90})
 					if err != nil {
-						l4g.Error("Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+						l4g.Error(T("Unable to encode image as preview jpg channelId=%v userId=%v filename=%v err=%v"), channelId, userId, filename, err)
 						return
 					}
 
 					if err := writeFile(buf.Bytes(), dest+name+"_preview.jpg", T); err != nil {
-						l4g.Error("Unable to upload preview channelId=%v userId=%v filename=%v err=%v", channelId, userId, filename, err)
+						l4g.Error(T("Unable to upload preview channelId=%v userId=%v filename=%v err=%v"), channelId, userId, filename, err)
 						return
 					}
 				}()

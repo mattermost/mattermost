@@ -77,7 +77,7 @@ func command(c *Context, w http.ResponseWriter, r *http.Request) {
 func checkCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool {
 
 	if len(command.Command) == 0 || strings.Index(command.Command, "/") != 0 {
-		c.Err = model.NewAppError("checkCommand", "Command must start with /", "")
+		c.Err = model.NewAppError("checkCommand", T("Command must start with /"), "")
 		return false
 	}
 
@@ -187,7 +187,7 @@ func echoCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) boo
 			time.Sleep(time.Duration(delay) * time.Second)
 
 			if _, err := CreatePost(c, post, true, T); err != nil {
-				l4g.Error("Unable to create /echo post, err=%v", err)
+				l4g.Error(T("Unable to create /echo post, err=%v"), err)
 			}
 		}()
 
@@ -216,14 +216,14 @@ func meCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bool 
 		post.Message = message
 		post.ChannelId = command.ChannelId
 		if _, err := CreatePost(c, post, false, T); err != nil {
-			l4g.Error("Unable to create /me post post, err=%v", err)
+			l4g.Error(T("Unable to create /me post post, err=%v"), err)
 			return false
 		}
 		command.Response = model.RESP_EXECUTED
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Do an action, /me [message]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Do an action, /me [message]")})
 	}
 
 	return false
@@ -244,14 +244,14 @@ func shrugCommand(c *Context, command *model.Command, T goi18n.TranslateFunc) bo
 		post.Message = message
 		post.ChannelId = command.ChannelId
 		if _, err := CreatePost(c, post, false, T); err != nil {
-			l4g.Error("Unable to create /shrug post post, err=%v", err)
+			l4g.Error(T("Unable to create /shrug post post, err=%v"), err)
 			return false
 		}
 		command.Response = model.RESP_EXECUTED
 		return true
 
 	} else if strings.Index(cmd, command.Command) == 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]")})
 	}
 
 	return false
@@ -588,7 +588,7 @@ func loadTestUrlCommand(c *Context, command *model.Command, T goi18n.TranslateFu
 
 		parameters := strings.SplitN(command.Command, " ", 3)
 		if len(parameters) != 3 {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Command must contain a url", "")
+			c.Err = model.NewAppError("loadTestUrlCommand", T("Command must contain a url"), "")
 			return true
 		} else {
 			url = parameters[2]
@@ -605,10 +605,10 @@ func loadTestUrlCommand(c *Context, command *model.Command, T goi18n.TranslateFu
 
 		var contents io.ReadCloser
 		if r, err := http.Get(url); err != nil {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", err.Error())
+			c.Err = model.NewAppError("loadTestUrlCommand", T("Unable to get file"), err.Error())
 			return false
 		} else if r.StatusCode > 400 {
-			c.Err = model.NewAppError("loadTestUrlCommand", "Unable to get file", r.Status)
+			c.Err = model.NewAppError("loadTestUrlCommand", T("Unable to get file"), r.Status)
 			return false
 		} else {
 			contents = r.Body
@@ -620,7 +620,7 @@ func loadTestUrlCommand(c *Context, command *model.Command, T goi18n.TranslateFu
 		for {
 			length, err := contents.Read(bytes)
 			if err != nil && err != io.EOF {
-				c.Err = model.NewAppError("loadTestUrlCommand", "Encountered error reading file", err.Error())
+				c.Err = model.NewAppError("loadTestUrlCommand", T("Encountered error reading file"), err.Error())
 				return false
 			}
 
@@ -633,7 +633,7 @@ func loadTestUrlCommand(c *Context, command *model.Command, T goi18n.TranslateFu
 			post.ChannelId = command.ChannelId
 
 			if _, err := CreatePost(c, post, false, T); err != nil {
-				l4g.Error("Unable to create post, err=%v", err)
+				l4g.Error(T("Unable to create post, err=%v"), err)
 				return false
 			}
 		}
@@ -642,7 +642,7 @@ func loadTestUrlCommand(c *Context, command *model.Command, T goi18n.TranslateFu
 
 		return true
 	} else if strings.Index(cmd, command.Command) == 0 && strings.Index(command.Command, "/loadtest posts") != 0 {
-		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Add a post containing the text from a given url to current channel <Url>"})
+		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: T("Add a post containing the text from a given url to current channel <Url>")})
 	}
 
 	return false

@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/i18n"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"html/template"
 )
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
@@ -37,6 +38,7 @@ type Context struct {
 type Page struct {
 	TemplateName      string
 	Props             map[string]string
+	Html			  map[string]template.HTML
 	ClientCfg         map[string]string
 	User              *model.User
 	Team              *model.Team
@@ -199,7 +201,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
 		go func() {
 			if err := (<-Srv.Store.User().UpdateUserAndSessionActivity(c.Session.UserId, c.Session.Id, model.GetMillis(), T)).Err; err != nil {
-				l4g.Error("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", c.Session.UserId, c.Session.Id, err)
+				l4g.Error(T("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"), c.Session.UserId, c.Session.Id, err)
 			}
 		}()
 	}
@@ -506,6 +508,8 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	props := make(map[string]string)
 	props["Message"] = err.Message
 	props["Details"] = err.DetailedError
+	props["Title"] = fmt.Sprintf(T("%v needs your help:"), utils.ClientCfg["SiteName"])
+	props["GoBack"] = T("Go back to team site")
 
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) > 1 {
@@ -515,7 +519,7 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(err.StatusCode)
-	ServerTemplates.ExecuteTemplate(w, T("error.html"), Page{Props: props, ClientCfg: utils.ClientCfg})
+	ServerTemplates.ExecuteTemplate(w, "error.html", Page{Props: props, ClientCfg: utils.ClientCfg})
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
@@ -534,7 +538,7 @@ func GetSession(token string, T goi18n.TranslateFunc) *model.Session {
 
 	if session == nil {
 		if sessionResult := <-Srv.Store.Session().Get(token, T); sessionResult.Err != nil {
-			l4g.Error("Invalid session token=" + token + ", err=" + sessionResult.Err.DetailedError)
+			l4g.Error(T("Invalid session token=") + token + ", err=" + sessionResult.Err.DetailedError)
 		} else {
 			session = sessionResult.Data.(*model.Session)
 		}

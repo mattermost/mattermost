@@ -21,16 +21,17 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"io/ioutil"
 )
+
+var languages = [2]string{"es", "en"}
+var jsonMessages map[string]string = map[string]string{}
 
 var Templates *template.Template
 
 type HtmlTemplatePage api.Page
 
-var languages = [2]string{"es", "en"}
-var jsonMessages map[string]string = map[string]string{}
-
-func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
+func NewHtmlTemplatePage(templateName, title, locale string, T goi18n.TranslateFunc) *HtmlTemplatePage {
 
 	if len(title) > 0 {
 		title = utils.Cfg.TeamSettings.SiteName + " - " + title
@@ -38,6 +39,13 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
+	props["Locale"] = locale
+	props["Messages"] = jsonMessages[locale]
+	props["FooterCompany"] = T("footer_company")
+	props["FooterHelp"] = T("footer_help")
+	props["FooterTerms"] = T("footer_terms")
+	props["FooterPrivacy"] = T("footer_privacy")
+	props["FooterAbout"] = T("footer_about")
 	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg}
 }
 
@@ -57,13 +65,13 @@ func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter, T goi1
 	}
 }
 
-func InitWeb() {
-	l4g.Debug("Initializing web routes")
+func InitWeb(T goi18n.TranslateFunc) {
+	l4g.Debug(T("Initializing web routes"))
 
 	mainrouter := api.Srv.Router
 
 	staticDir := utils.FindDir("web/static")
-	l4g.Debug("Using static directory at %v", staticDir)
+	l4g.Debug(T("Using static directory at %v"), staticDir)
 	mainrouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
 
 	mainrouter.Handle("/", api.AppHandlerIndependent(ping)).Methods("HEAD")
@@ -105,20 +113,20 @@ func InitWeb() {
 	mainrouter.Handle("/zimbra/{email}/{token}", api.AppHandler(zimbra)).Methods("GET")
 
 	watchAndParseTemplates()
-	loadLanguages()
+	loadLanguages(T)
 }
 
-func loadLanguages() {
+func loadLanguages(T goi18n.TranslateFunc) {
 	lenght := len(languages)
 	for i:= 0; i < lenght; i++ {
 		lang := languages[i]
 		fileName := "./web/i18n/" + lang +".json"
 		raw, err := ioutil.ReadFile(fileName)
 		if err != nil {
-			l4g.Error("Error opening file=" + fileName + ", err=" + err.Error())
+			l4g.Error(T("Error opening file=") + fileName + ", err=" + err.Error())
 		}
 		jsonMessages[lang] = string(raw)
-		l4g.Info("Loaded Language file from %v", fileName)
+		l4g.Info(T("Loaded i18n file from %v"), fileName)
 	}
 }
 
@@ -231,13 +239,11 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user = ur.Data.(*model.User)
 		}
 
-		page := NewHtmlTemplatePage("home", T("Home"))
+		page := NewHtmlTemplatePage("home", T("Home"), lang, T)
 		page.Team = team
 		page.User = user
 
 		page.Props["TeamURL"] = c.GetTeamURL(T)
-		page.Props["Locale"] = lang
-		page.Props["Messages"] = jsonMessages[lang]
 		setTeamCookie(w, c.GetTeamName())
 		page.Render(c, w, T)
 	}
@@ -249,9 +255,8 @@ func signup(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage(T("signup_team"), T("Signup"))
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
+	page := NewHtmlTemplatePage("signup_team", T("Signup"), lang, T)
+	page.Props["SignupTitle"] = T("signup_team.title")
 	page.Render(c, w, T)
 }
 
@@ -266,7 +271,7 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	var team *model.Team
 	if tResult := <-api.Srv.Store.Team().GetByName(teamName, T); tResult.Err != nil {
-		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
+		l4g.Error(T("Couldn't find team name=%v, err=%v"), teamName, tResult.Err.Message)
 		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 		return
 	} else {
@@ -281,11 +286,9 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := NewHtmlTemplatePage(T("login"), T("Login"))
+	page := NewHtmlTemplatePage("login", T("Login"), lang, T)
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["TeamName"] = team.Name
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 
 	if team.AllowOpenInvite {
 		page.Props["InviteId"] = team.InviteId
@@ -298,10 +301,9 @@ func signupTeamConfirm(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	T, lang := i18n.GetLanguage(w, r)
 	email := r.FormValue("email")
 
-	page := NewHtmlTemplatePage(T("signup_team_confirm"), T("Signup Email Sent"))
-	page.Props["Email"] = email
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
+	page := NewHtmlTemplatePage("signup_team_confirm", T("Signup Email Sent"), lang, T)
+	page.Props["SignupTitle"] = T("signup_team_confirm.title")
+	page.Html["SignupInfo"] = template.HTML(fmt.Sprintf(T("signup_team_confirm.info"), email))
 	page.Render(c, w, T)
 }
 
@@ -323,12 +325,10 @@ func signupTeamComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	page := NewHtmlTemplatePage(T("signup_team_complete"), T("Complete Team Sign Up"))
+	page := NewHtmlTemplatePage("signup_team_complete", T("Complete Team Sign Up"), lang, T)
 	page.Props["Email"] = props["email"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -375,15 +375,13 @@ func signupUserComplete(c *api.Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	page := NewHtmlTemplatePage(T("signup_user_complete"), T("Complete User Sign Up"))
+	page := NewHtmlTemplatePage("signup_user_complete", T("Complete User Sign Up"), lang, T)
 	page.Props["Email"] = props["email"]
 	page.Props["TeamDisplayName"] = props["display_name"]
 	page.Props["TeamName"] = props["name"]
 	page.Props["TeamId"] = props["id"]
 	page.Props["Data"] = data
 	page.Props["Hash"] = hash
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -400,7 +398,7 @@ func postPermalink(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	postId := params["postid"]
 
 	if len(postId) != 26 {
-		c.Err = model.NewAppError("postPermalink", "Invalid Post ID", "id="+postId)
+		c.Err = model.NewAppError("postPermalink", T("Invalid Post ID"), "id="+postId)
 		return
 	}
 
@@ -563,7 +561,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 	if ur := <-userChan; ur.Err != nil {
 		c.Err = ur.Err
 		c.RemoveSessionCookie(w, r)
-		l4g.Error("Error in getting users profile for id=%v forcing logout", c.Session.UserId)
+		l4g.Error(T("Error in getting users profile for id=%v forcing logout"), c.Session.UserId)
 		return
 	} else {
 		user = ur.Data.(*model.User)
@@ -571,7 +569,7 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 
 	setTeamCookie(w, team.Name)
 
-	page := NewHtmlTemplatePage("channel", "")
+	page := NewHtmlTemplatePage("channel", "", lang, T)
 	page.Props["Title"] = channel.DisplayName + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
 	page.Props["ChannelName"] = channel.Name
@@ -580,8 +578,6 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 	page.Team = team
 	page.User = user
 	page.Channel = channel
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -625,27 +621,23 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		if c.Err = (<-api.Srv.Store.User().VerifyEmail(userId, T)).Err; c.Err != nil {
 			return
 		} else {
-			c.LogAudit("Email Verified", T)
-			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+name+"/login?verified=true&email="+email, http.StatusTemporaryRedirect)
+			c.LogAudit(T("Email Verified"), T)
+			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+name+"/login?verified=true&email="+url.QueryEscape(email), http.StatusTemporaryRedirect)
 			return
 		}
 	}
 
-	page := NewHtmlTemplatePage("verify", T("Email Verified"))
+	page := NewHtmlTemplatePage("verify", T("Email Verified"), lang, T)
 	page.Props["TeamURL"] = c.GetTeamURLFromTeam(team)
 	page.Props["UserEmail"] = email
 	page.Props["ResendSuccess"] = resendSuccess
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
 func findTeam(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	T, lang := i18n.GetLanguage(w, r)
 
-	page := NewHtmlTemplatePage(T("find_team"), T("Find Team"))
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
+	page := NewHtmlTemplatePage("find_team", T("Find Team"), lang, T)
 	page.Render(c, w, T)
 }
 
@@ -654,10 +646,8 @@ func docs(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	doc := params["doc"]
 
-	page := NewHtmlTemplatePage("docs", "Documentation")
+	page := NewHtmlTemplatePage("docs", T("Documentation"), lang, T)
 	page.Props["Site"] = doc
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -699,7 +689,7 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		teamDisplayName = team.DisplayName
 	}
 
-	page := NewHtmlTemplatePage("password_reset", "")
+	page := NewHtmlTemplatePage("password_reset", "", lang, T)
 	page.Props["Title"] = T("Reset Password ") + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = teamDisplayName
 	page.Props["TeamName"] = teamName
@@ -707,8 +697,6 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Props["Data"] = data
 	page.Props["TeamName"] = teamName
 	page.Props["IsReset"] = strconv.FormatBool(isResetLink)
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
 
@@ -1008,16 +996,13 @@ func adminConsole(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	activeTab := params["tab"]
 	teamId := params["team"]
 
-	page := NewHtmlTemplatePage("admin_console", T("Admin Console"))
+	page := NewHtmlTemplatePage("admin_console", T("Admin Console"), lang, T)
 	page.User = user
 	page.Team = team
 	page.Props["ActiveTab"] = activeTab
 	page.Props["TeamId"] = teamId
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
 	page.Render(c, w, T)
 }
-
 
 func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	T, lang := i18n.GetLanguage(w, r)
@@ -1058,16 +1043,17 @@ func authorizeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		team = result.Data.(*model.Team)
 	}
 
-	page := NewHtmlTemplatePage(T("authorize"), T("Authorize Application"))
-	page.Props["TeamName"] = team.Name
-	page.Props["AppName"] = app.Name
+	page := NewHtmlTemplatePage("authorize", T("Authorize Application"), lang, T)
 	page.Props["ResponseType"] = responseType
 	page.Props["ClientId"] = clientId
 	page.Props["RedirectUri"] = redirect
 	page.Props["Scope"] = scope
 	page.Props["State"] = state
-	page.Props["Locale"] = lang
-	page.Props["Messages"] = jsonMessages[lang]
+	page.Props["AuthorizeTitle"] = fmt.Sprintf(T("authorize_title"), team.Name)
+	page.Html["AuthorizeInfo"] = template.HTML(fmt.Sprintf(T("authorize_info"), app.Name))
+	page.Html["AuthorizeQuestion"] = template.HTML(fmt.Sprintf(T("authorize_question"), app.Name))
+	page.Props["AuthorizeAllow"] = T("authorize_allow")
+	page.Props["AuthorizeDeny"] = T("authorize_deny")
 	page.Render(c, w, T)
 }
 
@@ -1235,13 +1221,13 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if parsedRequest == nil {
-		c.Err = model.NewAppError("incomingWebhook", "Unable to parse incoming data", "")
+		c.Err = model.NewAppError("incomingWebhook", T("Unable to parse incoming data"), "")
 		return
 	}
 
 	text := parsedRequest.Text
 	if len(text) == 0 && parsedRequest.Attachments == nil {
-		c.Err = model.NewAppError("incomingWebhook", "No text specified", "")
+		c.Err = model.NewAppError("incomingWebhook", T("No text specified"), "")
 		return
 	}
 
@@ -1301,7 +1287,7 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	c.Session = model.Session{UserId: hook.UserId, TeamId: hook.TeamId, IsOAuth: false}
 
 	if !c.HasPermissionsToChannel(pchan, "createIncomingHook", T) && channel.Type != model.CHANNEL_OPEN {
-		c.Err = model.NewAppError("incomingWebhook", "Inappropriate channel permissions", "")
+		c.Err = model.NewAppError("incomingWebhook", T("Inappropriate channel permissions"), "")
 		return
 	}
 

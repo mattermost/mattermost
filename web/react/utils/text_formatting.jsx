@@ -256,7 +256,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(/(^|\W)(#[a-zA-Z][a-zA-Z0-9.\-_]*)\b/g, replaceHashtagWithToken);
+    return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
 }
 
 const puncStart = /^[.,()&$!\[\]{}':;\\]+/;

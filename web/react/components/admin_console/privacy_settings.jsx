@@ -32,7 +32,7 @@ const messages = defineMessages({
     },
     showFullNameDescription: {
         id: 'admin.privacy.showFullNameDescription',
-        defaultMessage: 'When false, hides full name of users from other users including team owner and team administrators.'
+        defaultMessage: 'When false, hides full name of users from other users, including team owners and team administrators. Username is shown in place of full name.'
     },
     diagnosticTitle: {
         id: 'admin.privacy.diagnosticTitle',

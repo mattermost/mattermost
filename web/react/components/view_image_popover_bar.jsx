@@ -3,6 +3,10 @@
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
 
 const messages = defineMessages({
+    publicImage: {
+        id: 'view_image_popover.publicImage',
+        defaultMessage: 'Public Image'
+    },
     publicLink: {
         id: 'view_image_popover.publicLink',
         defaultMessage: 'Get Public Link'

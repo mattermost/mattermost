@@ -83,7 +83,7 @@ class CreateComment extends React.Component {
             previews: draft.previews,
             submitting: false,
             windowWidth: Utils.windowWidth(),
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         };
     }
     componentDidMount() {
@@ -96,7 +96,7 @@ class CreateComment extends React.Component {
     }
     onPreferenceChange() {
         this.setState({
-            ctrlSend: PreferenceStore.getPreference(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter', {value: 'false'}).value
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
     handleResize() {
@@ -186,7 +186,7 @@ class CreateComment extends React.Component {
         this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
     }
     commentMsgKeyPress(e) {
-        if (this.state.ctrlSend === 'true' && e.ctrlKey || this.state.ctrlSend === 'false') {
+        if (this.state.ctrlSend && e.ctrlKey || !this.state.ctrlSend) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
                 ReactDOM.findDOMNode(this.refs.textbox).blur();
@@ -211,8 +211,7 @@ class CreateComment extends React.Component {
     }
     handleKeyDown(e) {
         const {formatMessage} = this.props.intl;
-
-        if (this.state.ctrlSend === 'true' && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+        if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.commentMsgKeyPress(e);
             return;
         }
