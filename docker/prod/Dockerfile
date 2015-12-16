@@ -12,7 +12,7 @@ WORKDIR /zbox
 
 
 # Copy over files
-ADD ./dist/zbox/ /zbox/
+ADD ./dist/mattermost/ /zbox/
 
 ADD /docker/prod/config_docker.json /zbox/config/config.json
 ADD /docker/prod/docker-entry.sh /

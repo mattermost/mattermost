@@ -387,7 +387,7 @@ class PostBody extends React.Component {
                         <a
                             className='theme'
                             onClick={this.props.handleCommentClick}
-                            >
+                        >
                             {message}
                         </a>
                     </span>
@@ -401,7 +401,7 @@ class PostBody extends React.Component {
                         <a
                             className='theme'
                             onClick={this.props.handleCommentClick}
-                            >
+                        >
                             {message}
                         </a>
                     </span>

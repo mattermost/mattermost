@@ -3,7 +3,6 @@
 import BrowserStore from '../stores/browser_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ErrorStore from '../stores/error_store.jsx';
-let messages;
 
 export function track(category, action, label, property, value) {
     global.window.analytics.track(action, {category, label, property, value});

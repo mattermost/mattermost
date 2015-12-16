@@ -16,7 +16,7 @@ function setupSignupTeamPage(props) {
 
     for (let prop in props) {
         if (props.hasOwnProperty(prop)) {
-            if (prop !== 'Title' && prop.indexOf("Footer") === -1 && prop !== "Locale" && prop !== "Messages") {
+            if (prop !== 'Title' && prop.indexOf('Footer') === -1 && prop !== 'Locale' && prop !== 'Messages') {
                 teams.push({name: prop, display_name: props[prop]});
             }
         }

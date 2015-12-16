@@ -55,9 +55,9 @@ class UserSettingsLanguageTab extends React.Component {
                     width='medium'
                     inputs={inputs}
                     updateSection={(e) => {
-                            this.updateSection('');
-                            e.preventDefault();
-                        }}
+                        this.updateSection('');
+                        e.preventDefault();
+                    }}
                 />
             );
         } else {
@@ -67,8 +67,8 @@ class UserSettingsLanguageTab extends React.Component {
                     width='medium'
                     describe={formatMessage(messages.description)}
                     updateSection={() => {
-                            this.updateSection('languages');
-                        }}
+                        this.updateSection('languages');
+                    }}
                 />
             );
         }

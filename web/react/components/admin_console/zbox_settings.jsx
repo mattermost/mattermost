@@ -337,7 +337,7 @@ class ZBoxSettings extends React.Component {
                         <label
                             className='control-label col-sm-4'
                             htmlFor='LoginEndPoint'
-                            >
+                        >
                             {formatMessage(messages.loginTitle)}
                         </label>
                         <div className='col-sm-8'>
@@ -350,7 +350,7 @@ class ZBoxSettings extends React.Component {
                                 defaultValue={this.props.config.ZBoxSettings.LoginEndPoint}
                                 onChange={this.handleChange}
                                 disabled={!this.state.Enable}
-                                />
+                            />
                             <p className='help-text'>{formatMessage(messages.loginDescription)}</p>
                         </div>
                     </div>

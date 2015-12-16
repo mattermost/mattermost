@@ -14,7 +14,7 @@ Los mensajes de ZBox Chat se les asigna formato utilizando un estándard que se 
 |:--------------|:-------------|
 |`**negrita**`| **negrita** |
 | `_italica_`|_italica_|
-|`[hipervinculo](http://zboxapp.com)`|[hipervincylo](http://zboxapp.com)|
+|`[hipervinculo](http://zboxapp.com)`|[hipervinculo](http://zboxapp.com)|
 |`![imagen embebida](https://travis-ci.org/mattermost/platform.svg)`|![imagen embebida](https://travis-ci.org/mattermost/platform.svg)|
 |`:smile:` `:sheep:` `:alien:`|:smile: :sheep: :alien:|
 

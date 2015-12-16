@@ -2,7 +2,7 @@
 
 GOPATH ?= $(GOPATH:)
 GOFLAGS ?= $(GOFLAGS:)
-BUILD_NUMBER ?= $(BUILD_NUMBER:)
+BUILD_NUMBER ?= $(BUILD_NUMBER)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
 
@@ -284,4 +284,71 @@ docker-build: stop
 
 docker-run: docker-build
 	docker run --name ${DOCKER_CONTAINER_NAME} -d --publish 8065:80 ${DOCKERNAME}
+
+zbox:
+	@sed -i'.bak' 's|_BUILD_NUMBER_|$(BUILD_NUMBER)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_DATE_|$(BUILD_DATE)|g' ./model/version.go
+	@sed -i'.bak' 's|_BUILD_HASH_|$(BUILD_HASH)|g' ./model/version.go
+
+	@echo Cleaning up
+	@rm -Rf $(DIST_ROOT)
+	@$(GO) clean $(GOFLAGS) -i ./...
+
+	@echo Building mattermost for linux
+	@env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -i ./...
+	@env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) ./...
+
+	@mkdir -p $(DIST_PATH)/bin
+	@cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin
+
+	@mkdir -p $(DIST_PATH)/config
+	@touch $(DIST_PATH)/config/build.txt
+	@echo $(BUILD_NUMBER) | tee -a $(DIST_PATH)/config/build.txt
+
+	@mkdir -p $(DIST_PATH)/logs
+
+	@echo Building frontend scripts
+	@mkdir -p web/static/js
+	@cd web/react && npm run build-libs && npm run build
+
+	@echo Building frontend styles
+	@cd web/sass-files && compass compile -e production --force
+
+	@echo Preparing mattermost
+	@mkdir -p $(DIST_PATH)/web
+	@cp -RL web/i18n $(DIST_PATH)/web
+	@cp -RL web/static $(DIST_PATH)/web
+	@cp -RL web/templates $(DIST_PATH)/web
+
+	@mkdir -p $(DIST_PATH)/api
+	@cp -RL api/templates $(DIST_PATH)/api
+
+	@mkdir -p $(DIST_PATH)/bin/i18n
+	@cp -RL i18n/ $(DIST_PATH)/bin/i18n
+	@rm -f $(DIST_PATH)/bin/i18n/*.go
+
+	@mv $(DIST_PATH)/web/static/js/bundle.min.js $(DIST_PATH)/web/static/js/bundle-$(BUILD_NUMBER).min.js
+
+	@sed -i'.bak' 's|react-with-addons-0.14.1.js|react-with-addons-0.14.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|jquery-1.11.1.js|jquery-1.11.1.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|bootstrap-3.3.5.js|bootstrap-3.3.5.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|react-bootstrap-0.27.3.js|react-bootstrap-0.27.3.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|perfect-scrollbar-0.6.5.jquery.js|perfect-scrollbar-0.6.5.jquery.min.js|g' $(DIST_PATH)/web/templates/head.html
+	@sed -i'.bak' 's|bundle.js|bundle-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
+	@rm $(DIST_PATH)/web/templates/*.bak
+
+
+zbox-test: zbox
+	@echo Building Docker Image
+	@docker build -t ${DOCKERNAME}:$(BUILD_NUMBER) -f docker/test/Dockerfile .
+	@rm -rf dist
+	@docker tag -f ${DOCKERNAME}:$(BUILD_NUMBER) ${DOCKERNAME}:latest;
+
+zbox-prod: zbox
+	@echo Building Docker Image
+	@docker build -t enahum/${DOCKERNAME}:$(BUILD_NUMBER) -f docker/prod/Dockerfile .
+	@rm -rf dist
+	@docker tag -f enahum/${DOCKERNAME}:$(BUILD_NUMBER) enahum/${DOCKERNAME}:latest; \
+
+
 

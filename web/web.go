@@ -21,7 +21,6 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-	"io/ioutil"
 )
 
 var languages = [2]string{"es", "en"}
@@ -118,9 +117,10 @@ func InitWeb(T goi18n.TranslateFunc) {
 
 func loadLanguages(T goi18n.TranslateFunc) {
 	lenght := len(languages)
+	i18nDir := utils.FindDir("web/i18n")
 	for i:= 0; i < lenght; i++ {
 		lang := languages[i]
-		fileName := "./web/i18n/" + lang +".json"
+		fileName := i18nDir + lang +".json"
 		raw, err := ioutil.ReadFile(fileName)
 		if err != nil {
 			l4g.Error(T("Error opening file=") + fileName + ", err=" + err.Error())

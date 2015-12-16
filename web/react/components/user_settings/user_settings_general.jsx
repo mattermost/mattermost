@@ -229,8 +229,6 @@ class UserSettingsGeneralTab extends React.Component {
     submitNickname(e) {
         e.preventDefault();
 
-        const {formatMessage} = this.props.intl;
-
         const user = Object.assign({}, this.props.user);
         const nickname = this.state.nickname.trim();
 
@@ -245,8 +243,6 @@ class UserSettingsGeneralTab extends React.Component {
     }
     submitName(e) {
         e.preventDefault();
-
-        const {formatMessage} = this.props.intl;
 
         const user = Object.assign({}, this.props.user);
         const firstName = this.state.firstName.trim();

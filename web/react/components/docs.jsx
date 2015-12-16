@@ -7,7 +7,11 @@ import UserStore from '../stores/user_store.jsx';
 
 class Docs extends React.Component {
     constructor(props) {
-        super(props);
+        super(props);Release candidate for zbox
+                                           - ESLint fixes
+        - Docker configuration
+        - Fix web.go imports and i18n directory
+        - Fix Messaging doc in spanish
         UserStore.setCurrentUser(global.window.mm_user || {});
 
         this.state = {text: ''};
@@ -17,7 +21,7 @@ class Docs extends React.Component {
             let md = props.site + '.md';
             const locale = props.intl.locale;
             if (locale !== 'en') {
-                md = props.site + locale + '.md';
+                md = props.site + '_' + locale + '.md';
             }
 
             $.get('/static/help/' + md).then((response) => {
