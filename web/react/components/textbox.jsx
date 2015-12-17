@@ -177,7 +177,7 @@ class Textbox extends React.Component {
     }
 
     render() {
-        const {formatMessage} = this.props.intl;
+        const {formatMessage, locale} = this.props.intl;
 
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
@@ -207,6 +207,7 @@ class Textbox extends React.Component {
                     autoComplete='off'
                     autoCorrect='off'
                     rows='1'
+                    locale={locale}
                     maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
                     value={this.props.messageText}
