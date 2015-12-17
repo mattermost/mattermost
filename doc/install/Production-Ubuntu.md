@@ -65,7 +65,7 @@
   * ``` ./platform```
   * You should see a console log like `Server is listening on :8065` letting you know the service is running.
   * Stop the server for now by typing `ctrl-c`
-1. Setup Mattermost to use the Ubuntu Upstart daemon which handles supervision of the Mattermost process.
+1. Setup Mattermost to use the Upstart daemon which handles supervision of the Mattermost process.
   * ``` sudo touch /etc/init/mattermost.conf```
   * ``` sudo vi /etc/init/mattermost.conf```
   * Copy the following lines into `/etc/init/mattermost.conf`

@@ -1,6 +1,6 @@
-# Production Installation on Red Hat Enterprise Linux 7.1
+# Production Installation on Red Hat Enterprise Linux 6.6+
 
-## Install Red Hat Enterprise Linux (x64) 7.1
+## Install Red Hat Enterprise Linux (x64) 6.6+
 1. Set up 3 machines with RHEL with 2GB of RAM or more.  The servers will be used for the Load Balancer, Mattermost (this must be x64 to use pre-built binaries), and Database.
    - **Optional:** You can also use a single machine for all 3 components in this install guide, depending on the standards of your data center.
 2. Make sure the system is up to date with the most recent security patches.
@@ -13,9 +13,9 @@
 1. Install PostgreSQL 9.4+ (or MySQL 5.6+)
   * ``` sudo yum install http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-redhat94-9.4-1.noarch.rpm```
   * ``` sudo yum install postgresql94-server postgresql94-contrib```
-  * ``` sudo /usr/pgsql-9.4/bin/postgresql94-setup initdb```
-  * ``` sudo systemctl enable postgresql-9.4.service```
-  * ``` sudo systemctl start postgresql-9.4.service```
+  * ``` sudo service postgresql-9.4 initdb```
+  * ``` sudo chkconfig postgresql-9.4 on```
+  * ``` sudo service postgresql-9.4 start```
 1. PostgreSQL created a user account called `postgres`.  You will need to log into that account with:
   * ``` sudo -i -u postgres```
 1. You can get a PostgreSQL prompt by typing:
@@ -38,7 +38,7 @@
   * Add the following line to the 'IPv4 local connections':
   * host    all             all             10.10.10.2/32         md5
 1. Reload Postgres database:
-  * ```sudo systemctl reload postgresql-9.4.service```
+  * ```sudo service postgresql-9.4 restart```
 1. Attempt to connect with the new created user to verify everything looks good:
   * ```psql --host=10.10.10.1 --dbname=mattermost --username=mmuser --password```
   * ```mattermost=> \q```
@@ -61,7 +61,7 @@
    * ``` sudo chown -R mattermost:mattermost /opt/mattermost```
    * ``` sudo chmod -R g+w /opt/mattermost```
    * Add yourself to the mattermost group to ensure you can edit these files:
-   * ``` sudo usermod -aG mattermost USERNAME```
+   * ``` sudo usermod -a -G mattermost USERNAME```
 1. Configure Mattermost Server by editing the `config.json` file at `/opt/mattermost/config`
   * ``` cd /opt/mattermost/config```
   * Edit the file by typing:
@@ -72,34 +72,27 @@
 1. Test the Mattermost Server
   * ``` cd /opt/mattermost/bin```
   * Run the Mattermost Server by typing:
+  * ``` sudo su mattermost```
   * ``` ./platform```
   * You should see a console log like `Server is listening on :8065` letting you know the service is running.
   * Stop the server for now by typing `Ctrl-C`
-1. Set up Mattermost to use the systemd init daemon which handles supervision of the Mattermost process:
-  * ``` sudo touch /etc/systemd/system/mattermost.service``` 
-  * ``` sudo vi /etc/systemd/system/mattermost.service```
-  * Copy the following lines into `/etc/systemd/system/mattermost.service`
+1. Setup Mattermost to use the Upstart daemon which handles supervision of the Mattermost process.
+  * ``` sudo touch /etc/init/mattermost.conf```
+  * ``` sudo vi /etc/init/mattermost.conf```
+  * Copy the following lines into `/etc/init/mattermost.conf`
 ```
-[Unit]
-Description=Mattermost
-After=syslog.target network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/mattermost/bin
-User=mattermost
-ExecStart=/opt/mattermost/bin/platform
-PIDFile=/var/spool/mattermost/pid/master.pid
-
-[Install]
-WantedBy=multi-user.target
+start on runlevel [2345]
+stop on runlevel [016]
+respawn
+chdir /opt/mattermost
+exec bin/platform
 ```
-  * Make sure the service is executable with ``` sudo chmod 664 /etc/systemd/system/mattermost.service```
-  * Reload the services with `sudo systemctl daemon-reload`
-  * Start Mattermost service with `sudo systemctl start mattermost.service`
-  * `sudo chkconfig mattermost on`
-  * Start server on reboot `sudo systemctl enable mattermost.service`
-
+  * You can manage the process by typing:
+  * ``` sudo start mattermost```
+  * Verify the service is running by typing:
+  * ``` curl http://10.10.10.2:8065```
+  * You should see a page titles *Mattermost - Signup*
+  * You can also stop the process by running the command ` sudo stop mattermost`, but we will skip this step for now.
 
 ## Set up Nginx Server
 1. For the purposes of this guide we will assume this server has an IP address of `10.10.10.3`
@@ -114,7 +107,7 @@ WantedBy=multi-user.target
 ```
 [nginx]
 name=nginx repo
-baseurl=http://nginx.org/packages/rhel/7/$basearch/
+baseurl=http://nginx.org/packages/rhel/6/$basearch/
 gpgcheck=0
 enabled=1
 ```
@@ -153,7 +146,7 @@ enabled=1
   * ``` curl http://localhost```
   * You should see a page titles *Mattermost - Signup*
   * Not seeing the page?  Look for errors with ``` sudo cat /var/log/audit/audit.log | grep nginx | grep denied```  
-  * **Optional** if you're running on the same server as the Mattermost server and see 502 errors you may need to run `setsebool -P httpd_can_network_connect true` because SELinux is preventing the connection
+  * **Optional** if you're running on the same server as the Mattermost server and see 502 errors you may need to run `sudo setsebool -P httpd_can_network_connect true` because SELinux is preventing the connection
 
 ## Set up Nginx with SSL (Recommended)
 1. You will need a SSL cert from a certificate authority.
