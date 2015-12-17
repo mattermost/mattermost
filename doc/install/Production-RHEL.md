@@ -79,7 +79,6 @@
   * ``` sudo touch /etc/systemd/system/mattermost.service``` 
   * ``` sudo vi /etc/systemd/system/mattermost.service```
   * Copy the following lines into `/etc/systemd/system/mattermost.service`
-  * 
 ```
 [Unit]
 Description=Mattermost
@@ -93,11 +92,13 @@ ExecStart=/opt/mattermost/bin/platform
 PIDFile=/var/spool/mattermost/pid/master.pid
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 ```
   * Make sure the service is executable with ``` sudo chmod 664 /etc/systemd/system/mattermost.service```
   * Reload the services with `sudo systemctl daemon-reload`
   * Start mattermost service with `sudo systemctl start mattermost.service`
+  * `sudo chkconfig mattermost on`
+  * Start server on reboot `sudo systemctl enable mattermost.service`
 
 
 ## Set up Nginx Server
