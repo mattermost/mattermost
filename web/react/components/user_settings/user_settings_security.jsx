@@ -6,6 +6,9 @@ import SettingItemMax from '../setting_item_max.jsx';
 import AccessHistoryModal from '../access_history_modal.jsx';
 import ActivityLogModal from '../activity_log_modal.jsx';
 import ToggleModalButton from '../toggle_modal_button.jsx';
+
+import TeamStore from '../../stores/team_store.jsx';
+
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 import Constants from '../../utils/constants.jsx';
@@ -18,9 +21,19 @@ export default class SecurityTab extends React.Component {
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
-        this.setupInitialState = this.setupInitialState.bind(this);
+        this.getDefaultState = this.getDefaultState.bind(this);
+        this.createPasswordSection = this.createPasswordSection.bind(this);
+        this.createSignInSection = this.createSignInSection.bind(this);
 
-        this.state = this.setupInitialState();
+        this.state = this.getDefaultState();
+    }
+    getDefaultState() {
+        return {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+            authService: this.props.user.auth_service
+        };
     }
     submitPassword(e) {
         e.preventDefault();
@@ -51,13 +64,13 @@ export default class SecurityTab extends React.Component {
         data.new_password = newPassword;
 
         Client.updatePassword(data,
-            function success() {
+            () => {
                 this.props.updateSection('');
                 AsyncClient.getMe();
-                this.setState(this.setupInitialState());
-            }.bind(this),
-            function fail(err) {
-                var state = this.setupInitialState();
+                this.setState(this.getDefaultState());
+            },
+            (err) => {
+                var state = this.getDefaultState();
                 if (err.message) {
                     state.serverError = err.message;
                 } else {
@@ -65,7 +78,7 @@ export default class SecurityTab extends React.Component {
                 }
                 state.passwordError = '';
                 this.setState(state);
-            }.bind(this)
+            }
         );
     }
     updateCurrentPassword(e) {
@@ -77,86 +90,60 @@ export default class SecurityTab extends React.Component {
     updateConfirmPassword(e) {
         this.setState({confirmPassword: e.target.value});
     }
-    setupInitialState() {
-        return {currentPassword: '', newPassword: '', confirmPassword: ''};
-    }
-    render() {
-        var serverError;
-        if (this.state.serverError) {
-            serverError = this.state.serverError;
-        }
-        var passwordError;
-        if (this.state.passwordError) {
-            passwordError = this.state.passwordError;
-        }
+    createPasswordSection() {
+        let updateSectionStatus;
 
-        var updateSectionStatus;
-        var passwordSection;
-        if (this.props.activeSection === 'password') {
-            var inputs = [];
-            var submit = null;
+        if (this.props.activeSection === 'password' && this.props.user.auth_service === '') {
+            const inputs = [];
 
-            if (this.props.user.auth_service === '') {
-                inputs.push(
-                    <div
-                        key='currentPasswordUpdateForm'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>Current Password</label>
-                        <div className='col-sm-7'>
-                            <input
-                                className='form-control'
-                                type='password'
-                                onChange={this.updateCurrentPassword}
-                                value={this.state.currentPassword}
-                            />
-                        </div>
+            inputs.push(
+                <div
+                    key='currentPasswordUpdateForm'
+                    className='form-group'
+                >
+                    <label className='col-sm-5 control-label'>{'Current Password'}</label>
+                    <div className='col-sm-7'>
+                        <input
+                            className='form-control'
+                            type='password'
+                            onChange={this.updateCurrentPassword}
+                            value={this.state.currentPassword}
+                        />
                     </div>
-                );
-                inputs.push(
-                    <div
-                        key='newPasswordUpdateForm'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>New Password</label>
-                        <div className='col-sm-7'>
-                            <input
-                                className='form-control'
-                                type='password'
-                                onChange={this.updateNewPassword}
-                                value={this.state.newPassword}
-                            />
-                        </div>
+                </div>
+            );
+            inputs.push(
+                <div
+                    key='newPasswordUpdateForm'
+                    className='form-group'
+                >
+                    <label className='col-sm-5 control-label'>{'New Password'}</label>
+                    <div className='col-sm-7'>
+                        <input
+                            className='form-control'
+                            type='password'
+                            onChange={this.updateNewPassword}
+                            value={this.state.newPassword}
+                        />
                     </div>
-                );
-                inputs.push(
-                    <div
-                        key='retypeNewPasswordUpdateForm'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>Retype New Password</label>
-                        <div className='col-sm-7'>
-                            <input
-                                className='form-control'
-                                type='password'
-                                onChange={this.updateConfirmPassword}
-                                value={this.state.confirmPassword}
-                            />
-                        </div>
+                </div>
+            );
+            inputs.push(
+                <div
+                    key='retypeNewPasswordUpdateForm'
+                    className='form-group'
+                >
+                    <label className='col-sm-5 control-label'>{'Retype New Password'}</label>
+                    <div className='col-sm-7'>
+                        <input
+                            className='form-control'
+                            type='password'
+                            onChange={this.updateConfirmPassword}
+                            value={this.state.confirmPassword}
+                        />
                     </div>
-                );
-
-                submit = this.submitPassword;
-            } else {
-                inputs.push(
-                    <div
-                        key='oauthPasswordInfo'
-                        className='form-group'
-                    >
-                        <label className='col-sm-12'>Log in occurs through GitLab. Please see your GitLab account settings page to update your password.</label>
-                    </div>
-                );
-            }
+                </div>
+            );
 
             updateSectionStatus = function resetSection(e) {
                 this.props.updateSection('');
@@ -164,49 +151,155 @@ export default class SecurityTab extends React.Component {
                 e.preventDefault();
             }.bind(this);
 
-            passwordSection = (
+            return (
                 <SettingItemMax
                     title='Password'
                     inputs={inputs}
-                    submit={submit}
-                    server_error={serverError}
-                    client_error={passwordError}
+                    submit={this.submitPassword}
+                    server_error={this.state.serverError}
+                    client_error={this.state.passwordError}
                     updateSection={updateSectionStatus}
                 />
             );
-        } else {
-            var describe;
-            if (this.props.user.auth_service === '') {
-                var d = new Date(this.props.user.last_password_update);
-                var hour = '12';
-                if (d.getHours() % 12) {
-                    hour = String(d.getHours() % 12);
-                }
-                var min = String(d.getMinutes());
-                if (d.getMinutes() < 10) {
-                    min = '0' + d.getMinutes();
-                }
-                var timeOfDay = ' am';
-                if (d.getHours() >= 12) {
-                    timeOfDay = ' pm';
-                }
+        }
 
-                describe = 'Last updated ' + Constants.MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' at ' + hour + ':' + min + timeOfDay;
-            } else {
-                describe = 'Log in done through GitLab';
+        var describe;
+        var d = new Date(this.props.user.last_password_update);
+        var hour = '12';
+        if (d.getHours() % 12) {
+            hour = String(d.getHours() % 12);
+        }
+        var min = String(d.getMinutes());
+        if (d.getMinutes() < 10) {
+            min = '0' + d.getMinutes();
+        }
+        var timeOfDay = ' am';
+        if (d.getHours() >= 12) {
+            timeOfDay = ' pm';
+        }
+
+        describe = 'Last updated ' + Constants.MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' at ' + hour + ':' + min + timeOfDay;
+
+        updateSectionStatus = function updateSection() {
+            this.props.updateSection('password');
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title='Password'
+                describe={describe}
+                updateSection={updateSectionStatus}
+            />
+        );
+    }
+    createSignInSection() {
+        let updateSectionStatus;
+        const user = this.props.user;
+
+        if (this.props.activeSection === 'signin') {
+            const inputs = [];
+            const teamName = TeamStore.getCurrent().name;
+
+            let emailOption;
+            if (global.window.mm_config.EnableSignUpWithEmail === 'true' && user.auth_service !== '') {
+                emailOption = (
+                    <div>
+                        <a
+                            className='btn btn-primary'
+                            href={'/' + teamName + '/claim?email=' + user.email}
+                        >
+                            {'Switch to using email and password'}
+                        </a>
+                        <br/>
+                    </div>
+                );
             }
 
-            updateSectionStatus = function updateSection() {
-                this.props.updateSection('password');
+            let gitlabOption;
+            if (global.window.mm_config.EnableSignUpWithGitLab === 'true' && user.auth_service === '') {
+                gitlabOption = (
+                    <div>
+                        <a
+                            className='btn btn-primary'
+                            href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.GITLAB_SERVICE}
+                        >
+                            {'Switch to using GitLab SSO'}
+                        </a>
+                        <br/>
+                    </div>
+                );
+            }
+
+            let googleOption;
+            if (global.window.mm_config.EnableSignUpWithGoogle === 'true' && user.auth_service === '') {
+                googleOption = (
+                    <div>
+                        <a
+                            className='btn btn-primary'
+                            href={'/' + teamName + '/claim?email=' + user.email + '&new_type=' + Constants.GOOGLE_SERVICE}
+                        >
+                            {'Switch to using Google SSO'}
+                        </a>
+                        <br/>
+                    </div>
+                );
+            }
+
+            inputs.push(
+                <div key='userSignInOption'>
+                   {emailOption}
+                   {gitlabOption}
+                   <br/>
+                   {googleOption}
+                </div>
+            );
+
+            updateSectionStatus = function updateSection(e) {
+                this.props.updateSection('');
+                this.setState({serverError: null});
+                e.preventDefault();
             }.bind(this);
 
-            passwordSection = (
-                <SettingItemMin
-                    title='Password'
-                    describe={describe}
+            const extraInfo = <span>{'You may only have one sign-in method at a time. Switching sign-in method will send an email notifying you if the change was successful.'}</span>;
+
+            return (
+                <SettingItemMax
+                    title='Sign-in Method'
+                    extraInfo={extraInfo}
+                    inputs={inputs}
+                    server_error={this.state.serverError}
                     updateSection={updateSectionStatus}
                 />
             );
+        }
+
+        updateSectionStatus = function updateSection() {
+            this.props.updateSection('signin');
+        }.bind(this);
+
+        let describe = 'Email and Password';
+        if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
+            describe = 'GitLab SSO';
+        }
+
+        return (
+            <SettingItemMin
+                title='Sign-in Method'
+                describe={describe}
+                updateSection={updateSectionStatus}
+            />
+        );
+    }
+    render() {
+        const passwordSection = this.createPasswordSection();
+        let signInSection;
+
+        let numMethods = 0;
+        numMethods = global.window.mm_config.EnableSignUpWithGitLab === 'true' ? numMethods + 1 : numMethods;
+        numMethods = global.window.mm_config.EnableSignUpWithGoogle === 'true' ? numMethods + 1 : numMethods;
+
+        if (global.window.mm_config.EnableSignUpWithEmail && numMethods > 0) {
+            signInSection = this.createSignInSection();
         }
 
         return (
@@ -233,9 +326,11 @@ export default class SecurityTab extends React.Component {
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>Security Settings</h3>
+                    <h3 className='tab-header'>{'Security Settings'}</h3>
                     <div className='divider-dark first'/>
                     {passwordSection}
+                    <div className='divider-light'/>
+                    {signInSection}
                     <div className='divider-dark'/>
                     <br></br>
                     <ToggleModalButton

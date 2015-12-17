@@ -111,6 +111,7 @@ type UserStore interface {
 	UpdateLastActivityAt(userId string, time int64) StoreChannel
 	UpdateUserAndSessionActivity(userId string, sessionId string, time int64) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
+	UpdateAuthData(userId, service, authData string) StoreChannel
 	Get(id string) StoreChannel
 	GetProfiles(teamId string) StoreChannel
 	GetByEmail(teamId string, email string) StoreChannel

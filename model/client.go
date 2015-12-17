@@ -349,6 +349,24 @@ func (c *Client) GetSessions(id string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) SwitchToSSO(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/switch_to_sso", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) SwitchToEmail(m map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/switch_to_email", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) Command(channelId string, command string, suggest bool) (*Result, *AppError) {
 	m := make(map[string]string)
 	m["command"] = command

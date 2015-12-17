@@ -390,3 +390,34 @@ func TestUserStoreDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUserStoreUpdateAuthData(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.TeamId = model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(&u1))
+
+	service := "someservice"
+	authData := "1"
+
+	if err := (<-store.User().UpdateAuthData(u1.Id, service, authData)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 := <-store.User().GetByEmail(u1.TeamId, u1.Email); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		user := r1.Data.(*model.User)
+		if user.AuthService != service {
+			t.Fatal("AuthService was not updated correctly")
+		}
+		if user.AuthData != authData {
+			t.Fatal("AuthData was not updated correctly")
+		}
+		if user.Password != "" {
+			t.Fatal("Password was not cleared properly")
+		}
+	}
+}

@@ -47,6 +47,8 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/logout", ApiUserRequired(logout)).Methods("POST")
 	sr.Handle("/login_ldap", ApiAppHandler(loginLdap)).Methods("POST")
 	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
+	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
+	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
 
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 
@@ -225,6 +227,70 @@ func CreateUser(team *model.Team, user *model.User) (*model.User, *model.AppErro
 	}
 }
 
+func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team) *model.User {
+	var user *model.User
+	provider := einterfaces.GetOauthProvider(service)
+	if provider == nil {
+		c.Err = model.NewAppError("CreateOAuthUser", service+" oauth not avlailable on this server", "")
+		return nil
+	} else {
+		user = provider.GetUserFromJson(userData)
+	}
+
+	if user == nil {
+		c.Err = model.NewAppError("CreateOAuthUser", "Could not create user out of "+service+" user object", "")
+		return nil
+	}
+
+	suchan := Srv.Store.User().GetByAuth(team.Id, user.AuthData, service)
+	euchan := Srv.Store.User().GetByEmail(team.Id, user.Email)
+
+	if team.Email == "" {
+		team.Email = user.Email
+		if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+			c.Err = result.Err
+			return nil
+		}
+	} else {
+		found := true
+		count := 0
+		for found {
+			if found = IsUsernameTaken(user.Username, team.Id); c.Err != nil {
+				return nil
+			} else if found {
+				user.Username = user.Username + strconv.Itoa(count)
+				count += 1
+			}
+		}
+	}
+
+	if result := <-suchan; result.Err == nil {
+		c.Err = model.NewAppError("signupCompleteOAuth", "This "+service+" account has already been used to sign up for team "+team.DisplayName, "email="+user.Email)
+		return nil
+	}
+
+	if result := <-euchan; result.Err == nil {
+		c.Err = model.NewAppError("signupCompleteOAuth", "Team "+team.DisplayName+" already has a user with the email address attached to your "+service+" account", "email="+user.Email)
+		return nil
+	}
+
+	user.TeamId = team.Id
+	user.EmailVerified = true
+
+	ruser, err := CreateUser(team, user)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	Login(c, w, r, ruser, "")
+	if c.Err != nil {
+		return nil
+	}
+
+	return ruser
+}
+
 func sendWelcomeEmailAndForget(userId, email, teamName, teamDisplayName, siteURL, teamURL string, verified bool) {
 	go func() {
 
@@ -335,6 +401,11 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	} else {
 		user := result.Data.(*model.User)
 
+		if len(user.AuthData) != 0 {
+			c.Err = model.NewAppError("LoginByEmail", "Please sign in using "+user.AuthService, "")
+			return nil
+		}
+
 		if checkUserLoginAttempts(c, user) && checkUserPassword(c, user, password) {
 			Login(c, w, r, user, deviceId)
 			return user
@@ -344,10 +415,36 @@ func LoginByEmail(c *Context, w http.ResponseWriter, r *http.Request, email, nam
 	return nil
 }
 
+func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team) *model.User {
+	authData := ""
+	provider := einterfaces.GetOauthProvider(service)
+	if provider == nil {
+		c.Err = model.NewAppError("LoginByOAuth", service+" oauth not avlailable on this server", "")
+		return nil
+	} else {
+		authData = provider.GetAuthDataFromJson(userData)
+	}
+
+	if len(authData) == 0 {
+		c.Err = model.NewAppError("LoginByOAuth", "Could not parse auth data out of "+service+" user object", "")
+		return nil
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByAuth(team.Id, authData, service); result.Err != nil {
+		c.Err = result.Err
+		return nil
+	} else {
+		user = result.Data.(*model.User)
+		Login(c, w, r, user, "")
+		return user
+	}
+}
+
 func checkUserLoginAttempts(c *Context, user *model.User) bool {
 	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
 		c.LogAuditWithUserId(user.Id, "fail")
-		c.Err = model.NewAppError("checkUserPassword", "Your account is locked because of too many failed password attempts. Please reset your password.", "user_id="+user.Id)
+		c.Err = model.NewAppError("checkUserLoginAttempts", "Your account is locked because of too many failed password attempts. Please reset your password.", "user_id="+user.Id)
 		c.Err.StatusCode = http.StatusForbidden
 		return false
 	}
@@ -1660,21 +1757,22 @@ func getStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, teamName, service, redirectUri, loginHint string) {
+func GetAuthorizationCode(c *Context, service, teamName string, props map[string]string, loginHint string) (string, *model.AppError) {
 
 	sso := utils.Cfg.GetSSOService(service)
 	if sso != nil && !sso.Enable {
-		c.Err = model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
+		return "", model.NewAppError("GetAuthorizationCode", "Unsupported OAuth service provider", "service="+service)
 	}
 
 	clientId := sso.Id
 	endpoint := sso.AuthEndpoint
 	scope := sso.Scope
 
-	stateProps := map[string]string{"team": teamName, "hash": model.HashPassword(clientId)}
-	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+	props["hash"] = model.HashPassword(clientId)
+	props["team"] = teamName
+	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
+
+	redirectUri := c.GetSiteURL() + "/" + service + "/complete"
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
@@ -1686,18 +1784,18 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
 	}
 
-	http.Redirect(w, r, authUrl, http.StatusFound)
+	return authUrl, nil
 }
 
-func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, *model.AppError) {
+func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, *model.Team, map[string]string, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Unsupported OAuth service provider", "service="+service)
 	}
 
 	stateStr := ""
 	if b, err := b64.StdEncoding.DecodeString(state); err != nil {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", err.Error())
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", err.Error())
 	} else {
 		stateStr = string(b)
 	}
@@ -1705,12 +1803,13 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
 	if !model.ComparePassword(stateProps["hash"], sso.Id) {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state", "")
 	}
 
-	teamName := stateProps["team"]
-	if len(teamName) == 0 {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state; missing team name", "")
+	ok := true
+	teamName := ""
+	if teamName, ok = stateProps["team"]; !ok {
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Invalid state; missing team name", "")
 	}
 
 	tchan := Srv.Store.Team().GetByName(teamName)
@@ -1730,20 +1829,20 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	var ar *model.AccessResponse
 	if resp, err := client.Do(req); err != nil {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request failed", err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
 		if ar == nil {
-			return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad response from token request", "")
+			return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad response from token request", "")
 		}
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Bad token type", "token_type="+ar.TokenType)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Missing access token", "")
 	}
 
 	p = url.Values{}
@@ -1755,12 +1854,12 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
 	if resp, err := client.Do(req); err != nil {
-		return nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
+		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser", "Token request to "+service+" failed", err.Error())
 	} else {
 		if result := <-tchan; result.Err != nil {
-			return nil, nil, result.Err
+			return nil, nil, nil, result.Err
 		} else {
-			return resp.Body, result.Data.(*model.Team), nil
+			return resp.Body, result.Data.(*model.Team), stateProps, nil
 		}
 	}
 
@@ -1779,4 +1878,201 @@ func IsUsernameTaken(name string, teamId string) bool {
 	}
 
 	return false
+}
+
+func switchToSSO(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	password := props["password"]
+	if len(password) == 0 {
+		c.SetInvalidParam("switchToSSO", "password")
+		return
+	}
+
+	teamName := props["team_name"]
+	if len(teamName) == 0 {
+		c.SetInvalidParam("switchToSSO", "team_name")
+		return
+	}
+
+	service := props["service"]
+	if len(service) == 0 {
+		c.SetInvalidParam("switchToSSO", "service")
+		return
+	}
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("switchToSSO", "email")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.LogAudit("fail - couldn't get team")
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.LogAudit("fail - couldn't get user")
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if !checkUserLoginAttempts(c, user) || !checkUserPassword(c, user, password) {
+		c.LogAuditWithUserId(user.Id, "fail - invalid password")
+		return
+	}
+
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
+	stateProps["email"] = email
+
+	m := map[string]string{}
+	if authUrl, err := GetAuthorizationCode(c, service, teamName, stateProps, ""); err != nil {
+		c.LogAuditWithUserId(user.Id, "fail - oauth issue")
+		c.Err = err
+		return
+	} else {
+		m["follow_link"] = authUrl
+	}
+
+	c.LogAuditWithUserId(user.Id, "success")
+	w.Write([]byte(model.MapToJson(m)))
+}
+
+func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.ReadCloser, team *model.Team, email string) {
+	authData := ""
+	provider := einterfaces.GetOauthProvider(service)
+	if provider == nil {
+		c.Err = model.NewAppError("CompleteClaimWithOAuth", service+" oauth not avlailable on this server", "")
+		return
+	} else {
+		authData = provider.GetAuthDataFromJson(userData)
+	}
+
+	if len(authData) == 0 {
+		c.Err = model.NewAppError("CompleteClaimWithOAuth", "Could not parse auth data out of "+service+" user object", "")
+		return
+	}
+
+	if len(email) == 0 {
+		c.Err = model.NewAppError("CompleteClaimWithOAuth", "Blank email", "")
+		return
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	RevokeAllSession(c, user.Id)
+	if c.Err != nil {
+		return
+	}
+
+	if result := <-Srv.Store.User().UpdateAuthData(user.Id, service, authData); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	sendSignInChangeEmailAndForget(user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), strings.Title(service)+" SSO")
+}
+
+func switchToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	password := props["password"]
+	if len(password) == 0 {
+		c.SetInvalidParam("switchToEmail", "password")
+		return
+	}
+
+	teamName := props["team_name"]
+	if len(teamName) == 0 {
+		c.SetInvalidParam("switchToEmail", "team_name")
+		return
+	}
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("switchToEmail", "email")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		c.LogAudit("fail - couldn't get team")
+		c.Err = result.Err
+		return
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByEmail(team.Id, email); result.Err != nil {
+		c.LogAudit("fail - couldn't get user")
+		c.Err = result.Err
+		return
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if user.Id != c.Session.UserId {
+		c.LogAudit("fail - user ids didn't match")
+		c.Err = model.NewAppError("switchToEmail", "Update password failed because context user_id did not match provided user's id", "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if result := <-Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(password)); result.Err != nil {
+		c.LogAudit("fail - database issue")
+		c.Err = result.Err
+		return
+	}
+
+	sendSignInChangeEmailAndForget(user.Email, team.DisplayName, c.GetSiteURL()+"/"+team.Name, c.GetSiteURL(), "email and password")
+
+	RevokeAllSession(c, c.Session.UserId)
+	if c.Err != nil {
+		return
+	}
+
+	m := map[string]string{}
+	m["follow_link"] = c.GetTeamURL() + "/login?extra=signin_change"
+
+	c.LogAudit("success")
+	w.Write([]byte(model.MapToJson(m)))
+}
+
+func sendSignInChangeEmailAndForget(email, teamDisplayName, teamURL, siteURL, method string) {
+	go func() {
+
+		subjectPage := NewServerTemplatePage("signin_change_subject")
+		subjectPage.Props["SiteURL"] = siteURL
+		subjectPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage := NewServerTemplatePage("signin_change_body")
+		bodyPage.Props["SiteURL"] = siteURL
+		bodyPage.Props["TeamDisplayName"] = teamDisplayName
+		bodyPage.Props["TeamURL"] = teamURL
+		bodyPage.Props["Method"] = method
+
+		if err := utils.SendMail(email, subjectPage.Render(), bodyPage.Render()); err != nil {
+			l4g.Error("Failed to send update password email successfully err=%v", err)
+		}
+
+	}()
 }

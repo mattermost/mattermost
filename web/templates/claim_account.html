@@ -1,0 +1,16 @@
+{{define "claim_account"}}
+<!DOCTYPE html>
+<html>
+{{template "head" . }}
+<body class="white">
+	<div class="container-fluid">
+		<div class="inner__wrap">
+			<div class="row content" id="claim"></div>
+		</div>
+	</div>
+	<script>
+		window.setup_claim_account_page({{ .Props }});
+	</script>
+</body>
+</html>
+{{end}}

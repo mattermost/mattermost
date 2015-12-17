@@ -116,6 +116,8 @@ export default {
     GITLAB_SERVICE: 'gitlab',
     GOOGLE_SERVICE: 'google',
     EMAIL_SERVICE: 'email',
+    SIGNIN_CHANGE: 'signin_change',
+    SIGNIN_VERIFIED: 'verified',
     POST_CHUNK_SIZE: 60,
     MAX_POST_CHUNKS: 3,
     POST_FOCUS_CONTEXT_RADIUS: 10,

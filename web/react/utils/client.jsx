@@ -228,6 +228,40 @@ export function resetPassword(data, success, error) {
     track('api', 'api_users_reset_password');
 }
 
+export function switchToSSO(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/switch_to_sso',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('switchToSSO', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_users_switch_to_sso');
+}
+
+export function switchToEmail(data, success, error) {
+    $.ajax({
+        url: '/api/v1/users/switch_to_email',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('switchToEmail', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_users_switch_to_email');
+}
+
 export function logout() {
     track('api', 'api_users_logout');
     var currentTeamUrl = TeamStore.getCurrentTeamUrl();
