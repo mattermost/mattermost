@@ -13,6 +13,7 @@ Note: This install guide has been generously contributed by the Mattermost commu
   * ``` sudo apt-get update```
   * ``` sudo apt-get upgrade```
 
+
 ## Set up Database Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.1
 1. Install PostgreSQL 9.3+ (or MySQL 5.6+)
@@ -31,22 +32,36 @@ Note: This install guide has been generously contributed by the Mattermost commu
   * ```postgre=# \q```
 1. You can exit the postgres account by typing:
   * ``` exit```
+1. Allow Postgres to listen on all assigned IP Addresses
+  * ```sudo vi /etc/postgresql/9.3/main/postgresql.conf```
+  * Uncomment 'listen_addresses' and change 'localhost' to '*'
+1. Alter pg_hba.conf to allow the mattermost server to talk to the postgres database
+  * ```sudo vi /etc/postgresql/9.3/main/pg_hba.conf```
+  * Add the following line to the 'IPv4 local connections'
+  * host    all             all             10.10.10.2/32         md5
+1. Reload Postgres database
+  * ```sudo /etc/init.d/postgresql reload```
+1. Attempt to connect with the new created user to verify everything looks good
+  * ```psql --host=10.10.10.1 --dbname=mattermost --username=mmuser --password```
+  * ```mattermost=> \q```
+
 
 ## Set up Mattermost Server
 1. For the purposes of this guide we will assume this server has an IP address of 10.10.10.2
 1. Download the latest Mattermost Server by typing:
-  * ``` wget https://github.com/mattermost/platform/releases/download/v1.1.0/mattermost.tar.gz```
+  * ``` wget https://github.com/mattermost/platform/releases/download/v1.3.0/mattermost.tar.gz```
 1. Install Mattermost under /opt
-   * ``` cd /opt```
    * Unzip the Mattermost Server by typing:
    * ``` tar -xvzf mattermost.tar.gz```
-1. Create the storage directory for files.  We assume you will have attached a large drive for storage of images and files.  For this setup we will assume the directory is located at `/mattermost/data`.
+   * ``` sudo mv mattermost /opt```
+1. Create the storage directory for files.  We assume you will have attached a large drive for storage of images and files.  For this setup we will assume the directory is located at `/opt/mattermost/data`.
   * Create the directory by typing:
   * ``` sudo mkdir -p /opt/mattermost/data```
 1. Create a system user and group called mattermost that will run this service
-   * ``` useradd -r mattermost -U```
+   * ``` sudo useradd -r mattermost -U```
    * Set the mattermost account as the directory owner by typing:
    * ``` sudo chown -R mattermost:mattermost /opt/mattermost```
+   * ``` sudo chmod -R g+w /opt/mattermost```
    * Add yourself to the mattermost group to ensure you can edit these files:
    * ``` sudo usermod -aG mattermost USERNAME```
 1. Configure Mattermost Server by editing the config.json file at /opt/mattermost/config
@@ -183,7 +198,7 @@ esac
 exit 0
 ```
   * Make sure that /etc/init.d/mattermost is executable
-  * ``` chmod +x /etc/init.d/mattermost```
+  * ``` sudo chmod +x /etc/init.d/mattermost```
 1. On reboot, systemd will generate a unit file from the headers in this init script and install it in `/run/systemd/generator.late/`
   
 ## Set up Nginx Server
@@ -207,7 +222,7 @@ exit 0
   * Create a configuration for Mattermost
   * ``` sudo touch /etc/nginx/sites-available/mattermost```
   * Below is a sample configuration with the minimum settings required to configure Mattermost
- ```
+```
    server {
 	  server_name mattermost.example.com;
       location / {
@@ -276,6 +291,8 @@ exit 0
 			gzip off;
 			proxy_set_header X-Forwarded-Ssl on;
 ```
+
+
 ## Finish Mattermost Server setup
 1. Navigate to https://mattermost.example.com and create a team and user.
 1. The first user in the system is automatically granted the `system_admin` role, which gives you access to the System Console.
