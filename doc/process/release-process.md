@@ -102,7 +102,7 @@ Exceptions can be made by the release manager setting priority to "Highest" and 
   - Database upgrade should be tested on both MySQL and Postgres
 - Team:
   1. Test assigned areas of the Release Candidate Testing Spreadsheet and file any bugs found in Jira
-  - Post a link to any "Blocking" issue that may need a hotfix to the RC in the Release room, with the **#p1** tag. Blocking issues are considered to be security issues, data loss issues, issues that break core functionality, or significantly impact aesthetics. 
+  - Post a link to any "Blocking" issue that may need a hotfix to the RC in the Release room, with the **#p1** tag. If the issue is security related or contains confidential information, post the link in the Confidential Bugs private group. Blocking issues are considered to be security issues, data loss issues, issues that break core functionality, or significantly impact aesthetics.
   - Triage hotfix candidates and decide on whether and when to cut next RC or final
   - If no blocking issues are found, PM, Dev and Ops signs off on the release
 - PM:
