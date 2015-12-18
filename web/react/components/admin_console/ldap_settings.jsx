@@ -147,7 +147,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The domain or ip address of LDAP server.'}</p>
+                            <p className='help-text'>{'The domain or IP address of LDAP server.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -168,7 +168,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The port to connect to the LDAP server on. Default is 389.'}</p>
+                            <p className='help-text'>{'The port Mattermost will use to connect to the LDAP server. Default is 389.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -189,7 +189,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The base dn where mattermost should search for users.'}</p>
+                            <p className='help-text'>{'The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -210,7 +210,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'Username of a user with read access to the LDAP server specified.'}</p>
+                            <p className='help-text'>{'The username used to perform the LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the LDAP tree specified in the BaseDN field.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -231,7 +231,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'Password of the user given above.'}</p>
+                            <p className='help-text'>{'Password of the user given in "Bind Username".'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -252,7 +252,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The first name attribute of entires in the LDAP server.'}</p>
+                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -273,7 +273,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The last name attribute of entries in the LDAP server.'}</p>
+                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -294,7 +294,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The email attribute of entries in the LDAP server.'}</p>
+                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the email addresses of users in Mattermost.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -315,7 +315,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute of entries in the LDAP server to use for username in Mattermost. May be the same as the ID Attribute.'}</p>
+                            <p className='help-text'>{'The attribute in the LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -336,7 +336,7 @@ export default class LdapSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.enable}
                             />
-                            <p className='help-text'>{'The attribute of entries in the LDAP server to use as a unique identifier. Users will use this to login. Ideally this would be the username they are used to loging in with. May be the same as the username attribute above.'}</p>
+                            <p className='help-text'>{'The attribute in the LDAP server that will be used as a unique identifier in Mattermost. It should be an LDAP attribute with a value that does not change, such as username or uid. If a user’s Id Attribute changes, it will create a new Mattermost account unassociated with their old one. This is the value used to log in to Mattermost in the "LDAP Username" field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\\username to sign in to other services with LDAP, you may choose to put domain\\username in this field to maintain consistency between sites.'}</p>
                         </div>
                     </div>
                     <div className='form-group'>

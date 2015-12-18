@@ -289,6 +289,52 @@ Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com
 ```"UserApiEndpoint": ""```  
 Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com:3000/api/v3/user`). Use HTTP or HTTPS depending on how your server is configured.
 
+### LDAP Settings (Enterprise)
+
+Settings used to enable and configure LDAP authentication with Mattermost. Available in the Enterprise version of Mattermost.
+
+```"Enable Login With LDAP": "false"```
+When true, Mattermost allows login using LDAP.
+
+```“LDAP Server”: “”```
+The domain or IP address of the LDAP server.
+
+```“LDAP Port”: “389”```
+The port Mattermost will use to connect to the LDAP server. Default is 389.
+
+```”BaseDN”: ””```
+The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.
+
+```”Bind Username”: ””```
+The username used to perform the LDAP search. This should typically be an account created specifically for use with Mattermost. It should be a read only account with access limited to the portion of the LDAP tree specified in the BaseDN field.
+
+```”Bind Password”: ””```
+Password of the user given in “Bind Username”.
+
+```”First Name Attribute”: ””```
+The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.
+
+```”Last Name Attribute”: ””```
+The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.
+
+```”Email Attribute”: ””```
+The attribute in the LDAP server that will be used to populate the email addresses of users in Mattermost.
+
+```”Username Attribute”: ””```
+The attribute in the LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.
+
+```”ID Attribute”: ””```
+
+The attribute in the LDAP server that will be used as a unique identifier in Mattermost.
+
+This is the attribute that will be used to create Mattermost accounts. It should be an LDAP attribute with a value that does not change, such as username or uid. If a user’s Id Attribute changes, it will create a new Mattermost account unassociated with their old one. 
+
+This is also the value used to log in to Mattermost in the “LDAP Username” field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\username to sign in to other services with LDAP, you may choose to put domain\username in this field to maintain consistency between sites.
+
+```”Query Timeout (seconds)”: ”60”```
+
+The timeout value for queries to the LDAP server. Increase this value if you are getting timeout errors caused by a slow LDAP server.
+
 ## Config.json Settings Not in System Console
 
 System Console allows an IT Admin to update settings defined in `config.json`. However there are a number of settings in `config.json` unavailable in the System Console and require update from the file itself. We describe them here: 
