@@ -2,21 +2,21 @@
 // See License.txt for license information.
 
 const emoticonPatterns = {
-    smile: /(^|\s)(:-?\))(?=$|\s)/g, // :)
+    slightly_smiling_face: /(^|\s)(:-?\))(?=$|\s)/g, // :)
     wink: /(^|\s)(;-?\))(?=$|\s)/g, // ;)
     open_mouth: /(^|\s)(:o)(?=$|\s)/gi, // :o
     scream: /(^|\s)(:-o)(?=$|\s)/gi, // :-o
     smirk: /(^|\s)(:-?])(?=$|\s)/g, // :]
-    grinning: /(^|\s)(:-?d)(?=$|\s)/gi, // :D
+    smile: /(^|\s)(:-?d)(?=$|\s)/gi, // :D
     stuck_out_tongue_closed_eyes: /(^|\s)(x-d)(?=$|\s)/gi, // x-d
     stuck_out_tongue: /(^|\s)(:-?p)(?=$|\s)/gi, // :p
     rage: /(^|\s)(:-?[\[@])(?=$|\s)/g, // :@
-    frowning: /(^|\s)(:-?\()(?=$|\s)/g, // :(
-    sob: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()(?=$|\s)/g, // :`(
-    pensive: /(^|\s)(:-?\/)(?=$|\s)/g, // :/
+    slightly_frowning_face: /(^|\s)(:-?\()(?=$|\s)/g, // :(
+    cry: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()(?=$|\s)/g, // :`(
+    confused: /(^|\s)(:-?\/)(?=$|\s)/g, // :/
     confounded: /(^|\s)(:-?s)(?=$|\s)/gi, // :s
-    flushed: /(^|\s)(:-?\|)(?=$|\s)/g, // :|
-    relaxed: /(^|\s)(:-?\$)(?=$|\s)/g, // :$
+    neutral_face: /(^|\s)(:-?\|)(?=$|\s)/g, // :|
+    flushed: /(^|\s)(:-?\$)(?=$|\s)/g, // :$
     mask: /(^|\s)(:-x)(?=$|\s)/gi, // :-x
     heart: /(^|\s)(<3|&lt;3)(?=$|\s)/g, // <3
     broken_heart: /(^|\s)(<\/3|&lt;&#x2F;3)(?=$|\s)/g, // </3
@@ -34,10 +34,10 @@ function initializeEmoticonMap() {
         'baby_bottle,baby_chick,baby_symbol,back,baggage_claim,balloon,ballot_box_with_check,bamboo,banana,bangbang,' +
         'bank,bar_chart,barber,baseball,basketball,bath,bathtub,battery,bear,bee,beer,beers,beetle,beginner,bell,bento,' +
         'bicyclist,bike,bikini,bird,birthday,black_circle,black_joker,black_medium_small_square,black_medium_square,' +
-        'black_nib,black_small_square,black_square,black_square_button,blossom,blowfish,blue_book,blue_car,blue_heart,' +
-        'blush,boar,boat,bomb,book,bookmark,bookmark_tabs,books,boom,boot,bouquet,bow,bowling,bowtie,boy,bread,' +
-        'bride_with_veil,bridge_at_night,briefcase,broken_heart,bug,bulb,bullettrain_front,bullettrain_side,bus,busstop,' +
-        'bust_in_silhouette,busts_in_silhouette,cactus,cake,calendar,calling,camel,camera,cancer,candy,capital_abcd,' +
+        'black_large_square,black_nib,black_small_square,black_square,black_square_button,blossom,blowfish,blue_book,' +
+        'blue_car,blue_heart,blush,boar,boat,bomb,book,bookmark,bookmark_tabs,books,boom,boot,bouquet,bow,bowling,bowtie,' +
+        'boy,bread,bride_with_veil,bridge_at_night,briefcase,broken_heart,bug,bulb,bullettrain_front,bullettrain_side,bus,' +
+        'busstop,bust_in_silhouette,busts_in_silhouette,cactus,cake,calendar,calling,camel,camera,cancer,candy,capital_abcd,' +
         'capricorn,car,card_index,carousel_horse,cat,cat2,cd,chart,chart_with_downwards_trend,chart_with_upwards_trend,' +
         'checkered_flag,cherries,cherry_blossom,chestnut,chicken,children_crossing,chocolate_bar,christmas_tree,church,' +
         'cinema,circus_tent,city_sunrise,city_sunset,cl,clap,clapper,clipboard,clock1,clock10,clock1030,clock11,' +
@@ -92,16 +92,16 @@ function initializeEmoticonMap() {
         'rugby_football,runner,running,running_shirt_with_sash,sa,sagittarius,sailboat,sake,sandal,santa,satellite,' +
         'satisfied,saxophone,school,school_satchel,scissors,scorpius,scream,scream_cat,scroll,seat,secret,see_no_evil,' +
         'seedling,seven,shaved_ice,sheep,shell,ship,shipit,shirt,shit,shoe,shower,signal_strength,six,six_pointed_star,' +
-        'ski,skull,sleeping,sleepy,slot_machine,small_blue_diamond,small_orange_diamond,small_red_triangle,' +
-        'small_red_triangle_down,smile,smile_cat,smiley,smiley_cat,smiling_imp,smirk,smirk_cat,smoking,snail,snake,' +
-        'snowboarder,snowflake,snowman,sob,soccer,soon,sos,sound,space_invader,spades,spaghetti,sparkle,sparkler,' +
-        'sparkles,sparkling_heart,speak_no_evil,speaker,speech_balloon,speedboat,squirrel,star,star2,stars,station,' +
-        'statue_of_liberty,steam_locomotive,stew,straight_ruler,strawberry,stuck_out_tongue,stuck_out_tongue_closed_eyes,' +
-        'stuck_out_tongue_winking_eye,sun_with_face,sunflower,sunglasses,sunny,sunrise,sunrise_over_mountains,surfer,' +
-        'sushi,suspect,suspension_railway,sweat,sweat_drops,sweat_smile,sweet_potato,swimmer,symbols,syringe,tada,' +
-        'tanabata_tree,tangerine,taurus,taxi,tea,telephone,telephone_receiver,telescope,tennis,tent,thought_balloon,' +
-        'three,thumbsdown,thumbsup,ticket,tiger,tiger2,tired_face,tm,toilet,tokyo_tower,tomato,tongue,top,tophat,' +
-        'tractor,traffic_light,train,train2,tram,triangular_flag_on_post,triangular_ruler,trident,triumph,trolleybus,' +
+        'ski,skull,sleeping,sleepy,slightly_smiling_face,slightly_frowning_face,slot_machine,small_blue_diamond,' +
+        'small_orange_diamond,small_red_triangle,small_red_triangle_down,smile,smile_cat,smiley,smiley_cat,smiling_imp,' +
+        'smirk,smirk_cat,smoking,snail,snake,snowboarder,snowflake,snowman,sob,soccer,soon,sos,sound,space_invader,spades,' +
+        'spaghetti,sparkle,sparkler,sparkles,sparkling_heart,speak_no_evil,speaker,speech_balloon,speedboat,squirrel,star,' +
+        'star2,stars,station,statue_of_liberty,steam_locomotive,stew,straight_ruler,strawberry,stuck_out_tongue,' +
+        'stuck_out_tongue_closed_eyes,stuck_out_tongue_winking_eye,sun_with_face,sunflower,sunglasses,sunny,sunrise,' +
+        'sunrise_over_mountains,surfer,sushi,suspect,suspension_railway,sweat,sweat_drops,sweat_smile,sweet_potato,swimmer,' +
+        'symbols,syringe,tada,tanabata_tree,tangerine,taurus,taxi,tea,telephone,telephone_receiver,telescope,tennis,tent,' +
+        'thought_balloon,three,thumbsdown,thumbsup,ticket,tiger,tiger2,tired_face,tm,toilet,tokyo_tower,tomato,tongue,top,' +
+        'tophat,tractor,traffic_light,train,train2,tram,triangular_flag_on_post,triangular_ruler,trident,triumph,trolleybus,' +
         'trollface,trophy,tropical_drink,tropical_fish,truck,trumpet,tshirt,tulip,turtle,tv,twisted_rightwards_arrows,' +
         'two,two_hearts,two_men_holding_hands,two_women_holding_hands,u5272,u5408,u55b6,u6307,u6708,u6709,u6e80,u7121,' +
         'u7533,u7981,u7a7a,uk,umbrella,unamused,underage,unlock,up,us,v,vertical_traffic_light,vhs,vibration_mode,' +
