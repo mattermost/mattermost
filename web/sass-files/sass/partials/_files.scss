@@ -257,3 +257,8 @@
         @include opacity(0);
     }
 }
+
+.view-image__loading {
+    background: black;
+    min-height: 100px;
+}

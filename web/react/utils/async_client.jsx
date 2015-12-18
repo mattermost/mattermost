@@ -769,3 +769,31 @@ export function getSuggestedCommands(command, suggestionId, component) {
         }
     );
 }
+
+export function getFileInfo(filename) {
+    const callName = 'getFileInfo' + filename;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+
+    client.getFileInfo(
+        filename,
+        (data) => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECIEVED_FILE_INFO,
+                filename,
+                info: data
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+
+            dispatchError(err, 'getFileInfo');
+        }
+    );
+}
