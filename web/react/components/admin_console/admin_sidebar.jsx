@@ -255,15 +255,6 @@ export default class AdminSidebar extends React.Component {
                                     <li>
                                         <a
                                             href='#'
-                                            className={this.isSelected('ldap_settings')}
-                                            onClick={this.handleClick.bind(this, 'ldap_settings', null)}
-                                        >
-                                            {'LDAP Settings'}
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href='#'
                                             className={this.isSelected('legal_and_support_settings')}
                                             onClick={this.handleClick.bind(this, 'legal_and_support_settings', null)}
                                         >
