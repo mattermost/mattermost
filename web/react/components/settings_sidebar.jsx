@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import * as Utils from '../utils/utils.jsx';
+
 export default class SettingsSidebar extends React.Component {
     componentDidUpdate() {
         $('.settings-modal').find('.modal-body').scrollTop(0);
@@ -15,6 +17,11 @@ export default class SettingsSidebar extends React.Component {
         e.preventDefault();
         this.props.updateTab(tab.name);
         $(e.target).closest('.settings-modal').addClass('display--content');
+    }
+    componentDidMount() {
+        if (Utils.isBrowserFirefox()) {
+            $('.settings-modal .settings-table .nav').addClass('position--top');
+        }
     }
     render() {
         let tabList = this.props.tabs.map(function makeTab(tab) {

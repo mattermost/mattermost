@@ -134,7 +134,7 @@
 }
 
 .search-item-time {
-	color: #a8adb7;
+	@include opacity(0.7);
 }
 
 .search-results-none {

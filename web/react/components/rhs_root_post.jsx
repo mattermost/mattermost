@@ -227,7 +227,6 @@ export default class RhsRootPost extends React.Component {
                         </div>
                     </div>
                 </div>
-                <hr />
             </div>
         );
     }

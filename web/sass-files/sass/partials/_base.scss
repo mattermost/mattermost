@@ -125,10 +125,6 @@ a:focus, a:hover {
   }
 }
 
-select {
-  -moz-appearance:none;
-}
-
 .form-control {
   @include border-radius(2px);
   &:focus {

@@ -104,7 +104,7 @@ export default class CustomThemeChooser extends React.Component {
                     >
                         <label className='custom-label'>{element.uiName}</label>
                         <div
-                            className='input-group theme-group dropdown'
+                            className='input-group theme-group group--code dropdown'
                             id={element.id}
                         >
                             <select

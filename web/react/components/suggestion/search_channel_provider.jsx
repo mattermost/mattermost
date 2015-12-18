@@ -19,7 +19,7 @@ class SearchChannelSuggestion extends React.Component {
                 onClick={onClick}
                 className={className}
             >
-                {item.name}
+                <i className='fa fa fa-plus-square'></i>{item.name}
             </div>
         );
     }

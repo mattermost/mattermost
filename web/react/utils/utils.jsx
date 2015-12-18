@@ -647,10 +647,11 @@ export function applyTheme(theme) {
         changeCss('.attachment .attachment__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro .channel-intro__content, .webhooks__container', 'background:' + changeOpacity(theme.centerChannelColor, 0.05), 1);
         changeCss('.date-separator .separator__text', 'color:' + theme.centerChannelColor, 2);
-        changeCss('.date-separator .separator__hr, .modal-footer, .modal .custom-textarea, .post-right__container .post.post--root hr, .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.date-separator .separator__hr, .modal-footer, .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
+        changeCss('.search-item-container, .post-right__container .post.post--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 1);
         changeCss('.modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3), 1);
         changeCss('.channel-intro, .settings-modal .settings-table .settings-content .divider-dark, hr, .settings-modal .settings-table .settings-links', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
-        changeCss('.post.current--user .post__body, .post.post--comment.other--root.current--user .post-comment, pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
+        changeCss('.post.current--user .post__body, .post.post--comment.other--root.current--user .post-comment, pre, .post-right__container .post.post--root', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
         changeCss('.post.current--user .post__body, .post.post--comment.other--root.current--user .post-comment, .post.same--root.post--comment .post__body, .modal .more-table tbody>tr td, .member-div:first-child, .member-div, .access-history__table .access__report, .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1), 2);
         changeCss('@media(max-width: 1800px){.inner__wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07), 2);
         changeCss('.post:hover, .modal .more-table tbody>tr:hover td, .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.07), 1);
