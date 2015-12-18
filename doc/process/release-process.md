@@ -16,7 +16,7 @@ Pre-work for the current release begins at the code complete date of the previou
 
 No pull requests for major features should be submitted to the current release after this date (except if release manager decides to add "release-exception" label to Jira ticket).
 
-1. Ops:
+1. Logistics:
   1. Post this checklist in Release channel 
 2. PM:
   1. Write compatibility updates for config.json and database changes [See example](https://github.com/mattermost/platform/blob/master/CHANGELOG.md#compatibility)
@@ -43,7 +43,7 @@ No pull requests for major features should be submitted to the current release a
 
 Exceptions can be made by the release manager setting priority to "Highest" and adding a "release-exception" label to the Jira ticket. This will add the ticket to the [hotfix list for release candidate](https://mattermost.atlassian.net/issues/?filter=10204).
 
-1. Ops:
+1. Logistics:
   1. Post this checklist in Release channel
   - Update the channel header to reflect date
   - Mail out mugs to any new contributors
@@ -64,20 +64,20 @@ Exceptions can be made by the release manager setting priority to "Highest" and 
   1. (PM) Leads review of Changelog
   - (Team) Each team member discusses worst bug (10-15s) 
   - (PM) Review feature list for next release
-  - **_(Marketing) Share draft of marketing announce for next release_**
+  - (Marketing) Share draft of marketing bullet points for next release
 - Marketing:
   1. Communicate checklist of items needed by specific dates to write the blog post announce (e.g. screenshots, GIFs, documentation) and begins to write the blog post, tweet, and email for the release announcement
 
 ### (T-minus 5 working days) Code Complete and Release Candidate Cut 
 
-1. Ops:
+1. Logistics:
   1. Post this checklist in Release channel 
   - For the next release, create team meetings on Feature Complete and Code Complete dates
 - PM: 
   1. Remove "Under Development" notice for current release from Changelog on master 
   - Assign each area of the release testing spreadsheet to a team member
 - **(Team) Code Complete Meeting (10:15am PST meeting)** 
-  1. (Ops) Walk through each item of this checklist
+  1. (Logistics) Walk through each item of this checklist
   - (Dev) Last check of tickets that need to be merged before RC1
   - (Team) Each team member discusses worst bug (10-15s) 
 - **Code Complete** is declared after meeting
@@ -94,7 +94,7 @@ Exceptions can be made by the release manager setting priority to "Highest" and 
  
 ### (T-minus 4 working days) Release Candidate Testing 
 
-1. Ops:
+1. Logistics:
   1. Post this checklist in Release channel
   - Queue an agenda item for next team meeting for Release Process Kaizen/Q&A
 - Build:
@@ -103,18 +103,17 @@ Exceptions can be made by the release manager setting priority to "Highest" and 
 - Team:
   1. Test assigned areas of the Release Candidate Testing Spreadsheet and file any bugs found in Jira
   - Post a link to any "Blocking" issue that may need a hotfix to the RC in the Release room, with the **#p1** tag. Blocking issues are considered to be security issues, data loss issues, issues that break core functionality, or significantly impact aesthetics. 
+  - Triage hotfix candidates and decide on whether and when to cut next RC or final
+  - If no blocking issues are found, PM, Dev and Ops signs off on the release
 - PM:
   1. Post links to all issues found in RC as comments on the meta issue
   - Update the meta issue description to include approved fixes
   - Post screenshot and link to final tickets for next RC to the Release room
   - Update Changelog “Known Issues” section with any significant issues that were found and not fixed for the final release
-- Standup:
-  1. **_Triage hotfix candidates and decide on whether and when to cut next RC or final_**
-  - **_If no blocking issues are found, PM, Dev and Ops signs off on the release_**
 - Dev:
   1. PRs for hotfixes made to release branch, and changes from release branch are merged into master
-- Ops:
-  1. **_Tests approved fixes on master_**
+- Logistics:
+  1. For potentially destabilizing changes, test approved fixes on a spinmint private build
 - Build: 
   1. Push next RC to acceptance after testing is complete and approved fixes merged, announces in Town Square on pre-release.mattermost.com/core
 - PM:
@@ -126,7 +125,7 @@ Exceptions can be made by the release manager setting priority to "Highest" and 
 
 The final release is cut. If an urgent and important issue needs to be addressed between major releases, a bug fix release (e.g. 1.1.1) may be created
 
-1. Ops:
+1. Logistics:
   1. Post this checklist in Release channel 
 - Build:
   1. Tags a new release (e.g. 1.1.0) and runs an official build which should be essentially identical to the last RC
@@ -145,7 +144,7 @@ The final release is cut. If an urgent and important issue needs to be addressed
 
 ### (T-minus 0 working days) Release Day
 
-1. Ops: 
+1. Logistics: 
   1. Post this checklist in Release channel 
   - Post key dates for the next release in the header of the Release channel
 - PM:
