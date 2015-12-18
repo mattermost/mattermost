@@ -92,6 +92,12 @@ export default class LdapSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <h4 className='banner__heading'>{'Note:'}</h4>
+                        <p>{'If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'}</p>
+                    </div>
+                </div>
                 <h3>{'LDAP Settings'}</h3>
                 <form
                     className='form-horizontal'
