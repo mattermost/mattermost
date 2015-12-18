@@ -363,7 +363,7 @@ export default class ViewImageModal extends React.Component {
                             src='/static/images/load.gif'
                         />
                         <span className='loader-percent'>
-                            {'Previewing ' + percentage + '%'}
+                            {'Loading ' + percentage + '%'}
                         </span>
                     </div>
                 );
