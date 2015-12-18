@@ -400,7 +400,7 @@ function LoadingImagePreview({progress}) {
     if (progress) {
         progressView = (
             <span className='loader-percent'>
-                {'Previewing ' + progress + '%'}
+                {'Loading ' + progress + '%'}
             </span>
         );
     }
