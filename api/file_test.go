@@ -152,7 +152,6 @@ func TestGetFile(t *testing.T) {
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	if utils.Cfg.FileSettings.DriverName != "" {
-
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
 		part, err := writer.CreateFormFile("files", "test.png")
@@ -204,9 +203,9 @@ func TestGetFile(t *testing.T) {
 		if resp, downErr := Client.GetFileInfo(filenames[0]); downErr != nil {
 			t.Fatal(downErr)
 		} else {
-			m := resp.Data.(map[string]string)
-			if len(m["size"]) == 0 {
-				t.Fail()
+			info := resp.Data.(*model.FileInfo)
+			if info.Size == 0 {
+				t.Fatal("No file size returned")
 			}
 		}
 

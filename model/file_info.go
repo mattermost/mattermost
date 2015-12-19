@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"image/gif"
+	"io"
 	"mime"
 	"path/filepath"
 )
@@ -56,5 +57,16 @@ func (info *FileInfo) ToJson() string {
 		return ""
 	} else {
 		return string(b)
+	}
+}
+
+func FileInfoFromJson(data io.Reader) *FileInfo {
+	decoder := json.NewDecoder(data)
+
+	var info FileInfo
+	if err := decoder.Decode(&info); err != nil {
+		return nil
+	} else {
+		return &info
 	}
 }
