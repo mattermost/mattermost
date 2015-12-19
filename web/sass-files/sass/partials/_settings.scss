@@ -82,9 +82,8 @@
         .nav {
             position: fixed;
             width: 179px;
-            &.absolute {
-                position: absolute;
-                top: 0;
+            &.position--top {
+                top: 57px;
             }
         }
         .security-links {
@@ -141,144 +140,167 @@
                         width: 29px;
                     }
                 }
-                .premade-themes {
-                    margin-bottom: 10px;
-                    .theme-label {
-                        font-weight: 400;
-                        margin-top: 5px;
+                .group--code {
+                    select {
+                        padding-right: 25px;
                     }
-                    img {
-                        border: 3px solid transparent;
-                    }
-                    .active {
-                        img {
-                            border-color: $primary-color;
-                        }
-                    }
-                }
-                .custom-label {
-                    font-weight: normal;
-                    font-size: 13px;
-                    width: 100%;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    margin-bottom: 0;
-                }
-                .input-group-addon {
-                    background: transparent;
-                }
-                .radio {
-                    label {
-                        font-weight: 600;
-                    }
-                }
-            }
-
-            .section-title {
-                margin-bottom: 5px;
-                font-weight: 600;
-            }
-
-            .section-edit {
-                text-align: right;
-                margin-bottom: 5px;
-                .fa {
-                    margin-right: 5px;
-                    font-size: 12px;
-                    @include opacity(0.5);
-                    display: none;
-                }
-            }
-
-            .section-describe {
-                @include opacity(0.7);
-                white-space:pre;
-            }
-
-            .divider-dark {
-                border-bottom:1px solid #aaaaaa;
-            }
-
-            .divider-light {
-                border-bottom:1px solid lightgrey;
-            }
-
-            .setting-list {
-                padding: 0;
-                list-style-type:none;
-            }
-
-            .setting-list__hint {
-                margin-top: 20px;
-            }
-
-            .mentions-input {
-                margin-top: 10px;
-            }
-
-            .setting-list-item {
-                margin-top:7px;
-            }
-            .has-error {
-                color: #a94442;
-            }
-
-            .file-status {
-                font-size: 13px;
-                margin-top: 8px;
-                color: #555;
-            }
-
-            .confirm-import {
-                padding: 4px 10px;
-                margin: 10px 0;
-            }
-
-        }
-    }
-    .nav-pills {
-        > li {
-            margin: 0;
-            a {
-                border-radius: 0;
-                color: #777;
-            }
-            .glyphicon {
-                width: 25px;
-                top: 2px;
-            }
-            &:hover {
-                a {
-                    background: #E6F2FA;
-                }
-            }
-            &.active {
-                a {
-                    color: #111;
-                    background-color: #E1E1E1;
                     &:before {
-                        content: '';
                         position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 5px;
-                        height: 100%;
-                        background: #000;
+                        top: 11px;
+                        right: 50px;
+                        z-index: 5;
+                        content: "\f0d7";
+                        display: inline-block;
+                        font: normal normal normal 14px/1 FontAwesome;
+                        font-size: inherit;
+                        text-rendering: auto;
+                        -webkit-font-smoothing: antialiased;
+                        -moz-osx-font-smoothing: grayscale;
+                    }
+                    select {
+                      -moz-appearance:none;
+                      -webkit-appearance:none;
+                      appearance:none;
+                  }
+              }
+              .premade-themes {
+                margin-bottom: 10px;
+                .theme-label {
+                    font-weight: 400;
+                    margin-top: 5px;
+                }
+                img {
+                    border: 3px solid transparent;
+                }
+                .active {
+                    img {
+                        border-color: $primary-color;
                     }
                 }
-                a, a:hover, a:focus {
-                    padding-right: 10px;
-                    background-color: rgba(black, 0.1);
-                    border-radius: 0;
-                    font-weight: 400;
-                    position: relative;
+            }
+            .custom-label {
+                font-weight: normal;
+                font-size: 13px;
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: 0;
+            }
+            .input-group-addon {
+                background: transparent;
+            }
+            .radio {
+                label {
+                    font-weight: 600;
                 }
             }
         }
+
+        .section-title {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .section-edit {
+            text-align: right;
+            margin-bottom: 5px;
+            .fa {
+                margin-right: 5px;
+                font-size: 12px;
+                @include opacity(0.5);
+                display: none;
+            }
+        }
+
+        .section-describe {
+            @include opacity(0.7);
+            white-space:pre;
+        }
+
+        .divider-dark {
+            border-bottom:1px solid #aaaaaa;
+        }
+
+        .divider-light {
+            border-bottom:1px solid lightgrey;
+        }
+
+        .setting-list {
+            padding: 0;
+            list-style-type:none;
+        }
+
+        .setting-list__hint {
+            margin-top: 20px;
+        }
+
+        .mentions-input {
+            margin-top: 10px;
+        }
+
+        .setting-list-item {
+            margin-top:7px;
+        }
+        .has-error {
+            color: #a94442;
+        }
+
+        .file-status {
+            font-size: 13px;
+            margin-top: 8px;
+            color: #555;
+        }
+
+        .confirm-import {
+            padding: 4px 10px;
+            margin: 10px 0;
+        }
+
     }
-    h3 {
-        font-size: em(20px);
+}
+.nav-pills {
+    > li {
+        margin: 0;
+        a {
+            border-radius: 0;
+            color: #777;
+        }
+        .glyphicon {
+            width: 25px;
+            top: 2px;
+        }
+        &:hover {
+            a {
+                background: #E6F2FA;
+            }
+        }
+        &.active {
+            a {
+                color: #111;
+                background-color: #E1E1E1;
+                &:before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 5px;
+                    height: 100%;
+                    background: #000;
+                }
+            }
+            a, a:hover, a:focus {
+                padding-right: 10px;
+                background-color: rgba(black, 0.1);
+                border-radius: 0;
+                font-weight: 400;
+                position: relative;
+            }
+        }
     }
+}
+h3 {
+    font-size: em(20px);
+}
 }
 
 .channel-settings {

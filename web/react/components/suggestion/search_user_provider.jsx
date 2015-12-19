@@ -22,7 +22,7 @@ class SearchUserSuggestion extends React.Component {
                     className='profile-img rounded'
                     src={'/api/v1/users/' + item.id + '/image?time=' + item.update_at}
                 />
-                {item.username}
+                <i className='fa fa fa-plus-square'></i>{item.username}
             </div>
         );
     }

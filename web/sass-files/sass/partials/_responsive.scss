@@ -336,7 +336,10 @@
             }
         }
         .settings-table {
-            .nav, .nav.absolute {
+            .nav {
+                &.position--top {
+                    top: auto;
+                }
                 position: relative;
                 top: auto;
                 width: 100%;

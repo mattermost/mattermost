@@ -85,6 +85,11 @@
             background: rgba(black, 0.2);
         }
 
+        .fa {
+            margin-right: 5px;
+            @include opacity(0.5);
+        }
+
         .profile-img {
             margin-top: -1px;
             height: 16px;

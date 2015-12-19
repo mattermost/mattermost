@@ -17,7 +17,8 @@
 	.post {
 
 		&.post--root {
-			padding-bottom: 0;
+			padding-bottom: 1.2em;
+			border-bottom: 1px solid #ddd;
 		}
 
 		.post__header {
@@ -36,6 +37,7 @@
 
 	hr {
 		margin-bottom: 0;
+		border: none;
 	}
 
 	.post-create__container {
