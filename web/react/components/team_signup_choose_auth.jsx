@@ -7,6 +7,10 @@ const messages = defineMessages({
         id: 'choose_auth_page.zboxCreate',
         defaultMessage: 'Create new team with ZBox Account'
     },
+    gitlabCreate: {
+        id: 'choose_auth_page.gitlabCreate',
+        defaultMessage: 'Create new team with GitLab Account'
+    },
     emailCreate: {
         id: 'choose_auth_page.emailCreate',
         defaultMessage: 'Create new team with email address'
@@ -43,7 +47,7 @@ class ChooseAuthPage extends React.Component {
                         }
                     >
                         <span className='icon' />
-                        <span>{'Create new team with GitLab Account'}</span>
+                        <span>{formatMessage(messages.gitlabCreate)}</span>
                     </a>
             );
         }
@@ -53,8 +57,9 @@ class ChooseAuthPage extends React.Component {
                 <a
                     className='btn btn-custom-login zbox btn-full'
                     href='#'
+                    key='zbox'
                     onClick={
-                            function clickGit(e) {
+                            function clickZbox(e) {
                                 e.preventDefault();
                                 this.props.updatePage('zbox');
                             }.bind(this)
@@ -71,6 +76,7 @@ class ChooseAuthPage extends React.Component {
                     <a
                         className='btn btn-custom-login email btn-full'
                         href='#'
+                        key='email'
                         onClick={
                             function clickEmail(e) {
                                 e.preventDefault();
@@ -100,7 +106,7 @@ class ChooseAuthPage extends React.Component {
 }
 
 ChooseAuthPage.propTypes = {
-    intl: intlShape.isRequried,
+    intl: intlShape.isRequired,
     updatePage: React.PropTypes.func
 };
 

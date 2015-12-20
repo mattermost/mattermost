@@ -6,16 +6,20 @@
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
-        "EnableTesting": false
+        "EnableTesting": false,
+        "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
-        "SiteName": "ZBox",
-        "MaxUsersPerTeam": 50,
+        "SiteName": "ZBox Now!",
+        "MaxUsersPerTeam": 1500,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "RestrictCreationToDomains": ""
+        "RestrictCreationToDomains": "",
+        "RestrictTeamNames": true,
+        "EnableTeamListing": true
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -52,7 +56,6 @@
         "AmazonS3Region": "sa-east-1"
     },
     "EmailSettings": {
-        "ByPassEmail": true,
         "EnableSignUpWithEmail": false,
         "SendEmailNotifications": true,
         "RequireEmailVerification": false,
@@ -65,12 +68,11 @@
         "ConnectionSecurity": "STARTTLS",
         "InviteSalt": "bjlSR4QqkXFBr7TP4oDzlfZmcNuH9YoS",
         "PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL",
-        "ApplePushServer": "",
-        "ApplePushCertPublic": "",
-        "ApplePushCertPrivate": ""
+        "SendPushNotifications": false,
+        "PushNotificationServer": ""
     },
     "RateLimitSettings": {
-        "EnableRateLimiter": true,
+        "EnableRateLimiter": false,
         "PerSec": 10,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
@@ -78,8 +80,15 @@
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
-        "ShowFullName": true,
-        "EnableDiagnostic": false
+        "ShowFullName": true
+    },
+    "SupportSettings": {
+        "TermsOfServiceLink": "/static/help/terms.html",
+        "PrivacyPolicyLink": "/static/help/privacy.html",
+        "AboutLink": "/static/help/about.html",
+        "HelpLink": "http://ayuda.zboxapp.com/collection/65-chat",
+        "ReportAProblemLink": "http://ayuda.zboxapp.com/collection/65-chat#contactModal",
+        "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {
         "Enable": false,
@@ -88,7 +97,8 @@
         "Scope": "",
         "AuthEndpoint": "",
         "TokenEndpoint": "",
-        "UserApiEndpoint": ""
+        "UserApiEndpoint": "",
+        "LoginEndPoint": ""
     },
     "ZBoxSettings": {
         "Enable": true,

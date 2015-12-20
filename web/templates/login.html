@@ -25,31 +25,3 @@ window.setup_login_page({{ .Props }});
 </body>
 </html>
 {{end}}
-
-{{define "login_es"}}
-<!DOCTYPE html>
-<html>
-{{template "head" . }}
-<body class="white">
-<div class="container-fluid">
-	<div class="inner__wrap">
-		<div class="row content">
-			<div class="signup-header">
-				{{.Props.TeamDisplayName}}
-			</div>
-			<div class="col-sm-12">
-				<div id="login"></div>
-			</div>
-			<div class="footer-push"></div>
-		</div>
-		<div class="row footer">
-			{{template "footer_es" . }}
-		</div>
-	</div>
-</div>
-<script>
-	window.setup_login_page({{ .Props }});
-</script>
-</body>
-</html>
-{{end}}

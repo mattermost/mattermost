@@ -78,6 +78,7 @@ func InitWeb(T goi18n.TranslateFunc) {
 	mainrouter.Handle("/oauth/authorize", api.UserRequired(authorizeOAuth)).Methods("GET")
 	mainrouter.Handle("/oauth/access_token", api.ApiAppHandler(getAccessToken)).Methods("POST")
 
+	mainrouter.Handle("/zimbra_login", api.AppHandler(zimbra)).Methods("GET")
 	mainrouter.Handle("/signup_team_complete/", api.AppHandlerIndependent(signupTeamComplete)).Methods("GET")
 	mainrouter.Handle("/signup_user_complete/", api.AppHandlerIndependent(signupUserComplete)).Methods("GET")
 	mainrouter.Handle("/signup_team_confirm/", api.AppHandlerIndependent(signupTeamConfirm)).Methods("GET")
@@ -105,11 +106,10 @@ func InitWeb(T goi18n.TranslateFunc) {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
-	mainrouter.Handle("/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")             // Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/pl/{postid}", api.AppHandler(postPermalink)).Methods("GET")         // Bug in gorilla.mux prevents us from using regex here.
-	mainrouter.Handle("/{team}/channels/{channelname}", api.UserRequired(getChannel)).Methods("GET") // Bug in gorilla.mux prevents us from using regex here.
-	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")    // Bug in gorilla.mux prevents us from using regex here.
-	mainrouter.Handle("/zimbra/{email}/{token}", api.AppHandler(zimbra)).Methods("GET")
+	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")    // Bug in gorilla.mux prevents us from using regex here.
+	mainrouter.Handle("/{team}/channels/{channelname}", api.AppHandler(getChannel)).Methods("GET") // Bug in gorilla.mux prevents us from using regex here.
+	mainrouter.Handle("/{team}/signup/{service}", api.AppHandler(signupWithOAuth)).Methods("GET")  // Bug in gorilla.mux prevents us from using regex here.
 
 	watchAndParseTemplates()
 	loadLanguages(T)
@@ -192,32 +192,31 @@ func ping(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T,lang  := i18n.GetLanguage(w, r)
+	T, locale := i18n.GetLanguage(w, r)
 
 	if !CheckBrowserCompatability(c, w, r) {
 		return
 	}
 
 	if len(c.Session.UserId) == 0 {
-//		page := NewHtmlTemplatePage("signup_team", "Signup")
-//
-//		if result := <-api.Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
-//			c.Err = result.Err
-//			return
-//		} else {
-//			teams := result.Data.([]*model.Team)
-//			for _, team := range teams {
-//				page.Props[team.Name] = team.DisplayName
-//			}
-//
-//			if len(teams) == 1 && *utils.Cfg.TeamSettings.EnableTeamListing && !utils.Cfg.TeamSettings.EnableTeamCreation {
-//				http.Redirect(w, r, c.GetSiteURL()+"/"+teams[0].Name, http.StatusTemporaryRedirect)
-//				return
-//			}
-//		}
-//
-//		page.Render(c, w)
-		http.Redirect(w, r, "/login/zbox", http.StatusTemporaryRedirect)
+		page := NewHtmlTemplatePage("signup_team", T("Signup"), locale, T)
+
+		if result := <-api.Srv.Store.Team().GetAllTeamListing(T); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			teams := result.Data.([]*model.Team)
+			for _, team := range teams {
+				page.Props[team.Name] = team.DisplayName
+			}
+
+			if len(teams) == 1 && *utils.Cfg.TeamSettings.EnableTeamListing && !utils.Cfg.TeamSettings.EnableTeamCreation {
+				http.Redirect(w, r, c.GetSiteURL()+"/"+teams[0].Name, http.StatusTemporaryRedirect)
+				return
+			}
+		}
+
+		page.Render(c, w, T)
 	} else {
 		teamChan := api.Srv.Store.Team().Get(c.Session.TeamId, T)
 		userChan := api.Srv.Store.User().Get(c.Session.UserId, T)
@@ -239,12 +238,11 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user = ur.Data.(*model.User)
 		}
 
-		page := NewHtmlTemplatePage("home", T("Home"), lang, T)
+		setTeamCookie(w, team.Name)
+
+		page := NewHtmlTemplatePage("home", T("Home"), locale, T)
 		page.Team = team
 		page.User = user
-
-		page.Props["TeamURL"] = c.GetTeamURL(T)
-		setTeamCookie(w, c.GetTeamName())
 		page.Render(c, w, T)
 	}
 }
@@ -567,8 +565,6 @@ func doLoadChannel(c *api.Context, w http.ResponseWriter, r *http.Request, team 
 		user = ur.Data.(*model.User)
 	}
 
-	setTeamCookie(w, team.Name)
-
 	page := NewHtmlTemplatePage("channel", "", lang, T)
 	page.Props["Title"] = channel.DisplayName + " - " + team.DisplayName + " " + page.ClientCfg["SiteName"]
 	page.Props["TeamDisplayName"] = team.DisplayName
@@ -700,71 +696,6 @@ func resetPassword(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	page.Render(c, w, T)
 }
 
-func zimbra(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T := i18n.Language(w, r)
-	params := mux.Vars(r)
-	email := params["email"]
-	token := params["token"]
-
-	if body, err := api.ZimbraAuth("zbox", email, token, T); err != nil {
-		c.Err = err
-		return
-	} else {
-		authData := ""
-		teamName := ""
-		var user *model.User
-		zbu := model.ZboxUserFromJson(body)
-		teamName = zbu.Team
-		authData = zbu.Email
-		user = model.UserFromZBoxUser(zbu)
-
-		if len(authData) == 0 {
-			c.Err = model.NewAppError("zimbraAuth", T("Could not parse auth data out of zbox user object"), "")
-			return
-		}
-
-		if len(teamName) == 0 {
-			c.Err = model.NewAppError("zimbraAuth", T("Invalid team name"), "team_name="+teamName)
-			c.Err.StatusCode = http.StatusBadRequest
-			return
-		}
-
-		if !zbu.Enabled || !zbu.ChatEnabled {
-			c.Err = model.NewAppError("zimbraAuth", T("Your user is not authorized to use the Chat app"), "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
-
-		// Make sure team exists
-		tchan := <-api.Srv.Store.Team().GetByName(teamName, T)
-		if tchan.Err != nil {
-			c.Err = tchan.Err
-			return
-		}
-
-		team := tchan.Data.(*model.Team)
-
-		if result := <-api.Srv.Store.User().GetByAuth(team.Id, authData, "zbox", T); result.Err != nil {
-			if user != nil {
-				signUpAndLogin(c, w, r, team, user, "zbox")
-				return
-			} else {
-				c.Err = result.Err
-				return
-			}
-		} else {
-			user = result.Data.(*model.User)
-			api.Login(c, w, r, user, "")
-
-			if c.Err != nil {
-				return
-			}
-
-			root(c, w, r)
-		}
-	}
-}
-
 func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	params := mux.Vars(r)
@@ -814,17 +745,16 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	T := i18n.Language(w, r)
+	T,locale := i18n.GetLanguage(w, r)
 	params := mux.Vars(r)
 	service := params["service"]
-	teamName := ""
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
 	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
 
-	if body, err := api.AuthorizeOAuthUser(service, code, state, uri, T); err != nil {
+	if body, team, err := api.AuthorizeOAuthUser(service, code, state, uri, T); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -835,7 +765,6 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 		} else if service == model.USER_AUTH_SERVICE_ZBOX {
 			zbu := model.ZboxUserFromJson(body)
 			user = model.UserFromZBoxUser(zbu)
-			teamName = zbu.Team
 		}
 
 		if user == nil {
@@ -843,36 +772,78 @@ func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		if len(teamName) == 0 {
-			c.Err = model.NewAppError("loginWithOAuth", T("Invalid team name"), "team_name="+teamName)
-			c.Err.StatusCode = http.StatusBadRequest
-			return
-		}
-
-		// Make sure team exists
-		tchan := <-api.Srv.Store.Team().GetByName(teamName, T)
-		if tchan.Err != nil {
-			c.Err = tchan.Err
-			return
-		}
-
-		team := tchan.Data.(*model.Team)
-
 		suchan := api.Srv.Store.User().GetByAuth(team.Id, user.AuthData, service, T)
+		euchan := api.Srv.Store.User().GetByEmail(team.Id, user.Email, T)
+
+		if team.Email == "" {
+			team.Email = user.Email
+			if result := <-api.Srv.Store.Team().Update(team, T); result.Err != nil {
+				c.Err = result.Err
+				return
+			}
+		} else {
+			found := true
+			count := 0
+			for found {
+				if found = api.IsUsernameTaken(user.Username, team.Id, T); c.Err != nil {
+					return
+				} else if found {
+					user.Username = user.Username + strconv.Itoa(count)
+					count += 1
+				}
+			}
+		}
+
+
 		if result := <-suchan; result.Err == nil {
 			c.Err = model.NewAppError("signupCompleteOAuth", T("This ")+service+T(" account has already been used to sign up for team ")+team.DisplayName, "email="+user.Email)
 			return
 		}
-		signUpAndLogin(c, w, r, team, user, service)
-		return
+
+		if result := <-euchan; result.Err == nil {
+			c.Err = model.NewAppError("signupCompleteOAuth", T("Team ")+team.DisplayName+T(" already has a user with the email address attached to your ")+service+T(" account"), "email="+user.Email)
+			return
+		}
+
+		user.TeamId = team.Id
+		user.EmailVerified = true
+
+		ruser := api.CreateUser(c, team, user, T)
+		if c.Err != nil {
+			return
+		}
+
+		api.Login(c, w, r, ruser, "")
+
+		if c.Err != nil {
+			return
+		}
+
+		page := NewHtmlTemplatePage("home", T("Home"), locale, T)
+		page.Team = team
+		page.User = ruser
+		page.Render(c, w, T)
 	}
 }
 
 func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
 	params := mux.Vars(r)
 	service := params["service"]
-	teamName := ""
+	teamName := params["team"]
 	loginHint := r.URL.Query().Get("login_hint")
+
+	if len(teamName) == 0 {
+		c.Err = model.NewAppError("loginWithOAuth", "Invalid team name", "team_name="+teamName)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	// Make sure team exists
+	if result := <-api.Srv.Store.Team().GetByName(teamName, T); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
 
 	redirectUri := c.GetSiteURL() + "/login/" + service + "/complete"
 
@@ -883,14 +854,14 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 	T := i18n.Language(w, r)
 	params := mux.Vars(r)
 	service := params["service"]
-	teamName := ""
+	signup := false
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
 	uri := c.GetSiteURL() + "/login/" + service + "/complete"
 
-	if body, err := api.AuthorizeOAuthUser(service, code, state, uri, T); err != nil {
+	if body, team, err := api.AuthorizeOAuthUser(service, code, state, uri, T); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -902,9 +873,14 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 			authData = glu.GetAuthData()
 		} else if service == model.USER_AUTH_SERVICE_ZBOX {
 			zbu = model.ZboxUserFromJson(body)
-			teamName = zbu.Team
 			authData = zbu.Email
 			user = model.UserFromZBoxUser(zbu)
+			signup = true
+			if !zbu.Enabled || !zbu.ChatEnabled {
+				c.Err = model.NewAppError("loginCompleteOAuth", T("Your user is not authorized to use the Chat app"), "")
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
 		}
 
 		if len(authData) == 0 {
@@ -912,35 +888,18 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		if len(teamName) == 0 {
-			c.Err = model.NewAppError("loginWithOAuth", T("Invalid team name"), "team_name="+teamName)
-			c.Err.StatusCode = http.StatusBadRequest
-			return
-		}
-
-		if !zbu.Enabled || !zbu.ChatEnabled {
-			c.Err = model.NewAppError("zimbraAuth", T("Your user is not authorized to use the Chat app"), "")
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
-
-		// Make sure team exists
-		tchan := <-api.Srv.Store.Team().GetByName(teamName, T)
-		if tchan.Err != nil {
-			c.Err = tchan.Err
-			return
-		}
-
-		team := tchan.Data.(*model.Team)
-
 		if result := <-api.Srv.Store.User().GetByAuth(team.Id, authData, service, T); result.Err != nil {
-			if user != nil {
-				signUpAndLogin(c, w, r, team, user, service)
-				return
+			if signup {
+				if zbu.Team == team.Name {
+					signUpAndLogin(c, w, r, team, user, service)
+				} else {
+					c.Err = model.NewAppError("loginCompleteOAuth", fmt.Sprintf(T("Your user can only be used to signup to the %v Team unless you get an invitation to this team"), zbu.Team), "")
+					c.Err.StatusCode = http.StatusForbidden
+				}
 			} else {
 				c.Err = result.Err
-				return
 			}
+			return
 		} else {
 			user = result.Data.(*model.User)
 			api.Login(c, w, r, user, "")
@@ -948,11 +907,6 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 			if c.Err != nil {
 				return
 			}
-
-//			page := NewHtmlTemplatePage("home", "Home")
-//			page.Team = team
-//			page.User = user
-//			page.Render(c, w)
 
 			root(c, w, r)
 		}
@@ -962,7 +916,7 @@ func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) 
 func signUpAndLogin(c *api.Context, w http.ResponseWriter, r *http.Request, team *model.Team, user *model.User, service string) {
 	T := i18n.Language(w, r)
 	api.SignUpAndLogin(c, w, r, team, user, service, T)
-	setTeamCookie(w, team.Name)
+
 	root(c, w, r)
 }
 
@@ -1310,4 +1264,68 @@ func setTeamCookie(w http.ResponseWriter, teamName string) {
 	}
 
 	http.SetCookie(w, cookie)
+}
+
+func zimbra(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	T := i18n.Language(w, r)
+	params := r.URL.Query()
+	email := params.Get("email")
+
+	if body, err := api.ZimbraAuth("zbox", email, T); err != nil {
+		c.Err = err
+		return
+	} else {
+		authData := ""
+		teamName := ""
+		var user *model.User
+		zbu := model.ZboxUserFromJson(body)
+		teamName = zbu.Team
+		authData = zbu.Email
+		user = model.UserFromZBoxUser(zbu)
+
+		if len(authData) == 0 {
+			c.Err = model.NewAppError("zimbraAuth", T("Could not parse auth data out of zbox user object"), "")
+			return
+		}
+
+		if len(teamName) == 0 {
+			c.Err = model.NewAppError("zimbraAuth", T("Invalid team name"), "team_name="+teamName)
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+
+		if !zbu.Enabled || !zbu.ChatEnabled {
+			c.Err = model.NewAppError("zimbraAuth", T("Your user is not authorized to use the Chat app"), "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+
+		// Make sure team exists
+		tchan := <-api.Srv.Store.Team().GetByName(teamName, T)
+		if tchan.Err != nil {
+			c.Err = tchan.Err
+			return
+		}
+
+		team := tchan.Data.(*model.Team)
+
+		if result := <-api.Srv.Store.User().GetByAuth(team.Id, authData, "zbox", T); result.Err != nil {
+			if user != nil {
+				signUpAndLogin(c, w, r, team, user, "zbox")
+				return
+			} else {
+				c.Err = result.Err
+				return
+			}
+		} else {
+			user = result.Data.(*model.User)
+			api.Login(c, w, r, user, "")
+
+			if c.Err != nil {
+				return
+			}
+
+			root(c, w, r)
+		}
+	}
 }

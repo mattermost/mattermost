@@ -32,6 +32,10 @@ const messages = defineMessages({
         id: 'login.zbox',
         defaultMessage: 'With ZBox'
     },
+    gitlab: {
+        id: 'login.gitlab',
+        defaultMessage: 'with GitLab'
+    },
     email: {
         id: 'login.email',
         defaultMessage: 'Email'
@@ -180,7 +184,7 @@ class Login extends React.Component {
                         key='gitlab'
                     >
                         <span className='icon' />
-                        <span>{'with GitLab'}</span>
+                        <span>{formatMessage(messages.gitlab)}</span>
                     </a>
            );
         }
@@ -189,7 +193,8 @@ class Login extends React.Component {
             loginMessage.push(
                 <a
                     className='btn btn-custom-login zbox'
-                    href={'/login/zbox'}
+                    href={'/' + teamName + '/login/zbox'}
+                    key='zbox'
                 >
                     <span className='icon' />
                     <span>{formatMessage(messages.zbox)}</span>

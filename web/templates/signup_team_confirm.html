@@ -21,28 +21,3 @@
 </body>
 </html>
 {{end}}
-
-{{define "signup_team_confirm_es"}}
-<!DOCTYPE html>
-<html>
-{{template "head" . }}
-<body class="white">
-<div class="container-fluid">
-    <div class="inner__wrap">
-        <div class="row content">
-            <div class="col-sm-12">
-                <div class="signup-team__container">
-                    <h3>Registro completado</h3>
-                    <p>Por favor revisa tu email: {{ .Props.Email }}<br>
-                        El correo contiene un link para que puedas configurar tu equipo</p>
-                </div>
-            </div>
-        </div>
-        <div class="row footer">
-            {{template "footer_es" . }}
-        </div>
-    </div>
-</div>
-</body>
-</html>
-{{end}}

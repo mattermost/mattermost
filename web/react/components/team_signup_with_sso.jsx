@@ -19,6 +19,10 @@ const messages = defineMessages({
         id: 'sso_signup.zbox',
         defaultMessage: 'Create team with ZBox Account'
     },
+    gitlab: {
+        id: 'sso_signup.gitlab',
+        defaultMessage: 'Create team with GitLab Account'
+    },
     teamName: {
         id: 'sso_signup.teamName',
         defaultMessage: 'Enter name of new team'
@@ -112,7 +116,7 @@ class SSOSignUpPage extends React.Component {
                     disabled={disabled}
                 >
                     <span className='icon'/>
-                    <span>{'Create team with GitLab Account'}</span>
+                    <span>{formatMessage(messages.gitlab)}</span>
                 </a>
             );
         }

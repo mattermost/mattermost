@@ -30,7 +30,6 @@ type Context struct {
 	Err               *model.AppError
 	teamURLValid      bool
 	teamURL           string
-	teamName	 	  string
 	siteURL           string
 	SessionTokenIndex int64
 }
@@ -127,6 +126,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						if index, err := strconv.ParseInt(sessionTokenIndexStr, 10, 64); err == nil {
 							sessionTokenIndex = index
 						}
+					} else if r.RequestURI == "/" {
+						sessionTokenIndex = 0
 					}
 				}
 
@@ -153,9 +154,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v", model.CurrentVersion, utils.CfgLastModified))
-
-	// Allow Cors
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Instruct the browser not to display us in an iframe for anti-clickjacking
 	if !h.isApi {
@@ -186,7 +184,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Path = r.URL.Path
 	} else {
 		splitURL := strings.Split(r.URL.Path, "/")
-		c.setTeamURL(protocol+"://"+r.Host+"/"+splitURL[1]+"/", true)
+		c.setTeamURL(protocol+"://"+r.Host+"/"+splitURL[1], true)
 		c.Path = "/" + strings.Join(splitURL[2:], "/")
 	}
 
@@ -393,9 +391,7 @@ func (c *Context) setTeamURL(url string, valid bool) {
 
 func (c *Context) SetTeamURLFromSession(T goi18n.TranslateFunc) {
 	if result := <-Srv.Store.Team().Get(c.Session.TeamId, T); result.Err == nil {
-		name := result.Data.(*model.Team).Name
-		c.setTeamURL(c.GetSiteURL()+"/"+name+"/", true)
-		c.teamName = name
+		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
 	}
 }
 
@@ -415,10 +411,6 @@ func (c *Context) GetTeamURL(T goi18n.TranslateFunc) string {
 		}
 	}
 	return c.teamURL
-}
-
-func (c *Context) GetTeamName() string {
-	return c.teamName
 }
 
 func (c *Context) GetSiteURL() string {

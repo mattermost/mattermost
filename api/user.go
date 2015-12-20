@@ -39,7 +39,6 @@ func InitUser(r *mux.Router) {
 
 	sr := r.PathPrefix("/users").Subrouter()
 	sr.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
-	sr.Handle("/admin", ApiAppHandler(createAdmin)).Methods("POST")
 	sr.Handle("/update", ApiUserRequired(updateUser)).Methods("POST")
 	sr.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
 	sr.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
@@ -132,43 +131,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if sendWelcomeEmail {
 		sendWelcomeEmailAndForget(ruser.Id, ruser.Email, team.Name, team.DisplayName, c.GetSiteURL(), c.GetTeamURLFromTeam(team), ruser.EmailVerified, T)
-	}
-
-	w.Write([]byte(ruser.ToJson()))
-
-}
-
-func createAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
-	T := i18n.Language(w, r)
-	var user *model.User
-	adm := model.AdminUserFromJson(r.Body)
-	user = model.UserFromAdminUser(adm)
-
-	if user == nil {
-		c.SetInvalidParam("createUser", "user")
-		return
-	}
-
-	// the user's username is checked to be valid when they are saved to the database
-
-	user.EmailVerified = false
-
-	var team *model.Team
-
-	if result := <-Srv.Store.Team().GetByName(adm.Team, T); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		team = result.Data.(*model.Team)
-		user.TeamId = team.Id
-	}
-
-	user.EmailVerified = true
-	user.Roles = model.ROLE_TEAM_ADMIN
-
-	ruser := CreateUser(c, team, user, T)
-	if c.Err != nil {
-		return
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -504,7 +466,11 @@ func SignUpAndLogin (c *Context, w http.ResponseWriter, r *http.Request, team *m
 	user.TeamId = team.Id
 	user.EmailVerified = true
 	if cookie, err := r.Cookie(model.SESSION_LANGUAGE); err != nil {
-		user.Language = cookie.Value
+		if cookie != nil {
+			user.Language = cookie.Value
+		} else {
+			user.Language = model.DEFAULT_LANGUAGE
+		}
 	} else {
 		user.Language = model.DEFAULT_LANGUAGE
 	}
@@ -1873,15 +1839,15 @@ func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, te
 	http.Redirect(w, r, authUrl, http.StatusFound)
 }
 
-func AuthorizeOAuthUser(service, code, state, redirectUri string, T goi18n.TranslateFunc) (io.ReadCloser, *model.AppError) {
+func AuthorizeOAuthUser(service, code, state, redirectUri string, T goi18n.TranslateFunc) (io.ReadCloser, *model.Team, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Unsupported OAuth service provider"), "service="+service)
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Unsupported OAuth service provider"), "service="+service)
 	}
 
 	stateStr := ""
 	if b, err := b64.StdEncoding.DecodeString(state); err != nil {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Invalid state"), err.Error())
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Invalid state"), err.Error())
 	} else {
 		stateStr = string(b)
 	}
@@ -1889,15 +1855,15 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string, T goi18n.Trans
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
 	if !model.ComparePassword(stateProps["hash"], sso.Id) {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Invalid state"), "")
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Invalid state"), "")
 	}
 
-//	teamName := stateProps["team"]
-//	if len(teamName) == 0 {
-//		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Invalid state; missing team name"), "")
-//	}
-//
-//	tchan := Srv.Store.Team().GetByName(teamName, T)
+	teamName := stateProps["team"]
+	if len(teamName) == 0 {
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Invalid state; missing team name"), "")
+	}
+
+	tchan := Srv.Store.Team().GetByName(teamName, T)
 
 	p := url.Values{}
 	p.Set("client_id", sso.Id)
@@ -1914,20 +1880,20 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string, T goi18n.Trans
 
 	var ar *model.AccessResponse
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Token request failed"), err.Error())
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Token request failed"), err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
 		if ar == nil {
-			return nil, model.NewAppError("AuthorizeOAuthUser", T("Bad response from token request"), "")
+			return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Bad response from token request"), "")
 		}
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Bad token type"), "token_type="+ar.TokenType)
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Bad token type"), "token_type="+ar.TokenType)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Missing access token"), "")
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Missing access token"), "")
 	}
 
 	p = url.Values{}
@@ -1939,13 +1905,13 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string, T goi18n.Trans
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
 	if resp, err := client.Do(req); err != nil {
-		return nil, model.NewAppError("AuthorizeOAuthUser", T("Token request to ")+service+T(" failed"), err.Error())
+		return nil, nil, model.NewAppError("AuthorizeOAuthUser", T("Token request to ")+service+T(" failed"), err.Error())
 	} else {
-//		if result := <-tchan; result.Err != nil {
-//			return nil, nil, result.Err
-//		} else {
-			return resp.Body, nil
-//		}
+		if result := <-tchan; result.Err != nil {
+			return nil, nil, result.Err
+		} else {
+			return resp.Body, result.Data.(*model.Team), nil
+		}
 	}
 
 }
@@ -1965,7 +1931,7 @@ func IsUsernameTaken(name string, teamId string, T goi18n.TranslateFunc) bool {
 	return false
 }
 
-func ZimbraAuth(service string, email string, token string, T goi18n.TranslateFunc) (io.ReadCloser, *model.AppError) {
+func ZimbraAuth(service string, email string, T goi18n.TranslateFunc) (io.ReadCloser, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
 		return nil, model.NewAppError("AuthorizeOAuthUser", T("Unsupported OAuth service provider"), "service="+service)
@@ -1973,7 +1939,6 @@ func ZimbraAuth(service string, email string, token string, T goi18n.TranslateFu
 
 	p := url.Values{}
 	p.Set("email", email)
-	p.Set("token", token)
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", sso.UserApiEndpoint, strings.NewReader(p.Encode()))

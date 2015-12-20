@@ -21,7 +21,7 @@
     },
     {
         "id": " account has already been used to sign up for team ",
-        "translation": " cuenta ya fue utilizada para ingresar a un equipo ",
+        "translation": " ya fue utilizada para ingresar al equipo ",
         "modified": false
     },
     {
@@ -1543,6 +1543,11 @@
         "id": "Your user is not authorized to use the Chat app",
         "translation": "Tu usuario no está autorizado para utilizar la app de Chat",
         "modified": false
+    },
+    {
+        "id": "Your user can only be used to signup to the %v Team unless you get an invitation to this team",
+        "translation": "Tu usuario solo puede ser utilizado para registrarte en el Equipo %v a menos que recibas una invitación para este equipo",
+        "modified": true
     },
     {
         "id": "attempted",

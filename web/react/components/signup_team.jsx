@@ -43,6 +43,10 @@ class TeamSignUp extends React.Component {
             count = count + 1;
         }
 
+        if (global.window.mm_config.EnableSignUpWithZBox === 'true') {
+            count = count + 1;
+        }
+
         if (count > 1) {
             this.state = {page: 'choose'};
         } else if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
