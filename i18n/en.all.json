@@ -291,7 +291,7 @@
     },
     {
         "id": "Mattermost - Testing Email Settings",
-        "translation": "Mattermost - Testing Email Settings",
+        "translation": "ZBox Now! - Testing Email Settings",
         "modified": false
     },
     {
@@ -341,7 +341,7 @@
     },
     {
         "id": "<br/><br/><br/>It appears your Mattermost email is setup correctly!",
-        "translation": "<br/><br/><br/>It appears your Mattermost email is setup correctly!",
+        "translation": "<br/><br/><br/>It appears your ZBox Now! email is setup correctly!",
         "modified": false
     },
     {
@@ -1481,7 +1481,7 @@
     },
     {
         "id": "Your user is not authorized to use the Chat app",
-        "translation": "Your user is not authorized to use the Chat app",
+        "translation": "Your user is not authorized to use ZBox Now!",
         "modified": false
     },
     {
@@ -1596,7 +1596,7 @@
     },
     {
         "id": "Mattermost Slack Import Log\r\n",
-        "translation": "Mattermost Slack Import Log\r\n",
+        "translation": "ZBox Now! Slack Import Log\r\n",
         "modified": false
     },
     {
@@ -1926,7 +1926,7 @@
     },
     {
         "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
-        "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
+        "translation": "ZBox Now! lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
         "modified": false
     },
     {
@@ -2046,12 +2046,12 @@
     },
     {
         "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.",
-        "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.",
+        "translation": "ZBox Now! lets you share messages and files from your PC or phone, with instant search and archiving.",
         "modified": false
     },
     {
         "id": "footer",
-        "translation": "(c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>To change your notification preferences, log in to your team site and go to Account Settings > Notifications.",
+        "translation": "(c) 2015 ZBox, Spa. Andres Bello 1245, Santiago, CL.<br>To change your notification preferences, log in to your team site and go to Account Settings > Notifications.",
         "modified": false
     },
     {
@@ -2061,7 +2061,7 @@
     },
     {
         "id": "footer_company",
-        "translation": "© 2015 Mattermost, Inc.",
+        "translation": "© 2015 ZBox, Spa.",
         "modified": false
     },
     {
@@ -2091,7 +2091,7 @@
     },
     {
         "id": "authorize_info",
-        "translation": "The app <strong>%v</strong> would like the ability to access Mattermost on your behalf.",
+        "translation": "The app <strong>%v</strong> would like the ability to access ZBox Now! on your behalf.",
         "modified": false
     },
     {
@@ -2146,17 +2146,17 @@
     },
     {
         "id": "Checking for security update from Mattermost",
-        "translation": "Checking for security update from Mattermost",
+        "translation": "Checking for security update from ZBox Now!",
         "modified": false
     },
     {
         "id": "Failed to get security update information from Mattermost.",
-        "translation": "Failed to get security update information from Mattermost.",
+        "translation": "Failed to get security update information from ZBox Now!.",
         "modified": false
     },
     {
         "id": "Failed to get system admins for security update information from Mattermost.",
-        "translation": "Failed to get system admins for security update information from Mattermost.",
+        "translation": "Failed to get system admins for security update information from ZBox Now!.",
         "modified": false
     },
     {
@@ -2181,7 +2181,7 @@
     },
     {
         "id": "Mattermost Security Bulletin",
-        "translation": "Mattermost Security Bulletin",
+        "translation": "ZBox Now! Security Bulletin",
         "modified": false
     },
     {

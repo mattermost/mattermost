@@ -7,8 +7,8 @@
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
-        "EnablePostUsernameOverride": false,
-        "EnablePostIconOverride": false,
+        "EnablePostUsernameOverride": true,
+        "EnablePostIconOverride": true,
         "EnableTesting": false,
         "EnableSecurityFixAlert": true
     },
@@ -19,7 +19,7 @@
         "EnableUserCreation": true,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
-        "EnableTeamListing": true
+        "EnableTeamListing": false
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -59,7 +59,7 @@
         "EnableSignUpWithEmail": false,
         "SendEmailNotifications": true,
         "RequireEmailVerification": false,
-        "FeedbackName": "ZBox Chat",
+        "FeedbackName": "ZBox Now!",
         "FeedbackEmail": "no-reply-chat@zboxapp.com",
         "SMTPUsername": "chat@zboxapp.com",
         "SMTPPassword": "87Mkd3.,201",
@@ -83,12 +83,12 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "/static/help/terms.html",
-        "PrivacyPolicyLink": "/static/help/privacy.html",
-        "AboutLink": "/static/help/about.html",
+        "TermsOfServiceLink": "",
+        "PrivacyPolicyLink": "",
+        "AboutLink": "",
         "HelpLink": "http://ayuda.zboxapp.com/collection/65-chat",
         "ReportAProblemLink": "http://ayuda.zboxapp.com/collection/65-chat#contactModal",
-        "SupportEmail": "feedback@mattermost.com"
+        "SupportEmail": "ayuda@zboxapp.com"
     },
     "GitLabSettings": {
         "Enable": false,

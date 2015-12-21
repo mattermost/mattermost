@@ -238,8 +238,6 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			user = ur.Data.(*model.User)
 		}
 
-		setTeamCookie(w, team.Name)
-
 		page := NewHtmlTemplatePage("home", T("Home"), locale, T)
 		page.Team = team
 		page.User = user
@@ -471,6 +469,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	setTeamCookie(w, teamName)
 	doLoadChannel(c, w, r, team, channel, "")
 }
 

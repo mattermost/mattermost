@@ -86,7 +86,7 @@
     },
     {
         "id": "<br/><br/><br/>It appears your Mattermost email is setup correctly!",
-        "translation": "<br/><br/><br/>Parece que tu correo electrónico para Mattermost fue configurado correctamente!",
+        "translation": "<br/><br/><br/>Parece que tu correo electrónico para ZBox Now! fue configurado correctamente!",
         "modified": false
     },
     {
@@ -946,12 +946,12 @@
     },
     {
         "id": "Mattermost - Testing Email Settings",
-        "translation": "Mattermost - Configuración de pruebas de correo",
+        "translation": "ZBox Now! - Configuración de pruebas de correo",
         "modified": false
     },
     {
         "id": "Mattermost Slack Import Log\r\n",
-        "translation": "Mattermost Registros de importación de Slack\r\n",
+        "translation": "ZBox Now! Registros de importación de Slack\r\n",
         "modified": false
     },
     {
@@ -1541,7 +1541,7 @@
     },
     {
         "id": "Your user is not authorized to use the Chat app",
-        "translation": "Tu usuario no está autorizado para utilizar la app de Chat",
+        "translation": "Tu usuario no está autorizado para utilizar ZBox Now!",
         "modified": false
     },
     {
@@ -1926,7 +1926,7 @@
     },
     {
         "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>%v</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href=\"%v\">%v</a>",
-        "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo busquedas instantáneas. Una vez que te hayas unido a <strong>%v</strong>, Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:<br/><br/><a href=\"%v\">%v</a>",
+        "translation": "ZBox Now! te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo busquedas instantáneas. Una vez que te hayas unido a <strong>%v</strong>, Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:<br/><br/><a href=\"%v\">%v</a>",
         "modified": false
     },
     {
@@ -2046,12 +2046,12 @@
     },
     {
         "id": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving.",
-        "translation": "Mattermost te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres.",
+        "translation": "ZBox Now! te permite compartir mensajes y archivos desde un computador o teléfono desde donde te encuentres.",
         "modified": false
     },
     {
         "id": "footer",
-        "translation": "(c) 2015 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301.<br>Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones.",
+        "translation": "(c) 2015 ZBox, Spa. Andres Bello 1245, Santiago, CL.<br>Para cambiar tus preferencias de notificaciones, inicia sesión en tu equipo y dirigete a Configurar Cuenta > Notificaciones.",
         "modified": false
     },
     {
@@ -2061,7 +2061,7 @@
     },
     {
         "id": "footer_company",
-        "translation": "© 2015 Mattermost, Inc.",
+        "translation": "© 2015 ZBox, Spa.",
         "modified": false
     },
     {
@@ -2091,7 +2091,7 @@
     },
     {
         "id": "authorize_info",
-        "translation": "La app <strong>%v</strong> quiere tener la habilidad de accesar Mattermost en tu nombre.",
+        "translation": "La app <strong>%v</strong> quiere tener la habilidad de accesar ZBox Now! en tu nombre.",
         "modified": false
     },
     {
@@ -2146,17 +2146,17 @@
     },
     {
         "id": "Checking for security update from Mattermost",
-        "translation": "Consultando si existen actualizaciones de seguridad para Mattermost",
+        "translation": "Consultando si existen actualizaciones de seguridad para ZBox Now!",
         "modified": false
     },
     {
         "id": "Failed to get security update information from Mattermost.",
-        "translation": "Falla al obtener información sobre actualizaciones de seguridad para Mattermost.",
+        "translation": "Falla al obtener información sobre actualizaciones de seguridad para ZBox Now!.",
         "modified": false
     },
     {
         "id": "Failed to get system admins for security update information from Mattermost.",
-        "translation": "Falla al obtener los administradores de sistema que reciben información referente a las actualizaciones de seguridade de Mattermost.",
+        "translation": "Falla al obtener los administradores de sistema que reciben información referente a las actualizaciones de seguridade de ZBox Now!.",
         "modified": false
     },
     {
@@ -2181,7 +2181,7 @@
     },
     {
         "id": "Mattermost Security Bulletin",
-        "translation": "Boletín de Seguridad Mattermost",
+        "translation": "Boletín de Seguridad ZBox Now!",
         "modified": false
     },
     {

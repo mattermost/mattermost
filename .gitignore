@@ -39,6 +39,7 @@ _testmain.go
 *.prof
 
 # Log files
+*zboxnow.log
 *mattermost.log
 *npm-debug.log*
 

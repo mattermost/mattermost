@@ -107,7 +107,7 @@ func configureLog(s *model.LogSettings) {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		return FindDir("logs") + "mattermost.log"
+		return FindDir("logs") + "zboxnow.log"
 	} else {
 		return fileLocation
 	}

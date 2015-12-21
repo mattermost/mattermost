@@ -53,6 +53,14 @@ const messages = defineMessages({
     close: {
         id: 'user.settings.advance.close',
         defaultMessage: 'Close'
+    },
+    MARKDOWN_PREVIEW: {
+        id: 'user.settings.advance.markdown_preview',
+        defaultMessage: 'Show markdown preview option in message input box'
+    },
+    EMBED_PREVIEW: {
+        id: 'user.settings.advance.embed_preview',
+        defaultMessage: 'Show preview snippet of links below message'
     }
 });
 
@@ -234,7 +242,7 @@ class AdvancedSettingsDisplay extends React.Component {
                                             this.toggleFeature(feature.label, e.target.checked);
                                         }}
                                     />
-                                    {feature.description}
+                                    {formatMessage({id: 'user.settings.advance.' + feature.label})}
                                 </label>
                             </div>
                         </div>

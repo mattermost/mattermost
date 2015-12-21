@@ -136,8 +136,8 @@ export function notifyMe(title, body, channel) {
 
             if (permission === 'granted') {
                 var icon = '';
-                if (navigator.userAgent.indexOf('ZBoxChat') > -1) {
-                    icon = '/static/images/icon50x50.gif';
+                if (navigator.userAgent.indexOf('ZBoxChat') === -1) {
+                    icon = '/static/images/icon50x50.png';
                 }
                 var notification = new Notification(title, {body: body, tag: body, icon: icon});
                 notification.onclick = function onClick() {
