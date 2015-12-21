@@ -264,7 +264,16 @@ exit 0
     Common Name (e.g. server FQDN or YOUR name) []:mattermost.example.com
     Email Address []:admin@mattermost.example.com
 ```
-1. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines
+1. You can use a free and an open certificate security like let's encrypt, this is how to proceed
+  * ```apt-get install git```
+  * ```git clone https://github.com/letsencrypt/letsencrypt```
+  * ```cd letsencrypt```
+  1. Be sure that the port 80 is not use 
+  * ```netstat -na | grep ':80.*LISTEN'```
+  * ```./letsencrypt-auto certonly --standalone```
+  1. This command will download packages and run the instance, after that you will have to give your domain name
+  1. You can find your certificate in /etc/letsencrypt/live
+1. Modify the file at `/etc/nginx/sites-available/mattermost`, it be look like this :
   * 
 ```
   server {
@@ -278,18 +287,31 @@ exit 0
         server_name mattermost.example.com;
 		
         ssl on;
-        ssl_certificate /home/mattermost/cert/mattermost.crt;
-        ssl_certificate_key /home/mattermost/cert/mattermost.key;
-        ssl_session_timeout 5m;
+        # the link of your certificate
+        ssl_certificate /etc/letsencrypt/live/yourdomainname/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/yourdomainnameprivkey.pem;
+    	ssl_session_timeout 5m;
         ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
         ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
         ssl_prefer_server_ciphers on;
         ssl_session_cache shared:SSL:10m;
 
-		# add to location / above
-		location / {
-			gzip off;
-			proxy_set_header X-Forwarded-Ssl on;
+	# add to location / above
+        location / {
+          client_max_body_size 50M;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $http_host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Frame-Options   SAMEORIGIN;
+          proxy_pass http://localhost:8065;
+          gzip off;
+          proxy_set_header X-Forwarded-Ssl on;
+          
+                   }
+          }
 ```
 
 
