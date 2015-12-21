@@ -56,6 +56,7 @@
     .sidebar--right {
         z-index: 5;
         @include translateX(100%);
+        @include single-transition(all, 0.5s, ease);
 
         &.move--left {
             @include translateX(0);
@@ -628,6 +629,7 @@
         height: calc(100% - 44px);
     }
     .inner__wrap {
+        @include single-transition(all, 0.5s, ease);
         &.move--right {
             @include translate3d(290px, 0, 0);
             &:before {

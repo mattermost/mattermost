@@ -7,13 +7,7 @@
     right: 0px;
     padding: 0;
     background: #fff;
-    @include single-transition(transform, 0.5s, ease);
     @include translateX(400px);
-
-    &.move--left {
-        @include translateX(0);
-    }
-
     .post-body {
 
         img {
