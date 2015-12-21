@@ -52,14 +52,29 @@ export default class SidebarRight extends React.Component {
     doStrangeThings() {
         // We should have a better way to do this stuff
         // Hence the function name.
+        var windowWidth = $(window).outerWidth();
+        var sidebarRightWidth = $('.sidebar--right').outerWidth();
+
         $('.inner__wrap').removeClass('.move--right');
         $('.inner__wrap').addClass('move--left');
         $('.sidebar--left').removeClass('move--right');
         $('.sidebar--right').addClass('move--left');
 
         //$('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
-
-        if (!(this.state.search_visible || this.state.post_right_visible)) {
+        if (this.state.search_visible || this.state.post_right_visible) {
+            if (windowWidth > 960) {
+                $('.inner__wrap').velocity({marginRight: sidebarRightWidth}, {duration: 500, easing: 'easeOutSine'});
+                $('.sidebar--right').velocity({translateX: 0}, {duration: 500, easing: 'easeOutSine'});
+            } else {
+                $('.inner__wrap, .sidebar--right').attr('style', '');
+            }
+        } else {
+            if (windowWidth > 960) {
+                $('.inner__wrap').velocity({marginRight: 0}, {duration: 500, easing: 'easeOutSine'});
+                $('.sidebar--right').velocity({translateX: sidebarRightWidth}, {duration: 500, easing: 'easeOutSine'});
+            } else {
+                $('.inner__wrap, .sidebar--right').attr('style', '');
+            }
             $('.inner__wrap').removeClass('move--left').removeClass('move--right');
             $('.sidebar--right').removeClass('move--left');
             return (

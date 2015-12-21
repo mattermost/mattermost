@@ -18,6 +18,12 @@
 	z-index: 5;
 	cursor: pointer;
 }
+
+.search-item-snippet {
+	@include clearfix;
+	text-overflow: ellipsis;
+}
+
 .sidebar__collapse {
 	cursor: pointer;
 	z-index: 5;
@@ -135,6 +141,7 @@
 
 .search-item-time {
 	@include opacity(0.7);
+    font-size: 0.9em;
 }
 
 .search-results-none {

@@ -231,12 +231,12 @@ body.ios {
 	}
 
 	.more-messages-text {
-		margin-top: 2px;
-		margin-bottom: 5px;
+		margin: 5px 0 10px;
 		display: block;
 		text-align: center;
 		outline: none;
 		border: none;
+		font-size: 13px;
 	}
 	.beginning-messages-text {
 		margin-top: 2px;
@@ -683,7 +683,7 @@ body.ios {
 	}
 
 	.post__time {
-		font-size: 13px;
+		font-size: 0.9em;
 	}
 
 	.post__time, &.post--system .post__body {

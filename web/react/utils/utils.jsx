@@ -617,6 +617,7 @@ export function applyTheme(theme) {
     if (theme.centerChannelColor) {
         changeCss('.sidebar--left, .sidebar--right .sidebar--right__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2), 1);
         changeCss('.app__content, .post-create__container .post-create-body .btn-file, .post-create__container .post-create-footer .msg-typing, .command-name, .modal .modal-content, .dropdown-menu, .popover, .mentions-name, .tip-overlay', 'color:' + theme.centerChannelColor, 1);
+        changeCss('#archive-link-home', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('#post-create', 'color:' + theme.centerChannelColor, 2);
         changeCss('.mentions--top, .suggestion-list', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 3);
         changeCss('.mentions--top, .suggestion-list', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px', 2);
@@ -685,11 +686,11 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionHighlightBg) {
-        changeCss('.mention-highlight, .search-highlight, #archive-link-home', 'background:' + theme.mentionHighlightBg, 1);
+        changeCss('.mention-highlight, .search-highlight', 'background:' + theme.mentionHighlightBg, 1);
     }
 
     if (theme.mentionHighlightBg) {
-        changeCss('.post.post--highlight, #archive-link-home', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5), 1);
+        changeCss('.post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5), 1);
     }
 
     if (theme.mentionHighlightLink) {
