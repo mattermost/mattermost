@@ -28,6 +28,8 @@ export default class TeamSignUp extends React.Component {
             this.state = {page: 'email'};
         } else if (global.window.mm_config.EnableSignUpWithGitLab === 'true') {
             this.state = {page: 'gitlab'};
+        } else {
+            this.state = {page: 'none'};
         }
     }
 
@@ -119,6 +121,8 @@ export default class TeamSignUp extends React.Component {
                     <SSOSignupPage service={Constants.GOOGLE_SERVICE} />
                 </div>
             );
+        } else if (this.state.page === 'none') {
+            return (<div>{'No team creation method has been enabled.  Please contact an administrator for access.'}</div>);
         }
     }
 }
