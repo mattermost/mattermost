@@ -195,6 +195,25 @@ This text should be on a new line.
  - Two
 This text should be on a new line.
 
+**Expected:**
+```
+List:
+
+- One
+- Two
+
+This line should have a line break above it.
+```
+
+**Actual:**  
+
+List:
+
+- One
+- Two
+
+This line should have a line break above it.
+
 ### Task Lists
 
 **Expected:**
