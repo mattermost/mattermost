@@ -565,7 +565,7 @@ export function applyTheme(theme) {
     if (theme.sidebarText) {
         changeCss('.sidebar--left .nav-pills__container li>a, .sidebar--right, .settings-modal .nav-pills>li a, .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
-        changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
+        changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.8), 1);
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left .status path', 'fill:' + theme.sidebarText, 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);

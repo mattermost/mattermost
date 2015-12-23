@@ -678,7 +678,7 @@ class Sidebar extends React.Component {
                             </a>
                         </li>
                     </ul>
-
+                    <hr className='separator' />
                     <ul className='nav nav-pills nav-stacked'>
                         <li>
                             <h4>
@@ -700,6 +700,7 @@ class Sidebar extends React.Component {
                         </li>
                         {privateChannelItems}
                     </ul>
+                    <hr className='separator' />
                     <ul className='nav nav-pills nav-stacked'>
                         <li><h4>{formatMessage(messages.direct)}</h4></li>
                         {directMessageItems}
