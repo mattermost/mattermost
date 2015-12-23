@@ -4,6 +4,13 @@ import BrowserStore from '../stores/browser_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ErrorStore from '../stores/error_store.jsx';
 
+let msgs = {};
+
+export function setTranslations(messages) {
+    Object.assign(msgs, messages);
+}
+
+
 export function track(category, action, label, property, value) {
     global.window.analytics.track(action, {category, label, property, value});
 }
@@ -30,7 +37,7 @@ function handleError(methodName, xhr, status, err) {
         if (xhr.status === 0) {
             let errorCount = 1;
             const oldError = ErrorStore.getLastError();
-            let connectError = 'There appears to be a problem with your internet connection';
+            let connectError = msgs.internet;
 
             if (oldError && oldError.connErrorCount) {
                 errorCount += oldError.connErrorCount;
