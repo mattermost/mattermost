@@ -190,7 +190,8 @@ class MoreDirectChannels extends React.Component {
             <tr key={'direct-channel-row-user' + user.id}>
                 <td
                     key={user.id}
-                    className='direct-channel'
+                    className='direct-channel pointer'
+                    onClick={this.handleShowDirectChannel.bind(this, user)}
                 >
                     <img
                         className='profile-img pull-left'
