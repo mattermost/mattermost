@@ -246,6 +246,7 @@ export function loginByEmail(name, email, password, success, error) {
         data: JSON.stringify({name, email, password}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_login_success', data.team_id, 'email', data.email);
+            sessionStorage.removeItem(data.id + '_last_error');
             BrowserStore.signalLogin();
             success(data, textStatus, xhr);
         },
@@ -267,6 +268,8 @@ export function loginByLdap(teamName, id, password, success, error) {
         data: JSON.stringify({teamName, id, password}),
         success: function onSuccess(data, textStatus, xhr) {
             track('api', 'api_users_loginLdap_success', data.team_id, 'id', id);
+            sessionStorage.removeItem(data.id + '_last_error');
+            BrowserStore.signalLogin();
             success(data, textStatus, xhr);
         },
         error: function onError(xhr, status, err) {
