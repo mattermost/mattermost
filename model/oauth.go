@@ -13,7 +13,7 @@ import (
 type OAuthApp struct {
 	Id           string      `json:"id"`
 	CreatorId    string      `json:"creator_id"`
-	CreateAt     int64       `json:"update_at"`
+	CreateAt     int64       `json:"create_at"`
 	UpdateAt     int64       `json:"update_at"`
 	ClientSecret string      `json:"client_secret"`
 	Name         string      `json:"name"`
