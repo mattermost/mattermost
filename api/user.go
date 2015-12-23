@@ -220,7 +220,9 @@ func CreateUser(c *Context, team *model.Team, user *model.User, T goi18n.Transla
 		}
 
 		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}, T); presult.Err != nil {
+		embed_preview := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, Name: "feature_enabled_embed_preview", Value: "true"}
+		mdown_preview := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, Name: "feature_enabled_markdown_preview", Value: "true"}
+		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref, embed_preview, mdown_preview}, T); presult.Err != nil {
 			l4g.Error(T("Encountered error saving tutorial preference, err=%v"), presult.Err.Message)
 		}
 
