@@ -41,12 +41,12 @@ function handleError(methodName, xhr, status, err) {
 
             if (oldError && oldError.connErrorCount) {
                 errorCount += oldError.connErrorCount;
-                connectError = 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.';
+                connectError = msgs.unreachable;
             }
 
             e = {message: connectError, connErrorCount: errorCount};
         } else {
-            e = {message: 'We received an unexpected status code from the server (' + xhr.status + ')'};
+            e = {message: msgs.unexpected + ' (' + xhr.status + ')'};
         }
     }
 
