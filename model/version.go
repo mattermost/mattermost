@@ -24,9 +24,9 @@ var versions = []string{
 }
 
 var CurrentVersion string = versions[0]
-var BuildNumber = "1.3"
-var BuildDate = "Wed Dec 23 21:07:55 UTC 2015"
-var BuildHash = "4fa595bad4c7cb966fbb31404d95e4156b0f61c0"
+var BuildNumber = "_BUILD_NUMBER_"
+var BuildDate = "_BUILD_DATE_"
+var BuildHash = "_BUILD_HASH_"
 
 func SplitVersion(version string) (int64, int64, int64) {
 	parts := strings.Split(version, ".")
