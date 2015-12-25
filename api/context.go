@@ -375,6 +375,29 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
+func (c *Context) SetTeamCookie(w http.ResponseWriter, r *http.Request, teamName string) {
+	maxAge := model.SESSION_TIME_WEB_IN_SECS
+	cookie := &http.Cookie{
+		Name:	model.SESSION_TEAM,
+		Value:	teamName,
+		Path:	"/",
+		MaxAge: maxAge,
+	}
+
+	http.SetCookie(w, cookie)
+}
+
+func (c *Context) RemoveTeamCookie(w http.ResponseWriter, r *http.Request) {
+	cookie := &http.Cookie{
+		Name:	model.SESSION_TEAM,
+		Value:	"",
+		Path:	"/",
+		MaxAge: -1,
+	}
+
+	http.SetCookie(w, cookie)
+}
+
 func (c *Context) SetInvalidParam(where string, name string) {
 	c.Err = model.NewAppError(where, "Invalid "+name+" parameter", "")
 	c.Err.StatusCode = http.StatusBadRequest

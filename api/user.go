@@ -733,6 +733,7 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	T := i18n.Language(w, r)
 	c.LogAudit("", T)
 	c.RemoveSessionCookie(w, r)
+	c.RemoveTeamCookie(w, r)
 	if result := <-Srv.Store.Session().Remove(c.Session.Id, T); result.Err != nil {
 		c.Err = result.Err
 		return

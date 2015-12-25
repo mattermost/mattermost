@@ -469,7 +469,7 @@ func getChannel(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	setTeamCookie(w, teamName)
+	c.SetTeamCookie(w, r, teamName)
 	doLoadChannel(c, w, r, team, channel, "")
 }
 
@@ -1251,18 +1251,6 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte("ok"))
-}
-
-func setTeamCookie(w http.ResponseWriter, teamName string) {
-	maxAge := model.SESSION_TIME_WEB_IN_SECS
-	cookie := &http.Cookie{
-		Name:	model.SESSION_TEAM,
-		Value:	teamName,
-		Path:	"/",
-		MaxAge: maxAge,
-	}
-
-	http.SetCookie(w, cookie)
 }
 
 func zimbra(c *api.Context, w http.ResponseWriter, r *http.Request) {
