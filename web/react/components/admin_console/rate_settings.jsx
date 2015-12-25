@@ -241,7 +241,7 @@ export default class RateSettings extends React.Component {
                                 onChange={this.handleChange}
                                 disabled={!this.state.EnableRateLimiter || this.state.VaryByRemoteAddr}
                             />
-                            <p className='help-text'>{'When filled in, vary rate limiting by HTTP header field specified (e.g. when configuring Ngnix set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'}</p>
+                            <p className='help-text'>{'When filled in, vary rate limiting by HTTP header field specified (e.g. when configuring NGINX set to "X-Real-IP", when configuring AmazonELB set to "X-Forwarded-For").'}</p>
                         </div>
                     </div>
 
