@@ -90,6 +90,7 @@ Multiple settings were added to [`config.json`](./config/config.json). These opt
 
 #### Known Issues
 
+- System Console does not save Email Settings when "Save" is clicked
 - When navigating to a page with new messages as well as message containing inline images added via markdown, the channel may move up and down while loading the inline images
 - Microsoft Edge does not yet support drag and drop 
 - Media files of type .avi .mkv .wmv .mov .flv .mp4a do not play  properly
