@@ -23,7 +23,6 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -323,25 +322,22 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
 
 	path := "teams/" + c.Session.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
-	size := ""
+	var info *model.FileInfo
 
-	if s, ok := fileInfoCache.Get(path); ok {
-		size = s.(string)
+	if cached, ok := fileInfoCache.Get(path); ok {
+		info = cached.(*model.FileInfo)
 	} else {
-
 		fileData := make(chan []byte)
 		getFileAndForget(path, fileData)
 
-		f := <-fileData
-
-		if f == nil {
-			c.Err = model.NewAppError("getFileInfo", "Could not find file.", "path="+path)
-			c.Err.StatusCode = http.StatusNotFound
+		newInfo, err := model.GetInfoForBytes(filename, <-fileData)
+		if err != nil {
+			c.Err = err
 			return
+		} else {
+			fileInfoCache.Add(path, newInfo)
+			info = newInfo
 		}
-
-		size = strconv.Itoa(len(f))
-		fileInfoCache.Add(path, size)
 	}
 
 	if !c.HasPermissionsToChannel(cchan, "getFileInfo") {
@@ -350,19 +346,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 
-	var mimeType string
-	ext := filepath.Ext(filename)
-	if model.IsFileExtImage(ext) {
-		mimeType = model.GetImageMimeType(ext)
-	} else {
-		mimeType = mime.TypeByExtension(ext)
-	}
-
-	result := make(map[string]string)
-	result["filename"] = filename
-	result["size"] = size
-	result["mime"] = mimeType
-	w.Write([]byte(model.MapToJson(result)))
+	w.Write([]byte(info.ToJson()))
 }
 
 func getFile(c *Context, w http.ResponseWriter, r *http.Request) {

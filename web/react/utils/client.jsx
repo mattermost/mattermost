@@ -1076,7 +1076,9 @@ export function getFileInfo(filename, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'GET',
-        success,
+        success: (data) => {
+            success(data);
+        },
         error: function onError(xhr, status, err) {
             var e = handleError('getFileInfo', xhr, status, err);
             error(e);

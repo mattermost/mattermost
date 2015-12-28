@@ -717,7 +717,7 @@ func (c *Client) GetFileInfo(url string) (*Result, *AppError) {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
 		return &Result{rp.Header.Get(HEADER_REQUEST_ID),
-			rp.Header.Get(HEADER_ETAG_SERVER), MapFromJson(rp.Body)}, nil
+			rp.Header.Get(HEADER_ETAG_SERVER), FileInfoFromJson(rp.Body)}, nil
 	}
 }
 

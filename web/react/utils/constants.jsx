@@ -37,6 +37,7 @@ export default {
         RECIEVED_STATUSES: null,
         RECIEVED_PREFERENCE: null,
         RECIEVED_PREFERENCES: null,
+        RECIEVED_FILE_INFO: null,
 
         RECIEVED_MSG: null,
 
