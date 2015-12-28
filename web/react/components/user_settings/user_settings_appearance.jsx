@@ -74,6 +74,10 @@ export default class UserSettingsAppearance extends React.Component {
 
         this.props.setEnforceFocus(true);
     }
+    scrollToTop() {
+        $('.ps-container.modal-body').scrollTop(0);
+        $('.ps-container.modal-body').perfectScrollbar('update');
+    }
     submitTheme(e) {
         e.preventDefault();
         var user = UserStore.getCurrentUser();
@@ -88,9 +92,7 @@ export default class UserSettingsAppearance extends React.Component {
 
                 this.props.setRequireConfirm(false);
                 this.originalTheme = Object.assign({}, this.state.theme);
-
-                $('.ps-container.modal-body').scrollTop(0);
-                $('.ps-container.modal-body').perfectScrollbar('update');
+                this.scrollToTop();
             },
             (err) => {
                 var state = this.getStateFromStores();
@@ -129,6 +131,7 @@ export default class UserSettingsAppearance extends React.Component {
         const state = this.getStateFromStores();
         state.serverError = null;
         this.setState(state);
+        this.scrollToTop();
 
         Utils.applyTheme(state.theme);
 
