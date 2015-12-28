@@ -424,7 +424,7 @@ body.ios {
 
 
 	p {
-		margin: 0 0 1em;
+		margin: 0;
 		line-height: 1.6em;
 		font-size: 0.97em;
 		white-space: pre-wrap;
@@ -676,7 +676,12 @@ body.ios {
 		}
 
 		ul {
+		    margin-bottom: 1em;
 			padding: 5px 0 0 20px;
+		}
+
+		ul + p {
+			margin-top: 1em;
 		}
 
 		ul, ol {
