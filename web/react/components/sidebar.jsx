@@ -39,6 +39,7 @@ export default class Sidebar extends React.Component {
         this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
         this.handleResize = this.handleResize.bind(this);
 
+        this.showMoreChannelsModal = this.showMoreChannelsModal.bind(this);
         this.showNewChannelModal = this.showNewChannelModal.bind(this);
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
         this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
@@ -248,6 +249,11 @@ export default class Sidebar extends React.Component {
 
     sortChannelsByDisplayName(a, b) {
         return a.display_name.localeCompare(b.display_name);
+    }
+
+    showMoreChannelsModal() {
+        // manually show the modal because using data-toggle messes with keyboard focus when the modal is dismissed
+        $('#more_channels').modal({'data-channeltype': 'O'}).modal('show');
     }
 
     showNewChannelModal(type) {
@@ -594,10 +600,8 @@ export default class Sidebar extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                data-toggle='modal'
                                 className='nav-more'
-                                data-target='#more_channels'
-                                data-channeltype='O'
+                                onClick={this.showMoreChannelsModal}
                             >
                                 {'More...'}
                             </a>
