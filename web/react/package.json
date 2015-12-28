@@ -10,7 +10,7 @@
     "marked": "mattermost/marked#cb85e5cc81bc7937dbb73c3c53d9532b1b97e3ca",
     "object-assign": "4.0.1",
     "react": "0.14.3",
-    "react-intl": "2.0.0-beta-1",
+    "react-intl": "2.0.0-beta-2",
     "twemoji": "1.4.1"
   },
   "devDependencies": {
