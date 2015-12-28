@@ -7,6 +7,7 @@ import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import * as Utils from '../utils/utils.jsx';
 import Post from './post.jsx';
 import Constants from '../utils/constants.jsx';
+import DelayedAction from '../utils/delayed_action.jsx';
 const Preferences = Constants.Preferences;
 
 export default class PostsView extends React.Component {
@@ -15,18 +16,26 @@ export default class PostsView extends React.Component {
 
         this.updateState = this.updateState.bind(this);
         this.handleScroll = this.handleScroll.bind(this);
+        this.handleScrollStop = this.handleScrollStop.bind(this);
         this.isAtBottom = this.isAtBottom.bind(this);
         this.loadMorePostsTop = this.loadMorePostsTop.bind(this);
         this.loadMorePostsBottom = this.loadMorePostsBottom.bind(this);
         this.createPosts = this.createPosts.bind(this);
         this.updateScrolling = this.updateScrolling.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.scrollToBottom = this.scrollToBottom.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
         this.scrollHeight = 0;
 
-        this.state = {displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false')};
+        this.scrollStopAction = new DelayedAction(this.handleScrollStop);
+
+        this.state = {
+            displayNameType: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false'),
+            isScrolling: false,
+            topPostId: null
+        };
     }
     static get SCROLL_TYPE_FREE() {
         return 1;
@@ -69,6 +78,55 @@ export default class PostsView extends React.Component {
         this.props.postViewScrolled(this.isAtBottom());
         this.prevScrollHeight = this.refs.postlist.scrollHeight;
         this.prevOffsetTop = this.jumpToPostNode.offsetTop;
+
+        this.updateFloatingTimestamp();
+
+        if (!this.state.isScrolling) {
+            this.setState({
+                isScrolling: true
+            });
+        }
+
+        this.scrollStopAction.fireAfter(1000);
+    }
+    handleScrollStop() {
+        this.setState({
+            isScrolling: false
+        });
+    }
+    updateFloatingTimestamp() {
+        // skip this in non-mobile view since that's when the timestamp is visible
+        if ($(window).width() > 768) {
+            return;
+        }
+
+        if (this.props.postList) {
+            // iterate through posts starting at the bottom since users are more likely to be viewing newer posts
+            for (let i = 0; i < this.props.postList.order.length; i++) {
+                const id = this.props.postList.order[i];
+                const element = ReactDOM.findDOMNode(this.refs[id]);
+
+                if (!element || element.offsetTop + element.clientHeight <= this.refs.postlist.scrollTop) {
+                    // this post is off the top of the screen so the last one is at the top of the screen
+                    let topPostId;
+
+                    if (i > 0) {
+                        topPostId = this.props.postList.order[i - 1];
+                    } else {
+                        // the first post we look at should always be on the screen, but handle that case anyway
+                        topPostId = id;
+                    }
+
+                    if (topPostId !== this.state.topPostId) {
+                        this.setState({
+                            topPostId
+                        });
+                    }
+
+                    break;
+                }
+            }
+        }
     }
     loadMorePostsTop() {
         this.props.loadMorePostsTopClicked();
@@ -226,9 +284,7 @@ export default class PostsView extends React.Component {
     }
     updateScrolling() {
         if (this.props.scrollType === PostsView.SCROLL_TYPE_BOTTOM) {
-            window.requestAnimationFrame(() => {
-                this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
-            });
+            this.scrollToBottom();
         } else if (this.props.scrollType === PostsView.SCROLL_TYPE_NEW_MESSAGE) {
             window.requestAnimationFrame(() => {
                 // If separator exists scroll to it. Otherwise scroll to bottom.
@@ -278,6 +334,11 @@ export default class PostsView extends React.Component {
     handleResize() {
         this.updateScrolling();
     }
+    scrollToBottom() {
+        window.requestAnimationFrame(() => {
+            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        });
+    }
     componentDidMount() {
         if (this.props.postList != null) {
             this.updateScrolling();
@@ -320,6 +381,12 @@ export default class PostsView extends React.Component {
             return true;
         }
         if (nextState.displayNameType !== this.state.displayNameType) {
+            return true;
+        }
+        if (this.state.topPostId !== nextState.topPostId) {
+            return true;
+        }
+        if (this.state.isScrolling !== nextState.isScrolling) {
             return true;
         }
 
@@ -377,20 +444,36 @@ export default class PostsView extends React.Component {
             }
         }
 
+        let topPost = null;
+        if (this.state.topPostId) {
+            topPost = this.props.postList.posts[this.state.topPostId];
+        }
+
         return (
-            <div
-                ref='postlist'
-                className={'post-list-holder-by-time ' + activeClass}
-                onScroll={this.handleScroll}
-            >
-                <div className='post-list__table'>
-                    <div
-                        ref='postlistcontent'
-                        className='post-list__content'
-                    >
-                        {moreMessagesTop}
-                        {postElements}
-                        {moreMessagesBottom}
+            <div className={activeClass}>
+                <FloatingTimestamp
+                    isScrolling={this.state.isScrolling}
+                    post={topPost}
+                />
+                <ScrollToBottomArrows
+                    isScrolling={this.state.isScrolling}
+                    atBottom={this.wasAtBottom}
+                    onClick={this.scrollToBottom}
+                />
+                <div
+                    ref='postlist'
+                    className='post-list-holder-by-time'
+                    onScroll={this.handleScroll}
+                >
+                    <div className='post-list__table'>
+                        <div
+                            ref='postlistcontent'
+                            className='post-list__content'
+                        >
+                            {moreMessagesTop}
+                            {postElements}
+                            {moreMessagesBottom}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -414,3 +497,46 @@ PostsView.propTypes = {
     messageSeparatorTime: React.PropTypes.number,
     postsToHighlight: React.PropTypes.object
 };
+
+function FloatingTimestamp({isScrolling, post}) {
+    // only show on mobile
+    if ($(window).width() > 768) {
+        return <noscript />;
+    }
+
+    if (!post) {
+        return <noscript />;
+    }
+
+    const dateString = Utils.getDateForUnixTicks(post.create_at).toDateString();
+
+    let className = 'post-list__timestamp';
+    if (isScrolling) {
+        className += ' scrolling';
+    }
+
+    return (
+        <div className={className}>
+            <span>{dateString}</span>
+        </div>
+    );
+}
+
+function ScrollToBottomArrows({isScrolling, atBottom, onClick}) {
+    // only show on mobile
+    if ($(window).width() > 768) {
+        return <noscript />;
+    }
+
+    let className = 'post-list__arrows';
+    if (isScrolling && !atBottom) {
+        className += ' scrolling';
+    }
+
+    return (
+        <div
+            className={className}
+            onClick={onClick}
+        />
+    );
+}

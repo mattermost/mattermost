@@ -567,7 +567,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarHeaderBg) {
-        changeCss('.sidebar--left .team__header, .sidebar--menu .team__header', 'background:' + theme.sidebarHeaderBg, 1);
+        changeCss('.sidebar--left .team__header, .sidebar--menu .team__header, .post-list__timestamp', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('.modal .modal-header', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('#navbar .navbar-default', 'background:' + theme.sidebarHeaderBg, 1);
         changeCss('@media(max-width: 768px){.search-bar__container', 'background:' + theme.sidebarHeaderBg, 1);
@@ -575,7 +575,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarHeaderTextColor) {
-        changeCss('.sidebar--left .team__header .header__info, .sidebar--menu .team__header .header__info', 'color:' + theme.sidebarHeaderTextColor, 1);
+        changeCss('.sidebar--left .team__header .header__info, .sidebar--menu .team__header .header__info, .post-list__timestamp', 'color:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.sidebar--left .team__header .navbar-right .dropdown__icon, .sidebar--menu .team__header .navbar-right .dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor, 1);
         changeCss('.sidebar--left .team__header .user__name, .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8), 1);
         changeCss('.sidebar--left .team__header:hover .user__name, .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor, 1);

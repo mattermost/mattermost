@@ -211,6 +211,10 @@ body.ios {
 	overflow-y: hidden;
 	height: 100%;
 
+	.inactive {
+		display: none;
+	}
+
 	.post-list-holder-by-time {
 		background: #fff;
 		overflow-y: scroll;
@@ -221,9 +225,6 @@ body.ios {
 		-webkit-overflow-scrolling: touch;
 		&::-webkit-scrollbar {
 			width: 0px !important;
-		}
-		&.inactive {
-			display: none;
 		}
 		&.active {
 			display: inline;
@@ -244,6 +245,50 @@ body.ios {
 		display: block;
 		text-align: center;
 		color: grey;
+	}
+}
+
+.post-list__timestamp {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	z-index: 50;
+	width: 120px;
+	text-align: center;
+	background: $primary-color;
+	color: #fff;
+	@include border-radius(3px);
+	font-size: 12px;
+	line-height: 25px;
+	margin-left: -60px;
+	-webkit-font-smoothing: initial;
+	@include single-transition(all, 0.3s, ease);
+	@include translateY(-45px);
+	@include opacity(0);
+	display: none;
+
+	&.scrolling {
+		@include single-transition(all, 0.3s, ease);
+		@include translateY(0);
+		@include opacity(0.8);
+	}
+}
+
+.post-list__arrows {
+	background: url('../images/postArrows.png') center;
+	@include background-size(28px 28px);
+	background-repeat: no-repeat;
+	width: 40px;
+	height: 40px;
+	position: absolute;
+	bottom: 50px;
+	right: 5px;
+	z-index: 50;
+	@include opacity(0);
+	@include single-transition(all, 0.3s);
+
+	&.scrolling {
+		@include opacity(1);
 	}
 }
 
