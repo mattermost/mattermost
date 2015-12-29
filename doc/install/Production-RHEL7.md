@@ -172,8 +172,8 @@ enabled=1
     Common Name (e.g. server FQDN or YOUR name) []:mattermost.example.com
     Email Address []:admin@mattermost.example.com
 ```
+1. Run `openssl dhparam -out dhparam.pem 4096` (it will take some time).
 1. Modify the file at `/etc/nginx/conf.d/mattermost.conf` and add the following lines
-  * 
 ```
   server {
      listen         80;
