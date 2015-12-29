@@ -61,7 +61,7 @@ Maximum number of users per team, including both active and inactive users.
 "true": Ability to create new accounts is enabled via inviting new members or sharing the team invite link; “false”: the ability to create accounts is disabled. The create account button displays an error when trying to signup via an email invite or team invite link.
 
 ```"RestrictCreationToDomains": ""```  
-Teams can only be created by a verified email from this list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").
+Teams and user accounts can only be created by a verified email from this list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").
 
 ```"RestrictTeamNames": true```  
 "true": Newly created team names cannot contain the following restricted words: www, web, admin, support, notify, test, demo, mail, team, channel, internal, localhost, dockerhost, stag, post, cluster, api, oauth; “false”: Newly created team names are not restricted. 
