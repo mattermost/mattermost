@@ -52,7 +52,7 @@ export default class EmailSettings extends React.Component {
         var config = this.props.config;
         config.EmailSettings.EnableSignUpWithEmail = ReactDOM.findDOMNode(this.refs.allowSignUpWithEmail).checked;
         config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
-        config.EmailSettings.SendPushlNotifications = ReactDOM.findDOMNode(this.refs.sendPushNotifications).checked;
+        config.EmailSettings.SendPushNotifications = ReactDOM.findDOMNode(this.refs.sendPushNotifications).checked;
         config.EmailSettings.RequireEmailVerification = ReactDOM.findDOMNode(this.refs.requireEmailVerification).checked;
         config.EmailSettings.FeedbackName = ReactDOM.findDOMNode(this.refs.feedbackName).value.trim();
         config.EmailSettings.FeedbackEmail = ReactDOM.findDOMNode(this.refs.feedbackEmail).value.trim();
