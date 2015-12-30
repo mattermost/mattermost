@@ -39,6 +39,8 @@ type Store interface {
 	Webhook() WebhookStore
 	Preference() PreferenceStore
 	MarkSystemRanUnitTests()
+	WebpushEndpoint() WebpushEndpointStore
+	WebpushMessage() WebpushMessageStore
 	Close()
 }
 
@@ -189,4 +191,18 @@ type PreferenceStore interface {
 	GetAll(userId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	IsFeatureEnabled(feature, userId string) StoreChannel
+}
+
+type WebpushEndpointStore interface {
+	Save(gcm *model.WebpushEndpoint) StoreChannel
+	GetByUserIdAndEndpoint(userId string, endpoint string) StoreChannel
+	GetByUserId(userId string) StoreChannel
+	DeleteByUser(userId string) StoreChannel
+	Delete(id string) StoreChannel
+}
+
+type WebpushMessageStore interface {
+	Save(msg *model.WebpushMessage) StoreChannel
+	PopByUserId(userId string) StoreChannel
+	PopAllByUserIdAndRegistrationId(userId string, registrationId string) StoreChannel
 }

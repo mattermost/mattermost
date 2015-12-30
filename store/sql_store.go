@@ -36,18 +36,20 @@ const (
 )
 
 type SqlStore struct {
-	master     *gorp.DbMap
-	replicas   []*gorp.DbMap
-	team       TeamStore
-	channel    ChannelStore
-	post       PostStore
-	user       UserStore
-	audit      AuditStore
-	session    SessionStore
-	oauth      OAuthStore
-	system     SystemStore
-	webhook    WebhookStore
-	preference PreferenceStore
+	master          *gorp.DbMap
+	replicas        []*gorp.DbMap
+	team            TeamStore
+	channel         ChannelStore
+	post            PostStore
+	user            UserStore
+	audit           AuditStore
+	session         SessionStore
+	oauth           OAuthStore
+	system          SystemStore
+	webhook         WebhookStore
+	preference      PreferenceStore
+	webpushEndpoint WebpushEndpointStore
+	webpushMessage  WebpushMessageStore
 }
 
 func NewSqlStore() Store {
@@ -120,6 +122,8 @@ func NewSqlStore() Store {
 	sqlStore.system = NewSqlSystemStore(sqlStore)
 	sqlStore.webhook = NewSqlWebhookStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
+	sqlStore.webpushEndpoint = NewSqlWebpushEndpointStore(sqlStore)
+	sqlStore.webpushMessage = NewSqlWebpushMessageStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -532,6 +536,14 @@ func (ss SqlStore) Webhook() WebhookStore {
 
 func (ss SqlStore) Preference() PreferenceStore {
 	return ss.preference
+}
+
+func (ss SqlStore) WebpushEndpoint() WebpushEndpointStore {
+	return ss.webpushEndpoint
+}
+
+func (ss SqlStore) WebpushMessage() WebpushMessageStore {
+	return ss.webpushMessage
 }
 
 type mattermConverter struct{}

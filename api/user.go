@@ -49,6 +49,8 @@ func InitUser(r *mux.Router) {
 	sr.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	sr.Handle("/switch_to_sso", ApiAppHandler(switchToSSO)).Methods("POST")
 	sr.Handle("/switch_to_email", ApiUserRequired(switchToEmail)).Methods("POST")
+	sr.Handle("/webpush_endpoints", ApiUserRequired(RegisterWebpushEndpoint)).Methods("POST")
+	sr.Handle("/webpush_message/pop", ApiUserRequired(popWebpushMessages)).Methods("POST")
 
 	sr.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 
@@ -1475,6 +1477,10 @@ func PermanentDeleteUser(c *Context, user *model.User) *model.AppError {
 		return result.Err
 	}
 
+	if result := <-Srv.Store.WebpushEndpoint().DeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
 	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
 	c.LogAuditWithUserId("", fmt.Sprintf("success userId=%v", user.Id))
 
@@ -2116,4 +2122,77 @@ func sendSignInChangeEmailAndForget(email, teamDisplayName, teamURL, siteURL, me
 		}
 
 	}()
+}
+
+func RegisterWebpushEndpoint(c *Context, w http.ResponseWriter, r *http.Request) {
+	if len(c.Session.UserId) == 0 {
+		return
+	}
+
+	c.LogAudit("Register a webpush endpoint")
+
+	webpushEndpoint := model.WebpushEndpointFromJson(r.Body)
+	webpushEndpoint.UserId = c.Session.UserId
+
+	wStore := Srv.Store.WebpushEndpoint()
+
+	var detailedMessage string
+	var status int
+	var registered *model.WebpushEndpoint
+
+	// Register an endpoint only if not registered.
+	if gresult := <-wStore.GetByUserIdAndEndpoint(webpushEndpoint.UserId, webpushEndpoint.Endpoint); gresult.Err != nil {
+		// Error when check whether the endpoint is already registered
+		detailedMessage = gresult.Err.Error()
+		status = http.StatusInternalServerError
+	} else if endpoints := gresult.Data.([]*model.WebpushEndpoint); len(endpoints) > 0 {
+		// Already registered
+		registered = endpoints[0]
+		status = http.StatusOK
+	} else if sresult := <-wStore.Save(webpushEndpoint); sresult.Err != nil {
+		// Error when register the endpoint
+		detailedMessage = sresult.Err.Error()
+		status = http.StatusInternalServerError
+	} else {
+		// Register the endpoint
+		registered = webpushEndpoint
+		status = http.StatusCreated
+	}
+
+	if registered != nil {
+		w.WriteHeader(status)
+		w.Write([]byte(registered.ToJson()))
+		c.LogAudit("completed")
+	} else {
+		c.Err = model.NewAppError("AddWebPushEndpoint", "Failed to register a webpush endpoint", detailedMessage)
+		c.Err.StatusCode = status
+	}
+}
+
+func popWebpushMessages(c *Context, w http.ResponseWriter, r *http.Request) {
+	if len(c.Session.UserId) == 0 {
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+
+	registrationId := props["registration_id"]
+	if len(registrationId) == 0 {
+		c.SetInvalidParam("popWebpushMessages", "registration_id")
+		return
+	}
+
+	wStore := Srv.Store.WebpushMessage()
+
+	if result := <-wStore.PopAllByUserIdAndRegistrationId(c.Session.UserId, registrationId); result.Err != nil {
+		c.Err = model.NewAppError(
+			"PopWebpushMessages",
+			"Failed to pop webpush messages",
+			result.Err.Error())
+		c.Err.StatusCode = http.StatusInternalServerError
+	} else {
+		messages := result.Data.([]*model.WebpushMessage)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(model.WebpushMessageListToJson(messages)))
+	}
 }

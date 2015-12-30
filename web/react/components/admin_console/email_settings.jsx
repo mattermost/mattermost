@@ -19,6 +19,7 @@ export default class EmailSettings extends React.Component {
         this.state = {
             sendEmailNotifications: this.props.config.EmailSettings.SendEmailNotifications,
             sendPushNotifications: this.props.config.EmailSettings.SendPushNotifications,
+            sendWebPushNotifications: this.props.config.EmailSettings.SendWebPushNotifications,
             saveNeeded: false,
             serverError: null,
             emailSuccess: null,
@@ -45,6 +46,14 @@ export default class EmailSettings extends React.Component {
             s.sendPushNotifications = false;
         }
 
+        if (action === 'sendWebPushNotifications_true') {
+            s.sendWebPushNotifications = true;
+        }
+
+        if (action === 'sendWebPushNotifications_false') {
+            s.sendWebPushNotifications = false;
+        }
+
         this.setState(s);
     }
 
@@ -53,6 +62,7 @@ export default class EmailSettings extends React.Component {
         config.EmailSettings.EnableSignUpWithEmail = ReactDOM.findDOMNode(this.refs.allowSignUpWithEmail).checked;
         config.EmailSettings.SendEmailNotifications = ReactDOM.findDOMNode(this.refs.sendEmailNotifications).checked;
         config.EmailSettings.SendPushNotifications = ReactDOM.findDOMNode(this.refs.sendPushNotifications).checked;
+        config.EmailSettings.SendWebPushlNotifications = ReactDOM.findDOMNode(this.refs.sendWebPushNotifications).checked;
         config.EmailSettings.RequireEmailVerification = ReactDOM.findDOMNode(this.refs.requireEmailVerification).checked;
         config.EmailSettings.FeedbackName = ReactDOM.findDOMNode(this.refs.feedbackName).value.trim();
         config.EmailSettings.FeedbackEmail = ReactDOM.findDOMNode(this.refs.feedbackEmail).value.trim();
@@ -587,6 +597,83 @@ export default class EmailSettings extends React.Component {
                                 disabled={!this.state.sendPushNotifications}
                             />
                             <p className='help-text'>{'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='sendWebPushNotifications'
+                        >
+                            {'Send Web Push Notifications: '}
+                        </label>
+                        <div className='col-sm-8'>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='sendWebPushNotifications'
+                                    value='true'
+                                    ref='sendWebPushNotifications'
+                                    defaultChecked={this.props.config.EmailSettings.SendWebPushNotifications}
+                                    onChange={this.handleChange.bind(this, 'sendWebPushNotifications_true')}
+                                />
+                                    {'true'}
+                            </label>
+                            <label className='radio-inline'>
+                                <input
+                                    type='radio'
+                                    name='sendWebPushNotifications'
+                                    value='false'
+                                    defaultChecked={!this.props.config.EmailSettings.SendWebPushNotifications}
+                                    onChange={this.handleChange.bind(this, 'sendWebPushNotifications_false')}
+                                />
+                                    {'false'}
+                            </label>
+                            <p className='help-text'>{'When true, Mattermost attempts to send web push notifications through GCM(Google Cloud Messaging) server.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='GcmKey'
+                        >
+                            {'GCM API Key:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='GcmKey'
+                                ref='GcmKey'
+                                placeholder='E.g.: "AIzaSyZ-1ubk1CyZnHPJ_0GBYzPu7Udno5aA"'
+                                defaultValue={this.props.config.EmailSettings.GcmKey}
+                                onChange={this.handleChange}
+                                disabled={!this.state.sendWebPushNotifications}
+                            />
+                            <p className='help-text'>{'An API key that is required to be granted authorized access to Google services such as GCM server'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='GcmSenderId'
+                        >
+                            {'GCM Sender Id:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='GcmSenderId'
+                                ref='GcmSenderId'
+                                placeholder='E.g.: "1234567891234"'
+                                defaultValue={this.props.config.EmailSettings.GcmSenderId}
+                                onChange={this.handleChange}
+                                disabled={!this.state.sendWebPushNotifications}
+                            />
+                            <p className='help-text'>{'A unique numerical value created when you configure your API project (given as "Project Number" in the Google Developers Console), which is required to send messages to GCM server'}</p>
                         </div>
                     </div>
 

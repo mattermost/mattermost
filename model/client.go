@@ -971,6 +971,15 @@ func (c *Client) RegenOutgoingWebhookToken(data map[string]string) (*Result, *Ap
 	}
 }
 
+func (c *Client) RegisterWebpushEndpoint(data map[string]string) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/users/webpush_endpoints", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) MockSession(sessionToken string) {
 	c.AuthToken = sessionToken
 	c.AuthType = HEADER_BEARER

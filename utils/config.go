@@ -115,6 +115,23 @@ func GetLogFileLocation(fileLocation string) string {
 	}
 }
 
+func UpdateGcmSenderId(fileName string, gcmSenderId string) *model.AppError {
+	file, err := ioutil.ReadFile(fileName)
+	var data map[string]interface{}
+	err = json.Unmarshal(file, &data)
+	if err != nil {
+		return model.NewAppError("UpdateGcmSenderId", "An error occurred while unmarshaling "+fileName, err.Error())
+	}
+	data["gcm_sender_id"] = gcmSenderId
+	result, err := json.MarshalIndent(data, "", "  ")
+	err = ioutil.WriteFile(fileName, result, 0644)
+	if err != nil {
+		return model.NewAppError("UpdateGcmSenderId", "An error occurred while saving the file to "+fileName, err.Error())
+	}
+
+	return nil
+}
+
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {

@@ -1439,3 +1439,33 @@ export function removeLicenseFile(success, error) {
 
     track('api', 'api_license_upload');
 }
+
+export function registerWebpushEndpoint(endpoint, success, error) {
+    $.ajax({
+        url: '/api/v1/users/webpush_endpoints',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({endpoint: endpoint}),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('registerWebpushEndpoint', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function popWebpushMessages(registrationId, success, error) {
+    $.ajax({
+        url: '/api/v1/users/webpush_message/pop',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify({registration_id: registrationId}),
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('popWebpushMessages', xhr, status, err);
+            error(e);
+        }
+    });
+}

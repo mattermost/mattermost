@@ -455,6 +455,10 @@ export default {
         LOC_PREVIEW: {
             label: 'loc_preview',
             description: 'Show user language in display settings'
+        },
+        WEB_PUSH: {
+            label: 'web_push',
+            description: 'Show notifications even if your web browser is closed (Google Chrome only)'
         }
     },
     OVERLAY_TIME_DELAY: 400,

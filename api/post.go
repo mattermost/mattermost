@@ -4,6 +4,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -412,6 +413,68 @@ func handleWebhookEventsAndForget(c *Context, post *model.Post, team *model.Team
 
 }
 
+type GcmEndpoint struct {
+	Endpoint       string
+	RegistrationId string
+}
+
+func parseGcmEndpoint(endpoint string) GcmEndpoint {
+	segments := strings.Split(strings.Trim(endpoint, "/ "), "/")
+
+	return GcmEndpoint{
+		strings.Join(segments[:len(segments)-1], "/"),
+		segments[len(segments)-1],
+	}
+}
+
+func sendGcmNotification(w *model.WebpushEndpoint) (*http.Response, error) {
+	httpClient := http.Client{}
+	parsed := parseGcmEndpoint(w.Endpoint)
+
+	if u, err := url.Parse(parsed.Endpoint); err != nil {
+		return nil, model.NewAppError("sendGcmNotification", "Invalid endpoint="+parsed.Endpoint, err.Error())
+	} else if u.Host != "android.googleapis.com" && u.Host != "gcm-http.googleapis.com" {
+		// Ignore non-gcm endpoints
+		l4g.Debug("Unsupported type of Webpush endpoint=%s", parsed.Endpoint)
+		return nil, nil
+	}
+
+	body := strings.NewReader(`{"registration_ids": ["` + parsed.RegistrationId + `"]}`)
+	request, _ := http.NewRequest("POST", parsed.Endpoint, body)
+	request.Header.Add("Authorization", "key="+*utils.Cfg.EmailSettings.GcmKey)
+	request.Header.Add("Content-Type", "application/json")
+
+	return httpClient.Do(request)
+}
+
+func postprocessGcmResponse(r *http.Response, w *model.WebpushEndpoint) {
+	var message struct {
+		MulticastId  int `json:"multicast_id"`
+		Success      int `json:"success"`
+		Failure      int `json:"failure"`
+		CanonicalIds int `json:"canonical_ids"`
+		Results      []struct {
+			Error string `json:"error"`
+		} `json:"results"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&message); err != nil {
+		l4g.Error("Failed to parse err=%v", err)
+	} else {
+		if message.Failure > 0 {
+			l4g.Error("Failed to send push notification, response=%+v", message)
+		}
+		for _, result := range message.Results {
+			if result.Error == "NotRegistered" {
+				l4g.Debug("Deleting unregistered Webpush endpoint: %+v", w)
+				if result := <-Srv.Store.WebpushEndpoint().Delete(w.Id); result.Err != nil {
+					l4g.Error("Failed to delete Webpush endpoint, id=%v, err=%v", w.Id, result.Err)
+				}
+			}
+		}
+	}
+}
+
 func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, channel *model.Channel) {
 
 	go func() {
@@ -651,7 +714,47 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 						l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), profileMap[id].Email, err)
 					}
 
+					if enabled := <-Srv.Store.Preference().IsFeatureEnabled("web_push", id); enabled.Err != nil {
+						l4g.Error("Failed to retrieve web_push preference, err=%v", enabled.Err)
+					} else if enabled.Data.(bool) && *utils.Cfg.EmailSettings.SendWebPushNotifications {
+						wStore := Srv.Store.WebpushEndpoint()
+						wChan := wStore.GetByUserId(id)
+						if result := <-wChan; result.Err != nil {
+							l4g.Error("Failed to retrieve webpush endpoints in notifications id=%v, err=%v", id, result.Err)
+						} else {
+							ws := result.Data.([]*model.WebpushEndpoint)
+							for _, w := range ws {
+								mStore := Srv.Store.WebpushMessage()
+
+								msg := &model.WebpushMessage{}
+								msg.ToUserId = id
+								msg.Message = senderName + " wrote: " + post.Message
+								if channel.Type == model.CHANNEL_DIRECT {
+									msg.Title = senderName
+								} else {
+									msg.Title = channel.DisplayName
+								}
+								msg.Url = teamURL + "/channels/" + channel.Name
+								parsed := parseGcmEndpoint(w.Endpoint)
+								msg.RegistrationId = parsed.RegistrationId
+
+								errorTemplate := "Failed to send a webpush notification id=%v, err=%v"
+								if result := <-mStore.Save(msg); result.Err != nil {
+									l4g.Error(errorTemplate, w.Id, result.Err)
+								} else {
+									l4g.Debug("Sending Webpush notification via GCM, id=%s user_id=%s endpoint=%s", w.Id, w.UserId, w.Endpoint)
+									if response, err := sendGcmNotification(w); err != nil {
+										l4g.Error(errorTemplate, w.Id, err)
+									} else {
+										postprocessGcmResponse(response, w)
+									}
+								}
+							}
+						}
+					}
+
 					if *utils.Cfg.EmailSettings.SendPushNotifications {
+
 						sessionChan := Srv.Store.Session().GetSessions(id)
 						if result := <-sessionChan; result.Err != nil {
 							l4g.Error(utils.T("api.post.send_notifications_and_forget.sessions.error"), id, result.Err)

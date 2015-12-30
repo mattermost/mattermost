@@ -1219,3 +1219,32 @@ func TestSwitchToEmail(t *testing.T) {
 		t.Fatal("should have failed - wrong user")
 	}
 }
+
+func TestWebPush(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	data := make(map[string]string)
+	data["endpoint"] = "https://example.org/endpoint"
+
+	Client.RegisterWebpushEndpoint(data)
+	Client.RegisterWebpushEndpoint(data)
+
+	wStore := Srv.Store.WebpushEndpoint()
+	if result := <-wStore.GetByUserId(data["user_id"]); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		ws := result.Data.([]*model.WebpushEndpoint)
+		if len(ws) > 1 {
+			t.Fatal("Should not allow duplication.")
+		}
+	}
+}
