@@ -38,7 +38,7 @@ Team Administrators would set this to **No** when they:
 
 #### Invite Code 
 
-The **Invite Code** is used as part of the URL in the team invititation link retrieved from the **Main Menu** > **Get Team Invite Link**. Click **Re-Generate** and then **Save** to generate a new team invitation link and invalidate the previous link.
+The **Invite Code** is used as part of the URL in the team invitation link retrieved from the **Main Menu** > **Get Team Invite Link**. Click **Re-Generate** and then **Save** to generate a new team invitation link and invalidate the previous link.
 
 ### Import
 
