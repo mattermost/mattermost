@@ -424,7 +424,7 @@ export default class GeneralTab extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <div className='setting-list__hint'>{'Your Invite Code is used in the URL sent to people to join your team. Regenerating your Invite Code will invalidate the URLs in previous invitations, unless "Allow anyone to sign-up from login page" is enabled.'}</div>
+                    <div className='setting-list__hint'>{'Regenerating your Invite Code will invalidate the sign-up links created by the "Get Team Invite Link"  option in the main menu, as well as links sent in email via the "Invite New Member" menu option.'}</div>
                 </div>
             );
 
