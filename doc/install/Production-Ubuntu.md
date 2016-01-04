@@ -107,19 +107,20 @@ exec bin/platform
   * Below is a sample configuration with the minimum settings required to configure Mattermost
 ```
    server {
-	  server_name mattermost.example.com;
+      server_name mattermost.example.com;
+
       location / {
-		  client_max_body_size 50M;
-		  proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection "upgrade";
-		  proxy_set_header Host $http_host;
-		  proxy_set_header X-Real-IP $remote_addr;
-		  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		  proxy_set_header X-Forwarded-Proto $scheme;
-		  proxy_set_header   X-Frame-Options   SAMEORIGIN;
-          proxy_pass http://10.10.10.2:8065;
+         client_max_body_size 50M;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection "upgrade";
+         proxy_set_header Host $http_host;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header X-Forwarded-Proto $scheme;
+         proxy_set_header X-Frame-Options SAMEORIGIN;
+         proxy_pass http://10.10.10.2:8065;
       }
-    }
+   }
 ```
   * Remove the existing file with
   * ``` sudo rm /etc/nginx/sites-enabled/default```
@@ -151,29 +152,39 @@ exec bin/platform
 4. Modify the file at `/etc/nginx/sites-available/mattermost` and add the following lines:
 ```
   server {
-       listen         80;
-       server_name    mattermost.example.com;
-       return         301 https://$server_name$request_uri;
+     listen         80;
+     server_name    mattermost.example.com;
+     return         301 https://$server_name$request_uri;
   }
   
   server {
-        listen 443 ssl;
-        server_name mattermost.example.com;
-		
-        ssl on;
-        ssl_certificate /home/ubuntu/cert/mattermost.crt;
-        ssl_certificate_key /home/ubuntu/cert/mattermost.key;
-        ssl_dhparam /home/ubuntu/cert/dhparam.pem;
-        ssl_session_timeout 5m;
-        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
-        ssl_prefer_server_ciphers on;
-        ssl_session_cache shared:SSL:10m;
+     listen 443 ssl;
+     server_name mattermost.example.com;
 
-		# add to location / above
-		location / {
-			gzip off;
-			proxy_set_header X-Forwarded-Ssl on;
+     ssl on;
+     ssl_certificate /home/ubuntu/cert/mattermost.crt;
+     ssl_certificate_key /home/ubuntu/cert/mattermost.key;
+     ssl_dhparam /home/ubuntu/cert/dhparam.pem;
+     ssl_session_timeout 5m;
+     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+     ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+     ssl_prefer_server_ciphers on;
+     ssl_session_cache shared:SSL:10m;
+
+     location / {
+        gzip off;
+        proxy_set_header X-Forwarded-Ssl on;
+        client_max_body_size 50M;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Frame-Options SAMEORIGIN;
+        proxy_pass http://10.10.10.2:8065;
+     }
+  }
 ```
 
 
