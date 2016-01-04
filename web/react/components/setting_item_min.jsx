@@ -8,7 +8,7 @@ export default class SettingItemMin extends React.Component {
             editButton = (
                 <li className='col-sm-2 section-edit'>
                     <a
-                        className='section-edit theme'
+                        className='theme'
                         href='#'
                         onClick={this.props.updateSection}
                     >

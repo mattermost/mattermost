@@ -101,22 +101,24 @@ export default class TutorialTip extends React.Component {
                     <div className={'tip-overlay ' + this.props.overlayClass}>
                         <div className='arrow'></div>
                         {this.props.screens[this.state.currentScreen]}
-                        <div className='tutorial__circles'>{dots}</div>
-                        <div className='text-right'>
-                            <button
-                                className='btn btn-primary'
-                                onClick={this.handleNext}
-                            >
-                                {buttonText}
-                            </button>
-                            <div className='tip-opt'>
-                                {'Seen this before? '}
-                                <a
-                                    href='#'
-                                    onClick={this.skipTutorial}
+                        <div className='tutorial__footer'>
+                            <div className='tutorial__circles'>{dots}</div>
+                            <div className='text-right'>
+                                <button
+                                    className='btn btn-primary'
+                                    onClick={this.handleNext}
                                 >
-                                    {'Opt out of these tips.'}
-                                </a>
+                                    {buttonText}
+                                </button>
+                                <div className='tip-opt'>
+                                    {'Seen this before? '}
+                                    <a
+                                        href='#'
+                                        onClick={this.skipTutorial}
+                                    >
+                                        {'Opt out of these tips.'}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
