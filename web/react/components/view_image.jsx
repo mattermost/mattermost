@@ -40,7 +40,7 @@ export default class ViewImageModal extends React.Component {
 
         this.state = {
             imgId: this.props.startId,
-            fileInfo: new Map(),
+            fileInfo: null,
             imgHeight: '100%',
             loaded,
             progress,
@@ -109,12 +109,16 @@ export default class ViewImageModal extends React.Component {
     onFileStoreChange(filename) {
         const id = this.props.filenames.indexOf(filename);
 
-        if (id !== -1 && !this.state.loaded[id]) {
-            const fileInfo = this.state.fileInfo;
-            fileInfo.set(filename, FileStore.getInfo(filename));
-            this.setState({fileInfo});
+        if (id !== -1) {
+            if (id === this.state.imgId) {
+                this.setState({
+                    fileInfo: FileStore.getInfo(filename)
+                });
+            }
 
-            this.loadImage(id, filename);
+            if (!this.state.loaded[id]) {
+                this.loadImage(id, filename);
+            }
         }
     }
 
@@ -131,6 +135,10 @@ export default class ViewImageModal extends React.Component {
             AsyncClient.getFileInfo(filename);
             return;
         }
+
+        this.setState({
+            fileInfo: FileStore.getInfo(filename)
+        });
 
         if (!this.state.loaded[id]) {
             this.loadImage(id, filename);
@@ -227,8 +235,8 @@ export default class ViewImageModal extends React.Component {
 
         var content;
         if (this.state.loaded[this.state.imgId]) {
-            // if a file has been loaded, we also have its info
-            const fileInfo = this.state.fileInfo.get(filename);
+            // this.state.fileInfo is for the current image and we shoudl have it before we load the image
+            const fileInfo = this.state.fileInfo;
 
             const extension = Utils.splitFileLocation(filename).ext;
             const fileType = Utils.getFileType(extension);
