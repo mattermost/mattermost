@@ -32,6 +32,14 @@
     &.tip-overlay--sidebar {
         max-width: 75%;
         margin: 50px 0 0 10px;
+        min-height: 310px;
+        .tutorial__footer {
+            position: absolute;
+            width: 100%;
+            bottom: 20px;
+            left: 0;
+            padding: 0 20px;
+        }
         .arrow {
             top: 80px;
             left: -10px;

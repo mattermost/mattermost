@@ -229,6 +229,12 @@
 				height: 80%;
 			}
 
+			audio, canvas, progress, video {
+				max-width: 100%;
+				height: auto;
+				display: block;
+			}
+
 			.modal-close {
 				background: url("../images/close.png") no-repeat;
 				@include background-size(100% 100%);

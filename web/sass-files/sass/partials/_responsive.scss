@@ -299,15 +299,6 @@
                 .settings-content {
                     &.minimize-settings {
                         display: block;
-                        .section-edit {
-                            position: absolute;
-                            top: 7px;
-                            right: 0;
-                            width: 50px;
-                            .fa {
-                                display: inline-block;
-                            }
-                        }
                     }
                     .section-min:hover {
                         background: none;
@@ -349,12 +340,24 @@
                 width: 100%;
             }
             .settings-content {
+                .section-edit {
+                    position: absolute;
+                    top: 14px;
+                    right: 0;
+                    padding-right: 0;
+                    .fa {
+                        display: inline-block;
+                    }
+                }
                 &.minimize-settings {
                     padding: 0;
                     display: none;
                     .user-settings {
                         padding: 70px 20px 30px;
                     }
+                }
+                .section-min:hover {
+                    background: none !important;
                 }
             }
             .settings-links {
@@ -736,6 +739,9 @@
     }
 }
 @media screen and (max-width: 480px) {
+    .tip-overlay.tip-overlay--sidebar {
+        min-height: 350px;
+    }
     .modal {
         .modal-body {
             max-height: 70%;
