@@ -1,6 +1,8 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ChannelStore from '../stores/channel_store.jsx';
+
 const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#\&\?]*)/;
 
 export default class YoutubeVideo extends React.Component {
@@ -12,6 +14,7 @@ export default class YoutubeVideo extends React.Component {
 
         this.play = this.play.bind(this);
         this.stop = this.stop.bind(this);
+        this.stopOnChannelChange = this.stopOnChannelChange.bind(this);
 
         this.state = {
             playing: false,
@@ -95,10 +98,20 @@ export default class YoutubeVideo extends React.Component {
 
     play() {
         this.setState({playing: true});
+
+        if (ChannelStore.getCurrentId() === this.props.channelId) {
+            ChannelStore.addChangeListener(this.stopOnChannelChange);
+        }
     }
 
     stop() {
         this.setState({playing: false});
+    }
+
+    stopOnChannelChange() {
+        if (ChannelStore.getCurrentId() !== this.props.channelId) {
+            this.stop();
+        }
     }
 
     render() {
@@ -157,5 +170,6 @@ export default class YoutubeVideo extends React.Component {
 }
 
 YoutubeVideo.propTypes = {
+    channelId: React.PropTypes.string.isRequired,
     link: React.PropTypes.string.isRequired
 };

@@ -18,7 +18,7 @@ class ChannelStoreClass extends EventEmitter {
     constructor(props) {
         super(props);
 
-        this.setMaxListeners(11);
+        this.setMaxListeners(15);
 
         this.emitChange = this.emitChange.bind(this);
         this.addChangeListener = this.addChangeListener.bind(this);

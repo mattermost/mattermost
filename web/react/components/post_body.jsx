@@ -120,7 +120,12 @@ export default class PostBody extends React.Component {
         }
 
         if (YoutubeVideo.isYoutubeLink(link)) {
-            return <YoutubeVideo link={link} />;
+            return (
+                <YoutubeVideo
+                    channelId={post.channel_id}
+                    link={link}
+                />
+            );
         }
 
         for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
