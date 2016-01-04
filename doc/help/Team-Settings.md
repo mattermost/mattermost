@@ -38,7 +38,7 @@ Team Administrators would set this to **No** when they:
 
 #### Invite Code 
 
-When allowing anyone to sign-up from the login page, the **Invite Code** is used as part of the sign-up process. Clicking **Re-Generate** will invalidate the previous invitations and invitation URLs. 
+The **Invite Code** is used as part of the URL in the team invitation link retrieved from the **Main Menu** > **Get Team Invite Link**. Click **Re-Generate** and then **Save** to generate a new team invitation link and invalidate the previous link.
 
 ### Import
 

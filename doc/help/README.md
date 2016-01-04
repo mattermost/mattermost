@@ -2,6 +2,7 @@
 
 - Getting Started
    - [Sign-in](Sign-in.md)
+   - [Creating Teams](Creating-Teams.md)
 
 - User Interface
    - Main Menu
@@ -17,6 +18,7 @@
      - [Channel Types](Channels.md#channel-types)
      - [Managing Channels](Channels.md#managing-channels)
      - [Channel Settings](Channels.md#channel-settings)
+  -  [Notifications](Notifications.md)
      
 - System Console
   - Team

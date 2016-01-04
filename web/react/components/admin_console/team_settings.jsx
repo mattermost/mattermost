@@ -206,7 +206,7 @@ export default class TeamSettings extends React.Component {
                                 defaultValue={this.props.config.TeamSettings.RestrictCreationToDomains}
                                 onChange={this.handleChange}
                             />
-                            <p className='help-text'>{'Teams can only be created from a specific domain (e.g. "mattermost.org") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").'}</p>
+                            <p className='help-text'>{'Teams and user accounts can only be created from a specific domain (e.g. "mattermost.org") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.org").'}</p>
                         </div>
                     </div>
 
