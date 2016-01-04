@@ -141,6 +141,9 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        const showUsername = 'Show username (team default)';
+        const showNickname = 'Show nickname if one exists, otherwise show first and last name';
+        const showFullName = 'Show first and last name';
         if (this.props.activeSection === 'name_format') {
             const nameFormat = [false, false, false];
             if (this.state.nameFormat === 'nickname_full_name') {
@@ -157,10 +160,10 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
-                                checked={nameFormat[0]}
-                                onChange={this.handleNameRadio.bind(this, 'nickname_full_name')}
+                                checked={nameFormat[1]}
+                                onChange={this.handleNameRadio.bind(this, 'username')}
                             />
-                            {'Show nickname if one exists, otherwise show first and last name (team default)'}
+                            {showUsername}
                         </label>
                         <br/>
                     </div>
@@ -168,10 +171,10 @@ export default class UserSettingsDisplay extends React.Component {
                         <label>
                             <input
                                 type='radio'
-                                checked={nameFormat[1]}
-                                onChange={this.handleNameRadio.bind(this, 'username')}
+                                checked={nameFormat[0]}
+                                onChange={this.handleNameRadio.bind(this, 'nickname_full_name')}
                             />
-                            {'Show username'}
+                            {showNickname}
                         </label>
                         <br/>
                     </div>
@@ -182,11 +185,11 @@ export default class UserSettingsDisplay extends React.Component {
                                 checked={nameFormat[2]}
                                 onChange={this.handleNameRadio.bind(this, 'full_name')}
                             />
-                            {'Show first and last name'}
+                            {showFullName}
                         </label>
                         <br/>
                     </div>
-                    <div><br/>{'Set what name to display in the Direct Messages list.'}</div>
+                    <div><br/>{'Set how to display other user\'s names in posts and the Direct Messages list.'}</div>
                 </div>
             ];
 
@@ -205,11 +208,11 @@ export default class UserSettingsDisplay extends React.Component {
         } else {
             let describe = '';
             if (this.state.nameFormat === 'username') {
-                describe = 'Show username';
+                describe = showUsername;
             } else if (this.state.nameFormat === 'full_name') {
-                describe = 'Show first and last name';
+                describe = showFullName;
             } else {
-                describe = 'Show nickname if one exists, otherwise show first and last name (team default)';
+                describe = showNickname;
             }
 
             nameFormatSection = (
