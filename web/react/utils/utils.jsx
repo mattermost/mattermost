@@ -1261,3 +1261,13 @@ export function isFeatureEnabled(feature) {
 export function isSystemMessage(post) {
     return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
 }
+
+export function fillArray(value, length) {
+    const arr = [];
+
+    for (let i = 0; i < length; i++) {
+        arr.push(value);
+    }
+
+    return arr;
+}

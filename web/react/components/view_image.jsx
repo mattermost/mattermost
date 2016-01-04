@@ -31,19 +31,12 @@ export default class ViewImageModal extends React.Component {
         this.onMouseEnterImage = this.onMouseEnterImage.bind(this);
         this.onMouseLeaveImage = this.onMouseLeaveImage.bind(this);
 
-        const loaded = [];
-        const progress = [];
-        for (var i = 0; i < this.props.filenames.length; i++) {
-            loaded.push(false);
-            progress.push(0);
-        }
-
         this.state = {
             imgId: this.props.startId,
             fileInfo: null,
             imgHeight: '100%',
-            loaded,
-            progress,
+            loaded: Utils.fillArray(false, this.props.filenames.length),
+            progress: Utils.fillArray(0, this.props.filenames.length),
             showFooter: false
         };
     }
@@ -103,6 +96,13 @@ export default class ViewImageModal extends React.Component {
             this.onModalShown(nextProps);
         } else if (nextProps.show === false && this.props.show === true) {
             this.onModalHidden();
+        }
+
+        if (!Utils.areObjectsEqual(this.props.filenames, nextProps.filenames)) {
+            this.setState({
+                loaded: Utils.fillArray(false, nextProps.filenames.length),
+                progress: Utils.fillArray(0, nextProps.filenames.length)
+            });
         }
     }
 
