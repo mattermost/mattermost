@@ -522,7 +522,7 @@ func writeFile(f []byte, path string) *model.AppError {
 		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
+		s := s3.New(auth, awsRegion())
 		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
 
 		ext := filepath.Ext(path)
@@ -562,7 +562,7 @@ func readFile(path string) ([]byte, *model.AppError) {
 		auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 
-		s := s3.New(auth, aws.Regions[utils.Cfg.FileSettings.AmazonS3Region])
+		s := s3.New(auth, awsRegion())
 		bucket := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
 
 		// try to get the file from S3 with some basic retry logic
@@ -612,4 +612,18 @@ func openFileWriteStream(path string) (io.Writer, *model.AppError) {
 
 func closeFileWriteStream(file io.Writer) {
 	file.(*os.File).Close()
+}
+
+func awsRegion() aws.Region {
+	if region, ok := aws.Regions[utils.Cfg.FileSettings.AmazonS3Region]; ok {
+		return region
+	}
+
+	return aws.Region{
+		Name:                 utils.Cfg.FileSettings.AmazonS3Region,
+		S3Endpoint:           utils.Cfg.FileSettings.AmazonS3Endpoint,
+		S3BucketEndpoint:     utils.Cfg.FileSettings.AmazonS3BucketEndpoint,
+		S3LocationConstraint: *utils.Cfg.FileSettings.AmazonS3LocationConstraint,
+		S3LowercaseBucket:    *utils.Cfg.FileSettings.AmazonS3LowercaseBucket,
+	}
 }
