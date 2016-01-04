@@ -240,7 +240,14 @@ export default class ManageOutgoingHooks extends React.Component {
 
         return (
             <div key='addOutgoingHook'>
-                {'Create webhooks to send new message events to an external integration. Please see '}<a href='http://mattermost.org/webhooks'>{'http://mattermost.org/webhooks'}</a> {' to learn more.'}
+                {'Create webhooks to send new message events to an external integration. Please see '}
+                <a
+                    href='http://mattermost.org/webhooks'
+                    target='_blank'
+                >
+                    {'http://mattermost.org/webhooks'}
+                </a>
+                {' to learn more.'}
                 <div><label className='control-label padding-top x2'>{'Add a new outgoing webhook'}</label></div>
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
