@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
-	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -71,8 +70,7 @@ func InitWeb() {
 	mainrouter.Handle("/verify_email", api.AppHandlerIndependent(verifyEmail)).Methods("GET")
 	mainrouter.Handle("/find_team", api.AppHandlerIndependent(findTeam)).Methods("GET")
 	mainrouter.Handle("/signup_team", api.AppHandlerIndependent(signup)).Methods("GET")
-	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(loginCompleteOAuth)).Methods("GET")
-	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(signupCompleteOAuth)).Methods("GET")
+	mainrouter.Handle("/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(completeOAuth)).Methods("GET")
 
 	mainrouter.Handle("/admin_console", api.UserRequired(adminConsole)).Methods("GET")
 	mainrouter.Handle("/admin_console/", api.UserRequired(adminConsole)).Methods("GET")
@@ -92,6 +90,7 @@ func InitWeb() {
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/login", api.AppHandler(login)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/logout", api.AppHandler(logout)).Methods("GET")
 	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/reset_password", api.AppHandler(resetPassword)).Methods("GET")
+	mainrouter.Handle("/{team:[A-Za-z0-9-]+(__)?[A-Za-z0-9-]+}/claim", api.AppHandler(claimAccount)).Methods("GET")
 	mainrouter.Handle("/{team}/pl/{postid}", api.AppHandler(postPermalink)).Methods("GET")         // Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/login/{service}", api.AppHandler(loginWithOAuth)).Methods("GET")    // Bug in gorilla.mux prevents us from using regex here.
 	mainrouter.Handle("/{team}/channels/{channelname}", api.AppHandler(getChannel)).Methods("GET") // Bug in gorilla.mux prevents us from using regex here.
@@ -565,7 +564,7 @@ func verifyEmail(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			c.LogAudit("Email Verified")
-			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+name+"/login?verified=true&email="+url.QueryEscape(email), http.StatusTemporaryRedirect)
+			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+name+"/login?extra=verified&email="+url.QueryEscape(email), http.StatusTemporaryRedirect)
 			return
 		}
 	}
@@ -687,89 +686,63 @@ func signupWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_SIGNUP
 
-	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri, "")
+	if authUrl, err := api.GetAuthorizationCode(c, service, teamName, stateProps, ""); err != nil {
+		c.Err = err
+		return
+	} else {
+		http.Redirect(w, r, authUrl, http.StatusFound)
+	}
 }
 
-func signupCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
+func completeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	service := params["service"]
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
-	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
+	uri := c.GetSiteURL() + "/" + service + "/complete"
 
-	if body, team, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if body, team, props, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
 		c.Err = err
 		return
 	} else {
-		var user *model.User
-		provider := einterfaces.GetOauthProvider(service)
-		if provider == nil {
-			c.Err = model.NewAppError("signupCompleteOAuth", service+" oauth not avlailable on this server", "")
-			return
-		} else {
-			user = provider.GetUserFromJson(body)
-		}
-
-		if user == nil {
-			c.Err = model.NewAppError("signupCompleteOAuth", "Could not create user out of "+service+" user object", "")
-			return
-		}
-
-		suchan := api.Srv.Store.User().GetByAuth(team.Id, user.AuthData, service)
-		euchan := api.Srv.Store.User().GetByEmail(team.Id, user.Email)
-
-		if team.Email == "" {
-			team.Email = user.Email
-			if result := <-api.Srv.Store.Team().Update(team); result.Err != nil {
-				c.Err = result.Err
-				return
+		action := props["action"]
+		switch action {
+		case model.OAUTH_ACTION_SIGNUP:
+			api.CreateOAuthUser(c, w, r, service, body, team)
+			if c.Err == nil {
+				root(c, w, r)
 			}
-		} else {
-			found := true
-			count := 0
-			for found {
-				if found = api.IsUsernameTaken(user.Username, team.Id); c.Err != nil {
-					return
-				} else if found {
-					user.Username = user.Username + strconv.Itoa(count)
-					count += 1
-				}
+			break
+		case model.OAUTH_ACTION_LOGIN:
+			api.LoginByOAuth(c, w, r, service, body, team)
+			if c.Err == nil {
+				root(c, w, r)
 			}
+			break
+		case model.OAUTH_ACTION_EMAIL_TO_SSO:
+			api.CompleteSwitchWithOAuth(c, w, r, service, body, team, props["email"])
+			if c.Err == nil {
+				http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+team.Name+"/login?extra=signin_change", http.StatusTemporaryRedirect)
+			}
+			break
+		case model.OAUTH_ACTION_SSO_TO_EMAIL:
+			api.LoginByOAuth(c, w, r, service, body, team)
+			if c.Err == nil {
+				http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host+"/"+team.Name+"/"+"/claim?email="+url.QueryEscape(props["email"]), http.StatusTemporaryRedirect)
+			}
+			break
+		default:
+			api.LoginByOAuth(c, w, r, service, body, team)
+			if c.Err == nil {
+				root(c, w, r)
+			}
+			break
 		}
-
-		if result := <-suchan; result.Err == nil {
-			c.Err = model.NewAppError("signupCompleteOAuth", "This "+service+" account has already been used to sign up for team "+team.DisplayName, "email="+user.Email)
-			return
-		}
-
-		if result := <-euchan; result.Err == nil {
-			c.Err = model.NewAppError("signupCompleteOAuth", "Team "+team.DisplayName+" already has a user with the email address attached to your "+service+" account", "email="+user.Email)
-			return
-		}
-
-		user.TeamId = team.Id
-		user.EmailVerified = true
-
-		ruser, err := api.CreateUser(team, user)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		api.Login(c, w, r, ruser, "")
-
-		if c.Err != nil {
-			return
-		}
-
-		page := NewHtmlTemplatePage("home", "Home")
-		page.Team = team
-		page.User = ruser
-		page.Render(c, w)
 	}
 }
 
@@ -791,57 +764,14 @@ func loginWithOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectUri := c.GetSiteURL() + "/login/" + service + "/complete"
+	stateProps := map[string]string{}
+	stateProps["action"] = model.OAUTH_ACTION_LOGIN
 
-	api.GetAuthorizationCode(c, w, r, teamName, service, redirectUri, loginHint)
-}
-
-func loginCompleteOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	service := params["service"]
-
-	code := r.URL.Query().Get("code")
-	state := r.URL.Query().Get("state")
-
-	uri := c.GetSiteURL() + "/login/" + service + "/complete"
-
-	if body, team, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if authUrl, err := api.GetAuthorizationCode(c, service, teamName, stateProps, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {
-		authData := ""
-		provider := einterfaces.GetOauthProvider(service)
-		if provider == nil {
-			c.Err = model.NewAppError("signupCompleteOAuth", service+" oauth not avlailable on this server", "")
-			return
-		} else {
-			authData = provider.GetAuthDataFromJson(body)
-		}
-
-		if len(authData) == 0 {
-			c.Err = model.NewAppError("loginCompleteOAuth", "Could not parse auth data out of "+service+" user object", "")
-			return
-		}
-
-		var user *model.User
-		if result := <-api.Srv.Store.User().GetByAuth(team.Id, authData, service); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			user = result.Data.(*model.User)
-			api.Login(c, w, r, user, "")
-
-			if c.Err != nil {
-				return
-			}
-
-			page := NewHtmlTemplatePage("home", "Home")
-			page.Team = team
-			page.User = user
-			page.Render(c, w)
-
-			root(c, w, r)
-		}
+		http.Redirect(w, r, authUrl, http.StatusFound)
 	}
 }
 
@@ -1171,4 +1101,59 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte("ok"))
+}
+
+func claimAccount(c *api.Context, w http.ResponseWriter, r *http.Request) {
+	if !CheckBrowserCompatability(c, r) {
+		return
+	}
+
+	params := mux.Vars(r)
+	teamName := params["team"]
+	email := r.URL.Query().Get("email")
+	newType := r.URL.Query().Get("new_type")
+
+	var team *model.Team
+	if tResult := <-api.Srv.Store.Team().GetByName(teamName); tResult.Err != nil {
+		l4g.Error("Couldn't find team name=%v, err=%v", teamName, tResult.Err.Message)
+		http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
+		return
+	} else {
+		team = tResult.Data.(*model.Team)
+	}
+
+	authType := ""
+	if len(email) != 0 {
+		if uResult := <-api.Srv.Store.User().GetByEmail(team.Id, email); uResult.Err != nil {
+			l4g.Error("Couldn't find user teamid=%v, email=%v, err=%v", team.Id, email, uResult.Err.Message)
+			http.Redirect(w, r, api.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
+			return
+		} else {
+			user := uResult.Data.(*model.User)
+			authType = user.AuthService
+
+			// if user is not logged in to their SSO account, ask them to log in
+			if len(authType) != 0 && user.Id != c.Session.UserId {
+				stateProps := map[string]string{}
+				stateProps["action"] = model.OAUTH_ACTION_SSO_TO_EMAIL
+				stateProps["email"] = email
+
+				if authUrl, err := api.GetAuthorizationCode(c, authType, team.Name, stateProps, ""); err != nil {
+					c.Err = err
+					return
+				} else {
+					http.Redirect(w, r, authUrl, http.StatusFound)
+				}
+			}
+		}
+	}
+
+	page := NewHtmlTemplatePage("claim_account", "Claim Account")
+	page.Props["Email"] = email
+	page.Props["CurrentType"] = authType
+	page.Props["NewType"] = newType
+	page.Props["TeamDisplayName"] = team.DisplayName
+	page.Props["TeamName"] = team.Name
+
+	page.Render(c, w)
 }

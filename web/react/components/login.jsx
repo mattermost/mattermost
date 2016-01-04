@@ -1,9 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from '../utils/utils.jsx';
 import LoginEmail from './login_email.jsx';
 import LoginLdap from './login_ldap.jsx';
+
+import * as Utils from '../utils/utils.jsx';
+import Constants from '../utils/constants.jsx';
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -40,15 +42,24 @@ export default class Login extends React.Component {
            );
         }
 
-        const verifiedParam = Utils.getUrlParameter('verified');
-        let verifiedBox = '';
-        if (verifiedParam) {
-            verifiedBox = (
-                <div className='alert alert-success'>
-                    <i className='fa fa-check' />
-                    {' Email Verified'}
-                </div>
-            );
+        const extraParam = Utils.getUrlParameter('extra');
+        let extraBox = '';
+        if (extraParam) {
+            let msg;
+            if (extraParam === Constants.SIGNIN_CHANGE) {
+                msg = ' Sign-in method changed successfully';
+            } else if (extraParam === Constants.SIGNIN_VERIFIED) {
+                msg = ' Email Verified';
+            }
+
+            if (msg != null) {
+                extraBox = (
+                    <div className='alert alert-success'>
+                        <i className='fa fa-check' />
+                        {msg}
+                    </div>
+                );
+            }
         }
 
         let emailSignup;
@@ -124,7 +135,7 @@ export default class Login extends React.Component {
                 <h5 className='margin--less'>{'Sign in to:'}</h5>
                 <h2 className='signup-team__name'>{teamDisplayName}</h2>
                 <h2 className='signup-team__subdomain'>{'on '}{global.window.mm_config.SiteName}</h2>
-                    {verifiedBox}
+                    {extraBox}
                     {loginMessage}
                     {emailSignup}
                     {ldapLogin}

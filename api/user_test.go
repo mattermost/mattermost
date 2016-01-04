@@ -1085,3 +1085,106 @@ func TestStatuses(t *testing.T) {
 	}
 
 }
+
+func TestSwitchToSSO(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	m := map[string]string{}
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - empty data")
+	}
+
+	m["password"] = "pwd"
+	_, err := Client.SwitchToSSO(m)
+	if err == nil {
+		t.Fatal("should have failed - missing team_name, service, email")
+	}
+
+	m["team_name"] = team.Name
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - missing service, email")
+	}
+
+	m["service"] = "someservice"
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - missing email")
+	}
+
+	m["team_name"] = "junk"
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - bad team name")
+	}
+
+	m["team_name"] = team.Name
+	m["email"] = "junk"
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - bad email")
+	}
+
+	m["email"] = ruser.Email
+	m["password"] = "junk"
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - bad password")
+	}
+}
+
+func TestSwitchToEmail(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	user2 := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser2.Id))
+
+	m := map[string]string{}
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - not logged in")
+	}
+
+	Client.LoginByEmail(team.Name, user.Email, user.Password)
+
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - empty data")
+	}
+
+	m["password"] = "pwd"
+	_, err := Client.SwitchToSSO(m)
+	if err == nil {
+		t.Fatal("should have failed - missing team_name, service, email")
+	}
+
+	m["team_name"] = team.Name
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - missing email")
+	}
+
+	m["email"] = ruser.Email
+	m["team_name"] = "junk"
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - bad team name")
+	}
+
+	m["team_name"] = team.Name
+	m["email"] = "junk"
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - bad email")
+	}
+
+	m["email"] = ruser2.Email
+	if _, err := Client.SwitchToSSO(m); err == nil {
+		t.Fatal("should have failed - wrong user")
+	}
+}
