@@ -67,6 +67,8 @@ func main() {
 	api.InitApi()
 	web.InitWeb()
 
+	utils.LoadLicense()
+
 	if flagRunCmds {
 		runCmds()
 	} else {

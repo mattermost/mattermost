@@ -4,6 +4,7 @@ logs
 node_modules
 dist
 npm-debug.log
+bin
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map

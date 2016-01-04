@@ -155,6 +155,36 @@ export default class AdminSidebar extends React.Component {
             }
         }
 
+        let ldapSettings;
+        let licenseSettings;
+        if (global.window.mm_config.BuildEnterpriseReady === 'true') {
+            if (global.window.mm_license.IsLicensed === 'true') {
+                ldapSettings = (
+                    <li>
+                        <a
+                            href='#'
+                            className={this.isSelected('ldap_settings')}
+                            onClick={this.handleClick.bind(this, 'ldap_settings', null)}
+                        >
+                            {'LDAP Settings'}
+                        </a>
+                    </li>
+                );
+            }
+
+            licenseSettings = (
+                <li>
+                    <a
+                        href='#'
+                        className={this.isSelected('license')}
+                        onClick={this.handleClick.bind(this, 'license', null)}
+                    >
+                        {'Edition and License'}
+                    </a>
+                </li>
+            );
+        }
+
         return (
             <div className='sidebar--left sidebar--collapsable'>
                 <div>
@@ -252,6 +282,7 @@ export default class AdminSidebar extends React.Component {
                                             {'GitLab Settings'}
                                         </a>
                                     </li>
+                                    {ldapSettings}
                                     <li>
                                         <a
                                             href='#'
@@ -300,6 +331,7 @@ export default class AdminSidebar extends React.Component {
                                     </li>
                                 </ul>
                                 <ul className='nav nav__sub-menu padded'>
+                                    {licenseSettings}
                                     <li>
                                         <a
                                             href='#'

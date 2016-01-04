@@ -239,6 +239,7 @@ clean: stop-docker
 	rm -f .prepare-go .prepare-jsx
 
 nuke: | clean clean-docker
+	rm -rf bin
 	rm -rf data
 
 .prepare-go:
@@ -266,6 +267,9 @@ run: start-docker .prepare-go .prepare-jsx
 		jq -s '.[0] * .[1]' ./config/config.json $(ENTERPRISE_DIR)/config/enterprise-config-additions.json > config.json.tmp; \
 		mv config.json.tmp ./config/config.json; \
 		sed -e '/\/\/ENTERPRISE_IMPORTS/ {' -e 'r $(ENTERPRISE_DIR)/imports' -e 'd' -e '}' -i'.bak' mattermost.go; \
+		sed -i'.bak' 's|_BUILD_ENTERPRISE_READY_|true|g' ./model/version.go; \
+	else \
+		sed -i'.bak' 's|_BUILD_ENTERPRISE_READY_|false|g' ./model/version.go; \
 	fi
 
 	@echo Starting go web server
@@ -299,6 +303,7 @@ stop:
 	@if [ "$(BUILD_ENTERPRISE)" = "true" ] && [ -d "$(ENTERPRISE_DIR)" ]; then \
 		mv ./config/config.json.bak ./config/config.json 2> /dev/null || true; \
 		mv ./mattermost.go.bak ./mattermost.go 2> /dev/null || true; \
+		mv ./model/version.go.bak ./model/version.go 2> /dev/null || true; \
 	fi
 
 setup-mac:

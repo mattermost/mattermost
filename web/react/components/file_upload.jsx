@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as client from '../utils/client.jsx';
+import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
 import * as Utils from '../utils/utils.jsx';
@@ -26,7 +26,7 @@ export default class FileUpload extends React.Component {
         for (var j = 0; j < data.client_ids.length; j++) {
             delete requests[data.client_ids[j]];
         }
-        this.setState({requests: requests});
+        this.setState({requests});
     }
 
     fileUploadFail(clientId, err) {
@@ -52,7 +52,7 @@ export default class FileUpload extends React.Component {
             }
 
             // generate a unique id that can be used by other components to refer back to this upload
-            let clientId = Utils.generateId();
+            const clientId = Utils.generateId();
 
             // prepare data to be uploaded
             var formData = new FormData();
@@ -60,14 +60,14 @@ export default class FileUpload extends React.Component {
             formData.append('files', files[i], files[i].name);
             formData.append('client_ids', clientId);
 
-            var request = client.uploadFile(formData,
+            var request = Client.uploadFile(formData,
                 this.fileUploadSuccess.bind(this, channelId),
                 this.fileUploadFail.bind(this, clientId)
             );
 
             var requests = this.state.requests;
             requests[clientId] = request;
-            this.setState({requests: requests});
+            this.setState({requests});
 
             this.props.onUploadStart([clientId], channelId);
 
@@ -90,16 +90,7 @@ export default class FileUpload extends React.Component {
 
         this.uploadFiles(element.prop('files'));
 
-        // clear file input for all modern browsers
-        try {
-            element[0].value = '';
-            if (element.value) {
-                element[0].type = 'text';
-                element[0].type = 'file';
-            }
-        } catch (e) {
-            // Do nothing
-        }
+        Utils.clearFileInput(element[0]);
     }
 
     handleDrop(e) {
@@ -227,14 +218,14 @@ export default class FileUpload extends React.Component {
                         formData.append('files', file, name);
                         formData.append('client_ids', clientId);
 
-                        var request = client.uploadFile(formData,
+                        var request = Client.uploadFile(formData,
                             self.fileUploadSuccess.bind(self, channelId),
                             self.fileUploadFail.bind(self, clientId)
                         );
 
                         var requests = self.state.requests;
                         requests[clientId] = request;
-                        self.setState({requests: requests});
+                        self.setState({requests});
 
                         self.props.onUploadStart([clientId], channelId);
                     }
@@ -263,7 +254,7 @@ export default class FileUpload extends React.Component {
             request.abort();
 
             delete requests[clientId];
-            this.setState({requests: requests});
+            this.setState({requests});
         }
     }
 

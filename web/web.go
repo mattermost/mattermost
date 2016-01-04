@@ -32,7 +32,7 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
-	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg}
+	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg, ClientLicense: utils.ClientLicense}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
