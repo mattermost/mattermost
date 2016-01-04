@@ -10,6 +10,7 @@ const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import * as TextFormatting from '../utils/text_formatting.jsx';
 import twemoji from 'twemoji';
 import PostBodyAdditionalContent from './post_body_additional_content.jsx';
+import YoutubeVideo from './youtube_video.jsx';
 
 import providers from './providers.json';
 
@@ -17,7 +18,6 @@ export default class PostBody extends React.Component {
     constructor(props) {
         super(props);
 
-        this.receivedYoutubeData = false;
         this.isImgLoading = false;
 
         this.handleUserChange = this.handleUserChange.bind(this);
@@ -25,7 +25,6 @@ export default class PostBody extends React.Component {
         this.createEmbed = this.createEmbed.bind(this);
         this.createImageEmbed = this.createImageEmbed.bind(this);
         this.loadImg = this.loadImg.bind(this);
-        this.createYoutubeEmbed = this.createYoutubeEmbed.bind(this);
 
         const linkData = Utils.extractLinks(this.props.post.message);
         const profiles = UserStore.getProfiles();
@@ -120,10 +119,8 @@ export default class PostBody extends React.Component {
             }
         }
 
-        const embed = this.createYoutubeEmbed(link);
-
-        if (embed != null) {
-            return embed;
+        if (YoutubeVideo.isYoutubeLink(link)) {
+            return <YoutubeVideo link={link} />;
         }
 
         for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
@@ -181,117 +178,6 @@ export default class PostBody extends React.Component {
                 className='img-div'
                 src={link}
             />
-        );
-    }
-
-    handleYoutubeTime(link) {
-        const timeRegex = /[\\?&]t=([0-9hms]+)/;
-
-        const time = link.match(timeRegex);
-        if (!time || !time[1]) {
-            return '';
-        }
-
-        const hours = time[1].match(/([0-9]+)h/);
-        const minutes = time[1].match(/([0-9]+)m/);
-        const seconds = time[1].match(/([0-9]+)s/);
-
-        let ticks = 0;
-
-        if (hours && hours[1]) {
-            ticks += parseInt(hours[1], 10) * 3600;
-        }
-
-        if (minutes && minutes[1]) {
-            ticks += parseInt(minutes[1], 10) * 60;
-        }
-
-        if (seconds && seconds[1]) {
-            ticks += parseInt(seconds[1], 10);
-        }
-
-        return '&start=' + ticks.toString();
-    }
-
-    createYoutubeEmbed(link) {
-        const ytRegex = /(?:http|https):\/\/(?:www\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(\/u\/\w\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^\/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#\&\?]*)/;
-
-        const match = link.trim().match(ytRegex);
-        if (!match || match[2].length !== 11) {
-            return null;
-        }
-
-        const youtubeId = match[2];
-        const time = this.handleYoutubeTime(link);
-
-        function onClick(e) {
-            var div = $(e.target).closest('.video-thumbnail__container')[0];
-            var iframe = document.createElement('iframe');
-            iframe.setAttribute('src',
-                                'https://www.youtube.com/embed/' +
-                                div.id +
-                                '?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1' +
-                                time);
-            iframe.setAttribute('width', '480px');
-            iframe.setAttribute('height', '360px');
-            iframe.setAttribute('type', 'text/html');
-            iframe.setAttribute('frameborder', '0');
-            iframe.setAttribute('allowfullscreen', 'allowfullscreen');
-
-            div.parentNode.replaceChild(iframe, div);
-        }
-
-        function success(data) {
-            if (!data.items.length || !data.items[0].snippet) {
-                return null;
-            }
-            var metadata = data.items[0].snippet;
-            this.receivedYoutubeData = true;
-            this.setState({youtubeTitle: metadata.title});
-        }
-
-        if (global.window.mm_config.GoogleDeveloperKey && !this.receivedYoutubeData) {
-            $.ajax({
-                async: true,
-                url: 'https://www.googleapis.com/youtube/v3/videos',
-                type: 'GET',
-                data: {part: 'snippet', id: youtubeId, key: global.window.mm_config.GoogleDeveloperKey},
-                success: success.bind(this)
-            });
-        }
-
-        let header = 'Youtube';
-        if (this.state.youtubeTitle) {
-            header = header + ' - ';
-        }
-
-        return (
-            <div>
-                <h4>
-                    <span className='video-type'>{header}</span>
-                    <span className='video-title'><a href={link}>{this.state.youtubeTitle}</a></span>
-                </h4>
-                <div
-                    className='video-div embed-responsive-item'
-                    id={youtubeId}
-                    onClick={onClick}
-                >
-                    <div className='embed-responsive embed-responsive-4by3 video-div__placeholder'>
-                        <div
-                            id={youtubeId}
-                            className='video-thumbnail__container'
-                        >
-                            <img
-                                className='video-thumbnail'
-                                src={'https://i.ytimg.com/vi/' + youtubeId + '/hqdefault.jpg'}
-                            />
-                            <div className='block'>
-                                <span className='play-button'><span/></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         );
     }
 
