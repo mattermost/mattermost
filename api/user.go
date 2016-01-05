@@ -497,6 +497,26 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 	if len(deviceId) > 0 {
 		session.SetExpireInDays(model.SESSION_TIME_MOBILE_IN_DAYS)
 		maxAge = model.SESSION_TIME_MOBILE_IN_SECS
+
+		// A special case where we logout of all other sessions with the same Id
+		if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
+			c.Err = result.Err
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		} else {
+			sessions := result.Data.([]*model.Session)
+			for _, session := range sessions {
+				if session.DeviceId == deviceId {
+					l4g.Debug("Revoking sessionId=" + session.Id + " for userId=" + user.Id + " re-login with same device Id")
+					RevokeSessionById(c, session.Id)
+					if c.Err != nil {
+						c.LogError(c.Err)
+						c.Err = nil
+					}
+				}
+			}
+		}
+
 	} else {
 		session.SetExpireInDays(model.SESSION_TIME_WEB_IN_DAYS)
 	}
@@ -664,13 +684,15 @@ func loginLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	id := props["id"]
+	RevokeSessionById(c, id)
+	w.Write([]byte(model.MapToJson(props)))
+}
 
-	if result := <-Srv.Store.Session().Get(id); result.Err != nil {
+func RevokeSessionById(c *Context, sessionId string) {
+	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
 		c.Err = result.Err
-		return
 	} else {
 		session := result.Data.(*model.Session)
-
 		c.LogAudit("session_id=" + session.Id)
 
 		if session.IsOAuth {
@@ -680,10 +702,6 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
 				c.Err = result.Err
-				return
-			} else {
-				w.Write([]byte(model.MapToJson(props)))
-				return
 			}
 		}
 	}
