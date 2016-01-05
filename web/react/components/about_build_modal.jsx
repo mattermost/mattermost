@@ -16,18 +16,24 @@ export default class AboutBuildModal extends React.Component {
     render() {
         const config = global.window.mm_config;
 
+        let edition = 'Mattermost Team Edition';
+        if (config.BuildEnterpriseReady === 'true') {
+            edition = 'Mattermost Enterprise Edition';
+        }
+
         return (
             <Modal
                 show={this.props.show}
                 onHide={this.doHide}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>{`Mattermost ${config.Version}`}</Modal.Title>
+                    <Modal.Title>{'About Mattermost'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <h4>{edition}</h4>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Build Number:'}</div>
-                        <div className='col-sm-9'>{config.BuildNumber}</div>
+                        <div className='col-sm-3 info__label'>{'Version:'}</div>
+                        <div className='col-sm-9'>{config.Version + '.' + config.BuildNumber}</div>
                     </div>
                     <div className='row form-group'>
                         <div className='col-sm-3 info__label'>{'Build Date:'}</div>
@@ -36,10 +42,6 @@ export default class AboutBuildModal extends React.Component {
                     <div className='row form-group'>
                         <div className='col-sm-3 info__label'>{'Build Hash:'}</div>
                         <div className='col-sm-9'>{config.BuildHash}</div>
-                    </div>
-                    <div className='row'>
-                        <div className='col-sm-3 info__label'>{'Enterprise Ready:'}</div>
-                        <div className='col-sm-9'>{config.BuildEnterpriseReady}</div>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
