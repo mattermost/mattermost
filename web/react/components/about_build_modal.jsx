@@ -37,10 +37,6 @@ export default class AboutBuildModal extends React.Component {
                         <div className='col-sm-3 info__label'>{'Build Hash:'}</div>
                         <div className='col-sm-9'>{config.BuildHash}</div>
                     </div>
-                    <div className='row'>
-                        <div className='col-sm-3 info__label'>{'Enterprise Ready:'}</div>
-                        <div className='col-sm-9'>{config.BuildEnterpriseReady}</div>
-                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <button
