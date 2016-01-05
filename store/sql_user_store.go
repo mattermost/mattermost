@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+const (
+	MISSING_ACCOUNT_ERROR = "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join."
+)
+
 type SqlUserStore struct {
 	*SqlStore
 }
@@ -330,7 +334,7 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 		if obj, err := us.GetReplica().Get(model.User{}, id); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.Get", "We encountered an error finding the account", "user_id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlUserStore.Get", "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join.", "user_id="+id)
+			result.Err = model.NewAppError("SqlUserStore.Get", MISSING_ACCOUNT_ERROR, "user_id="+id)
 		} else {
 			result.Data = obj.(*model.User)
 		}
@@ -435,7 +439,7 @@ func (us SqlUserStore) GetByEmail(teamId string, email string) StoreChannel {
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE TeamId = :TeamId AND Email = :Email", map[string]interface{}{"TeamId": teamId, "Email": email}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetByEmail", "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join.", "teamId="+teamId+", email="+email+", "+err.Error())
+			result.Err = model.NewAppError("SqlUserStore.GetByEmail", MISSING_ACCOUNT_ERROR, "teamId="+teamId+", email="+email+", "+err.Error())
 		}
 
 		result.Data = &user
