@@ -238,7 +238,14 @@ func login(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	_, session := api.FindMultiSessionForTeamId(r, team.Id)
 	if session != nil {
 		w.Header().Set(model.HEADER_TOKEN, session.Token)
-		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/town-square", http.StatusTemporaryRedirect)
+		lastViewChannelName := "town-square"
+		if lastViewResult := <-api.Srv.Store.Preference().Get(session.UserId, model.PREFERENCE_CATEGORY_LAST, model.PREFERENCE_NAME_LAST_CHANNEL); lastViewResult.Err == nil {
+			if lastViewChannelResult := <-api.Srv.Store.Channel().Get(lastViewResult.Data.(model.Preference).Value); lastViewChannelResult.Err == nil {
+				lastViewChannelName = lastViewChannelResult.Data.(*model.Channel).Name
+			}
+		}
+
+		http.Redirect(w, r, c.GetSiteURL()+"/"+team.Name+"/channels/"+lastViewChannelName, http.StatusTemporaryRedirect)
 		return
 	}
 
