@@ -527,6 +527,25 @@ export function splitFileLocation(fileLocation) {
     return {ext: ext, name: filename, path: filePath};
 }
 
+export function getPreviewImagePath(filename) {
+    // Returns the path to a preview image that can be used to represent a file.
+    const fileInfo = splitFileLocation(filename);
+    const fileType = getFileType(fileInfo.ext);
+
+    if (fileType === 'image') {
+        // This is a temporary patch to fix issue with old files using absolute paths
+        if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
+            fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
+        }
+        fileInfo.path = getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
+
+        return fileInfo.path + '_preview.jpg?' + getSessionIndex();
+    }
+
+    // only images have proper previews, so just use a placeholder icon for non-images
+    return getPreviewImagePathForFileType(fileType);
+}
+
 export function toTitleCase(str) {
     function doTitleCase(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();

@@ -4,7 +4,9 @@
 import * as AsyncClient from '../utils/async_client.jsx';
 import * as Client from '../utils/client.jsx';
 import * as Utils from '../utils/utils.jsx';
+import AudioVideoPreview from './audio_video_preview.jsx';
 import Constants from '../utils/constants.jsx';
+import FileInfoPreview from './file_info_preview.jsx';
 import FileStore from '../stores/file_store.jsx';
 import ViewImagePopoverBar from './view_image_popover_bar.jsx';
 const Modal = ReactBootstrap.Modal;
@@ -27,7 +29,6 @@ export default class ViewImageModal extends React.Component {
         this.onFileStoreChange = this.onFileStoreChange.bind(this);
 
         this.getPublicLink = this.getPublicLink.bind(this);
-        this.getPreviewImagePath = this.getPreviewImagePath.bind(this);
         this.onMouseEnterImage = this.onMouseEnterImage.bind(this);
         this.onMouseLeaveImage = this.onMouseLeaveImage.bind(this);
 
@@ -83,9 +84,7 @@ export default class ViewImageModal extends React.Component {
         $(window).off('keyup', this.handleKeyPress);
 
         if (this.refs.video) {
-            var video = ReactDOM.findDOMNode(this.refs.video);
-            video.pause();
-            video.currentTime = 0;
+            this.refs.video.stop();
         }
 
         FileStore.removeChangeListener(this.onFileStoreChange);
@@ -152,7 +151,7 @@ export default class ViewImageModal extends React.Component {
         if (fileType === 'image') {
             let previewUrl;
             if (fileInfo.has_image_preview) {
-                previewUrl = fileInfo.getPreviewImagePath(filename);
+                previewUrl = Utils.getPreviewImagePath(filename);
             } else {
                 // some images (eg animated gifs) just show the file itself and not a preview
                 previewUrl = Utils.getFileUrl(filename);
@@ -198,25 +197,6 @@ export default class ViewImageModal extends React.Component {
         );
     }
 
-    getPreviewImagePath(filename) {
-        // Returns the path to a preview image that can be used to represent a file.
-        var fileInfo = Utils.splitFileLocation(filename);
-        var fileType = Utils.getFileType(fileInfo.ext);
-
-        if (fileType === 'image') {
-            // This is a temporary patch to fix issue with old files using absolute paths
-            if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
-                fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
-            }
-            fileInfo.path = Utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
-
-            return fileInfo.path + '_preview.jpg?' + Utils.getSessionIndex();
-        }
-
-        // only images have proper previews, so just use a placeholder icon for non-images
-        return Utils.getPreviewImagePathForFileType(fileType);
-    }
-
     onMouseEnterImage() {
         this.setState({showFooter: true});
     }
@@ -237,72 +217,33 @@ export default class ViewImageModal extends React.Component {
         if (this.state.loaded[this.state.imgId]) {
             // this.state.fileInfo is for the current image and we shoudl have it before we load the image
             const fileInfo = this.state.fileInfo;
-
-            const extension = Utils.splitFileLocation(filename).ext;
-            const fileType = Utils.getFileType(extension);
+            const fileType = Utils.getFileType(fileInfo.extension);
 
             if (fileType === 'image') {
-                let previewUrl;
-                if (fileInfo.has_preview_image) {
-                    previewUrl = this.getPreviewImagePath(filename);
-                } else {
-                    previewUrl = fileUrl;
-                }
-
                 content = (
                     <ImagePreview
+                        filename={filename}
                         fileUrl={fileUrl}
-                        previewUrl={previewUrl}
+                        fileInfo={fileInfo}
                         maxHeight={this.state.imgHeight}
                     />
                 );
             } else if (fileType === 'video' || fileType === 'audio') {
-                let width = Constants.WEB_VIDEO_WIDTH;
-                let height = Constants.WEB_VIDEO_HEIGHT;
-                if (Utils.isMobile()) {
-                    width = Constants.MOBILE_VIDEO_WIDTH;
-                    height = Constants.MOBILE_VIDEO_HEIGHT;
-                }
-
                 content = (
-                    <video
-                        style={{maxHeight: this.state.imgHeight}}
-                        ref='video'
-                        data-setup='{}'
-                        controls='controls'
-                        width={width}
-                        height={height}
-                    >
-                        <source src={Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + Utils.getSessionIndex()} />
-                    </video>
+                    <AudioVideoPreview
+                        filename={filename}
+                        fileUrl={fileUrl}
+                        fileInfo={this.state.fileInfo}
+                        maxHeight={this.state.imgHeight}
+                    />
                 );
             } else {
-                // non-image files include a section providing details about the file
-                let infoString = 'File type ' + fileInfo.extension.toUpperCase();
-                if (fileInfo.size > 0) {
-                    infoString += ', Size ' + Utils.fileSizeToString(fileInfo.size);
-                }
-
-                const name = decodeURIComponent(Utils.getFileName(filename));
-
                 content = (
-                    <div className='file-details__container'>
-                        <a
-                            className={'file-details__preview'}
-                            href={fileUrl}
-                            target='_blank'
-                        >
-                            <span className='file-details__preview-helper' />
-                            <img
-                                ref='image'
-                                src={this.getPreviewImagePath(filename)}
-                            />
-                        </a>
-                        <div className='file-details'>
-                            <div className='file-details__name'>{name}</div>
-                            <div className='file-details__info'>{infoString}</div>
-                        </div>
-                    </div>
+                    <FileInfoPreview
+                        filename={filename}
+                        fileUrl={fileUrl}
+                        fileInfo={fileInfo}
+                    />
                 );
             }
         } else {
@@ -424,7 +365,14 @@ function LoadingImagePreview({progress}) {
     );
 }
 
-function ImagePreview({maxHeight, fileUrl, previewUrl}) {
+function ImagePreview({filename, fileUrl, fileInfo, maxHeight}) {
+    let previewUrl;
+    if (fileInfo.has_preview_image) {
+        previewUrl = Utils.getPreviewImagePath(filename);
+    } else {
+        previewUrl = fileUrl;
+    }
+
     return (
         <a
             href={fileUrl}
