@@ -29,16 +29,15 @@ export default class UserSettingsDisplay extends React.Component {
         this.handleNameRadio = this.handleNameRadio.bind(this);
         this.handleFont = this.handleFont.bind(this);
         this.updateSection = this.updateSection.bind(this);
+        this.updateState = this.updateState.bind(this);
+        this.deactivate = this.deactivate.bind(this);
 
         this.state = getDisplayStateFromStores();
-        this.selectedFont = this.state.selectedFont;
     }
     handleSubmit() {
         const timePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', this.state.militaryTime);
         const namePreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', this.state.nameFormat);
         const fontPreference = PreferenceStore.setPreference(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', this.state.selectedFont);
-
-        this.selectedFont = this.state.selectedFont;
 
         savePreferences([timePreference, namePreference, fontPreference],
             () => {
@@ -61,8 +60,18 @@ export default class UserSettingsDisplay extends React.Component {
         this.setState({selectedFont});
     }
     updateSection(section) {
-        this.setState(getDisplayStateFromStores());
+        this.updateState();
         this.props.updateSection(section);
+    }
+    updateState() {
+        const newState = getDisplayStateFromStores();
+        if (!Utils.areObjectsEqual(newState, this.state)) {
+            this.handleFont(newState.selectedFont);
+            this.setState(newState);
+        }
+    }
+    deactivate() {
+        this.updateState();
     }
     render() {
         const serverError = this.state.serverError || null;
@@ -266,9 +275,6 @@ export default class UserSettingsDisplay extends React.Component {
                     submit={this.handleSubmit}
                     server_error={serverError}
                     updateSection={(e) => {
-                        if (this.selectedFont !== this.state.selectedFont) {
-                            this.handleFont(this.selectedFont);
-                        }
                         this.updateSection('');
                         e.preventDefault();
                     }}
