@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"net/http"
 	"net/url"
@@ -480,7 +481,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var invNum int64 = 0
 	for i, invite := range invites.Invites {
-		if result := <-Srv.Store.User().GetByEmail(c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Message != "We couldn't find the existing account" {
+		if result := <-Srv.Store.User().GetByEmail(c.Session.TeamId, invite["email"]); result.Err == nil || result.Err.Message != store.MISSING_ACCOUNT_ERROR {
 			invNum = int64(i)
 			c.Err = model.NewAppError("invite_members", "This person is already on your team", strconv.FormatInt(invNum, 10))
 			return
