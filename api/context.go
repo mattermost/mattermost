@@ -523,6 +523,13 @@ func GetSession(token string) *model.Session {
 			l4g.Error("Invalid session token=" + token + ", err=" + sessionResult.Err.DetailedError)
 		} else {
 			session = sessionResult.Data.(*model.Session)
+
+			if session.IsExpired() {
+				return nil
+			} else {
+				AddSessionToCache(session)
+				return session
+			}
 		}
 	}
 
@@ -553,5 +560,5 @@ func FindMultiSessionForTeamId(r *http.Request, teamId string) (int64, *model.Se
 }
 
 func AddSessionToCache(session *model.Session) {
-	sessionCache.Add(session.Token, session)
+	sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60))
 }

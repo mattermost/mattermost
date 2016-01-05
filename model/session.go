@@ -9,18 +9,18 @@ import (
 )
 
 const (
-	SESSION_COOKIE_TOKEN        = "MMTOKEN"
-	SESSION_TIME_WEB_IN_DAYS    = 30
-	SESSION_TIME_WEB_IN_SECS    = 60 * 60 * 24 * SESSION_TIME_WEB_IN_DAYS
-	SESSION_TIME_MOBILE_IN_DAYS = 30
-	SESSION_TIME_MOBILE_IN_SECS = 60 * 60 * 24 * SESSION_TIME_MOBILE_IN_DAYS
-	SESSION_TIME_OAUTH_IN_DAYS  = 365
-	SESSION_TIME_OAUTH_IN_SECS  = 60 * 60 * 24 * SESSION_TIME_OAUTH_IN_DAYS
-	SESSION_CACHE_IN_SECS       = 60 * 10
-	SESSION_CACHE_SIZE          = 10000
-	SESSION_PROP_PLATFORM       = "platform"
-	SESSION_PROP_OS             = "os"
-	SESSION_PROP_BROWSER        = "browser"
+	SESSION_COOKIE_TOKEN = "MMTOKEN"
+	// SESSION_TIME_WEB_IN_DAYS    = 30
+	// SESSION_TIME_WEB_IN_SECS    = 60 * 60 * 24 * SESSION_TIME_WEB_IN_DAYS
+	// SESSION_TIME_MOBILE_IN_DAYS = 30
+	// SESSION_TIME_MOBILE_IN_SECS = 60 * 60 * 24 * SESSION_TIME_MOBILE_IN_DAYS
+	// SESSION_TIME_OAUTH_IN_DAYS  = 365
+	// SESSION_TIME_OAUTH_IN_SECS  = 60 * 60 * 24 * SESSION_TIME_OAUTH_IN_DAYS
+	// SESSION_CACHE_IN_SECS       = 60 * 10
+	SESSION_CACHE_SIZE    = 10000
+	SESSION_PROP_PLATFORM = "platform"
+	SESSION_PROP_OS       = "os"
+	SESSION_PROP_BROWSER  = "browser"
 )
 
 type Session struct {
@@ -89,8 +89,8 @@ func (me *Session) IsExpired() bool {
 	return false
 }
 
-func (me *Session) SetExpireInDays(days int64) {
-	me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * days)
+func (me *Session) SetExpireInDays(days int) {
+	me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
 }
 
 func (me *Session) AddProp(key string, value string) {

@@ -991,7 +991,7 @@ func getAccessToken(c *api.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessRsp := &model.AccessResponse{AccessToken: session.Token, TokenType: model.ACCESS_TOKEN_TYPE, ExpiresIn: model.SESSION_TIME_OAUTH_IN_SECS}
+	accessRsp := &model.AccessResponse{AccessToken: session.Token, TokenType: model.ACCESS_TOKEN_TYPE, ExpiresIn: int32(*utils.Cfg.ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24)}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
