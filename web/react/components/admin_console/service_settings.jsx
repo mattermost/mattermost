@@ -4,6 +4,10 @@
 import * as Client from '../../utils/client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
 
+const DefaultSessionLength = 30;
+const DefaultMaximumLoginAttempts = 10;
+const DefaultSessionCacheInMinutes = 10;
+
 export default class ServiceSettings extends React.Component {
     constructor(props) {
         super(props);
@@ -45,12 +49,55 @@ export default class ServiceSettings extends React.Component {
 
         //config.ServiceSettings.EnableOAuthServiceProvider = ReactDOM.findDOMNode(this.refs.EnableOAuthServiceProvider).checked;
 
-        var MaximumLoginAttempts = 10;
+        var MaximumLoginAttempts = DefaultMaximumLoginAttempts;
         if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.MaximumLoginAttempts).value, 10))) {
             MaximumLoginAttempts = parseInt(ReactDOM.findDOMNode(this.refs.MaximumLoginAttempts).value, 10);
         }
+        if (MaximumLoginAttempts < 1) {
+            MaximumLoginAttempts = 1;
+        }
         config.ServiceSettings.MaximumLoginAttempts = MaximumLoginAttempts;
         ReactDOM.findDOMNode(this.refs.MaximumLoginAttempts).value = MaximumLoginAttempts;
+
+        var SessionLengthWebInDays = DefaultSessionLength;
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.SessionLengthWebInDays).value, 10))) {
+            SessionLengthWebInDays = parseInt(ReactDOM.findDOMNode(this.refs.SessionLengthWebInDays).value, 10);
+        }
+        if (SessionLengthWebInDays < 1) {
+            SessionLengthWebInDays = 1;
+        }
+        config.ServiceSettings.SessionLengthWebInDays = SessionLengthWebInDays;
+        ReactDOM.findDOMNode(this.refs.SessionLengthWebInDays).value = SessionLengthWebInDays;
+
+        var SessionLengthMobileInDays = DefaultSessionLength;
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.SessionLengthMobileInDays).value, 10))) {
+            SessionLengthMobileInDays = parseInt(ReactDOM.findDOMNode(this.refs.SessionLengthMobileInDays).value, 10);
+        }
+        if (SessionLengthMobileInDays < 1) {
+            SessionLengthMobileInDays = 1;
+        }
+        config.ServiceSettings.SessionLengthMobileInDays = SessionLengthMobileInDays;
+        ReactDOM.findDOMNode(this.refs.SessionLengthMobileInDays).value = SessionLengthMobileInDays;
+
+        var SessionLengthSSOInDays = DefaultSessionLength;
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.SessionLengthSSOInDays).value, 10))) {
+            SessionLengthSSOInDays = parseInt(ReactDOM.findDOMNode(this.refs.SessionLengthSSOInDays).value, 10);
+        }
+        if (SessionLengthSSOInDays < 1) {
+            SessionLengthSSOInDays = 1;
+        }
+        config.ServiceSettings.SessionLengthSSOInDays = SessionLengthSSOInDays;
+        ReactDOM.findDOMNode(this.refs.SessionLengthSSOInDays).value = SessionLengthSSOInDays;
+
+        var SessionCacheInMinutes = DefaultSessionCacheInMinutes;
+        if (!isNaN(parseInt(ReactDOM.findDOMNode(this.refs.SessionCacheInMinutes).value, 10))) {
+            SessionCacheInMinutes = parseInt(ReactDOM.findDOMNode(this.refs.SessionCacheInMinutes).value, 10);
+        }
+        if (SessionCacheInMinutes < -1) {
+            SessionCacheInMinutes = -1;
+        }
+        config.ServiceSettings.SessionCacheInMinutes = SessionCacheInMinutes;
+        ReactDOM.findDOMNode(this.refs.SessionCacheInMinutes).value = SessionCacheInMinutes;
 
         Client.saveConfig(
             config,
@@ -413,6 +460,90 @@ export default class ServiceSettings extends React.Component {
                                     {'false'}
                             </label>
                             <p className='help-text'>{'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='SessionLengthWebInDays'
+                        >
+                            {'Session Length for Web in Days:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='SessionLengthWebInDays'
+                                ref='SessionLengthWebInDays'
+                                placeholder='Ex "30"'
+                                defaultValue={this.props.config.ServiceSettings.SessionLengthWebInDays}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>{'The web session will expire after the number of days specified and will require a user to login again.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='SessionLengthMobileInDays'
+                        >
+                            {'Session Length for Mobile Device in Days:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='SessionLengthMobileInDays'
+                                ref='SessionLengthMobileInDays'
+                                placeholder='Ex "30"'
+                                defaultValue={this.props.config.ServiceSettings.SessionLengthMobileInDays}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>{'The native mobile session will expire after the number of days specified and will require a user to login again.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='SessionLengthSSOInDays'
+                        >
+                            {'Session Length for SSO in Days:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='SessionLengthSSOInDays'
+                                ref='SessionLengthSSOInDays'
+                                placeholder='Ex "30"'
+                                defaultValue={this.props.config.ServiceSettings.SessionLengthSSOInDays}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>{'The SSO session will expire after the number of days specified and will require a user to login again.'}</p>
+                        </div>
+                    </div>
+
+                    <div className='form-group'>
+                        <label
+                            className='control-label col-sm-4'
+                            htmlFor='SessionCacheInMinutes'
+                        >
+                            {'Session Cache in Minutes:'}
+                        </label>
+                        <div className='col-sm-8'>
+                            <input
+                                type='text'
+                                className='form-control'
+                                id='SessionCacheInMinutes'
+                                ref='SessionCacheInMinutes'
+                                placeholder='Ex "30"'
+                                defaultValue={this.props.config.ServiceSettings.SessionCacheInMinutes}
+                                onChange={this.handleChange}
+                            />
+                            <p className='help-text'>{'The number of minutes to cache a session in memory.'}</p>
                         </div>
                     </div>
 
