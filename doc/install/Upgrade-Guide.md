@@ -36,6 +36,24 @@ If you're upgrading across multiple major releases, from 1.0.x to 1.2.x for exam
 
 The following instructions apply to updating installations of Mattermost v0.7-Beta to Mattermost 1.1. 
 
+## GitLab Mattermost Upgrade Troubleshooting 
+
+#### Upgrading GitLab Mattermost when GitLab upgrade skips versions 
+
+Mattermost is designed to be upgraded sequentially through major version releases. If you skip versions when upgrading GitLab, you may find a `panic: The database schema version of 1.1.0 cannot be upgraded. You must not skip a version` error in your `/var/log/gitlab/mattermost/current` directory. If so: 
+
+1. Run `platform -version` to check your version of Mattermost 
+2. If your version of the Mattermost binary doesn't match the version listed in the database error message, downgrade the version of the Mattermost binary you are using by [following the manual upgrade steps for Mattermost](/var/log/gitlab/mattermost/current) and using the database schema version listed in the error messages for the version you select in Step 1) iv). 
+3. Once Mattermost is working again, you can use the same upgrade procedure to upgrade Mattermost version by version to your current GitLab version. After this is done, GitLab automation should continue to work for future upgrades, so long as you don't skip versions. 
+
+| GitLab Version | Mattermost Version | 
+|----------------|---------------------|
+|  8.1.x | v1.1.0 | 
+|  8.2.x | v1.2.1 | 
+|  8.3.x | v1.3.0 | 
+
+## Upgrade Guide for Mattermost Beta Release 
+
 #### Upgrading Mattermost in GitLab 8.0 to GitLab 8.1 with omnibus
 
 Mattermost 0.7.1-beta in GitLab 8.0 was a pre-release of Mattermost and Mattermost v1.1.1 in GitLab 8.1 was [updated significantly](https://github.com/mattermost/platform/blob/master/CHANGELOG.md#configjson-changes-from-v07-to-v10) to get to a stable, forwards-compatible platform for Mattermost. 
@@ -47,7 +65,6 @@ The Mattermost team didn't think it made sense for GitLab omnibus to attempt an 
 3. Manually update `config.json` to new settings identified in Step 1
 
 Optionally, you can use the new [System Console user interface](https://github.com/mattermost/platform/blob/master/doc/install/Configuration-Settings.md) to make changes to your new `config.json` file.
-
 
 #### Upgrading Mattermost v0.7.1-beta to v1.1.1
 
