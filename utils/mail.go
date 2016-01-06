@@ -98,11 +98,11 @@ func SendMail(to, subject, body string) *model.AppError {
 }
 
 func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.AppError {
-	l4g.Debug("sending mail to " + to + " with subject of '" + subject + "'")
-
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
+
+	l4g.Debug("sending mail to " + to + " with subject of '" + subject + "'")
 
 	fromMail := mail.Address{config.EmailSettings.FeedbackName, config.EmailSettings.FeedbackEmail}
 	toMail := mail.Address{"", to}

@@ -54,7 +54,11 @@
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
         "AmazonS3Bucket": "",
-        "AmazonS3Region": ""
+        "AmazonS3Region": "",
+        "AmazonS3Endpoint": "",
+        "AmazonS3BucketEndpoint": "",
+        "AmazonS3LocationConstraint": false,
+        "AmazonS3LowercaseBucket": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -99,5 +103,28 @@
         "AuthEndpoint": "",
         "TokenEndpoint": "",
         "UserApiEndpoint": ""
+    },
+    "GoogleSettings": {
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "",
+        "AuthEndpoint": "",
+        "TokenEndpoint": "",
+        "UserApiEndpoint": ""
+    },
+    "LdapSettings": {
+        "Enable": false,
+        "LdapServer": null,
+        "LdapPort": 389,
+        "BaseDN": null,
+        "BindUsername": null,
+        "BindPassword": null,
+        "FirstNameAttribute": null,
+        "LastNameAttribute": null,
+        "EmailAttribute": null,
+        "UsernameAttribute": null,
+        "IdAttribute": null,
+        "QueryTimeout": 60
     }
 }
