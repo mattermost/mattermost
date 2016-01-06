@@ -1017,7 +1017,8 @@ func incomingWebhook(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	var parsedRequest *model.IncomingWebhookRequest
-	if r.Header.Get("Content-Type") == "application/json" {
+	contentType := r.Header.Get("Content-Type")
+	if strings.Split(contentType, "; ")[0] == "application/json" {
 		parsedRequest = model.IncomingWebhookRequestFromJson(r.Body)
 	} else {
 		parsedRequest = model.IncomingWebhookRequestFromJson(strings.NewReader(r.FormValue("payload")))
