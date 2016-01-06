@@ -527,6 +527,19 @@ export function splitFileLocation(fileLocation) {
     return {ext: ext, name: filename, path: filePath};
 }
 
+export function getPreviewImagePath(filename) {
+    // Returns the path to a preview image that can be used to represent a file.
+    const fileInfo = splitFileLocation(filename);
+    const fileType = getFileType(fileInfo.ext);
+
+    if (fileType === 'image') {
+        return getFileUrl(fileInfo.path + '_preview.jpg');
+    }
+
+    // only images have proper previews, so just use a placeholder icon for non-images
+    return getPreviewImagePathForFileType(fileType);
+}
+
 export function toTitleCase(str) {
     function doTitleCase(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -1050,15 +1063,7 @@ export function fileSizeToString(bytes) {
 
 // Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
 export function getFileUrl(filename) {
-    var url = filename;
-
-    // This is a temporary patch to fix issue with old files using absolute paths
-    if (url.indexOf('/api/v1/files/get') !== -1) {
-        url = filename.split('/api/v1/files/get')[1];
-    }
-    url = getWindowLocationOrigin() + '/api/v1/files/get' + url + '?' + getSessionIndex();
-
-    return url;
+    return getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + getSessionIndex();
 }
 
 // Gets the name of a file (including extension) from a given url or file path.

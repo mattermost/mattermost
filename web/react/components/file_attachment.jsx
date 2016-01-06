@@ -125,10 +125,6 @@ export default class FileAttachment extends React.Component {
     getFileInfoFromName(name) {
         var fileInfo = utils.splitFileLocation(name);
 
-        // This is a temporary patch to fix issue with old files using absolute paths
-        if (fileInfo.path.indexOf('/api/v1/files/get') !== -1) {
-            fileInfo.path = fileInfo.path.split('/api/v1/files/get')[1];
-        }
         fileInfo.path = utils.getWindowLocationOrigin() + '/api/v1/files/get' + fileInfo.path;
 
         return fileInfo;
