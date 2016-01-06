@@ -679,6 +679,15 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	Srv.Store.Channel().UpdateLastViewedAt(id, c.Session.UserId)
 
+	preference := model.Preference{
+		UserId:   c.Session.UserId,
+		Category: model.PREFERENCE_CATEGORY_LAST,
+		Name:     model.PREFERENCE_NAME_LAST_CHANNEL,
+		Value:    id,
+	}
+
+	Srv.Store.Preference().Save(&model.Preferences{preference})
+
 	message := model.NewMessage(c.Session.TeamId, id, c.Session.UserId, model.ACTION_CHANNEL_VIEWED)
 	message.Add("channel_id", id)
 
