@@ -57,8 +57,8 @@ func (o *Channel) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
-func (o *Channel) ExtraEtag() string {
-	return Etag(o.Id, o.ExtraUpdateAt)
+func (o *Channel) ExtraEtag(memberLimit int) string {
+	return Etag(o.Id, o.ExtraUpdateAt, memberLimit)
 }
 
 func (o *Channel) IsValid() *AppError {
