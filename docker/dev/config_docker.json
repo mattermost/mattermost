@@ -54,7 +54,11 @@
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
         "AmazonS3Bucket": "",
-        "AmazonS3Region": ""
+        "AmazonS3Region": "",
+        "AmazonS3Endpoint": "",
+        "AmazonS3BucketEndpoint": "",
+        "AmazonS3LocationConstraint": false,
+        "AmazonS3LowercaseBucket": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,

@@ -650,6 +650,7 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 									httpClient := http.Client{}
 									request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+"/api/v1/send_push", strings.NewReader(msg.ToJson()))
 
+									l4g.Debug("Sending push notification to " + msg.DeviceId + " with msg of '" + msg.Message + "'")
 									if _, err := httpClient.Do(request); err != nil {
 										l4g.Error("Failed to send push notificationid=%v, err=%v", id, err)
 									}
