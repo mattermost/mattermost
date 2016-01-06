@@ -492,11 +492,11 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 
 	session := &model.Session{UserId: user.Id, TeamId: user.TeamId, Roles: user.Roles, DeviceId: deviceId, IsOAuth: false}
 
-	maxAge := model.SESSION_TIME_WEB_IN_SECS
+	maxAge := *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {
-		session.SetExpireInDays(model.SESSION_TIME_MOBILE_IN_DAYS)
-		maxAge = model.SESSION_TIME_MOBILE_IN_SECS
+		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
+		maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 		// A special case where we logout of all other sessions with the same Id
 		if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
@@ -518,7 +518,7 @@ func Login(c *Context, w http.ResponseWriter, r *http.Request, user *model.User,
 		}
 
 	} else {
-		session.SetExpireInDays(model.SESSION_TIME_WEB_IN_DAYS)
+		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthWebInDays)
 	}
 
 	ua := user_agent.New(r.UserAgent())

@@ -36,6 +36,10 @@ type ServiceSettings struct {
 	EnableTesting              bool
 	EnableDeveloper            *bool
 	EnableSecurityFixAlert     *bool
+	SessionLengthWebInDays     *int
+	SessionLengthMobileInDays  *int
+	SessionLengthSSOInDays     *int
+	SessionCacheInMinutes      *int
 }
 
 type SSOSettings struct {
@@ -305,6 +309,26 @@ func (o *Config) SetDefaults() {
 	if o.LdapSettings.Enable == nil {
 		o.LdapSettings.Enable = new(bool)
 		*o.LdapSettings.Enable = false
+	}
+
+	if o.ServiceSettings.SessionLengthWebInDays == nil {
+		o.ServiceSettings.SessionLengthWebInDays = new(int)
+		*o.ServiceSettings.SessionLengthWebInDays = 30
+	}
+
+	if o.ServiceSettings.SessionLengthMobileInDays == nil {
+		o.ServiceSettings.SessionLengthMobileInDays = new(int)
+		*o.ServiceSettings.SessionLengthMobileInDays = 30
+	}
+
+	if o.ServiceSettings.SessionLengthSSOInDays == nil {
+		o.ServiceSettings.SessionLengthSSOInDays = new(int)
+		*o.ServiceSettings.SessionLengthSSOInDays = 30
+	}
+
+	if o.ServiceSettings.SessionCacheInMinutes == nil {
+		o.ServiceSettings.SessionCacheInMinutes = new(int)
+		*o.ServiceSettings.SessionCacheInMinutes = 10
 	}
 }
 
