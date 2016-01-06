@@ -35,12 +35,7 @@ export default class FilePreview extends React.Component {
             var ext = filenameSplit[filenameSplit.length - 1];
             var type = Utils.getFileType(ext);
 
-            // This is a temporary patch to fix issue with old files using absolute paths
-
-            if (filename.indexOf('/api/v1/files/get') !== -1) {
-                filename = filename.split('/api/v1/files/get')[1];
-            }
-            filename = Utils.getWindowLocationOrigin() + '/api/v1/files/get' + filename + '?' + Utils.getSessionIndex();
+            filename = Utils.getFileUrl(filename);
 
             if (type === 'image') {
                 previews.push(
