@@ -162,6 +162,37 @@ func TestLogin(t *testing.T) {
 	Client.AuthToken = authToken
 }
 
+func TestLoginWithDeviceId(t *testing.T) {
+	Setup()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+
+	deviceId := model.NewId()
+	if result, err := Client.LoginByEmailWithDevice(team.Name, user.Email, user.Password, deviceId); err != nil {
+		t.Fatal(err)
+	} else {
+		ruser := result.Data.(*model.User)
+
+		if ssresult, err := Client.GetSessions(ruser.Id); err != nil {
+			t.Fatal(err)
+		} else {
+			sessions := ssresult.Data.([]*model.Session)
+			if _, err := Client.LoginByEmailWithDevice(team.Name, user.Email, user.Password, deviceId); err != nil {
+				t.Fatal(err)
+			}
+
+			if sresult := <-Srv.Store.Session().Get(sessions[0].Id); sresult.Err == nil {
+				t.Fatal("session should have been removed")
+			}
+		}
+	}
+}
+
 func TestSessions(t *testing.T) {
 	Setup()
 
