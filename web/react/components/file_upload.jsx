@@ -109,8 +109,6 @@ export default class FileUpload extends React.Component {
 
         if (typeof files !== 'string' && files.length) {
             this.uploadFiles(files);
-        } else {
-            this.props.onTextDrop(e.originalEvent.dataTransfer.getData('Text'));
         }
     }
 
@@ -120,11 +118,19 @@ export default class FileUpload extends React.Component {
 
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
-                enter() {
-                    $('.center-file-overlay').removeClass('hidden');
+                enter(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (utils.isFileTransfer(files)) {
+                        $('.center-file-overlay').removeClass('hidden');
+                    }
                 },
-                leave() {
-                    $('.center-file-overlay').addClass('hidden');
+                leave(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (utils.isFileTransfer(files)) {
+                        $('.center-file-overlay').addClass('hidden');
+                    }
                 },
                 drop(dragsterEvent, e) {
                     $('.center-file-overlay').addClass('hidden');
@@ -133,11 +139,19 @@ export default class FileUpload extends React.Component {
             });
         } else if (this.props.postType === 'comment') {
             $('.post-right__container').dragster({
-                enter() {
-                    $('.right-file-overlay').removeClass('hidden');
+                enter(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (utils.isFileTransfer(files)) {
+                        $('.right-file-overlay').removeClass('hidden');
+                    }
                 },
-                leave() {
-                    $('.right-file-overlay').addClass('hidden');
+                leave(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (utils.isFileTransfer(files)) {
+                        $('.right-file-overlay').addClass('hidden');
+                    }
                 },
                 drop(dragsterEvent, e) {
                     $('.right-file-overlay').addClass('hidden');
