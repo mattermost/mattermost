@@ -1,5 +1,111 @@
 # Mattermost Changelog
 
+## Release v1.4.0
+
+Expected Release date: 2016-01-16
+
+### Release Highlights
+
+### New Features
+
+Authentication
+
+- Added ability to switch between email sign in and SSO provider
+- Added fields to the config file to make session token length configurable
+
+System Console
+
+- Added "Legal and Support Settings" so System Administrators can change the default Terms of Service, Privacy Policy, and Help links
+
+### Improvements 
+
+Performance and Testing
+
+- Added more debugging info for email and push notifications
+
+Integrations
+
+- Added support to allow optional parameters in the Content-Type of incoming webhook requests
+
+Files and Images
+
+- GIFs autoplay in the image previewer
+
+Notifications and Email
+
+- Changed email notifications to use the server's local timezone instead of UTC
+
+User Interface
+
+- Updated the "About Mattermost" dialog formatting
+- Going to domain/teamname now to the last channel of your previous session, instead of Town Square
+- Various improvements to mobile UI, including a floating date indicator and the ability to quickly scroll to the bottom of the channel
+
+#### Bug Fixes  
+
+- Fixed issue where usernames containing a "." did not get mention notifications
+- Fixed issue where System Console did not save the "Send push notifications" setting
+- Fixed issue with Font Display cancel button not working in Account Settings menu
+- Fixed incorrect default for "Team Name Display" settings
+- Media files of type .avi .mkv .wmv .mov .flv .mp4a do not play  properly ??
+- Fixed cross-contamination issue when multiple accounts log into the same team on the same browser
+- Fixed issue where color pickers did not update when a theme was pasted in
+- Increased the maximum number of channels
+
+### Compatibility  
+
+#### Config.json Changes from v1.3 to v1.4
+
+Multiple settings were added to `config.json`. These options can be modified in the System Console, or manually updated in the existing config.json file. This is a list of changes and their new default values in a fresh install:
+
+- Under `ServiceSettings` in `config.json`:
+  - Added: `"EnableDeveloper": false`
+  - Added: `"SessionLengthWebInDays" : 30` to 
+  - Added: `"SessionLengthMobileInDays" : 30`
+  - Added: `"SessionLengthSSOInDays" : 30`
+  - Added: `"SessionCacheInMinutes" : 10`
+- Under `FileSettings` in `config.json`:
+  - Added: `"AmazonS3Endpoint": ""`
+  - Added: `"AmazonS3BucketEndpoint": ""`
+  - Added: `"AmazonS3LocationConstraint": false`
+  - Added: `"AmazonS3LowercaseBucket": false`
+- Added `SupportSettings` section to `config.json`:
+  - Added: `"TermsOfServiceLink": "/static/help/terms.html"` to allow System Administrators to set the terms of service link
+  - Added: `"PrivacyPolicyLink": "/static/help/privacy.html"` to allow System Administrators to set the privacy policy link
+  - Added: `"AboutLink": "/static/help/about.html"` to allow System Administrators to set the about page link
+  - Added: `"HelpLink": "/static/help/help.html"` to allow System Administrators to set the help page link
+  - Added: `"ReportAProblemLink": "/static/help/report_problem.html"` to allow System Administrators to set the home page for the support website
+  - Added: `"SupportEmail":"feedback@mattermost.com"` to allow System Administrators to set an email address for feedback and support requests
+
+#### Known Issues
+
+- When navigating to a page with new messages as well as message containing inline images added via markdown, the channel may move up and down while loading the inline images
+- Microsoft Edge does not yet support drag and drop 
+- No scroll bar in center channel
+- Pasting images into text box fails to upload on Firefox, Safari, and IE11
+- Public links for attachments attempt to download the file on IE, Edge, and Safari
+- Slack import @mentions break
+- System Console > TEAMS > Statistics > Newly Created Users shows all of the users are created "just now"
+- Favicon does not always become red when @mentions and direct messages are received on an inactive browser tab
+- Searching for a phrase in quotations returns more than just the phrase on Mattermost installations with a Postgres database
+- Deleted/Archived channels are not removed from the "More" menu of the person that deleted/archived the channel until after refresh
+- Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks
+- Hashtags less than three characters long are not searchable
+- After deactivating a team member, the person remains in the channel counter
+- Certain symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag cause the message to not show up in a hashtag search
+
+#### Contributors 
+
+Many thanks to our external contributors. In no particular order:
+
+- [apskim](https://github.com/apskim)
+- [ejm2172](https://github.com/ejm2172)
+- [hjf288](https://github.com/hjf288)
+- [hvnsweeting](https://github.com/hvnsweeting)
+- [benburkert](https://github.com/benburkert)
+- [erikthered](https://github.com/erikthered)
+- [npcode](https://github.com/npcode)
+
 ## Release v1.3.0
 
 Release date: 2015-12-16
