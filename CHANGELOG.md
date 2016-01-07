@@ -59,16 +59,16 @@ User Interface
 Multiple settings were added to `config.json`. These options can be modified in the System Console, or manually updated in the existing config.json file. This is a list of changes and their new default values in a fresh install:
 
 - Under `ServiceSettings` in `config.json`:
-  - Added: `"EnableDeveloper": false`
+  - Added: `"EnableDeveloper": false` to set whether developer mode is enabled, which alerts users to any console errors that occur
   - Added: `"SessionLengthWebInDays" : 30` to set the number of days before web sessions expire and users will need to log in again
   - Added: `"SessionLengthMobileInDays" : 30` to set the number of days before native mobile sessions expire
   - Added: `"SessionLengthSSOInDays" : 30` to set the number of days before  SSO sessions expire
   - Added: `"SessionCacheInMinutes" : 10` to set the number of minutes to cache a session in memory
 - Under `FileSettings` in `config.json`:
-  - Added: `"AmazonS3Endpoint": ""`
-  - Added: `"AmazonS3BucketEndpoint": ""`
-  - Added: `"AmazonS3LocationConstraint": false`
-  - Added: `"AmazonS3LowercaseBucket": false`
+  - Added: `"AmazonS3Endpoint": ""` to set an endpoint URL for an Amazon S3 instance
+  - Added: `"AmazonS3BucketEndpoint": ""` to set an endpoint URL for Amazon S3 buckets
+  - Added: `"AmazonS3LocationConstraint": false` to set whether the S3 region is location constrained
+  - Added: `"AmazonS3LowercaseBucket": false` to set whether bucket names are fully lowercase or not
 - Added `SupportSettings` section to `config.json`:
   - Added: `"TermsOfServiceLink": "/static/help/terms.html"` to allow System Administrators to set the terms of service link
   - Added: `"PrivacyPolicyLink": "/static/help/privacy.html"` to allow System Administrators to set the privacy policy link
