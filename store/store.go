@@ -37,6 +37,7 @@ type Store interface {
 	OAuth() OAuthStore
 	System() SystemStore
 	Webhook() WebhookStore
+	Command() CommandStore
 	Preference() PreferenceStore
 	MarkSystemRanUnitTests()
 	Close()
@@ -180,6 +181,15 @@ type WebhookStore interface {
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+}
+
+type CommandStore interface {
+	Save(webhook *model.Command) StoreChannel
+	Get(id string) StoreChannel
+	GetByTeam(teamId string) StoreChannel
+	Delete(commandId string, time int64) StoreChannel
+	PermanentDeleteByUser(userId string) StoreChannel
+	Update(hook *model.Command) StoreChannel
 }
 
 type PreferenceStore interface {
