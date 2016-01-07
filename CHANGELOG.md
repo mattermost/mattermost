@@ -61,8 +61,8 @@ Multiple settings were added to `config.json`. These options can be modified in 
 - Under `ServiceSettings` in `config.json`:
   - Added: `"EnableDeveloper": false`
   - Added: `"SessionLengthWebInDays" : 30` to set the number of days before web sessions expire and users will need to log in again
-  - Added: `"SessionLengthMobileInDays" : 30` to set the number of days before native mobile sessions expire and users will need to log in again
-  - Added: `"SessionLengthSSOInDays" : 30` to set the number of days before  SSO sessions expire and users will need to log in again
+  - Added: `"SessionLengthMobileInDays" : 30` to set the number of days before native mobile sessions expire
+  - Added: `"SessionLengthSSOInDays" : 30` to set the number of days before  SSO sessions expire
   - Added: `"SessionCacheInMinutes" : 10` to set the number of minutes to cache a session in memory
 - Under `FileSettings` in `config.json`:
   - Added: `"AmazonS3Endpoint": ""`
