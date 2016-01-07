@@ -6,12 +6,28 @@ Expected Release date: 2016-01-16
 
 ### Release Highlights
 
+#### Data Center Support 
+
+- Deployment guides on Red Hat Enterprise Linux 6 and 7 now available 
+- Legal disclosure and support links (terms of service, privacy policy, help, about, and support email) now configurable
+- Over a dozen new configuration options in System Console
+
+#### Mobile Experience
+
+- iOS reference app [now available from iTunes](https://itunes.apple.com/us/app/mattermost/id984966508?ls=1&mt=8), compiled from [open source repo](https://github.com/mattermost/ios)
+- Date headers now show when scrolling on mobile, so you can quickly see when messages were sent
+- Added "rapid scroll" support for jumping quickily to bottom of channels on mobile 
+
 ### New Features
+
+Mobile Experience
+- Date headers now show when scrolling on mobile, so you can quickly see when messages were sent
+- Added "rapid scroll" support for jumping quickily to bottom of channels on mobile 
 
 Authentication
 
-- Added ability to switch between email sign in and SSO provider
-- Added fields to the config file to make session token length configurable
+- Accounts can now switch between email and GitLab SSO sign-in options 
+- New ability to customize session token length 
 
 System Console
 
@@ -21,24 +37,24 @@ System Console
 
 Performance and Testing
 
-- Added more debugging info for email and push notifications
+- Added logging for email and push notifications events in DEBUG mode 
 
 Integrations
 
-- Added support to allow optional parameters in the Content-Type of incoming webhook requests
+- Added support to allow optional parameters in the `Content-Type` of incoming webhook requests
 
 Files and Images
 
-- GIFs autoplay in the image previewer
+- Animated GIFs autoplay in the image previewer
 
 Notifications and Email
 
-- Changed email notifications to use the server's local timezone instead of UTC
+- Changed email notifications to display the server's local timezone instead of UTC
 
 User Interface
 
 - Updated the "About Mattermost" dialog formatting
-- Going to domain/teamname now to the last channel of your previous session, instead of Town Square
+- Going to domain/teamname now goes to the last channel of your previous session, instead of Town Square
 - Various improvements to mobile UI, including a floating date indicator and the ability to quickly scroll to the bottom of the channel
 
 #### Bug Fixes  
@@ -84,7 +100,7 @@ Multiple settings were added to `config.json`. These options can be modified in 
 - No scroll bar in center channel
 - Pasting images into text box fails to upload on Firefox, Safari, and IE11
 - Public links for attachments attempt to download the file on IE, Edge, and Safari
-- Slack import @mentions break
+- Importing from Slack breaks @mentions and fails to load in certain cases with comments on files 
 - System Console > TEAMS > Statistics > Newly Created Users shows all of the users are created "just now"
 - Favicon does not always become red when @mentions and direct messages are received on an inactive browser tab
 - Searching for a phrase in quotations returns more than just the phrase on Mattermost installations with a Postgres database
@@ -98,13 +114,13 @@ Multiple settings were added to `config.json`. These options can be modified in 
 
 Many thanks to our external contributors. In no particular order:
 
+- [npcode](https://github.com/npcode)
+- [hjf288](https://github.com/hjf288)
 - [apskim](https://github.com/apskim)
 - [ejm2172](https://github.com/ejm2172)
-- [hjf288](https://github.com/hjf288)
 - [hvnsweeting](https://github.com/hvnsweeting)
 - [benburkert](https://github.com/benburkert)
 - [erikthered](https://github.com/erikthered)
-- [npcode](https://github.com/npcode)
 
 ## Release v1.3.0
 
