@@ -20,9 +20,14 @@ export default class ChannelInviteModal extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleInvite = this.handleInvite.bind(this);
 
-        this.state = this.getStateFromStores();
+        // the state gets populated when the modal is shown
+        this.state = {};
     }
     shouldComponentUpdate(nextProps, nextState) {
+        if (!this.props.show && !nextProps.show) {
+            return false;
+        }
+
         if (!Utils.areObjectsEqual(this.props, nextProps)) {
             return true;
         }
@@ -34,13 +39,25 @@ export default class ChannelInviteModal extends React.Component {
         return false;
     }
     getStateFromStores() {
-        function getId(user) {
-            return user.id;
-        }
-        var users = UserStore.getActiveOnlyProfiles();
-        var memberIds = ChannelStore.getCurrentExtraInfo().members.map(getId);
+        const users = UserStore.getActiveOnlyProfiles();
 
-        var loading = $.isEmptyObject(users);
+        if ($.isEmptyObject(users)) {
+            return {
+                loading: true
+            };
+        }
+
+        // make sure we have all members of this channel before rendering
+        const extraInfo = ChannelStore.getCurrentExtraInfo();
+        if (extraInfo.member_count !== extraInfo.members.length) {
+            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
+
+            return {
+                loading: true
+            };
+        }
+
+        const memberIds = extraInfo.members.map((user) => user.id);
 
         var nonmembers = [];
         for (var id in users) {
@@ -55,7 +72,7 @@ export default class ChannelInviteModal extends React.Component {
 
         return {
             nonmembers,
-            loading
+            loading: false
         };
     }
     onShow() {

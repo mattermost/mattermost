@@ -824,10 +824,17 @@ export function getChannelCounts(success, error) {
     });
 }
 
-export function getChannelExtraInfo(id, success, error) {
+export function getChannelExtraInfo(id, memberLimit, success, error) {
+    let url = '/api/v1/channels/' + id + '/extra_info';
+
+    if (memberLimit) {
+        url += '/' + memberLimit;
+    }
+
     $.ajax({
-        url: '/api/v1/channels/' + id + '/extra_info',
+        url,
         dataType: 'json',
+        contentType: 'application/json',
         type: 'GET',
         success,
         error: function onError(xhr, status, err) {
