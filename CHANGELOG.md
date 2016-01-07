@@ -32,6 +32,7 @@ Authentication
 System Console
 
 - Added "Legal and Support Settings" so System Administrators can change the default Terms of Service, Privacy Policy, and Help links
+- Added settings for web, mobile, and SSO session lengths under "Service Settings"
 
 ### Improvements 
 
