@@ -417,12 +417,6 @@ body.ios {
 		background-color: beige;
 	}
 
-	ul {
-		margin: 0;
-		padding: 0;
-	}
-
-
 	p {
 		margin: 0;
 		line-height: 1.6em;
@@ -675,16 +669,10 @@ body.ios {
 			max-height: 400px;
 		}
 
-		ul {
-		    margin-bottom: 0.6em;
-			padding: 5px 0 0 20px;
-		}
-
-		ul + p {
-			margin-top: 1em;
-		}
-
 		ul, ol {
+			padding-top: 5px;
+			margin-bottom: 0.4em;
+
 			p {
 				margin-bottom: 0;
 			}
