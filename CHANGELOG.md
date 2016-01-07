@@ -47,7 +47,7 @@ User Interface
 - Fixed issue where System Console did not save the "Send push notifications" setting
 - Fixed issue with Font Display cancel button not working in Account Settings menu
 - Fixed incorrect default for "Team Name Display" settings
-- Media files of type .avi .mkv .wmv .mov .flv .mp4a do not play  properly ??
+- Fixed issue where various media files appeared broken in the media player on some browsers 
 - Fixed cross-contamination issue when multiple accounts log into the same team on the same browser
 - Fixed issue where color pickers did not update when a theme was pasted in
 - Increased the maximum number of channels
