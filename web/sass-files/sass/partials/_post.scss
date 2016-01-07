@@ -665,12 +665,15 @@ body.ios {
 		@include legacy-pie-clearfix;
 		width: calc(100% - 75px);
 
+		p {
+			margin: 0 0 0.4em;
+		}
+
 		img {
 			max-height: 400px;
 		}
 
 		ul, ol {
-			padding-top: 5px;
 			margin-bottom: 0.4em;
 
 			p {
