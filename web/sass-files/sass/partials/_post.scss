@@ -286,8 +286,10 @@ body.ios {
 	z-index: 50;
 	@include opacity(0);
 	@include single-transition(all, 0.3s);
+	display: none;
 
 	&.scrolling {
+		display: block;
 		@include opacity(1);
 	}
 }
@@ -601,6 +603,7 @@ body.ios {
 			right: 0;
 			top: 30px;
 			width: 65px;
+			white-space: nowrap;
 		}
 
 		.permalink-popover {
@@ -634,8 +637,7 @@ body.ios {
 	.dropdown {
 		display: inline-block;
 		visibility: hidden;
-		position: absolute;
-		right: 0;
+		margin-right: 5px;
 		top: -1px;
 
 		.dropdown-menu {

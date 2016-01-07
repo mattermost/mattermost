@@ -24,6 +24,7 @@ export default class PostsView extends React.Component {
         this.updateScrolling = this.updateScrolling.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.scrollToBottom = this.scrollToBottom.bind(this);
+        this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -339,6 +340,10 @@ export default class PostsView extends React.Component {
             this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
         });
     }
+    scrollToBottomAnimated() {
+        var postList = $(this.refs.postlist);
+        postList.animate({scrollTop:this.refs.postlist.scrollHeight}, '500');
+    }
     componentDidMount() {
         if (this.props.postList != null) {
             this.updateScrolling();
@@ -458,7 +463,7 @@ export default class PostsView extends React.Component {
                 <ScrollToBottomArrows
                     isScrolling={this.state.isScrolling}
                     atBottom={this.wasAtBottom}
-                    onClick={this.scrollToBottom}
+                    onClick={this.scrollToBottomAnimated}
                 />
                 <div
                     ref='postlist'
