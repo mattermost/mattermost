@@ -23,8 +23,23 @@ Set this key to enable embedding of YouTube video previews based on hyperlinks a
 ```"EnableTesting": false```  
 "true": `/loadtest` slash command is enabled to load test accounts and test data.
 
+```"EnableDeveloper": false```  
+"true": Users are alerted to any console errors that occur.
+
 ```"EnableSecurityFixAlert": true```  
-”true”: System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.
+"true": System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.
+
+```"SessionLengthWebInDays" : 30```
+Set the number of days before web sessions expire and users will need to log in again.
+
+```"SessionLengthMobileInDays" : 30```
+Set the number of days before native mobile sessions expire.
+
+```"SessionLengthSSOInDays" : 30```
+Set the number of days before SSO sessions expire.
+
+```"SessionCacheInMinutes" : 10```
+Set the number of minutes to cache a session in memory.
 
 #### Webhooks
 
@@ -198,7 +213,7 @@ The width to which profile pictures are resized after being uploaded via Account
 The height to which profile pictures are resized after being uploaded via Account Settings.
 
 ```"EnablePublicLink": true```  
-”true”: Allow users to share public links to files and images when previewing; “false”: The Get Public Link option is hidden from the image preview user interface.
+"true": Allow users to share public links to files and images when previewing; “false”: The Get Public Link option is hidden from the image preview user interface.
 
 ```"PublicLinkSalt": "A705AklYF8MFDOfcwh3I488G8vtLlVip"```  
 32-character (to be randomly generated via Admin Console) salt added to signing of public image links.
@@ -211,7 +226,7 @@ Settings to configure the console and log file output, detail level, format and 
 #### Console Settings
 
 ```"EnableConsole": true```  
-“true”: Output log messages to the console based on **ConsoleLevel** option. The server writes messages to the standard output stream (stdout).
+"true": Output log messages to the console based on **ConsoleLevel** option. The server writes messages to the standard output stream (stdout).
 
 ```"ConsoleLevel": "DEBUG"```  
 Level of detail at which log events are written to the console when **EnableConsole**=true. ”ERROR”: Outputs only error messages; “INFO”: Outputs error messages and information around startup and initialization; “DEBUG”: Prints high detail for developers debugging issues.
@@ -219,7 +234,7 @@ Level of detail at which log events are written to the console when **EnableCons
 #### Log File Settings
 
 ```"EnableFile": true```  
-”true”:  Log files are written to files specified in **FileLocation**.
+"true":  Log files are written to files specified in **FileLocation**.
 
 ```"FileLevel": "INFO"```  
 Level of detail at which log events are written to log files when **EnableFile**=true. “ERROR”: Outputs only error messages; “INFO”: Outputs error messages and information around startup and initialization; “DEBUG”: Prints high detail for developers debugging issues.
@@ -243,7 +258,7 @@ Directory to which log files are written. If blank, log files write to ./logs/ma
 Settings to enable API rate limiting and configure requests per second, user sessions and variables for rate limiting. Changing properties in this section will require a server restart before taking effect.
 
 ```"EnableRateLimiter": true```  
-”true”: APIs are throttled at the rate specified by **PerSec**.
+"true": APIs are throttled at the rate specified by **PerSec**.
 
 ```"PerSec": 10```  
 Throttle API at this number of requests per second if **EnableRateLimiter**=true.
@@ -262,17 +277,17 @@ Vary rate limiting by HTTP header field specified (e.g. when configuring Ngnix s
 Settings to configure the name and email privacy of users on your system.  
 
 ```"ShowEmailAddress": true```  
-“true”: Show email address of all users; "false": Hide email address of users from other users in the user interface, including team owners and team administrators. This is designed for managing teams where users choose to keep their contact information private.
+"true": Show email address of all users; "false": Hide email address of users from other users in the user interface, including team owners and team administrators. This is designed for managing teams where users choose to keep their contact information private.
 
 ```"ShowFullName": true```  
-”true”: Show full name of all users; “false”: hide full name of users from other users including team owner and team administrators.
+"true": Show full name of all users; “false”: hide full name of users from other users including team owner and team administrators.
 
 ### GitLab Settings
 
 Settings to configure account and team creation using GitLab OAuth.
 
 ```"Enable": false```  
-“true”: Allow team creation and account signup using GitLab OAuth. To configure, input the **Secret** and **Id** credentials. 
+"true": Allow team creation and account signup using GitLab OAuth. To configure, input the **Secret** and **Id** credentials. 
 
 ```"Secret": ""```  
 Obtain this value by logging into your GitLab account. Go to Profile Settings -> Applications -> New Application, enter a Name, then enter Redirect URLs `https://<your-mattermost-url>/login/gitlab/complete` (example: `https://example.com:8065/login/gitlab/complete`) and `https://<your-mattermost-url>/signup/gitlab/complete`.
@@ -289,50 +304,68 @@ Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com
 ```"UserApiEndpoint": ""```  
 Enter `https://<your-gitlab-url>/oauth/authorize` (example: `https://example.com:3000/api/v3/user`). Use HTTP or HTTPS depending on how your server is configured.
 
+### Support Settings
+
+```"TermsOfServiceLink": "/static/help/terms.html"```  
+Set the link for the terms of service.
+
+```"PrivacyPolicyLink": "/static/help/privacy.html"```  
+Set the link for the privacy policy.
+
+```"AboutLink": "/static/help/about.html"```  
+Set the link for the about page.
+
+```"HelpLink": "/static/help/help.html"```  
+Set the link for the help page.
+
+```"ReportAProblemLink": "/static/help/report_problem.html"```  
+Set the link for the support website.
+
+`"SupportEmail":"feedback@mattermost.com"`  
+Set an email for feedback or support requests.
+
 ### LDAP Settings (Enterprise)
 
 Settings used to enable and configure LDAP authentication with Mattermost. Available in the Enterprise version of Mattermost.
 
-```"Enable Login With LDAP": "false"```
-When true, Mattermost allows login using LDAP.
+```"Enable Login With LDAP": "false"```  
+"true": Mattermost allows login using LDAP.
 
-```“LDAP Server”: “”```
+```"LDAP Server": ""```  
 The domain or IP address of the LDAP server.
 
-```“LDAP Port”: “389”```
+```"LDAP Port": "389"```  
 The port Mattermost will use to connect to the LDAP server. Default is 389.
 
-```”BaseDN”: ””```
+```"BaseDN": ""```  
 The Base DN is the Distinguished Name of the location where Mattermost should start its search for users in the LDAP tree.
 
-```”Bind Username”: ””```
+```"Bind Username": ""```  
 The username used to perform the LDAP search. This should typically be an account created specifically for use with Mattermost. It should be a read only account with access limited to the portion of the LDAP tree specified in the BaseDN field.
 
-```”Bind Password”: ””```
+```"Bind Password": ""```  
 Password of the user given in “Bind Username”.
 
-```”First Name Attribute”: ””```
+```"First Name Attribute": ""```  
 The attribute in the LDAP server that will be used to populate the first name of users in Mattermost.
 
-```”Last Name Attribute”: ””```
+```"Last Name Attribute": ""```  
 The attribute in the LDAP server that will be used to populate the last name of users in Mattermost.
 
-```”Email Attribute”: ””```
+```"Email Attribute": ""```  
 The attribute in the LDAP server that will be used to populate the email addresses of users in Mattermost.
 
-```”Username Attribute”: ””```
+```"Username Attribute": ""```  
 The attribute in the LDAP server that will be used to populate the username field in Mattermost. This may be the same as the ID Attribute.
 
-```”ID Attribute”: ””```
-
+```"ID Attribute": ""```  
 The attribute in the LDAP server that will be used as a unique identifier in Mattermost.
 
 This is the attribute that will be used to create Mattermost accounts. It should be an LDAP attribute with a value that does not change, such as username or uid. If a user’s Id Attribute changes, it will create a new Mattermost account unassociated with their old one. 
 
 This is also the value used to log in to Mattermost in the “LDAP Username” field on the sign in page. Normally this attribute is the same as the “Username Attribute” field above. If your team typically uses domain\username to sign in to other services with LDAP, you may choose to put domain\username in this field to maintain consistency between sites.
 
-```”Query Timeout (seconds)”: ”60”```
-
+```"Query Timeout (seconds)": "60"```  
 The timeout value for queries to the LDAP server. Increase this value if you are getting timeout errors caused by a slow LDAP server.
 
 ## Config.json Settings Not in System Console
@@ -342,12 +375,24 @@ System Console allows an IT Admin to update settings defined in `config.json`. H
 ### Service Settings
 
 ```"EnableOAuthServiceProvider": false```  
-”true”: Allow Mattermost to function as an OAuth provider, allowing 3rd party apps access to your user store for authentication.
+"true": Allow Mattermost to function as an OAuth provider, allowing 3rd party apps access to your user store for authentication.
 
 ### File Settings
 
 ```"InitialFont": "luximbi.ttf"```  
 Font used in auto-generated profile pics with colored backgrounds.
+
+```"AmazonS3Endpoint": ""```  
+Set an endpoint URL for an Amazon S3 instance.
+
+```"AmazonS3BucketEndpoint": ""```  
+Set an endpoint URL for Amazon S3 buckets.
+
+```"AmazonS3LocationConstraint": false```  
+Set whether the S3 region is location constrained.
+
+```Added: "AmazonS3LowercaseBucket": false```  
+Set whether bucket names are fully lowercase or not.
 
 ### GitLab Settings
 
