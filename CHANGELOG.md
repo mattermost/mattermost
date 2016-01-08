@@ -73,7 +73,9 @@ User Interface
 
 #### Config.json Changes from v1.3 to v1.4
 
-Multiple settings were added to `config.json`. These options can be modified in the System Console, or manually updated in the existing config.json file. This is a list of changes and their new default values in a fresh install:
+Multiple settings were added to `config.json`. Below is a list of the changes and their new default values in a fresh install. 
+
+The following options can be modified in the System Console:  
 
 - Under `ServiceSettings` in `config.json`:
   - Added: `"EnableDeveloper": false` to set whether developer mode is enabled, which alerts users to any console errors that occur
@@ -81,11 +83,6 @@ Multiple settings were added to `config.json`. These options can be modified in 
   - Added: `"SessionLengthMobileInDays" : 30` to set the number of days before native mobile sessions expire
   - Added: `"SessionLengthSSOInDays" : 30` to set the number of days before  SSO sessions expire
   - Added: `"SessionCacheInMinutes" : 10` to set the number of minutes to cache a session in memory
-- Under `FileSettings` in `config.json`:
-  - Added: `"AmazonS3Endpoint": ""` to set an endpoint URL for an Amazon S3 instance
-  - Added: `"AmazonS3BucketEndpoint": ""` to set an endpoint URL for Amazon S3 buckets
-  - Added: `"AmazonS3LocationConstraint": false` to set whether the S3 region is location constrained
-  - Added: `"AmazonS3LowercaseBucket": false` to set whether bucket names are fully lowercase or not
 - Added `SupportSettings` section to `config.json`:
   - Added: `"TermsOfServiceLink": "/static/help/terms.html"` to allow System Administrators to set the terms of service link
   - Added: `"PrivacyPolicyLink": "/static/help/privacy.html"` to allow System Administrators to set the privacy policy link
@@ -93,6 +90,14 @@ Multiple settings were added to `config.json`. These options can be modified in 
   - Added: `"HelpLink": "/static/help/help.html"` to allow System Administrators to set the help page link
   - Added: `"ReportAProblemLink": "/static/help/report_problem.html"` to allow System Administrators to set the home page for the support website
   - Added: `"SupportEmail":"feedback@mattermost.com"` to allow System Administrators to set an email address for feedback and support requests
+
+The following options are not present in the System Console, and can be modified manually in the `config.json` file:  
+
+- Under `FileSettings` in `config.json`:
+  - Added: `"AmazonS3Endpoint": ""` to set an endpoint URL for an Amazon S3 instance
+  - Added: `"AmazonS3BucketEndpoint": ""` to set an endpoint URL for Amazon S3 buckets
+  - Added: `"AmazonS3LocationConstraint": false` to set whether the S3 region is location constrained
+  - Added: `"AmazonS3LowercaseBucket": false` to set whether bucket names are fully lowercase or not
 
 #### Known Issues
 
