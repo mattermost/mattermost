@@ -134,15 +134,10 @@ export default class CreatePost extends React.Component {
                 post.message,
                 false,
                 (data) => {
-                    if (data.response === 'not implemented') {
-                        this.sendMessage(post);
-                        return;
-                    }
-
                     PostStore.storeDraft(data.channel_id, null);
                     this.setState({messageText: '', submitting: false, postError: null, previews: [], serverError: null});
 
-                    if (data.goto_location.length > 0) {
+                    if (data.goto_location && data.goto_location.length > 0) {
                         window.location.href = data.goto_location;
                     }
                 },

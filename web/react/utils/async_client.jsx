@@ -747,20 +747,28 @@ export function savePreferences(preferences, success, error) {
 }
 
 export function getSuggestedCommands(command, suggestionId, component) {
-    client.executeCommand(
-        '',
-        command,
-        true,
+    client.listCommands(
         (data) => {
+            var matches = [];
+            data.forEach((cmd) => {
+                if (('/' + cmd.trigger).indexOf(command) === 0) {
+                    matches.push({
+                        suggestion: '/' + cmd.trigger + ' ' + cmd.auto_complete_hint,
+                        description: cmd.auto_complete_desc
+                    });
+                }
+            });
+
             // pull out the suggested commands from the returned data
-            const terms = data.suggestions.map((suggestion) => suggestion.suggestion);
+            //const terms = matches.map((suggestion) => suggestion.trigger);
+            const terms = matches.map((suggestion) => suggestion.suggestion);
 
             AppDispatcher.handleServerAction({
                 type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
                 id: suggestionId,
                 matchedPretext: command,
                 terms,
-                items: data.suggestions,
+                items: matches,
                 component
             });
         },

@@ -4,45 +4,169 @@
 package api
 
 import (
-	// "io"
-	// "net/http"
+	//"io"
+	"net/http"
 	// "path"
 	// "strconv"
-	// "strings"
+	"strings"
 	// "time"
 
 	l4g "code.google.com/p/log4go"
 	"github.com/gorilla/mux"
-	// "github.com/mattermost/platform/model"
-	// "github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
-// type commandHandler func(c *Context, command *model.Command) bool
+type CommandProvider interface {
+	GetCommand() *model.Command
+	DoCommand(c *Context, channelId string, message string) *model.CommandResponse
+}
 
-// var (
-// 	cmds = map[string]string{
-// 		"logoutCommand":   "/logout",
-// 		"joinCommand":     "/join",
-// 		"loadTestCommand": "/loadtest",
-// 		"echoCommand":     "/echo",
-// 		"shrugCommand":    "/shrug",
-// 		"meCommand":       "/me",
-// 	}
-// 	commands = []commandHandler{
-// 		logoutCommand,
-// 		joinCommand,
-// 		loadTestCommand,
-// 		echoCommand,
-// 		shrugCommand,
-// 		meCommand,
-// 	}
-// 	commandNotImplementedErr = model.NewAppError("checkCommand", "Command not implemented", "")
-// )
-// var echoSem chan bool
+var commandProviders = make(map[string]CommandProvider)
+
+func RegisterCommandProvider(newProvider CommandProvider) {
+	commandProviders[newProvider.GetCommand().Trigger] = newProvider
+}
+
+func GetCommandProvidersProvider(name string) CommandProvider {
+	provider, ok := commandProviders[name]
+	if ok {
+		return provider
+	}
+
+	return nil
+}
 
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
-	//	r.Handle("/command", ApiUserRequired(command)).Methods("POST")
+
+	sr := r.PathPrefix("/commands").Subrouter()
+
+	sr.Handle("/execute", ApiUserRequired(execute)).Methods("POST")
+	sr.Handle("/list", ApiUserRequired(listCommands)).Methods("POST")
+
+	sr.Handle("/create", ApiUserRequired(create)).Methods("POST")
+	sr.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
+	// sr.Handle("/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
+	// sr.Handle("/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
+}
+
+func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
+	commands := make([]*model.Command, 0, 32)
+	for _, value := range commandProviders {
+		cpy := *value.GetCommand()
+		cpy.Token = ""
+		cpy.CreatorId = ""
+		cpy.Method = ""
+		cpy.URL = ""
+		cpy.Username = ""
+		cpy.IconURL = ""
+		commands = append(commands, &cpy)
+	}
+
+	w.Write([]byte(model.CommandListToJson(commands)))
+}
+
+func execute(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	command := strings.TrimSpace(props["command"])
+	channelId := strings.TrimSpace(props["channelId"])
+
+	if len(command) <= 1 || strings.Index(command, "/") != 0 {
+		c.Err = model.NewAppError("command", "Command must start with /", "")
+		return
+	}
+
+	if len(channelId) > 0 {
+		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, channelId, c.Session.UserId)
+
+		if !c.HasPermissionsToChannel(cchan, "checkCommand") {
+			return
+		}
+	}
+
+	parts := strings.Split(command, " ")
+	trigger := parts[0][1:]
+	provider := GetCommandProvidersProvider(trigger)
+
+	if provider != nil {
+		message := strings.Join(parts[1:], " ")
+		response := provider.DoCommand(c, channelId, message)
+
+		if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
+			post := &model.Post{}
+			post.ChannelId = channelId
+			post.Message = response.Text
+			if _, err := CreatePost(c, post, true); err != nil {
+				c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
+			}
+		}
+
+		w.Write([]byte(response.ToJson()))
+	} else {
+		c.Err = model.NewAppError("command", "Command with a trigger of '"+trigger+"' not found", "")
+	}
+}
+
+func create(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableCommands {
+		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	c.LogAudit("attempt")
+
+	cmd := model.CommandFromJson(r.Body)
+
+	if cmd == nil {
+		c.SetInvalidParam("createCommand", "command")
+		return
+	}
+
+	cmd.CreatorId = c.Session.UserId
+	cmd.TeamId = c.Session.TeamId
+
+	if result := <-Srv.Store.Command().Save(cmd); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		c.LogAudit("success")
+		rcmd := result.Data.(*model.Command)
+		w.Write([]byte(rcmd.ToJson()))
+	}
+}
+
+func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableCommands {
+		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		cmds := result.Data.([]*model.Command)
+		w.Write([]byte(model.CommandListToJson(cmds)))
+	}
 }
 
 // func command(c *Context, w http.ResponseWriter, r *http.Request) {

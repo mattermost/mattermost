@@ -839,7 +839,7 @@ export function getChannelExtraInfo(id, success, error) {
 
 export function executeCommand(channelId, command, suggest, success, error) {
     $.ajax({
-        url: '/api/v1/command',
+        url: '/api/v1/commands/execute',
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
@@ -847,6 +847,20 @@ export function executeCommand(channelId, command, suggest, success, error) {
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('executeCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function listCommands(success, error) {
+    $.ajax({
+        url: '/api/v1/commands/list',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('listCommands', xhr, status, err);
             error(e);
         }
     });

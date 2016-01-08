@@ -7,6 +7,8 @@
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": false,
         "EnableOutgoingWebhooks": false,
+        "EnableCommands": false,
+        "EnableOnlyAdminIntegrations": false,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,

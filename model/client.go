@@ -372,7 +372,25 @@ func (c *Client) Command(channelId string, command string, suggest bool) (*Resul
 	m["command"] = command
 	m["channelId"] = channelId
 	m["suggest"] = strconv.FormatBool(suggest)
-	if r, err := c.DoApiPost("/command", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/commands/execute", MapToJson(m)); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandResponseFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) ListCommands() (*Result, *AppError) {
+	if r, err := c.DoApiPost("/commands/list", ""); err != nil {
+		return nil, err
+	} else {
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), CommandListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) CreateCommand(cmd *Command) (*Result, *AppError) {
+	if r, err := c.DoApiPost("/commands/create", cmd.ToJson()); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),

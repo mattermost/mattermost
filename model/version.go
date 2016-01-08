@@ -24,10 +24,10 @@ var versions = []string{
 }
 
 var CurrentVersion string = versions[0]
-var BuildNumber = "_BUILD_NUMBER_"
-var BuildDate = "_BUILD_DATE_"
-var BuildHash = "_BUILD_HASH_"
-var BuildEnterpriseReady = "_BUILD_ENTERPRISE_READY_"
+var BuildNumber = "dev"
+var BuildDate = "Fri Jan  8 14:19:26 UTC 2016"
+var BuildHash = "001a4448ca5fb0018eeb442915b473b121c04bf3"
+var BuildEnterpriseReady = "false"
 
 func SplitVersion(version string) (int64, int64, int64) {
 	parts := strings.Split(version, ".")
@@ -73,7 +73,7 @@ func GetPreviousVersion(currentVersion string) (int64, int64) {
 }
 
 func IsOfficalBuild() bool {
-	return BuildNumber != "_BUILD_NUMBER_"
+	return BuildNumber != "dev"
 }
 
 func IsCurrentVersion(versionToCheck string) bool {
