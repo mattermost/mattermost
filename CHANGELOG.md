@@ -31,8 +31,8 @@ Authentication
 
 System Console
 
-- Added "Legal and Support Settings" so System Administrators can change the default Terms of Service, Privacy Policy, and Help links
-- Added settings for web, mobile, and SSO session lengths under "Service Settings"
+- Added *Legal and Support Settings* so System Administrators can change the default Terms of Service, Privacy Policy, and Help links
+- Under *Service Settings* added options to customize expiry of web, mobile and SSO session tokens, expiry of caches in memory, and an EnableDeveloper option to turn on Developer Mode which alerts users to any console errors that occur
 
 ### Improvements 
 
