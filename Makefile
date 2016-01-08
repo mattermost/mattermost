@@ -146,6 +146,8 @@ package:
 	sed -i'.bak' 's|libs.min.js|libs-$(BUILD_NUMBER).min.js|g' $(DIST_PATH)/web/templates/head.html
 	rm $(DIST_PATH)/web/templates/*.bak
 
+	mv $(DIST_PATH)/config/config.json.bak $(DIST_PATH)/config/config.json
+
 	tar -C dist -czf $(DIST_PATH).tar.gz mattermost
 
 build-client:
@@ -179,7 +181,7 @@ travis-init:
 
 	if [ "$(TRAVIS_DB)" = "postgres" ]; then \
 		sed -i'.bak' 's|mysql|postgres|g' config/config.json; \
-		sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
+		sed -i'.bak2' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable\&connect_timeout=10|g' config/config.json; \
 	fi
 
 	if [ "$(TRAVIS_DB)" = "mysql" ]; then \
