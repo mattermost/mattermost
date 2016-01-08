@@ -243,6 +243,18 @@ export default class FileUpload extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        let target;
+        if (this.props.postType === 'post') {
+            target = $('.row.main');
+        } else {
+            target = $('.post-right__container');
+        }
+
+        // jquery-dragster doesn't provide a function to unregister itself so do it manually
+        target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
+    }
+
     cancelUpload(clientId) {
         var requests = this.state.requests;
         var request = requests[clientId];
