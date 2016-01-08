@@ -342,7 +342,7 @@ export default class PostsView extends React.Component {
     }
     scrollToBottomAnimated() {
         var postList = $(this.refs.postlist);
-        postList.animate({scrollTop:this.refs.postlist.scrollHeight}, '500');
+        postList.animate({scrollTop: this.refs.postlist.scrollHeight}, '500');
     }
     componentDidMount() {
         if (this.props.postList != null) {
