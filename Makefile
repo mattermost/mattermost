@@ -126,6 +126,10 @@ package:
 	cp -RL web/static/js/jquery-dragster $(DIST_PATH)/web/static/js/
 	cp -RL web/templates $(DIST_PATH)/web
 
+	cp -L web/static/js/react-0.14.3.js $(DIST_PATH)/web/static/js/
+	cp -L web/static/js/react-dom-0.14.3.js $(DIST_PATH)/web/static/js/
+	cp -L web/static/js/react-bootstrap-0.28.1.js $(DIST_PATH)/web/static/js/
+
 	mkdir -p $(DIST_PATH)/api
 	cp -RL api/templates $(DIST_PATH)/api
 
