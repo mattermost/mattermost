@@ -25,5 +25,10 @@ func (me *ShrugProvider) GetCommand() *model.Command {
 }
 
 func (me *ShrugProvider) DoCommand(c *Context, channelId string, message string) *model.CommandResponse {
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: `¯\_(ツ)_/¯`}
+	rmsg := `¯\\\_(ツ)\_/¯`
+	if len(message) > 0 {
+		rmsg = message + " " + rmsg
+	}
+
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
 }

@@ -33,15 +33,6 @@ func GetCommandProvidersProvider(name string) CommandProvider {
 	return nil
 }
 
-// cmds = map[string]string{
-// 		"logoutCommand":   "/logout",
-// 		"joinCommand":     "/join",
-// 		"loadTestCommand": "/loadtest",
-// 		"echoCommand":     "/echo",
-// 		"shrugCommand":    "/shrug",
-// 		"meCommand":       "/me",
-// 	}
-
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 

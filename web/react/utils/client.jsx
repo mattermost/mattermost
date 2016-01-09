@@ -857,7 +857,7 @@ export function listCommands(success, error) {
         url: '/api/v1/commands/list',
         dataType: 'json',
         contentType: 'application/json',
-        type: 'POST',
+        type: 'GET',
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('listCommands', xhr, status, err);

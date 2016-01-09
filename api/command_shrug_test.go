@@ -39,7 +39,7 @@ func TestShrugCommand(t *testing.T) {
 	if len(p1.Order) != 1 {
 		t.Fatal("Command failed to send")
 	} else {
-		if p1.Posts[p1.Order[0]].Message != `¯\_(ツ)_/¯` {
+		if p1.Posts[p1.Order[0]].Message != `¯\\\_(ツ)\_/¯` {
 			t.Log(p1.Posts[p1.Order[0]].Message)
 			t.Fatal("invalid shrug reponse")
 		}
