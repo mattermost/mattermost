@@ -37,37 +37,59 @@ func GetCommandProvidersProvider(name string) CommandProvider {
 	return nil
 }
 
+// cmds = map[string]string{
+// 		"logoutCommand":   "/logout",
+// 		"joinCommand":     "/join",
+// 		"loadTestCommand": "/loadtest",
+// 		"echoCommand":     "/echo",
+// 		"shrugCommand":    "/shrug",
+// 		"meCommand":       "/me",
+// 	}
+
 func InitCommand(r *mux.Router) {
 	l4g.Debug("Initializing command api routes")
 
 	sr := r.PathPrefix("/commands").Subrouter()
 
-	sr.Handle("/execute", ApiUserRequired(execute)).Methods("POST")
-	sr.Handle("/list", ApiUserRequired(listCommands)).Methods("POST")
+	sr.Handle("/execute", ApiUserRequired(executeCommand)).Methods("POST")
+	sr.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
 
-	sr.Handle("/create", ApiUserRequired(create)).Methods("POST")
+	sr.Handle("/create", ApiUserRequired(createCommand)).Methods("POST")
 	sr.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
-	// sr.Handle("/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
-	// sr.Handle("/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
+	sr.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
+	sr.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	commands := make([]*model.Command, 0, 32)
+	seen := make(map[string]bool)
 	for _, value := range commandProviders {
 		cpy := *value.GetCommand()
-		cpy.Token = ""
-		cpy.CreatorId = ""
-		cpy.Method = ""
-		cpy.URL = ""
-		cpy.Username = ""
-		cpy.IconURL = ""
-		commands = append(commands, &cpy)
+		if cpy.AutoComplete && !seen[cpy.Id] {
+			cpy.Sanatize()
+			seen[cpy.Trigger] = true
+			commands = append(commands, &cpy)
+		}
+	}
+
+	if result := <-Srv.Store.Command().GetByTeam(c.Session.TeamId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		teamCmds := result.Data.([]*model.Command)
+		for _, cmd := range teamCmds {
+			if cmd.AutoComplete && !seen[cmd.Id] {
+				cmd.Sanatize()
+				seen[cmd.Trigger] = true
+				commands = append(commands, cmd)
+			}
+		}
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
 }
 
-func execute(c *Context, w http.ResponseWriter, r *http.Request) {
+func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	command := strings.TrimSpace(props["command"])
 	channelId := strings.TrimSpace(props["channelId"])
@@ -108,7 +130,7 @@ func execute(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func create(c *Context, w http.ResponseWriter, r *http.Request) {
+func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.ServiceSettings.EnableCommands {
 		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
@@ -167,6 +189,100 @@ func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		cmds := result.Data.([]*model.Command)
 		w.Write([]byte(model.CommandListToJson(cmds)))
 	}
+}
+
+func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableCommands {
+		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	c.LogAudit("attempt")
+
+	props := model.MapFromJson(r.Body)
+
+	id := props["id"]
+	if len(id) == 0 {
+		c.SetInvalidParam("regenCommandToken", "id")
+		return
+	}
+
+	var cmd *model.Command
+	if result := <-Srv.Store.Command().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		cmd = result.Data.(*model.Command)
+
+		if c.Session.TeamId != cmd.TeamId && c.Session.UserId != cmd.CreatorId && !c.IsTeamAdmin() {
+			c.LogAudit("fail - inappropriate permissions")
+			c.Err = model.NewAppError("regenToken", "Inappropriate permissions to regenerate command token", "user_id="+c.Session.UserId)
+			return
+		}
+	}
+
+	cmd.Token = model.NewId()
+
+	if result := <-Srv.Store.Command().Update(cmd); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		w.Write([]byte(result.Data.(*model.Command).ToJson()))
+	}
+}
+
+func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableCommands {
+		c.Err = model.NewAppError("createCommand", "Commands have been disabled by the system admin.", "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
+	c.LogAudit("attempt")
+
+	props := model.MapFromJson(r.Body)
+
+	id := props["id"]
+	if len(id) == 0 {
+		c.SetInvalidParam("deleteCommand", "id")
+		return
+	}
+
+	if result := <-Srv.Store.Command().Get(id); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		if c.Session.TeamId != result.Data.(*model.Command).TeamId && c.Session.UserId != result.Data.(*model.Command).CreatorId && !c.IsTeamAdmin() {
+			c.LogAudit("fail - inappropriate permissions")
+			c.Err = model.NewAppError("deleteCommand", "Inappropriate permissions to delete command", "user_id="+c.Session.UserId)
+			return
+		}
+	}
+
+	if err := (<-Srv.Store.Command().Delete(id, model.GetMillis())).Err; err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	w.Write([]byte(model.MapToJson(props)))
 }
 
 // func command(c *Context, w http.ResponseWriter, r *http.Request) {

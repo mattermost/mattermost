@@ -107,6 +107,10 @@ func TestListTeamCommands(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	cmd1 := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
@@ -117,9 +121,78 @@ func TestListTeamCommands(t *testing.T) {
 	} else {
 		cmds := result.Data.([]*model.Command)
 
-		if len(hooks) != 1 {
+		if len(cmds) != 1 {
 			t.Fatal("incorrect number of cmd")
 		}
+	}
+
+	*utils.Cfg.ServiceSettings.EnableCommands = false
+}
+
+func TestRegenToken(t *testing.T) {
+	Setup()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
+
+	data := make(map[string]string)
+	data["id"] = cmd.Id
+
+	if result, err := Client.RegenCommandToken(data); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.Command).Token == cmd.Token {
+			t.Fatal("regen didn't work properly")
+		}
+	}
+
+	*utils.Cfg.ServiceSettings.EnableCommands = false
+}
+
+func TestDeleteCommand(t *testing.T) {
+	Setup()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{TeamId: team.Id, Email: model.NewId() + "corey+test@test.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
+	Client.LoginByEmail(team.Name, user.Email, "pwd")
+
+	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST}
+	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
+
+	data := make(map[string]string)
+	data["id"] = cmd.Id
+
+	if _, err := Client.DeleteCommand(data); err != nil {
+		t.Fatal(err)
+	}
+
+	cmds := Client.Must(Client.ListTeamCommands()).Data.([]*model.Command)
+	if len(cmds) != 0 {
+		t.Fatal("delete didn't work properly")
 	}
 
 	*utils.Cfg.ServiceSettings.EnableCommands = false

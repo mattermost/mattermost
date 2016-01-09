@@ -133,3 +133,12 @@ func (o *Command) PreSave() {
 func (o *Command) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
+
+func (o *Command) Sanatize() {
+	o.Token = ""
+	o.CreatorId = ""
+	o.Method = ""
+	o.URL = ""
+	o.Username = ""
+	o.IconURL = ""
+}

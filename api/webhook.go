@@ -32,6 +32,14 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	c.LogAudit("attempt")
 
 	hook := model.IncomingWebhookFromJson(r.Body)
@@ -79,6 +87,14 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	c.LogAudit("attempt")
 
 	props := model.MapFromJson(r.Body)
@@ -116,6 +132,14 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	if result := <-Srv.Store.Webhook().GetIncomingByUser(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -130,6 +154,14 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("createOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
 	}
 
 	c.LogAudit("attempt")
@@ -188,6 +220,14 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	if result := <-Srv.Store.Webhook().GetOutgoingByCreator(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		return
@@ -202,6 +242,14 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("deleteOutgoingHook", "Outgoing webhooks have been disabled by the system admin.", "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
 	}
 
 	c.LogAudit("attempt")
@@ -241,6 +289,14 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
+		if !(c.IsSystemAdmin() || c.IsTeamAdmin()) {
+			c.Err = model.NewAppError("createCommand", "Integrations have been limited to admins only.", "")
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	c.LogAudit("attempt")
 
 	props := model.MapFromJson(r.Body)
@@ -258,7 +314,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		hook = result.Data.(*model.OutgoingWebhook)
 
-		if c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
+		if c.Session.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !c.IsTeamAdmin() {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewAppError("regenOutgoingHookToken", "Inappropriate permissions to regenerate outcoming webhook token", "user_id="+c.Session.UserId)
 			return

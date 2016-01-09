@@ -54,7 +54,11 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	if err == nil {
 		return &er
 	} else {
-		return NewAppError("AppErrorFromJson", "could not decode", err.Error())
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(data)
+		s := buf.String()
+
+		return NewAppError("AppErrorFromJson", "could not decode", err.Error()+" "+s)
 	}
 }
 
