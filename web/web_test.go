@@ -193,6 +193,10 @@ func TestIncomingWebhook(t *testing.T) {
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
 	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &api.Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	api.UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	ApiClient.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
