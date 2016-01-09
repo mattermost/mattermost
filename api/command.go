@@ -4,12 +4,8 @@
 package api
 
 import (
-	//"io"
 	"net/http"
-	// "path"
-	// "strconv"
 	"strings"
-	// "time"
 
 	l4g "code.google.com/p/log4go"
 	"github.com/gorilla/mux"
@@ -119,6 +115,13 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 			post := &model.Post{}
 			post.ChannelId = channelId
 			post.Message = response.Text
+			if _, err := CreatePost(c, post, true); err != nil {
+				c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
+			}
+		} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
+			post := &model.Post{}
+			post.ChannelId = channelId
+			post.Message = "TODO_EPHEMERAL: " + response.Text
 			if _, err := CreatePost(c, post, true); err != nil {
 				c.Err = model.NewAppError("command", "An error while saving the command response to the channel", "")
 			}
@@ -284,267 +287,6 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(props)))
 }
-
-// func command(c *Context, w http.ResponseWriter, r *http.Request) {
-
-// 	props := model.MapFromJson(r.Body)
-
-// 	command := &model.Command{
-// 		Command:     strings.TrimSpace(props["command"]),
-// 		ChannelId:   strings.TrimSpace(props["channelId"]),
-// 		Suggest:     props["suggest"] == "true",
-// 		Suggestions: make([]*model.SuggestCommand, 0, 128),
-// 	}
-
-// 	checkCommand(c, command)
-// 	if c.Err != nil {
-// 		if c.Err != commandNotImplementedErr {
-// 			return
-// 		} else {
-// 			c.Err = nil
-// 			command.Response = model.RESP_NOT_IMPLEMENTED
-// 			w.Write([]byte(command.ToJson()))
-// 			return
-// 		}
-// 	} else {
-// 		w.Write([]byte(command.ToJson()))
-// 	}
-// }
-
-// func checkCommand(c *Context, command *model.Command) bool {
-
-// 	if len(command.Command) == 0 || strings.Index(command.Command, "/") != 0 {
-// 		c.Err = model.NewAppError("checkCommand", "Command must start with /", "")
-// 		return false
-// 	}
-
-// 	if len(command.ChannelId) > 0 {
-// 		cchan := Srv.Store.Channel().CheckPermissionsTo(c.Session.TeamId, command.ChannelId, c.Session.UserId)
-
-// 		if !c.HasPermissionsToChannel(cchan, "checkCommand") {
-// 			return true
-// 		}
-// 	}
-
-// 	if !command.Suggest {
-// 		implemented := false
-// 		for _, cmd := range cmds {
-// 			bounds := len(cmd)
-// 			if len(command.Command) < bounds {
-// 				continue
-// 			}
-// 			if command.Command[:bounds] == cmd {
-// 				implemented = true
-// 			}
-// 		}
-// 		if !implemented {
-// 			c.Err = commandNotImplementedErr
-// 			return false
-// 		}
-// 	}
-
-// 	for _, v := range commands {
-
-// 		if v(c, command) || c.Err != nil {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// }
-
-// func logoutCommand(c *Context, command *model.Command) bool {
-
-// 	cmd := cmds["logoutCommand"]
-
-// 	if strings.Index(command.Command, cmd) == 0 {
-// 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Logout"})
-
-// 		if !command.Suggest {
-// 			command.GotoLocation = "/logout"
-// 			command.Response = model.RESP_EXECUTED
-// 			return true
-// 		}
-
-// 	} else if strings.Index(cmd, command.Command) == 0 {
-// 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Logout"})
-// 	}
-
-// 	return false
-// }
-
-// func echoCommand(c *Context, command *model.Command) bool {
-// 	cmd := cmds["echoCommand"]
-// 	maxThreads := 100
-
-// 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
-// 		parameters := strings.SplitN(command.Command, " ", 2)
-// 		if len(parameters) != 2 || len(parameters[1]) == 0 {
-// 			return false
-// 		}
-// 		message := strings.Trim(parameters[1], " ")
-// 		delay := 0
-// 		if endMsg := strings.LastIndex(message, "\""); string(message[0]) == "\"" && endMsg > 1 {
-// 			if checkDelay, err := strconv.Atoi(strings.Trim(message[endMsg:], " \"")); err == nil {
-// 				delay = checkDelay
-// 			}
-// 			message = message[1:endMsg]
-// 		} else if strings.Index(message, " ") > -1 {
-// 			delayIdx := strings.LastIndex(message, " ")
-// 			delayStr := strings.Trim(message[delayIdx:], " ")
-
-// 			if checkDelay, err := strconv.Atoi(delayStr); err == nil {
-// 				delay = checkDelay
-// 				message = message[:delayIdx]
-// 			}
-// 		}
-
-// 		if delay > 10000 {
-// 			c.Err = model.NewAppError("echoCommand", "Delays must be under 10000 seconds", "")
-// 			return false
-// 		}
-
-// 		if echoSem == nil {
-// 			// We want one additional thread allowed so we never reach channel lockup
-// 			echoSem = make(chan bool, maxThreads+1)
-// 		}
-
-// 		if len(echoSem) >= maxThreads {
-// 			c.Err = model.NewAppError("echoCommand", "High volume of echo request, cannot process request", "")
-// 			return false
-// 		}
-
-// 		echoSem <- true
-// 		go func() {
-// 			defer func() { <-echoSem }()
-// 			post := &model.Post{}
-// 			post.ChannelId = command.ChannelId
-// 			post.Message = message
-
-// 			time.Sleep(time.Duration(delay) * time.Second)
-
-// 			if _, err := CreatePost(c, post, true); err != nil {
-// 				l4g.Error("Unable to create /echo post, err=%v", err)
-// 			}
-// 		}()
-
-// 		command.Response = model.RESP_EXECUTED
-// 		return true
-
-// 	} else if strings.Index(cmd, command.Command) == 0 {
-// 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Echo back text from your account, /echo \"message\" [delay in seconds]"})
-// 	}
-
-// 	return false
-// }
-
-// func meCommand(c *Context, command *model.Command) bool {
-// 	cmd := cmds["meCommand"]
-
-// 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
-// 		message := ""
-
-// 		parameters := strings.SplitN(command.Command, " ", 2)
-// 		if len(parameters) > 1 {
-// 			message += "*" + parameters[1] + "*"
-// 		}
-
-// 		post := &model.Post{}
-// 		post.Message = message
-// 		post.ChannelId = command.ChannelId
-// 		if _, err := CreatePost(c, post, false); err != nil {
-// 			l4g.Error("Unable to create /me post post, err=%v", err)
-// 			return false
-// 		}
-// 		command.Response = model.RESP_EXECUTED
-// 		return true
-
-// 	} else if strings.Index(cmd, command.Command) == 0 {
-// 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Do an action, /me [message]"})
-// 	}
-
-// 	return false
-// }
-
-// func shrugCommand(c *Context, command *model.Command) bool {
-// 	cmd := cmds["shrugCommand"]
-
-// 	if !command.Suggest && strings.Index(command.Command, cmd) == 0 {
-// 		message := `¯\\\_(ツ)_/¯`
-
-// 		parameters := strings.SplitN(command.Command, " ", 2)
-// 		if len(parameters) > 1 {
-// 			message += " " + parameters[1]
-// 		}
-
-// 		post := &model.Post{}
-// 		post.Message = message
-// 		post.ChannelId = command.ChannelId
-// 		if _, err := CreatePost(c, post, false); err != nil {
-// 			l4g.Error("Unable to create /shrug post post, err=%v", err)
-// 			return false
-// 		}
-// 		command.Response = model.RESP_EXECUTED
-// 		return true
-
-// 	} else if strings.Index(cmd, command.Command) == 0 {
-// 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Adds ¯\\_(ツ)_/¯ to your message, /shrug [message]"})
-// 	}
-
-// 	return false
-// }
-
-// func joinCommand(c *Context, command *model.Command) bool {
-
-// 	// looks for "/join channel-name"
-// 	cmd := cmds["joinCommand"]
-
-// 	if strings.Index(command.Command, cmd) == 0 {
-
-// 		parts := strings.Split(command.Command, " ")
-
-// 		startsWith := ""
-
-// 		if len(parts) == 2 {
-// 			startsWith = parts[1]
-// 		}
-
-// 		if result := <-Srv.Store.Channel().GetMoreChannels(c.Session.TeamId, c.Session.UserId); result.Err != nil {
-// 			c.Err = result.Err
-// 			return false
-// 		} else {
-// 			channels := result.Data.(*model.ChannelList)
-
-// 			for _, v := range channels.Channels {
-
-// 				if v.Name == startsWith && !command.Suggest {
-
-// 					if v.Type == model.CHANNEL_DIRECT {
-// 						return false
-// 					}
-
-// 					JoinChannel(c, v.Id, "")
-
-// 					if c.Err != nil {
-// 						return false
-// 					}
-
-// 					command.GotoLocation = c.GetTeamURL() + "/channels/" + v.Name
-// 					command.Response = model.RESP_EXECUTED
-// 					return true
-// 				}
-
-// 				if len(startsWith) == 0 || strings.Index(v.Name, startsWith) == 0 {
-// 					command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd + " " + v.Name, Description: "Join the open channel"})
-// 				}
-// 			}
-// 		}
-// 	} else if strings.Index(cmd, command.Command) == 0 {
-// 		command.AddSuggestion(&model.SuggestCommand{Suggestion: cmd, Description: "Join an open channel"})
-// 	}
-
-// 	return false
-// }
 
 // func loadTestCommand(c *Context, command *model.Command) bool {
 // 	cmd := cmds["loadTestCommand"]
