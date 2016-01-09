@@ -1,5 +1,133 @@
 # Mattermost Changelog
 
+## Release v1.4.0
+
+Expected Release date: 2016-01-16
+
+### Release Highlights
+
+#### Data Center Support 
+
+- Deployment guides on Red Hat Enterprise Linux 6 and 7 now available 
+- Legal disclosure and support links (terms of service, privacy policy, help, about, and support email) now configurable
+- Over a dozen new configuration options in System Console
+
+#### Mobile Experience
+
+- iOS reference app [now available from iTunes](https://itunes.apple.com/us/app/mattermost/id984966508?ls=1&mt=8), compiled from [open source repo](https://github.com/mattermost/ios)
+- Date headers now show when scrolling on mobile, so you can quickly see when messages were sent
+- Added "rapid scroll" support for jumping quickily to bottom of channels on mobile 
+
+### New Features
+
+Mobile Experience
+- Date headers now show when scrolling on mobile, so you can quickly see when messages were sent
+- Added "rapid scroll" support for jumping quickily to bottom of channels on mobile 
+
+Authentication
+
+- Accounts can now switch between email and GitLab SSO sign-in options 
+- New ability to customize session token length 
+
+System Console
+
+- Added **Legal and Support Settings** so System Administrators can change the default Terms of Service, Privacy Policy, and Help links
+- Under **Service Settings** added options to customize expiry of web, mobile and SSO session tokens, expiry of caches in memory, and an EnableDeveloper option to turn on Developer Mode which alerts users to any console errors that occur
+
+### Improvements 
+
+Performance and Testing
+
+- Added logging for email and push notifications events in DEBUG mode 
+
+Integrations
+
+- Added support to allow optional parameters in the `Content-Type` of incoming webhook requests
+
+Files and Images
+
+- Animated GIFs autoplay in the image previewer
+
+Notifications and Email
+
+- Changed email notifications to display the server's local timezone instead of UTC
+
+User Interface
+
+- Updated the "About Mattermost" dialog formatting
+- Going to domain/teamname now goes to the last channel of your previous session, instead of Town Square
+- Various improvements to mobile UI, including a floating date indicator and the ability to quickly scroll to the bottom of the channel
+
+#### Bug Fixes  
+
+- Fixed issue where usernames containing a "." did not get mention notifications
+- Fixed issue where System Console did not save the "Send push notifications" setting
+- Fixed issue with Font Display cancel button not working in Account Settings menu
+- Fixed incorrect default for "Team Name Display" settings
+- Fixed issue where various media files appeared broken in the media player on some browsers 
+- Fixed cross-contamination issue when multiple accounts log into the same team on the same browser
+- Fixed issue where color pickers did not update when a theme was pasted in
+- Increased the maximum number of channels
+
+### Compatibility  
+
+#### Config.json Changes from v1.3 to v1.4
+
+Multiple settings were added to `config.json`. Below is a list of the changes and their new default values in a fresh install. 
+
+The following options can be modified in the System Console:  
+
+- Under `ServiceSettings` in `config.json`:
+  - Added: `"EnableDeveloper": false` to set whether developer mode is enabled, which alerts users to any console errors that occur
+  - Added: `"SessionLengthWebInDays" : 30` to set the number of days before web sessions expire and users will need to log in again
+  - Added: `"SessionLengthMobileInDays" : 30` to set the number of days before native mobile sessions expire
+  - Added: `"SessionLengthSSOInDays" : 30` to set the number of days before  SSO sessions expire
+  - Added: `"SessionCacheInMinutes" : 10` to set the number of minutes to cache a session in memory
+- Added `SupportSettings` section to `config.json`:
+  - Added: `"TermsOfServiceLink": "/static/help/terms.html"` to allow System Administrators to set the terms of service link
+  - Added: `"PrivacyPolicyLink": "/static/help/privacy.html"` to allow System Administrators to set the privacy policy link
+  - Added: `"AboutLink": "/static/help/about.html"` to allow System Administrators to set the about page link
+  - Added: `"HelpLink": "/static/help/help.html"` to allow System Administrators to set the help page link
+  - Added: `"ReportAProblemLink": "/static/help/report_problem.html"` to allow System Administrators to set the home page for the support website
+  - Added: `"SupportEmail":"feedback@mattermost.com"` to allow System Administrators to set an email address for feedback and support requests
+
+The following options are not present in the System Console, and can be modified manually in the `config.json` file:  
+
+- Under `FileSettings` in `config.json`:
+  - Added: `"AmazonS3Endpoint": ""` to set an endpoint URL for an Amazon S3 instance
+  - Added: `"AmazonS3BucketEndpoint": ""` to set an endpoint URL for Amazon S3 buckets
+  - Added: `"AmazonS3LocationConstraint": false` to set whether the S3 region is location constrained
+  - Added: `"AmazonS3LowercaseBucket": false` to set whether bucket names are fully lowercase or not
+
+#### Known Issues
+
+- When navigating to a page with new messages as well as message containing inline images added via markdown, the channel may move up and down while loading the inline images
+- Microsoft Edge does not yet support drag and drop 
+- No scroll bar in center channel
+- Pasting images into text box fails to upload on Firefox, Safari, and IE11
+- Public links for attachments attempt to download the file on IE, Edge, and Safari
+- Importing from Slack breaks @mentions and fails to load in certain cases with comments on files 
+- System Console > TEAMS > Statistics > Newly Created Users shows all of the users are created "just now"
+- Favicon does not always become red when @mentions and direct messages are received on an inactive browser tab
+- Searching for a phrase in quotations returns more than just the phrase on Mattermost installations with a Postgres database
+- Deleted/Archived channels are not removed from the "More" menu of the person that deleted/archived the channel until after refresh
+- Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks
+- Hashtags less than three characters long are not searchable
+- After deactivating a team member, the person remains in the channel counter
+- Certain symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag cause the message to not show up in a hashtag search
+
+#### Contributors 
+
+Many thanks to our external contributors. In no particular order:
+
+- [npcode](https://github.com/npcode)
+- [hjf288](https://github.com/hjf288)
+- [apskim](https://github.com/apskim)
+- [ejm2172](https://github.com/ejm2172)
+- [hvnsweeting](https://github.com/hvnsweeting)
+- [benburkert](https://github.com/benburkert)
+- [erikthered](https://github.com/erikthered)
+
 ## Release v1.3.0
 
 Release date: 2015-12-16
