@@ -21,6 +21,10 @@ func TestCreateIncomingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -84,6 +88,10 @@ func TestListIncomingHooks(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -122,6 +130,10 @@ func TestDeleteIncomingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -162,6 +174,10 @@ func TestCreateOutgoingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -225,6 +241,10 @@ func TestListOutgoingHooks(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -263,6 +283,10 @@ func TestDeleteOutgoingHook(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -303,6 +327,10 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	store.Must(Srv.Store.User().VerifyEmail(user.Id))
 
+	c := &Context{}
+	c.RequestId = model.NewId()
+	c.IpAddress = "cmd_line"
+	UpdateRoles(c, user, model.ROLE_SYSTEM_ADMIN)
 	Client.LoginByEmail(team.Name, user.Email, "pwd")
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
