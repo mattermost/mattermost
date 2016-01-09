@@ -4,7 +4,7 @@
 import * as client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
-import * as utils from '../utils/utils.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class FileUpload extends React.Component {
     constructor(props) {
@@ -52,7 +52,7 @@ export default class FileUpload extends React.Component {
             }
 
             // generate a unique id that can be used by other components to refer back to this upload
-            let clientId = utils.generateId();
+            let clientId = Utils.generateId();
 
             // prepare data to be uploaded
             var formData = new FormData();
@@ -121,14 +121,14 @@ export default class FileUpload extends React.Component {
                 enter(dragsterEvent, e) {
                     var files = e.originalEvent.dataTransfer;
 
-                    if (utils.isFileTransfer(files)) {
+                    if (Utils.isFileTransfer(files)) {
                         $('.center-file-overlay').removeClass('hidden');
                     }
                 },
                 leave(dragsterEvent, e) {
                     var files = e.originalEvent.dataTransfer;
 
-                    if (utils.isFileTransfer(files)) {
+                    if (Utils.isFileTransfer(files)) {
                         $('.center-file-overlay').addClass('hidden');
                     }
                 },
@@ -142,14 +142,14 @@ export default class FileUpload extends React.Component {
                 enter(dragsterEvent, e) {
                     var files = e.originalEvent.dataTransfer;
 
-                    if (utils.isFileTransfer(files)) {
+                    if (Utils.isFileTransfer(files)) {
                         $('.right-file-overlay').removeClass('hidden');
                     }
                 },
                 leave(dragsterEvent, e) {
                     var files = e.originalEvent.dataTransfer;
 
-                    if (utils.isFileTransfer(files)) {
+                    if (Utils.isFileTransfer(files)) {
                         $('.right-file-overlay').addClass('hidden');
                     }
                 },
@@ -205,7 +205,7 @@ export default class FileUpload extends React.Component {
                         var channelId = self.props.channelId || ChannelStore.getCurrentId();
 
                         // generate a unique id that can be used by other components to refer back to this file upload
-                        var clientId = utils.generateId();
+                        var clientId = Utils.generateId();
 
                         var formData = new FormData();
                         formData.append('channel_id', channelId);
@@ -268,6 +268,18 @@ export default class FileUpload extends React.Component {
     }
 
     render() {
+        let multiple = true;
+        if (Utils.isMobileApp()) {
+            // iOS WebViews don't upload videos properly in multiple mode
+            multiple = false;
+        }
+
+        let accept = '';
+        if (Utils.isIosChrome()) {
+            // iOS Chrome can't upload videos at all
+            accept = 'image/*';
+        }
+
         return (
             <span
                 ref='input'
@@ -280,7 +292,8 @@ export default class FileUpload extends React.Component {
                     ref='fileInput'
                     type='file'
                     onChange={this.handleChange}
-                    multiple='true'
+                    multiple={multiple}
+                    accept={accept}
                 />
             </span>
         );
