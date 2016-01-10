@@ -254,7 +254,7 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.\nSetting this to true removes the Preview Mode banner after logging out and logging back in.'}</p>
+                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.\nSetting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'}</p>
                         </div>
                     </div>
 
