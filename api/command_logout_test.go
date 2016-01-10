@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/platform/store"
 )
 
-func TestLogoutCommand(t *testing.T) {
+func TestLogoutTestCommand(t *testing.T) {
 	Setup()
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
