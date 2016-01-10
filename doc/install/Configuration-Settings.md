@@ -123,10 +123,12 @@ Settings to configure email signup, notifications, security, and SMTP options.
 #### Notifications
 
 ```"SendEmailNotifications": false```  
-"true": Enables sending of email notifications. “false”: Disables email notifications for developers who may want to skip email setup for faster development.
+"true": Enables sending of email notifications. “false”: Disables email notifications for developers who may want to skip email setup for faster development. Setting this to true removes the **Preview Mode: Email notifications have not been configured** banner (requires logging out and logging back in after setting is changed)
+
 
 ```"RequireEmailVerification": false```  
 "true": Require email verification after account creation prior to allowing login; “false”: Users do not need to verify their email address prior to login. Developers may set this field to false so skip sending verification emails for faster development.
+
 
 ```"FeedbackName": ""```  
 Name displayed on email account used when sending notification emails from Mattermost system.
