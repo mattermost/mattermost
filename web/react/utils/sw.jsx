@@ -20,3 +20,7 @@ export function registerForWebpush() {
         subscribe(reg);
     });
 }
+
+export function getRegistration() {
+    return navigator.serviceWorker.getRegistration('/static/js/');
+}
