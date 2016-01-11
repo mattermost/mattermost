@@ -34,8 +34,8 @@ VOLUME /var/lib/mysql
 WORKDIR /mattermost
 
 # Copy over files
-RUN wget --no-check-certificate https://s3.amazonaws.com/mattermost-travis-master/mattermost.tar.gz
-RUN tar -zxvf mattermost.tar.gz --strip-components=1 && rm mattermost.tar.gz
+ADD https://github.com/mattermost/platform/releases/download/v1.4.0/mattermost.tar.gz /
+RUN tar -zxvf /mattermost.tar.gz --strip-components=1 && rm /mattermost.tar.gz
 ADD config_docker.json /
 ADD docker-entry.sh /
 
