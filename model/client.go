@@ -5,8 +5,8 @@ package model
 
 import (
 	"bytes"
-	l4g "code.google.com/p/log4go"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"io/ioutil"
 	"net/http"
 	"net/url"

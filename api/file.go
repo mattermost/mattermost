@@ -5,8 +5,8 @@ package api
 
 import (
 	"bytes"
-	l4g "code.google.com/p/log4go"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/goamz/goamz/aws"
 	"github.com/goamz/goamz/s3"

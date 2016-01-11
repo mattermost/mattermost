@@ -6,8 +6,8 @@ package api
 import (
 	"archive/zip"
 	"bytes"
-	l4g "code.google.com/p/log4go"
 	"encoding/json"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"io"
 	"mime/multipart"

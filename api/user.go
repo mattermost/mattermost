@@ -5,9 +5,9 @@ package api
 
 import (
 	"bytes"
-	l4g "code.google.com/p/log4go"
 	b64 "encoding/base64"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
