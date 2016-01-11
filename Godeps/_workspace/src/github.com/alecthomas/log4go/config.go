@@ -53,7 +53,7 @@ func (log Logger) LoadConfiguration(filename string) {
 
 	for _, xmlfilt := range xc.Filter {
 		var filt LogWriter
-		var lvl level
+		var lvl Level
 		bad, good, enabled := false, true, false
 
 		// Check required children
@@ -131,7 +131,7 @@ func (log Logger) LoadConfiguration(filename string) {
 	}
 }
 
-func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (ConsoleLogWriter, bool) {
+func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (*ConsoleLogWriter, bool) {
 	// Parse properties
 	for _, prop := range props {
 		switch prop.Name {

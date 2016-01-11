@@ -3,9 +3,8 @@
 	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/log4go",
-			"Comment": "go.weekly.2012-02-22-1",
-			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
+			"ImportPath": "github.com/alecthomas/log4go",
+			"Rev": "8e9057c3b25c409a34c0b9737cdc82cbcafeabce"
 		},
 		{
 			"ImportPath": "github.com/braintree/manners",
