@@ -591,8 +591,8 @@ func (c *Client) UpdateLastViewedAt(channelId string) (*Result, *AppError) {
 	}
 }
 
-func (c *Client) GetChannelExtraInfo(id string, etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet("/channels/"+id+"/extra_info", "", etag); err != nil {
+func (c *Client) GetChannelExtraInfo(id string, memberLimit int, etag string) (*Result, *AppError) {
+	if r, err := c.DoApiGet("/channels/"+id+"/extra_info/"+strconv.FormatInt(int64(memberLimit), 10), "", etag); err != nil {
 		return nil, err
 	} else {
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
