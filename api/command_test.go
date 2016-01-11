@@ -43,6 +43,11 @@ func TestListCommands(t *testing.T) {
 
 func TestCreateCommand(t *testing.T) {
 	Setup()
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -92,12 +97,14 @@ func TestCreateCommand(t *testing.T) {
 			t.Fatal("bad team id wasn't overwritten")
 		}
 	}
-
-	*utils.Cfg.ServiceSettings.EnableCommands = false
 }
 
 func TestListTeamCommands(t *testing.T) {
 	Setup()
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -125,12 +132,14 @@ func TestListTeamCommands(t *testing.T) {
 			t.Fatal("incorrect number of cmd")
 		}
 	}
-
-	*utils.Cfg.ServiceSettings.EnableCommands = false
 }
 
 func TestRegenToken(t *testing.T) {
 	Setup()
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -159,12 +168,14 @@ func TestRegenToken(t *testing.T) {
 			t.Fatal("regen didn't work properly")
 		}
 	}
-
-	*utils.Cfg.ServiceSettings.EnableCommands = false
 }
 
 func TestDeleteCommand(t *testing.T) {
 	Setup()
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -194,6 +205,4 @@ func TestDeleteCommand(t *testing.T) {
 	if len(cmds) != 0 {
 		t.Fatal("delete didn't work properly")
 	}
-
-	*utils.Cfg.ServiceSettings.EnableCommands = false
 }
