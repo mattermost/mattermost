@@ -223,13 +223,13 @@ export default class PostInfo extends React.Component {
                     />
                 </li>
                 <li className='col col__reply'>
-                    {comments}
                     <div
                         className='dropdown'
                         ref='dotMenu'
                     >
                         {dropdown}
                     </div>
+                    {comments}
                     <Overlay
                         show={this.state.show}
                         target={() => ReactDOM.findDOMNode(this.refs.dotMenu)}
