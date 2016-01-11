@@ -417,12 +417,6 @@ body.ios {
 		background-color: beige;
 	}
 
-	ul {
-		margin: 0;
-		padding: 0;
-	}
-
-
 	p {
 		margin: 0;
 		line-height: 1.6em;
@@ -671,20 +665,17 @@ body.ios {
 		@include legacy-pie-clearfix;
 		width: calc(100% - 75px);
 
+		p {
+			margin: 0 0 0.4em;
+		}
+
 		img {
 			max-height: 400px;
 		}
 
-		ul {
-		    margin-bottom: 0.6em;
-			padding: 5px 0 0 20px;
-		}
-
-		ul + p {
-			margin-top: 1em;
-		}
-
 		ul, ol {
+			margin-bottom: 0.4em;
+
 			p {
 				margin-bottom: 0;
 			}
