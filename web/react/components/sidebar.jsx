@@ -372,7 +372,7 @@ export default class Sidebar extends React.Component {
             if (channel.status === 'online') {
                 statusIcon = Constants.ONLINE_ICON_SVG;
             } else if (channel.status === 'away') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
+                statusIcon = Constants.AWAY_ICON_SVG;
             } else {
                 statusIcon = Constants.OFFLINE_ICON_SVG;
             }
