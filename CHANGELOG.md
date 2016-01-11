@@ -117,6 +117,7 @@ The following options are not present in the System Console, and can be modified
 - After deactivating a team member, the person remains in the channel counter
 - Certain symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag cause the message to not show up in a hashtag search
 - Security tab > Active Sessions reports iOS devices as "unknown"
+- Getting a permalink for the second message or later consecutively sent in a group by the same author displaces the copy link popover or causes an error
 
 #### Contributors 
 
