@@ -113,7 +113,6 @@ The following options are not present in the System Console, and can be modified
 - Deleted/Archived channels are not removed from the "More" menu of the person that deleted/archived the channel until after refresh
 - Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks
 - Searching for a username or hashtag containing a dot returns replaces the dot with an "or"
-- Browser tab * to indicate Unreads does not work on IE11
 - Hashtags less than three characters long are not searchable
 - After deactivating a team member, the person remains in the channel counter
 - Certain symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag cause the message to not show up in a hashtag search
