@@ -443,5 +443,6 @@ export default {
             label: 'embed_preview',
             description: 'Show preview snippet of links below message'
         }
-    }
+    },
+    OVERLAY_TIME_DELAY: 400
 };

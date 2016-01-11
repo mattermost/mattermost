@@ -379,7 +379,7 @@ export default class ChannelHeader extends React.Component {
                             <th>
                                 <div className='dropdown channel-header__links'>
                                     <OverlayTrigger
-                                        delayShow={400}
+                                        delayShow={Constants.OVERLAY_TIME_DELAY}
                                         placement='bottom'
                                         overlay={recentMentionsTooltip}
                                     >

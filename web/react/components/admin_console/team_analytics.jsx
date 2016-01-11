@@ -3,7 +3,11 @@
 
 import * as Client from '../../utils/client.jsx';
 import * as Utils from '../../utils/utils.jsx';
+import Constants from '../../utils/constants.jsx';
 import LineChart from './line_chart.jsx';
+
+var Tooltip = ReactBootstrap.Tooltip;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
 
 export default class TeamAnalytics extends React.Component {
     constructor(props) {
@@ -314,9 +318,25 @@ export default class TeamAnalytics extends React.Component {
                                 <tbody>
                                     {
                                         this.state.recent_active_users.map((user) => {
+                                            const tooltip = (
+                                                <Tooltip id={'recent-user-email-tooltip-' + user.id}>
+                                                    {user.email}
+                                                </Tooltip>
+                                            );
+
                                             return (
-                                                <tr key={user.id}>
-                                                    <td>{user.email}</td>
+                                                <tr key={'recent-user-table-entry-' + user.id}>
+                                                    <td>
+                                                        <OverlayTrigger
+                                                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                                                            placement='top'
+                                                            overlay={tooltip}
+                                                        >
+                                                            <time>
+                                                                {user.username}
+                                                            </time>
+                                                        </OverlayTrigger>
+                                                    </td>
                                                     <td>{Utils.displayDateTime(user.last_activity_at)}</td>
                                                 </tr>
                                             );
@@ -347,9 +367,25 @@ export default class TeamAnalytics extends React.Component {
                                 <tbody>
                                     {
                                         this.state.newly_created_users.map((user) => {
+                                            const tooltip = (
+                                                <Tooltip id={'new-user-email-tooltip-' + user.id}>
+                                                    {user.email}
+                                                </Tooltip>
+                                            );
+
                                             return (
-                                                <tr key={user.id}>
-                                                    <td>{user.email}</td>
+                                                <tr key={'new-user-table-entry-' + user.id}>
+                                                    <td>
+                                                        <OverlayTrigger
+                                                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                                                            placement='top'
+                                                            overlay={tooltip}
+                                                        >
+                                                            <time>
+                                                                {user.username}
+                                                            </time>
+                                                        </OverlayTrigger>
+                                                    </td>
                                                     <td>{Utils.displayDateTime(user.create_at)}</td>
                                                 </tr>
                                             );
