@@ -140,7 +140,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Webhook().GetIncomingByUser(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetIncomingByTeam(c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -228,7 +228,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoingByCreator(c.Session.UserId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(c.Session.TeamId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
