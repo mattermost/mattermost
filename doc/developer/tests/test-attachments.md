@@ -29,7 +29,7 @@ Expected: Scaled thumbnail & preview window
 
 **GIF**  
 `Images/GIF.gif`  
-Expected: Scaled thumbnail & preview window. Click to play GIF.  
+Expected: Scaled thumbnail & preview window. GIF should auto-play in the preview window.  
 [Permalink](https://pre-release.mattermost.com/core/pl/j49fowdkstr57g3ed9bgpfoo5w)
 
 **TIFF**  
@@ -72,37 +72,37 @@ Expected: Generic Word thumbnail & preview window.
 
 **MP4**  
 `Videos/MP4.mp4`  
-Expected: Generic video thumbnail & playable preview window  
+Expected: Generic video thumbnail & playable preview window. View Permalink.  
 [Permalink](https://pre-release.mattermost.com/core/pl/5dx5qx9t9brqfnhohccxjynx7c)
 
 **AVI**  
 `Videos/AVI.avi`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/qwn9eiy7j3rkjyruxhcugpogdw)
 
 **MKV**  
 `Videos/MKV.mkv`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/tszyjkr1cidhxjgiusa4mde3ja)
 
 **MOV**  
 `Videos/MOV.mov`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/ienzppz5i3f7tbt5jiujn8uuir)
 
 **MPG**  
 `Videos/MPG.mpg`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/skggdq1hfpritc6c88bi481p5a)
 
 **Webm**  
 `Videos/WEBM.webm`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/7h8tysuxgfgsxeht3sbn7e4h6y)
 
 **WMV**  
 `Videos/WMV.wmv`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic video thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/kaom7j7uyjra7bzhrre6qwdrbw)
 
 ### Audio
@@ -112,7 +112,6 @@ Expected: View Permalink. Expected depends on the operating system, browser and 
 Expected: Generic audio thumbnail & playable preview window  
 [Permalink](https://pre-release.mattermost.com/core/pl/if4gn8dbrjgx8fmqmkukzefyme)
 
-
 **M4A**  
 `Audio/M4a.m4a`  
 Expected: Generic audio thumbnail & playable preview window  
@@ -120,25 +119,25 @@ Expected: Generic audio thumbnail & playable preview window
 
 **AAC**  
 `Audio/AAC.aac`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic audio thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/3naoy5pr5tydbk1m6yo1ast9ny)
 
 **FLAC**  
 `Audio/FLAC.flac`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic audio thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/kf4cmy44dfya5efmse7rg43eih)
 
 **OGG**  
 `Audio/OGG.ogg`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic audio thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/dezrcpbxapyexe77rjuzkrp63r)
 
 **WAV**  
 `Audio/WAV.wav`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic audio thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/pdkxx1udepdnbmi9j8kyas5xbh)
 
 **WMA**  
 `Audio/WMA.wma`  
-Expected: View Permalink. Expected depends on the operating system, browser and plugins.  
+Expected: Generic audio thumbnail, view Permalink for preview window behavior. Expected depends on the operating system, browser and plugins.  
 [Permalink](https://pre-release.mattermost.com/core/pl/756wrmdd57dcig3m4emypp6i1h)
