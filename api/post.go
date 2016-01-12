@@ -191,6 +191,22 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 							attachment["pretext"] = aText
 							list[i] = attachment
 						}
+						if fVal, ok := attachment["fields"]; ok {
+							if fields, ok := fVal.([]interface{}); ok {
+								// parse attachment field links into Markdown format
+								for j, fInt := range fields {
+									field := fInt.(map[string]interface{})
+									if _, ok := field["text"]; ok {
+										fText := field["text"].(string)
+										fText = linkWithTextRegex.ReplaceAllString(fText, "[${2}](${1})")
+										field["text"] = fText
+										fields[j] = field
+									}
+								}
+								attachment["fields"] = fields
+								list[i] = attachment
+							}
+						}
 					}
 					post.AddProp(key, list)
 				}
