@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "mattermost/platform:1.4",
+    "Name": "mattermost/platform:1.4rc2",
     "Update": "true"
   },
   "Ports": [
