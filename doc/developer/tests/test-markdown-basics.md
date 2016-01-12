@@ -119,7 +119,7 @@ Text below line
 
 **The following markdown should render within the block quote:**  
 > #### Heading 4  
-> _Italics_, *Italics*, **Bold**, ***Bold-italics***, **Bold-italics_**, ~~Strikethrough~~  
+> _Italics_, *Italics*, **Bold**, ***Bold-italics***, **_Bold-italics_**, ~~Strikethrough~~  
 > :) :-) ;) :-O :bamboo: :gift_heart: :dolls:  
 
 **The following text should render in two block quotes separated by one line of text:**
