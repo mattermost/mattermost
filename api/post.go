@@ -185,6 +185,12 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 							attachment["text"] = aText
 							list[i] = attachment
 						}
+						if _, ok := attachment["pretext"]; ok {
+							aText := attachment["pretext"].(string)
+							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
+							attachment["pretext"] = aText
+							list[i] = attachment
+						}
 					}
 					post.AddProp(key, list)
 				}
