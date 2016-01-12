@@ -112,9 +112,12 @@ The following options are not present in the System Console, and can be modified
 - Searching for a phrase in quotations returns more than just the phrase on Mattermost installations with a Postgres database
 - Deleted/Archived channels are not removed from the "More" menu of the person that deleted/archived the channel until after refresh
 - Search results don't highlight searches for @username, non-latin characters, or terms inside Markdown code blocks
+- Searching for a username or hashtag containing a dot returns a search where the dot is replaced with the "or" operator 
 - Hashtags less than three characters long are not searchable
 - After deactivating a team member, the person remains in the channel counter
 - Certain symbols (<,>,-,+,=,%,^,#,*,|) directly before or after a hashtag cause the message to not show up in a hashtag search
+- Security tab > Active Sessions reports iOS devices as "unknown"
+- Getting a permalink for the second message or later consecutively sent in a group by the same author displaces the copy link popover or causes an error
 
 #### Contributors 
 
