@@ -4,10 +4,10 @@
 package utils
 
 import (
-	l4g "code.google.com/p/log4go"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"net"
 	"net/mail"

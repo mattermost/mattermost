@@ -3,9 +3,10 @@
 package log4go
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"io"
+	"strings"
 )
 
 const (
@@ -51,7 +52,7 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 		updated := &formatCacheType{
 			LastUpdateSeconds: secs,
 			shortTime:         fmt.Sprintf("%02d:%02d", hour, minute),
-			shortDate:         fmt.Sprintf("%02d/%02d/%02d", month, day, year%100),
+			shortDate:         fmt.Sprintf("%02d/%02d/%02d", day, month, year%100),
 			longTime:          fmt.Sprintf("%02d:%02d:%02d %s", hour, minute, second, zone),
 			longDate:          fmt.Sprintf("%04d/%02d/%02d", year, month, day),
 		}
@@ -78,6 +79,9 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 				out.WriteString(levelStrings[rec.Level])
 			case 'S':
 				out.WriteString(rec.Source)
+			case 's':
+				slice := strings.Split(rec.Source, "/")
+				out.WriteString(slice[len(slice)-1])
 			case 'M':
 				out.WriteString(rec.Message)
 			}

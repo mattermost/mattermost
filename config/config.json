@@ -12,10 +12,10 @@
         "EnableTesting": false,
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
-        "SessionLengthWebInDays" : 30,
-        "SessionLengthMobileInDays" : 30,
-        "SessionLengthSSOInDays" : 30,
-        "SessionCacheInMinutes" : 10
+        "SessionLengthWebInDays": 30,
+        "SessionLengthMobileInDays": 30,
+        "SessionLengthSSOInDays": 30,
+        "SessionCacheInMinutes": 10
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

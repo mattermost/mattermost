@@ -4,8 +4,8 @@ package log4go
 
 import (
 	"errors"
-	"os"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -23,7 +23,7 @@ func LoadConfiguration(filename string) {
 }
 
 // Wrapper for (*Logger).AddFilter
-func AddFilter(name string, lvl level, writer LogWriter) {
+func AddFilter(name string, lvl Level, writer LogWriter) {
 	Global.AddFilter(name, lvl, writer)
 }
 
@@ -88,19 +88,19 @@ func Stdoutf(format string, args ...interface{}) {
 
 // Send a log message manually
 // Wrapper for (*Logger).Log
-func Log(lvl level, source, message string) {
+func Log(lvl Level, source, message string) {
 	Global.Log(lvl, source, message)
 }
 
 // Send a formatted log message easily
 // Wrapper for (*Logger).Logf
-func Logf(lvl level, format string, args ...interface{}) {
+func Logf(lvl Level, format string, args ...interface{}) {
 	Global.intLogf(lvl, format, args...)
 }
 
 // Send a closure log message
 // Wrapper for (*Logger).Logc
-func Logc(lvl level, closure func() string) {
+func Logc(lvl Level, closure func() string) {
 	Global.intLogc(lvl, closure)
 }
 

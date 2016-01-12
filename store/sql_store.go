@@ -4,7 +4,6 @@
 package store
 
 import (
-	l4g "code.google.com/p/log4go"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -16,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"io"
 	sqltrace "log"
 	"math/rand"
