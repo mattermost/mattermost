@@ -10,12 +10,7 @@
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
         "EnableTesting": false,
-        "EnableDeveloper": false,
-        "EnableSecurityFixAlert": true,
-        "SessionLengthWebInDays" : 30,
-        "SessionLengthMobileInDays" : 30,
-        "SessionLengthSSOInDays" : 30,
-        "SessionCacheInMinutes" : 10
+        "EnableSecurityFixAlert": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -58,11 +53,7 @@
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
         "AmazonS3Bucket": "",
-        "AmazonS3Region": "",
-        "AmazonS3Endpoint": "",
-        "AmazonS3BucketEndpoint": "",
-        "AmazonS3LocationConstraint": false,
-        "AmazonS3LowercaseBucket": false
+        "AmazonS3Region": ""
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -90,14 +81,6 @@
     "PrivacySettings": {
         "ShowEmailAddress": true,
         "ShowFullName": true
-    },
-    "SupportSettings": {
-        "TermsOfServiceLink": "/static/help/terms.html",
-        "PrivacyPolicyLink": "/static/help/privacy.html",
-        "AboutLink": "/static/help/about.html",
-        "HelpLink": "/static/help/help.html",
-        "ReportAProblemLink": "/static/help/report_problem.html",
-        "SupportEmail": "feedback@mattermost.com"
     },
     "GitLabSettings": {
         "Enable": false,
