@@ -99,7 +99,7 @@ func TestLogin(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "pwd"}
+	user := model.User{TeamId: rteam.Data.(*model.Team).Id, Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Username: "corey", Password: "pwd"}
 	ruser, _ := Client.CreateUser(&user, "")
 	store.Must(Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
@@ -107,7 +107,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		if result.Data.(*model.User).Email != user.Email {
-			t.Fatal("email's didn't match")
+			t.Fatal("emails didn't match")
 		}
 	}
 
@@ -119,11 +119,27 @@ func TestLogin(t *testing.T) {
 		}
 	}
 
+	if result, err := Client.LoginByUsername(team.Name, user.Username, user.Password); err != nil {
+		t.Fatal(err)
+	} else {
+		if result.Data.(*model.User).Email != user.Email {
+			t.Fatal("emails didn't match")
+		}
+	}
+
 	if _, err := Client.LoginByEmail(team.Name, user.Email, user.Password+"invalid"); err == nil {
 		t.Fatal("Invalid Password")
 	}
 
+	if _, err := Client.LoginByUsername(team.Name, user.Username, user.Password+"invalid"); err == nil {
+		t.Fatal("Invalid Password")
+	}
+
 	if _, err := Client.LoginByEmail(team.Name, "", user.Password); err == nil {
+		t.Fatal("should have failed")
+	}
+
+	if _, err := Client.LoginByUsername(team.Name, "", user.Password); err == nil {
 		t.Fatal("should have failed")
 	}
 
