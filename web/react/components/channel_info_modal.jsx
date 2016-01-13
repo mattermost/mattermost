@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import * as Utils from '../utils/utils.jsx';
 const Modal = ReactBootstrap.Modal;
 
 export default class ChannelInfoModal extends React.Component {
@@ -14,6 +15,8 @@ export default class ChannelInfoModal extends React.Component {
                 id: 'No Channel Found'
             };
         }
+
+        const channelURL = Utils.getShortenedTeamURL() + channel.name;
 
         return (
             <Modal
@@ -30,7 +33,7 @@ export default class ChannelInfoModal extends React.Component {
                     </div>
                     <div className='row form-group'>
                         <div className='col-sm-3 info__label'>{'Channel URL:'}</div>
-                        <div className='col-sm-9'>{channel.name}</div>
+                        <div className='col-sm-9'>{channelURL}</div>
                     </div>
                     <div className='row'>
                         <div className='col-sm-3 info__label'>{'Channel ID:'}</div>
