@@ -43,10 +43,13 @@ export default class LicenseSettings extends React.Component {
             () => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');
+                this.setState({serverError: null});
                 window.location.reload(true);
             },
-            (serverError) => {
-                this.setState({serverError});
+            (error) => {
+                Utils.clearFileInput(element[0]);
+                $('#upload-button').button('reset');
+                this.setState({serverError: error.message});
             }
         );
     }
@@ -59,11 +62,12 @@ export default class LicenseSettings extends React.Component {
         Client.removeLicenseFile(
             () => {
                 $('#remove-button').button('reset');
+                this.setState({serverError: null});
                 window.location.reload(true);
             },
-            (serverError) => {
+            (error) => {
                 $('#remove-button').button('reset');
-                this.setState({serverError});
+                this.setState({serverError: error.message});
             }
         );
     }
@@ -164,7 +168,6 @@ export default class LicenseSettings extends React.Component {
                         accept='.mattermost-license'
                         onChange={this.handleChange}
                     />
-                    {serverError}
                     <button
                         className={btnClass + ' pull-left'}
                         disabled={!this.state.fileSelected}
@@ -176,6 +179,8 @@ export default class LicenseSettings extends React.Component {
                     </button>
                     <br/>
                     <br/>
+                    <br/>
+                    {serverError}
                     <p className='help-text'>
                         {'Upload a license key for Mattermost Enterprise Edition to upgrade this server. '}
                         <a
