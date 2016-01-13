@@ -40,7 +40,6 @@ http://
 ./make-compiled-client.sh  
 test.:test  
 https://<your-mattermost-url>/signup/gitlab  
-https://your-mattermost-url>/signup/gitlab  
 
 #### Only the links within these sentences should auto-link:
 
