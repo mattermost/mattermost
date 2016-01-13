@@ -10,6 +10,7 @@ export default class ChannelInfoModal extends React.Component {
             channel = {
                 display_name: 'No Channel Found',
                 name: 'No Channel Found',
+                purpose: 'No Channel Found',
                 id: 'No Channel Found'
             };
         }
@@ -34,6 +35,10 @@ export default class ChannelInfoModal extends React.Component {
                     <div className='row'>
                         <div className='col-sm-3 info__label'>{'Channel ID:'}</div>
                         <div className='col-sm-9'>{channel.id}</div>
+                    </div>
+                    <div className='row'>
+                        <div className='col-sm-3 info__label'>{'Channel Purpose:'}</div>
+                        <div className='col-sm-9'>{channel.purpose}</div>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
