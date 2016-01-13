@@ -38,10 +38,7 @@ export default class AboutBuildModal extends React.Component {
                     <Modal.Title>{'About Mattermost'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Edition:'}</div>
-                        <div className='col-sm-9'>{`Mattermost ${title}`}</div>
-                    </div>
+                    <h4>{`Mattermost ${title}`}</h4>
                     {licensee}
                     <div className='row form-group'>
                         <div className='col-sm-3 info__label'>{'Version:'}</div>
