@@ -29,7 +29,7 @@ export default class ChannelInfoModal extends React.Component {
                         <div className='col-sm-9'>{channel.display_name}</div>
                     </div>
                     <div className='row form-group'>
-                        <div className='col-sm-3 info__label'>{'Channel Handle:'}</div>
+                        <div className='col-sm-3 info__label'>{'Channel URL:'}</div>
                         <div className='col-sm-9'>{channel.name}</div>
                     </div>
                     <div className='row'>
