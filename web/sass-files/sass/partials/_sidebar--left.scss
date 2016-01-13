@@ -42,9 +42,9 @@
         margin-right: 6px;
         width: 12px;
         display: inline-block;
-        i, path {
+        i, path, ellipse {
             @include opacity(0.5);
-            &.online--icon {
+            &.online--icon, &.away--icon {
                 @include opacity(1);
             }
         }

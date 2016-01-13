@@ -572,7 +572,7 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
-        changeCss('.sidebar--left .status path', 'fill:' + theme.sidebarText, 1);
+        changeCss('.sidebar--left .status .offline--icon, .sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText, 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
     }
 
@@ -615,6 +615,10 @@ export function applyTheme(theme) {
 
     if (theme.onlineIndicator) {
         changeCss('.sidebar--left .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+    }
+
+    if (theme.awayIndicator) {
+        changeCss('.sidebar--left .status .away--icon', 'fill:' + theme.awayIndicator, 1);
     }
 
     if (theme.mentionBj) {
