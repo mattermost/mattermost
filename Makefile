@@ -239,7 +239,6 @@ clean: stop-docker
 	rm -f .prepare-go .prepare-jsx
 
 nuke: | clean clean-docker
-	rm -rf bin
 	rm -rf data
 
 .prepare-go:
