@@ -69,14 +69,15 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		go func() {
-			if err := writeFileLocally(data, utils.LICENSE_FILE_LOC); err != nil {
-				l4g.Error("Could not save license file")
-			}
-		}()
+		if err := writeFileLocally(data, utils.LicenseLocation()); err != nil {
+			c.LogAudit("failed - could not save license file")
+			c.Err = model.NewAppError("addLicense", "License did not save properly.", "path="+utils.LicenseLocation())
+			utils.RemoveLicense()
+			return
+		}
 	} else {
 		c.LogAudit("failed - invalid license")
-		c.Err = model.NewAppError("addLicense", "Invalid license file", "")
+		c.Err = model.NewAppError("addLicense", "Invalid license file.", "")
 		return
 	}
 
@@ -87,7 +88,11 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
-	utils.RemoveLicense()
+	if ok := utils.RemoveLicense(); !ok {
+		c.LogAudit("failed - could not remove license file")
+		c.Err = model.NewAppError("removeLicense", "License did not remove properly.", "")
+		return
+	}
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"

@@ -142,6 +142,10 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func CheckUserDomain(user *model.User, domains string) bool {
+	if len(domains) == 0 {
+		return true
+	}
+
 	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 
 	matched := false

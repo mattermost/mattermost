@@ -26,9 +26,26 @@ type Customer struct {
 }
 
 type Features struct {
-	Users     int  `json:"users"`
-	LDAP      bool `json:"ldap"`
-	GoogleSSO bool `json:"google_sso"`
+	Users     *int  `json:"users"`
+	LDAP      *bool `json:"ldap"`
+	GoogleSSO *bool `json:"google_sso"`
+}
+
+func (f *Features) SetDefaults() {
+	if f.Users == nil {
+		f.Users = new(int)
+		*f.Users = 0
+	}
+
+	if f.LDAP == nil {
+		f.LDAP = new(bool)
+		*f.LDAP = true
+	}
+
+	if f.GoogleSSO == nil {
+		f.GoogleSSO = new(bool)
+		*f.GoogleSSO = true
+	}
 }
 
 func (l *License) IsExpired() bool {

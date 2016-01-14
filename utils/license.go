@@ -7,12 +7,13 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rsa"
-	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -22,7 +23,7 @@ import (
 )
 
 const (
-	LICENSE_FILE_LOC = "./data/active.dat"
+	LICENSE_FILENAME = "active.dat"
 )
 
 var IsLicensed bool = false
@@ -41,7 +42,7 @@ NxpC+5KFhU+xSeeklNqwCgnlOyZ7qSTxmdJHb+60SwuYnnGIYzLJhY4LYDr4J+KR
 -----END PUBLIC KEY-----`)
 
 func LoadLicense() {
-	file, err := os.Open(LICENSE_FILE_LOC)
+	file, err := os.Open(LicenseLocation())
 	if err != nil {
 		l4g.Warn("Unable to open/find license file")
 		return
@@ -53,18 +54,15 @@ func LoadLicense() {
 
 	if success, licenseStr := ValidateLicense(buf.Bytes()); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
-		if !license.IsExpired() && license.IsStarted() && license.StartsAt > License.StartsAt {
-			License = license
-			IsLicensed = true
-			ClientLicense = getClientLicense(license)
-			return
-		}
+		SetLicense(license)
 	}
 
 	l4g.Warn("No valid enterprise license found")
 }
 
 func SetLicense(license *model.License) bool {
+	license.Features.SetDefaults()
+
 	if !license.IsExpired() && license.IsStarted() {
 		License = license
 		IsLicensed = true
@@ -75,14 +73,21 @@ func SetLicense(license *model.License) bool {
 	return false
 }
 
-func RemoveLicense() {
+func LicenseLocation() string {
+	return filepath.Dir(CfgFileName) + "/" + LICENSE_FILENAME
+}
+
+func RemoveLicense() bool {
 	License = &model.License{}
 	IsLicensed = false
 	ClientLicense = getClientLicense(License)
 
-	if err := os.Remove(LICENSE_FILE_LOC); err != nil {
+	if err := os.Remove(LicenseLocation()); err != nil {
 		l4g.Error("Unable to remove license file, err=%v", err.Error())
+		return false
 	}
+
+	return true
 }
 
 func ValidateLicense(signed []byte) (bool, string) {
@@ -117,11 +122,11 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	rsaPublic := public.(*rsa.PublicKey)
 
-	h := sha256.New()
+	h := sha512.New()
 	h.Write(plaintext)
 	d := h.Sum(nil)
 
-	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA256, d, signature)
+	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
 	if err != nil {
 		l4g.Error("Invalid signature, err=%v", err.Error())
 		return false, ""
@@ -136,9 +141,9 @@ func getClientLicense(l *model.License) map[string]string {
 	props["IsLicensed"] = strconv.FormatBool(IsLicensed)
 
 	if IsLicensed {
-		props["Users"] = strconv.Itoa(l.Features.Users)
-		props["LDAP"] = strconv.FormatBool(l.Features.LDAP)
-		props["GoogleSSO"] = strconv.FormatBool(l.Features.GoogleSSO)
+		props["Users"] = strconv.Itoa(*l.Features.Users)
+		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
+		props["GoogleSSO"] = strconv.FormatBool(*l.Features.GoogleSSO)
 		props["IssuedAt"] = strconv.FormatInt(l.IssuedAt, 10)
 		props["StartsAt"] = strconv.FormatInt(l.StartsAt, 10)
 		props["ExpiresAt"] = strconv.FormatInt(l.ExpiresAt, 10)
