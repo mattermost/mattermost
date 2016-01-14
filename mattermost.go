@@ -31,11 +31,6 @@ import (
 	_ "github.com/go-ldap/ldap"
 )
 
-import (
-    _ "github.com/mattermost/enterprise/oauth/google"
-    _ "github.com/mattermost/enterprise/ldap"
-)
-
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
 var flagCmdAssignRole bool
