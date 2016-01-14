@@ -122,6 +122,11 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
+	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+		c.Err = model.NewAppError("createUser", "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.", "")
+		return
+	}
+
 	ruser, err := CreateUser(team, user)
 	if err != nil {
 		c.Err = err
@@ -136,19 +141,29 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
+func CheckUserDomain(user *model.User, domains string) bool {
+	if len(domains) == 0 {
+		return true
+	}
+
+	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domainArray {
+		if strings.HasSuffix(user.Email, "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	return matched
+}
+
 func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool {
 	shouldVerifyHash := true
 
 	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 && user != nil {
-		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(team.AllowedDomains, "@", " ", -1), ",", " ", -1))))
-
-		matched := false
-		for _, d := range domains {
-			if strings.HasSuffix(user.Email, "@"+d) {
-				matched = true
-				break
-			}
-		}
+		matched := CheckUserDomain(user, team.AllowedDomains)
 
 		if matched {
 			shouldVerifyHash = false

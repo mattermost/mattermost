@@ -35,6 +35,7 @@ type Page struct {
 	TemplateName      string
 	Props             map[string]string
 	ClientCfg         map[string]string
+	ClientLicense     map[string]string
 	User              *model.User
 	Team              *model.Team
 	Channel           *model.Channel

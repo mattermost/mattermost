@@ -201,11 +201,21 @@ export function displayDate(ticks) {
     return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
-export function displayTime(ticks) {
+export function displayTime(ticks, utc) {
     const d = new Date(ticks);
-    let hours = d.getHours();
-    let minutes = d.getMinutes();
+    let hours;
+    let minutes;
     let ampm = '';
+    let timezone = '';
+
+    if (utc) {
+        hours = d.getUTCHours();
+        minutes = d.getUTCMinutes();
+        timezone = ' UTC';
+    } else {
+        hours = d.getHours();
+        minutes = d.getMinutes();
+    }
 
     if (minutes <= 9) {
         minutes = '0' + minutes;
@@ -224,7 +234,7 @@ export function displayTime(ticks) {
         }
     }
 
-    return hours + ':' + minutes + ampm;
+    return hours + ':' + minutes + ampm + timezone;
 }
 
 export function displayDateTime(ticks) {
@@ -1300,4 +1310,17 @@ export function fillArray(value, length) {
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files) {
     return files.types != null && (files.types.indexOf ? files.types.indexOf('Files') !== -1 : files.types.contains('application/x-moz-file'));
+}
+
+export function clearFileInput(elm) {
+    // clear file input for all modern browsers
+    try {
+        elm.value = '';
+        if (elm.value) {
+            elm.type = 'text';
+            elm.type = 'file';
+        }
+    } catch (e) {
+        // Do nothing
+    }
 }

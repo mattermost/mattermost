@@ -90,14 +90,41 @@ export default class LdapSettings extends React.Component {
             saveClass = 'btn btn-primary';
         }
 
-        return (
-            <div className='wrapper--fixed'>
+        const licenseEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.LDAP === 'true';
+
+        let bannerContent;
+        if (licenseEnabled) {
+            bannerContent = (
                 <div className='banner'>
                     <div className='banner__content'>
                         <h4 className='banner__heading'>{'Note:'}</h4>
                         <p>{'If a user attribute changes on the LDAP server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from an LDAP server. Synchronization with LDAP servers is planned in a future release.'}</p>
                     </div>
                 </div>
+            );
+        } else {
+            bannerContent = (
+                <div className='banner warning'>
+                    <div className='banner__content'>
+                        <h4 className='banner__heading'>{'Note:'}</h4>
+                        <p>
+                            {'LDAP is an enterprise feature. Your current license does not support LDAP. Click '}
+                            <a
+                                href='http://mattermost.com'
+                                target='_blank'
+                            >
+                            {'here'}
+                            </a>
+                            {' for information and pricing on enterprise licenses.'}
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className='wrapper--fixed'>
+                {bannerContent}
                 <h3>{'LDAP Settings'}</h3>
                 <form
                     className='form-horizontal'
@@ -119,6 +146,7 @@ export default class LdapSettings extends React.Component {
                                     ref='Enable'
                                     defaultChecked={this.props.config.LdapSettings.Enable}
                                     onChange={this.handleEnable}
+                                    disabled={!licenseEnabled}
                                 />
                                 {'true'}
                             </label>

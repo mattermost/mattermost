@@ -31,7 +31,10 @@ import (
 	_ "github.com/go-ldap/ldap"
 )
 
-//ENTERPRISE_IMPORTS
+import (
+    _ "github.com/mattermost/enterprise/oauth/google"
+    _ "github.com/mattermost/enterprise/ldap"
+)
 
 var flagCmdCreateTeam bool
 var flagCmdCreateUser bool
@@ -66,6 +69,8 @@ func main() {
 	api.NewServer()
 	api.InitApi()
 	web.InitWeb()
+
+	utils.LoadLicense()
 
 	if flagRunCmds {
 		runCmds()

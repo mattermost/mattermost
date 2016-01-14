@@ -541,15 +541,23 @@ func writeFile(f []byte, path string) *model.AppError {
 			return model.NewAppError("writeFile", "Encountered an error writing to S3", err.Error())
 		}
 	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+path), 0774); err != nil {
-			return model.NewAppError("writeFile", "Encountered an error creating the directory for the new file", err.Error())
-		}
-
-		if err := ioutil.WriteFile(utils.Cfg.FileSettings.Directory+path, f, 0644); err != nil {
-			return model.NewAppError("writeFile", "Encountered an error writing to local server storage", err.Error())
+		if err := writeFileLocally(f, utils.Cfg.FileSettings.Directory+path); err != nil {
+			return err
 		}
 	} else {
 		return model.NewAppError("writeFile", "File storage not configured properly. Please configure for either S3 or local server file storage.", "")
+	}
+
+	return nil
+}
+
+func writeFileLocally(f []byte, path string) *model.AppError {
+	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
+		return model.NewAppError("writeFile", "Encountered an error creating the directory for the new file", err.Error())
+	}
+
+	if err := ioutil.WriteFile(path, f, 0644); err != nil {
+		return model.NewAppError("writeFile", "Encountered an error writing to local server storage", err.Error())
 	}
 
 	return nil
