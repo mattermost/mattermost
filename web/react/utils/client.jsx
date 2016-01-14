@@ -850,10 +850,68 @@ export function executeCommand(channelId, command, suggest, success, error) {
         dataType: 'json',
         contentType: 'application/json',
         type: 'POST',
-        data: JSON.stringify({channelId: channelId, command: command, suggest: '' + suggest}),
+        data: JSON.stringify({channelId, command, suggest: '' + suggest}),
         success,
         error: function onError(xhr, status, err) {
             var e = handleError('executeCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function addCommand(cmd, success, error) {
+    $.ajax({
+        url: '/api/v1/commands/create',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(cmd),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('addCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function deleteCommand(data, success, error) {
+    $.ajax({
+        url: '/api/v1/commands/delete',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('deleteCommand', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function listTeamCommands(success, error) {
+    $.ajax({
+        url: '/api/v1/commands/list_team_commands',
+        dataType: 'json',
+        type: 'GET',
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('listTeamCommands', xhr, status, err);
+            error(e);
+        }
+    });
+}
+
+export function regenCommandToken(data, success, error) {
+    $.ajax({
+        url: '/api/v1/commands/regen_token',
+        dataType: 'json',
+        contentType: 'application/json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success,
+        error: (xhr, status, err) => {
+            var e = handleError('regenCommandToken', xhr, status, err);
             error(e);
         }
     });

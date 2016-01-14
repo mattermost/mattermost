@@ -5,44 +5,66 @@ import LoadingScreen from '../loading_screen.jsx';
 
 import * as Client from '../../utils/client.jsx';
 
-export default class ManageCommandHooks extends React.Component {
+export default class ManageCommandCmds extends React.Component {
     constructor() {
         super();
 
-        this.getHooks = this.getHooks.bind(this);
-        this.addNewHook = this.addNewHook.bind(this);
+        this.getCmds = this.getCmds.bind(this);
+        this.addNewCmd = this.addNewCmd.bind(this);
+        this.emptyCmd = this.emptyCmd.bind(this);
         this.updateTrigger = this.updateTrigger.bind(this);
         this.updateURL = this.updateURL.bind(this);
+        this.updateMethod = this.updateMethod.bind(this);
+        this.updateUsername = this.updateUsername.bind(this);
+        this.updateIconURL = this.updateIconURL.bind(this);
+        this.updateDisplayName = this.updateDisplayName.bind(this);
+        this.updateAutoComplete = this.updateAutoComplete.bind(this);
+        this.updateAutoCompleteDesc = this.updateAutoCompleteDesc.bind(this);
+        this.updateAutoCompleteHint = this.updateAutoCompleteHint.bind(this);
 
-        this.state = {hooks: [], channelId: '', trigger: '', URL: '', getHooksComplete: false};
+        this.state = {cmds: [], cmd: this.emptyCmd(), getCmdsComplete: false};
+    }
+
+    emptyCmd() {
+        var cmd = {};
+        cmd.url = '';
+        cmd.trigger = '';
+        cmd.method = 'P';
+        cmd.username = '';
+        cmd.icon_url = '';
+        cmd.auto_complete = false;
+        cmd.auto_complete_desc = '';
+        cmd.auto_complete_hint = '';
+        cmd.display_name = '';
+        return cmd;
     }
 
     componentDidMount() {
-        this.getHooks();
+        this.getCmds();
     }
 
-    addNewHook(e) {
+    addNewCmd(e) {
         e.preventDefault();
 
-        if (this.state.trigger === '' || this.state.URL === '') {
+        if (this.state.cmd.trigger === '' || this.state.cmd.url === '') {
             return;
         }
 
-        const hook = {};
-        if (this.state.trigger.length !== 0) {
-            hook.trigger = this.state.trigger.trim();
+        var cmd = this.state.cmd;
+        if (cmd.trigger.length !== 0) {
+            cmd.trigger = cmd.trigger.trim();
         }
-        hook.url = this.state.URL.trim();
+        cmd.url = cmd.url.trim();
 
         Client.addCommand(
-            hook,
+            cmd,
             (data) => {
-                let hooks = Object.assign([], this.state.hooks);
-                if (!hooks) {
-                    hooks = [];
+                let cmds = Object.assign([], this.state.cmds);
+                if (!cmds) {
+                    cmds = [];
                 }
-                hooks.push(data);
-                this.setState({hooks, addError: null, triggerWords: '', URL: ''});
+                cmds.push(data);
+                this.setState({cmds, addError: null, cmd: this.emptyCmd()});
             },
             (err) => {
                 this.setState({addError: err.message});
@@ -50,27 +72,27 @@ export default class ManageCommandHooks extends React.Component {
         );
     }
 
-    removeHook(id) {
+    removeCmd(id) {
         const data = {};
         data.id = id;
 
         Client.deleteCommand(
             data,
             () => {
-                const hooks = this.state.hooks;
+                const cmds = this.state.cmds;
                 let index = -1;
-                for (let i = 0; i < hooks.length; i++) {
-                    if (hooks[i].id === id) {
+                for (let i = 0; i < cmds.length; i++) {
+                    if (cmds[i].id === id) {
                         index = i;
                         break;
                     }
                 }
 
                 if (index !== -1) {
-                    hooks.splice(index, 1);
+                    cmds.splice(index, 1);
                 }
 
-                this.setState({hooks});
+                this.setState({cmds});
             },
             (err) => {
                 this.setState({editError: err.message});
@@ -85,15 +107,15 @@ export default class ManageCommandHooks extends React.Component {
         Client.regenCommandToken(
             regenData,
             (data) => {
-                const hooks = Object.assign([], this.state.hooks);
-                for (let i = 0; i < hooks.length; i++) {
-                    if (hooks[i].id === id) {
-                        hooks[i] = data;
+                const cmds = Object.assign([], this.state.cmds);
+                for (let i = 0; i < cmds.length; i++) {
+                    if (cmds[i].id === id) {
+                        cmds[i] = data;
                         break;
                     }
                 }
 
-                this.setState({hooks, editError: null});
+                this.setState({cmds, editError: null});
             },
             (err) => {
                 this.setState({editError: err.message});
@@ -101,11 +123,11 @@ export default class ManageCommandHooks extends React.Component {
         );
     }
 
-    getHooks() {
-        Client.listCommands(
+    getCmds() {
+        Client.listTeamCommands(
             (data) => {
                 if (data) {
-                    this.setState({hooks: data, getHooksComplete: true, editError: null});
+                    this.setState({cmds: data, getCmdsComplete: true, editError: null});
                 }
             },
             (err) => {
@@ -115,11 +137,57 @@ export default class ManageCommandHooks extends React.Component {
     }
 
     updateTrigger(e) {
-        this.setState({trigger: e.target.value});
+        var cmd = this.state.cmd;
+        cmd.trigger = e.target.value;
+        this.setState(cmd);
     }
 
     updateURL(e) {
-        this.setState({URL: e.target.value});
+        var cmd = this.state.cmd;
+        cmd.url = e.target.value;
+        this.setState(cmd);
+    }
+
+    updateMethod(e) {
+        var cmd = this.state.cmd;
+        cmd.method = e.target.value;
+        this.setState(cmd);
+    }
+
+    updateUsername(e) {
+        var cmd = this.state.cmd;
+        cmd.username = e.target.value;
+        this.setState(cmd);
+    }
+
+    updateIconURL(e) {
+        var cmd = this.state.cmd;
+        cmd.icon_url = e.target.value;
+        this.setState(cmd);
+    }
+
+    updateDisplayName(e) {
+        var cmd = this.state.cmd;
+        cmd.display_name = e.target.value;
+        this.setState(cmd);
+    }
+
+    updateAutoComplete(e) {
+        var cmd = this.state.cmd;
+        cmd.auto_complete = e.target.checked;
+        this.setState(cmd);
+    }
+
+    updateAutoCompleteDesc(e) {
+        var cmd = this.state.cmd;
+        cmd.auto_complete_desc = e.target.value;
+        this.setState(cmd);
+    }
+
+    updateAutoCompleteHint(e) {
+        var cmd = this.state.cmd;
+        cmd.auto_complete_hint = e.target.value;
+        this.setState(cmd);
     }
 
     render() {
@@ -133,41 +201,62 @@ export default class ManageCommandHooks extends React.Component {
             addError = <label className='has-error'>{this.state.editError}</label>;
         }
 
-        const hooks = [];
-        this.state.hooks.forEach((hook) => {
+        const cmds = [];
+        this.state.cmds.forEach((cmd) => {
             let triggerDiv;
-            if (hook.trigger && hook.trigger.length !== 0) {
+            if (cmd.trigger && cmd.trigger.length !== 0) {
                 triggerDiv = (
                     <div className='padding-top'>
-                        <strong>{'Trigger: '}</strong>{hook.trigger}
+                        <strong>{'Trigger: '}</strong>{cmd.trigger}
                     </div>
                 );
             }
 
-            hooks.push(
+            cmds.push(
                 <div
-                    key={hook.id}
-                    className='webhook__item'
+                    key={cmd.id}
+                    className='webcmd__item'
                 >
-                    <div className='padding-top x2 webhook__url'>
-                        <strong>{'URL: '}</strong><span className='word-break--all'>{hook.url}</span>
+                    <div className='padding-top x2'>
+                        <strong>{'Display Name: '}</strong><span className='word-break--all'>{cmd.display_name}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>{'Username: '}</strong><span className='word-break--all'>{cmd.username}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>{'Icon URL: '}</strong><span className='word-break--all'>{cmd.icon_url}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>{'Auto Complete: '}</strong><span className='word-break--all'>{cmd.auto_complete ? 'yes' : 'no'}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>{'Auto Complete Description: '}</strong><span className='word-break--all'>{cmd.auto_complete_desc}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>{'Auto Complete Hint: '}</strong><span className='word-break--all'>{cmd.auto_complete_hint}</span>
+                    </div>
+                    <div className='padding-top x2'>
+                        <strong>{'Request Type: '}</strong><span className='word-break--all'>{cmd.method === 'P' ? 'POST' : 'GET'}</span>
+                    </div>
+                    <div className='padding-top x2 webcmd__url'>
+                        <strong>{'URL: '}</strong><span className='word-break--all'>{cmd.url}</span>
                     </div>
                     {triggerDiv}
                     <div className='padding-top'>
-                        <strong>{'Token: '}</strong>{hook.token}
+                        <strong>{'Token: '}</strong>{cmd.token}
                     </div>
                     <div className='padding-top'>
                         <a
                             className='text-danger'
                             href='#'
-                            onClick={this.regenToken.bind(this, hook.id)}
+                            onClick={this.regenToken.bind(this, cmd.id)}
                         >
                             {'Regen Token'}
                         </a>
                         <a
-                            className='webhook__remove'
+                            className='webcmd__remove'
                             href='#'
-                            onClick={this.removeHook.bind(this, hook.id)}
+                            onClick={this.removeCmd.bind(this, cmd.id)}
                         >
                             <span aria-hidden='true'>{'×'}</span>
                         </a>
@@ -177,29 +266,29 @@ export default class ManageCommandHooks extends React.Component {
             );
         });
 
-        let displayHooks;
-        if (!this.state.getHooksComplete) {
-            displayHooks = <LoadingScreen/>;
-        } else if (hooks.length > 0) {
-            displayHooks = hooks;
+        let displayCmds;
+        if (!this.state.getCmdsComplete) {
+            displayCmds = <LoadingScreen/>;
+        } else if (cmds.length > 0) {
+            displayCmds = cmds;
         } else {
-            displayHooks = <div className='padding-top x2'>{'None'}</div>;
+            displayCmds = <div className='padding-top x2'>{'None'}</div>;
         }
 
-        const existingHooks = (
-            <div className='webhooks__container'>
+        const existingCmds = (
+            <div className='webcmds__container'>
                 <label className='control-label padding-top x2'>{'Existing commands'}</label>
                 <div className='padding-top divider-light'></div>
-                <div className='webhooks__list'>
-                    {displayHooks}
+                <div className='webcmds__list'>
+                    {displayCmds}
                 </div>
             </div>
         );
 
-        const disableButton = this.state.trigger === '' || this.state.URL === '';
+        const disableButton = this.state.cmd.trigger === '' || this.state.cmd.url === '';
 
         return (
-            <div key='addCommandHook'>
+            <div key='addCommandCmd'>
                 {'Create commands to send new message events to an external integration. Please see '}
                 <a
                     href='http://mattermost.org/commands'
@@ -212,13 +301,52 @@ export default class ManageCommandHooks extends React.Component {
                 <div className='padding-top divider-light'></div>
                 <div className='padding-top'>
                     <div className='padding-top x2'>
+                        <label className='control-label'>{'Display Name:'}</label>
+                        <div className='padding-top'>
+                            <input
+                                ref='displayName'
+                                className='form-control'
+                                value={this.state.cmd.display_name}
+                                onChange={this.updateDisplayName}
+                                placeholder='Display Name'
+                            />
+                        </div>
+                        <div className='padding-top'>{'Command display name.'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Username:'}</label>
+                        <div className='padding-top'>
+                            <input
+                                ref='username'
+                                className='form-control'
+                                value={this.state.cmd.username}
+                                onChange={this.updateUsername}
+                                placeholder='Username'
+                            />
+                        </div>
+                        <div className='padding-top'>{'The username to use when overriding the post.'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Icon URL:'}</label>
+                        <div className='padding-top'>
+                            <input
+                                ref='iconURL'
+                                className='form-control'
+                                value={this.state.cmd.icon_url}
+                                onChange={this.updateIconURL}
+                                placeholder='https://www.example.com/myicon.png'
+                            />
+                        </div>
+                        <div className='padding-top'>{'URL to an icon'}</div>
+                    </div>
+                    <div className='padding-top x2'>
                         <label className='control-label'>{'Trigger:'}</label>
                         <div className='padding-top'>
                             {'/'}
                             <input
                                 ref='trigger'
                                 className='form-control'
-                                value={this.state.trigger}
+                                value={this.state.cmd.trigger}
                                 onChange={this.updateTrigger}
                                 placeholder='Command trigger e.g. "hello" not including the slash'
                             />
@@ -226,15 +354,69 @@ export default class ManageCommandHooks extends React.Component {
                         <div className='padding-top'>{'Word to trigger on'}</div>
                     </div>
                     <div className='padding-top x2'>
+                        <label className='control-label'>{'Autocomplete:'}</label>
+                        <div className='padding-top'>
+                            <label>
+                                <input
+                                    type='checkbox'
+                                    checked={this.state.cmd.auto_complete}
+                                    onChange={this.updateAutoComplete}
+                                />
+                                {'A short description of what this commands does'}
+                            </label>
+                        </div>
+                        <div className='padding-top'>{'Show this command in autocomplete list.'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Autocomplete Description:'}</label>
+                        <div className='padding-top'>
+                            <input
+                                ref='autoCompleteDesc'
+                                className='form-control'
+                                value={this.state.cmd.auto_complete_desc}
+                                onChange={this.updateAutoCompleteDesc}
+                                placeholder='A short description of what this commands does.'
+                            />
+                        </div>
+                        <div className='padding-top'>{'A short description of what this commands does.'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Autocomplete Hint:'}</label>
+                        <div className='padding-top'>
+                            <input
+                                ref='autoCompleteHint'
+                                className='form-control'
+                                value={this.state.cmd.auto_complete_hint}
+                                onChange={this.updateAutoCompleteHint}
+                                placeholder='[zipcode]'
+                            />
+                        </div>
+                        <div className='padding-top'>{'List parameters to be passed to the command.'}</div>
+                    </div>
+                    <div className='padding-top x2'>
+                        <label className='control-label'>{'Request Type:'}</label>
+                        <div className='padding-top'>
+                            <select
+                                ref='method'
+                                className='form-control'
+                                value={this.state.cmd.method}
+                                onChange={this.updateMethod}
+                            >
+                                <option value='P'>{'POST'}</option>
+                                <option value='G'>{'GET'}</option>
+                            </select>
+                        </div>
+                        <div className='padding-top'>{'Command request type issued to the callback URL.'}</div>
+                    </div>
+                    <div className='padding-top x2'>
                         <label className='control-label'>{'Callback URL:'}</label>
                         <div className='padding-top'>
-                        <textarea
+                        <input
                             ref='URL'
-                            className='form-control no-resize'
-                            value={this.state.URL}
-                            resize={false}
-                            rows={3}
-                            onChange={this.URL}
+                            className='form-control'
+                            value={this.state.cmd.url}
+                            rows={1}
+                            onChange={this.updateURL}
                             placeholder='Must start with http:// or https://'
                         />
                         </div>
@@ -246,13 +428,13 @@ export default class ManageCommandHooks extends React.Component {
                             className={'btn btn-sm btn-primary'}
                             href='#'
                             disabled={disableButton}
-                            onClick={this.addNewHook}
+                            onClick={this.addNewCmd}
                         >
                             {'Add'}
                         </a>
                     </div>
                 </div>
-                {existingHooks}
+                {existingCmds}
                 {editError}
             </div>
         );
