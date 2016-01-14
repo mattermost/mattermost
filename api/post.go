@@ -632,14 +632,21 @@ func sendNotificationsAndForget(c *Context, post *model.Post, team *model.Team, 
 							alreadySeen := make(map[string]string)
 
 							for _, session := range sessions {
-								if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" && strings.HasPrefix(session.DeviceId, "apple:") {
+								if len(session.DeviceId) > 0 && alreadySeen[session.DeviceId] == "" &&
+									(strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")) {
 									alreadySeen[session.DeviceId] = session.DeviceId
 
 									msg := model.PushNotification{}
-									msg.Platform = model.PUSH_NOTIFY_APPLE
 									msg.Badge = 1
-									msg.DeviceId = strings.TrimPrefix(session.DeviceId, "apple:")
 									msg.ServerId = utils.CfgDiagnosticId
+
+									if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":") {
+										msg.Platform = model.PUSH_NOTIFY_APPLE
+										msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_APPLE+":")
+									} else if strings.HasPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":") {
+										msg.Platform = model.PUSH_NOTIFY_ANDROID
+										msg.DeviceId = strings.TrimPrefix(session.DeviceId, model.PUSH_NOTIFY_ANDROID+":")
+									}
 
 									if channel.Type == model.CHANNEL_DIRECT {
 										msg.Message = senderName + " sent you a direct message"
