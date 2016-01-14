@@ -74,6 +74,21 @@ export function isSafari() {
     return false;
 }
 
+export function isIosChrome() {
+    // https://developer.chrome.com/multidevice/user-agent
+    return navigator.userAgent.indexOf('CriOS') !== -1;
+}
+
+export function isMobileApp() {
+    const userAgent = navigator.userAgent;
+
+    // the mobile app has different user agents for the native api calls and the shim, so handle them both
+    const isApi = userAgent.indexOf('Mattermost') !== -1;
+    const isShim = userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('Chrome') === -1;
+
+    return isApi || isShim;
+}
+
 export function isInRole(roles, inRole) {
     var parts = roles.split(' ');
     for (var i = 0; i < parts.length; i++) {
@@ -186,11 +201,21 @@ export function displayDate(ticks) {
     return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 
-export function displayTime(ticks) {
+export function displayTime(ticks, utc) {
     const d = new Date(ticks);
-    let hours = d.getHours();
-    let minutes = d.getMinutes();
+    let hours;
+    let minutes;
     let ampm = '';
+    let timezone = '';
+
+    if (utc) {
+        hours = d.getUTCHours();
+        minutes = d.getUTCMinutes();
+        timezone = ' UTC';
+    } else {
+        hours = d.getHours();
+        minutes = d.getMinutes();
+    }
 
     if (minutes <= 9) {
         minutes = '0' + minutes;
@@ -209,7 +234,7 @@ export function displayTime(ticks) {
         }
     }
 
-    return hours + ':' + minutes + ampm;
+    return hours + ':' + minutes + ampm + timezone;
 }
 
 export function displayDateTime(ticks) {
@@ -557,7 +582,7 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText, 1);
         changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6), 1);
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText, 1);
-        changeCss('.sidebar--left .status path', 'fill:' + theme.sidebarText, 1);
+        changeCss('.sidebar--left .status .offline--icon, .sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText, 1);
         changeCss('@media(max-width: 768px){.settings-modal .settings-table .nav>li>a', 'border-color:' + changeOpacity(theme.sidebarText, 0.2), 2);
     }
 
@@ -600,6 +625,10 @@ export function applyTheme(theme) {
 
     if (theme.onlineIndicator) {
         changeCss('.sidebar--left .status .online--icon', 'fill:' + theme.onlineIndicator, 1);
+    }
+
+    if (theme.awayIndicator) {
+        changeCss('.sidebar--left .status .away--icon', 'fill:' + theme.awayIndicator, 1);
     }
 
     if (theme.mentionBj) {
@@ -1275,4 +1304,23 @@ export function fillArray(value, length) {
     }
 
     return arr;
+}
+
+// Checks if a data transfer contains files not text, folders, etc..
+// Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
+export function isFileTransfer(files) {
+    return files.types != null && (files.types.indexOf ? files.types.indexOf('Files') !== -1 : files.types.contains('application/x-moz-file'));
+}
+
+export function clearFileInput(elm) {
+    // clear file input for all modern browsers
+    try {
+        elm.value = '';
+        if (elm.value) {
+            elm.type = 'text';
+            elm.type = 'file';
+        }
+    } catch (e) {
+        // Do nothing
+    }
 }

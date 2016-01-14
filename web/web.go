@@ -4,8 +4,8 @@
 package web
 
 import (
-	l4g "code.google.com/p/log4go"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
@@ -32,7 +32,7 @@ func NewHtmlTemplatePage(templateName string, title string) *HtmlTemplatePage {
 
 	props := make(map[string]string)
 	props["Title"] = title
-	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg}
+	return &HtmlTemplatePage{TemplateName: templateName, Props: props, ClientCfg: utils.ClientCfg, ClientLicense: utils.ClientLicense}
 }
 
 func (me *HtmlTemplatePage) Render(c *api.Context, w http.ResponseWriter) {
@@ -70,6 +70,8 @@ func InitWeb() {
 	mainrouter.Handle("/verify_email", api.AppHandlerIndependent(verifyEmail)).Methods("GET")
 	mainrouter.Handle("/find_team", api.AppHandlerIndependent(findTeam)).Methods("GET")
 	mainrouter.Handle("/signup_team", api.AppHandlerIndependent(signup)).Methods("GET")
+	mainrouter.Handle("/login/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(completeOAuth)).Methods("GET")  // Remove after a few releases (~1.8)
+	mainrouter.Handle("/signup/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(completeOAuth)).Methods("GET") // Remove after a few releases (~1.8)
 	mainrouter.Handle("/{service:[A-Za-z]+}/complete", api.AppHandlerIndependent(completeOAuth)).Methods("GET")
 
 	mainrouter.Handle("/admin_console", api.UserRequired(adminConsole)).Methods("GET")
@@ -711,7 +713,7 @@ func completeOAuth(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
-	uri := c.GetSiteURL() + "/" + service + "/complete"
+	uri := c.GetSiteURL() + "/signup/" + service + "/complete" // Remove /signup after a few releases (~1.8)
 
 	if body, team, props, err := api.AuthorizeOAuthUser(service, code, state, uri); err != nil {
 		c.Err = err

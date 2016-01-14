@@ -1,6 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import LoadingScreen from './loading_screen.jsx';
 import MemberList from './member_list.jsx';
 import ChannelInviteModal from './channel_invite_modal.jsx';
 
@@ -21,9 +22,10 @@ export default class ChannelMembersModal extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
 
-        const state = this.getStateFromStores();
-        state.showInviteModal = false;
-        this.state = state;
+        // the rest of the state gets populated when the modal is shown
+        this.state = {
+            showInviteModal: false
+        };
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (!Utils.areObjectsEqual(this.props, nextProps)) {
@@ -37,8 +39,18 @@ export default class ChannelMembersModal extends React.Component {
         return false;
     }
     getStateFromStores() {
+        const extraInfo = ChannelStore.getCurrentExtraInfo();
+
+        if (extraInfo.member_count !== extraInfo.members.length) {
+            AsyncClient.getChannelExtraInfo(this.props.channel.id, -1);
+
+            return {
+                loading: true
+            };
+        }
+
         const users = UserStore.getActiveOnlyProfiles();
-        const memberList = ChannelStore.getCurrentExtraInfo().members;
+        const memberList = extraInfo.members;
 
         const nonmemberList = [];
         for (const id in users) {
@@ -71,14 +83,14 @@ export default class ChannelMembersModal extends React.Component {
 
         return {
             nonmemberList,
-            memberList
+            memberList,
+            loading: false
         };
     }
     onShow() {
         if ($(window).width() > 768) {
             $(ReactDOM.findDOMNode(this.refs.modalBody)).perfectScrollbar();
         }
-        this.onChange();
     }
     componentDidUpdate(prevProps) {
         if (this.props.show && !prevProps.show) {
@@ -89,6 +101,8 @@ export default class ChannelMembersModal extends React.Component {
         if (!this.props.show && nextProps.show) {
             ChannelStore.addExtraInfoChangeListener(this.onChange);
             ChannelStore.addChangeListener(this.onChange);
+
+            this.onChange();
         } else if (this.props.show && !nextProps.show) {
             ChannelStore.removeExtraInfoChangeListener(this.onChange);
             ChannelStore.removeChangeListener(this.onChange);
@@ -154,6 +168,21 @@ export default class ChannelMembersModal extends React.Component {
             isAdmin = Utils.isAdmin(currentMember.roles) || Utils.isAdmin(UserStore.getCurrentUser().roles);
         }
 
+        let content;
+        if (this.state.loading) {
+            content = (<LoadingScreen />);
+        } else {
+            content = (
+                <div className='team-member-list'>
+                    <MemberList
+                        memberList={this.state.memberList}
+                        isAdmin={isAdmin}
+                        handleRemove={this.handleRemove}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div>
                 <Modal
@@ -178,13 +207,7 @@ export default class ChannelMembersModal extends React.Component {
                         ref='modalBody'
                         style={{maxHeight}}
                     >
-                        <div className='team-member-list'>
-                            <MemberList
-                                memberList={this.state.memberList}
-                                isAdmin={isAdmin}
-                                handleRemove={this.handleRemove}
-                            />
-                        </div>
+                        {content}
                     </Modal.Body>
                     <Modal.Footer>
                         <button

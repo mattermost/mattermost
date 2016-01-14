@@ -40,7 +40,6 @@ export default class CreatePost extends React.Component {
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
-        this.handleTextDrop = this.handleTextDrop.bind(this);
         this.removePreview = this.removePreview.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
@@ -276,11 +275,6 @@ export default class CreatePost extends React.Component {
             this.setState({uploadsInProgress: draft.uploadsInProgress, serverError: message});
         }
     }
-    handleTextDrop(text) {
-        const newText = this.state.messageText + text;
-        this.handleUserInput(newText);
-        Utils.setCaretPosition(ReactDOM.findDOMNode(this.refs.textbox.refs.message), newText.length);
-    }
     removePreview(id) {
         const previews = Object.assign([], this.state.previews);
         const uploadsInProgress = this.state.uploadsInProgress;
@@ -457,7 +451,6 @@ export default class CreatePost extends React.Component {
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
                                 onUploadError={this.handleUploadError}
-                                onTextDrop={this.handleTextDrop}
                                 postType='post'
                                 channelId=''
                             />

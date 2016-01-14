@@ -5,7 +5,7 @@ package api
 
 import (
 	"bytes"
-	l4g "code.google.com/p/log4go"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"html/template"
@@ -46,6 +46,7 @@ func InitApi() {
 	InitOAuth(r)
 	InitWebhook(r)
 	InitPreference(r)
+	InitLicense(r)
 
 	templatesDir := utils.FindDir("api/templates")
 	l4g.Debug("Parsing server templates at %v", templatesDir)

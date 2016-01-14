@@ -286,8 +286,10 @@ body.ios {
 	z-index: 50;
 	@include opacity(0);
 	@include single-transition(all, 0.3s);
+	display: none;
 
 	&.scrolling {
+		display: block;
 		@include opacity(1);
 	}
 }
@@ -416,12 +418,6 @@ body.ios {
 	&.post--highlight {
 		background-color: beige;
 	}
-
-	ul {
-		margin: 0;
-		padding: 0;
-	}
-
 
 	p {
 		margin: 0;
@@ -601,6 +597,7 @@ body.ios {
 			right: 0;
 			top: 30px;
 			width: 65px;
+			white-space: nowrap;
 		}
 
 		.permalink-popover {
@@ -634,8 +631,7 @@ body.ios {
 	.dropdown {
 		display: inline-block;
 		visibility: hidden;
-		position: absolute;
-		right: 0;
+		margin-right: 5px;
 		top: -1px;
 
 		.dropdown-menu {
@@ -671,20 +667,17 @@ body.ios {
 		@include legacy-pie-clearfix;
 		width: calc(100% - 75px);
 
+		p {
+			margin: 0 0 0.4em;
+		}
+
 		img {
 			max-height: 400px;
 		}
 
-		ul {
-		    margin-bottom: 0.6em;
-			padding: 5px 0 0 20px;
-		}
-
-		ul + p {
-			margin-top: 1em;
-		}
-
 		ul, ol {
+			margin-bottom: 0.4em;
+
 			p {
 				margin-bottom: 0;
 			}

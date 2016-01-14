@@ -1,10 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as client from '../utils/client.jsx';
+import * as Client from '../utils/client.jsx';
 import Constants from '../utils/constants.jsx';
 import ChannelStore from '../stores/channel_store.jsx';
-import * as utils from '../utils/utils.jsx';
+import * as Utils from '../utils/utils.jsx';
 
 export default class FileUpload extends React.Component {
     constructor(props) {
@@ -26,7 +26,7 @@ export default class FileUpload extends React.Component {
         for (var j = 0; j < data.client_ids.length; j++) {
             delete requests[data.client_ids[j]];
         }
-        this.setState({requests: requests});
+        this.setState({requests});
     }
 
     fileUploadFail(clientId, err) {
@@ -52,7 +52,7 @@ export default class FileUpload extends React.Component {
             }
 
             // generate a unique id that can be used by other components to refer back to this upload
-            let clientId = utils.generateId();
+            const clientId = Utils.generateId();
 
             // prepare data to be uploaded
             var formData = new FormData();
@@ -60,14 +60,14 @@ export default class FileUpload extends React.Component {
             formData.append('files', files[i], files[i].name);
             formData.append('client_ids', clientId);
 
-            var request = client.uploadFile(formData,
+            var request = Client.uploadFile(formData,
                 this.fileUploadSuccess.bind(this, channelId),
                 this.fileUploadFail.bind(this, clientId)
             );
 
             var requests = this.state.requests;
             requests[clientId] = request;
-            this.setState({requests: requests});
+            this.setState({requests});
 
             this.props.onUploadStart([clientId], channelId);
 
@@ -90,16 +90,7 @@ export default class FileUpload extends React.Component {
 
         this.uploadFiles(element.prop('files'));
 
-        // clear file input for all modern browsers
-        try {
-            element[0].value = '';
-            if (element.value) {
-                element[0].type = 'text';
-                element[0].type = 'file';
-            }
-        } catch (e) {
-            // Do nothing
-        }
+        Utils.clearFileInput(element[0]);
     }
 
     handleDrop(e) {
@@ -109,8 +100,6 @@ export default class FileUpload extends React.Component {
 
         if (typeof files !== 'string' && files.length) {
             this.uploadFiles(files);
-        } else {
-            this.props.onTextDrop(e.originalEvent.dataTransfer.getData('Text'));
         }
     }
 
@@ -120,11 +109,19 @@ export default class FileUpload extends React.Component {
 
         if (this.props.postType === 'post') {
             $('.row.main').dragster({
-                enter() {
-                    $('.center-file-overlay').removeClass('hidden');
+                enter(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (Utils.isFileTransfer(files)) {
+                        $('.center-file-overlay').removeClass('hidden');
+                    }
                 },
-                leave() {
-                    $('.center-file-overlay').addClass('hidden');
+                leave(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (Utils.isFileTransfer(files)) {
+                        $('.center-file-overlay').addClass('hidden');
+                    }
                 },
                 drop(dragsterEvent, e) {
                     $('.center-file-overlay').addClass('hidden');
@@ -133,11 +130,19 @@ export default class FileUpload extends React.Component {
             });
         } else if (this.props.postType === 'comment') {
             $('.post-right__container').dragster({
-                enter() {
-                    $('.right-file-overlay').removeClass('hidden');
+                enter(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (Utils.isFileTransfer(files)) {
+                        $('.right-file-overlay').removeClass('hidden');
+                    }
                 },
-                leave() {
-                    $('.right-file-overlay').addClass('hidden');
+                leave(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (Utils.isFileTransfer(files)) {
+                        $('.right-file-overlay').addClass('hidden');
+                    }
                 },
                 drop(dragsterEvent, e) {
                     $('.right-file-overlay').addClass('hidden');
@@ -191,7 +196,7 @@ export default class FileUpload extends React.Component {
                         var channelId = self.props.channelId || ChannelStore.getCurrentId();
 
                         // generate a unique id that can be used by other components to refer back to this file upload
-                        var clientId = utils.generateId();
+                        var clientId = Utils.generateId();
 
                         var formData = new FormData();
                         formData.append('channel_id', channelId);
@@ -213,20 +218,32 @@ export default class FileUpload extends React.Component {
                         formData.append('files', file, name);
                         formData.append('client_ids', clientId);
 
-                        var request = client.uploadFile(formData,
+                        var request = Client.uploadFile(formData,
                             self.fileUploadSuccess.bind(self, channelId),
                             self.fileUploadFail.bind(self, clientId)
                         );
 
                         var requests = self.state.requests;
                         requests[clientId] = request;
-                        self.setState({requests: requests});
+                        self.setState({requests});
 
                         self.props.onUploadStart([clientId], channelId);
                     }
                 }
             }
         });
+    }
+
+    componentWillUnmount() {
+        let target;
+        if (this.props.postType === 'post') {
+            target = $('.row.main');
+        } else {
+            target = $('.post-right__container');
+        }
+
+        // jquery-dragster doesn't provide a function to unregister itself so do it manually
+        target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
     }
 
     cancelUpload(clientId) {
@@ -237,11 +254,23 @@ export default class FileUpload extends React.Component {
             request.abort();
 
             delete requests[clientId];
-            this.setState({requests: requests});
+            this.setState({requests});
         }
     }
 
     render() {
+        let multiple = true;
+        if (Utils.isMobileApp()) {
+            // iOS WebViews don't upload videos properly in multiple mode
+            multiple = false;
+        }
+
+        let accept = '';
+        if (Utils.isIosChrome()) {
+            // iOS Chrome can't upload videos at all
+            accept = 'image/*';
+        }
+
         return (
             <span
                 ref='input'
@@ -254,7 +283,8 @@ export default class FileUpload extends React.Component {
                     ref='fileInput'
                     type='file'
                     onChange={this.handleChange}
-                    multiple='true'
+                    multiple={multiple}
+                    accept={accept}
                 />
             </span>
         );

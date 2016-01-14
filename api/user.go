@@ -5,9 +5,9 @@ package api
 
 import (
 	"bytes"
-	l4g "code.google.com/p/log4go"
 	b64 "encoding/base64"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
@@ -122,6 +122,11 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.EmailVerified = true
 	}
 
+	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+		c.Err = model.NewAppError("createUser", "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.", "")
+		return
+	}
+
 	ruser, err := CreateUser(team, user)
 	if err != nil {
 		c.Err = err
@@ -136,19 +141,29 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 }
 
+func CheckUserDomain(user *model.User, domains string) bool {
+	if len(domains) == 0 {
+		return true
+	}
+
+	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domainArray {
+		if strings.HasSuffix(user.Email, "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	return matched
+}
+
 func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool {
 	shouldVerifyHash := true
 
 	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 && user != nil {
-		domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(team.AllowedDomains, "@", " ", -1), ",", " ", -1))))
-
-		matched := false
-		for _, d := range domains {
-			if strings.HasSuffix(user.Email, "@"+d) {
-				matched = true
-				break
-			}
-		}
+		matched := CheckUserDomain(user, team.AllowedDomains)
 
 		if matched {
 			shouldVerifyHash = false
@@ -1794,7 +1809,7 @@ func GetAuthorizationCode(c *Context, service, teamName string, props map[string
 	props["team"] = teamName
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
-	redirectUri := c.GetSiteURL() + "/" + service + "/complete"
+	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete" // Remove /signup after a few releases (~1.8)
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 

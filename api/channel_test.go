@@ -674,7 +674,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "A Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
-	rget := Client.Must(Client.GetChannelExtraInfo(channel1.Id, ""))
+	rget := Client.Must(Client.GetChannelExtraInfo(channel1.Id, -1, ""))
 	data := rget.Data.(*model.ChannelExtra)
 	if data.Id != channel1.Id {
 		t.Fatal("couldnt't get extra info")
@@ -690,7 +690,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 
 	currentEtag := rget.Etag
 
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
 		t.Fatal(err)
 	} else if cache_result.Data.(*model.ChannelExtra) != nil {
 		t.Log(cache_result.Data)
@@ -708,7 +708,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	Client2.LoginByEmail(team.Name, user2.Email, "pwd")
 	Client2.Must(Client2.JoinChannel(channel1.Id))
 
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
 		t.Fatal(err)
 	} else if cache_result.Data.(*model.ChannelExtra) == nil {
 		t.Log(cache_result.Data)
@@ -717,7 +717,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 		currentEtag = cache_result.Etag
 	}
 
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
 		t.Fatal(err)
 	} else if cache_result.Data.(*model.ChannelExtra) != nil {
 		t.Log(cache_result.Data)
@@ -728,7 +728,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 
 	Client2.Must(Client2.LeaveChannel(channel1.Id))
 
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
 		t.Fatal(err)
 	} else if cache_result.Data.(*model.ChannelExtra) == nil {
 		t.Log(cache_result.Data)
@@ -737,7 +737,7 @@ func TestGetChannelExtraInfo(t *testing.T) {
 		currentEtag = cache_result.Etag
 	}
 
-	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, currentEtag); err != nil {
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, -1, currentEtag); err != nil {
 		t.Fatal(err)
 	} else if cache_result.Data.(*model.ChannelExtra) != nil {
 		t.Log(cache_result.Data)
@@ -745,6 +745,42 @@ func TestGetChannelExtraInfo(t *testing.T) {
 	} else {
 		currentEtag = cache_result.Etag
 	}
+
+	Client2.Must(Client2.JoinChannel(channel1.Id))
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, 2, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if extra := cache_result.Data.(*model.ChannelExtra); extra == nil {
+		t.Fatal("response should not be empty")
+	} else if len(extra.Members) != 2 {
+		t.Fatal("should've returned 2 members")
+	} else if extra.MemberCount != 2 {
+		t.Fatal("should've returned member count of 2")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, 1, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if extra := cache_result.Data.(*model.ChannelExtra); extra == nil {
+		t.Fatal("response should not be empty")
+	} else if len(extra.Members) != 1 {
+		t.Fatal("should've returned only 1 member")
+	} else if extra.MemberCount != 2 {
+		t.Fatal("should've returned member count of 2")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
+	if cache_result, err := Client.GetChannelExtraInfo(channel1.Id, 1, currentEtag); err != nil {
+		t.Fatal(err)
+	} else if cache_result.Data.(*model.ChannelExtra) != nil {
+		t.Log(cache_result.Data)
+		t.Fatal("response should be empty")
+	} else {
+		currentEtag = cache_result.Etag
+	}
+
 }
 
 func TestAddChannelMember(t *testing.T) {

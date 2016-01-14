@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	l4g "code.google.com/p/log4go"
+	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
 )
@@ -77,7 +77,9 @@ func configureLog(s *model.LogSettings) {
 			level = l4g.ERROR
 		}
 
-		l4g.AddFilter("stdout", level, l4g.NewConsoleLogWriter())
+		lw := l4g.NewConsoleLogWriter()
+		lw.SetFormat("[%D %T] [%L] %M")
+		l4g.AddFilter("stdout", level, lw)
 	}
 
 	if s.EnableFile {

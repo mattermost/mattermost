@@ -168,7 +168,7 @@ export function getMoreChannels(force) {
     }
 }
 
-export function getChannelExtraInfo(id) {
+export function getChannelExtraInfo(id, memberLimit) {
     let channelId;
     if (id) {
         channelId = id;
@@ -185,6 +185,7 @@ export function getChannelExtraInfo(id) {
 
         client.getChannelExtraInfo(
             channelId,
+            memberLimit,
             (data, textStatus, xhr) => {
                 callTracker['getChannelExtraInfo_' + channelId] = 0;
 

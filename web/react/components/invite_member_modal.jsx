@@ -8,6 +8,7 @@ import * as Client from '../utils/client.jsx';
 import * as EventHelpers from '../dispatcher/event_helpers.jsx';
 import ModalStore from '../stores/modal_store.jsx';
 import UserStore from '../stores/user_store.jsx';
+import ChannelStore from '../stores/channel_store.jsx';
 import TeamStore from '../stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
 
@@ -304,6 +305,11 @@ export default class InviteMemberModal extends React.Component {
             var content = null;
             var sendButton = null;
 
+            var defaultChannelName = '';
+            if (ChannelStore.getByName(Constants.DEFAULT_CHANNEL)) {
+                defaultChannelName = ChannelStore.getByName(Constants.DEFAULT_CHANNEL).display_name;
+            }
+
             if (this.state.emailEnabled && this.state.userCreationEnabled) {
                 content = (
                     <div>
@@ -312,10 +318,10 @@ export default class InviteMemberModal extends React.Component {
                             type='button'
                             className='btn btn-default'
                             onClick={this.addInviteFields}
-                        >Add another</button>
+                        >{'Add another'}</button>
                         <br/>
                         <br/>
-                        <span>People invited automatically join Town Square channel.</span>
+                        <span>{'People invited automatically join the '}<strong>{defaultChannelName}</strong>{' channel.'}</span>
                     </div>
                 );
 

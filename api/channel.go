@@ -4,12 +4,17 @@
 package api
 
 import (
-	l4g "code.google.com/p/log4go"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"net/http"
+	"strconv"
 	"strings"
+)
+
+const (
+	defaultExtraMemberLimit = 100
 )
 
 func InitChannel(r *mux.Router) {
@@ -27,6 +32,7 @@ func InitChannel(r *mux.Router) {
 	sr.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/", ApiUserRequiredActivity(getChannel, false)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
+	sr.Handle("/{id:[A-Za-z0-9]+}/extra_info/{member_limit:-?[0-9]+}", ApiUserRequired(getChannelExtraInfo)).Methods("GET")
 	sr.Handle("/{id:[A-Za-z0-9]+}/join", ApiUserRequired(join)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/leave", ApiUserRequired(leave)).Methods("POST")
 	sr.Handle("/{id:[A-Za-z0-9]+}/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -730,9 +736,18 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	params := mux.Vars(r)
 	id := params["id"]
+
+	var memberLimit int
+	if memberLimitString, ok := params["member_limit"]; !ok {
+		memberLimit = defaultExtraMemberLimit
+	} else if memberLimitInt64, err := strconv.ParseInt(memberLimitString, 10, 0); err != nil {
+		c.Err = model.NewAppError("getChannelExtraInfo", "Failed to parse member limit", err.Error())
+		return
+	} else {
+		memberLimit = int(memberLimitInt64)
+	}
 
 	sc := Srv.Store.Channel().Get(id)
 	var channel *model.Channel
@@ -743,13 +758,13 @@ func getChannelExtraInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel = cresult.Data.(*model.Channel)
 	}
 
-	extraEtag := channel.ExtraEtag()
+	extraEtag := channel.ExtraEtag(memberLimit)
 	if HandleEtag(extraEtag, w, r) {
 		return
 	}
 
 	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
-	ecm := Srv.Store.Channel().GetExtraMembers(id, 100)
+	ecm := Srv.Store.Channel().GetExtraMembers(id, memberLimit)
 	ccm := Srv.Store.Channel().GetMemberCount(id)
 
 	if cmresult := <-scm; cmresult.Err != nil {

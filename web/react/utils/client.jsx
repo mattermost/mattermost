@@ -824,10 +824,17 @@ export function getChannelCounts(success, error) {
     });
 }
 
-export function getChannelExtraInfo(id, success, error) {
+export function getChannelExtraInfo(id, memberLimit, success, error) {
+    let url = '/api/v1/channels/' + id + '/extra_info';
+
+    if (memberLimit) {
+        url += '/' + memberLimit;
+    }
+
     $.ajax({
-        url: '/api/v1/channels/' + id + '/extra_info',
+        url,
         dataType: 'json',
+        contentType: 'application/json',
         type: 'GET',
         success,
         error: function onError(xhr, status, err) {
@@ -1398,4 +1405,39 @@ export function regenOutgoingHookToken(data, success, error) {
             error(e);
         }
     });
+}
+
+export function uploadLicenseFile(formData, success, error) {
+    $.ajax({
+        url: '/api/v1/license/add',
+        type: 'POST',
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('uploadLicenseFile', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_license_upload');
+}
+
+export function removeLicenseFile(success, error) {
+    $.ajax({
+        url: '/api/v1/license/remove',
+        type: 'POST',
+        cache: false,
+        contentType: false,
+        processData: false,
+        success,
+        error: function onError(xhr, status, err) {
+            var e = handleError('removeLicenseFile', xhr, status, err);
+            error(e);
+        }
+    });
+
+    track('api', 'api_license_upload');
 }

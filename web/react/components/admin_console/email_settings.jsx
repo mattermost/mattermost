@@ -254,7 +254,7 @@ export default class EmailSettings extends React.Component {
                                 />
                                     {'false'}
                             </label>
-                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.'}</p>
+                            <p className='help-text'>{'Typically set to true in production. When true, Mattermost attempts to send email notifications. Developers may set this field to false to skip email setup for faster development.\nSetting this to true removes the Preview Mode banner (requires logging out and logging back in after setting is changed).'}</p>
                         </div>
                     </div>
 
@@ -581,12 +581,12 @@ export default class EmailSettings extends React.Component {
                                 className='form-control'
                                 id='PushNotificationServer'
                                 ref='PushNotificationServer'
-                                placeholder='E.g.: "https://push.mattermost.com"'
+                                placeholder='E.g.: "https://push-test.mattermost.com"'
                                 defaultValue={this.props.config.EmailSettings.PushNotificationServer}
                                 onChange={this.handleChange}
                                 disabled={!this.state.sendPushNotifications}
                             />
-                            <p className='help-text'>{'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'}</p>
+                            <p className='help-text'>{'Location of Mattermost push notification service you can set up behind your firewall using https://github.com/mattermost/push-proxy. For testing you can use https://push-test.mattermost.com, which connects to the sample Mattermost iOS app in the public Apple AppStore. Please do not use test service for production deployments.'}</p>
                         </div>
                     </div>
 

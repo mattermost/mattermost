@@ -9,6 +9,8 @@ web/static/js/bundle*.js
 web/static/js/bundle*.js.map
 web/static/js/libs*.js
 
+config/active.dat
+
 # Build Targets
 .prepare
 .prepare-go

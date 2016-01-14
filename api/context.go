@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "code.google.com/p/log4go"
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -35,6 +35,7 @@ type Page struct {
 	TemplateName      string
 	Props             map[string]string
 	ClientCfg         map[string]string
+	ClientLicense     map[string]string
 	User              *model.User
 	Team              *model.Team
 	Channel           *model.Channel

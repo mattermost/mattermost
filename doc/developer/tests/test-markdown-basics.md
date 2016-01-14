@@ -18,6 +18,18 @@ Normal Text_
 _Normal Text  
 _Normal Text*
 
+### Carriage Return  
+
+**The following text should render as:**  
+Line #1 followed by Line #2  
+Line #2 followed by one blank line
+
+Line #3 followed by one blank line
+
+
+Line #4 following one blank line  
+
+
 ### Code Blocks
 
 ```
@@ -119,7 +131,7 @@ Text below line
 
 **The following markdown should render within the block quote:**  
 > #### Heading 4  
-> _Italics_, *Italics*, **Bold**, ***Bold-italics***, **Bold-italics_**, ~~Strikethrough~~  
+> _Italics_, *Italics*, **Bold**, ***Bold-italics***, **_Bold-italics_**, ~~Strikethrough~~  
 > :) :-) ;) :-O :bamboo: :gift_heart: :dolls:  
 
 **The following text should render in two block quotes separated by one line of text:**
